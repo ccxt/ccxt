@@ -804,19 +804,134 @@ class zb extends Exchange {
         return $this->safe_balance($result);
     }
 
+    public function parse_margin_balance($response, $marginType) {
+        $result = array(
+            'info' => $response,
+        );
+        $levers = null;
+        if ($marginType === 'isolated') {
+            $message = $this->safe_value($response, 'message', array());
+            $data = $this->safe_value($message, 'datas', array());
+            $levers = $this->safe_value($data, 'levers', array());
+        } else {
+            $crossResponse = $this->safe_value($response, 'result', array());
+            $levers = $this->safe_value($crossResponse, 'list', array());
+        }
+        for ($i = 0; $i < count($levers); $i++) {
+            $balance = $levers[$i];
+            //
+            // Isolated Margin
+            //
+            //     {
+            //         "cNetUSD" => "0.00",
+            //         "repayLeverShow" => "-",
+            //         "cCanLoanIn" => "0.002115400000000",
+            //         "fNetCNY" => "147.76081161",
+            //         "fLoanIn" => "0.00",
+            //         "repayLevel" => 0,
+            //         "level" => 1,
+            //         "netConvertCNY" => "147.760811613032",
+            //         "cFreeze" => "0.00",
+            //         "cUnitTag" => "BTC",
+            //         "version" => 1646783178609,
+            //         "cAvailableUSD" => "0.00",
+            //         "cNetCNY" => "0.00",
+            //         "riskRate" => "-",
+            //         "fAvailableUSD" => "20.49273433",
+            //         "fNetUSD" => "20.49273432",
+            //         "cShowName" => "BTC",
+            //         "leverMultiple" => "5.00",
+            //         "couldTransferOutFiat" => "20.49273433",
+            //         "noticeLine" => "1.13",
+            //         "fFreeze" => "0.00",
+            //         "cUnitDecimal" => 8,
+            //         "fCanLoanIn" => "81.970937320000000",
+            //         "cAvailable" => "0.00",
+            //         "repayLock" => false,
+            //         "status" => 1,
+            //         "forbidType" => 0,
+            //         "totalConvertCNY" => "147.760811613032",
+            //         "cAvailableCNY" => "0.00",
+            //         "unwindPrice" => "0.00",
+            //         "fOverdraft" => "0.00",
+            //         "fShowName" => "USDT",
+            //         "statusShow" => "%E6%AD%A3%E5%B8%B8",
+            //         "cOverdraft" => "0.00",
+            //         "netConvertUSD" => "20.49273433",
+            //         "cNetBtc" => "0.00",
+            //         "loanInConvertCNY" => "0.00",
+            //         "fAvailableCNY" => "147.760811613032",
+            //         "key" => "btcusdt",
+            //         "fNetBtc" => "0.0005291",
+            //         "fUnitDecimal" => 8,
+            //         "loanInConvertUSD" => "0.00",
+            //         "showName" => "BTC/USDT",
+            //         "startLine" => "1.25",
+            //         "totalConvertUSD" => "20.49273433",
+            //         "couldTransferOutCoin" => "0.00",
+            //         "cEnName" => "BTC",
+            //         "leverMultipleInterest" => "3.00",
+            //         "fAvailable" => "20.49273433",
+            //         "fEnName" => "USDT",
+            //         "forceRepayLine" => "1.08",
+            //         "cLoanIn" => "0.00"
+            //     }
+            //
+            // Cross Margin
+            //
+            //     array(
+            //         array(
+            //             "fundType" => 2,
+            //             "loanIn" => 0,
+            //             "amount" => 0,
+            //             "freeze" => 0,
+            //             "overdraft" => 0,
+            //             "key" => "BTC",
+            //             "canTransferOut" => 0
+            //         ),
+            //     ),
+            //
+            $account = $this->account();
+            if ($marginType === 'isolated') {
+                $code = $this->safe_currency_code($this->safe_string($balance, 'fShowName'));
+                $account['total'] = $this->safe_string($balance, 'fAvailableUSD'); // total amount in USD
+                $account['free'] = $this->safe_string($balance, 'couldTransferOutFiat');
+                $account['used'] = $this->safe_string($balance, 'fFreeze');
+                $result[$code] = $account;
+            } else {
+                $code = $this->safe_currency_code($this->safe_string($balance, 'key'));
+                $account['total'] = $this->safe_string($balance, 'amount');
+                $account['free'] = $this->safe_string($balance, 'canTransferOut');
+                $account['used'] = $this->safe_string($balance, 'freeze');
+                $result[$code] = $account;
+            }
+        }
+        return $this->safe_balance($result);
+    }
+
     public function fetch_balance($params = array ()) {
         yield $this->load_markets();
         list($marketType, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        $margin = ($marketType === 'margin');
+        $swap = ($marketType === 'swap');
+        $marginMethod = null;
+        $defaultMargin = $margin ? 'isolated' : 'cross';
+        $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', $defaultMargin);
+        if ($marginType === 'isolated') {
+            $marginMethod = 'spotV1PrivateGetGetLeverAssetsInfo';
+        } else if ($marginType === 'cross') {
+            $marginMethod = 'spotV1PrivateGetGetCrossAssets';
+        }
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'spotV1PrivateGetGetAccountInfo',
             'swap' => 'contractV2PrivateGetFundBalance',
+            'margin' => $marginMethod,
         ));
         $request = array(
             // 'futuresAccountType' => 1, // SWAP
             // 'currencyId' => currency['id'], // SWAP
             // 'currencyName' => 'usdt', // SWAP
         );
-        $swap = ($marketType === 'swap');
         if ($swap) {
             $request['futuresAccountType'] = 1;
         }
@@ -881,10 +996,105 @@ class zb extends Exchange {
         //         "desc" => "操作成功"
         //     }
         //
+        // Isolated Margin
+        //
+        //     {
+        //         "code" => 1000,
+        //         "message" => {
+        //             "des" => "success",
+        //             "isSuc" => true,
+        //             "datas" => {
+        //                 "leverPerm" => true,
+        //                 "levers" => array(
+        //                     {
+        //                         "cNetUSD" => "0.00",
+        //                         "repayLeverShow" => "-",
+        //                         "cCanLoanIn" => "0.002115400000000",
+        //                         "fNetCNY" => "147.76081161",
+        //                         "fLoanIn" => "0.00",
+        //                         "repayLevel" => 0,
+        //                         "level" => 1,
+        //                         "netConvertCNY" => "147.760811613032",
+        //                         "cFreeze" => "0.00",
+        //                         "cUnitTag" => "BTC",
+        //                         "version" => 1646783178609,
+        //                         "cAvailableUSD" => "0.00",
+        //                         "cNetCNY" => "0.00",
+        //                         "riskRate" => "-",
+        //                         "fAvailableUSD" => "20.49273433",
+        //                         "fNetUSD" => "20.49273432",
+        //                         "cShowName" => "BTC",
+        //                         "leverMultiple" => "5.00",
+        //                         "couldTransferOutFiat" => "20.49273433",
+        //                         "noticeLine" => "1.13",
+        //                         "fFreeze" => "0.00",
+        //                         "cUnitDecimal" => 8,
+        //                         "fCanLoanIn" => "81.970937320000000",
+        //                         "cAvailable" => "0.00",
+        //                         "repayLock" => false,
+        //                         "status" => 1,
+        //                         "forbidType" => 0,
+        //                         "totalConvertCNY" => "147.760811613032",
+        //                         "cAvailableCNY" => "0.00",
+        //                         "unwindPrice" => "0.00",
+        //                         "fOverdraft" => "0.00",
+        //                         "fShowName" => "USDT",
+        //                         "statusShow" => "%E6%AD%A3%E5%B8%B8",
+        //                         "cOverdraft" => "0.00",
+        //                         "netConvertUSD" => "20.49273433",
+        //                         "cNetBtc" => "0.00",
+        //                         "loanInConvertCNY" => "0.00",
+        //                         "fAvailableCNY" => "147.760811613032",
+        //                         "key" => "btcusdt",
+        //                         "fNetBtc" => "0.0005291",
+        //                         "fUnitDecimal" => 8,
+        //                         "loanInConvertUSD" => "0.00",
+        //                         "showName" => "BTC/USDT",
+        //                         "startLine" => "1.25",
+        //                         "totalConvertUSD" => "20.49273433",
+        //                         "couldTransferOutCoin" => "0.00",
+        //                         "cEnName" => "BTC",
+        //                         "leverMultipleInterest" => "3.00",
+        //                         "fAvailable" => "20.49273433",
+        //                         "fEnName" => "USDT",
+        //                         "forceRepayLine" => "1.08",
+        //                         "cLoanIn" => "0.00"
+        //                     }
+        //                 )
+        //             }
+        //         }
+        //     }
+        //
+        // Cross Margin
+        //
+        //     {
+        //         "code" => 1000,
+        //         "message" => "操作成功",
+        //         "result" => {
+        //             "loanIn" => 0,
+        //             "total" => 71.167,
+        //             "riskRate" => "-",
+        //             "list" :array(
+        //                 array(
+        //                     "fundType" => 2,
+        //                     "loanIn" => 0,
+        //                     "amount" => 0,
+        //                     "freeze" => 0,
+        //                     "overdraft" => 0,
+        //                     "key" => "BTC",
+        //                     "canTransferOut" => 0
+        //                 ),
+        //             ),
+        //             "net" => 71.167
+        //         }
+        //     }
+        //
         // todo => use this somehow
         // $permissions = $response['result']['base'];
         if ($swap) {
             return $this->parse_swap_balance($response);
+        } else if ($margin) {
+            return $this->parse_margin_balance($response, $marginType);
         } else {
             return $this->parse_balance($response);
         }

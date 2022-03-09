@@ -805,19 +805,129 @@ class zb(Exchange):
             result[code] = account
         return self.safe_balance(result)
 
+    def parse_margin_balance(self, response, marginType):
+        result = {
+            'info': response,
+        }
+        levers = None
+        if marginType == 'isolated':
+            message = self.safe_value(response, 'message', {})
+            data = self.safe_value(message, 'datas', {})
+            levers = self.safe_value(data, 'levers', [])
+        else:
+            crossResponse = self.safe_value(response, 'result', {})
+            levers = self.safe_value(crossResponse, 'list', [])
+        for i in range(0, len(levers)):
+            balance = levers[i]
+            #
+            # Isolated Margin
+            #
+            #     {
+            #         "cNetUSD": "0.00",
+            #         "repayLeverShow": "-",
+            #         "cCanLoanIn": "0.002115400000000",
+            #         "fNetCNY": "147.76081161",
+            #         "fLoanIn": "0.00",
+            #         "repayLevel": 0,
+            #         "level": 1,
+            #         "netConvertCNY": "147.760811613032",
+            #         "cFreeze": "0.00",
+            #         "cUnitTag": "BTC",
+            #         "version": 1646783178609,
+            #         "cAvailableUSD": "0.00",
+            #         "cNetCNY": "0.00",
+            #         "riskRate": "-",
+            #         "fAvailableUSD": "20.49273433",
+            #         "fNetUSD": "20.49273432",
+            #         "cShowName": "BTC",
+            #         "leverMultiple": "5.00",
+            #         "couldTransferOutFiat": "20.49273433",
+            #         "noticeLine": "1.13",
+            #         "fFreeze": "0.00",
+            #         "cUnitDecimal": 8,
+            #         "fCanLoanIn": "81.970937320000000",
+            #         "cAvailable": "0.00",
+            #         "repayLock": False,
+            #         "status": 1,
+            #         "forbidType": 0,
+            #         "totalConvertCNY": "147.760811613032",
+            #         "cAvailableCNY": "0.00",
+            #         "unwindPrice": "0.00",
+            #         "fOverdraft": "0.00",
+            #         "fShowName": "USDT",
+            #         "statusShow": "%E6%AD%A3%E5%B8%B8",
+            #         "cOverdraft": "0.00",
+            #         "netConvertUSD": "20.49273433",
+            #         "cNetBtc": "0.00",
+            #         "loanInConvertCNY": "0.00",
+            #         "fAvailableCNY": "147.760811613032",
+            #         "key": "btcusdt",
+            #         "fNetBtc": "0.0005291",
+            #         "fUnitDecimal": 8,
+            #         "loanInConvertUSD": "0.00",
+            #         "showName": "BTC/USDT",
+            #         "startLine": "1.25",
+            #         "totalConvertUSD": "20.49273433",
+            #         "couldTransferOutCoin": "0.00",
+            #         "cEnName": "BTC",
+            #         "leverMultipleInterest": "3.00",
+            #         "fAvailable": "20.49273433",
+            #         "fEnName": "USDT",
+            #         "forceRepayLine": "1.08",
+            #         "cLoanIn": "0.00"
+            #     }
+            #
+            # Cross Margin
+            #
+            #     [
+            #         {
+            #             "fundType": 2,
+            #             "loanIn": 0,
+            #             "amount": 0,
+            #             "freeze": 0,
+            #             "overdraft": 0,
+            #             "key": "BTC",
+            #             "canTransferOut": 0
+            #         },
+            #     ],
+            #
+            account = self.account()
+            if marginType == 'isolated':
+                code = self.safe_currency_code(self.safe_string(balance, 'fShowName'))
+                account['total'] = self.safe_string(balance, 'fAvailableUSD')  # total amount in USD
+                account['free'] = self.safe_string(balance, 'couldTransferOutFiat')
+                account['used'] = self.safe_string(balance, 'fFreeze')
+                result[code] = account
+            else:
+                code = self.safe_currency_code(self.safe_string(balance, 'key'))
+                account['total'] = self.safe_string(balance, 'amount')
+                account['free'] = self.safe_string(balance, 'canTransferOut')
+                account['used'] = self.safe_string(balance, 'freeze')
+                result[code] = account
+        return self.safe_balance(result)
+
     def fetch_balance(self, params={}):
         self.load_markets()
         marketType, query = self.handle_market_type_and_params('fetchBalance', None, params)
+        margin = (marketType == 'margin')
+        swap = (marketType == 'swap')
+        marginMethod = None
+        defaultMargin = 'isolated' if margin else 'cross'
+        marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', defaultMargin)
+        if marginType == 'isolated':
+            marginMethod = 'spotV1PrivateGetGetLeverAssetsInfo'
+        elif marginType == 'cross':
+            marginMethod = 'spotV1PrivateGetGetCrossAssets'
         method = self.get_supported_mapping(marketType, {
             'spot': 'spotV1PrivateGetGetAccountInfo',
             'swap': 'contractV2PrivateGetFundBalance',
+            'margin': marginMethod,
         })
         request = {
             # 'futuresAccountType': 1,  # SWAP
             # 'currencyId': currency['id'],  # SWAP
             # 'currencyName': 'usdt',  # SWAP
         }
-        swap = (marketType == 'swap')
         if swap:
             request['futuresAccountType'] = 1
         response = getattr(self, method)(self.extend(request, query))
@@ -881,10 +991,105 @@ class zb(Exchange):
         #         "desc": "操作成功"
         #     }
         #
+        # Isolated Margin
+        #
+        #     {
+        #         "code": 1000,
+        #         "message": {
+        #             "des": "success",
+        #             "isSuc": True,
+        #             "datas": {
+        #                 "leverPerm": True,
+        #                 "levers": [
+        #                     {
+        #                         "cNetUSD": "0.00",
+        #                         "repayLeverShow": "-",
+        #                         "cCanLoanIn": "0.002115400000000",
+        #                         "fNetCNY": "147.76081161",
+        #                         "fLoanIn": "0.00",
+        #                         "repayLevel": 0,
+        #                         "level": 1,
+        #                         "netConvertCNY": "147.760811613032",
+        #                         "cFreeze": "0.00",
+        #                         "cUnitTag": "BTC",
+        #                         "version": 1646783178609,
+        #                         "cAvailableUSD": "0.00",
+        #                         "cNetCNY": "0.00",
+        #                         "riskRate": "-",
+        #                         "fAvailableUSD": "20.49273433",
+        #                         "fNetUSD": "20.49273432",
+        #                         "cShowName": "BTC",
+        #                         "leverMultiple": "5.00",
+        #                         "couldTransferOutFiat": "20.49273433",
+        #                         "noticeLine": "1.13",
+        #                         "fFreeze": "0.00",
+        #                         "cUnitDecimal": 8,
+        #                         "fCanLoanIn": "81.970937320000000",
+        #                         "cAvailable": "0.00",
+        #                         "repayLock": False,
+        #                         "status": 1,
+        #                         "forbidType": 0,
+        #                         "totalConvertCNY": "147.760811613032",
+        #                         "cAvailableCNY": "0.00",
+        #                         "unwindPrice": "0.00",
+        #                         "fOverdraft": "0.00",
+        #                         "fShowName": "USDT",
+        #                         "statusShow": "%E6%AD%A3%E5%B8%B8",
+        #                         "cOverdraft": "0.00",
+        #                         "netConvertUSD": "20.49273433",
+        #                         "cNetBtc": "0.00",
+        #                         "loanInConvertCNY": "0.00",
+        #                         "fAvailableCNY": "147.760811613032",
+        #                         "key": "btcusdt",
+        #                         "fNetBtc": "0.0005291",
+        #                         "fUnitDecimal": 8,
+        #                         "loanInConvertUSD": "0.00",
+        #                         "showName": "BTC/USDT",
+        #                         "startLine": "1.25",
+        #                         "totalConvertUSD": "20.49273433",
+        #                         "couldTransferOutCoin": "0.00",
+        #                         "cEnName": "BTC",
+        #                         "leverMultipleInterest": "3.00",
+        #                         "fAvailable": "20.49273433",
+        #                         "fEnName": "USDT",
+        #                         "forceRepayLine": "1.08",
+        #                         "cLoanIn": "0.00"
+        #                     }
+        #                 ]
+        #             }
+        #         }
+        #     }
+        #
+        # Cross Margin
+        #
+        #     {
+        #         "code": 1000,
+        #         "message": "操作成功",
+        #         "result": {
+        #             "loanIn": 0,
+        #             "total": 71.167,
+        #             "riskRate": "-",
+        #             "list" :[
+        #                 {
+        #                     "fundType": 2,
+        #                     "loanIn": 0,
+        #                     "amount": 0,
+        #                     "freeze": 0,
+        #                     "overdraft": 0,
+        #                     "key": "BTC",
+        #                     "canTransferOut": 0
+        #                 },
+        #             ],
+        #             "net": 71.167
+        #         }
+        #     }
+        #
         # todo: use self somehow
         # permissions = response['result']['base']
         if swap:
             return self.parse_swap_balance(response)
+        elif margin:
+            return self.parse_margin_balance(response, marginType)
         else:
             return self.parse_balance(response)
 
