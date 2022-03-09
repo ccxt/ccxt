@@ -4056,6 +4056,7 @@ class binance(Exchange):
             method = 'dapiPublicGetFundingRate'
         if symbol is not None:
             market = self.market(symbol)
+            symbol = market['symbol']
             request['symbol'] = market['id']
             if market['linear']:
                 method = 'fapiPublicGetFundingRate'

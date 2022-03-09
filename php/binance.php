@@ -4251,6 +4251,7 @@ class binance extends Exchange {
         }
         if ($symbol !== null) {
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $request['symbol'] = $market['id'];
             if ($market['linear']) {
                 $method = 'fapiPublicGetFundingRate';
