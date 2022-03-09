@@ -362,9 +362,9 @@ class gateio(Exchange):
                 'apiKey': True,
                 'secret': True,
             },
-            # 'headers': {
-            #     'X-Gate-Channel-Id': 'ccxt',
-            # },
+            'headers': {
+                'X-Gate-Channel-Id': 'ccxt',
+            },
             'options': {
                 'createOrder': {
                     'expiration': 86400,  # for conditional orders
