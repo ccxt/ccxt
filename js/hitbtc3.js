@@ -1539,6 +1539,7 @@ module.exports = class hitbtc3 extends Exchange {
         };
         if (symbol !== undefined) {
             market = this.market (symbol);
+            symbol = market['symbol'];
             request['symbols'] = market['id'];
         }
         if (since !== undefined) {
