@@ -1743,7 +1743,9 @@ module.exports = class zb extends Exchange {
         const market = this.market (symbol);
         const swap = market['swap'];
         const spot = market['spot'];
-        const timeInForce = this.safeString (params, 'timeInForce');
+        let timeInForce = this.safeString (params, 'timeInForce');
+        let postOnly = undefined;
+        [ type, postOnly, timeInForce, params ] = this.isPostOnly (type, timeInForce, type === 2, params);
         if (type === 'market') {
             throw new InvalidOrder (this.id + ' createOrder() on ' + market['type'] + ' markets does not allow market orders');
         }
@@ -1772,12 +1774,16 @@ module.exports = class zb extends Exchange {
             } else if (side === 'sell') {
                 request['side'] = 2; // open short
             }
-            if (type === 'limit') {
+            if (postOnly) {
+                if (market['spot']) {
+                    request['orderType'] = 2;
+                } else {
+                    request['action'] = 4;
+                }
+            } else if (type === 'limit') {
                 request['action'] = 1;
             } else if (timeInForce === 'IOC') {
                 request['action'] = 3;
-            } else if (timeInForce === 'PO') {
-                request['action'] = 4;
             } else if (timeInForce === 'FOK') {
                 request['action'] = 5;
             } else {
