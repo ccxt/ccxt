@@ -35,6 +35,8 @@ module.exports = class bitso extends Exchange {
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchDepositAddress': true,
+                'fetchFundingFee': false,
+                'fetchFundingFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -524,43 +526,44 @@ module.exports = class bitso extends Exchange {
         //        success: true,
         //        payload: {
         //            fees: [
-        //                  {
-        //                      book: 'btc_mxn',
-        //                      fee_percent: '0.6500',
-        //                      fee_decimal: '0.00650000',
-        //                      taker_fee_percent: '0.6500',
-        //                      taker_fee_decimal: '0.00650000',
-        //                      maker_fee_percent: '0.5000',
-        //                      maker_fee_decimal: '0.00500000',
-        //                      volume_currency: 'mxn',
-        //                      current_volume: '0.00',
-        //                      next_volume: '1500000.00',
-        //                      next_maker_fee_percent: '0.490',
-        //                      next_taker_fee_percent: '0.637',
-        //                      nextVolume: '1500000.00',
-        //                      nextFee: '0.490',
-        //                      nextTakerFee: '0.637'
-        //                  },
-        //                  ...
-        //                ],
-        //        deposit_fees: [
-        //            {
-        //                currency: 'btc',
-        //                method: 'rewards',
-        //                fee: '0.00',
-        //                is_fixed: false
-        //            },
-        //            ...
-        //        ],
-        //        withdrawal_fees: {
-        //            ada: '0.20958100',
-        //            bch: '0.00009437',
-        //            ars: '0',
-        //            btc: '0.00001209',
-        //            ...
+        //                {
+        //                    book: 'btc_mxn',
+        //                    fee_percent: '0.6500',
+        //                    fee_decimal: '0.00650000',
+        //                    taker_fee_percent: '0.6500',
+        //                    taker_fee_decimal: '0.00650000',
+        //                    maker_fee_percent: '0.5000',
+        //                    maker_fee_decimal: '0.00500000',
+        //                    volume_currency: 'mxn',
+        //                    current_volume: '0.00',
+        //                    next_volume: '1500000.00',
+        //                    next_maker_fee_percent: '0.490',
+        //                    next_taker_fee_percent: '0.637',
+        //                    nextVolume: '1500000.00',
+        //                    nextFee: '0.490',
+        //                    nextTakerFee: '0.637'
+        //                },
+        //                ...
+        //            ],
+        //            deposit_fees: [
+        //                {
+        //                    currency: 'btc',
+        //                    method: 'rewards',
+        //                    fee: '0.00',
+        //                    is_fixed: false
+        //                },
+        //                ...
+        //            ],
+        //            withdrawal_fees: {
+        //                ada: '0.20958100',
+        //                bch: '0.00009437',
+        //                ars: '0',
+        //                btc: '0.00001209',
+        //                ...
         //            }
         //        }
         //    }
+        //
         const payload = this.safeValue (response, 'payload', {});
         const fees = this.safeValue (payload, 'fees', []);
         const result = {};
@@ -755,6 +758,77 @@ module.exports = class bitso extends Exchange {
             'tag': tag,
             'network': undefined,
             'info': response,
+        };
+    }
+
+    async fetchFundingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetFees (params);
+         //
+        //    {
+        //        success: true,
+        //        payload: {
+        //            fees: [
+        //                {
+        //                    book: 'btc_mxn',
+        //                    fee_percent: '0.6500',
+        //                    fee_decimal: '0.00650000',
+        //                    taker_fee_percent: '0.6500',
+        //                    taker_fee_decimal: '0.00650000',
+        //                    maker_fee_percent: '0.5000',
+        //                    maker_fee_decimal: '0.00500000',
+        //                    volume_currency: 'mxn',
+        //                    current_volume: '0.00',
+        //                    next_volume: '1500000.00',
+        //                    next_maker_fee_percent: '0.490',
+        //                    next_taker_fee_percent: '0.637',
+        //                    nextVolume: '1500000.00',
+        //                    nextFee: '0.490',
+        //                    nextTakerFee: '0.637'
+        //                },
+        //                ...
+        //            ],
+        //            deposit_fees: [
+        //                {
+        //                    currency: 'btc',
+        //                    method: 'rewards',
+        //                    fee: '0.00',
+        //                    is_fixed: false
+        //                },
+        //                ...
+        //            ],
+        //            withdrawal_fees: {
+        //                ada: '0.20958100',
+        //                bch: '0.00009437',
+        //                ars: '0',
+        //                btc: '0.00001209',
+        //                ...
+        //            }
+        //        }
+        //    }
+        //
+        const payload = this.safeValue (response, 'payload', {});
+        const depositFees = this.safeValue (payload, 'deposit_fees', []);
+        const deposit = {};
+        // check is fixed and reward?
+        for (let i = 0; i < depositFees.length; i++) {
+            const depositFee = depositFees[i];
+            const currencyId = this.safeString (depositFee, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            deposit[code] = this.safeNumber (depositFee, 'fee');
+        }
+        const withdraw = {};
+        const withdrawalFees = this.safeValue (payload, 'withdrawal_fees', []);
+        const currencyIds = Object.keys (withdrawalFees);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const code = this.safeCurrencyCode (currencyId);
+            withdraw[code] = this.safeNumber (withdrawalFees, currencyId)
+        }
+        return {
+            'info': response,
+            'deposit': deposit,
+            'withdraw': withdraw,
         };
     }
 
