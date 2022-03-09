@@ -243,15 +243,23 @@ class IndexedOrderBookSide extends Array  {
                 if (index_price === old_price) {
                     const index = bisectLeft (this.index, index_price)
                     this.index[index] = index_price
-                    this[index] = delta
+                    if (index < this.length) {
+                        this[index] = delta
+                    } else {
+                        this.hidden.set (index_price, delta)
+                    }
                     return
                 } else {
                     // remove old price from index
                     const old_index = bisectLeft (this.index, old_price)
-                    this.index.copyWithin (old_index, old_index + 1, this.length)
-                    this.index[this.length - 1] = Number.MAX_VALUE
-                    this.copyWithin (old_index, old_index + 1, this.length)
-                    this.length--
+                    this.index.copyWithin (old_index, old_index + 1, this.index.length)
+                    this.index[this.length + this.hidden.size - 1] = Number.MAX_VALUE
+                    if (this.hidden.has (old_price)) {
+                        this.hidden.delete (old_price)
+                    } else {
+                        this.copyWithin (old_index, old_index + 1, this.length)
+                        this.length--
+                    }
                 }
             }
             // insert new price level
@@ -259,11 +267,15 @@ class IndexedOrderBookSide extends Array  {
             const index = bisectLeft (this.index, index_price)
             // insert new price level into index
             this.length++
-            this.index.copyWithin (index + 1, index, this.length)
+            this.index.copyWithin (index + 1, index, this.index.length)
             this.index[index] = index_price
-            //const innerIndex = this.side ? this.length - index - 1: index;
-            this.copyWithin (index + 1, index, this.length)
-            this[index] = delta
+            if (index < this.length) {
+                this.copyWithin (index + 1, index, this.length)
+                this[index] = delta
+            } else {
+                this.hidden.set (index_price, delta)
+                this.length--
+            }
             // in the rare case of very large orderbooks being sent
             if (this.length > this.index.length - 1) {
                 const existing = Array.from (this.index)
@@ -274,41 +286,44 @@ class IndexedOrderBookSide extends Array  {
         } else if (this.hashmap.has (id)) {
             const old_price = this.hashmap.get (id)
             const index = bisectLeft (this.index, old_price)
-            this.index.copyWithin (index, index + 1, this.length)
+            this.index.copyWithin (index, index + 1, this.index.length)
             this.index[this.length - 1] = Number.MAX_VALUE
-            this.copyWithin (index, index + 1, this.length)
+            if (this.hidden.has (old_price)) {
+                this.hidden.delete (old_price)
+            } else {
+                this.copyWithin (index, index + 1, this.length)
+                this.length--
+            }
             this.hashmap.delete (id)
-            this.length--
         }
     }
 
     // replace stored orders with new values
     limit (n = undefined) {
-        if (n === undefined) {
-            if (this.hidden.size) {
-                const end = this.length + this.hidden.size
-                for (let i = this.length; i < end; i++) {
-                    this.push (this.hidden.get (this.index[i]))
-                }
-                this.hidden.clear ()
+        if (n < this.length) {
+            // we store some hidden stuff for when the book is temporarily limited to the user
+            for (let i = n; i < this.length; i++) {
+                this.hidden.set (this.index[i], this[i])
             }
-        } else {
-            if (n < this.length) {
-                // we store some hidden stuff for when the book is temporarily limited to the user
-                for (let i = n; i < this.length; i++) {
-                    this.hidden.set (this.index[i], this[i])
-                }
-                this.length = n
+            this.length = n
+        }
+        if (this.hidden.size) {
+            let end = this.length + this.hidden.size
+            if (n !== undefined) {
+                end = Math.min (end, n)
             }
-            this.length = Math.min (n, this.length)
+            for (let i = this.length; i < end; i++) {
+                this.push (this.hidden.get (this.index[i]))
+                this.hidden.delete (this.index[i])
+            }
         }
         if (this.length > this.depth) {
             for (let i = this.depth; i < this.length; i++) {
-                // only difference from OrderBookSide.limit
+                // diff
                 this.hashmap.delete (this.index[i])
-                // end diff
                 this.index[i] = Number.MAX_VALUE
             }
+            this.hidden.clear ()
             this.length = this.depth
         }
     }
