@@ -63,6 +63,9 @@ class huobi(Exchange, ccxt.huobi):
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
                 'api': 'api',  # or api-aws for clients hosted on AWS
+                'watchOrderBookSnapshot': {
+                    'delay': 1000,
+                },
                 'ws': {
                     'gunzip': True,
                 },
@@ -77,23 +80,9 @@ class huobi(Exchange, ccxt.huobi):
     async def watch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        # only supports a limit of 150 at self time
         messageHash = 'market.' + market['id'] + '.detail'
-        api = self.safe_string(self.options, 'api', 'api')
-        hostname = {'hostname': self.hostname}
-        url = self.implode_params(self.urls['api']['ws'][api]['spot']['public'], hostname)
-        requestId = self.request_id()
-        request = {
-            'sub': messageHash,
-            'id': requestId,
-        }
-        subscription = {
-            'id': requestId,
-            'messageHash': messageHash,
-            'symbol': symbol,
-            'params': params,
-        }
-        return await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
+        url = self.get_url_by_market_type(market['type'], market['linear'])
+        return await self.subscribe_public(url, symbol, messageHash, None, params)
 
     def handle_ticker(self, client, message):
         #
@@ -181,22 +170,8 @@ class huobi(Exchange, ccxt.huobi):
         market = self.market(symbol)
         interval = self.timeframes[timeframe]
         messageHash = 'market.' + market['id'] + '.kline.' + interval
-        api = self.safe_string(self.options, 'api', 'api')
-        hostname = {'hostname': self.hostname}
-        url = self.implode_params(self.urls['api']['ws'][api]['spot']['public'], hostname)
-        requestId = self.request_id()
-        request = {
-            'sub': messageHash,
-            'id': requestId,
-        }
-        subscription = {
-            'id': requestId,
-            'messageHash': messageHash,
-            'symbol': symbol,
-            'timeframe': timeframe,
-            'params': params,
-        }
-        ohlcv = await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
+        url = self.get_url_by_market_type(market['type'], market['linear'])
+        ohlcv = await self.subscribe_public(url, symbol, messageHash, None, params)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
@@ -291,6 +266,11 @@ class huobi(Exchange, ccxt.huobi):
         client.resolve(orderbook, messageHash)
 
     async def watch_order_book_snapshot(self, client, message, subscription):
+        # quick-fix to avoid getting outdated snapshots
+        options = self.safe_value(self.options, 'watchOrderBookSnapshot', {})
+        delay = self.safe_integer(options, 'delay')
+        if delay is not None:
+            await self.sleep(delay)
         symbol = self.safe_string(subscription, 'symbol')
         limit = self.safe_integer(subscription, 'limit')
         params = self.safe_value(subscription, 'params')
@@ -382,17 +362,14 @@ class huobi(Exchange, ccxt.huobi):
         #         "ts":1645023376098
         #      }
         tick = self.safe_value(message, 'tick', {})
-        seqNum = self.safe_integer(tick, 'seqNum')
+        seqNum = self.safe_integer_2(tick, 'seqNum', 'id')
         prevSeqNum = self.safe_integer(tick, 'prevSeqNum')
-        if prevSeqNum is None or ((prevSeqNum <= orderbook['nonce']) and (seqNum > orderbook['nonce'])):
+        if (prevSeqNum is None or prevSeqNum <= orderbook['nonce']) and (seqNum > orderbook['nonce']):
             asks = self.safe_value(tick, 'asks', [])
             bids = self.safe_value(tick, 'bids', [])
             self.handle_deltas(orderbook['asks'], asks)
             self.handle_deltas(orderbook['bids'], bids)
-            if seqNum is not None:
-                orderbook['nonce'] = seqNum
-            else:
-                orderbook['nonce'] = self.safe_integer(tick, 'mrid')
+            orderbook['nonce'] = seqNum
             timestamp = self.safe_integer(message, 'ts')
             orderbook['timestamp'] = timestamp
             orderbook['datetime'] = self.iso8601(timestamp)

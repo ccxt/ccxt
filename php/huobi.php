@@ -64,6 +64,9 @@ class huobi extends \ccxt\async\huobi {
                 'tradesLimit' => 1000,
                 'OHLCVLimit' => 1000,
                 'api' => 'api', // or api-aws for clients hosted on AWS
+                'watchOrderBookSnapshot' => array(
+                    'delay' => 1000,
+                ),
                 'ws' => array(
                     'gunzip' => true,
                 ),
@@ -80,23 +83,9 @@ class huobi extends \ccxt\async\huobi {
     public function watch_ticker($symbol, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
-        // only supports a limit of 150 at this time
         $messageHash = 'market.' . $market['id'] . '.detail';
-        $api = $this->safe_string($this->options, 'api', 'api');
-        $hostname = array( 'hostname' => $this->hostname );
-        $url = $this->implode_params($this->urls['api']['ws'][$api]['spot']['public'], $hostname);
-        $requestId = $this->request_id();
-        $request = array(
-            'sub' => $messageHash,
-            'id' => $requestId,
-        );
-        $subscription = array(
-            'id' => $requestId,
-            'messageHash' => $messageHash,
-            'symbol' => $symbol,
-            'params' => $params,
-        );
-        return yield $this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription);
+        $url = $this->get_url_by_market_type($market['type'], $market['linear']);
+        return yield $this->subscribe_public($url, $symbol, $messageHash, null, $params);
     }
 
     public function handle_ticker($client, $message) {
@@ -191,22 +180,8 @@ class huobi extends \ccxt\async\huobi {
         $market = $this->market($symbol);
         $interval = $this->timeframes[$timeframe];
         $messageHash = 'market.' . $market['id'] . '.kline.' . $interval;
-        $api = $this->safe_string($this->options, 'api', 'api');
-        $hostname = array( 'hostname' => $this->hostname );
-        $url = $this->implode_params($this->urls['api']['ws'][$api]['spot']['public'], $hostname);
-        $requestId = $this->request_id();
-        $request = array(
-            'sub' => $messageHash,
-            'id' => $requestId,
-        );
-        $subscription = array(
-            'id' => $requestId,
-            'messageHash' => $messageHash,
-            'symbol' => $symbol,
-            'timeframe' => $timeframe,
-            'params' => $params,
-        );
-        $ohlcv = yield $this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription);
+        $url = $this->get_url_by_market_type($market['type'], $market['linear']);
+        $ohlcv = yield $this->subscribe_public($url, $symbol, $messageHash, null, $params);
         if ($this->newUpdates) {
             $limit = $ohlcv->getLimit ($symbol, $limit);
         }
@@ -311,6 +286,12 @@ class huobi extends \ccxt\async\huobi {
     }
 
     public function watch_order_book_snapshot($client, $message, $subscription) {
+        // quick-fix to avoid getting outdated snapshots
+        $options = $this->safe_value($this->options, 'watchOrderBookSnapshot', array());
+        $delay = $this->safe_integer($options, 'delay');
+        if ($delay !== null) {
+            yield $this->sleep($delay);
+        }
         $symbol = $this->safe_string($subscription, 'symbol');
         $limit = $this->safe_integer($subscription, 'limit');
         $params = $this->safe_value($subscription, 'params');
@@ -409,18 +390,14 @@ class huobi extends \ccxt\async\huobi {
         //         "ts":1645023376098
         //      }
         $tick = $this->safe_value($message, 'tick', array());
-        $seqNum = $this->safe_integer($tick, 'seqNum');
+        $seqNum = $this->safe_integer_2($tick, 'seqNum', 'id');
         $prevSeqNum = $this->safe_integer($tick, 'prevSeqNum');
-        if ($prevSeqNum === null || (($prevSeqNum <= $orderbook['nonce']) && ($seqNum > $orderbook['nonce']))) {
+        if (($prevSeqNum === null || $prevSeqNum <= $orderbook['nonce']) && ($seqNum > $orderbook['nonce'])) {
             $asks = $this->safe_value($tick, 'asks', array());
             $bids = $this->safe_value($tick, 'bids', array());
             $this->handle_deltas($orderbook['asks'], $asks);
             $this->handle_deltas($orderbook['bids'], $bids);
-            if ($seqNum !== null) {
-                $orderbook['nonce'] = $seqNum;
-            } else {
-                $orderbook['nonce'] = $this->safe_integer($tick, 'mrid');
-            }
+            $orderbook['nonce'] = $seqNum;
             $timestamp = $this->safe_integer($message, 'ts');
             $orderbook['timestamp'] = $timestamp;
             $orderbook['datetime'] = $this->iso8601($timestamp);

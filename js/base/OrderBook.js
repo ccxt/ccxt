@@ -79,13 +79,15 @@ class OrderBook {
     }
 
     reset (snapshot = {}) {
-        this.asks.index.clear ()
+        this.asks.index.fill (Number.MAX_VALUE)
+        this.asks.length = 0
         if (snapshot.asks) {
             for (let i = 0; i < snapshot.asks.length; i++) {
                 this.asks.storeArray (snapshot.asks[i])
             }
         }
-        this.bids.index.clear ()
+        this.bids.index.fill (Number.MAX_VALUE)
+        this.bids.length = 0
         if (snapshot.bids) {
             for (let i = 0; i < snapshot.bids.length; i++) {
                 this.bids.storeArray (snapshot.bids[i])
