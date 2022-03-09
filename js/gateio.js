@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { ExchangeError, AuthenticationError, BadRequest } = require ('ccxt/js/base/errors');
+const { ExchangeError, AuthenticationError, BadRequest, ArgumentsRequired } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -514,27 +514,25 @@ module.exports = class gateio extends ccxt.gateio {
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol argument');
+        }
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
-        const method = 'order.update';
-        let messageHash = method;
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            messageHash = method + ':' + market['id'];
+        const market = this.market (symbol);
+        let type = 'spot';
+        if (market['future']) {
+            type = 'futures';
+        } else if (market['option']) {
+            type = 'options';
         }
-        const url = this.urls['api']['ws'];
-        await this.authenticate ();
-        const requestId = this.nonce ();
-        const subscribeMessage = {
-            'id': requestId,
-            'method': 'order.subscribe',
-            'params': [],
-        };
-        const subscription = {
-            'id': requestId,
-        };
-        const orders = await this.watch (url, messageHash, subscribeMessage, method, subscription);
+        const method = type + '.orders';
+        let messageHash = method;
+        messageHash = method + ':' + market['id'];
+        const isBtcContract = ((type !== 'spot') && (market['settleId'] === 'btc')) ? true : false;
+        const url = this.getUrlByMarketType (market['type'], isBtcContract);
+        const payload = [market['id']];
+        const orders = await this.subscribePrivate (url, method, messageHash, payload, undefined);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
