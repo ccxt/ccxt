@@ -857,26 +857,31 @@ module.exports = class huobi extends ccxt.huobi {
         //        "feeDeduct":"0",
         //        "feeDeductType":""
         //  }
-        const symbol = this.safeString (trade, 'symbol');
+        const symbol = this.safeSymbol (this.safeString (trade, 'symbol'));
         const side = this.safeString2 (trade, 'side', 'orderSide');
         const tradeId = this.safeString (trade, 'tradeId');
         const price = this.safeString (trade, 'tradePrice');
         const amount = this.safeString (trade, 'tradeVolume');
+        const cost = this.safeString (trade, 'orderValue');
         const order = this.safeString (trade, 'orderId');
         const timestamp = this.safeInteger (trade, 'tradeTime');
         const market = this.market (symbol);
         let orderType = this.safeString (trade, 'orderType');
+        const aggressor = this.safeValue (trade, 'aggressor');
+        let takerOrMaker = undefined;
+        if (aggressor !== undefined) {
+            takerOrMaker = aggressor ? 'taker' : 'maker';
+        }
         let type = undefined;
         if (orderType !== undefined) {
             orderType = orderType.split ('-');
             type = this.safeString (orderType, 1);
         }
         let fee = undefined;
-        const feeCurrency = this.safeString (trade, 'feeCurrency');
+        const feeCurrency = this.safeCurrencyCode (this.safeString (trade, 'feeCurrency'));
         if (feeCurrency !== undefined) {
             fee = {
-                'cost': this.safeString (trade, 'feeDeduct'),
-                'rate': undefined,
+                'cost': this.safeString (trade, 'transactFee'),
                 'currency': feeCurrency,
             };
         }
@@ -888,7 +893,7 @@ module.exports = class huobi extends ccxt.huobi {
             'id': tradeId,
             'order': order,
             'type': type,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'side': side,
             'price': price,
             'amount': amount,
@@ -915,10 +920,6 @@ module.exports = class huobi extends ccxt.huobi {
             url = isPrivate ? subTypeUrl['private'] : subTypeUrl['public'];
         }
         return url;
-    }
-
-    getHostnameByMarketType (type) {
-        return type === 'spot' ? this.urls['hostnames']['spot'] : this.urls['hostnames']['contract'];
     }
 
     async subscribePublic (url, symbol, messageHash, method = undefined, params = {}) {
@@ -961,7 +962,7 @@ module.exports = class huobi extends ccxt.huobi {
         }
         const isLinear = subtype === 'linear';
         const url = this.getUrlByMarketType (type, isLinear, true);
-        const hostname = this.getHostnameByMarketType (type);
+        const hostname = (type === 'spot') ? this.urls['hostnames']['spot'] : this.urls['hostnames']['contract'];
         const authParams = {
             'type': type,
             'url': url,
