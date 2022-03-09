@@ -32,6 +32,7 @@ module.exports = class idex extends Exchange {
                 'addMargin': false,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': false,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,

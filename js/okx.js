@@ -32,6 +32,7 @@ module.exports = class okx extends Exchange {
                 'cancelOrders': true,
                 'createDepositAddress': undefined,
                 'createOrder': true,
+                'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': undefined,
                 'deposit': undefined,
                 'fetchAccounts': true,

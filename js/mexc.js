@@ -30,6 +30,7 @@ module.exports = class mexc extends Exchange {
                 'cancelOrder': true,
                 'createMarketOrder': false,
                 'createOrder': true,
+                'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': false,
                 'fetchBalance': true,
                 'fetchCanceledOrders': true,

@@ -33,6 +33,7 @@ module.exports = class aax extends Exchange {
                 'cancelOrders': undefined,
                 'createDepositAddress': undefined,
                 'createOrder': true,
+                'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': false,
                 'deposit': undefined,
                 'editOrder': true,
