@@ -45,6 +45,9 @@ test_script:
 cache:
   - '%APPDATA%\npm-cache'
   - '%LOCALAPPDATA%\pip\Cache'
+  - C:\ProgramData\chocolatey\bin
+  - C:\ProgramData\chocolatey\lib
+  - .cache
 after_build:
   # Remove old or huge cache files to hopefully not exceed the 1GB cache limit.
   #
