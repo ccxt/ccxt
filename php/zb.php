@@ -40,6 +40,7 @@ class zb extends Exchange {
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
@@ -3065,6 +3066,47 @@ class zb extends Exchange {
             throw new ArgumentsRequired($this->id . ' addMargin() requires a positionsId argument in the params');
         }
         return $this->modify_margin_helper($symbol, $amount, 1, $params);
+    }
+
+    public function fetch_borrow_rate($code, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'coin' => $currency['id'],
+        );
+        $response = $this->spotV1PrivateGetGetLoans (array_merge($request, $params));
+        //
+        //     {
+        //         $code => '1000',
+        //         message => '操作成功',
+        //         result => array(
+        //             array(
+        //                 interestRateOfDay => '0.0005',
+        //                 repaymentDay => '30',
+        //                 amount => '148804.4841',
+        //                 balance => '148804.4841',
+        //                 rateOfDayShow => '0.05 %',
+        //                 coinName => 'USDT',
+        //                 lowestAmount => '0.01'
+        //             ),
+        //         )
+        //     }
+        //
+        $timestamp = $this->milliseconds();
+        $data = $this->safe_value($response, 'result');
+        $rates = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $entry = $data[$i];
+            $rates[] = array(
+                'currency' => $this->safe_currency_code($this->safe_string($entry, 'coinName')),
+                'rate' => $this->safe_number($entry, 'interestRateOfDay'),
+                'period' => $this->safe_number($entry, 'repaymentDay'),
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+                'info' => $entry,
+            );
+        }
+        return $rates;
     }
 
     public function nonce() {
