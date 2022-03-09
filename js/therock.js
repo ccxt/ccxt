@@ -1245,7 +1245,7 @@ module.exports = class therock extends Exchange {
         //         base_currency_decimals: '8',
         //         trade_currency_decimals: '3',
         //         leverages: []
-        //      }
+        //     }
         //
         request = {
             'id': market['quoteId'],
@@ -1256,10 +1256,10 @@ module.exports = class therock extends Exchange {
         //         "currency":"BTC",
         //         "discount":50.0,
         //         "details": {
-        //           "personal_discount": 50.0,
-        //           "commissions_related_discount": 0.0
+        //             "personal_discount": 50.0,
+        //             "commissions_related_discount": 0.0
         //         }
-        //      }
+        //     }
         //
         return this.parseTradingFee (response, discount, market);
     }
@@ -1268,41 +1268,39 @@ module.exports = class therock extends Exchange {
         await this.loadMarkets ();
         const response = await this.publicGetFunds (params);
         //
-        //        {
-        //            funds: [
-        //                {
-        //                id: 'BTCEUR',
-        //                description: 'Trade Bitcoin with Euro',
-        //                type: 'currency',
-        //                base_currency: 'EUR',
-        //                trade_currency: 'BTC',
-        //                buy_fee: '0.2',
-        //                sell_fee: '0.2',
-        //                minimum_price_offer: '0.01',
-        //                minimum_quantity_offer: '0.0005',
-        //                base_currency_decimals: '2',
-        //                trade_currency_decimals: '4',
-        //                leverages: []
-        //                },
-        //               ...
-        //            ]
-        //        }
+        //     {
+        //         funds: [
+        //             {
+        //                 id: 'BTCEUR',
+        //                 description: 'Trade Bitcoin with Euro',
+        //                 type: 'currency',
+        //                 base_currency: 'EUR',
+        //                 trade_currency: 'BTC',
+        //                 buy_fee: '0.2',
+        //                 sell_fee: '0.2',
+        //                 minimum_price_offer: '0.01',
+        //                 minimum_quantity_offer: '0.0005',
+        //                 base_currency_decimals: '2',
+        //                 trade_currency_decimals: '4',
+        //                 leverages: []
+        //             },
+        //         ]
+        //     }
         //
         const discountsResponse = await this.privateGetDiscounts (params);
         //
-        //        {
-        //            "discounts": [
-        //              {
-        //                "currency":"BTC",
-        //                "discount":50.0,
-        //                "details": {
-        //                  "personal_discount": 50.0,
-        //                  "commissions_related_discount": 0.0
-        //                }
-        //              }
-        //              ...
-        //            ]
-        //         }
+        //     {
+        //         "discounts": [
+        //             {
+        //                 "currency":"BTC",
+        //                 "discount":50.0,
+        //                 "details": {
+        //                     "personal_discount": 50.0,
+        //                     "commissions_related_discount": 0.0
+        //                 }
+        //             }
+        //         ]
+        //     }
         //
         const funds = this.safeValue (response, 'funds', []);
         const discounts = this.safeValue (discountsResponse, 'discounts', []);
@@ -1375,8 +1373,7 @@ module.exports = class therock extends Exchange {
         }
         //
         //     {
-        //         "errors":
-        //         [
+        //         "errors": [
         //             { "message": ":currency is not a valid value for param currency","code": "11","meta": { "key":"currency","value":":currency"} },
         //             { "message": "Address allocation limit reached for currency :currency.","code": "13" },
         //             { "message": "Request already running", "code": "50"},
