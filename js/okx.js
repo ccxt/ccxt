@@ -1484,7 +1484,7 @@ module.exports = class okx extends Exchange {
             });
         }
         const sorted = this.sortBy (rates, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
     }
 
     async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -3724,6 +3724,10 @@ module.exports = class okx extends Exchange {
         };
         if (limit !== undefined) {
             request['limit'] = limit.toString (); // default 100, max 100
+        }
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            symbol = market['symbol'];
         }
         const response = await this.privateGetAccountBills (this.extend (request, params));
         //

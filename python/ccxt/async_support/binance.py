@@ -4056,6 +4056,7 @@ class binance(Exchange):
             method = 'dapiPublicGetFundingRate'
         if symbol is not None:
             market = self.market(symbol)
+            symbol = market['symbol']
             request['symbol'] = market['id']
             if market['linear']:
                 method = 'fapiPublicGetFundingRate'
@@ -4412,7 +4413,7 @@ class binance(Exchange):
         #
         marketId = self.safe_string(position, 'symbol')
         market = self.safe_market(marketId, market)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol')
         leverageBrackets = self.safe_value(self.options, 'leverageBrackets', {})
         leverageBracket = self.safe_value(leverageBrackets, symbol, [])
         notionalString = self.safe_string_2(position, 'notional', 'notionalValue')
@@ -4449,6 +4450,7 @@ class binance(Exchange):
         linear = ('notional' in position)
         if marginType == 'cross':
             # calculate collateral
+            precision = self.safe_value(market, 'precision')
             if linear:
                 # walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
                 onePlusMaintenanceMarginPercentageString = None
@@ -4460,7 +4462,8 @@ class binance(Exchange):
                     onePlusMaintenanceMarginPercentageString = Precise.string_add('-1', maintenanceMarginPercentageString)
                 inner = Precise.string_mul(liquidationPriceString, onePlusMaintenanceMarginPercentageString)
                 leftSide = Precise.string_add(inner, entryPriceSignString)
-                collateralString = Precise.string_div(Precise.string_mul(leftSide, contractsAbs), '1', market['precision']['quote'])
+                quotePrecision = self.safe_string(precision, 'quote')
+                collateralString = Precise.string_div(Precise.string_mul(leftSide, contractsAbs), '1', quotePrecision)
             else:
                 # walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
                 onePlusMaintenanceMarginPercentageString = None
@@ -4472,7 +4475,8 @@ class binance(Exchange):
                     entryPriceSignString = Precise.string_mul('-1', entryPriceSignString)
                 leftSide = Precise.string_mul(contractsAbs, contractSizeString)
                 rightSide = Precise.string_sub(Precise.string_div('1', entryPriceSignString), Precise.string_div(onePlusMaintenanceMarginPercentageString, liquidationPriceString))
-                collateralString = Precise.string_div(Precise.string_mul(leftSide, rightSide), '1', market['precision']['base'])
+                basePrecision = self.safe_string(precision, 'base')
+                collateralString = Precise.string_div(Precise.string_mul(leftSide, rightSide), '1', basePrecision)
         else:
             collateralString = self.safe_string(position, 'isolatedMargin')
         collateralString = '0' if (collateralString is None) else collateralString

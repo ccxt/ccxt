@@ -353,9 +353,9 @@ class gateio extends Exchange {
                 'apiKey' => true,
                 'secret' => true,
             ),
-            // 'headers' => array(
-            //     'X-Gate-Channel-Id' => 'ccxt',
-            // ),
+            'headers' => array(
+                'X-Gate-Channel-Id' => 'ccxt',
+            ),
             'options' => array(
                 'createOrder' => array(
                     'expiration' => 86400, // for conditional orders
@@ -1352,7 +1352,7 @@ class gateio extends Exchange {
             );
         }
         $sorted = $this->sort_by($result, 'timestamp');
-        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -1781,7 +1781,7 @@ class gateio extends Exchange {
             );
         }
         $sorted = $this->sort_by($rates, 'timestamp');
-        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
     public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {

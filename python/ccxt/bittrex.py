@@ -1211,6 +1211,7 @@ class bittrex(Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
+            symbol = market['symbol']
             # because of self line we will have to rethink the entire v3
             # in other words, markets define all the rest of the API
             # and v3 market ids are reversed in comparison to v1

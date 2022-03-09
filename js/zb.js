@@ -32,6 +32,7 @@ module.exports = class zb extends Exchange {
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowRate': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
@@ -2255,6 +2256,7 @@ module.exports = class zb extends Exchange {
         };
         if (symbol !== undefined) {
             const market = this.market (symbol);
+            symbol = market['symbol'];
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {
@@ -3057,6 +3059,47 @@ module.exports = class zb extends Exchange {
             throw new ArgumentsRequired (this.id + ' addMargin() requires a positionsId argument in the params');
         }
         return await this.modifyMarginHelper (symbol, amount, 1, params);
+    }
+
+    async fetchBorrowRate (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'coin': currency['id'],
+        };
+        const response = await this.spotV1PrivateGetGetLoans (this.extend (request, params));
+        //
+        //     {
+        //         code: '1000',
+        //         message: '操作成功',
+        //         result: [
+        //             {
+        //                 interestRateOfDay: '0.0005',
+        //                 repaymentDay: '30',
+        //                 amount: '148804.4841',
+        //                 balance: '148804.4841',
+        //                 rateOfDayShow: '0.05 %',
+        //                 coinName: 'USDT',
+        //                 lowestAmount: '0.01'
+        //             },
+        //         ]
+        //     }
+        //
+        const timestamp = this.milliseconds ();
+        const data = this.safeValue (response, 'result');
+        const rates = [];
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            rates.push ({
+                'currency': this.safeCurrencyCode (this.safeString (entry, 'coinName')),
+                'rate': this.safeNumber (entry, 'interestRateOfDay'),
+                'period': this.safeNumber (entry, 'repaymentDay'),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'info': entry,
+            });
+        }
+        return rates;
     }
 
     nonce () {

@@ -59,6 +59,8 @@ class mercado extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => null,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => false,
                 'reduceMargin' => false,
                 'setLeverage' => false,
                 'setMarginMode' => false,
@@ -661,7 +663,7 @@ class mercado extends Exchange {
         $ordersRaw = $this->safe_value($responseData, 'orders', array());
         $orders = $this->parse_orders($ordersRaw, $market, $since, $limit);
         $trades = $this->orders_to_trades($orders);
-        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
+        return $this->filter_by_symbol_since_limit($trades, $market['symbol'], $since, $limit);
     }
 
     public function orders_to_trades($orders) {

@@ -347,9 +347,9 @@ module.exports = class gateio extends Exchange {
                 'apiKey': true,
                 'secret': true,
             },
-            // 'headers': {
-            //     'X-Gate-Channel-Id': 'ccxt',
-            // },
+            'headers': {
+                'X-Gate-Channel-Id': 'ccxt',
+            },
             'options': {
                 'createOrder': {
                     'expiration': 86400, // for conditional orders
@@ -1346,7 +1346,7 @@ module.exports = class gateio extends Exchange {
             });
         }
         const sorted = this.sortBy (result, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -1775,7 +1775,7 @@ module.exports = class gateio extends Exchange {
             });
         }
         const sorted = this.sortBy (rates, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
     }
 
     async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {

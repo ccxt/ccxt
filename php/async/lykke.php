@@ -61,6 +61,7 @@ class lykke extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => false,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
                 'fetchTransactions' => true,
                 'fetchWithdrawals' => false,

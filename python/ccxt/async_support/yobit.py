@@ -779,7 +779,7 @@ class yobit(Exchange):
                 'trade_id': id,
             }), market)
             result.append(trade)
-        return self.filter_by_symbol_since_limit(result, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(result, market['symbol'], since, limit)
 
     async def create_deposit_address(self, code, params={}):
         request = {

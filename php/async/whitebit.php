@@ -908,6 +908,7 @@ class whitebit extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $request['market'] = $market['id'];
         }
         if ($limit !== null) {

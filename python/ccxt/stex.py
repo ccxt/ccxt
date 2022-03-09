@@ -77,6 +77,8 @@ class stex(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'fetchTradingFee': True,
+                'fetchTradingFees': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
                 'setLeverage': False,
@@ -836,6 +838,30 @@ class stex(Exchange):
         #
         trades = self.safe_value(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
+
+    def fetch_trading_fee(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'currencyPairId': market['id'],
+        }
+        response = self.tradingGetFeesCurrencyPairId(self.extend(request, params))
+        #
+        #     {
+        #         success: True,
+        #         data: {buy_fee: '0.00200000', sell_fee: '0.00200000'},
+        #         unified_message: {message_id: 'operation_successful', substitutions: []}
+        #      }
+        #
+        data = self.safe_value(response, 'data')
+        return {
+            'info': response,
+            'symbol': market['symbol'],
+            'maker': self.safe_number(data, 'sell_fee'),
+            'taker': self.safe_number(data, 'buy_fee'),
+            'percentage': True,
+            'tierBased': True,
+        }
 
     def parse_balance(self, response):
         result = {

@@ -1459,6 +1459,7 @@ class hitbtc3(Exchange):
         }
         if symbol is not None:
             market = self.market(symbol)
+            symbol = market['symbol']
             request['symbols'] = market['id']
         if since is not None:
             request['from'] = since

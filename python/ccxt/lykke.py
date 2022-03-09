@@ -72,6 +72,7 @@ class lykke(Exchange):
                 'fetchTickers': True,
                 'fetchTime': False,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
                 'fetchTradingFees': False,
                 'fetchTransactions': True,
                 'fetchWithdrawals': False,

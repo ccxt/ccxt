@@ -868,6 +868,7 @@ class whitebit(Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
+            symbol = market['symbol']
             request['market'] = market['id']
         if limit is not None:
             request['limit'] = limit  # default 50 max 100
