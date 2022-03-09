@@ -862,7 +862,6 @@ module.exports = class huobi extends ccxt.huobi {
         const tradeId = this.safeString (trade, 'tradeId');
         const price = this.safeString (trade, 'tradePrice');
         const amount = this.safeString (trade, 'tradeVolume');
-        const cost = this.safeString (trade, 'orderValue');
         const order = this.safeString (trade, 'orderId');
         const timestamp = this.safeInteger (trade, 'tradeTime');
         const market = this.market (symbol);
