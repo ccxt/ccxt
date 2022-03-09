@@ -2690,13 +2690,11 @@ The `fetchFundingRateHistory()` method will return a structure like shown below:
 fetchBorrowRate (code, params = {})
 ```
 
-## fetchBorrowRates
 
 ```Javascript
 fetchBorrowRates (params = {})
 ```
 
-## fetchBorrowRatesPerSymbol
 
 ```Javascript
 fetchBorrowRatesPerSymbol (params = {})
@@ -2709,30 +2707,25 @@ fetchBorrowRatesPerSymbol (params = {})
 fetchBorrowRateHistory (code, since = undefined, limit = undefined, params = {})
 ```
 
-## fetchOrderBooks
+## Order Books
 
 ```Javascript
 fetchOrderBooks (symbols = undefined, limit = undefined, params = {})
 ```
 
-## fetchPositionsRisk
+## Positions Risk
 
 ```Javascript
 fetchPositionsRisk (symbols = undefined, params = {})
 ```
 
-## fetchTradingFee
+## Trading Fee
 
 ```Javascript
 fetchTradingFee (symbol, params = {})
 ```
 
-## fetchFundingFee
-
-```Javascript
-fetchFundingFee (code, params = {})
-```
-## fetchTradingLimits
+## Trading Limits
 
 ```Javascript
 fetchTradingLimits (symbols = undefined, params = {})
@@ -3610,8 +3603,6 @@ To cancel an existing order pass the order id to `cancelOrder (id, symbol, param
 exchange.cancelOrder ('1234567890') // replace with your order id here (a string)
 ```
 
-## cancelOrders
-
 ```Javascript
 cancelOrders (ids, symbol = undefined, params = {})
 ```
@@ -4177,6 +4168,7 @@ Because the fee structure can depend on the actual volume of currencies traded b
 ```Javascript
 fetchFees (params = {})
 fetchTradingFees (params = {})
+fetchFundingFee (params = {})
 fetchFundingFees (params = {})
 ```
 
@@ -4328,6 +4320,11 @@ exchange.currencies['BTC']['fee'] // tx/withdrawal fee rate for BTC
 Some exchanges have an endpoint for fetching the funding fee schedule, this is mapped to the unified method `fetchFundingFees`:
 
 ```Javascript
+fetchFundingFee (code, params = {})
+```
+
+
+```Javascript
 fetchFundingFees (params = {})
 ```
 
@@ -4410,64 +4407,61 @@ The `status` field is there to support for exchanges that include pending and ca
 The ledger entry type can be associated with a regular trade or a funding transaction (deposit or withdrawal) or an internal `transfer` between two accounts of the same user. If the ledger entry is associated with an internal transfer, the `account` field will contain the id of the account that is being altered with the ledger entry in question. The `referenceAccount` field will contain the id of the opposite account the funds are transferred to/from, depending on the `direction` (`'in'` or `'out'`).
 
 
-## addMargin
+## Margin
 
 ```Javascript
 addMargin (symbol, amount, params = {})
 ```
 
-## fetchFundingHistory
+```Javascript
+reduceMargin (symbol, amount, params = {})
+```
+
+
+## Funding History
 
 ```Javascript
 fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {})
 ```
 
-## fetchTransfers
+## Transfers
 
 ```Javascript
 fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {})
 ```
 
-## fetchWithdrawal
-
-```Javascript
-fetchWithdrawal (id, code = undefined, params = {})
-```
-
-## reduceMargin
-
-```Javascript
-reduceMargin (symbol, amount, params = {})
-```
-
-## setLeverage
+## Leverage
 
 ```Javascript
 setLeverage (leverage, symbol = undefined, params = {})
 ```
 
-## setMarginMode
+## Margin Mode
 
 ```Javascript
 setMarginMode (marginType, symbol = undefined, params = {})
 ```
 
-## setPositionMode
+## Position Mode
 
 ```Javascript
 setPositionMode (hedged, symbol = undefined, params = {})
 ```
 
-## signIn
+## Sign In
 
 ```Javascript
 signIn (params = {})
 ```
 
-## withdraw
+## Withdrawals
 
 ```Javascript
 withdraw (code, amount, address, tag = undefined, params = {})
+```
+
+```Javascript
+fetchWithdrawal (id, code = undefined, params = {})
 ```
 
 
