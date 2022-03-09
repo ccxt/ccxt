@@ -1730,11 +1730,16 @@ module.exports = class mexc extends Exchange {
             orderSide = 'ASK';
         }
         let orderType = type.toUpperCase ();
-        const postOnly = this.safeValue (params, 'postOnly', false);
+        let timeInForce = this.safeStringUpper (params, 'timeInForce');
+        let postOnly = false;
+        [ type, postOnly, timeInForce, params ] = this.isPostOnly (type, timeInForce, type === 'POST_ONLY', params);
+        params = this.omit (params, 'timeInForce');
         if (postOnly) {
             orderType = 'POST_ONLY';
         } else if (orderType === 'LIMIT') {
             orderType = 'LIMIT_ORDER';
+        } else if (timeInForce === 'IOC' || orderType === 'MARKET') {
+            orderType = 'IMMEDIATE_OR_CANCEL';
         } else if ((orderType !== 'POST_ONLY') && (orderType !== 'IMMEDIATE_OR_CANCEL')) {
             throw new InvalidOrder (this.id + ' createOrder() does not support ' + type + ' order type, specify one of LIMIT, LIMIT_ORDER, POST_ONLY or IMMEDIATE_OR_CANCEL');
         }
