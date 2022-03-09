@@ -555,6 +555,7 @@ module.exports = class indodax extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
+            symbol = market['symbol'];
             request['pair'] = market['id'];
         }
         const response = await this.privatePostOrderHistory (this.extend (request, params));
