@@ -29,6 +29,7 @@ module.exports = class bitvavo extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': false,
                 'editOrder': true,
                 'fetchBalance': true,
@@ -847,6 +848,10 @@ module.exports = class bitvavo extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        let timeInForce = this.safeStringUpper (params, 'timeInForce');
+        let postOnly = false;
+        [ type, postOnly, timeInForce, params ] = this.isPostOnly (type, timeInForce, undefined, params);
+        params = this.omit (params, 'timeInForce');
         const request = {
             'market': market['id'],
             'side': side,
@@ -856,10 +861,13 @@ module.exports = class bitvavo extends Exchange {
             // 'amountQuote': this.costToPrecision (symbol, cost),
             // 'timeInForce': 'GTC', // 'GTC', 'IOC', 'FOK'
             // 'selfTradePrevention': 'decrementAndCancel', // 'decrementAndCancel', 'cancelOldest', 'cancelNewest', 'cancelBoth'
-            // 'postOnly': false,
+            'postOnly': postOnly,
             // 'disableMarketProtection': false, // don't cancel if the next fill price is 10% worse than the best fill price
             // 'responseRequired': true, // false is faster
         };
+        if (timeInForce !== undefined) {
+            request['timeInForce'] = timeInForce;
+        }
         const isStopLimit = (type === 'stopLossLimit') || (type === 'takeProfitLimit');
         const isStopMarket = (type === 'stopLoss') || (type === 'takeProfit');
         if (type === 'market') {
