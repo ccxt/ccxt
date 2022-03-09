@@ -357,7 +357,7 @@ module.exports = class gateio extends ccxt.gateio {
         if (authenticate === undefined) {
             const requestId = this.milliseconds ();
             const requestIdString = requestId.toString ();
-            const signature = this.signPayload (requestIdString);
+            const signature = this.hmac (this.encode (requestIdString), this.encode (this.secret), 'sha512', 'hex');
             const authenticateMessage = {
                 'id': requestId,
                 'method': method,
@@ -433,8 +433,8 @@ module.exports = class gateio extends ccxt.gateio {
             }
             const stored = this.myTrades;
             const parsedTrades = this.parseTrades (trades);
-            for (let i = 0; i < trades.length; i++) {
-                stored.append (trades[i]);
+            for (let i = 0; i < parsedTrades.length; i++) {
+                stored.append (parsedTrades[i]);
             }
             client.resolve (this.myTrades, channel);
             for (let i = 0; i < parsedTrades.length; i++) {
@@ -675,31 +675,23 @@ module.exports = class gateio extends ccxt.gateio {
         }
     }
 
-    signPayload (payload) {
-        return this.hmac (this.encode (payload), this.encode (this.secret), 'sha512', 'hex');
-    }
-
-    generateSignature (payload) {
-        const signature = this.signPayload (payload);
+    async subscribePrivate (url, channel, messageHash, payload, subscription) {
+        const time = this.seconds ();
+        const event = 'subscribe';
+        const signaturePayload = 'channel=' + channel + '&event=' + event + '&time=' + time.toString ();
+        const signature = this.hmac (this.encode (signaturePayload), this.encode (this.secret), 'sha512', 'hex');
         const auth = {
             'method': 'api_key',
             'KEY': this.apiKey,
             'SIGN': signature,
         };
-        return auth;
-    }
-
-    async subscribePrivate (url, channel, messageHash, payload, subscription) {
-        const time = this.seconds ();
-        const event = 'subscribe';
         const request = {
             'time': time,
             'channel': channel,
             'event': 'subscribe',
             'payload': payload,
+            'auth': auth,
         };
-        const signaturePayload = 'channel=' + channel + '&event=' + event + '&time=' + time.toString ();
-        request['auth'] = this.generateSignature (signaturePayload);
         return await this.watch (url, messageHash, request, messageHash, subscription);
     }
 };
