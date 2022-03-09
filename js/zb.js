@@ -2256,6 +2256,7 @@ module.exports = class zb extends Exchange {
         };
         if (symbol !== undefined) {
             const market = this.market (symbol);
+            symbol = market['symbol'];
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {
