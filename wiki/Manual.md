@@ -1534,6 +1534,28 @@ print(dir(ccxt.hitbtc()))           # Python
 var_dump (new \ccxt\okcoinusd ()); // PHP
 ```
 
+## Accounts
+
+```Javascript
+fetchAccounts (params = {})
+```
+
+## Deposits
+
+```Javascript
+fetchDeposit (id, code = undefined, params = {})
+```
+
+```Javascript
+fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {})
+```
+
+```Javascript
+fetchDepositAddressesByNetwork (code, params = {})
+```
+
+
+
 # Unified API
 
 - [Overriding Unified API Params](#overriding-unified-api-params)
@@ -1618,7 +1640,9 @@ In most cases users are **required to use at least some type of pagination** in 
 - `fetchTrades()`
 - `fetchOHLCV()`
 - `fetchOrders()`
+- `fetchOpenOrder()`
 - `fetchOpenOrders()`
+- `fetchClosedOrder()`
 - `fetchClosedOrders()`
 - `fetchMyTrades()`
 - `fetchTransactions()`
@@ -2660,6 +2684,61 @@ The `fetchFundingRateHistory()` method will return a structure like shown below:
 ]
 ```
 
+## Borrow Rates
+
+```Javascript
+fetchBorrowRate (code, params = {})
+```
+
+## fetchBorrowRates
+
+```Javascript
+fetchBorrowRates (params = {})
+```
+
+## fetchBorrowRatesPerSymbol
+
+```Javascript
+fetchBorrowRatesPerSymbol (params = {})
+```
+
+
+## Borrow Rate History
+
+```Javascript
+fetchBorrowRateHistory (code, since = undefined, limit = undefined, params = {})
+```
+
+## fetchOrderBooks
+
+```Javascript
+fetchOrderBooks (symbols = undefined, limit = undefined, params = {})
+```
+
+## fetchPositionsRisk
+
+```Javascript
+fetchPositionsRisk (symbols = undefined, params = {})
+```
+
+## fetchTradingFee
+
+```Javascript
+fetchTradingFee (symbol, params = {})
+```
+
+## fetchFundingFee
+
+```Javascript
+fetchFundingFee (code, params = {})
+```
+## fetchTradingLimits
+
+```Javascript
+fetchTradingLimits (symbols = undefined, params = {})
+```
+
+
 # Private API
 
 - [Authentication](#authentication)
@@ -2679,10 +2758,10 @@ In order to be able to access your user account, perform algorithmic trading by 
 The exchanges' private APIs will usually allow the following types of interaction:
 
 - the current state of the user's account balance can be obtained with the `fetchBalance()` method as described in the [Account Balance](#account-balance) section
-- the user can place and cancel orders with `createOrder()`, `cancelOrder()`, as well as fetch current open orders and the past order history with methods like `fetchOrder`, `fetchOrders()`, `fetchOpenOrders()`, `fetchClosedOrders`, as described in the section on [Orders](#orders)
-- the user can query the history of past trades executed with his account using `fetchMyTrades`, as described in the [My Trades](#my-trades) section, also see [How Orders Are Related To Trades](https://docs.ccxt.com/en/latest/manual.html#how-orders-are-related-to-trades)
-- the user can query his positions with `fetchPositions()` as described in the [Positions](#positions) section
-- the user can fetch the history of his transactions (on-chain _transactions_ which are either _deposits_ to the exchange account or _withdrawals_ from the exchange account) with `fetchTransactions()`, or with `fetchDeposits()` and `fetchWithdrawals()` separately, depending on what is available from the exchange API
+- the user can place and cancel orders with `createOrder()`, `cancelOrder()`, as well as fetch current open orders and the past order history with methods like `fetchOrder`, `fetchOrders()`, `fetchOpenOrder()`, `fetchOpenOrders()`, `fetchClosedOrder`, `fetchClosedOrders`, as described in the section on [Orders](#orders)
+- the user can query the history of past trades executed with their account using `fetchMyTrades`, as described in the [My Trades](#my-trades) section, also see [How Orders Are Related To Trades](https://docs.ccxt.com/en/latest/manual.html#how-orders-are-related-to-trades)
+- the user can query their positions with `fetchPositions()` and `fetchPosition()` as described in the [Positions](#positions) section
+- the user can fetch the history of their transactions (on-chain _transactions_ which are either _deposits_ to the exchange account or _withdrawals_ from the exchange account) with `fetchTransactions()`, or with `fetchDeposits()` and `fetchWithdrawals()` separately, depending on what is available from the exchange API
 - if the exchange API provides a ledger endpoint, the user can fetch a history of all money movements that somehow affected the balance, with `fetchLedger` that will return all accounting ledger entries such as trades, deposits, withdrawals, internal transfers between accounts, rebates, bonuses, fees, staking profits and so on, as described in the [Ledger](#ledger) section.
 
 ## Authentication
@@ -2999,10 +3078,13 @@ Most of the time you can query orders by an id or by a symbol, though not all ex
 
 The list of methods for querying orders consists of the following:
 
+- `fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {})`
+- `fetchClosedOrder (id, symbol = undefined, params = {})`
+- `fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {})`
+- `fetchOpenOrder (id, symbol = undefined, params = {})`
+- `fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {})`
 - `fetchOrder (id, symbol = undefined, params = {})`
 - `fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {})`
-- `fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {})`
-- `fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {})`
 
 Note that the naming of those methods indicates if the method returns a single order or multiple orders (an array/list of orders). The `fetchOrder()` method requires a mandatory order id argument (a string). Some exchanges also require a symbol to fetch an order by id, where order ids can intersect with various trading pairs. Also, note that all other methods above return an array (a list) of orders. Most of them will require a symbol argument as well, however, some exchanges allow querying with a symbol unspecified (meaning *all symbols*).
 
@@ -3057,11 +3139,14 @@ The meanings of boolean `true` and `false` are obvious. A string value of `emula
 
 The exchanges' order management APIs differ by design. The user has to understand the purpose of each specific method and how they're combined together into a complete order API:
 
-- `fetchOrder()` – fetches a single order (open or closed) by order `id`.
-- `fetchOpenOrders()` – fetches a list of open orders.
+- `fetchCanceledOrders()`- fetches a list of canceled orders
+- `fetchClosedOrder()`- fetches a single closed order by order id
 - `fetchClosedOrders()` – fetches a list of closed (or canceled) orders.
-- `fetchOrders()` – fetches a list of all orders (either open or closed/canceled).
 - `fetchMyTrades()` – though not a part of the orders' API, it is closely related, since it provides the history of settled trades.
+- `fetchOpenOrder()`- fetches a single open order by order id
+- `fetchOpenOrders()` – fetches a list of open orders.
+- `fetchOrder()` – fetches a single order (open or closed) by order `id`.
+- `fetchOrders()` – fetches a list of all orders (either open or closed/canceled).
 
 The majority of the exchanges will have a way of fetching currently-open orders. Thus, the `exchange.has['fetchOpenOrders']`. If that method is not available, then most likely the `exchange.has['fetchOrders']` that will provide a list of all orders. The exchange will return a list of open orders either from `fetchOpenOrders()` or from `fetchOrders()`. One of the two methods is usually available from any exchange.
 
@@ -3090,6 +3175,7 @@ All methods returning lists of trades and lists of orders, accept the second `si
 - `fetchOrders()`
 - `fetchOpenOrders()`
 - `fetchClosedOrders()`
+- `fetchCanceledOrders()`
 
 The second  argument `since` reduces the array by timestamp, the third `limit` argument reduces by number (count) of returned items.
 
@@ -3251,6 +3337,13 @@ Note, that some fields from the order structure returned from `createOrder` may 
 You can use the `id` from the returned unified [order structure](#order-structure) to query the status and the state of the order later.
 
 - **Some exchanges will allow to trade with limit orders only.** See [their docs](#exchanges) for details.
+
+## createLimitOrder
+
+```Javascript
+createLimitOrder (symbol, side, amount, price = undefined, params = {})
+```
+
 
 #### Market Orders
 
@@ -3501,6 +3594,13 @@ $params = {
 $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
 ```
 
+## Editing Orders
+
+```Javascript
+editOrder (id, symbol, type, side, amount, price = undefined, params = {})
+```
+
+
 ### Canceling Orders
 
 To cancel an existing order pass the order id to `cancelOrder (id, symbol, params) / cancel_order (id, symbol, params)` method. Note, that some exchanges require a second symbol parameter even to cancel a known order by id. The usage is shown in the following examples:
@@ -3509,6 +3609,13 @@ To cancel an existing order pass the order id to `cancelOrder (id, symbol, param
 // JavaScript
 exchange.cancelOrder ('1234567890') // replace with your order id here (a string)
 ```
+
+## cancelOrders
+
+```Javascript
+cancelOrders (ids, symbol = undefined, params = {})
+```
+
 
 ```Python
 # Python
@@ -3577,7 +3684,7 @@ A seller decides to place a sell limit order on the ask side for a price of 0.70
 
 As the price and amount of the incoming sell (ask) order cover more than one bid order (orders `b` and `i`), the following sequence of events usually happens within an exchange engine very quickly, but not immediately:
 
-1. Order `b` is matched against the incoming sell because their prices intersect. Their volumes *"mutually annihilate"* each other, so, the bidder gets 100 for a price of 0.800. The seller (asker) will have his sell order partially filled by bid volume 100 for a price of 0.800. Note that for the filled part of the order the seller gets a better price than he asked for initially. He asked for 0.7 at least but got 0.8 instead which is even better for the seller. Most conventional exchanges fill orders for the best price available.
+1. Order `b` is matched against the incoming sell because their prices intersect. Their volumes *"mutually annihilate"* each other, so, the bidder gets 100 for a price of 0.800. The seller (asker) will have their sell order partially filled by bid volume 100 for a price of 0.800. Note that for the filled part of the order the seller gets a better price than he asked for initially. He asked for 0.7 at least but got 0.8 instead which is even better for the seller. Most conventional exchanges fill orders for the best price available.
 
 2. A trade is generated for the order `b` against the incoming sell order. That trade *"fills"* the entire order `b` and most of the sell order. One trade is generated per each pair of matched orders, whether the amount was filled completely or partially. In this example the seller amount (100) fills order `b` completely (closes the order `b`) and also fills the selling order partially (leaves it open in the orderbook).
 
@@ -3782,7 +3889,7 @@ It is the price at which the `initialMargin + unrealized = collateral = maintena
 (1/price - 1/liquidationPrice) * contracts = maintenanceMargin
 ```
 
-### Using fetchPositions
+### Using fetchPositions and fetchPosition
 
 Information about the positions can be served from different endpoints depending on the exchange. In the case that there are multiple endpoints serving different types of derivatives CCXT will default to just loading the "linear" (as oppose to the "inverse") contracts or the "swap" (as oppose to the "future") contracts. If you want to get the position information of the inverse contracts you can set:
 
@@ -3796,9 +3903,19 @@ await binancecoinm.fetchPositions ()
 await binancecoinm.fetchIsolatedPositions ()
 ```
 
+```Javascript
+fetchPosition (symbol, params = {})
+```
+
+
 ## Deposit
 
 In order to deposit funds to an exchange you must get an address from the exchange for the currency you want to deposit there. Most of exchanges will create and manage those addresses for the user. Some exchanges will also allow the user to create new addresses for deposits. Some of exchanges require a new deposit address to be created for each new deposit.
+
+```Javascript
+deposit (code, amount, address, params = {})
+```
+
 
 The address for depositing can be either an already existing address that was created previously with the exchange or it can be created upon request. In order to see which of the two methods are supported, check the `exchange.has['fetchDepositAddress']` and `exchange.has['createDepositAddress']` properties. Both methods return an [address structure](#address-structure)
 
@@ -4238,6 +4355,12 @@ Some exchanges provide additional endpoints for fetching the all-in-one ledger h
 async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {})
 ```
 
+
+```Javascript
+fetchLedgerEntry (id, code = undefined, params = {})
+```
+
+
 Some exchanges don't allow to fetch all ledger entries for all assets at once, those require the `code` argument to be supplied to `fetchLedger` method.
 
 ### Ledger Entry Structure
@@ -4285,6 +4408,68 @@ The `referenceId` field holds the id of the corresponding event that was registe
 The `status` field is there to support for exchanges that include pending and canceled changes in the ledger. The ledger naturally represents the actual changes that have taken place, therefore the status is `'ok'` in most cases.
 
 The ledger entry type can be associated with a regular trade or a funding transaction (deposit or withdrawal) or an internal `transfer` between two accounts of the same user. If the ledger entry is associated with an internal transfer, the `account` field will contain the id of the account that is being altered with the ledger entry in question. The `referenceAccount` field will contain the id of the opposite account the funds are transferred to/from, depending on the `direction` (`'in'` or `'out'`).
+
+
+## addMargin
+
+```Javascript
+addMargin (symbol, amount, params = {})
+```
+
+## fetchFundingHistory
+
+```Javascript
+fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {})
+```
+
+## fetchTransfers
+
+```Javascript
+fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {})
+```
+
+## fetchWithdrawal
+
+```Javascript
+fetchWithdrawal (id, code = undefined, params = {})
+```
+
+## reduceMargin
+
+```Javascript
+reduceMargin (symbol, amount, params = {})
+```
+
+## setLeverage
+
+```Javascript
+setLeverage (leverage, symbol = undefined, params = {})
+```
+
+## setMarginMode
+
+```Javascript
+setMarginMode (marginType, symbol = undefined, params = {})
+```
+
+## setPositionMode
+
+```Javascript
+setPositionMode (hedged, symbol = undefined, params = {})
+```
+
+## signIn
+
+```Javascript
+signIn (params = {})
+```
+
+## withdraw
+
+```Javascript
+withdraw (code, amount, address, tag = undefined, params = {})
+```
+
 
 # Error Handling
 
