@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1394,7 +1387,7 @@ class okcoin(Exchange):
             numElements = len(ohlcv)
             volumeIndex = 6 if (numElements > 6) else 5
             timestamp = self.safe_value(ohlcv, 0)
-            if isinstance(timestamp, basestring):
+            if isinstance(timestamp, str):
                 timestamp = self.parse8601(timestamp)
             return [
                 timestamp,  # timestamp

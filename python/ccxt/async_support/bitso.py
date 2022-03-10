@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import OrderNotFound
@@ -860,7 +853,7 @@ class bitso(Exchange):
             #     {"success":false,"error":{"code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"}}
             #
             success = self.safe_value(response, 'success', False)
-            if isinstance(success, basestring):
+            if isinstance(success, str):
                 if (success == 'true') or (success == '1'):
                     success = True
                 else:

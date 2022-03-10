@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1429,7 +1422,7 @@ class exmo(Exchange):
             #     {"s":"error","errmsg":"strconv.ParseInt: parsing \"\": invalid syntax"}
             #
             success = self.safe_value(response, 'result', False)
-            if isinstance(success, basestring):
+            if isinstance(success, str):
                 if (success == 'true') or (success == '1'):
                     success = True
                 else:

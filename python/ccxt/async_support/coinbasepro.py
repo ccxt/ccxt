@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1331,7 +1324,7 @@ class coinbasepro(Exchange):
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
         response = await self.fetch2(path, api, method, params, headers, body, config, context)
-        if not isinstance(response, basestring):
+        if not isinstance(response, str):
             if 'message' in response:
                 raise ExchangeError(self.id + ' ' + self.json(response))
         return response

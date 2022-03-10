@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import hashlib
 import json
 from ccxt.base.errors import ExchangeError
@@ -1870,7 +1863,7 @@ class okx(Exchange):
         request = []
         clientOrderId = self.safe_value_2(params, 'clOrdId', 'clientOrderId')
         if clientOrderId is None:
-            if isinstance(ids, basestring):
+            if isinstance(ids, str):
                 orderIds = ids.split(',')
                 for i in range(0, len(orderIds)):
                     request.append({
@@ -1889,7 +1882,7 @@ class okx(Exchange):
                     'instId': market['id'],
                     'clOrdId': clientOrderId[i],
                 })
-        elif isinstance(clientOrderId, basestring):
+        elif isinstance(clientOrderId, str):
             request.append({
                 'instId': market['id'],
                 'clOrdId': clientOrderId,

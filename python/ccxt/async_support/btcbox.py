@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -444,7 +437,7 @@ class btcbox(Exchange):
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
         response = await self.fetch2(path, api, method, params, headers, body, config, context)
-        if isinstance(response, basestring):
+        if isinstance(response, str):
             # sometimes the exchange returns whitespace prepended to json
             response = self.strip(response)
             if not self.is_json_encoded_object(response):

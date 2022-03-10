@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
@@ -982,7 +975,7 @@ class kraken(Exchange):
             tradeLength = len(trade)
             if tradeLength > 6:
                 id = self.safe_string(trade, 6)  # artificially added as per  #1794
-        elif isinstance(trade, basestring):
+        elif isinstance(trade, str):
             id = trade
         elif 'ordertxid' in trade:
             marketId = self.safe_string(trade, 'pair')
@@ -1389,7 +1382,7 @@ class kraken(Exchange):
         else:
             for i in range(0, len(orderTrades)):
                 orderTrade = orderTrades[i]
-                if isinstance(orderTrade, basestring):
+                if isinstance(orderTrade, str):
                     tradeIds.append(orderTrade)
                 else:
                     tradeIds.append(orderTrade['id'])
@@ -2007,7 +2000,7 @@ class kraken(Exchange):
         if response is None:
             return
         if body[0] == '{':
-            if not isinstance(response, basestring):
+            if not isinstance(response, str):
                 if 'error' in response:
                     numErrors = len(response['error'])
                     if numErrors:

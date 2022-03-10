@@ -1,8 +1,4 @@
 import numbers  # noqa: E402
-try:
-    basestring  # basestring was removed in Python 3
-except NameError:
-    basestring = str
 
 # ----------------------------------------------------------------------------
 
@@ -11,7 +7,7 @@ except NameError:
 
 def test_transaction(exchange, transaction, code, now):
     assert transaction
-    assert(transaction['id'] is None) or (isinstance(transaction['id'], basestring))
+    assert(transaction['id'] is None) or (isinstance(transaction['id'], str))
     assert isinstance(transaction['timestamp'], numbers.Real)
     assert transaction['timestamp'] > 1230940800000  # 03 Jan 2009 - first block
     assert transaction['timestamp'] < now
@@ -22,13 +18,13 @@ def test_transaction(exchange, transaction, code, now):
     assert transaction['datetime'] == exchange.iso8601(transaction['timestamp'])
     assert(transaction['status'] == 'ok') or (transaction['status'] == 'pending') or (transaction['status'] == 'canceled')
     assert transaction['currency'] == code
-    assert isinstance(transaction['type'], basestring)
+    assert isinstance(transaction['type'], str)
     assert transaction['type'] == 'deposit' or transaction['type'] == 'withdrawal'
     assert isinstance(transaction['amount'], numbers.Real)
     assert transaction['amount'] >= 0
     if transaction['fee']:
         assert isinstance(transaction['fee']['cost'], numbers.Real)
         if transaction['fee']['cost'] != 0:
-            assert isinstance(transaction['fee']['currency'], basestring)
+            assert isinstance(transaction['fee']['currency'], str)
 
     assert transaction.info

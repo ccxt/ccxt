@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -3552,12 +3545,12 @@ class huobi(Exchange):
             clientOrderIds = self.safe_value_2(params, 'client-order-id', 'clientOrderId')
             clientOrderIds = self.safe_value_2(params, 'client-order-ids', 'clientOrderIds', clientOrderIds)
             if clientOrderIds is None:
-                if isinstance(clientOrderIds, basestring):
+                if isinstance(clientOrderIds, str):
                     request['order-ids'] = ids
                 else:
                     request['order-ids'] = ','.join(ids)
             else:
-                if isinstance(clientOrderIds, basestring):
+                if isinstance(clientOrderIds, str):
                     request['client-order-ids'] = clientOrderIds
                 else:
                     request['client-order-ids'] = ','.join(clientOrderIds)
@@ -4352,7 +4345,7 @@ class huobi(Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/'
         query = self.omit(params, self.extract_params(path))
-        if isinstance(api, basestring):
+        if isinstance(api, str):
             # signing implementation for the old endpoints
             if api == 'market':
                 url += api
