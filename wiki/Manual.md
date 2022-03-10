@@ -4631,12 +4631,6 @@ Parameters
 Returns 
 - response from the exchange
 
-## Position Mode
-
-```Javascript
-setPositionMode (hedged, symbol = undefined, params = {})
-```
-
 ## Sign In
 
 ```Javascript
