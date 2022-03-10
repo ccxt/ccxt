@@ -60,6 +60,8 @@ module.exports = class deribit extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': false,
                 'fetchTransactions': undefined,
                 'fetchWithdrawals': true,
                 'withdraw': true,
