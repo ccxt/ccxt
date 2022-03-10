@@ -44,6 +44,7 @@ module.exports = class eqonex extends Exchange {
                 'fetchOrders': true,
                 'fetchTicker': undefined,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTradingLimits': true,
                 'fetchWithdrawals': true,
@@ -1265,24 +1266,198 @@ module.exports = class eqonex extends Exchange {
     }
 
     async fetchTradingFees (params = {}) {
-        // getExchangeInfo
+        await this.loadMarkets ();
         const response = await this.publicGetGetExchangeInfo (params);
-        const tradingFees = this.safeValue (response, 'spotFees', []);
-        const taker = {};
-        const maker = {};
-        for (let i = 0; i < tradingFees.length; i++) {
-            const tradingFee = tradingFees[i];
-            if (this.safeString (tradingFee, 'tier') !== undefined) {
-                taker[tradingFee['tier']] = this.safeNumber (tradingFee, 'taker');
-                maker[tradingFee['tier']] = this.safeNumber (tradingFee, 'maker');
+        //
+        //    {
+        //        tradingLimits: [],
+        //        withdrawLimits: [{
+        //            All: '0.0',
+        //            Type: 'percent'
+        //        }],
+        //        futuresFees: [{
+        //                tier: '0',
+        //                maker: '0.000300',
+        //                taker: '0.000500'
+        //            },
+        //            {
+        //                tier: '1',
+        //                maker: '0.000200',
+        //                taker: '0.000400'
+        //            },
+        //            {
+        //                tier: '2',
+        //                maker: '0.000180',
+        //                taker: '0.000400'
+        //            },
+        //            {
+        //                tier: '3',
+        //                maker: '0.000160',
+        //                taker: '0.000400'
+        //            },
+        //            {
+        //                tier: '4',
+        //                maker: '0.000140',
+        //                taker: '0.000400'
+        //            },
+        //            {
+        //                tier: '5',
+        //                maker: '0.000120',
+        //                taker: '0.000380'
+        //            },
+        //            {
+        //                tier: '6',
+        //                maker: '0.000100',
+        //                taker: '0.000340'
+        //            },
+        //            {
+        //                tier: '7',
+        //                maker: '0.000080',
+        //                taker: '0.000320'
+        //            },
+        //            {
+        //                tier: '8',
+        //                maker: '0.000060',
+        //                taker: '0.000280'
+        //            },
+        //            {
+        //                tier: '9',
+        //                maker: '0.000040',
+        //                taker: '0.000240'
+        //            },
+        //            {
+        //                tier: '10',
+        //                maker: '0.0',
+        //                taker: 0.0002
+        //            }
+        //        ],
+        //        spotFees: [{
+        //                tier: '0',
+        //                maker: '0.000900',
+        //                taker: '0.001500',
+        //                volume: '0'
+        //            },
+        //            {
+        //                tier: '1',
+        //                maker: '0.000600',
+        //                taker: '0.001250',
+        //                volume: '200000'
+        //            },
+        //            {
+        //                tier: '2',
+        //                maker: '0.000540',
+        //                taker: '0.001200',
+        //                volume: '2500000'
+        //            },
+        //            {
+        //                tier: '3',
+        //                maker: '0.000480',
+        //                taker: '0.001150',
+        //                volume: '7500000'
+        //            },
+        //            {
+        //                tier: '4',
+        //                maker: '0.000420',
+        //                taker: '0.001100',
+        //                volume: '22500000'
+        //            },
+        //            {
+        //                tier: '5',
+        //                maker: '0.000360',
+        //                taker: '0.001000',
+        //                volume: '50000000'
+        //            },
+        //            {
+        //                tier: '6',
+        //                maker: '0.000300',
+        //                taker: '0.000900',
+        //                volume: '100000000'
+        //            },
+        //            {
+        //                tier: '7',
+        //                maker: '0.000200',
+        //                taker: '0.000750',
+        //                volume: '200000000'
+        //            },
+        //            {
+        //                tier: '8',
+        //                maker: '0.000180',
+        //                taker: '0.000700',
+        //                volume: '400000000'
+        //            },
+        //            {
+        //                tier: '9',
+        //                maker: '0.000120',
+        //                taker: '0.000600',
+        //                volume: '750000000'
+        //            },
+        //            {
+        //                tier: '10',
+        //                maker: '0.0',
+        //                taker: '0.000600',
+        //                volume: '1000000000'
+        //            }
+        //        ],
+        //        referrals: {
+        //            earning: '0.30',
+        //            discount: '0.05',
+        //            duration: '180'
+        //        }
+        //    }
+        //
+        const spotFees = this.safeValue (response, 'spotFees', []);
+        const firstSpotFee = this.safeValue (spotFees, 0, {});
+        const spotMakerFee = this.safeNumber (firstSpotFee, 'maker');
+        const spotTakerFee = this.safeNumber (firstSpotFee, 'taker');
+        const futureFees = this.safeValue (response, 'futuresFees', []);
+        const firstFutureFee = this.safeValue (futureFees, 0, {});
+        const futureMakerFee = this.safeNumber (firstFutureFee, 'maker');
+        const futureTakerFee = this.safeNumber (firstFutureFee, 'taker');
+        const spotTakerTiers = [];
+        const spotMakerTiers = [];
+        const result = {};
+        for (let i = 0; i < spotFees.length; i++) {
+            const spotFee = spotFees[i];
+            const volume = this.safeNumber (spotFee, 'volume');
+            spotTakerTiers.push ([ volume, this.safeNumber (spotFee, 'taker') ]);
+            spotMakerTiers.push ([ volume, this.safeNumber (spotFee, 'maker') ]);
+        }
+        const spotTiers = {
+            'taker': spotTakerTiers,
+            'maker': spotMakerTiers,
+        };
+        const futureTakerTiers = [];
+        const futureMakerTiers = [];
+        for (let i = 0; i < futureFees.length; i++) {
+            const futureFee = futureFees[i];
+            futureTakerTiers.push ([ undefined, this.safeNumber (futureFee, 'taker') ]);
+            futureMakerTiers.push ([ undefined, this.safeNumber (futureFee, 'maker') ]);
+        }
+        const futureTiers = {
+            'taker': futureTakerTiers,
+            'maker': futureMakerTiers,
+        };
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            const market = this.market (symbol);
+            result[symbol] = {
+                'symbol': symbol,
+                'percentage': true,
+                'tierBased': true,
+            };
+            if (this.safeValue (market, 'spot')) {
+                result[symbol]['info'] = spotFees;
+                result[symbol]['maker'] = spotMakerFee;
+                result[symbol]['taker'] = spotTakerFee;
+                result[symbol]['tiers'] = spotTiers;
+            } else if (this.safeValue (market, 'contract')) {
+                result[symbol]['info'] = futureFees;
+                result[symbol]['maker'] = futureMakerFee;
+                result[symbol]['taker'] = futureTakerFee;
+                result[symbol]['tiers'] = futureTiers;
             }
         }
-        return {
-            'info': tradingFees,
-            'tierBased': true,
-            'maker': maker,
-            'taker': taker,
-        };
+        return result;
     }
 
     async fetchTradingLimits (symbols = undefined, params = {}) {
