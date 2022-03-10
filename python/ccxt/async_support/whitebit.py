@@ -1166,13 +1166,15 @@ class whitebit(Exchange):
             # For cases where we have a meaningful status
             # {"response":null,"status":422,"errors":{"orderId":["Finished order id 435453454535 not found on your account"]},"notification":null,"warning":"Finished order id 435453454535 not found on your account","_token":null}
             status = self.safe_integer(response, 'status')
+            # {"code":10,"message":"Unauthorized request."}
+            message = self.safe_string(response, 'message')
             # For these cases where we have a generic code variable error key
             # {"code":0,"message":"Validation failed","errors":{"amount":["Amount must be greater than 0"]}}
             code = self.safe_integer(response, 'code')
             hasErrorStatus = status is not None and status != '200'
             if hasErrorStatus or code is not None:
                 feedback = self.id + ' ' + body
-                errorInfo = None
+                errorInfo = message
                 if hasErrorStatus:
                     errorInfo = status
                 else:
