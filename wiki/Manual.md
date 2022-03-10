@@ -3969,8 +3969,24 @@ Returns
 
 The `withdraw` method can be used to withdraw funds from an account
 
-```Javascript
+Some exchanges require a manual approval of each withdrawal by means of 2FA (2-factor authentication). In order to approve your withdrawal you usually have to either click their secret link in your email inbox or enter a Google Authenticator code or an Authy code on their website to verify that withdrawal transaction was requested intentionally.
+
+In some cases you can also use the withdrawal id to check withdrawal status later (whether it succeeded or not) and to submit 2FA confirmation codes, where this is supported by the exchange. See [their docs](#exchanges) for details.
+
+
+```JavaScript
+// JavaScript
 withdraw (code, amount, address, tag = undefined, params = {})
+```
+
+```Python
+# Python
+withdraw(code, amount, address, tag=None, params={})
+```
+
+```PHP
+// PHP
+withdraw ($code, $amount, $address, $tag = null, $params = array ())
 ```
 
 Parameters
@@ -4013,57 +4029,23 @@ Parameters
 Returns
 - An array of [transaction structures](#transaction-structure)
 
-
-
-## Withdraw
-
-```JavaScript
-// JavaScript
-exchange.withdraw (code, amount, address, tag = undefined, params = {})
-```
-
-```Python
-# Python
-exchange.withdraw(code, amount, address, tag=None, params={})
-```
-
-```PHP
-// PHP
-$exchange->withdraw ($code, $amount, $address, $tag = null, $params = array ())
-```
-
-The `code` is the currency code (usually three or more uppercase letters, but can be different in some cases).
-
-The withdraw method returns a dictionary containing the withdrawal id, which is usually the txid of the onchain transaction itself, or an internal *withdrawal request id* registered within the exchange. The returned value looks as follows:
-
-```JavaScript
-{
-    'info' { ... },      // unparsed reply from the exchange, as is
-    'id': '12345567890', // string withdrawal id, if any
-}
-```
-
-Some exchanges require a manual approval of each withdrawal by means of 2FA (2-factor authentication). In order to approve your withdrawal you usually have to either click their secret link in your email inbox or enter a Google Authenticator code or an Authy code on their website to verify that withdrawal transaction was requested intentionally.
-
-In some cases you can also use the withdrawal id to check withdrawal status later (whether it succeeded or not) and to submit 2FA confirmation codes, where this is supported by the exchange. See [their docs](#exchanges) for details.
-
-## Deposit And Withdrawal Networks
+### Deposit And Withdrawal Networks
 
 It is also possible to pass the parameters as the fourth argument with or without a specified tag
 
 ```JavaScript
 // JavaScript
-exchange.withdraw (code, amount, address, { tag, network: 'ETH' })
+withdraw (code, amount, address, { tag, network: 'ETH' })
 ```
 
 ```Python
 # Python
-exchange.withdraw(code, amount, address, { 'tag': tag, 'network': 'ETH' })
+withdraw(code, amount, address, { 'tag': tag, 'network': 'ETH' })
 ```
 
 ```PHP
 // PHP
-$exchange->withdraw ($code, $amount, $address, array( 'tag' => tag, 'network' -> 'ETH' ));
+withdraw ($code, $amount, $address, array( 'tag' => tag, 'network' -> 'ETH' ));
 ```
 
 The following aliases of `network` allow for withdrawing crypto on multiple chains
@@ -4078,8 +4060,6 @@ The following aliases of `network` allow for withdrawing crypto on multiple chai
 | OMNI | OMNI  |
 
 You may set the value of `exchange.withdraw ('USDT', 100, 'TVJ1fwyJ1a8JbtUxZ8Km95sDFN9jhLxJ2D', { 'network': 'TRX' })` in order to withdraw USDT on the TRON chain, or 'BSC' to withdraw USDT on Binance Smart Chain. In the table above BSC and BEP20 are equivalent aliases, so it doesn't matter which one you use as they both will achieve the same effect.
-
-## Transactions
 
 #### Transaction Structure
 
@@ -4123,7 +4103,7 @@ You may set the value of `exchange.withdraw ('USDT', 100, 'TVJ1fwyJ1a8JbtUxZ8Km9
 - The `comment` field may be `undefined/None/null`, otherwise it will contain a message or note defined by the user upon creating the transaction.
 - Be careful when handling the `tag` and the `address`. The `tag` is **NOT an arbitrary user-defined string** of your choice! You cannot send user messages and comments in the `tag`. The purpose of the `tag` field is to address your wallet properly, so it must be correct. You should only use the `tag` received from the exchange you're working with, otherwise your transaction might never arrive to its destination.
 
-### Deposits
+### fetchDeposits Examples
 
 ```JavaScript
 // JavaScript
@@ -4157,7 +4137,7 @@ if ($exchange->has['fetchDeposits']) {
 }
 ```
 
-### Withdrawals
+### fetchWithdrawals Examples
 
 ```JavaScript
 // JavaScript
@@ -4191,7 +4171,7 @@ if ($exchange->has['fetchWithdrawals']) {
 }
 ```
 
-### All Transactions
+### fetchTransactions Examples
 
 ```JavaScript
 // JavaScript
