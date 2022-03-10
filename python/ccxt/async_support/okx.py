@@ -623,6 +623,10 @@ class okx(Exchange):
                     'ETH': 'ERC20',
                     'TRX': 'TRC20',
                     'OMNI': 'Omni',
+                    'SOLANA': 'Solana',
+                    'POLYGON': 'Polygon',
+                    'OEC': 'OEC',
+                    'ALGO': 'ALGO',  # temporarily unavailable
                 },
                 'layerTwo': {
                     'Lightning': True,
@@ -2640,6 +2644,44 @@ class okx(Exchange):
         networks = self.safe_value(currency, 'networks', {})
         networksById = self.index_by(networks, 'id')
         networkData = self.safe_value(networksById, chain)
+        # inconsistent naming responses from exchange
+        # with respect to network naming provided in currency info vs address chain-names and ids
+        #
+        # response from address endpoint:
+        #      {
+        #          "chain":"USDT-Polygon",
+        #          "ctAddr":"",
+        #          "ccy":"USDT",
+        #          "to":"6",
+        #          "addr":"0x1903441e386cc49d937f6302955b5feb4286dcfa",
+        #          "selected":true
+        #      }
+        # network information from currency['networks'] field:
+        # Polygon: {
+        #       info: {
+        #         canDep: False,
+        #         canInternal: False,
+        #         canWd: False,
+        #         ccy: 'USDT',
+        #         chain: 'USDT-Polygon-Bridge',
+        #         mainNet: False,
+        #         maxFee: '26.879528',
+        #         minFee: '13.439764',
+        #         minWd: '0.001',
+        #         name: ''
+        #       },
+        #       id: 'USDT-Polygon-Bridge',
+        #       network: 'Polygon',
+        #       active: False,
+        #       deposit: False,
+        #       withdraw: False,
+        #       fee: 13.439764,
+        #       precision: None,
+        #       limits: {withdraw: {min: 0.001, max: None}}
+        #     },
+        #
+        if chain == 'USDT-Polygon':
+            networkData = self.safe_value(networksById, 'USDT-Polygon-Bridge')
         network = self.safe_string(networkData, 'network')
         self.check_address(address)
         return {
