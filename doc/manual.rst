@@ -2962,7 +2962,7 @@ To use the async version of the library, use the ``ccxt_async`` namespace, as in
    }, $loop);
    $kernel->run();
 
-See further examples in the ``examples/php`` directory; look for filenames that include the ``async`` word. Also, make sure you have installed the required dependencies using ``composer require recoil/recoil clue/buzz-react react/event-loop recoil/react``. Lastly, `this article <https://sergeyzhuk.me/2018/10/26/from-promise-to-coroutines/>`__ provides a good introduction to the methods used here. While syntactically the change is simple (i.e., just using a ``yield`` keyword before relevant methods), concurrency has significant implications for the overall design of your code.
+See further examples in the ``examples/php`` directory; look for filenames that include the ``async`` word. Also, make sure you have installed the required dependencies using ``composer require recoil/recoil clue/buzz-react react/event-loop recoil/react react/http``. Lastly, `this article <https://sergeyzhuk.me/2018/10/26/from-promise-to-coroutines/>`__ provides a good introduction to the methods used here. While syntactically the change is simple (i.e., just using a ``yield`` keyword before relevant methods), concurrency has significant implications for the overall design of your code.
 
 Returned JSON Objects
 ^^^^^^^^^^^^^^^^^^^^^
