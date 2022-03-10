@@ -4014,67 +4014,6 @@ Returns
 - An array of [transaction structures](#transaction-structure)
 
 
-## Deposit Addresses
-
-The address for depositing can be either an already existing address that was created previously with the exchange or it can be created upon request. In order to see which of the two methods are supported, check the `exchange.has['fetchDepositAddress']` and `exchange.has['createDepositAddress']` properties.
-
-```JavaScript
-fetchDepositAddress (code, params = {})
-createDepositAddress (code, params = {})
-```
-
-Parameters
-- **code** (String) *required* Unified CCXT currency code (e.g. `"USDT"`)
-- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
-
-Returns
-- an [address structure](#address-structure)
-
----
-
-Some exchanges may also have a method for fetching multiple deposit addresses at once or all of them at once.
-
-```JavaScript
-fetchDepositAddresses (codes = undefined, params = {})
-```
-
-Parameters
-- **code** ([String]) Array of unified CCXT currency codes. May or may not be required depending on the exchange (e.g. `["USDT", "BTC"]`)
-- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
-
-Returns
-- an array of [address structures](#address-structure)
-
-```Javascript
-fetchDepositAddressesByNetwork (code, params = {})
-```
-
-Parameters
-- **code** (String) *required* Unified CCXT currency code (e.g. `"USDT"`)
-- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
-
-Returns
-- an array of [address structures](#address-structure)
-
-#### Address structure
-
-The address structures returned from `fetchDepositAddress`, `fetchDepositAddresses`, `fetchDepositAddressesByNetwork` and `createDepositAddress` look like this:
-
-```JavaScript
-{
-    'currency': currency, // currency code
-    'network': network,   // a list of deposit/withdraw networks, ERC20, TRC20, BSC20 (see below)
-    'address': address,   // address in terms of requested currency
-    'tag': tag,           // tag / memo / paymentId for particular currencies (XRP, XMR, ...)
-    'info': response,     // raw unparsed data as returned from the exchange
-}
-```
-
-With certain currencies, like AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XMR, XRP, an additional argument `tag` is usually required by exchanges. Other currencies will have the `tag` set to `undefined / None / null`. The tag is a memo or a message or a payment id that is attached to a withdrawal transaction. The tag is mandatory for those currencies and it identifies the recipient user account.
-
-Be careful when specifying the `tag` and the `address`. The `tag` is **NOT an arbitrary user-defined string** of your choice! You cannot send user messages and comments in the `tag`. The purpose of the `tag` field is to address your wallet properly, so it must be correct. You should only use the `tag` received from the exchange you're working with, otherwise your transaction might never arrive to its destination.
-
-**The `network` field is relatively new, it may be `undefined / None / null` or missing entirely in certain cases (with some exchanges), but will be added everywhere eventually. It is still in the process of unification.**
 
 ## Withdraw
 
@@ -4285,6 +4224,69 @@ if ($exchange->has['fetchTransactions']) {
     throw new Exception ($exchange->id . ' does not have the fetch_transactions method');
 }
 ```
+
+## Deposit Addresses
+
+The address for depositing can be either an already existing address that was created previously with the exchange or it can be created upon request. In order to see which of the two methods are supported, check the `exchange.has['fetchDepositAddress']` and `exchange.has['createDepositAddress']` properties.
+
+```JavaScript
+fetchDepositAddress (code, params = {})
+createDepositAddress (code, params = {})
+```
+
+Parameters
+- **code** (String) *required* Unified CCXT currency code (e.g. `"USDT"`)
+- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+- an [address structure](#address-structure)
+
+---
+
+Some exchanges may also have a method for fetching multiple deposit addresses at once or all of them at once.
+
+```JavaScript
+fetchDepositAddresses (codes = undefined, params = {})
+```
+
+Parameters
+- **code** ([String]) Array of unified CCXT currency codes. May or may not be required depending on the exchange (e.g. `["USDT", "BTC"]`)
+- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+- an array of [address structures](#address-structure)
+
+```Javascript
+fetchDepositAddressesByNetwork (code, params = {})
+```
+
+Parameters
+- **code** (String) *required* Unified CCXT currency code (e.g. `"USDT"`)
+- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+- an array of [address structures](#address-structure)
+
+#### Address structure
+
+The address structures returned from `fetchDepositAddress`, `fetchDepositAddresses`, `fetchDepositAddressesByNetwork` and `createDepositAddress` look like this:
+
+```JavaScript
+{
+    'currency': currency, // currency code
+    'network': network,   // a list of deposit/withdraw networks, ERC20, TRC20, BSC20 (see below)
+    'address': address,   // address in terms of requested currency
+    'tag': tag,           // tag / memo / paymentId for particular currencies (XRP, XMR, ...)
+    'info': response,     // raw unparsed data as returned from the exchange
+}
+```
+
+With certain currencies, like AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XMR, XRP, an additional argument `tag` is usually required by exchanges. Other currencies will have the `tag` set to `undefined / None / null`. The tag is a memo or a message or a payment id that is attached to a withdrawal transaction. The tag is mandatory for those currencies and it identifies the recipient user account.
+
+Be careful when specifying the `tag` and the `address`. The `tag` is **NOT an arbitrary user-defined string** of your choice! You cannot send user messages and comments in the `tag`. The purpose of the `tag` field is to address your wallet properly, so it must be correct. You should only use the `tag` received from the exchange you're working with, otherwise your transaction might never arrive to its destination.
+
+**The `network` field is relatively new, it may be `undefined / None / null` or missing entirely in certain cases (with some exchanges), but will be added everywhere eventually. It is still in the process of unification.**
+
 
 ## Fees
 
