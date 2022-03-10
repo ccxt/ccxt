@@ -579,7 +579,7 @@ module.exports = class gateio extends Exchange {
     async fetchMarkets (params = {}) {
         const spotMarkets = await this.fetchSpotMarkets (params);
         const derivativeMarkets = await this.fetchDerivativesMarkets (params); // futures and swaps
-        const optionMarkets = await this.fetchOptionsMarkets (params);
+        const optionMarkets = await this.fetchOptionMarkets (params);
         let result = spotMarkets.concat (derivativeMarkets);
         result = result.concat (optionMarkets);
         return result;
@@ -871,7 +871,7 @@ module.exports = class gateio extends Exchange {
         return result;
     }
 
-    async fetchOptionsMarkets (params = {}) {
+    async fetchOptionMarkets (params = {}) {
         const result = [];
         const underlyings = await this.fetchOptionsUnderlyings ();
         for (let i = 0; i < underlyings.length; i++) {
@@ -879,6 +879,7 @@ module.exports = class gateio extends Exchange {
             const query = params;
             query['underlying'] = underlying;
             const response = await this.publicOptionsGetContracts (query);
+            //
             // [
             //   {
             //       "orders_limit":"50",
@@ -888,7 +889,7 @@ module.exports = class gateio extends Exchange {
             //       "position_limit":"1000000",
             //       "orderbook_id":"575967",
             //       "order_price_deviate":"0.9",
-            //       "is_call":true,
+            //       "is_call":true, // true means Call false means Put
             //       "last_price":"93.9",
             //       "bid1_size":"0",
             //       "bid1_price":"0",
@@ -915,25 +916,22 @@ module.exports = class gateio extends Exchange {
             //       "tag":"WEEK"
             //    }
             // ]
+            //
             for (let i = 0; i < response.length; i++) {
                 const market = response[i];
                 const id = this.safeString (market, 'name');
-                const parts = id.split ('_');
+                const parts = underlying.split ('_');
                 const baseId = this.safeString (parts, 0);
                 const quoteId = this.safeString (parts, 1);
-                const date = this.safeString (parts, 2);
                 const base = this.safeCurrencyCode (baseId);
                 const quote = this.safeCurrencyCode (quoteId);
-                const settle = this.safeCurrencyCode (settleId);
-                const expiry = this.safeTimestamp (market, 'expire_time');
-                let symbol = '';
-                let marketType = 'swap';
-                if (date !== undefined) {
-                    symbol = base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry, '');
-                    marketType = 'future';
-                } else {
-                    symbol = base + '/' + quote + ':' + settle;
-                }
+                let symbol = base + '/' + quote;
+                const expiry = this.safeTimestamp (market, 'expiration_time');
+                const strike = this.safeString (market, 'strike_price');
+                const isCall = this.safeValue (market, 'is_call');
+                const optionLetter = isCall ? 'C' : 'P';
+                const optionType = isCall ? 'call' : 'put';
+                symbol = symbol + ':' + quote + '-' + this.yymmdd (expiry) + ':' + strike + ':' + optionLetter;
                 const priceDeviate = this.safeString (market, 'order_price_deviate');
                 const markPrice = this.safeString (market, 'mark_price');
                 const minMultiplier = Precise.stringSub ('1', priceDeviate);
@@ -947,35 +945,35 @@ module.exports = class gateio extends Exchange {
                     'symbol': symbol,
                     'base': base,
                     'quote': quote,
-                    'settle': settle,
+                    'settle': quote,
                     'baseId': baseId,
                     'quoteId': quoteId,
-                    'settleId': settleId,
-                    'type': marketType,
+                    'settleId': quoteId,
+                    'type': 'option',
                     'spot': false,
                     'margin': false,
-                    'swap': marketType === 'swap',
-                    'future': marketType === 'future',
-                    'option': marketType === 'option',
+                    'swap': false,
+                    'future': false,
+                    'option': true,
                     'active': true,
                     'contract': true,
-                    'linear': (quote === settle),
-                    'inverse': (base === settle),
+                    'linear': true,
+                    'inverse': false,
                     'taker': this.parseNumber (Precise.stringDiv (takerPercent, '100')), // Fee is in %, so divide by 100
                     'maker': this.parseNumber (Precise.stringDiv (makerPercent, '100')),
-                    'contractSize': this.safeNumber (market, 'quanto_multiplier'),
+                    'contractSize': this.parseNumber ('1'),
                     'expiry': expiry,
                     'expiryDatetime': this.iso8601 (expiry),
-                    'strike': undefined,
-                    'optionType': undefined,
+                    'strike': strike,
+                    'optionType': optionType,
                     'precision': {
                         'amount': this.parseNumber ('1'),
                         'price': this.safeNumber (market, 'order_price_round'),
                     },
                     'limits': {
                         'leverage': {
-                            'min': this.safeNumber (market, 'leverage_min'),
-                            'max': this.safeNumber (market, 'leverage_max'),
+                            'min': undefined,
+                            'max': undefined,
                         },
                         'amount': {
                             'min': this.safeNumber (market, 'order_size_min'),
