@@ -3341,8 +3341,8 @@ module.exports = class zb extends Exchange {
         //     }
         //
         const timestamp = this.milliseconds ();
-        const data = this.safeValue (response, 'result');
-        const rate = this.safeValue (data, 0);
+        const data = this.safeValue (response, 'result', []);
+        const rate = this.safeValue (data, 0, {});
         return {
             'currency': this.safeCurrencyCode (this.safeString (rate, 'coinName')),
             'rate': this.safeNumber (rate, 'interestRateOfDay'),
