@@ -2356,7 +2356,7 @@ module.exports = class gateio extends Exchange {
         } else {
             if (contract) {
                 // contract conditional order
-                const rule = (side === 'buy') ? 2 : 1;
+                const rule = (side === 'buy') ? 1 : 2;
                 request = {
                     'initial': {
                         'contract': market['id'],
