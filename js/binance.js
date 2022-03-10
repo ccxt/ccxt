@@ -4452,9 +4452,7 @@ module.exports = class binance extends Exchange {
         let entryPrice = this.parseNumber (entryPriceString);
         const notionalString = this.safeString2 (position, 'notional', 'notionalValue');
         const notionalStringAbs = Precise.stringAbs (notionalString);
-        const notionalFloat = parseFloat (notionalString);
-        const notionalFloatAbs = parseFloat (notionalStringAbs);
-        const notional = this.parseNumber (Precise.stringAbs (notionalString));
+        const notional = this.parseNumber (notionalStringAbs);
         let contractsString = this.safeString (position, 'positionAmt');
         let contractsStringAbs = Precise.stringAbs (contractsString);
         if (contractsString === undefined) {
@@ -4469,7 +4467,7 @@ module.exports = class binance extends Exchange {
         let maintenanceMarginPercentageString = undefined;
         for (let i = 0; i < leverageBracket.length; i++) {
             const bracket = leverageBracket[i];
-            if (notionalFloatAbs < bracket[0]) {
+            if (Precise.stringLt (notionalStringAbs, bracket[0])) {
                 break;
             }
             maintenanceMarginPercentageString = bracket[1];
@@ -4502,10 +4500,10 @@ module.exports = class binance extends Exchange {
         let liquidationPrice = undefined;
         const contractSize = this.safeValue (market, 'contractSize');
         const contractSizeString = this.numberToString (contractSize);
-        if (notionalFloat === 0.0) {
+        if (Precise.stringEquals (notionalString, '0')) {
             entryPrice = undefined;
         } else {
-            side = (notionalFloat < 0) ? 'short' : 'long';
+            side = Precise.stringLt (notionalString, '0') ? 'short' : 'long';
             marginRatio = this.parseNumber (Precise.stringDiv (Precise.stringAdd (Precise.stringDiv (maintenanceMarginString, collateralString), '5e-5'), '1', 4));
             percentage = this.parseNumber (Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMarginString, 4), '100'));
             if (usdm) {
@@ -4634,12 +4632,10 @@ module.exports = class binance extends Exchange {
         const leverageBracket = this.safeValue (leverageBrackets, symbol, []);
         const notionalString = this.safeString2 (position, 'notional', 'notionalValue');
         const notionalStringAbs = Precise.stringAbs (notionalString);
-        const notionalFloatAbs = parseFloat (notionalStringAbs);
-        const notionalFloat = parseFloat (notionalString);
         let maintenanceMarginPercentageString = undefined;
         for (let i = 0; i < leverageBracket.length; i++) {
             const bracket = leverageBracket[i];
-            if (notionalFloatAbs < bracket[0]) {
+            if (Precise.stringLt (notionalStringAbs, bracket[0])) {
                 break;
             }
             maintenanceMarginPercentageString = bracket[1];
@@ -4656,9 +4652,9 @@ module.exports = class binance extends Exchange {
         let collateralString = undefined;
         const marginType = this.safeString (position, 'marginType');
         let side = undefined;
-        if (notionalFloat > 0) {
+        if (Precise.stringGt (notionalString, '0')) {
             side = 'long';
-        } else if (notionalFloat < 0) {
+        } else if (Precise.stringLt (notionalString, '0')) {
             side = 'short';
         }
         const entryPriceString = this.safeString (position, 'entryPrice');
@@ -4703,7 +4699,6 @@ module.exports = class binance extends Exchange {
             collateralString = this.safeString (position, 'isolatedMargin');
         }
         collateralString = (collateralString === undefined) ? '0' : collateralString;
-        const collateralFloat = parseFloat (collateralString);
         const collateral = this.parseNumber (collateralString);
         const markPrice = this.parseNumber (this.omitZero (this.safeString (position, 'markPrice')));
         let timestamp = this.safeInteger (position, 'updateTime');
@@ -4722,7 +4717,7 @@ module.exports = class binance extends Exchange {
         const initialMargin = this.parseNumber (initialMarginString);
         let marginRatio = undefined;
         let percentage = undefined;
-        if (collateralFloat !== 0.0) {
+        if (!Precise.stringEquals (collateralString, '0')) {
             marginRatio = this.parseNumber (Precise.stringDiv (Precise.stringAdd (Precise.stringDiv (maintenanceMarginString, collateralString), '5e-5'), '1', 4));
             percentage = this.parseNumber (Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMarginString, 4), '100'));
         }
@@ -4781,8 +4776,7 @@ module.exports = class binance extends Exchange {
                 const result = [];
                 for (let j = 0; j < brackets.length; j++) {
                     const bracket = brackets[j];
-                    // we use floats here internally on purpose
-                    const floorValue = this.safeFloat2 (bracket, 'notionalFloor', 'qtyFloor');
+                    const floorValue = this.safeString2 (bracket, 'notionalFloor', 'qtyFloor');
                     const maintenanceMarginPercentage = this.safeString (bracket, 'maintMarginRatio');
                     result.push ([ floorValue, maintenanceMarginPercentage ]);
                 }
@@ -4854,7 +4848,7 @@ module.exports = class binance extends Exchange {
             tiers.push ({
                 'tier': this.safeNumber (bracket, 'bracket'),
                 'currency': market['quote'],
-                'notionalFloor': this.safeFloat2 (bracket, 'notionalFloor', 'qtyFloor'),
+                'notionalFloor': this.safeNumber2 (bracket, 'notionalFloor', 'qtyFloor'),
                 'notionalCap': this.safeNumber (bracket, 'notionalCap'),
                 'maintenanceMarginRate': this.safeNumber (bracket, 'maintMarginRatio'),
                 'maxLeverage': this.safeNumber (bracket, 'initialLeverage'),
@@ -5211,7 +5205,7 @@ module.exports = class binance extends Exchange {
                 throw new InvalidOrder (this.id + ' order amount should be evenly divisible by lot size ' + body);
             }
             if (body.indexOf ('PRICE_FILTER') >= 0) {
-                throw new InvalidOrder (this.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use this.priceToPrecision (symbol, amount) ' + body);
+                throw new InvalidOrder (this.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use this.priceToPrecision (symbol, amount) ' + body);
             }
         }
         if (response === undefined) {
