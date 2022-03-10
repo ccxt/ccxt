@@ -21,7 +21,7 @@ module.exports = class zb extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined, // has but unimplemented
+                'margin': true,
                 'swap': true,
                 'future': undefined,
                 'option': undefined,
@@ -33,6 +33,8 @@ module.exports = class zb extends Exchange {
                 'createReduceOnlyOrder': false,
                 'fetchBalance': true,
                 'fetchBorrowRate': true,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRateHistories': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
@@ -1753,6 +1755,9 @@ module.exports = class zb extends Exchange {
         });
         const request = {
             'amount': this.amountToPrecision (symbol, amount),
+            // 'acctType': 0, // Spot, Margin 0/1/2 [Spot/Isolated/Cross] Optional, Default to: 0 Spot
+            // 'customerOrderId': '1f2g', // Spot, Margin
+            // 'orderType': 1, // Spot, Margin order type 1/2 [PostOnly/IOC] Optional
         };
         if (price) {
             request['price'] = this.priceToPrecision (symbol, price);
@@ -1760,6 +1765,13 @@ module.exports = class zb extends Exchange {
         if (spot) {
             request['tradeType'] = (side === 'buy') ? '1' : '0';
             request['currency'] = market['id'];
+            if (timeInForce === 'PO') {
+                request['orderType'] = 1;
+            } else if (timeInForce === 'IOC') {
+                request['orderType'] = 2;
+            } else {
+                request['orderType'] = undefined;
+            }
         } else if (swap) {
             const reduceOnly = this.safeValue (params, 'reduceOnly');
             params = this.omit (params, 'reduceOnly');
