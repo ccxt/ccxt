@@ -4431,12 +4431,15 @@ exchange.currencies['BTC']['fee'] // tx/withdrawal fee rate for BTC
 
 #### Funding Fee Schedule
 
-Some exchanges have an endpoint for fetching the funding fee schedule, this is mapped to the unified method `fetchFundingFees`:
+Some exchanges have an endpoint for fetching the funding fee schedule, this is mapped to the unified methods
+
+- `fetchFundingFee` for a single funding fee schedule
+- `fetchFundingFees` for all funding fee schedules
+
 
 ```Javascript
 fetchFundingFee (code, params = {})
 ```
-
 
 ```Javascript
 fetchFundingFees (params = {})
@@ -4556,6 +4559,36 @@ addMargin (symbol, amount, params = {})
 reduceMargin (symbol, amount, params = {})
 ```
 
+## Margin Mode
+
+*margin and contract only*
+
+Updates the type of margin used to be either 
+
+- `cross` One account is used to share collateral between markets. Margin is taken from total account balance to avoid liquidation when needed.
+- `isolated` Each market, keeps collateral in a separate account
+
+```Javascript
+setMarginMode (marginType, symbol = undefined, params = {})
+```
+
+Parameters
+- **marginType** (String) *required* `"cross"` or `"isolated"`
+- **symbol** (String) Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`) *required* on most exchanges. Is not required when the margin mode is not specific to a market
+- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"leverage": 5}`)
+
+Returns 
+- response from the exchange
+
+### Notes on suppressed errors for setMarginMode
+
+Some exchange apis return an error response when a request is sent to set the margin mode to the mode that it is already set to (e.g. Sending a request to set the margin mode to `cross` for the market `BTC/USDT:USDT` when the account already has `BTC/USDT:USDT` set to use cross margin). CCXT doesn't see this as an error because the end result is what the user wanted, so the error is suppressed and the error result is returned as an object.
+
+e.g.
+
+```JavaScript
+{ code: -4046, msg: 'No need to change margin type.' }
+```
 
 ## Funding History
 
@@ -4573,12 +4606,6 @@ fetchTransfers (code = undefined, since = undefined, limit = undefined, params =
 
 ```Javascript
 setLeverage (leverage, symbol = undefined, params = {})
-```
-
-## Margin Mode
-
-```Javascript
-setMarginMode (marginType, symbol = undefined, params = {})
 ```
 
 ## Position Mode
