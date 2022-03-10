@@ -1331,22 +1331,54 @@ module.exports = class gateio extends Exchange {
             'future': 'privateDeliveryGetSettleAccountBook',
         });
         const response = await this[method] (this.extend (request, params));
+        //
+        //    [
+        //        {
+        //            "time": 1646899200,
+        //            "change": "-0.027722",
+        //            "balance": "11.653120591841",
+        //            "text": "XRP_USDT",
+        //            "type": "fund"
+        //        },
+        //        ...
+        //    ]
+        //
+        return this.parseFundingHistories (response, symbol, since, limit);
+    }
+
+    parseFundingHistories (response, symbol, since, limit) {
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
-            const timestamp = this.safeTimestamp (entry, 'time');
-            result.push ({
-                'info': entry,
-                'symbol': symbol,
-                'code': this.safeCurrencyCode (this.safeString (entry, 'text')),
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-                'id': undefined,
-                'amount': this.safeNumber (entry, 'change'),
-            });
+            const funding = this.parseFundingHistory (entry);
+            result.push (funding);
         }
         const sorted = this.sortBy (result, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+    }
+
+    parseFundingHistory (info, market = undefined) {
+        //
+        //    {
+        //        "time": 1646899200,
+        //        "change": "-0.027722",
+        //        "balance": "11.653120591841",
+        //        "text": "XRP_USDT",
+        //        "type": "fund"
+        //    }
+        //
+        const timestamp = this.safeTimestamp (info, 'time');
+        const marketId = this.safeString (info, 'text');
+        market = this.safeMarket (marketId, market);
+        return {
+            'info': info,
+            'symbol': this.safeString (market, 'symbol'),
+            'code': this.safeString (market, 'settle'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'id': undefined,
+            'amount': this.safeNumber (info, 'change'),
+        };
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
