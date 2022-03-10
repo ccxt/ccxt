@@ -3956,9 +3956,58 @@ fetchDeposits (code = undefined, since = undefined, limit = undefined, params = 
 ```
 
 Parameters
-- **code** (String) Unified CCXT currency code, required (e.g. `"USDT"`)
-- **since** (Integer) Timestamp (ms), of the earliest time to retrieve deposits for (e.g. `1646940314000`)
-- **limit** (Integer) The number of deposit entries to retrieve (e.g. `5`)
+- **code** (String) Unified CCXT currency code (e.g. `"USDT"`)
+- **since** (Integer) Timestamp (ms) of the earliest time to retrieve deposits for (e.g. `1646940314000`)
+- **limit** (Integer) The number of [transaction structures](#transaction-structure) to retrieve (e.g. `5`)
+- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+- An array of [transaction structures](#transaction-structure)
+
+
+## Withdrawal
+
+The `withdraw` method can be used to withdraw funds from an account
+
+```Javascript
+withdraw (code, amount, address, tag = undefined, params = {})
+```
+
+Parameters
+- **code** (String) *required* Unified CCXT currency code (e.g. `"USDT"`)
+- **amount** (Float) *required* The amount of currency to withdraw (e.g. `20`)
+- **address** (String) *required* The recipient address of the withdrawal (e.g. `"TEY6qjnKDyyq5jDc3DJizWLCdUySrpQ4yp"`)
+- **tag** (String) Required for some networks (e.g. `"52055"`)
+- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"network": "TRX"}`)
+
+Returns
+- An [transaction structure](#transaction-structure)
+
+---
+
+Data on withdrawals made to an account can be retrieved using
+
+- `fetchWithdrawal ()` for a single withdrawal
+- `fetchWithdrawals ( code )` for multiple withdrawals of the same currency
+- `fetchWithdrawals ()` for all withdrawals from an account
+
+```Javascript
+fetchWithdrawal (id, code = undefined, params = {})
+```
+
+Parameters
+- **id** (String) *required* Withdrawal id
+- **code** (String) Unified CCXT currency code (e.g. `"USDT"`)
+- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"network": "TRX"}`)
+
+```Javascript
+fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {})
+```
+
+Parameters
+- **code** (String) Unified CCXT currency code (e.g. `"USDT"`)
+- **since** (Integer) Timestamp (ms) of the earliest time to retrieve withdrawals for (e.g. `1646940314000`)
+- **limit** (Integer) The number of [transaction structures](#transaction-structure) to retrieve (e.g. `5`)
 - **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
 
 Returns
@@ -4560,16 +4609,6 @@ setPositionMode (hedged, symbol = undefined, params = {})
 
 ```Javascript
 signIn (params = {})
-```
-
-## Withdrawals
-
-```Javascript
-withdraw (code, amount, address, tag = undefined, params = {})
-```
-
-```Javascript
-fetchWithdrawal (id, code = undefined, params = {})
 ```
 
 
