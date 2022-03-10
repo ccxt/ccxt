@@ -51,8 +51,8 @@ module.exports = class bw extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
-                'fetchTradingFee': undefined,
-                'fetchTradingFees': undefined,
+                'fetchTradingFee': false,
+                'fetchTradingFees': true,
                 'fetchTradingLimits': undefined,
                 'fetchTransactions': undefined,
                 'fetchWithdrawals': true,
@@ -81,7 +81,7 @@ module.exports = class bw extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'tierBased': false,
+                    'tierBased': true,
                     'percentage': true,
                     'taker': this.parseNumber ('0.002'),
                     'maker': this.parseNumber ('0.002'),
@@ -558,6 +558,62 @@ module.exports = class bw extends Exchange {
         //
         const trades = this.safeValue (response, 'datas', []);
         return this.parseTrades (trades, market, since, limit);
+    }
+
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetExchangeConfigControllerWebsiteMarketcontrollerGetByWebId ();
+        //
+        // {
+        //     resMsg: { method: null, code: '1', message: 'success !' },
+        //     datas: [
+        //         {
+        //             leverMultiple: '10',
+        //             amountDecimal: '4',
+        //             minAmount: '0.0100000000',
+        //             modifyUid: null,
+        //             buyerCurrencyId: '11',
+        //             isCombine: '0',
+        //             priceDecimal: '3',
+        //             combineMarketId: '',
+        //             openPrice: '0',
+        //             leverEnable: true,
+        //             marketId: '291',
+        //             serverId: 'entrust_bw_2',
+        //             isMining: '0',
+        //             webId: '102',
+        //             modifyTime: '1581595375498',
+        //             defaultFee: '0.00200000',
+        //             sellerCurrencyId: '7',
+        //             createTime: '0',
+        //             state: '1',
+        //             name: 'eos_usdt',
+        //             leverType: '2',
+        //             createUid: null,
+        //             orderNum: null,
+        //             openTime: '1574956800000'
+        //         },
+        //         ...
+        //     ]
+        // }
+        //
+        const datas = this.safeValue (response, 'datas', []);
+        const result = {};
+        for (let i = 0; i < datas.length; i++) {
+            const data = datas[i];
+            const marketId = this.safeString (data, 'name');
+            const symbol = this.safeSymbol (marketId, undefined, '_');
+            const fee = this.safeNumber (data, 'defaultFee');
+            result[symbol] = {
+                'info': data,
+                'symbol': symbol,
+                'maker': fee,
+                'taker': fee,
+                'percentage': true,
+                'tierBased': true,
+            };
+        }
+        return result;
     }
 
     parseOHLCV (ohlcv, market = undefined) {
