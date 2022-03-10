@@ -422,13 +422,13 @@ module.exports = class coinfalcon extends Exchange {
         await this.loadMarkets ();
         const response = await this.privateGetUserFees (params);
         //
-        // {
-        //     data: {
-        //         maker_fee: '0.0',
-        //         taker_fee: '0.2',
-        //         btc_volume_30d: '0.0'
-        //     }
-        // }
+        //    {
+        //        data: {
+        //            maker_fee: '0.0',
+        //            taker_fee: '0.2',
+        //            btc_volume_30d: '0.0'
+        //        }
+        //    }
         //
         const data = this.safeValue (response, 'data', {});
         const makerString = this.safeString (data, 'maker_fee');
