@@ -4247,9 +4247,7 @@ class binance(Exchange):
         entryPrice = self.parse_number(entryPriceString)
         notionalString = self.safe_string_2(position, 'notional', 'notionalValue')
         notionalStringAbs = Precise.string_abs(notionalString)
-        notionalFloat = float(notionalString)
-        notionalFloatAbs = float(notionalStringAbs)
-        notional = self.parse_number(Precise.string_abs(notionalString))
+        notional = self.parse_number(notionalStringAbs)
         contractsString = self.safe_string(position, 'positionAmt')
         contractsStringAbs = Precise.string_abs(contractsString)
         if contractsString is None:
@@ -4263,7 +4261,7 @@ class binance(Exchange):
         maintenanceMarginPercentageString = None
         for i in range(0, len(leverageBracket)):
             bracket = leverageBracket[i]
-            if notionalFloatAbs < bracket[0]:
+            if Precise.string_lt(notionalStringAbs, bracket[0]):
                 break
             maintenanceMarginPercentageString = bracket[1]
         maintenanceMarginPercentage = self.parse_number(maintenanceMarginPercentageString)
@@ -4292,10 +4290,10 @@ class binance(Exchange):
         liquidationPrice = None
         contractSize = self.safe_value(market, 'contractSize')
         contractSizeString = self.number_to_string(contractSize)
-        if notionalFloat == 0.0:
+        if Precise.string_equals(notionalString, '0'):
             entryPrice = None
         else:
-            side = 'short' if (notionalFloat < 0) else 'long'
+            side = 'short' if Precise.string_lt(notionalString, '0') else 'long'
             marginRatio = self.parse_number(Precise.string_div(Precise.string_add(Precise.string_div(maintenanceMarginString, collateralString), '5e-5'), '1', 4))
             percentage = self.parse_number(Precise.string_mul(Precise.string_div(unrealizedPnlString, initialMarginString, 4), '100'))
             if usdm:
@@ -4418,12 +4416,10 @@ class binance(Exchange):
         leverageBracket = self.safe_value(leverageBrackets, symbol, [])
         notionalString = self.safe_string_2(position, 'notional', 'notionalValue')
         notionalStringAbs = Precise.string_abs(notionalString)
-        notionalFloatAbs = float(notionalStringAbs)
-        notionalFloat = float(notionalString)
         maintenanceMarginPercentageString = None
         for i in range(0, len(leverageBracket)):
             bracket = leverageBracket[i]
-            if notionalFloatAbs < bracket[0]:
+            if Precise.string_lt(notionalStringAbs, bracket[0]):
                 break
             maintenanceMarginPercentageString = bracket[1]
         notional = self.parse_number(notionalStringAbs)
@@ -4438,9 +4434,9 @@ class binance(Exchange):
         collateralString = None
         marginType = self.safe_string(position, 'marginType')
         side = None
-        if notionalFloat > 0:
+        if Precise.string_gt(notionalString, '0'):
             side = 'long'
-        elif notionalFloat < 0:
+        elif Precise.string_lt(notionalString, '0'):
             side = 'short'
         entryPriceString = self.safe_string(position, 'entryPrice')
         entryPrice = self.parse_number(entryPriceString)
@@ -4480,7 +4476,6 @@ class binance(Exchange):
         else:
             collateralString = self.safe_string(position, 'isolatedMargin')
         collateralString = '0' if (collateralString is None) else collateralString
-        collateralFloat = float(collateralString)
         collateral = self.parse_number(collateralString)
         markPrice = self.parse_number(self.omit_zero(self.safe_string(position, 'markPrice')))
         timestamp = self.safe_integer(position, 'updateTime')
@@ -4497,7 +4492,7 @@ class binance(Exchange):
         initialMargin = self.parse_number(initialMarginString)
         marginRatio = None
         percentage = None
-        if collateralFloat != 0.0:
+        if not Precise.string_equals(collateralString, '0'):
             marginRatio = self.parse_number(Precise.string_div(Precise.string_add(Precise.string_div(maintenanceMarginString, collateralString), '5e-5'), '1', 4))
             percentage = self.parse_number(Precise.string_mul(Precise.string_div(unrealizedPnlString, initialMarginString, 4), '100'))
         positionSide = self.safe_string(position, 'positionSide')
@@ -4553,8 +4548,7 @@ class binance(Exchange):
                 result = []
                 for j in range(0, len(brackets)):
                     bracket = brackets[j]
-                    # we use floats here internally on purpose
-                    floorValue = self.safe_float_2(bracket, 'notionalFloor', 'qtyFloor')
+                    floorValue = self.safe_string_2(bracket, 'notionalFloor', 'qtyFloor')
                     maintenanceMarginPercentage = self.safe_string(bracket, 'maintMarginRatio')
                     result.append([floorValue, maintenanceMarginPercentage])
                 self.options['leverageBrackets'][symbol] = result
@@ -4619,7 +4613,7 @@ class binance(Exchange):
             tiers.append({
                 'tier': self.safe_number(bracket, 'bracket'),
                 'currency': market['quote'],
-                'notionalFloor': self.safe_float_2(bracket, 'notionalFloor', 'qtyFloor'),
+                'notionalFloor': self.safe_number_2(bracket, 'notionalFloor', 'qtyFloor'),
                 'notionalCap': self.safe_number(bracket, 'notionalCap'),
                 'maintenanceMarginRate': self.safe_number(bracket, 'maintMarginRatio'),
                 'maxLeverage': self.safe_number(bracket, 'initialLeverage'),
@@ -4928,7 +4922,7 @@ class binance(Exchange):
             if body.find('LOT_SIZE') >= 0:
                 raise InvalidOrder(self.id + ' order amount should be evenly divisible by lot size ' + body)
             if body.find('PRICE_FILTER') >= 0:
-                raise InvalidOrder(self.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use self.price_to_precision(symbol, amount) ' + body)
+                raise InvalidOrder(self.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use self.price_to_precision(symbol, amount) ' + body)
         if response is None:
             return  # fallback to default error handler
         # check success value for wapi endpoints

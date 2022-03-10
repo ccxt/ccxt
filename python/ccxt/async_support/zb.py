@@ -2999,24 +2999,62 @@ class zb(Exchange):
 
     async def transfer(self, code, amount, fromAccount, toAccount, params={}):
         await self.load_markets()
-        side = None
-        if fromAccount == 'spot' or toAccount == 'future':
-            side = 1
-        else:
-            side = 0
+        marketType, query = self.handle_market_type_and_params('transfer', None, params)
         currency = self.currency(code)
+        margin = (marketType == 'margin')
+        swap = (marketType == 'swap')
+        side = None
+        marginMethod = None
         request = {
-            'currencyName': currency['id'],
-            'amount': amount,
-            'clientId': self.safe_string(params, 'clientId'),  # "2sdfsdfsdf232342"
-            'side': side,  # 1：Deposit(zb account -> futures account)，0：Withdrawal(futures account -> zb account)
+            'amount': amount,  # Swap, Cross Margin, Isolated Margin
+            # 'coin': currency['id'],  # Margin
+            # 'currencyName': currency['id'],  # Swap
+            # 'clientId': self.safe_string(params, 'clientId'),  # Swap "2sdfsdfsdf232342"
+            # 'side': side,  # Swap, 1：Deposit(zb account -> futures account)，0：Withdrawal(futures account -> zb account)
+            # 'marketName': self.safe_string(params, 'marketName'),  # Isolated Margin
         }
-        response = await self.contractV2PrivatePostFundTransferFund(self.extend(request, params))
+        if swap:
+            if fromAccount == 'spot' or toAccount == 'future':
+                side = 1
+            else:
+                side = 0
+            request['currencyName'] = currency['id']
+            request['clientId'] = self.safe_string(params, 'clientId')
+            request['side'] = side
+        else:
+            defaultMargin = 'isolated' if margin else 'cross'
+            marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', defaultMargin)
+            if marginType == 'isolated':
+                if fromAccount == 'spot' or toAccount == 'isolated':
+                    marginMethod = 'spotV1PrivateGetTransferInLever'
+                else:
+                    marginMethod = 'spotV1PrivateGetTransferOutLever'
+                request['marketName'] = self.safe_string(params, 'marketName')
+            elif marginType == 'cross':
+                if fromAccount == 'spot' or toAccount == 'cross':
+                    marginMethod = 'spotV1PrivateGetTransferInCross'
+                else:
+                    marginMethod = 'spotV1PrivateGetTransferOutCross'
+            request['coin'] = currency['id']
+        method = self.get_supported_mapping(marketType, {
+            'swap': 'contractV2PrivatePostFundTransferFund',
+            'margin': marginMethod,
+        })
+        response = await getattr(self, method)(self.extend(request, query))
+        #
+        # Swap
         #
         #     {
         #         "code": 10000,
         #         "data": "2sdfsdfsdf232342",
         #         "desc": "Success"
+        #     }
+        #
+        # Margin
+        #
+        #     {
+        #         "code": 1000,
+        #         "message": "Success"
         #     }
         #
         timestamp = self.milliseconds()
@@ -3055,7 +3093,7 @@ class zb(Exchange):
             'amount': self.safe_number(transfer, 'amount'),
             'fromAccount': self.safe_string(transfer, 'fromAccount'),
             'toAccount': self.safe_string(transfer, 'toAccount'),
-            'status': self.safe_string(transfer, 'status'),
+            'status': self.safe_integer(transfer, 'status'),
         }
 
     async def modify_margin_helper(self, symbol, amount, type, params={}):

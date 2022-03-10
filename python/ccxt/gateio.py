@@ -2273,7 +2273,7 @@ class gateio(Exchange):
         else:
             if contract:
                 # contract conditional order
-                rule = 2 if (side == 'buy') else 1
+                rule = 1 if (side == 'buy') else 2
                 request = {
                     'initial': {
                         'contract': market['id'],
@@ -3056,7 +3056,7 @@ class gateio(Exchange):
             'notional': self.parse_number(notional),
             'leverage': self.safe_number(position, 'leverage'),
             'unrealizedPnl': self.parse_number(unrealisedPnl),
-            'contracts': self.parse_number(size),
+            'contracts': self.parse_number(Precise.string_abs(size)),
             'contractSize': self.safe_value(market, 'contractSize'),
             #     realisedPnl: position['realised_pnl'],
             'marginRatio': None,

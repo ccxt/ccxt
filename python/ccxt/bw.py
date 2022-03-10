@@ -58,8 +58,8 @@ class bw(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
-                'fetchTradingFee': None,
-                'fetchTradingFees': None,
+                'fetchTradingFee': False,
+                'fetchTradingFees': True,
                 'fetchTradingLimits': None,
                 'fetchTransactions': None,
                 'fetchWithdrawals': True,
@@ -88,7 +88,7 @@ class bw(Exchange):
             },
             'fees': {
                 'trading': {
-                    'tierBased': False,
+                    'tierBased': True,
                     'percentage': True,
                     'taker': self.parse_number('0.002'),
                     'maker': self.parse_number('0.002'),
@@ -549,6 +549,60 @@ class bw(Exchange):
         #
         trades = self.safe_value(response, 'datas', [])
         return self.parse_trades(trades, market, since, limit)
+
+    def fetch_trading_fees(self, params={}):
+        self.load_markets()
+        response = self.publicGetExchangeConfigControllerWebsiteMarketcontrollerGetByWebId()
+        #
+        #    {
+        #        resMsg: {method: null, code: '1', message: 'success !'},
+        #        datas: [
+        #            {
+        #                leverMultiple: '10',
+        #                amountDecimal: '4',
+        #                minAmount: '0.0100000000',
+        #                modifyUid: null,
+        #                buyerCurrencyId: '11',
+        #                isCombine: '0',
+        #                priceDecimal: '3',
+        #                combineMarketId: '',
+        #                openPrice: '0',
+        #                leverEnable: True,
+        #                marketId: '291',
+        #                serverId: 'entrust_bw_2',
+        #                isMining: '0',
+        #                webId: '102',
+        #                modifyTime: '1581595375498',
+        #                defaultFee: '0.00200000',
+        #                sellerCurrencyId: '7',
+        #                createTime: '0',
+        #                state: '1',
+        #                name: 'eos_usdt',
+        #                leverType: '2',
+        #                createUid: null,
+        #                orderNum: null,
+        #                openTime: '1574956800000'
+        #            },
+        #            ...
+        #        ]
+        #    }
+        #
+        datas = self.safe_value(response, 'datas', [])
+        result = {}
+        for i in range(0, len(datas)):
+            data = datas[i]
+            marketId = self.safe_string(data, 'name')
+            symbol = self.safe_symbol(marketId, None, '_')
+            fee = self.safe_number(data, 'defaultFee')
+            result[symbol] = {
+                'info': data,
+                'symbol': symbol,
+                'maker': fee,
+                'taker': fee,
+                'percentage': True,
+                'tierBased': True,
+            }
+        return result
 
     def parse_ohlcv(self, ohlcv, market=None):
         #

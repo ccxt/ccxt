@@ -3126,25 +3126,67 @@ module.exports = class zb extends Exchange {
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
         await this.loadMarkets ();
-        let side = undefined;
-        if (fromAccount === 'spot' || toAccount === 'future') {
-            side = 1;
-        } else {
-            side = 0;
-        }
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('transfer', undefined, params);
         const currency = this.currency (code);
+        const margin = (marketType === 'margin');
+        const swap = (marketType === 'swap');
+        let side = undefined;
+        let marginMethod = undefined;
         const request = {
-            'currencyName': currency['id'],
-            'amount': amount,
-            'clientId': this.safeString (params, 'clientId'), // "2sdfsdfsdf232342"
-            'side': side, // 1：Deposit (zb account -> futures account)，0：Withdrawal (futures account -> zb account)
+            'amount': amount, // Swap, Cross Margin, Isolated Margin
+            // 'coin': currency['id'], // Margin
+            // 'currencyName': currency['id'], // Swap
+            // 'clientId': this.safeString (params, 'clientId'), // Swap "2sdfsdfsdf232342"
+            // 'side': side, // Swap, 1：Deposit (zb account -> futures account)，0：Withdrawal (futures account -> zb account)
+            // 'marketName': this.safeString (params, 'marketName'), // Isolated Margin
         };
-        const response = await this.contractV2PrivatePostFundTransferFund (this.extend (request, params));
+        if (swap) {
+            if (fromAccount === 'spot' || toAccount === 'future') {
+                side = 1;
+            } else {
+                side = 0;
+            }
+            request['currencyName'] = currency['id'];
+            request['clientId'] = this.safeString (params, 'clientId');
+            request['side'] = side;
+        } else {
+            const defaultMargin = margin ? 'isolated' : 'cross';
+            const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', defaultMargin);
+            if (marginType === 'isolated') {
+                if (fromAccount === 'spot' || toAccount === 'isolated') {
+                    marginMethod = 'spotV1PrivateGetTransferInLever';
+                } else {
+                    marginMethod = 'spotV1PrivateGetTransferOutLever';
+                }
+                request['marketName'] = this.safeString (params, 'marketName');
+            } else if (marginType === 'cross') {
+                if (fromAccount === 'spot' || toAccount === 'cross') {
+                    marginMethod = 'spotV1PrivateGetTransferInCross';
+                } else {
+                    marginMethod = 'spotV1PrivateGetTransferOutCross';
+                }
+            }
+            request['coin'] = currency['id'];
+        }
+        const method = this.getSupportedMapping (marketType, {
+            'swap': 'contractV2PrivatePostFundTransferFund',
+            'margin': marginMethod,
+        });
+        const response = await this[method] (this.extend (request, query));
+        //
+        // Swap
         //
         //     {
         //         "code": 10000,
         //         "data": "2sdfsdfsdf232342",
         //         "desc": "Success"
+        //     }
+        //
+        // Margin
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": "Success"
         //     }
         //
         const timestamp = this.milliseconds ();
@@ -3184,7 +3226,7 @@ module.exports = class zb extends Exchange {
             'amount': this.safeNumber (transfer, 'amount'),
             'fromAccount': this.safeString (transfer, 'fromAccount'),
             'toAccount': this.safeString (transfer, 'toAccount'),
-            'status': this.safeString (transfer, 'status'),
+            'status': this.safeInteger (transfer, 'status'),
         };
     }
 
