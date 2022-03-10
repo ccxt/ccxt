@@ -564,38 +564,38 @@ module.exports = class bw extends Exchange {
         await this.loadMarkets ();
         const response = await this.publicGetExchangeConfigControllerWebsiteMarketcontrollerGetByWebId ();
         //
-        // {
-        //     resMsg: { method: null, code: '1', message: 'success !' },
-        //     datas: [
-        //         {
-        //             leverMultiple: '10',
-        //             amountDecimal: '4',
-        //             minAmount: '0.0100000000',
-        //             modifyUid: null,
-        //             buyerCurrencyId: '11',
-        //             isCombine: '0',
-        //             priceDecimal: '3',
-        //             combineMarketId: '',
-        //             openPrice: '0',
-        //             leverEnable: true,
-        //             marketId: '291',
-        //             serverId: 'entrust_bw_2',
-        //             isMining: '0',
-        //             webId: '102',
-        //             modifyTime: '1581595375498',
-        //             defaultFee: '0.00200000',
-        //             sellerCurrencyId: '7',
-        //             createTime: '0',
-        //             state: '1',
-        //             name: 'eos_usdt',
-        //             leverType: '2',
-        //             createUid: null,
-        //             orderNum: null,
-        //             openTime: '1574956800000'
-        //         },
-        //         ...
-        //     ]
-        // }
+        //    {
+        //        resMsg: { method: null, code: '1', message: 'success !' },
+        //        datas: [
+        //            {
+        //                leverMultiple: '10',
+        //                amountDecimal: '4',
+        //                minAmount: '0.0100000000',
+        //                modifyUid: null,
+        //                buyerCurrencyId: '11',
+        //                isCombine: '0',
+        //                priceDecimal: '3',
+        //                combineMarketId: '',
+        //                openPrice: '0',
+        //                leverEnable: true,
+        //                marketId: '291',
+        //                serverId: 'entrust_bw_2',
+        //                isMining: '0',
+        //                webId: '102',
+        //                modifyTime: '1581595375498',
+        //                defaultFee: '0.00200000',
+        //                sellerCurrencyId: '7',
+        //                createTime: '0',
+        //                state: '1',
+        //                name: 'eos_usdt',
+        //                leverType: '2',
+        //                createUid: null,
+        //                orderNum: null,
+        //                openTime: '1574956800000'
+        //            },
+        //            ...
+        //        ]
+        //    }
         //
         const datas = this.safeValue (response, 'datas', []);
         const result = {};
