@@ -445,7 +445,7 @@ module.exports = class coinfalcon extends Exchange {
                 'taker': taker,
                 'percentage': true,
                 'tierBased': true,
-            }
+            };
         }
         return result;
     }
