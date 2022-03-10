@@ -4013,34 +4013,6 @@ Parameters
 Returns
 - An array of [transaction structures](#transaction-structure)
 
-### Transaction Structure
-
-- *deposit structure*
-- *withdrawal structure*
-
-```JavaScript
-{
-    info: { ... },
-    id: "11901789",
-    txid: "7dbbe4376ac3e4d8dad12172a4da2152fdf46f3e095354f601d737dd872a312f",
-    timestamp: 1646940792000,
-    datetime: "2022-03-18T03:21:16.000Z",
-    network: "TRX",
-    address: "TEY6qjnKDyyq5jDc3DJizWLCdUySrpQ4yp",
-    addressTo: "TEY6qjnKDyyq5jDc3DJizWLCdUySrpQ4yp",
-    addressFrom: "TN8DFqDVYqEK6EfBSLsEszGC38Ju4cSnXt",
-    tag: "52055",
-    tagTo: "18113641",
-    tagFrom: "18113641",
-    type: "deposit",
-    amount: 100,
-    currency: "USDT",
-    status: "ok",
-    updated: 1646940880000,
-    internal: false,
-    fee: { cost: 0, rate: 0, currency: "USDT" },
-}
-```
 
 ## Deposit Addresses
 
@@ -4171,6 +4143,9 @@ You may set the value of `exchange.withdraw ('USDT', 100, 'TVJ1fwyJ1a8JbtUxZ8Km9
 ## Transactions
 
 #### Transaction Structure
+
+- *deposit structure*
+- *withdrawal structure*
 
 ```JavaScript
 {
