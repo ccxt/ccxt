@@ -567,11 +567,20 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const spotMarkets = await this.fetchSpotMarkets (params);
-        const derivativeMarkets = await this.fetchDerivativeMarkets (params); // futures and swaps
-        const optionMarkets = await this.fetchOptionMarkets (params);
-        let result = spotMarkets.concat (derivativeMarkets);
-        result = result.concat (optionMarkets);
+        let result = [];
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
+        if (type === 'spot' || type === 'margin') {
+            result = await this.fetchSpotMarkets (query);
+        }
+        if (type === 'swap' || type === 'future') {
+            result = await this.fetchDerivativeMarkets (query); // futures and swaps
+        }
+        if (type === 'option') {
+            result = await this.fetchOptionMarkets (query);
+        }
+        if (result.length === 0) {
+            throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to " + "'spot', 'margin', 'swap', 'future' or 'option'"); // eslint-disable-line quotes
+        }
         return result;
     }
 
@@ -806,6 +815,7 @@ module.exports = class gateio extends Exchange {
                 const maxPrice = Precise.stringMul (maxMultiplier, markPrice);
                 const takerPercent = this.safeString (market, 'taker_fee_rate');
                 const makerPercent = this.safeString (market, 'maker_fee_rate', takerPercent);
+                const isLinear = quote === settle;
                 result.push ({
                     'id': id,
                     'symbol': symbol,
@@ -823,8 +833,8 @@ module.exports = class gateio extends Exchange {
                     'option': marketType === 'option',
                     'active': true,
                     'contract': true,
-                    'linear': (quote === settle),
-                    'inverse': (base === settle),
+                    'linear': isLinear,
+                    'inverse': !isLinear,
                     'taker': this.parseNumber (Precise.stringDiv (takerPercent, '100')), // Fee is in %, so divide by 100
                     'maker': this.parseNumber (Precise.stringDiv (makerPercent, '100')),
                     'contractSize': this.safeNumber (market, 'quanto_multiplier'),
