@@ -1561,7 +1561,7 @@ The `fetchAccounts()` method will return a structure like shown below:
         info: { ... }
     },
     {
-        id: "4oidfk40d8",
+        id: "4oidfk40dadeg4328",
         type: "trade",
         currency: "BTC",
         info: { ... }
@@ -1569,22 +1569,6 @@ The `fetchAccounts()` method will return a structure like shown below:
     ...
 ]
 ```
-
-## Deposits
-
-```Javascript
-fetchDeposit (id, code = undefined, params = {})
-```
-
-```Javascript
-fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {})
-```
-
-```Javascript
-fetchDepositAddressesByNetwork (code, params = {})
-```
-
-
 
 # Unified API
 
@@ -1676,6 +1660,7 @@ In most cases users are **required to use at least some type of pagination** in 
 - `fetchClosedOrders()`
 - `fetchMyTrades()`
 - `fetchTransactions()`
+- `fetchDeposit()`
 - `fetchDeposits()`
 - `fetchWithdrawals()`
 
@@ -3937,29 +3922,122 @@ In order to deposit funds to an exchange you must get an address from the exchan
 deposit (code, amount, address, params = {})
 ```
 
+Parameters
+- **code** (String) *required* Unified CCXT currency code, required (e.g. `"USDT"`)
+- **amount** (Float) *required* The amount of currency to send in the deposit (e.g. `20`)
+- **address** (String) *required* The recipient address of the deposit (e.g. `"TEY6qjnKDyyq5jDc3DJizWLCdUySrpQ4yp"`)
+- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"network": "TRX"}`)
 
-The address for depositing can be either an already existing address that was created previously with the exchange or it can be created upon request. In order to see which of the two methods are supported, check the `exchange.has['fetchDepositAddress']` and `exchange.has['createDepositAddress']` properties. Both methods return an [address structure](#address-structure)
+Returns
+- An [transaction structure](#transaction-structure)
+
+---
+
+Data on deposits made to an account can be retrieved using
+
+- `fetchDeposit ()` for a single deposit
+- `fetchDeposits ( code )` for multiple deposits of the same currency
+- `fetchDeposits ()` for all deposits to an account
+
+```Javascript
+fetchDeposit (id, code = undefined, params = {})
+```
+
+Parameters
+- **id** (String) *required* Deposit id
+- **code** (String) Unified CCXT currency code, required (e.g. `"USDT"`)
+- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"network": "TRX"}`)
+
+Returns
+- An [transaction structure](#transaction-structure)
+
+```Javascript
+fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {})
+```
+
+Parameters
+- **code** (String) Unified CCXT currency code, required (e.g. `"USDT"`)
+- **since** (Integer) Timestamp (ms), of the earliest time to retrieve deposits for (e.g. `1646940314000`)
+- **limit** (Integer) The number of deposit entries to retrieve (e.g. `5`)
+- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+- An array of [transaction structures](#transaction-structure)
+
+### Transaction Structure
+
+- *deposit structure*
+- *withdrawal structure*
+
+```JavaScript
+{
+    info: { ... },
+    id: "11901789",
+    txid: "7dbbe4376ac3e4d8dad12172a4da2152fdf46f3e095354f601d737dd872a312f",
+    timestamp: 1646940792000,
+    datetime: "2022-03-18T03:21:16.000Z",
+    network: "TRX",
+    address: "TEY6qjnKDyyq5jDc3DJizWLCdUySrpQ4yp",
+    addressTo: "TEY6qjnKDyyq5jDc3DJizWLCdUySrpQ4yp",
+    addressFrom: "TN8DFqDVYqEK6EfBSLsEszGC38Ju4cSnXt",
+    tag: "52055",
+    tagTo: "18113641",
+    tagFrom: "18113641",
+    type: "deposit",
+    amount: 100,
+    currency: "USDT",
+    status: "ok",
+    updated: 1646940880000,
+    internal: false,
+    fee: { cost: 0, rate: 0, currency: "USDT" },
+}
+```
+
+## Deposit Addresses
+
+The address for depositing can be either an already existing address that was created previously with the exchange or it can be created upon request. In order to see which of the two methods are supported, check the `exchange.has['fetchDepositAddress']` and `exchange.has['createDepositAddress']` properties.
 
 ```JavaScript
 fetchDepositAddress (code, params = {})
 createDepositAddress (code, params = {})
 ```
 
-- `code` is the unified currency code (uppercase string)
-- `params` contains optional extra overrides
+Parameters
+- **code** (String) *required* Unified CCXT currency code (e.g. `"USDT"`)
+- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
 
-Some exchanges may also have a method for fetching multiple deposit addresses at once or all of them at once:
+Returns
+- an [address structure](#address-structure)
+
+---
+
+Some exchanges may also have a method for fetching multiple deposit addresses at once or all of them at once.
 
 ```JavaScript
 fetchDepositAddresses (codes = undefined, params = {})
 ```
 
-Depending on the exchange it may or may not require a list of unified currency `codes` in the first argument.
-The `fetchDepositAddresses` method returns an array of address structures.
+Parameters
+- **code** ([String]) Array of unified CCXT currency codes. May or may not be required depending on the exchange (e.g. `["USDT", "BTC"]`)
+- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+- an array of [address structures](#address-structure)
+
+```Javascript
+fetchDepositAddressesByNetwork (code, params = {})
+```
+
+Parameters
+- **code** (String) *required* Unified CCXT currency code (e.g. `"USDT"`)
+- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+- an array of [address structures](#address-structure)
 
 #### Address structure
 
-The address structures returned from `fetchDepositAddress`, `fetchDepositAddresses` and `createDepositAddress` look like this:
+The address structures returned from `fetchDepositAddress`, `fetchDepositAddresses`, `fetchDepositAddressesByNetwork` and `createDepositAddress` look like this:
 
 ```JavaScript
 {
