@@ -2273,7 +2273,7 @@ class gateio(Exchange):
         else:
             if contract:
                 # contract conditional order
-                rule = 2 if (side == 'buy') else 1
+                rule = 1 if (side == 'buy') else 2
                 request = {
                     'initial': {
                         'contract': market['id'],

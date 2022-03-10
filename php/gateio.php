@@ -2361,7 +2361,7 @@ class gateio extends Exchange {
         } else {
             if ($contract) {
                 // $contract conditional order
-                $rule = ($side === 'buy') ? 2 : 1;
+                $rule = ($side === 'buy') ? 1 : 2;
                 $request = array(
                     'initial' => array(
                         'contract' => $market['id'],
