@@ -37,6 +37,8 @@ module.exports = class bitflyer extends Exchange {
                 'fetchPositions': true,
                 'fetchTicker': true,
                 'fetchTrades': true,
+                'fetchTradingFee': true,
+                'fetchTradingFees': true,
                 'fetchWithdrawals': true,
                 'withdraw': true,
             },
@@ -414,6 +416,27 @@ module.exports = class bitflyer extends Exchange {
         };
         const response = await this.publicGetGetexecutions (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
+    }
+
+    async fetchTradingFee (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'product_code': market['id'],
+        }
+        const response = await this.privateGetGettradingcommission (this.extend (request, params));
+        //
+        //   {
+        //       commission_rate: '0.0020'
+        //   }
+        //
+        const fee = this.safeNumber (response, 'commission_rate');
+        return {
+            'info': response,
+            'symbol': symbol,
+            'maker': fee,
+            'taker': fee,
+        }
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
