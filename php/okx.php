@@ -173,6 +173,7 @@ class okx extends Exchange {
                         'public/position-tiers' => 2,
                         'public/underlying' => 1,
                         'public/interest-rate-loan-quota' => 10,
+                        'public/vip-interest-rate-loan-quota' => 10,
                         'rubik/stat/trading-data/support-coin' => 4,
                         'rubik/stat/taker-volume' => 4,
                         'rubik/stat/margin/loan-ratio' => 4,
@@ -234,12 +235,21 @@ class okx extends Exchange {
                         'asset/subaccount/bills' => 5 / 3,
                         'users/subaccount/list' => 10,
                         'users/subaccount/apikey' => 10,
+                        'users/entrust-subaccount-list' => 10,
                         // broker
                         'broker/nd/info' => 10,
                         'broker/nd/subaccount-info' => 10,
                         'asset/broker/nd/subaccount-deposit-address' => 4,
                         'asset/broker/nd/subaccount-deposit-history' => 4,
                         'broker/nd/rebate-daily' => 1,
+                        // convert
+                        'asset/convert/currencies' => 5 / 3,
+                        'asset/convert/currency-pair' => 5 / 3,
+                        'asset/convert/estimate-quote' => 5,
+                        'asset/convert/trade' => 5,
+                        'asset/convert/history' => 5 / 3,
+                        // options
+                        'account/greeks' => 2,
                     ),
                     'post' => array(
                         'account/set-position-mode' => 4,
