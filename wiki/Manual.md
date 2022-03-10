@@ -4604,9 +4604,43 @@ e.g.
 ```
 
 ## Funding History
+*contract only*
+
+Perpetual swap (also known as perpetual future) contracts maintain a market price that mirrors the price of the asset they are based on because funding fees are exchanged between traders who hold positions in perpetual swap markets. 
+
+If the contract is being traded at a price that is higher than the price of the asset they represent, then traders in long positions pay a funding fee to traders in short positions at specific times of day, which encourages more traders to enter short positions prior to these times.
+
+If the contract is being traded at a price that is lower than the price of the asset they represent, then traders in short positions pay a funding fee to traders in long positions at specific times of day, which encourages more traders to enter long positions prior to these times.
+
+These fees are usually exchanged between traders with no commission going to the exchange
+
+The `fetchFundingHistory` method can be used to retrieve an accounts history of funding fees paid or received
 
 ```Javascript
 fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {})
+```
+
+Parameters
+- **symbol** (String) Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`)
+- **since** (Integer) Timestamp (ms) of the earliest time to retrieve funding history for (e.g. `1646940314000`)
+- **limit** (Integer) The number of [funding history structures](#funding-history-structure) to retrieve (e.g. `5`)
+- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+- An array of [funding history structures](#funding-history-structure)
+
+### Funding History Structure
+
+```JavaScript
+{
+    info: { ... },
+    symbol: "XRP/USDT:USDT",
+    code: "USDT",
+    timestamp: 1646954920000,
+    datetime: "2022-03-08T16:00:00.000Z",
+    id: "1520286109858180",
+    amount: -0.027722
+}
 ```
 
 ## Transfers
