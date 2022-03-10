@@ -3134,25 +3134,67 @@ class zb extends Exchange {
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
         $this->load_markets();
-        $side = null;
-        if ($fromAccount === 'spot' || $toAccount === 'future') {
-            $side = 1;
-        } else {
-            $side = 0;
-        }
+        list($marketType, $query) = $this->handle_market_type_and_params('transfer', null, $params);
         $currency = $this->currency($code);
+        $margin = ($marketType === 'margin');
+        $swap = ($marketType === 'swap');
+        $side = null;
+        $marginMethod = null;
         $request = array(
-            'currencyName' => $currency['id'],
-            'amount' => $amount,
-            'clientId' => $this->safe_string($params, 'clientId'), // "2sdfsdfsdf232342"
-            'side' => $side, // 1：Deposit (zb account -> futures account)，0：Withdrawal (futures account -> zb account)
+            'amount' => $amount, // Swap, Cross Margin, Isolated Margin
+            // 'coin' => $currency['id'], // Margin
+            // 'currencyName' => $currency['id'], // Swap
+            // 'clientId' => $this->safe_string($params, 'clientId'), // Swap "2sdfsdfsdf232342"
+            // 'side' => $side, // Swap, 1：Deposit (zb account -> futures account)，0：Withdrawal (futures account -> zb account)
+            // 'marketName' => $this->safe_string($params, 'marketName'), // Isolated Margin
         );
-        $response = $this->contractV2PrivatePostFundTransferFund (array_merge($request, $params));
+        if ($swap) {
+            if ($fromAccount === 'spot' || $toAccount === 'future') {
+                $side = 1;
+            } else {
+                $side = 0;
+            }
+            $request['currencyName'] = $currency['id'];
+            $request['clientId'] = $this->safe_string($params, 'clientId');
+            $request['side'] = $side;
+        } else {
+            $defaultMargin = $margin ? 'isolated' : 'cross';
+            $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', $defaultMargin);
+            if ($marginType === 'isolated') {
+                if ($fromAccount === 'spot' || $toAccount === 'isolated') {
+                    $marginMethod = 'spotV1PrivateGetTransferInLever';
+                } else {
+                    $marginMethod = 'spotV1PrivateGetTransferOutLever';
+                }
+                $request['marketName'] = $this->safe_string($params, 'marketName');
+            } else if ($marginType === 'cross') {
+                if ($fromAccount === 'spot' || $toAccount === 'cross') {
+                    $marginMethod = 'spotV1PrivateGetTransferInCross';
+                } else {
+                    $marginMethod = 'spotV1PrivateGetTransferOutCross';
+                }
+            }
+            $request['coin'] = $currency['id'];
+        }
+        $method = $this->get_supported_mapping($marketType, array(
+            'swap' => 'contractV2PrivatePostFundTransferFund',
+            'margin' => $marginMethod,
+        ));
+        $response = $this->$method (array_merge($request, $query));
+        //
+        // Swap
         //
         //     {
         //         "code" => 10000,
         //         "data" => "2sdfsdfsdf232342",
         //         "desc" => "Success"
+        //     }
+        //
+        // Margin
+        //
+        //     {
+        //         "code" => 1000,
+        //         "message" => "Success"
         //     }
         //
         $timestamp = $this->milliseconds();
@@ -3192,7 +3234,7 @@ class zb extends Exchange {
             'amount' => $this->safe_number($transfer, 'amount'),
             'fromAccount' => $this->safe_string($transfer, 'fromAccount'),
             'toAccount' => $this->safe_string($transfer, 'toAccount'),
-            'status' => $this->safe_string($transfer, 'status'),
+            'status' => $this->safe_integer($transfer, 'status'),
         );
     }
 
