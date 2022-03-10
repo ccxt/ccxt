@@ -4061,7 +4061,7 @@ The following aliases of `network` allow for withdrawing crypto on multiple chai
 
 You may set the value of `exchange.withdraw ('USDT', 100, 'TVJ1fwyJ1a8JbtUxZ8Km95sDFN9jhLxJ2D', { 'network': 'TRX' })` in order to withdraw USDT on the TRON chain, or 'BSC' to withdraw USDT on Binance Smart Chain. In the table above BSC and BEP20 are equivalent aliases, so it doesn't matter which one you use as they both will achieve the same effect.
 
-#### Transaction Structure
+### Transaction Structure
 
 - *deposit structure*
 - *withdrawal structure*
@@ -4093,7 +4093,7 @@ You may set the value of `exchange.withdraw ('USDT', 100, 'TVJ1fwyJ1a8JbtUxZ8Km9
 }
 ```
 
-##### Notes On Transaction Structure
+#### Notes On Transaction Structure
 
 - `addressFrom` or `addressTo` may be `undefined/None/null`, if the exchange in question does not specify all sides of the transaction
 - The semantics of the `address` field is exchange-specific. In some cases it can contain the address of the sender, in other cases it may contain the address of the receiver. The actual value depends on the exchange.
@@ -4460,19 +4460,44 @@ fetchFundingFees (params = {})
 
 ```UNDER CONSTRUCTION```
 
-Some exchanges provide additional endpoints for fetching the all-in-one ledger history. The ledger is simply the history of changes, actions done by the user or operations that altered the user's balance in any way, that is, the history of movements of all funds from/to all accounts of the user. That includes deposits and withdrawals (funding), amounts incoming and outcoming in result of a trade or an order, trading fees, transfers between accounts, rebates, cashbacks and other types of events that are subject to accounting.
+The ledger is simply the history of changes, actions done by the user or operations that altered the user's balance in any way, that is, the history of movements of all funds from/to all accounts of the user which includes 
 
-```JavaScript
-async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {})
-```
+- deposits and withdrawals (funding)
+- amounts incoming and outcoming in result of a trade or an order
+- trading fees
+- transfers between accounts
+- rebates, cashbacks and other types of events that are subject to accounting.
 
+Data on ledger entries can be retrieved using
+
+- `fetchLedgerEntry ()` for a ledger entry
+- `fetchLedger ( code )` for multiple ledger entries of the same currency
+- `fetchLedger ()` for all ledger entries
 
 ```Javascript
 fetchLedgerEntry (id, code = undefined, params = {})
 ```
 
+Parameters
+- **id** (String) *required* Ledger entry id
+- **code** (String) Unified CCXT currency code, required (e.g. `"USDT"`)
+- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"type": "deposit"}`)
 
-Some exchanges don't allow to fetch all ledger entries for all assets at once, those require the `code` argument to be supplied to `fetchLedger` method.
+Returns
+- A [ledger entry structure](#ledger-entry-structure)
+
+```JavaScript
+async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {})
+```
+
+Parameters
+- **code** (String) Unified CCXT currency code; *required* if fetching all ledger entries for all assets at once is not supported (e.g. `"USDT"`)
+- **since** (Integer) Timestamp (ms) of the earliest time to retrieve withdrawals for (e.g. `1646940314000`)
+- **limit** (Integer) The number of [ledger entry structures](#ledger-entry-structure) to retrieve (e.g. `5`)
+- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+- An array of [ledger entry structures](#ledger-entry-structure)
 
 ### Ledger Entry Structure
 
@@ -4499,7 +4524,7 @@ Some exchanges don't allow to fetch all ledger entries for all assets at once, t
 }
 ```
 
-### Notes on Ledger Entry Structure
+#### Notes on Ledger Entry Structure
 
 The type of the ledger entry is the type of the operation associated with it. If the amount comes due to a sell order, then it is associated with a corresponding trade type ledger entry, and the referenceId will contain associated trade id (if the exchange in question provides it). If the amount comes out due to a withdrawal, then is is associated with a corresponding transaction.
 
