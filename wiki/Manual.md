@@ -4580,6 +4580,19 @@ Parameters
 Returns 
 - response from the exchange
 
+### Exchanges without setMarginMode
+
+Common reasons for why an exchange might have 
+
+```JavaScript
+exchange.has['setMarginMode'] == false
+```
+
+include
+
+- the exchange does not offer leveraged trading
+- the exchange only offers one of `cross` or `isolated` margin modes, but does not offer both
+- margin mode must be set using an exchange specific parameter within `params` when using `createOrder`
 ### Notes on suppressed errors for setMarginMode
 
 Some exchange apis return an error response when a request is sent to set the margin mode to the mode that it is already set to (e.g. Sending a request to set the margin mode to `cross` for the market `BTC/USDT:USDT` when the account already has `BTC/USDT:USDT` set to use cross margin). CCXT doesn't see this as an error because the end result is what the user wanted, so the error is suppressed and the error result is returned as an object.
@@ -4604,9 +4617,19 @@ fetchTransfers (code = undefined, since = undefined, limit = undefined, params =
 
 ## Leverage
 
+*margin and contract only*
+
 ```Javascript
 setLeverage (leverage, symbol = undefined, params = {})
 ```
+
+Parameters
+- **leverage** (Integer) *required* The desired leverage
+- **symbol** (String) Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`) *required* on most exchanges. Is not required when leverage is not specific to a market (e.g. Not required on **FTX** because leverage is set for the account and not per market)
+- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"marginMode": "cross"}`)
+
+Returns 
+- response from the exchange
 
 ## Position Mode
 
