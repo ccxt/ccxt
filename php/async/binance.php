@@ -4460,9 +4460,7 @@ class binance extends Exchange {
         $entryPrice = $this->parse_number($entryPriceString);
         $notionalString = $this->safe_string_2($position, 'notional', 'notionalValue');
         $notionalStringAbs = Precise::string_abs($notionalString);
-        $notionalFloat = floatval($notionalString);
-        $notionalFloatAbs = floatval($notionalStringAbs);
-        $notional = $this->parse_number(Precise::string_abs($notionalString));
+        $notional = $this->parse_number($notionalStringAbs);
         $contractsString = $this->safe_string($position, 'positionAmt');
         $contractsStringAbs = Precise::string_abs($contractsString);
         if ($contractsString === null) {
@@ -4477,7 +4475,7 @@ class binance extends Exchange {
         $maintenanceMarginPercentageString = null;
         for ($i = 0; $i < count($leverageBracket); $i++) {
             $bracket = $leverageBracket[$i];
-            if ($notionalFloatAbs < $bracket[0]) {
+            if (Precise::string_lt($notionalStringAbs, $bracket[0])) {
                 break;
             }
             $maintenanceMarginPercentageString = $bracket[1];
@@ -4510,10 +4508,10 @@ class binance extends Exchange {
         $liquidationPrice = null;
         $contractSize = $this->safe_value($market, 'contractSize');
         $contractSizeString = $this->number_to_string($contractSize);
-        if ($notionalFloat === 0.0) {
+        if (Precise::string_equals($notionalString, '0')) {
             $entryPrice = null;
         } else {
-            $side = ($notionalFloat < 0) ? 'short' : 'long';
+            $side = Precise::string_lt($notionalString, '0') ? 'short' : 'long';
             $marginRatio = $this->parse_number(Precise::string_div(Precise::string_add(Precise::string_div($maintenanceMarginString, $collateralString), '5e-5'), '1', 4));
             $percentage = $this->parse_number(Precise::string_mul(Precise::string_div($unrealizedPnlString, $initialMarginString, 4), '100'));
             if ($usdm) {
@@ -4642,12 +4640,10 @@ class binance extends Exchange {
         $leverageBracket = $this->safe_value($leverageBrackets, $symbol, array());
         $notionalString = $this->safe_string_2($position, 'notional', 'notionalValue');
         $notionalStringAbs = Precise::string_abs($notionalString);
-        $notionalFloatAbs = floatval($notionalStringAbs);
-        $notionalFloat = floatval($notionalString);
         $maintenanceMarginPercentageString = null;
         for ($i = 0; $i < count($leverageBracket); $i++) {
             $bracket = $leverageBracket[$i];
-            if ($notionalFloatAbs < $bracket[0]) {
+            if (Precise::string_lt($notionalStringAbs, $bracket[0])) {
                 break;
             }
             $maintenanceMarginPercentageString = $bracket[1];
@@ -4664,9 +4660,9 @@ class binance extends Exchange {
         $collateralString = null;
         $marginType = $this->safe_string($position, 'marginType');
         $side = null;
-        if ($notionalFloat > 0) {
+        if (Precise::string_gt($notionalString, '0')) {
             $side = 'long';
-        } else if ($notionalFloat < 0) {
+        } else if (Precise::string_lt($notionalString, '0')) {
             $side = 'short';
         }
         $entryPriceString = $this->safe_string($position, 'entryPrice');
@@ -4711,7 +4707,6 @@ class binance extends Exchange {
             $collateralString = $this->safe_string($position, 'isolatedMargin');
         }
         $collateralString = ($collateralString === null) ? '0' : $collateralString;
-        $collateralFloat = floatval($collateralString);
         $collateral = $this->parse_number($collateralString);
         $markPrice = $this->parse_number($this->omit_zero($this->safe_string($position, 'markPrice')));
         $timestamp = $this->safe_integer($position, 'updateTime');
@@ -4730,7 +4725,7 @@ class binance extends Exchange {
         $initialMargin = $this->parse_number($initialMarginString);
         $marginRatio = null;
         $percentage = null;
-        if ($collateralFloat !== 0.0) {
+        if (!Precise::string_equals($collateralString, '0')) {
             $marginRatio = $this->parse_number(Precise::string_div(Precise::string_add(Precise::string_div($maintenanceMarginString, $collateralString), '5e-5'), '1', 4));
             $percentage = $this->parse_number(Precise::string_mul(Precise::string_div($unrealizedPnlString, $initialMarginString, 4), '100'));
         }
@@ -4789,8 +4784,7 @@ class binance extends Exchange {
                 $result = array();
                 for ($j = 0; $j < count($brackets); $j++) {
                     $bracket = $brackets[$j];
-                    // we use floats here internally on purpose
-                    $floorValue = $this->safe_float_2($bracket, 'notionalFloor', 'qtyFloor');
+                    $floorValue = $this->safe_string_2($bracket, 'notionalFloor', 'qtyFloor');
                     $maintenanceMarginPercentage = $this->safe_string($bracket, 'maintMarginRatio');
                     $result[] = array( $floorValue, $maintenanceMarginPercentage );
                 }
@@ -4862,7 +4856,7 @@ class binance extends Exchange {
             $tiers[] = array(
                 'tier' => $this->safe_number($bracket, 'bracket'),
                 'currency' => $market['quote'],
-                'notionalFloor' => $this->safe_float_2($bracket, 'notionalFloor', 'qtyFloor'),
+                'notionalFloor' => $this->safe_number_2($bracket, 'notionalFloor', 'qtyFloor'),
                 'notionalCap' => $this->safe_number($bracket, 'notionalCap'),
                 'maintenanceMarginRate' => $this->safe_number($bracket, 'maintMarginRatio'),
                 'maxLeverage' => $this->safe_number($bracket, 'initialLeverage'),
@@ -5219,7 +5213,7 @@ class binance extends Exchange {
                 throw new InvalidOrder($this->id . ' order amount should be evenly divisible by lot size ' . $body);
             }
             if (mb_strpos($body, 'PRICE_FILTER') !== false) {
-                throw new InvalidOrder($this->id . ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use $this->price_to_precision(symbol, amount) ' . $body);
+                throw new InvalidOrder($this->id . ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use $this->price_to_precision(symbol, amount) ' . $body);
             }
         }
         if ($response === null) {
