@@ -46,9 +46,15 @@ test_script:
 cache:
   - '%APPDATA%\npm-cache'
   - '%LOCALAPPDATA%\pip\Cache'
+<<<<<<< HEAD
   - C:\ProgramData\chocolatey\bin -> appveyor.yml
   - C:\ProgramData\chocolatey\lib -> appveyor.yml
   - C:\tools\php81
+=======
+  # - C:\ProgramData\chocolatey\bin
+  # - C:\ProgramData\chocolatey\lib
+  # - C:\tools\php81
+>>>>>>> master
   - .cache
 after_build:
   # Remove old or huge cache files to hopefully not exceed the 1GB cache limit.
