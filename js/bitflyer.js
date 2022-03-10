@@ -38,7 +38,7 @@ module.exports = class bitflyer extends Exchange {
                 'fetchTicker': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
-                'fetchTradingFees': true,
+                'fetchTradingFees': false,
                 'fetchWithdrawals': true,
                 'withdraw': true,
             },
@@ -423,7 +423,7 @@ module.exports = class bitflyer extends Exchange {
         const market = this.market (symbol);
         const request = {
             'product_code': market['id'],
-        }
+        };
         const response = await this.privateGetGettradingcommission (this.extend (request, params));
         //
         //   {
@@ -436,7 +436,7 @@ module.exports = class bitflyer extends Exchange {
             'symbol': symbol,
             'maker': fee,
             'taker': fee,
-        }
+        };
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
