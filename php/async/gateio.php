@@ -3189,7 +3189,7 @@ class gateio extends Exchange {
             'notional' => $this->parse_number($notional),
             'leverage' => $this->safe_number($position, 'leverage'),
             'unrealizedPnl' => $this->parse_number($unrealisedPnl),
-            'contracts' => $this->parse_number($size),
+            'contracts' => $this->parse_number(Precise::string_abs($size)),
             'contractSize' => $this->safe_value($market, 'contractSize'),
             //     realisedPnl => $position['realised_pnl'],
             'marginRatio' => null,
