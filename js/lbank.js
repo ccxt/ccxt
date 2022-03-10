@@ -585,6 +585,7 @@ module.exports = class lbank extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         if (symbol !== undefined) {
             const market = this.market (symbol);
             symbol = market['symbol'];
