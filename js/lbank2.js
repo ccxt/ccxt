@@ -148,24 +148,49 @@ module.exports = class lbank2 extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        // needs to return a list of unified market structures
         const response = await this.publicGetAccuracy ();
-        return response;
+        // for (let i = 0; i < response.length; i++) {
+        //     const market = response['data'][i];
+        //     console.log (market['symbol']);
+        // }
+        return response['data'];
     }
 
-    // sign2 (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-    //     const query = this.omit (params, this.extractParams (path));
-    //     let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
-    //     // every endpoint ends in ".do"
-    //     url += '.do';
-    //     if (api === 'public') {
-    //         if (Object.keys (query).length) {
-    //             url += '?' + this.urlencode (query);
-    //         }
-    //     } else {
-    //         this.checkRequiredCredentials ();
-    //         // const query =
-    //     }
-    // }
+    sign2 (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const query = this.omit (params, this.extractParams (path));
+        let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
+        // every endpoint ends in ".do"
+        url += '.do';
+        if (api === 'public') {
+            if (Object.keys (query).length) {
+                url += '?' + this.urlencode (query);
+            }
+        } else {
+            this.checkRequiredCredentials ();
+            const query = this.keysort (this.extend ({
+                'api_key': this.apiKey,
+            }, params));
+            const queryString = this.rawencode (query);
+            const message = this.hash (this.encode (queryString).toUpperCase ());
+            const cacheSecretAsPem = this.safeValue (this.options, 'cacheSecretAsPem', true);
+            let pem = undefined;
+            if (cacheSecretAsPem) {
+                pem = this.safeValue (this.options, 'pem');
+                if (pem === undefined) {
+                    pem = this.convertSecretToPem (this.secret);
+                    this.options['pem'] = pem;
+                }
+            } else {
+                pem = this.convertSecretToPem (this.secret);
+            }
+            const sign = this.binaryToBase64 (this.rsa (message, this.encode (pem), 'RS256'));
+            query['sign'] = sign;
+            body = this.urlencode (query);
+            headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+            return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        }
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
