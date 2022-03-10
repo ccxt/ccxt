@@ -367,7 +367,7 @@ module.exports = class gateio extends Exchange {
                     'delivery': 'delivery',
                 },
                 'defaultType': 'spot',
-                'fetchMarkets': {
+                'derivates': {
                     'settlementCurrencies': [ 'usdt', 'btc' ],
                 },
             },
@@ -691,7 +691,7 @@ module.exports = class gateio extends Exchange {
 
     async fetchDerivativeMarkets (params) {
         const result = [];
-        const settlementCurrencies = this.getSettlementCurrencies ('fetchMarkets');
+        const settlementCurrencies = this.getSettlementCurrencies ();
         for (let c = 0; c < settlementCurrencies.length; c++) {
             const settleId = settlementCurrencies[c];
             const query = params;
@@ -1028,8 +1028,8 @@ module.exports = class gateio extends Exchange {
         }
     }
 
-    getSettlementCurrencies (method) {
-        const fetchMarketsContractOptions = this.safeValue (this.options, method, {});
+    getSettlementCurrencies () {
+        const fetchMarketsContractOptions = this.safeValue (this.options, 'derivatives', {});
         const defaultSettle = [ 'usdt', 'btc' ];
         return this.safeValue (fetchMarketsContractOptions, 'settlementCurrencies', defaultSettle);
     }
