@@ -36,7 +36,7 @@ module.exports = class gateio extends Exchange {
                 'margin': true,
                 'swap': true,
                 'future': true,
-                'option': undefined,
+                'option': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createMarketOrder': false,
@@ -370,16 +370,6 @@ module.exports = class gateio extends Exchange {
                 'fetchMarkets': {
                     'settlementCurrencies': [ 'usdt', 'btc' ],
                 },
-                'swap': {
-                    'fetchMarkets': {
-                        'settlementCurrencies': [ 'usdt', 'btc' ],
-                    },
-                },
-                'future': {
-                    'fetchMarkets': {
-                        'settlementCurrencies': [ 'usdt', 'btc' ],
-                    },
-                },
             },
             'precisionMode': TICK_SIZE,
             'fees': {
@@ -578,7 +568,7 @@ module.exports = class gateio extends Exchange {
 
     async fetchMarkets (params = {}) {
         const spotMarkets = await this.fetchSpotMarkets (params);
-        const derivativeMarkets = await this.fetchDerivativesMarkets (params); // futures and swaps
+        const derivativeMarkets = await this.fetchDerivativeMarkets (params); // futures and swaps
         const optionMarkets = await this.fetchOptionMarkets (params);
         let result = spotMarkets.concat (derivativeMarkets);
         result = result.concat (optionMarkets);
@@ -690,7 +680,7 @@ module.exports = class gateio extends Exchange {
         return result;
     }
 
-    async fetchDerivativesMarkets (params) {
+    async fetchDerivativeMarkets (params) {
         const result = [];
         const settlementCurrencies = this.getSettlementCurrencies ('fetchMarkets');
         for (let c = 0; c < settlementCurrencies.length; c++) {
@@ -873,7 +863,7 @@ module.exports = class gateio extends Exchange {
 
     async fetchOptionMarkets (params = {}) {
         const result = [];
-        const underlyings = await this.fetchOptionsUnderlyings ();
+        const underlyings = await this.fetchOptionUnderlyings ();
         for (let i = 0; i < underlyings.length; i++) {
             const underlying = underlyings[i];
             const query = params;
@@ -995,7 +985,7 @@ module.exports = class gateio extends Exchange {
         return result;
     }
 
-    async fetchOptionsUnderlyings () {
+    async fetchOptionUnderlyings () {
         const underlyingsResponse = await this.publicOptionsGetUnderlyings ();
         // [
         //     {
