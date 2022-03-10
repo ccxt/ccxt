@@ -1536,8 +1536,38 @@ var_dump (new \ccxt\okcoinusd ()); // PHP
 
 ## Accounts
 
-```Javascript
+You can get all the accounts associated with a profile by using the `fetchAccounts()` method
+
+```JavaScript
 fetchAccounts (params = {})
+```
+
+### Accounts Structure
+
+The `fetchAccounts()` method will return a structure like shown below:
+
+```JavaScript
+[
+    {       
+        id: "s32kj302lasli3930",
+        type: "main",
+        currency: "USDT",
+        info: { ... }
+    },
+    {
+        id: "20f0sdlri34lf90",
+        type: "margin",
+        currency: "USDT",
+        info: { ... }
+    },
+    {
+        id: "4oidfk40d8",
+        type: "trade",
+        currency: "BTC",
+        info: { ... }
+    },
+    ...
+]
 ```
 
 ## Deposits
