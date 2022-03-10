@@ -567,9 +567,9 @@ module.exports = class bitso extends Exchange {
         const payload = this.safeValue (response, 'payload', {});
         const fees = this.safeValue (payload, 'fees', []);
         const result = {};
-        for (let i = 0; i < fees.length; i++){
+        for (let i = 0; i < fees.length; i++) {
             const fee = fees[i];
-            const marketId = this.safeString (fee, 'book')
+            const marketId = this.safeString (fee, 'book');
             const symbol = this.safeSymbol (marketId, undefined, '_');
             result[symbol] = {
                 'info': fee,
@@ -578,7 +578,7 @@ module.exports = class bitso extends Exchange {
                 'taker': this.safeNumber (fee, 'taker_fee_decimal'),
                 'percentage': true,
                 'tierBased': true,
-            }
+            };
         }
         return result;
     }
@@ -764,7 +764,7 @@ module.exports = class bitso extends Exchange {
     async fetchFundingFees (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetFees (params);
-         //
+        //
         //    {
         //        success: true,
         //        payload: {
@@ -810,7 +810,6 @@ module.exports = class bitso extends Exchange {
         const payload = this.safeValue (response, 'payload', {});
         const depositFees = this.safeValue (payload, 'deposit_fees', []);
         const deposit = {};
-        // check is fixed and reward?
         for (let i = 0; i < depositFees.length; i++) {
             const depositFee = depositFees[i];
             const currencyId = this.safeString (depositFee, 'currency');
@@ -823,7 +822,7 @@ module.exports = class bitso extends Exchange {
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
-            withdraw[code] = this.safeNumber (withdrawalFees, currencyId)
+            withdraw[code] = this.safeNumber (withdrawalFees, currencyId);
         }
         return {
             'info': response,
