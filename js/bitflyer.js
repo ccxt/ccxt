@@ -182,7 +182,7 @@ module.exports = class bitflyer extends Exchange {
             } else if (future) {
                 const alias = this.safeString (market, 'alias');
                 if (!alias) {
-                    // no alias: 
+                    // no alias:
                     // { product_code: 'BTCJPY11MAR2022', market_type: 'Futures' }
                     // TODO this will break if there are products with 4 chars
                     baseId = id.slice (0, 3);
