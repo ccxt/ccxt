@@ -3096,10 +3096,14 @@ module.exports = class gateio extends Exchange {
         //
         return {
             'info': response,
-            'from': fromId,
-            'to': toId,
+            'id': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': code,
             'amount': truncated,
-            'code': code,
+            'fromAccount': fromId,
+            'toAccount': toId,
+            'status': undefined,
         };
     }
 
