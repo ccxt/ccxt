@@ -560,6 +560,10 @@ class lbank(Exchange):
         return self.parse_orders(data, None, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        if symbol is not None:
+            market = self.market(symbol)
+            symbol = market['symbol']
         orders = self.fetch_orders(symbol, since, limit, params)
         closed = self.filter_by(orders, 'status', 'closed')
         canceled = self.filter_by(orders, 'status', 'cancelled')  # cancelled orders may be partially filled

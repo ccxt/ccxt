@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -1669,7 +1662,7 @@ class aax(Exchange):
         #
         # sometimes the timestamp is returned in milliseconds
         timestamp = self.safe_value(order, 'createTime')
-        if isinstance(timestamp, basestring):
+        if isinstance(timestamp, str):
             timestamp = self.parse8601(timestamp)
         status = self.parse_order_status(self.safe_string(order, 'orderStatus'))
         type = self.parse_order_type(self.safe_string(order, 'orderType'))
@@ -1694,7 +1687,7 @@ class aax(Exchange):
         if (Precise.string_equals(filled, '0')) and (Precise.string_equals(remaining, '0')):
             remaining = None
         lastTradeTimestamp = self.safe_value(order, 'transactTime')
-        if isinstance(lastTradeTimestamp, basestring):
+        if isinstance(lastTradeTimestamp, str):
             lastTradeTimestamp = self.parse8601(lastTradeTimestamp)
         fee = None
         feeCost = self.safe_number(order, 'commission')
@@ -2142,7 +2135,7 @@ class aax(Exchange):
                 'datetime': datetime,
             })
         sorted = self.sort_by(rates, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
     async def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()

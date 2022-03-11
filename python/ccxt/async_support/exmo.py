@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -66,6 +59,7 @@ class exmo(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
@@ -96,7 +90,6 @@ class exmo(Exchange):
                 'referral': 'https://exmo.me/?ref=131685',
                 'doc': [
                     'https://exmo.me/en/api_doc?ref=131685',
-                    'https://github.com/exmo-dev/exmo_api_lib/tree/master/nodejs',
                 ],
                 'fees': 'https://exmo.com/en/docs/fees',
             },
@@ -168,10 +161,10 @@ class exmo(Exchange):
             'fees': {
                 'trading': {
                     'feeSide': 'get',
-                    'tierBased': False,
+                    'tierBased': True,
                     'percentage': True,
-                    'maker': self.parse_number('0.002'),
-                    'taker': self.parse_number('0.002'),
+                    'maker': self.parse_number('0.004'),
+                    'taker': self.parse_number('0.004'),
                 },
                 'funding': {
                     'tierBased': False,
@@ -182,6 +175,9 @@ class exmo(Exchange):
                 'networks': {
                     'ETH': 'ERC20',
                     'TRX': 'TRC20',
+                },
+                'fetchTradingFees': {
+                    'method': 'fetchPrivateTradingFees',  # or 'fetchPublicTradingFees'
                 },
             },
             'exceptions': {
@@ -212,10 +208,101 @@ class exmo(Exchange):
         })
 
     async def fetch_trading_fees(self, params={}):
-        return {
-            'maker': self.fees['trading']['maker'],
-            'taker': self.fees['trading']['taker'],
-        }
+        method = self.safe_string(params, 'method')
+        params = self.omit(params, 'method')
+        if method is None:
+            options = self.safe_value(self.options, 'fetchTradingFees', {})
+            method = self.safe_string(options, 'method', 'fetchPrivateTradingFees')
+        return await getattr(self, method)(params)
+
+    async def fetch_private_trading_fees(self, params={}):
+        await self.load_markets()
+        response = await self.privatePostMarginPairList(params)
+        #
+        #     {
+        #         pairs: [{
+        #             name: 'EXM_USD',
+        #             buy_price: '0.02728391',
+        #             sell_price: '0.0276',
+        #             last_trade_price: '0.0276',
+        #             ticker_updated: '1646956050056696046',
+        #             is_fair_price: True,
+        #             max_price_precision: '8',
+        #             min_order_quantity: '1',
+        #             max_order_quantity: '50000',
+        #             min_order_price: '0.00000001',
+        #             max_order_price: '1000',
+        #             max_position_quantity: '50000',
+        #             trade_taker_fee: '0.05',
+        #             trade_maker_fee: '0',
+        #             liquidation_fee: '0.5',
+        #             max_leverage: '3',
+        #             default_leverage: '3',
+        #             liquidation_level: '5',
+        #             margin_call_level: '7.5',
+        #             position: '1',
+        #             updated: '1638976144797807397'
+        #         }
+        #         ...
+        #         ]
+        #     }
+        #
+        pairs = self.safe_value(response, 'pairs', [])
+        result = {}
+        for i in range(0, len(pairs)):
+            pair = pairs[i]
+            marketId = self.safe_string(pair, 'name')
+            symbol = self.safe_symbol(marketId, None, '_')
+            makerString = self.safe_string(pair, 'trade_maker_fee')
+            takerString = self.safe_string(pair, 'trade_taker_fee')
+            maker = self.parse_number(Precise.string_div(makerString, '100'))
+            taker = self.parse_number(Precise.string_div(takerString, '100'))
+            result[symbol] = {
+                'info': pair,
+                'symbol': symbol,
+                'maker': maker,
+                'taker': taker,
+                'percentage': True,
+                'tierBased': True,
+            }
+        return result
+
+    async def fetch_public_trading_fees(self, params={}):
+        await self.load_markets()
+        response = await self.publicGetPairSettings(params)
+        #
+        #     {
+        #         BTC_USD: {
+        #             min_quantity: '0.00002',
+        #             max_quantity: '1000',
+        #             min_price: '1',
+        #             max_price: '150000',
+        #             max_amount: '500000',
+        #             min_amount: '1',
+        #             price_precision: '2',
+        #             commission_taker_percent: '0.3',
+        #             commission_maker_percent: '0.3'
+        #         },
+        #     }
+        #
+        result = {}
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            market = self.market(symbol)
+            fee = self.safe_value(response, market['id'], {})
+            makerString = self.safe_string(fee, 'commission_maker_percent')
+            takerString = self.safe_string(fee, 'commission_taker_percent')
+            maker = self.parse_number(Precise.string_div(makerString, '100'))
+            taker = self.parse_number(Precise.string_div(takerString, '100'))
+            result[symbol] = {
+                'info': fee,
+                'symbol': symbol,
+                'maker': maker,
+                'taker': taker,
+                'percentage': True,
+                'tierBased': True,
+            }
+        return result
 
     def parse_fixed_float_value(self, input):
         if (input is None) or (input == '-'):
@@ -993,6 +1080,9 @@ class exmo(Exchange):
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
+        if symbol is not None:
+            market = self.market(symbol)
+            symbol = market['symbol']
         response = await self.privatePostUserOpenOrders(params)
         marketIds = list(response.keys())
         orders = []
@@ -1426,7 +1516,7 @@ class exmo(Exchange):
             #     {"s":"error","errmsg":"strconv.ParseInt: parsing \"\": invalid syntax"}
             #
             success = self.safe_value(response, 'result', False)
-            if isinstance(success, basestring):
+            if isinstance(success, str):
                 if (success == 'true') or (success == '1'):
                     success = True
                 else:

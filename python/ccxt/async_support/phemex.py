@@ -574,9 +574,9 @@ class phemex(Exchange):
             'expiryDatetime': None,
             'strike': None,
             'optionType': None,
-            'priceScale': self.parse_number('8'),
-            'valueScale': self.parse_number('8'),
-            'ratioScale': self.parse_number('8'),
+            'priceScale': 8,
+            'valueScale': 8,
+            'ratioScale': 8,
             'precision': {
                 'amount': precisionAmount,
                 'price': precisionPrice,

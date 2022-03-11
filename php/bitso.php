@@ -36,6 +36,8 @@ class bitso extends Exchange {
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchDepositAddress' => true,
+                'fetchFundingFee' => false,
+                'fetchFundingFees' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -56,6 +58,8 @@ class bitso extends Exchange {
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => true,
                 'reduceMargin' => false,
                 'setLeverage' => false,
                 'setMarginMode' => false,
@@ -515,6 +519,71 @@ class bitso extends Exchange {
         return $this->parse_trades($response['payload'], $market, $since, $limit);
     }
 
+    public function fetch_trading_fees($params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetFees ($params);
+        //
+        //    {
+        //        success => true,
+        //        $payload => {
+        //            $fees => array(
+        //                array(
+        //                    book => 'btc_mxn',
+        //                    fee_percent => '0.6500',
+        //                    fee_decimal => '0.00650000',
+        //                    taker_fee_percent => '0.6500',
+        //                    taker_fee_decimal => '0.00650000',
+        //                    maker_fee_percent => '0.5000',
+        //                    maker_fee_decimal => '0.00500000',
+        //                    volume_currency => 'mxn',
+        //                    current_volume => '0.00',
+        //                    next_volume => '1500000.00',
+        //                    next_maker_fee_percent => '0.490',
+        //                    next_taker_fee_percent => '0.637',
+        //                    nextVolume => '1500000.00',
+        //                    nextFee => '0.490',
+        //                    nextTakerFee => '0.637'
+        //                ),
+        //                ...
+        //            ),
+        //            deposit_fees => array(
+        //                array(
+        //                    currency => 'btc',
+        //                    method => 'rewards',
+        //                    $fee => '0.00',
+        //                    is_fixed => false
+        //                ),
+        //                ...
+        //            ),
+        //            withdrawal_fees => {
+        //                ada => '0.20958100',
+        //                bch => '0.00009437',
+        //                ars => '0',
+        //                btc => '0.00001209',
+        //                ...
+        //            }
+        //        }
+        //    }
+        //
+        $payload = $this->safe_value($response, 'payload', array());
+        $fees = $this->safe_value($payload, 'fees', array());
+        $result = array();
+        for ($i = 0; $i < count($fees); $i++) {
+            $fee = $fees[$i];
+            $marketId = $this->safe_string($fee, 'book');
+            $symbol = $this->safe_symbol($marketId, null, '_');
+            $result[$symbol] = array(
+                'info' => $fee,
+                'symbol' => $symbol,
+                'maker' => $this->safe_number($fee, 'maker_fee_decimal'),
+                'taker' => $this->safe_number($fee, 'taker_fee_decimal'),
+                'percentage' => true,
+                'tierBased' => true,
+            );
+        }
+        return $result;
+    }
+
     public function fetch_my_trades($symbol = null, $since = null, $limit = 25, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
@@ -690,6 +759,76 @@ class bitso extends Exchange {
             'tag' => $tag,
             'network' => null,
             'info' => $response,
+        );
+    }
+
+    public function fetch_funding_fees($params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetFees ($params);
+        //
+        //    {
+        //        success => true,
+        //        $payload => {
+        //            fees => array(
+        //                array(
+        //                    book => 'btc_mxn',
+        //                    fee_percent => '0.6500',
+        //                    fee_decimal => '0.00650000',
+        //                    taker_fee_percent => '0.6500',
+        //                    taker_fee_decimal => '0.00650000',
+        //                    maker_fee_percent => '0.5000',
+        //                    maker_fee_decimal => '0.00500000',
+        //                    volume_currency => 'mxn',
+        //                    current_volume => '0.00',
+        //                    next_volume => '1500000.00',
+        //                    next_maker_fee_percent => '0.490',
+        //                    next_taker_fee_percent => '0.637',
+        //                    nextVolume => '1500000.00',
+        //                    nextFee => '0.490',
+        //                    nextTakerFee => '0.637'
+        //                ),
+        //                ...
+        //            ),
+        //            deposit_fees => array(
+        //                array(
+        //                    currency => 'btc',
+        //                    method => 'rewards',
+        //                    fee => '0.00',
+        //                    is_fixed => false
+        //                ),
+        //                ...
+        //            ),
+        //            withdrawal_fees => {
+        //                ada => '0.20958100',
+        //                bch => '0.00009437',
+        //                ars => '0',
+        //                btc => '0.00001209',
+        //                ...
+        //            }
+        //        }
+        //    }
+        //
+        $payload = $this->safe_value($response, 'payload', array());
+        $depositFees = $this->safe_value($payload, 'deposit_fees', array());
+        $deposit = array();
+        for ($i = 0; $i < count($depositFees); $i++) {
+            $depositFee = $depositFees[$i];
+            $currencyId = $this->safe_string($depositFee, 'currency');
+            $code = $this->safe_currency_code($currencyId);
+            $deposit[$code] = $this->safe_number($depositFee, 'fee');
+        }
+        $withdraw = array();
+        $withdrawalFees = $this->safe_value($payload, 'withdrawal_fees', array());
+        $currencyIds = is_array($withdrawalFees) ? array_keys($withdrawalFees) : array();
+        for ($i = 0; $i < count($currencyIds); $i++) {
+            $currencyId = $currencyIds[$i];
+            $code = $this->safe_currency_code($currencyId);
+            $withdraw[$code] = $this->safe_number($withdrawalFees, $currencyId);
+        }
+        return array(
+            'info' => $response,
+            'deposit' => $deposit,
+            'withdraw' => $withdraw,
         );
     }
 

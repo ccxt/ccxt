@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1157,6 +1150,7 @@ class ftx(Exchange):
         request = {}
         if symbol is not None:
             market = self.market(symbol)
+            symbol = market['symbol']
             request['future'] = market['id']
         if since is not None:
             request['start_time'] = int(since / 1000)
@@ -2079,7 +2073,7 @@ class ftx(Exchange):
         txid = self.safe_string(transaction, 'txid')
         tag = None
         address = self.safe_value(transaction, 'address')
-        if not isinstance(address, basestring):
+        if not isinstance(address, str):
             tag = self.safe_string(address, 'tag')
             address = self.safe_string(address, 'address')
         if address is None:

@@ -836,6 +836,7 @@ module.exports = class huobi extends Exchange {
                 },
                 'accountsByType': {
                     'spot': 'pro',
+                    'funding': 'pro',
                     'future': 'futures',
                 },
                 'typesByAccount': {
@@ -1663,10 +1664,15 @@ module.exports = class huobi extends Exchange {
         } else {
             if (limit !== undefined) {
                 // Valid depths are 5, 10, 20 or empty https://huobiapi.github.io/docs/spot/v1/en/#get-market-depth
-                if ((limit !== 5) && (limit !== 10) && (limit !== 20)) {
-                    throw new BadRequest (this.id + ' fetchOrderBook() limit argument must be undefined, 5, 10 or 20, default is 150');
+                if ((limit !== 5) && (limit !== 10) && (limit !== 20) && (limit !== 150)) {
+                    throw new BadRequest (this.id + ' fetchOrderBook() limit argument must be undefined, 5, 10, 20, or 150, default is 150');
                 }
-                request['depth'] = limit;
+                // only set the depth if it is not 150
+                // 150 is the implicit default on the exchange side for step0 and no orderbook aggregation
+                // it is not accepted by the exchange if you set it explicitly
+                if (limit !== 150) {
+                    request['depth'] = limit;
+                }
             }
         }
         request[fieldName] = market['id'];
@@ -2067,7 +2073,7 @@ module.exports = class huobi extends Exchange {
             }
         }
         result = this.sortBy (result, 'timestamp');
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (result, market['symbol'], since, limit);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -4482,7 +4488,7 @@ module.exports = class huobi extends Exchange {
             });
         }
         const sorted = this.sortBy (rates, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
     }
 
     parseFundingRate (fundingRate, market = undefined) {

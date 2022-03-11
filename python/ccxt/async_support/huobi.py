@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -862,6 +855,7 @@ class huobi(Exchange):
                 },
                 'accountsByType': {
                     'spot': 'pro',
+                    'funding': 'pro',
                     'future': 'futures',
                 },
                 'typesByAccount': {
@@ -1640,9 +1634,13 @@ class huobi(Exchange):
         else:
             if limit is not None:
                 # Valid depths are 5, 10, 20 or empty https://huobiapi.github.io/docs/spot/v1/en/#get-market-depth
-                if (limit != 5) and (limit != 10) and (limit != 20):
-                    raise BadRequest(self.id + ' fetchOrderBook() limit argument must be None, 5, 10 or 20, default is 150')
-                request['depth'] = limit
+                if (limit != 5) and (limit != 10) and (limit != 20) and (limit != 150):
+                    raise BadRequest(self.id + ' fetchOrderBook() limit argument must be None, 5, 10, 20, or 150, default is 150')
+                # only set the depth if it is not 150
+                # 150 is the implicit default on the exchange side for step0 and no orderbook aggregation
+                # it is not accepted by the exchange if you set it explicitly
+                if limit != 150:
+                    request['depth'] = limit
         request[fieldName] = market['id']
         response = await getattr(self, method)(self.extend(request, params))
         #
@@ -2014,7 +2012,7 @@ class huobi(Exchange):
                 trade = self.parse_trade(trades[j], market)
                 result.append(trade)
         result = self.sort_by(result, 'timestamp')
-        return self.filter_by_symbol_since_limit(result, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(result, market['symbol'], since, limit)
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
@@ -3548,12 +3546,12 @@ class huobi(Exchange):
             clientOrderIds = self.safe_value_2(params, 'client-order-id', 'clientOrderId')
             clientOrderIds = self.safe_value_2(params, 'client-order-ids', 'clientOrderIds', clientOrderIds)
             if clientOrderIds is None:
-                if isinstance(clientOrderIds, basestring):
+                if isinstance(clientOrderIds, str):
                     request['order-ids'] = ids
                 else:
                     request['order-ids'] = ','.join(ids)
             else:
-                if isinstance(clientOrderIds, basestring):
+                if isinstance(clientOrderIds, str):
                     request['client-order-ids'] = clientOrderIds
                 else:
                     request['client-order-ids'] = ','.join(clientOrderIds)
@@ -4233,7 +4231,7 @@ class huobi(Exchange):
                 'datetime': self.iso8601(timestamp),
             })
         sorted = self.sort_by(rates, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
     def parse_funding_rate(self, fundingRate, market=None):
         #
@@ -4348,7 +4346,7 @@ class huobi(Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/'
         query = self.omit(params, self.extract_params(path))
-        if isinstance(api, basestring):
+        if isinstance(api, str):
             # signing implementation for the old endpoints
             if api == 'market':
                 url += api

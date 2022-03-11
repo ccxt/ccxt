@@ -285,7 +285,9 @@ class hitbtc3 extends Exchange {
                 ),
                 'accountsByType' => array(
                     'spot' => 'spot',
+                    'funding' => 'wallet',
                     'wallet' => 'wallet',
+                    'future' => 'derivatives',
                     'derivatives' => 'derivatives',
                 ),
             ),
@@ -1548,6 +1550,7 @@ class hitbtc3 extends Exchange {
         );
         if ($symbol !== null) {
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $request['symbols'] = $market['id'];
         }
         if ($since !== null) {

@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
@@ -1211,6 +1204,7 @@ class bittrex(Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
+            symbol = market['symbol']
             # because of self line we will have to rethink the entire v3
             # in other words, markets define all the rest of the API
             # and v3 market ids are reversed in comparison to v1
@@ -1387,7 +1381,7 @@ class bittrex(Exchange):
                     self.throw_broadly_matched_exception(self.exceptions['broad'], code, feedback)
                 # raise ExchangeError(self.id + ' malformed response ' + self.json(response))
                 return
-            if isinstance(success, basestring):
+            if isinstance(success, str):
                 # bleutrade uses string instead of boolean
                 success = (success == 'true')
             if not success:

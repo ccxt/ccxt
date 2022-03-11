@@ -61,6 +61,8 @@ class ripio extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => true,
                 'reduceMargin' => false,
                 'setLeverage' => false,
                 'setMarginMode' => false,
@@ -539,6 +541,58 @@ class ripio extends Exchange {
         //     )
         //
         return $this->parse_trades($response, $market, $since, $limit);
+    }
+
+    public function fetch_trading_fees($params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->publicGetPair ($params);
+        //
+        //     {
+        //         next => null,
+        //         previous => null,
+        //         $results => array(
+        //             {
+        //                 base => 'BTC',
+        //                 base_name => 'Bitcoin',
+        //                 quote => 'USDC',
+        //                 quote_name => 'USD Coin',
+        //                 $symbol => 'BTC_USDC',
+        //                 $fees => array(
+        //                     array(
+        //                         traded_volume => '0.0',
+        //                         maker_fee => '0.0',
+        //                         taker_fee => '0.0',
+        //                         cancellation_fee => '0.0'
+        //                     }
+        //                 ),
+        //                 country => 'ZZ',
+        //                 enabled => true,
+        //                 priority => '10',
+        //                 min_amount => '0.0000100000',
+        //                 price_tick => '0.000001',
+        //                 min_value => '10',
+        //                 limit_price_threshold => '25.00'
+        //             ),
+        //         )
+        //     }
+        //
+        $results = $this->safe_value($response, 'results', array());
+        $result = array();
+        for ($i = 0; $i < count($results); $i++) {
+            $pair = $results[$i];
+            $marketId = $this->safe_string($pair, 'symbol');
+            $symbol = $this->safe_symbol($marketId, null, '_');
+            $fees = $this->safe_value($pair, 'fees', array());
+            $fee = $this->safe_value($fees, 0, array());
+            $result[$symbol] = array(
+                'info' => $pair,
+                'symbol' => $symbol,
+                'maker' => $this->safe_number($fee, 'maker_fee'),
+                'taker' => $this->safe_number($fee, 'taker_fee'),
+                'tierBased' => false,
+            );
+        }
+        return $result;
     }
 
     public function parse_balance($response) {

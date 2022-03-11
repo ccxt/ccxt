@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -779,7 +772,7 @@ class yobit(Exchange):
                 'trade_id': id,
             }), market)
             result.append(trade)
-        return self.filter_by_symbol_since_limit(result, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(result, market['symbol'], since, limit)
 
     async def create_deposit_address(self, code, params={}):
         request = {
@@ -896,7 +889,7 @@ class yobit(Exchange):
             # To cover points 1, 2, 3 and 4 combined self handler should work like self:
             #
             success = self.safe_value(response, 'success', False)
-            if isinstance(success, basestring):
+            if isinstance(success, str):
                 if (success == 'true') or (success == '1'):
                     success = True
                 else:
