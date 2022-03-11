@@ -9,6 +9,7 @@ from ccxtpro.base.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByT
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import BadRequest
 
 
 class gateio(Exchange, ccxt.gateio):
@@ -21,6 +22,7 @@ class gateio(Exchange, ccxt.gateio):
                 'watchTicker': True,
                 'watchTickers': False,  # for now
                 'watchTrades': True,
+                'watchMyTrades': True,
                 'watchOHLCV': True,
                 'watchBalance': True,
                 'watchOrders': True,
@@ -28,6 +30,16 @@ class gateio(Exchange, ccxt.gateio):
             'urls': {
                 'api': {
                     'ws': 'wss://ws.gate.io/v4',
+                    'spot': 'wss://api.gateio.ws/ws/v4/',
+                    'swap': {
+                        'usdt': 'wss://fx-ws.gateio.ws/v4/ws/usdt',
+                        'btc': 'wss://fx-ws.gateio.ws/v4/ws/btc',
+                    },
+                    'future': {
+                        'usdt': 'wss://fx-ws.gateio.ws/v4/ws/delivery/usdt',
+                        'btc': 'wss://fx-ws.gateio.ws/v4/ws/delivery/btc',
+                    },
+                    'option': 'wss://op-ws.gateio.live/v4/ws',
                 },
             },
             'options': {
@@ -344,6 +356,69 @@ class gateio(Exchange, ccxt.gateio):
             self.spawn(self.watch, url, requestId, authenticateMessage, method, subscribe)
         return await future
 
+    async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        self.check_required_credentials()
+        type = 'spot'
+        marketId = None
+        marketSymbol = None
+        if symbol is not None:
+            market = self.market(symbol)
+            type = market['type']
+            marketId = market['id']
+            marketSymbol = market['symbol']
+        if type != 'spot':
+            raise BadRequest(self.id + ' watchMyTrades symbol supports spot markets only')
+        url = self.get_url_by_market_type(type)
+        channel = 'spot.usertrades'
+        messageHash = channel
+        payload = []
+        if marketId is not None:
+            payload = [marketId]
+            messageHash += ':' + marketSymbol
+        return await self.subscribe_private(url, channel, messageHash, payload, None)
+
+    def handle_my_trades(self, client, message):
+        #
+        # {
+        #     "time": 1605176741,
+        #     "channel": "spot.usertrades",
+        #     "event": "update",
+        #     "result": [
+        #       {
+        #         "id": 5736713,
+        #         "user_id": 1000001,
+        #         "order_id": "30784428",
+        #         "currency_pair": "BTC_USDT",
+        #         "create_time": 1605176741,
+        #         "create_time_ms": "1605176741123.456",
+        #         "side": "sell",
+        #         "amount": "1.00000000",
+        #         "role": "taker",
+        #         "price": "10000.00000000",
+        #         "fee": "0.00200000000000",
+        #         "point_fee": "0",
+        #         "gt_fee": "0",
+        #         "text": "apiv4"
+        #       }
+        #     ]
+        #   }
+        #
+        channel = self.safe_string(message, 'channel')
+        trades = self.safe_value(message, 'result', [])
+        if len(trades) > 0:
+            if self.myTrades is None:
+                limit = self.safe_integer(self.options, 'tradesLimit', 1000)
+                self.myTrades = ArrayCache(limit)
+            stored = self.myTrades
+            parsedTrades = self.parse_trades(trades)
+            for i in range(0, len(parsedTrades)):
+                stored.append(parsedTrades[i])
+            client.resolve(self.myTrades, channel)
+            for i in range(0, len(parsedTrades)):
+                messageHash = channel + ':' + parsedTrades[i]['symbol']
+                client.resolve(self.myTrades, messageHash)
+
     async def watch_balance(self, params={}):
         await self.load_markets()
         self.check_required_credentials()
@@ -494,12 +569,13 @@ class gateio(Exchange, ccxt.gateio):
 
     def handle_subscription_status(self, client, message):
         messageId = self.safe_integer(message, 'id')
-        subscriptionsById = self.index_by(client.subscriptions, 'id')
-        subscription = self.safe_value(subscriptionsById, messageId, {})
-        method = self.safe_value(subscription, 'method')
-        if method is not None:
-            method(client, message, subscription)
-        client.resolve(message, messageId)
+        if messageId is not None:
+            subscriptionsById = self.index_by(client.subscriptions, 'id')
+            subscription = self.safe_value(subscriptionsById, messageId, {})
+            method = self.safe_value(subscription, 'method')
+            if method is not None:
+                method(client, message, subscription)
+            client.resolve(message, messageId)
 
     def handle_message(self, client, message):
         self.handle_error_message(client, message)
@@ -517,5 +593,44 @@ class gateio(Exchange, ccxt.gateio):
             messageId = self.safe_integer(message, 'id')
             if messageId is not None:
                 self.handle_subscription_status(client, message)
+                return
+            event = self.safe_string(message, 'event')
+            if event == 'subscribe':
+                self.handle_subscription_status(client, message)
+                return
+            channel = self.safe_string(message, 'channel')
+            if channel == 'spot.usertrades':
+                self.handle_my_trades(client, message)
         else:
             method(client, message)
+
+    def get_url_by_market_type(self, type, isBtcContract=False):
+        if type == 'spot':
+            return self.urls['api']['spot']
+        if type == 'swap':
+            baseUrl = self.urls['api']['swap']
+            return baseUrl['btc'] if isBtcContract else baseUrl['usdt']
+        if type == 'future':
+            baseUrl = self.urls['api']['future']
+            return baseUrl['btc'] if isBtcContract else baseUrl['usdt']
+        if type == 'option':
+            return self.urls['api']['option']
+
+    async def subscribe_private(self, url, channel, messageHash, payload, subscription):
+        time = self.seconds()
+        event = 'subscribe'
+        signaturePayload = 'channel=' + channel + '&event=' + event + '&time=' + str(time)
+        signature = self.hmac(self.encode(signaturePayload), self.encode(self.secret), hashlib.sha512, 'hex')
+        auth = {
+            'method': 'api_key',
+            'KEY': self.apiKey,
+            'SIGN': signature,
+        }
+        request = {
+            'time': time,
+            'channel': channel,
+            'event': 'subscribe',
+            'payload': payload,
+            'auth': auth,
+        }
+        return await self.watch(url, messageHash, request, messageHash, subscription)

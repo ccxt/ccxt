@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { ExchangeError, AuthenticationError } = require ('ccxt/js/base/errors');
+const { ExchangeError, AuthenticationError, BadRequest } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -17,6 +17,7 @@ module.exports = class gateio extends ccxt.gateio {
                 'watchTicker': true,
                 'watchTickers': false, // for now
                 'watchTrades': true,
+                'watchMyTrades': true,
                 'watchOHLCV': true,
                 'watchBalance': true,
                 'watchOrders': true,
@@ -24,6 +25,16 @@ module.exports = class gateio extends ccxt.gateio {
             'urls': {
                 'api': {
                     'ws': 'wss://ws.gate.io/v4',
+                    'spot': 'wss://api.gateio.ws/ws/v4/',
+                    'swap': {
+                        'usdt': 'wss://fx-ws.gateio.ws/v4/ws/usdt',
+                        'btc': 'wss://fx-ws.gateio.ws/v4/ws/btc',
+                    },
+                    'future': {
+                        'usdt': 'wss://fx-ws.gateio.ws/v4/ws/delivery/usdt',
+                        'btc': 'wss://fx-ws.gateio.ws/v4/ws/delivery/btc',
+                    },
+                    'option': 'wss://op-ws.gateio.live/v4/ws',
                 },
             },
             'options': {
@@ -361,6 +372,78 @@ module.exports = class gateio extends ccxt.gateio {
         return await future;
     }
 
+    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        this.checkRequiredCredentials ();
+        let type = 'spot';
+        let marketId = undefined;
+        let marketSymbol = undefined;
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            type = market['type'];
+            marketId = market['id'];
+            marketSymbol = market['symbol'];
+        }
+        if (type !== 'spot') {
+            throw new BadRequest (this.id + ' watchMyTrades symbol supports spot markets only');
+        }
+        const url = this.getUrlByMarketType (type);
+        const channel = 'spot.usertrades';
+        let messageHash = channel;
+        let payload = [];
+        if (marketId !== undefined) {
+            payload = [marketId];
+            messageHash += ':' + marketSymbol;
+        }
+        return await this.subscribePrivate (url, channel, messageHash, payload, undefined);
+    }
+
+    handleMyTrades (client, message) {
+        //
+        // {
+        //     "time": 1605176741,
+        //     "channel": "spot.usertrades",
+        //     "event": "update",
+        //     "result": [
+        //       {
+        //         "id": 5736713,
+        //         "user_id": 1000001,
+        //         "order_id": "30784428",
+        //         "currency_pair": "BTC_USDT",
+        //         "create_time": 1605176741,
+        //         "create_time_ms": "1605176741123.456",
+        //         "side": "sell",
+        //         "amount": "1.00000000",
+        //         "role": "taker",
+        //         "price": "10000.00000000",
+        //         "fee": "0.00200000000000",
+        //         "point_fee": "0",
+        //         "gt_fee": "0",
+        //         "text": "apiv4"
+        //       }
+        //     ]
+        //   }
+        //
+        const channel = this.safeString (message, 'channel');
+        const trades = this.safeValue (message, 'result', []);
+        if (trades.length > 0) {
+            if (this.myTrades === undefined) {
+                const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+                this.myTrades = new ArrayCache (limit);
+            }
+            const stored = this.myTrades;
+            const parsedTrades = this.parseTrades (trades);
+            for (let i = 0; i < parsedTrades.length; i++) {
+                stored.append (parsedTrades[i]);
+            }
+            client.resolve (this.myTrades, channel);
+            for (let i = 0; i < parsedTrades.length; i++) {
+                const messageHash = channel + ':' + parsedTrades[i]['symbol'];
+                client.resolve (this.myTrades, messageHash);
+            }
+        }
+    }
+
     async watchBalance (params = {}) {
         await this.loadMarkets ();
         this.checkRequiredCredentials ();
@@ -532,13 +615,15 @@ module.exports = class gateio extends ccxt.gateio {
 
     handleSubscriptionStatus (client, message) {
         const messageId = this.safeInteger (message, 'id');
-        const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-        const subscription = this.safeValue (subscriptionsById, messageId, {});
-        const method = this.safeValue (subscription, 'method');
-        if (method !== undefined) {
-            method.call (this, client, message, subscription);
+        if (messageId !== undefined) {
+            const subscriptionsById = this.indexBy (client.subscriptions, 'id');
+            const subscription = this.safeValue (subscriptionsById, messageId, {});
+            const method = this.safeValue (subscription, 'method');
+            if (method !== undefined) {
+                method.call (this, client, message, subscription);
+            }
+            client.resolve (message, messageId);
         }
-        client.resolve (message, messageId);
     }
 
     handleMessage (client, message) {
@@ -557,9 +642,56 @@ module.exports = class gateio extends ccxt.gateio {
             const messageId = this.safeInteger (message, 'id');
             if (messageId !== undefined) {
                 this.handleSubscriptionStatus (client, message);
+                return;
+            }
+            const event = this.safeString (message, 'event');
+            if (event === 'subscribe') {
+                this.handleSubscriptionStatus (client, message);
+                return;
+            }
+            const channel = this.safeString (message, 'channel');
+            if (channel === 'spot.usertrades') {
+                this.handleMyTrades (client, message);
             }
         } else {
             method.call (this, client, message);
         }
+    }
+
+    getUrlByMarketType (type, isBtcContract = false) {
+        if (type === 'spot') {
+            return this.urls['api']['spot'];
+        }
+        if (type === 'swap') {
+            const baseUrl = this.urls['api']['swap'];
+            return isBtcContract ? baseUrl['btc'] : baseUrl['usdt'];
+        }
+        if (type === 'future') {
+            const baseUrl = this.urls['api']['future'];
+            return isBtcContract ? baseUrl['btc'] : baseUrl['usdt'];
+        }
+        if (type === 'option') {
+            return this.urls['api']['option'];
+        }
+    }
+
+    async subscribePrivate (url, channel, messageHash, payload, subscription) {
+        const time = this.seconds ();
+        const event = 'subscribe';
+        const signaturePayload = 'channel=' + channel + '&event=' + event + '&time=' + time.toString ();
+        const signature = this.hmac (this.encode (signaturePayload), this.encode (this.secret), 'sha512', 'hex');
+        const auth = {
+            'method': 'api_key',
+            'KEY': this.apiKey,
+            'SIGN': signature,
+        };
+        const request = {
+            'time': time,
+            'channel': channel,
+            'event': 'subscribe',
+            'payload': payload,
+            'auth': auth,
+        };
+        return await this.watch (url, messageHash, request, messageHash, subscription);
     }
 };
