@@ -1261,7 +1261,7 @@ module.exports = class bybit extends Exchange {
         //
         const result = this.safeValue (response, 'result');
         const fundingRate = this.safeNumber (result, 'funding_rate');
-        let fundingTimestamp = this.safeTimestamp (result, 'funding_rate_timestamp');
+        let fundingTimestamp = this.safeInteger (result, 'funding_rate_timestamp');
         if (fundingTimestamp === undefined) {
             fundingTimestamp = this.parse8601 (this.safeString (result, 'funding_rate_timestamp'));
         }
