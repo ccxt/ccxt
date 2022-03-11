@@ -2468,7 +2468,7 @@ module.exports = class ftx extends Exchange {
         return this.parseBorrowRates (result, 'coin');
     }
 
-    async fetchBorrowRateHistories (since = undefined, limit = undefined, params = {}) {
+    async fetchBorrowRateHistories (codes = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         const endTime = this.safeNumber2 (params, 'till', 'end_time');
@@ -2497,7 +2497,7 @@ module.exports = class ftx extends Exchange {
         //    }
         //
         const result = this.safeValue (response, 'result');
-        return this.parseBorrowRateHistories (result, since, limit);
+        return this.parseBorrowRateHistories (result, codes, since, limit);
     }
 
     async fetchBorrowRateHistory (code, since = undefined, limit = undefined, params = {}) {
@@ -2510,7 +2510,7 @@ module.exports = class ftx extends Exchange {
         }
     }
 
-    parseBorrowRateHistories (response, since, limit) {
+    parseBorrowRateHistories (response, codes, since, limit) {
         // How to calculate borrow rate
         // https://help.ftx.com/hc/en-us/articles/360053007671-Spot-Margin-Trading-Explainer
         const takerFee = this.fees['trading']['taker'].toString ();
@@ -2519,17 +2519,19 @@ module.exports = class ftx extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const item = response[i];
             const code = this.safeCurrencyCode (this.safeString (item, 'coin'));
-            if (!(code in borrowRateHistories)) {
-                borrowRateHistories[code] = [];
+            if (codes === undefined || codes.includes (code)) {
+                if (!(code in borrowRateHistories)) {
+                    borrowRateHistories[code] = [];
+                }
+                const lendingRate = this.safeString (item, 'rate');
+                const borrowRate = Precise.stringMul (lendingRate, Precise.stringAdd ('1', spotMarginBorrowRate));
+                const borrowRateStructure = this.extend (this.parseBorrowRate (item), { 'rate': borrowRate });
+                borrowRateHistories[code].push (borrowRateStructure);
             }
-            const lendingRate = this.safeString (item, 'rate');
-            const borrowRate = Precise.stringMul (lendingRate, Precise.stringAdd ('1', spotMarginBorrowRate));
-            const borrowRateStructure = this.extend (this.parseBorrowRate (item), { 'rate': borrowRate });
-            borrowRateHistories[code].push (borrowRateStructure);
         }
-        const codes = Object.keys (borrowRateHistories);
-        for (let i = 0; i < codes.length; i++) {
-            const code = codes[i];
+        const keys = Object.keys (borrowRateHistories);
+        for (let i = 0; i < keys.length; i++) {
+            const code = keys[i];
             borrowRateHistories[code] = this.filterByCurrencySinceLimit (borrowRateHistories[code], code, since, limit);
         }
         return borrowRateHistories;

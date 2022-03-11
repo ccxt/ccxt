@@ -4064,7 +4064,7 @@ module.exports = class okx extends Exchange {
         };
     }
 
-    parseBorrowRateHistories (response, since, limit) {
+    parseBorrowRateHistories (response, codes, since, limit) {
         //
         //    [
         //        {
@@ -4080,15 +4080,17 @@ module.exports = class okx extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const item = response[i];
             const code = this.safeCurrencyCode (this.safeString (item, 'ccy'));
-            if (!(code in borrowRateHistories)) {
-                borrowRateHistories[code] = [];
+            if (codes === undefined || codes.includes (code)) {
+                if (!(code in borrowRateHistories)) {
+                    borrowRateHistories[code] = [];
+                }
+                const borrowRateStructure = this.parseBorrowRate (item);
+                borrowRateHistories[code].push (borrowRateStructure);
             }
-            const borrowRateStructure = this.parseBorrowRate (item);
-            borrowRateHistories[code].push (borrowRateStructure);
         }
-        const codes = Object.keys (borrowRateHistories);
-        for (let i = 0; i < codes.length; i++) {
-            const code = codes[i];
+        const keys = Object.keys (borrowRateHistories);
+        for (let i = 0; i < keys.length; i++) {
+            const code = keys[i];
             borrowRateHistories[code] = this.filterByCurrencySinceLimit (borrowRateHistories[code], code, since, limit);
         }
         return borrowRateHistories;
@@ -4105,7 +4107,7 @@ module.exports = class okx extends Exchange {
         return this.filterByCurrencySinceLimit (sorted, code, since, limit);
     }
 
-    async fetchBorrowRateHistories (since = undefined, limit = undefined, params = {}) {
+    async fetchBorrowRateHistories (codes = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             // 'ccy': currency['id'],
@@ -4135,7 +4137,7 @@ module.exports = class okx extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data');
-        return this.parseBorrowRateHistories (data, since, limit);
+        return this.parseBorrowRateHistories (data, codes, since, limit);
     }
 
     async fetchBorrowRateHistory (code, since = undefined, limit = undefined, params = {}) {
