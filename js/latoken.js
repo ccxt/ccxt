@@ -770,7 +770,6 @@ module.exports = class latoken extends Exchange {
         };
     }
 
-
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
