@@ -271,7 +271,7 @@ module.exports = class Exchange {
         // do not delete this line, it is needed for users to be able to define their own fetchImplementation
         this.fetchImplementation = defaultFetch
         this.enableSslServerValidation = true
-        this.enableSslClientValidation = true
+        this.enableSslClientValidation = false
 
         this.timeout       = 10000 // milliseconds
         this.verbose       = false
