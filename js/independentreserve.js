@@ -52,6 +52,8 @@ module.exports = class independentreserve extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': true,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
@@ -537,6 +539,46 @@ module.exports = class independentreserve extends Exchange {
         };
         const response = await this.publicGetGetRecentTrades (this.extend (request, params));
         return this.parseTrades (response['Trades'], market, since, limit);
+    }
+
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privatePostGetBrokerageFees (params);
+        //
+        //     [
+        //         {
+        //             "CurrencyCode": "Xbt",
+        //             "Fee": 0.005
+        //         }
+        //         ...
+        //     ]
+        //
+        const fees = {};
+        for (let i = 0; i < response.length; i++) {
+            const fee = response[i];
+            const currencyId = this.safeString (fee, 'CurrencyCode');
+            const code = this.safeCurrencyCode (currencyId);
+            const tradingFee = this.safeNumber (fee, 'Fee');
+            fees[code] = {
+                'info': fee,
+                'fee': tradingFee,
+            };
+        }
+        const result = {};
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            const market = this.market (symbol);
+            const fee = this.safeValue (fees, market['base'], {});
+            result[symbol] = {
+                'info': this.safeValue (fee, 'info'),
+                'symbol': symbol,
+                'maker': this.safeNumber (fee, 'fee'),
+                'taker': this.safeNumber (fee, 'fee'),
+                'percentage': true,
+                'tierBased': true,
+            };
+        }
+        return result;
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
