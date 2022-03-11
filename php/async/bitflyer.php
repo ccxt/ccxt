@@ -41,6 +41,8 @@ class bitflyer extends Exchange {
                 'fetchPositions' => true,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => true,
+                'fetchTradingFees' => false,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
             ),
@@ -418,6 +420,27 @@ class bitflyer extends Exchange {
         );
         $response = yield $this->publicGetGetexecutions (array_merge($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
+    }
+
+    public function fetch_trading_fee($symbol, $params = array ()) {
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'product_code' => $market['id'],
+        );
+        $response = yield $this->privateGetGettradingcommission (array_merge($request, $params));
+        //
+        //   {
+        //       commission_rate => '0.0020'
+        //   }
+        //
+        $fee = $this->safe_number($response, 'commission_rate');
+        return array(
+            'info' => $response,
+            'symbol' => $symbol,
+            'maker' => $fee,
+            'taker' => $fee,
+        );
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
