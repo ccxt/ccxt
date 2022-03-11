@@ -4645,9 +4645,20 @@ Returns
 
 ## Transfers
 
+Transfers are internal transfers of funds between accounts on the same exchange
+
+```Javascript
+transferIn (code, amount, params = {})
+```
+
+```Javascript
+transferOut (code, amount, params = {})
+```
+
 ```Javascript
 fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {})
 ```
+
 
 ## Leverage
 
