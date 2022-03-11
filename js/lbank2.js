@@ -150,11 +150,86 @@ module.exports = class lbank2 extends Exchange {
     async fetchMarkets (params = {}) {
         // needs to return a list of unified market structures
         const response = await this.publicGetAccuracy ();
-        // for (let i = 0; i < response.length; i++) {
-        //     const market = response['data'][i];
-        //     console.log (market['symbol']);
-        // }
-        return response['data'];
+        const data = this.safeValue (response, 'data');
+        //      [
+        //          {
+        //              symbol: 'snx3s_usdt',
+        //              quantityAccuracy: '2',
+        //              minTranQua: '0.01',
+        //              priceAccuracy: '6'
+        //          }
+        //     ]
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            const market = data[i];
+            const marketId = this.safeString (market, 'symbol');
+            const parts = marketId.split ('_');
+            const baseId = parts[0];
+            const quoteId = parts[1];
+            const base = baseId.toUpperCase ();
+            const quote = quoteId.toUpperCase ();
+            let symbol = base + '/' + quote;
+            const productTypes = {
+                '3l': true,
+                '5l': true,
+                '3s': true,
+                '5s': true,
+            };
+            const ending = baseId.slice (-2);
+            const isLeveragedProduct = this.safeValue (productTypes, ending, false);
+            if (isLeveragedProduct) {
+                symbol += ':' + quote;
+            }
+            result.push ({
+                'id': marketId,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'settle': undefined,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': undefined,
+                'type': 'spot',
+                'spot': true,
+                'margin': false,
+                'swap': isLeveragedProduct,
+                'future': false,
+                'option': false,
+                'active': true,
+                'contract': isLeveragedProduct,
+                'linear': isLeveragedProduct ? true : undefined, // all leveraged ETF products are in USDT
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeInteger (market, 'quantityAccuracy'),
+                    'price': this.safeInteger (market, 'priceAccuracy'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': this.safeInteger (market, 'minTranQua'),
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'info': market,
+            });
+        }
+        return result;
     }
 
     sign2 (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
