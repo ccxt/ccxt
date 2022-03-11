@@ -872,15 +872,17 @@ module.exports = class gateio extends Exchange {
     }
 
     prepareRequest (market) {
-        if (market['contract']) {
-            return {
-                'contract': market['id'],
-                'settle': market['settleId'],
-            };
-        } else {
-            return {
-                'currency_pair': market['id'],
-            };
+        if (market !== undefined) {
+            if (market['contract']) {
+                return {
+                    'contract': market['id'],
+                    'settle': market['settleId'],
+                };
+            } else {
+                return {
+                    'currency_pair': market['id'],
+                };
+            }
         }
     }
 
@@ -1312,21 +1314,30 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires a symbol argument');
-        }
         await this.loadMarkets ();
         // let defaultType = 'future';
-        const market = this.market (symbol);
-        const request = this.prepareRequest (market);
+        let market = undefined;
+        let request = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request = this.prepareRequest (market);
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchFundingHistory', market, params);
+        if (market === undefined) {
+            const defaultSettle = (type === 'swap') ? 'usdt' : 'btc';
+            const settle = this.safeString (params, 'settle', defaultSettle);
+            request['settle'] = settle;
+            params = this.omit (params, 'settle');
+        }
         request['type'] = 'fund';  // 'dnw' 'pnl' 'fee' 'refr' 'fund' 'point_dnw' 'point_fee' 'point_refr'
         if (since !== undefined) {
-            request['from'] = since;
+            request['from'] = since / 1000;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const method = this.getSupportedMapping (market['type'], {
+        const method = this.getSupportedMapping (type, {
             'swap': 'privateFuturesGetSettleAccountBook',
             'future': 'privateDeliveryGetSettleAccountBook',
         });
