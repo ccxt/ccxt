@@ -2973,10 +2973,14 @@ class gateio(Exchange):
         #
         return {
             'info': response,
-            'from': fromId,
-            'to': toId,
+            'id': None,
+            'timestamp': None,
+            'datetime': None,
+            'currency': code,
             'amount': truncated,
-            'code': code,
+            'fromAccount': fromId,
+            'toAccount': toId,
+            'status': None,
         }
 
     def set_leverage(self, leverage, symbol=None, params={}):

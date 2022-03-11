@@ -3102,10 +3102,14 @@ class gateio extends Exchange {
         //
         return array(
             'info' => $response,
-            'from' => $fromId,
-            'to' => $toId,
+            'id' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'currency' => $code,
             'amount' => $truncated,
-            'code' => $code,
+            'fromAccount' => $fromId,
+            'toAccount' => $toId,
+            'status' => null,
         );
     }
 
