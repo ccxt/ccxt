@@ -4667,9 +4667,17 @@ Returns
 
 ## Sign In
 
+The `signIn` method can be used to sign into exchanges prior to calling other private methods if required by the exchange
+
 ```Javascript
 signIn (params = {})
 ```
+
+Parameters
+- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"2fa": "329293"}`)
+
+Returns 
+- response from the exchange
 
 
 # Error Handling
