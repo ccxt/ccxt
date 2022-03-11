@@ -164,6 +164,9 @@ module.exports = class exmo extends Exchange {
                     'ETH': 'ERC20',
                     'TRX': 'TRC20',
                 },
+                'fetchTradingFees': {
+                    'method': 'fetchPrivateTradingFees', // or 'fetchPublicTradingFees'
+                },
             },
             'exceptions': {
                 'exact': {
@@ -194,6 +197,16 @@ module.exports = class exmo extends Exchange {
     }
 
     async fetchTradingFees (params = {}) {
+        let method = this.safeString (params, 'method');
+        params = this.omit (params, 'method');
+        if (method === undefined) {
+            const options = this.safeValue (this.options, 'fetchTradingFees', {});
+            method = this.safeString (options, 'method', 'fetchPrivateTradingFees');
+        }
+        return await this[method] (params);
+    }
+
+    async fetchPrivateTradingFees (params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostMarginPairList (params);
         //
@@ -237,6 +250,45 @@ module.exports = class exmo extends Exchange {
             const taker = this.parseNumber (Precise.stringDiv (takerString, '100'));
             result[symbol] = {
                 'info': pair,
+                'symbol': symbol,
+                'maker': maker,
+                'taker': taker,
+                'percentage': true,
+                'tierBased': true,
+            };
+        }
+        return result;
+    }
+
+    async fetchPublicTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetPairSettings (params);
+        //
+        //     {
+        //         BTC_USD: {
+        //             min_quantity: '0.00002',
+        //             max_quantity: '1000',
+        //             min_price: '1',
+        //             max_price: '150000',
+        //             max_amount: '500000',
+        //             min_amount: '1',
+        //             price_precision: '2',
+        //             commission_taker_percent: '0.3',
+        //             commission_maker_percent: '0.3'
+        //         },
+        //     }
+        //
+        const result = {};
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            const market = this.market (symbol);
+            const fee = this.safeValue (response, market['id'], {});
+            const makerString = this.safeString (fee, 'commission_maker_percent');
+            const takerString = this.safeString (fee, 'commission_taker_percent');
+            const maker = this.parseNumber (Precise.stringDiv (makerString, '100'));
+            const taker = this.parseNumber (Precise.stringDiv (takerString, '100'));
+            result[symbol] = {
+                'info': fee,
                 'symbol': symbol,
                 'maker': maker,
                 'taker': taker,
