@@ -1062,8 +1062,8 @@ class Exchange {
 
         $this->id = null;
 
-        $this->enableSslServerValidation = true;
-        $this->enableSslClientValidation = false;
+        $this->validateServerSsl = true;
+        $this->validateClientSsl = false;
         $this->curlopt_interface = null;
         $this->timeout = 10000; // in milliseconds
         $this->proxy = '';
@@ -1644,10 +1644,10 @@ class Exchange {
         }
 
         curl_setopt($this->curl, CURLOPT_RETURNTRANSFER, true);
-        if (!$this->enableSslClientValidation) {
+        if (!$this->validateClientSsl) {
             curl_setopt($this->curl, CURLOPT_SSL_VERIFYPEER, false);
         }
-        if (!$this->enableSslServerValidation) {
+        if (!$this->validateServerSsl) {
             curl_setopt($this->curl, CURLOPT_SSL_VERIFYHOST, false);
         }
 
