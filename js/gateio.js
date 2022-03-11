@@ -614,8 +614,8 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchSpotMarkets (params) {
-        const marginResponse = await this.publicSpotMarginGetCurrencyPairs (params);
-        const spotMarketsResponse = await this.publicSpotSpotGetCurrencyPairs (params);
+        const marginResponse = await this.publicMarginGetCurrencyPairs (params);
+        const spotMarketsResponse = await this.publicSpotGetCurrencyPairs (params);
         const spotMarkets = this.indexBy (spotMarketsResponse, 'id');
         //
         //  Spot
