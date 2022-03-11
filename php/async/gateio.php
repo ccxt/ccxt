@@ -878,15 +878,17 @@ class gateio extends Exchange {
     }
 
     public function prepare_request($market) {
-        if ($market['contract']) {
-            return array(
-                'contract' => $market['id'],
-                'settle' => $market['settleId'],
-            );
-        } else {
-            return array(
-                'currency_pair' => $market['id'],
-            );
+        if ($market !== null) {
+            if ($market['contract']) {
+                return array(
+                    'contract' => $market['id'],
+                    'settle' => $market['settleId'],
+                );
+            } else {
+                return array(
+                    'currency_pair' => $market['id'],
+                );
+            }
         }
     }
 
@@ -1318,41 +1320,83 @@ class gateio extends Exchange {
     }
 
     public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires a $symbol argument');
-        }
         yield $this->load_markets();
         // $defaultType = 'future';
-        $market = $this->market($symbol);
-        $request = $this->prepare_request($market);
+        $market = null;
+        $request = array();
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $request = $this->prepare_request($market);
+        }
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchFundingHistory', $market, $params);
+        if ($market === null) {
+            $defaultSettle = ($type === 'swap') ? 'usdt' : 'btc';
+            $settle = $this->safe_string($params, 'settle', $defaultSettle);
+            $request['settle'] = $settle;
+            $params = $this->omit($params, 'settle');
+        }
         $request['type'] = 'fund';  // 'dnw' 'pnl' 'fee' 'refr' 'fund' 'point_dnw' 'point_fee' 'point_refr'
         if ($since !== null) {
-            $request['from'] = $since;
+            $request['from'] = $since / 1000;
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $method = $this->get_supported_mapping($market['type'], array(
+        $method = $this->get_supported_mapping($type, array(
             'swap' => 'privateFuturesGetSettleAccountBook',
             'future' => 'privateDeliveryGetSettleAccountBook',
         ));
         $response = yield $this->$method (array_merge($request, $params));
+        //
+        //    array(
+        //        array(
+        //            "time" => 1646899200,
+        //            "change" => "-0.027722",
+        //            "balance" => "11.653120591841",
+        //            "text" => "XRP_USDT",
+        //            "type" => "fund"
+        //        ),
+        //        ...
+        //    )
+        //
+        return $this->parse_funding_histories($response, $symbol, $since, $limit);
+    }
+
+    public function parse_funding_histories($response, $symbol, $since, $limit) {
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $entry = $response[$i];
-            $timestamp = $this->safe_timestamp($entry, 'time');
-            $result[] = array(
-                'info' => $entry,
-                'symbol' => $symbol,
-                'code' => $this->safe_currency_code($this->safe_string($entry, 'text')),
-                'timestamp' => $timestamp,
-                'datetime' => $this->iso8601($timestamp),
-                'id' => null,
-                'amount' => $this->safe_number($entry, 'change'),
-            );
+            $funding = $this->parse_funding_history($entry);
+            $result[] = $funding;
         }
         $sorted = $this->sort_by($result, 'timestamp');
-        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
+        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+    }
+
+    public function parse_funding_history($info, $market = null) {
+        //
+        //    {
+        //        "time" => 1646899200,
+        //        "change" => "-0.027722",
+        //        "balance" => "11.653120591841",
+        //        "text" => "XRP_USDT",
+        //        "type" => "fund"
+        //    }
+        //
+        $timestamp = $this->safe_timestamp($info, 'time');
+        $marketId = $this->safe_string($info, 'text');
+        $market = $this->safe_market($marketId, $market);
+        return array(
+            'info' => $info,
+            'symbol' => $this->safe_string($market, 'symbol'),
+            'code' => $this->safe_string($market, 'settle'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'id' => null,
+            'amount' => $this->safe_number($info, 'change'),
+        );
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
