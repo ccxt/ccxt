@@ -92,10 +92,10 @@ module.exports = class lbank2 extends Exchange {
                         'currencyPairs': 2.5, // returns available trading pairs (market ids)
                         'accuracy': 2.5, // basic information of trading pairs (price, quantity accuraccy etc)
                         'usdToCny': 2.5,
-                        'withdrawConfigs': 2.5, // withdrawal details for some symbol
+                        'withdrawConfigs': 2.5, // fetchWithdrawalFees (symbol)
                         'timestamp': 2.5,
-                        'ticker/24h': 2.5, // recommended
-                        'ticker': 2.5,
+                        'ticker/24h': 2.5, // down
+                        'ticker': 2.5, // fetchTicker
                         'depth': 2.5,
                         'incrDepth': 2.5, // fetchOrderBook
                         'trades': 2.5, // fetchTrades
@@ -232,10 +232,6 @@ module.exports = class lbank2 extends Exchange {
         return result;
     }
 
-    async fetchOrderBook () {
-        return false;
-    }
-
     parseTicker (ticker, market = undefined) {
         //
         //      {
@@ -309,6 +305,19 @@ module.exports = class lbank2 extends Exchange {
         //
         const result = this.safeValue (response, 'data')[0];
         return this.parseTicker (result, market);
+    }
+
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetIncrDepth (this.extend (request, params));
+        const result = this.safeValue (response, 'data', {});
+        const timestamp = result['timestamp'];
+        const orderbook = this.parseOrderBook (result, symbol, timestamp);
+        return orderbook;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
