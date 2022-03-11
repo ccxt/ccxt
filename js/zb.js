@@ -1765,12 +1765,14 @@ module.exports = class zb extends Exchange {
         if (spot) {
             request['tradeType'] = (side === 'buy') ? '1' : '0';
             request['currency'] = market['id'];
-            if (timeInForce === 'PO') {
-                request['orderType'] = 1;
-            } else if (timeInForce === 'IOC') {
-                request['orderType'] = 2;
-            } else {
-                request['orderType'] = undefined;
+            if (timeInForce !== undefined) {
+                if (timeInForce === 'PO') {
+                    request['orderType'] = 1;
+                } else if (timeInForce === 'IOC') {
+                    request['orderType'] = 2;
+                } else {
+                    throw new InvalidOrder (this.id + ' createOrder() on ' + market['type'] + ' markets does not allow ' + timeInForce + ' orders');
+                }
             }
         } else if (swap) {
             const reduceOnly = this.safeValue (params, 'reduceOnly');
