@@ -181,13 +181,24 @@ module.exports = class bitflyer extends Exchange {
                 quoteId = this.safeString (currencies, 2);
             } else if (future) {
                 const alias = this.safeString (market, 'alias');
-                const splitAlias = alias.split ('_');
-                const currencyIds = this.safeString (splitAlias, 0);
-                baseId = currencyIds.slice (0, -3);
-                quoteId = currencyIds.slice (-3);
-                const splitId = id.split (currencyIds);
-                const expiryDate = this.safeString (splitId, 1);
-                expiry = this.parseExpiryDate (expiryDate);
+                if (!alias) {
+                    // no alias: 
+                    // { product_code: 'BTCJPY11MAR2022', market_type: 'Futures' }
+                    // TODO this will break if there are products with 4 chars
+                    baseId = id.slice (0, 3);
+                    quoteId = id.slice (3, 6);
+                    // last 9 chars are expiry date
+                    const expiryDate = id.slice (-9);
+                    expiry = this.parseExpiryDate(expiryDate);
+                } else {
+                    const splitAlias = alias.split ('_');
+                    const currencyIds = this.safeString (splitAlias, 0);
+                    baseId = currencyIds.slice (0, -3);
+                    quoteId = currencyIds.slice (-3);
+                    const splitId = id.split (currencyIds);
+                    const expiryDate = this.safeString (splitId, 1);
+                    expiry = this.parseExpiryDate (expiryDate);
+                }
                 type = 'future';
             }
             const base = this.safeCurrencyCode (baseId);
