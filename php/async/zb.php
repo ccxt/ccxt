@@ -30,7 +30,7 @@ class zb extends Exchange {
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
-                'margin' => null, // has but unimplemented
+                'margin' => true,
                 'swap' => true,
                 'future' => null,
                 'option' => null,
@@ -42,6 +42,9 @@ class zb extends Exchange {
                 'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => true,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
@@ -1762,6 +1765,9 @@ class zb extends Exchange {
         ));
         $request = array(
             'amount' => $this->amount_to_precision($symbol, $amount),
+            // 'acctType' => 0, // Spot, Margin 0/1/2 [Spot/Isolated/Cross] Optional, Default to => 0 Spot
+            // 'customerOrderId' => '1f2g', // Spot, Margin
+            // 'orderType' => 1, // Spot, Margin order $type 1/2 [PostOnly/IOC] Optional
         );
         if ($price) {
             $request['price'] = $this->price_to_precision($symbol, $price);
@@ -1769,6 +1775,15 @@ class zb extends Exchange {
         if ($spot) {
             $request['tradeType'] = ($side === 'buy') ? '1' : '0';
             $request['currency'] = $market['id'];
+            if ($timeInForce !== null) {
+                if ($timeInForce === 'PO') {
+                    $request['orderType'] = 1;
+                } else if ($timeInForce === 'IOC') {
+                    $request['orderType'] = 2;
+                } else {
+                    throw new InvalidOrder($this->id . ' createOrder() on ' . $market['type'] . ' markets does not allow ' . $timeInForce . ' orders');
+                }
+            }
         } else if ($swap) {
             $reduceOnly = $this->safe_value($params, 'reduceOnly');
             $params = $this->omit($params, 'reduceOnly');
@@ -3332,6 +3347,46 @@ class zb extends Exchange {
         //
         //     {
         //         $code => '1000',
+        //         message => '操作成功',
+        //         result => array(
+        //             array(
+        //                 interestRateOfDay => '0.0005',
+        //                 repaymentDay => '30',
+        //                 amount => '148804.4841',
+        //                 balance => '148804.4841',
+        //                 rateOfDayShow => '0.05 %',
+        //                 coinName => 'USDT',
+        //                 lowestAmount => '0.01'
+        //             ),
+        //         )
+        //     }
+        //
+        $timestamp = $this->milliseconds();
+        $data = $this->safe_value($response, 'result', array());
+        $rate = $this->safe_value($data, 0, array());
+        return array(
+            'currency' => $this->safe_currency_code($this->safe_string($rate, 'coinName')),
+            'rate' => $this->safe_number($rate, 'interestRateOfDay'),
+            'period' => $this->safe_number($rate, 'repaymentDay'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $rate,
+        );
+    }
+
+    public function fetch_borrow_rates($params = array ()) {
+        if ($params['coin'] === null) {
+            throw new ArgumentsRequired($this->id . ' fetchBorrowRates() requires a coin argument in the params');
+        }
+        yield $this->load_markets();
+        $currency = $this->currency($this->safe_string($params, 'coin'));
+        $request = array(
+            'coin' => $currency['id'],
+        );
+        $response = yield $this->spotV1PrivateGetGetLoans (array_merge($request, $params));
+        //
+        //     {
+        //         code => '1000',
         //         message => '操作成功',
         //         result => array(
         //             array(

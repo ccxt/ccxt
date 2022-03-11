@@ -284,7 +284,9 @@ class hitbtc3 extends Exchange {
                 ),
                 'accountsByType' => array(
                     'spot' => 'spot',
+                    'funding' => 'wallet',
                     'wallet' => 'wallet',
+                    'future' => 'derivatives',
                     'derivatives' => 'derivatives',
                 ),
             ),

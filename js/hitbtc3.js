@@ -276,7 +276,9 @@ module.exports = class hitbtc3 extends Exchange {
                 },
                 'accountsByType': {
                     'spot': 'spot',
+                    'funding': 'wallet',
                     'wallet': 'wallet',
+                    'future': 'derivatives',
                     'derivatives': 'derivatives',
                 },
             },

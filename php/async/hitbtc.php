@@ -74,6 +74,7 @@ class hitbtc extends Exchange {
                 'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
+                'fetchTradingFees' => false,
                 'fetchTransactions' => true,
                 'fetchWithdrawals' => null,
                 'reduceMargin' => false,
@@ -108,8 +109,7 @@ class hitbtc extends Exchange {
                 'www' => 'https://hitbtc.com',
                 'referral' => 'https://hitbtc.com/?ref_id=5a5d39a65d466',
                 'doc' => array(
-                    'https://api.hitbtc.com',
-                    'https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv2.md',
+                    'https://api.hitbtc.com/v2',
                 ),
                 'fees' => array(
                     'https://hitbtc.com/fees-and-limits',
@@ -495,6 +495,8 @@ class hitbtc extends Exchange {
             'symbol' => $this->safe_symbol(null, $market),
             'maker' => $this->safe_number($fee, 'provideLiquidityRate'),
             'taker' => $this->safe_number($fee, 'takeLiquidityRate'),
+            'percentage' => true,
+            'tierBased' => true,
         );
     }
 

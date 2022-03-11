@@ -296,7 +296,9 @@ class hitbtc3(Exchange):
                 },
                 'accountsByType': {
                     'spot': 'spot',
+                    'funding': 'wallet',
                     'wallet': 'wallet',
+                    'future': 'derivatives',
                     'derivatives': 'derivatives',
                 },
             },

@@ -42,7 +42,7 @@ class zb(Exchange):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': None,  # has but unimplemented
+                'margin': True,
                 'swap': True,
                 'future': None,
                 'option': None,
@@ -54,6 +54,9 @@ class zb(Exchange):
                 'createReduceOnlyOrder': False,
                 'fetchBalance': True,
                 'fetchBorrowRate': True,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
@@ -1710,12 +1713,22 @@ class zb(Exchange):
         })
         request = {
             'amount': self.amount_to_precision(symbol, amount),
+            # 'acctType': 0,  # Spot, Margin 0/1/2 [Spot/Isolated/Cross] Optional, Default to: 0 Spot
+            # 'customerOrderId': '1f2g',  # Spot, Margin
+            # 'orderType': 1,  # Spot, Margin order type 1/2 [PostOnly/IOC] Optional
         }
         if price:
             request['price'] = self.price_to_precision(symbol, price)
         if spot:
             request['tradeType'] = '1' if (side == 'buy') else '0'
             request['currency'] = market['id']
+            if timeInForce is not None:
+                if timeInForce == 'PO':
+                    request['orderType'] = 1
+                elif timeInForce == 'IOC':
+                    request['orderType'] = 2
+                else:
+                    raise InvalidOrder(self.id + ' createOrder() on ' + market['type'] + ' markets does not allow ' + timeInForce + ' orders')
         elif swap:
             reduceOnly = self.safe_value(params, 'reduceOnly')
             params = self.omit(params, 'reduceOnly')
@@ -3176,6 +3189,44 @@ class zb(Exchange):
     async def fetch_borrow_rate(self, code, params={}):
         await self.load_markets()
         currency = self.currency(code)
+        request = {
+            'coin': currency['id'],
+        }
+        response = await self.spotV1PrivateGetGetLoans(self.extend(request, params))
+        #
+        #     {
+        #         code: '1000',
+        #         message: '操作成功',
+        #         result: [
+        #             {
+        #                 interestRateOfDay: '0.0005',
+        #                 repaymentDay: '30',
+        #                 amount: '148804.4841',
+        #                 balance: '148804.4841',
+        #                 rateOfDayShow: '0.05 %',
+        #                 coinName: 'USDT',
+        #                 lowestAmount: '0.01'
+        #             },
+        #         ]
+        #     }
+        #
+        timestamp = self.milliseconds()
+        data = self.safe_value(response, 'result', [])
+        rate = self.safe_value(data, 0, {})
+        return {
+            'currency': self.safe_currency_code(self.safe_string(rate, 'coinName')),
+            'rate': self.safe_number(rate, 'interestRateOfDay'),
+            'period': self.safe_number(rate, 'repaymentDay'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': rate,
+        }
+
+    async def fetch_borrow_rates(self, params={}):
+        if params['coin'] is None:
+            raise ArgumentsRequired(self.id + ' fetchBorrowRates() requires a coin argument in the params')
+        await self.load_markets()
+        currency = self.currency(self.safe_string(params, 'coin'))
         request = {
             'coin': currency['id'],
         }

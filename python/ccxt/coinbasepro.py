@@ -61,6 +61,8 @@ class coinbasepro(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
                 'withdraw': True,
@@ -700,6 +702,31 @@ class coinbasepro(Exchange):
             request['limit'] = limit  # default 100
         response = self.publicGetProductsIdTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
+
+    def fetch_trading_fees(self, params={}):
+        self.load_markets()
+        response = self.privateGetFees(params)
+        #
+        #    {
+        #        "maker_fee_rate": "0.0050",
+        #        "taker_fee_rate": "0.0050",
+        #        "usd_volume": "43806.92"
+        #    }
+        #
+        maker = self.safe_number(response, 'maker_fee_rate')
+        taker = self.safe_number(response, 'taker_fee_rate')
+        result = {}
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            result[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': maker,
+                'taker': taker,
+                'percentage': True,
+                'tierBased': True,
+            }
+        return result
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
