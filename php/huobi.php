@@ -843,6 +843,7 @@ class huobi extends Exchange {
                 ),
                 'accountsByType' => array(
                     'spot' => 'pro',
+                    'funding' => 'pro',
                     'future' => 'futures',
                 ),
                 'typesByAccount' => array(

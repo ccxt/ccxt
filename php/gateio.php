@@ -365,6 +365,7 @@ class gateio extends Exchange {
                     'BEP20' => 'BSC',
                 ),
                 'accountsByType' => array(
+                    'funding' => 'spot',
                     'spot' => 'spot',
                     'margin' => 'margin',
                     'future' => 'futures',
