@@ -4038,17 +4038,71 @@ module.exports = class okx extends Exchange {
         //     ],
         //     "msg":""
         // }
-        const timestamp = this.milliseconds ();
         const data = this.safeValue (response, 'data');
         const rate = this.safeValue (data, 0);
+        return this.parseBorrowRate (rate);
+    }
+
+    parseBorrowRate (info) {
+        //
+        //    {
+        //        "amt": "992.10341195",
+        //        "ccy": "BTC",
+        //        "rate": "0.01",
+        //        "ts": "1643954400000"
+        //    }
+        //
+        const ccy = this.safeString (info, 'ccy');
+        const timestamp = this.safeInteger (info, 'ts');
         return {
-            'currency': code,
-            'rate': this.safeNumber (rate, 'interestRate'),
+            'currency': this.safeCurrencyCode (ccy),
+            'rate': this.safeNumber2 (info, 'interestRate', 'rate'),
             'period': 86400000,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'info': rate,
+            'info': info,
         };
+    }
+
+    parseBorrowRateHistories (response, since, limit) {
+        //
+        //    [
+        //        {
+        //            "amt": "992.10341195",
+        //            "ccy": "BTC",
+        //            "rate": "0.01",
+        //            "ts": "1643954400000"
+        //        },
+        //        ...
+        //    ]
+        //
+        const borrowRateHistories = {};
+        for (let i = 0; i < response.length; i++) {
+            const item = response[i];
+            const code = this.safeCurrencyCode (this.safeString (item, 'ccy'));
+            if (!(code in borrowRateHistories)) {
+                borrowRateHistories[code] = [];
+            }
+            const borrowRateStructure = this.parseBorrowRate (item);
+            borrowRateHistories[code].push (borrowRateStructure);
+        }
+        const codes = Object.keys (borrowRateHistories);
+        for (let i = 0; i < codes.length; i++) {
+            const code = codes[i];
+            borrowRateHistories[code] = this.filterByCurrencySinceLimit (borrowRateHistories[code], code, since, limit);
+        }
+        return borrowRateHistories;
+    }
+
+    parseBorrowRateHistory (response, code, since, limit) {
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const item = response[i];
+            const borrowRate = this.parseBorrowRate (item);
+            result.push (borrowRate);
+        }
+        const sorted = this.sortBy (result, 'timestamp');
+        return this.filterByCurrencySinceLimit (sorted, code, since, limit);
     }
 
     async fetchBorrowRateHistories (since = undefined, limit = undefined, params = {}) {
@@ -4081,39 +4135,41 @@ module.exports = class okx extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data');
-        const borrowRateHistories = {};
-        for (let i = 0; i < data.length; i++) {
-            const item = data[i];
-            const currency = this.safeCurrencyCode (this.safeString (item, 'ccy'));
-            if (!(currency in borrowRateHistories)) {
-                borrowRateHistories[currency] = [];
-            }
-            const rate = this.safeString (item, 'rate');
-            const timestamp = this.safeString (item, 'ts');
-            borrowRateHistories[currency].push ({
-                'info': item,
-                'currency': currency,
-                'rate': rate,
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-            });
-        }
-        const keys = Object.keys (borrowRateHistories);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            borrowRateHistories[key] = this.filterByCurrencySinceLimit (borrowRateHistories[key], key, since, limit);
-        }
-        return borrowRateHistories;
+        return this.parseBorrowRateHistories (data, since, limit);
     }
 
     async fetchBorrowRateHistory (code, since = undefined, limit = undefined, params = {}) {
-        const codeObject = JSON.parse ('{"ccy": "' + code + '"}');
-        const histories = await this.fetchBorrowRateHistories (since, limit, codeObject, params);
-        if (histories === undefined) {
-            throw new BadRequest (this.id + '.fetchBorrowRateHistory returned no data for ' + code);
-        } else {
-            return histories;
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'ccy': currency['id'],
+            // 'after': this.milliseconds (), // Pagination of data to return records earlier than the requested ts,
+            // 'before': since, // Pagination of data to return records newer than the requested ts,
+            // 'limit': limit, // default is 100 and maximum is 100
+        };
+        if (since !== undefined) {
+            request['before'] = since;
         }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetAssetLendingRateHistory (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "amt": "992.10341195",
+        //                 "ccy": "BTC",
+        //                 "rate": "0.01",
+        //                 "ts": "1643954400000"
+        //             },
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseBorrowRateHistory (data, code, since, limit);
     }
 
     async modifyMarginHelper (symbol, amount, type, params = {}) {
