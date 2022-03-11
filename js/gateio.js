@@ -40,7 +40,7 @@ module.exports = class gateio extends Exchange {
                 'test': {
                     'public': {
                         'futures': 'https://api.gateio.ws/api/v4',
-                        'margin': 'https://api.gateio.ws/api/v4',
+                        'delivery': 'https://api.gateio.ws/api/v4',
                     },
                     'private': {
                         'futures': 'https://fx-api-testnet.gateio.ws/api/v4',
@@ -726,7 +726,7 @@ module.exports = class gateio extends Exchange {
             const settleId = swapSettlementCurrencies[c];
             const query = params;
             query['settle'] = settleId;
-            const response = await this.publicFutureFuturesGetSettleContracts (query);
+            const response = await this.publicFuturesGetSettleContracts (query);
             for (let i = 0; i < response.length; i++) {
                 const parsedMarket = this.parseContractMarket (response[i], settleId);
                 result.push (parsedMarket);
@@ -736,7 +736,7 @@ module.exports = class gateio extends Exchange {
             const settleId = futureSettlementCurrencies[c];
             const query = params;
             query['settle'] = settleId;
-            const response = await this.publicFutureDeliveryGetSettleContracts (query);
+            const response = await this.publicDeliveryGetSettleContracts (query);
             for (let i = 0; i < response.length; i++) {
                 const parsedMarket = this.parseContractMarket (response[i], settleId);
                 result.push (parsedMarket);
@@ -1074,6 +1074,11 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        // sandbox/testnet only supports future markets
+        const apiBackup = this.safeString (this.urls, 'apiBackup');
+        if (apiBackup !== undefined) {
+            return undefined;
+        }
         const response = await this.publicSpotGetCurrencies (params);
         //
         //     {
@@ -3671,7 +3676,7 @@ module.exports = class gateio extends Exchange {
         const entirePath = '/' + type + endPart;
         let url = this.urls['api'][authentication][type];
         if (url === undefined) {
-            throw NotSupported (this.id + ' does not have a testnet for the' + type + ' market type.');
+            throw new NotSupported (this.id + ' does not have a testnet for the ' + type + ' market type.');
         }
         url += entirePath;
         if (authentication === 'public') {
