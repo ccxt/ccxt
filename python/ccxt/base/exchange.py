@@ -2827,7 +2827,8 @@ class Exchange(object):
         else:
             return [type, False, time_in_force, params]
 
-    def create_post_only_order(self, symbol, side, amount, price=None, params={}):
+    def create_post_only_order(self, symbol, type, side, amount, price, params={}):
         if not self.has['createPostOnlyOrder']:
             raise NotSupported(self.id + 'create_post_only_order() is not supported yet')
-        return self.create_order(symbol, 'postOnly', side, amount, price, params)
+        query = self.extend(params, {'postOnly': True})
+        return self.create_order(symbol, type, side, amount, price, query)

@@ -2261,10 +2261,11 @@ module.exports = class Exchange {
         }
     }
 
-    async createPostOnlyOrder (symbol, side, amount, price = undefined, params = {}) {
+    async createPostOnlyOrder (symbol, type, side, amount, price, params = {}) {
         if (!this.has['createPostOnlyOrder']) {
             throw new NotSupported (this.id + 'createPostOnlyOrder() is not supported yet');
         }
-        return this.createOrder (symbol, 'postOnly', side, amount, price, params);
+        const query = this.extend (params, {'postOnly': true});
+        return await this.createOrder (symbol, type, side, amount, price, query);
     }
 }

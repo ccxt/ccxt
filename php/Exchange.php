@@ -3763,10 +3763,12 @@ class Exchange {
         }
     }
 
-    public function create_post_only_order($symbol, $side, $amount, $price = null, $params = array()) {
+    public function create_post_only_order($symbol, $type, $side, $amount, $price, $params = array()) {
         if (!$this->has['createPostOnlyOrder']) {
             throw new NotSupported($this->id + 'create_post_only_order() is not supported yet');
         }
-        return $this.create_order($symbol, 'postOnly', $side, $amount, $price, $params);
+        $array = array('postOnly' => true);
+        $query = $this->extend($params, $array);
+        return $this.create_order($symbol, $type, $side, $amount, $price, $params);
     }
 }
