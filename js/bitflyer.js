@@ -189,7 +189,7 @@ module.exports = class bitflyer extends Exchange {
                     quoteId = id.slice (3, 6);
                     // last 9 chars are expiry date
                     const expiryDate = id.slice (-9);
-                    expiry = this.parseExpiryDate(expiryDate);
+                    expiry = this.parseExpiryDate (expiryDate);
                 } else {
                     const splitAlias = alias.split ('_');
                     const currencyIds = this.safeString (splitAlias, 0);
