@@ -49,6 +49,8 @@ module.exports = class coinbasepro extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
                 'withdraw': true,
@@ -712,6 +714,33 @@ module.exports = class coinbasepro extends Exchange {
         }
         const response = await this.publicGetProductsIdTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
+    }
+
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetFees (params);
+        //
+        //    {
+        //        "maker_fee_rate": "0.0050",
+        //        "taker_fee_rate": "0.0050",
+        //        "usd_volume": "43806.92"
+        //    }
+        //
+        const maker = this.safeNumber (response, 'maker_fee_rate');
+        const taker = this.safeNumber (response, 'taker_fee_rate');
+        const result = {};
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            result[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': maker,
+                'taker': taker,
+                'percentage': true,
+                'tierBased': true,
+            };
+        }
+        return result;
     }
 
     parseOHLCV (ohlcv, market = undefined) {
