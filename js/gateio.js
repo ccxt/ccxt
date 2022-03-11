@@ -5,7 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const Precise = require ('./base/Precise');
 const { TICK_SIZE } = require ('./base/functions/number');
-const { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound } = require ('./base/errors');
+const { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported } = require ('./base/errors');
 
 module.exports = class gateio extends Exchange {
     describe () {
@@ -22,8 +22,30 @@ module.exports = class gateio extends Exchange {
                 'doc': 'https://www.gate.io/docs/apiv4/en/index.html',
                 'www': 'https://gate.io/',
                 'api': {
-                    'public': 'https://api.gateio.ws/api/v4',
-                    'private': 'https://api.gateio.ws/api/v4',
+                    'public': {
+                        'futures': 'https://api.gateio.ws/api/v4',
+                        'margin': 'https://api.gateio.ws/api/v4',
+                        'delivery': 'https://api.gateio.ws/api/v4',
+                        'spot': 'https://api.gateio.ws/api/v4',
+                        'options': 'https://api.gateio.ws/api/v4',
+                    },
+                    'private': {
+                        'futures': 'https://api.gateio.ws/api/v4',
+                        'margin': 'https://api.gateio.ws/api/v4',
+                        'delivery': 'https://api.gateio.ws/api/v4',
+                        'spot': 'https://api.gateio.ws/api/v4',
+                        'options': 'https://api.gateio.ws/api/v4',
+                    },
+                },
+                'test': {
+                    'public': {
+                        'futures': 'https://api.gateio.ws/api/v4',
+                        'margin': 'https://api.gateio.ws/api/v4',
+                    },
+                    'private': {
+                        'futures': 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'delivery': 'https://fx-api-testnet.gateio.ws/api/v4',
+                    },
                 },
                 'referral': {
                     'url': 'https://www.gate.io/ref/2436035',
@@ -592,8 +614,8 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchSpotMarkets (params) {
-        const marginResponse = await this.publicMarginGetCurrencyPairs (params);
-        const spotMarketsResponse = await this.publicSpotGetCurrencyPairs (params);
+        const marginResponse = await this.publicSpotMarginGetCurrencyPairs (params);
+        const spotMarketsResponse = await this.publicSpotSpotGetCurrencyPairs (params);
         const spotMarkets = this.indexBy (spotMarketsResponse, 'id');
         //
         //  Spot
@@ -704,7 +726,7 @@ module.exports = class gateio extends Exchange {
             const settleId = swapSettlementCurrencies[c];
             const query = params;
             query['settle'] = settleId;
-            const response = await this.publicFuturesGetSettleContracts (query);
+            const response = await this.publicFutureFuturesGetSettleContracts (query);
             for (let i = 0; i < response.length; i++) {
                 const parsedMarket = this.parseContractMarket (response[i], settleId);
                 result.push (parsedMarket);
@@ -714,7 +736,7 @@ module.exports = class gateio extends Exchange {
             const settleId = futureSettlementCurrencies[c];
             const query = params;
             query['settle'] = settleId;
-            const response = await this.publicDeliveryGetSettleContracts (query);
+            const response = await this.publicFutureDeliveryGetSettleContracts (query);
             for (let i = 0; i < response.length; i++) {
                 const parsedMarket = this.parseContractMarket (response[i], settleId);
                 result.push (parsedMarket);
@@ -3647,7 +3669,11 @@ module.exports = class gateio extends Exchange {
         path = this.implodeParams (path, params);
         const endPart = (path === '') ? '' : ('/' + path);
         const entirePath = '/' + type + endPart;
-        let url = this.urls['api'][authentication] + entirePath;
+        let url = this.urls['api'][authentication][type];
+        if (url === undefined) {
+            throw NotSupported (this.id + ' does not have a testnet for the' + type + ' market type.');
+        }
+        url += entirePath;
         if (authentication === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
