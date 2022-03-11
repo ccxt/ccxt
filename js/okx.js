@@ -168,6 +168,7 @@ module.exports = class okx extends Exchange {
                         'public/position-tiers': 2,
                         'public/underlying': 1,
                         'public/interest-rate-loan-quota': 10,
+                        'public/vip-interest-rate-loan-quota': 10,
                         'rubik/stat/trading-data/support-coin': 4,
                         'rubik/stat/taker-volume': 4,
                         'rubik/stat/margin/loan-ratio': 4,
@@ -229,12 +230,21 @@ module.exports = class okx extends Exchange {
                         'asset/subaccount/bills': 5 / 3,
                         'users/subaccount/list': 10,
                         'users/subaccount/apikey': 10,
+                        'users/entrust-subaccount-list': 10,
                         // broker
                         'broker/nd/info': 10,
                         'broker/nd/subaccount-info': 10,
                         'asset/broker/nd/subaccount-deposit-address': 4,
                         'asset/broker/nd/subaccount-deposit-history': 4,
                         'broker/nd/rebate-daily': 1,
+                        // convert
+                        'asset/convert/currencies': 5 / 3,
+                        'asset/convert/currency-pair': 5 / 3,
+                        'asset/convert/estimate-quote': 5,
+                        'asset/convert/trade': 5,
+                        'asset/convert/history': 5 / 3,
+                        // options
+                        'account/greeks': 2,
                     },
                     'post': {
                         'account/set-position-mode': 4,
@@ -584,6 +594,10 @@ module.exports = class okx extends Exchange {
                     'ETH': 'ERC20',
                     'TRX': 'TRC20',
                     'OMNI': 'Omni',
+                    'SOLANA': 'Solana',
+                    'POLYGON': 'Polygon',
+                    'OEC': 'OEC',
+                    'ALGO': 'ALGO', // temporarily unavailable
                 },
                 'layerTwo': {
                     'Lightning': true,
@@ -2720,7 +2734,46 @@ module.exports = class okx extends Exchange {
         const chain = this.safeString (depositAddress, 'chain');
         const networks = this.safeValue (currency, 'networks', {});
         const networksById = this.indexBy (networks, 'id');
-        const networkData = this.safeValue (networksById, chain);
+        let networkData = this.safeValue (networksById, chain);
+        // inconsistent naming responses from exchange
+        // with respect to network naming provided in currency info vs address chain-names and ids
+        //
+        // response from address endpoint:
+        //      {
+        //          "chain":"USDT-Polygon",
+        //          "ctAddr":"",
+        //          "ccy":"USDT",
+        //          "to":"6",
+        //          "addr":"0x1903441e386cc49d937f6302955b5feb4286dcfa",
+        //          "selected":true
+        //      }
+        // network information from currency['networks'] field:
+        // Polygon: {
+        //       info: {
+        //         canDep: false,
+        //         canInternal: false,
+        //         canWd: false,
+        //         ccy: 'USDT',
+        //         chain: 'USDT-Polygon-Bridge',
+        //         mainNet: false,
+        //         maxFee: '26.879528',
+        //         minFee: '13.439764',
+        //         minWd: '0.001',
+        //         name: ''
+        //       },
+        //       id: 'USDT-Polygon-Bridge',
+        //       network: 'Polygon',
+        //       active: false,
+        //       deposit: false,
+        //       withdraw: false,
+        //       fee: 13.439764,
+        //       precision: undefined,
+        //       limits: { withdraw: { min: 0.001, max: undefined } }
+        //     },
+        //
+        if (chain === 'USDT-Polygon') {
+            networkData = this.safeValue (networksById, 'USDT-Polygon-Bridge');
+        }
         const network = this.safeString (networkData, 'network');
         this.checkAddress (address);
         return {

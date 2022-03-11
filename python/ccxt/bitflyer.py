@@ -40,6 +40,8 @@ class bitflyer(Exchange):
                 'fetchPositions': True,
                 'fetchTicker': True,
                 'fetchTrades': True,
+                'fetchTradingFee': True,
+                'fetchTradingFees': False,
                 'fetchWithdrawals': True,
                 'withdraw': True,
             },
@@ -398,6 +400,26 @@ class bitflyer(Exchange):
         }
         response = self.publicGetGetexecutions(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
+
+    def fetch_trading_fee(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'product_code': market['id'],
+        }
+        response = self.privateGetGettradingcommission(self.extend(request, params))
+        #
+        #   {
+        #       commission_rate: '0.0020'
+        #   }
+        #
+        fee = self.safe_number(response, 'commission_rate')
+        return {
+            'info': response,
+            'symbol': symbol,
+            'maker': fee,
+            'taker': fee,
+        }
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

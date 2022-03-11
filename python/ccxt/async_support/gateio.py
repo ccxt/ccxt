@@ -878,15 +878,16 @@ class gateio(Exchange):
         return result
 
     def prepare_request(self, market):
-        if market['contract']:
-            return {
-                'contract': market['id'],
-                'settle': market['settleId'],
-            }
-        else:
-            return {
-                'currency_pair': market['id'],
-            }
+        if market is not None:
+            if market['contract']:
+                return {
+                    'contract': market['id'],
+                    'settle': market['settleId'],
+                }
+            else:
+                return {
+                    'currency_pair': market['id'],
+                }
 
     def get_settlement_currencies(self, type, method):
         options = self.safe_value(self.options, type, {})  # ['BTC', 'USDT'] unified codes
@@ -1297,37 +1298,76 @@ class gateio(Exchange):
         }
 
     async def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires a symbol argument')
         await self.load_markets()
         # defaultType = 'future'
-        market = self.market(symbol)
-        request = self.prepare_request(market)
+        market = None
+        request = {}
+        if symbol is not None:
+            market = self.market(symbol)
+            symbol = market['symbol']
+            request = self.prepare_request(market)
+        type = None
+        type, params = self.handle_market_type_and_params('fetchFundingHistory', market, params)
+        if market is None:
+            defaultSettle = 'usdt' if (type == 'swap') else 'btc'
+            settle = self.safe_string(params, 'settle', defaultSettle)
+            request['settle'] = settle
+            params = self.omit(params, 'settle')
         request['type'] = 'fund'  # 'dnw' 'pnl' 'fee' 'refr' 'fund' 'point_dnw' 'point_fee' 'point_refr'
         if since is not None:
-            request['from'] = since
+            request['from'] = since / 1000
         if limit is not None:
             request['limit'] = limit
-        method = self.get_supported_mapping(market['type'], {
+        method = self.get_supported_mapping(type, {
             'swap': 'privateFuturesGetSettleAccountBook',
             'future': 'privateDeliveryGetSettleAccountBook',
         })
         response = await getattr(self, method)(self.extend(request, params))
+        #
+        #    [
+        #        {
+        #            "time": 1646899200,
+        #            "change": "-0.027722",
+        #            "balance": "11.653120591841",
+        #            "text": "XRP_USDT",
+        #            "type": "fund"
+        #        },
+        #        ...
+        #    ]
+        #
+        return self.parse_funding_histories(response, symbol, since, limit)
+
+    def parse_funding_histories(self, response, symbol, since, limit):
         result = []
         for i in range(0, len(response)):
             entry = response[i]
-            timestamp = self.safe_timestamp(entry, 'time')
-            result.append({
-                'info': entry,
-                'symbol': symbol,
-                'code': self.safe_currency_code(self.safe_string(entry, 'text')),
-                'timestamp': timestamp,
-                'datetime': self.iso8601(timestamp),
-                'id': None,
-                'amount': self.safe_number(entry, 'change'),
-            })
+            funding = self.parse_funding_history(entry)
+            result.append(funding)
         sorted = self.sort_by(result, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
+        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+
+    def parse_funding_history(self, info, market=None):
+        #
+        #    {
+        #        "time": 1646899200,
+        #        "change": "-0.027722",
+        #        "balance": "11.653120591841",
+        #        "text": "XRP_USDT",
+        #        "type": "fund"
+        #    }
+        #
+        timestamp = self.safe_timestamp(info, 'time')
+        marketId = self.safe_string(info, 'text')
+        market = self.safe_market(marketId, market)
+        return {
+            'info': info,
+            'symbol': self.safe_string(market, 'symbol'),
+            'code': self.safe_string(market, 'settle'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'id': None,
+            'amount': self.safe_number(info, 'change'),
+        }
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -3056,7 +3096,7 @@ class gateio(Exchange):
             'notional': self.parse_number(notional),
             'leverage': self.safe_number(position, 'leverage'),
             'unrealizedPnl': self.parse_number(unrealisedPnl),
-            'contracts': self.parse_number(size),
+            'contracts': self.parse_number(Precise.string_abs(size)),
             'contractSize': self.safe_value(market, 'contractSize'),
             #     realisedPnl: position['realised_pnl'],
             'marginRatio': None,

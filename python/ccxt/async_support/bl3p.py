@@ -50,6 +50,8 @@ class bl3p(Exchange):
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': True,
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setMarginMode': False,
@@ -230,6 +232,53 @@ class bl3p(Exchange):
             'market': market['id'],
         }, params))
         result = self.parse_trades(response['data']['trades'], market, since, limit)
+        return result
+
+    async def fetch_trading_fees(self, params={}):
+        await self.load_markets()
+        response = await self.privatePostGENMKTMoneyInfo(params)
+        #
+        #     {
+        #         result: 'success',
+        #         data: {
+        #             user_id: '13396',
+        #             wallets: {
+        #                 BTC: {
+        #                     balance: {
+        #                         value_int: '0',
+        #                         display: '0.00000000 BTC',
+        #                         currency: 'BTC',
+        #                         value: '0.00000000',
+        #                         display_short: '0.00 BTC'
+        #                     },
+        #                     available: {
+        #                         value_int: '0',
+        #                         display: '0.00000000 BTC',
+        #                         currency: 'BTC',
+        #                         value: '0.00000000',
+        #                         display_short: '0.00 BTC'
+        #                     }
+        #                 },
+        #                 ...
+        #             },
+        #             trade_fee: '0.25'
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        feeString = self.safe_string(data, 'trade_fee')
+        fee = self.parse_number(Precise.string_div(feeString, '100'))
+        result = {}
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            result[symbol] = {
+                'info': data,
+                'symbol': symbol,
+                'maker': fee,
+                'taker': fee,
+                'percentage': True,
+                'tierBased': False,
+            }
         return result
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):

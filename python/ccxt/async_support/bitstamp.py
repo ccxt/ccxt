@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -253,6 +246,10 @@ class bitstamp(Exchange):
                         'amp_address/',
                         'sgb_withdrawal/',
                         'sgb_address/',
+                        'avax_withdrawal/',
+                        'avax_address/',
+                        'wbtc_withdrawal/',
+                        'wbtc_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal-requests/',
@@ -1602,7 +1599,7 @@ class bitstamp(Exchange):
         error = self.safe_value(response, 'error')
         if (status == 'error') or (error is not None):
             errors = []
-            if isinstance(error, basestring):
+            if isinstance(error, str):
                 errors.append(error)
             elif error is not None:
                 keys = list(error.keys())
@@ -1614,7 +1611,7 @@ class bitstamp(Exchange):
                     else:
                         errors.append(value)
             reason = self.safe_value(response, 'reason', {})
-            if isinstance(reason, basestring):
+            if isinstance(reason, str):
                 errors.append(reason)
             else:
                 all = self.safe_value(reason, '__all__', [])

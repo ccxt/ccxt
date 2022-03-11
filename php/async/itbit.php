@@ -59,6 +59,8 @@ class itbit extends Exchange {
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => false,
                 'fetchTransactions' => true,
                 'reduceMargin' => false,
                 'setLeverage' => false,

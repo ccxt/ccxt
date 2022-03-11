@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -1520,7 +1513,7 @@ class bitmart(Exchange):
         #     }
         #
         id = None
-        if isinstance(order, basestring):
+        if isinstance(order, str):
             id = order
             order = {}
         id = self.safe_string(order, 'order_id', id)
@@ -1920,7 +1913,7 @@ class bitmart(Exchange):
         await self.load_markets()
         request = {}
         market = self.market(symbol)
-        if not isinstance(id, basestring):
+        if not isinstance(id, str):
             id = str(id)
         marketType, query = self.handle_market_type_and_params('fetchOrder', market, params)
         if market['spot']:

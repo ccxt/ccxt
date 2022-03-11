@@ -59,6 +59,8 @@ class itbit(Exchange):
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': False,
                 'fetchTransactions': True,
                 'reduceMargin': False,
                 'setLeverage': False,

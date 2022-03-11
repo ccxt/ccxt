@@ -82,6 +82,7 @@ class hitbtc(Exchange):
                 'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchTradingFee': True,
+                'fetchTradingFees': False,
                 'fetchTransactions': True,
                 'fetchWithdrawals': None,
                 'reduceMargin': False,
@@ -116,8 +117,7 @@ class hitbtc(Exchange):
                 'www': 'https://hitbtc.com',
                 'referral': 'https://hitbtc.com/?ref_id=5a5d39a65d466',
                 'doc': [
-                    'https://api.hitbtc.com',
-                    'https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv2.md',
+                    'https://api.hitbtc.com/v2',
                 ],
                 'fees': [
                     'https://hitbtc.com/fees-and-limits',
@@ -488,6 +488,8 @@ class hitbtc(Exchange):
             'symbol': self.safe_symbol(None, market),
             'maker': self.safe_number(fee, 'provideLiquidityRate'),
             'taker': self.safe_number(fee, 'takeLiquidityRate'),
+            'percentage': True,
+            'tierBased': True,
         }
 
     async def fetch_trading_fee(self, symbol, params={}):

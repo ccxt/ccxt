@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
@@ -984,7 +977,7 @@ class lykke(Exchange):
         fee = None
         type = None
         timestamp = None
-        if isinstance(transaction, basestring):
+        if isinstance(transaction, str):
             id = transaction
         else:
             id = self.safe_string(transaction, 'operationId')
