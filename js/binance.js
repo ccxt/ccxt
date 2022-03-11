@@ -5385,15 +5385,7 @@ module.exports = class binance extends Exchange {
         // ]
         //
         const rate = this.safeValue (response, 0);
-        const timestamp = this.safeNumber (rate, 'timestamp');
-        return {
-            'currency': code,
-            'rate': this.safeNumber (rate, 'dailyInterestRate'),
-            'period': 86400000,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'info': response,
-        };
+        return this.parseBorrowRate (rate);
     }
 
     async fetchBorrowRateHistory (code, since = undefined, limit = undefined, params = {}) {
@@ -5426,19 +5418,39 @@ module.exports = class binance extends Exchange {
         //         },
         //     ]
         //
+        return this.parseBorrowRateHistory (response);
+    }
+
+    parseBorrowRateHistory (response, code, since, limit) {
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const item = response[i];
-            const timestamp = this.safeNumber (item, 'timestamp');
-            result.push ({
-                'currency': code,
-                'rate': this.safeNumber (item, 'dailyInterestRate'),
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-                'info': item,
-            });
+            const borrowRate = this.parseBorrowRate (item);
+            result.push (borrowRate);
         }
-        return result;
+        const sorted = this.sortBy (result, 'timestamp');
+        return this.filterByCurrencySinceLimit (sorted, code, since, limit);
+    }
+
+    parseBorrowRate (info) {
+        //
+        //    {
+        //        "asset": "USDT",
+        //        "timestamp": 1638230400000,
+        //        "dailyInterestRate": "0.0006",
+        //        "vipLevel": 0
+        //    }
+        //
+        const timestamp = this.safeNumber (info, 'timestamp');
+        const currency = this.safeString (info, 'asset');
+        return {
+            'currency': this.safeCurrencyCode (currency),
+            'rate': this.safeNumber (info, 'dailyInterestRate'),
+            'period': 86400000,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': info,
+        };
     }
 
     async createGiftCode (code, amount, params = {}) {
