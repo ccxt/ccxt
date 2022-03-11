@@ -49,13 +49,13 @@ module.exports = class lbank2 extends Exchange {
                 'fetchOHLCV': false,
                 'fetchOpenOrders': false, // status 0 API doesn't work
                 'fetchOrder': false,
-                'fetchOrderBook': false,
+                'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchPosition': false,
                 'fetchPositions': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
-                'fetchTicker': false,
+                'fetchTicker': true,
                 'fetchTickers': false,
                 'fetchTrades': false,
                 'reduceMargin': false,
@@ -318,6 +318,71 @@ module.exports = class lbank2 extends Exchange {
         const timestamp = result['timestamp'];
         const orderbook = this.parseOrderBook (result, symbol, timestamp);
         return orderbook;
+    }
+
+    parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades (public)
+        //
+        //      {
+        //          "date_ms":1647021989789,
+        //          "amount":0.0028,
+        //          "price":38804.2,
+        //          "type":"buy",
+        //          "tid":"52d5616ee35c43019edddebe59b3e094"
+        //      }
+        //
+        const timestamp = this.safeInteger (trade, 'date_ms');
+        const amountString = this.safeString (trade, 'amount');
+        const priceString = this.safeString (trade, 'price');
+        const side = this.safeString (trade, 'type');
+        const id = this.safeString (trade, 'tid');
+        const symbol = this.safeSymbol (undefined, market);
+        return this.safeTrade ({
+            'timestamp ': timestamp,
+            'datetime ': this.iso8601 (timestamp),
+            'symbol ': symbol,
+            'id ': id,
+            'order ': undefined,
+            'type ': undefined,
+            'takerOrMaker ': undefined,
+            'side ': side,
+            'price ': priceString,
+            'amount ': amountString,
+            'cost ': undefined,
+            'fee ': undefined,
+            'info ': trade,
+        }, market);
+    }
+
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'size': 600, // max
+        };
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        const response = await this.publicGetTrades (this.extend (request, params));
+        //
+        //      {
+        //          "result":"true",
+        //          "data": [
+        //              {
+        //                  "date_ms":1647021989789,
+        //                  "amount":0.0028,
+        //                  "price":38804.2,
+        //                  "type":"buy",
+        //                  "tid":"52d5616ee35c43019edddebe59b3e094"
+        //               }
+        //           ],
+        //           "error_code":0,
+        //           "ts":1647021999308
+        //      }
+        const trades = this.safeValue (response, 'data', []);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
