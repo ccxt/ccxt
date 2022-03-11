@@ -51,6 +51,7 @@ class exmo extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
                 'fetchTransactions' => true,
                 'fetchWithdrawals' => true,
@@ -81,7 +82,6 @@ class exmo extends Exchange {
                 'referral' => 'https://exmo.me/?ref=131685',
                 'doc' => array(
                     'https://exmo.me/en/api_doc?ref=131685',
-                    'https://github.com/exmo-dev/exmo_api_lib/tree/master/nodejs',
                 ),
                 'fees' => 'https://exmo.com/en/docs/fees',
             ),
@@ -153,10 +153,10 @@ class exmo extends Exchange {
             'fees' => array(
                 'trading' => array(
                     'feeSide' => 'get',
-                    'tierBased' => false,
+                    'tierBased' => true,
                     'percentage' => true,
-                    'maker' => $this->parse_number('0.002'),
-                    'taker' => $this->parse_number('0.002'),
+                    'maker' => $this->parse_number('0.004'),
+                    'taker' => $this->parse_number('0.004'),
                 ),
                 'funding' => array(
                     'tierBased' => false,
@@ -167,6 +167,9 @@ class exmo extends Exchange {
                 'networks' => array(
                     'ETH' => 'ERC20',
                     'TRX' => 'TRC20',
+                ),
+                'fetchTradingFees' => array(
+                    'method' => 'fetchPrivateTradingFees', // or 'fetchPublicTradingFees'
                 ),
             ),
             'exceptions' => array(
@@ -198,10 +201,106 @@ class exmo extends Exchange {
     }
 
     public function fetch_trading_fees($params = array ()) {
-        return array(
-            'maker' => $this->fees['trading']['maker'],
-            'taker' => $this->fees['trading']['taker'],
-        );
+        $method = $this->safe_string($params, 'method');
+        $params = $this->omit($params, 'method');
+        if ($method === null) {
+            $options = $this->safe_value($this->options, 'fetchTradingFees', array());
+            $method = $this->safe_string($options, 'method', 'fetchPrivateTradingFees');
+        }
+        return $this->$method ($params);
+    }
+
+    public function fetch_private_trading_fees($params = array ()) {
+        $this->load_markets();
+        $response = $this->privatePostMarginPairList ($params);
+        //
+        //     {
+        //         $pairs => [{
+        //             name => 'EXM_USD',
+        //             buy_price => '0.02728391',
+        //             sell_price => '0.0276',
+        //             last_trade_price => '0.0276',
+        //             ticker_updated => '1646956050056696046',
+        //             is_fair_price => true,
+        //             max_price_precision => '8',
+        //             min_order_quantity => '1',
+        //             max_order_quantity => '50000',
+        //             min_order_price => '0.00000001',
+        //             max_order_price => '1000',
+        //             max_position_quantity => '50000',
+        //             trade_taker_fee => '0.05',
+        //             trade_maker_fee => '0',
+        //             liquidation_fee => '0.5',
+        //             max_leverage => '3',
+        //             default_leverage => '3',
+        //             liquidation_level => '5',
+        //             margin_call_level => '7.5',
+        //             position => '1',
+        //             updated => '1638976144797807397'
+        //         }
+        //         ...
+        //         ]
+        //     }
+        //
+        $pairs = $this->safe_value($response, 'pairs', array());
+        $result = array();
+        for ($i = 0; $i < count($pairs); $i++) {
+            $pair = $pairs[$i];
+            $marketId = $this->safe_string($pair, 'name');
+            $symbol = $this->safe_symbol($marketId, null, '_');
+            $makerString = $this->safe_string($pair, 'trade_maker_fee');
+            $takerString = $this->safe_string($pair, 'trade_taker_fee');
+            $maker = $this->parse_number(Precise::string_div($makerString, '100'));
+            $taker = $this->parse_number(Precise::string_div($takerString, '100'));
+            $result[$symbol] = array(
+                'info' => $pair,
+                'symbol' => $symbol,
+                'maker' => $maker,
+                'taker' => $taker,
+                'percentage' => true,
+                'tierBased' => true,
+            );
+        }
+        return $result;
+    }
+
+    public function fetch_public_trading_fees($params = array ()) {
+        $this->load_markets();
+        $response = $this->publicGetPairSettings ($params);
+        //
+        //     {
+        //         BTC_USD => array(
+        //             min_quantity => '0.00002',
+        //             max_quantity => '1000',
+        //             min_price => '1',
+        //             max_price => '150000',
+        //             max_amount => '500000',
+        //             min_amount => '1',
+        //             price_precision => '2',
+        //             commission_taker_percent => '0.3',
+        //             commission_maker_percent => '0.3'
+        //         ),
+        //     }
+        //
+        $result = array();
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
+            $market = $this->market($symbol);
+            $fee = $this->safe_value($response, $market['id'], array());
+            $makerString = $this->safe_string($fee, 'commission_maker_percent');
+            $takerString = $this->safe_string($fee, 'commission_taker_percent');
+            $maker = $this->parse_number(Precise::string_div($makerString, '100'));
+            $taker = $this->parse_number(Precise::string_div($takerString, '100'));
+            $result[$symbol] = array(
+                'info' => $fee,
+                'symbol' => $symbol,
+                'maker' => $maker,
+                'taker' => $taker,
+                'percentage' => true,
+                'tierBased' => true,
+            );
+        }
+        return $result;
     }
 
     public function parse_fixed_float_value($input) {
