@@ -2792,9 +2792,9 @@ class Exchange(object):
             symbol = market['symbol']
             symbols_length = 0
             if (symbols is not None):
-                symbols_length = symbols.length
+                symbols_length = len(symbols)
             contract = self.safe_value(market, 'contract', False)
-            if (contract and (symbols_length == 0 or symbols.includes(symbol))):
+            if (contract and (symbols_length == 0 or symbol in symbols)):
                 tiers[symbol] = self.parse_market_leverage_tiers(item, market)
         return tiers
 
