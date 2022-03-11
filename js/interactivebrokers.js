@@ -137,91 +137,92 @@ module.exports = class currencycom extends Exchange {
                 },
                 'private': {
                     'get': {
-                        '/v1/api/fyi/unreadnumber': 1,
-                        '/v1/api/fyi/settings': 1,
-                        '/v1/api/fyi/disclaimer/{typecode}': 1,
-                        '/v1/api/fyi/deliveryoptions': 1,
-                        '/v1/api/fyi/notifications': 1,
-                        '/v1/api/fyi/notifications/more': 1,
-                        '/v1/api/ccp/status': 1,
-                        '/v1/api/ccp/account': 1,
-                        '/v1/api/ccp/positions': 1,
-                        '/v1/api/ccp/orders': 1,
-                        '/v1/api/ccp/trades': 1,
-                        '/v1/api/iserver/account/trades': 1,
-                        '/v1/api/iserver/accounts': 1,
-                        '/v1/api/iserver/account/:accountId/alerts': 1,
-                        '/v1/api/iserver/account/alert/:id': 1,
-                        '/v1/api/iserver/account/mta': 1,
-                        '/v1/api/iserver/account/orders': 1,
-                        '/v1/api/iserver/account/order/status/{orderId}': 1,
-                        '/v1/api/iserver/marketdata/snapshot': 1,
-                        '/v1/api/iserver/marketdata/{conid}/unsubscribe': 1,
-                        '/v1/api/iserver/marketdata/unsubscribeall': 1,
-                        '/v1/api/iserver/marketdata/history': 1,
-                        '/v1/api/iserver/contract/{conid}/info': 1,
-                        '/v1/api/iserver/secdef/strikes': 1,
-                        '/v1/api/iserver/secdef/info': 1,
-                        '/v1/api/iserver/contract/{conid}/algos': 1,
-                        '/v1/api/iserver/contract/{conid}/info-and-rules': 1,
-                        '/v1/api/iserver/scanner/params': 1,
-                        '/v1/api/iserver/account/pnl/partitioned': 1,
-                        '/v1/api/trsrv/secdef/schedule': 1,
-                        '/v1/api/trsrv/futures': 1,
-                        '/v1/api/trsrv/stocks': 1,
-                        '/v1/api/portfolio/accounts': 1,
-                        '/v1/api/portfolio/subaccounts': 1,
-                        '/v1/api/portfolio/{accountId}/meta': 1,
-                        '/v1/api/portfolio/{accountId}/allocation': 1,
-                        '/v1/api/portfolio/{accountId}/positions/{pageId}': 1,
-                        '/v1/api/portfolio/{accountId}/position/{conid}': 1,
-                        '/v1/api/portfolio/{accountId}/summary': 1,
-                        '/v1/api/portfolio/{accountId}/ledger': 1,
-                        '/v1/api/portfolio/positions/{conid}': 1,
-                        '/v1/api/sso/validate': 1,
-                        '/v1/api/ibcust/entity/info': 1,
+                        'sso/Dispatcher': 1, // uncodumented: validates the login
+                        'fyi/unreadnumber': 1,
+                        'fyi/settings': 1,
+                        'fyi/disclaimer/{typecode}': 1,
+                        'fyi/deliveryoptions': 1,
+                        'fyi/notifications': 1,
+                        'fyi/notifications/more': 1,
+                        'ccp/status': 1,
+                        'ccp/account': 1,
+                        'ccp/positions': 1,
+                        'ccp/orders': 1,
+                        'ccp/trades': 1,
+                        'iserver/account/trades': 1,
+                        'iserver/accounts': 1,
+                        'iserver/account/:accountId/alerts': 1,
+                        'iserver/account/alert/:id': 1,
+                        'iserver/account/mta': 1,
+                        'iserver/account/orders': 1,
+                        'iserver/account/order/status/{orderId}': 1,
+                        'iserver/marketdata/snapshot': 1,
+                        'iserver/marketdata/{conid}/unsubscribe': 1,
+                        'iserver/marketdata/unsubscribeall': 1,
+                        'iserver/marketdata/history': 1,
+                        'iserver/contract/{conid}/info': 1,
+                        'iserver/secdef/strikes': 1,
+                        'iserver/secdef/info': 1,
+                        'iserver/contract/{conid}/algos': 1,
+                        'iserver/contract/{conid}/info-and-rules': 1,
+                        'iserver/scanner/params': 1,
+                        'iserver/account/pnl/partitioned': 1,
+                        'trsrv/secdef/schedule': 1,
+                        'trsrv/futures': 1,
+                        'trsrv/stocks': 1,
+                        'portfolio/accounts': 1,
+                        'portfolio/subaccounts': 1,
+                        'portfolio/{accountId}/meta': 1,
+                        'portfolio/{accountId}/allocation': 1,
+                        'portfolio/{accountId}/positions/{pageId}': 1,
+                        'portfolio/{accountId}/position/{conid}': 1,
+                        'portfolio/{accountId}/summary': 1,
+                        'portfolio/{accountId}/ledger': 1,
+                        'portfolio/positions/{conid}': 1,
+                        'sso/validate': 1,
+                        'ibcust/entity/info': 1,
                     },
                     'post': {
-                        '/v1/api/ws': 1,
-                        '/v1/api/tickle': 1,
-                        '/v1/api/logout': 1,
-                        '/v1/api/ccp/auth/init': 1,
-                        '/v1/api/fyi/settings/{typecode}': 1,
-                        '/v1/api/fyi/deliveryoptions/device': 1,
-                        '/v1/api/ccp/auth/response': 1,
-                        '/v1/api/ccp/order': 1,
-                        '/v1/api/iserver/auth/status': 1,
-                        '/v1/api/iserver/reauthenticate': 1,
-                        '/v1/api/iserver/account': 1,
-                        '/v1/api/iserver/account/{accountId}/alert': 1,
-                        '/v1/api/iserver/account/:accountId/alert/activate': 1,
-                        '/v1/api/iserver/account/{accountId}/order': 1,
-                        '/v1/api/iserver/account/{accountId}/orders': 1,
-                        '/v1/api/iserver/account/orders/{faGroup}': 1,
-                        '/v1/api/iserver/reply/{replyid}': 1,
-                        '/v1/api/iserver/account/{accountId}/order/whatif': 1,
-                        '/v1/api/iserver/account/{accountId}/orders/whatif': 1,
-                        '/v1/api/iserver/account/{accountId}/order/{orderId}': 1,
-                        '/v1/api/iserver/secdef/search': 1,
-                        '/v1/api/iserver/scanner/run': 1,
-                        '/v1/api/trsrv/secdef': 1,
-                        '/v1/api/portfolio/allocation': 1,
-                        '/v1/api/portfolio/{accountId}/positions/invalidate': 1,
-                        '/v1/api/pa/performance': 1,
-                        '/v1/api/pa/summary': 1,
-                        '/v1/api/pa/transactions': 1,
+                        'ws': 1,
+                        'tickle': 1,
+                        'logout': 1,
+                        'ccp/auth/init': 1,
+                        'fyi/settings/{typecode}': 1,
+                        'fyi/deliveryoptions/device': 1,
+                        'ccp/auth/response': 1,
+                        'ccp/order': 1,
+                        'iserver/auth/status': 1,
+                        'iserver/reauthenticate': 1,
+                        'iserver/account': 1,
+                        'iserver/account/{accountId}/alert': 1,
+                        'iserver/account/:accountId/alert/activate': 1,
+                        'iserver/account/{accountId}/order': 1,
+                        'iserver/account/{accountId}/orders': 1,
+                        'iserver/account/orders/{faGroup}': 1,
+                        'iserver/reply/{replyid}': 1,
+                        'iserver/account/{accountId}/order/whatif': 1,
+                        'iserver/account/{accountId}/orders/whatif': 1,
+                        'iserver/account/{accountId}/order/{orderId}': 1,
+                        'iserver/secdef/search': 1,
+                        'iserver/scanner/run': 1,
+                        'trsrv/secdef': 1,
+                        'portfolio/allocation': 1,
+                        'portfolio/{accountId}/positions/invalidate': 1,
+                        'pa/performance': 1,
+                        'pa/summary': 1,
+                        'pa/transactions': 1,
                     },
                     'put': {
-                        '/v1/api/fyi/disclaimer/{typecode}': 1,
-                        '/v1/api/fyi/deliveryoptions/email': 1,
-                        '/v1/api/fyi/notifications/{notificationId}': 1,
-                        '/v1/api/ccp/order': 1,
+                        'fyi/disclaimer/{typecode}': 1,
+                        'fyi/deliveryoptions/email': 1,
+                        'fyi/notifications/{notificationId}': 1,
+                        'ccp/order': 1,
                     },
                     'delete': {
-                        '/v1/api/fyi/deliveryoptions/{deviceId}': 1,
-                        '/v1/api/ccp/order': 1,
-                        '/v1/api/iserver/account/{accountId}/alert/{alertId}': 1,
-                        '/v1/api/iserver/account/{accountId}/order/{orderId}': 1,
+                        'fyi/deliveryoptions/{deviceId}': 1,
+                        'ccp/order': 1,
+                        'iserver/account/{accountId}/alert/{alertId}': 1,
+                        'iserver/account/{accountId}/order/{orderId}': 1,
                     },
                 },
             },
@@ -246,11 +247,14 @@ module.exports = class currencycom extends Exchange {
             },
             'commonCurrencies': {
             },
+            'requiredCredentials': {
+                'apiKey': false,
+                'secret': false,
+            },
         });
     }
 
     async fetchMarkets (params = {}) {
-        await this.IBKR_load ();
         const response = await this.publicGetGetInstruments (params);
         const result = [];
         for (let i = 0; i < response.length; i++) {
@@ -314,5 +318,35 @@ module.exports = class currencycom extends Exchange {
             });
         }
         return result;
+    }
+
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        [ path, params ] = this.resolvePath (path, params);
+        let url = this.urls['api'][api] + this.version + '/api/' + path;
+        if (method === 'GET' || method === 'DELETE') {
+            if (Object.keys (params).length) {
+                url += '?' + this.urlencode (params);
+            }
+        } else {
+            body = this.json (params);
+        }
+        if (api === 'private') {
+            this.checkRequiredCredentials ();
+        }
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (!response) {
+            return; // fallback to default error handler
+        }
+        const errorMessage = this.safeString (response, 'errorMessage', '');
+        const errorCode = this.safeString (response, 'errorCode', '');
+        if (errorMessage !== '') {
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
+            throw new ExchangeError (feedback); // unknown message
+        }
     }
 };
