@@ -3670,12 +3670,12 @@ class Exchange {
     public function fetch_borrow_rate($code, $params = array()) {
         $this->load_markets();
         if (!$this->has['fetchBorrowRates']) {
-            throw new NotSupported($this->id + 'fetchBorrowRate() is not supported yet');
+            throw new NotSupported($this->id . ' fetchBorrowRate() is not supported yet');
         }
         $borrow_rates = $this->fetch_borrow_rates($params);
         $rate = $this->safe_value($borrow_rates, $code);
         if ($rate == null) {
-            throw new ExchangeError($this->id + 'fetchBorrowRate() could not find the borrow rate for currency code ' + $code);
+            throw new ExchangeError($this->id . ' fetchBorrowRate() could not find the borrow rate for currency code ' . $code);
         }
         return $rate;
     }
@@ -3727,12 +3727,12 @@ class Exchange {
         if ($this->has['fetchLeverageTiers']) {
             $market = $this->market($symbol);
             if (!$market['contract']) {
-                throw new BadRequest($this->id + ' fetchLeverageTiers() supports contract markets only');
+                throw new BadRequest($this->id . ' fetchLeverageTiers() supports contract markets only');
             }
             $tiers = $this->fetch_leverage_tiers(array($symbol));
             return $this->safe_value($tiers, $symbol);
         } else {
-            throw new NotSupported($this->id + 'fetch_market_leverage_tiers() is not supported yet');
+            throw new NotSupported($this->id . ' fetch_market_leverage_tiers() is not supported yet');
         }
     }
 
@@ -3751,9 +3751,9 @@ class Exchange {
         $post_only = $post_only || $type_lower === 'postonly' || $time_in_force_post_only || $exchange_specific_option;
         if ($post_only) {
             if ($ioc) {
-                throw new InvalidOrder($this->id + ' postOnly orders cannot have timeInForce equal to ' + $time_in_force);
+                throw new InvalidOrder($this->id . ' postOnly orders cannot have timeInForce equal to ' . $time_in_force);
             } else if ($is_market) {
-                throw new InvalidOrder($this->id + ' postOnly orders cannot have type ' + $type);
+                throw new InvalidOrder($this->id . ' postOnly orders cannot have type ' . $type);
             } else {
                 $time_in_force = $time_in_force_post_only ? null : $time_in_force;
                 return ['limit', True, $time_in_force, $params];
@@ -3765,10 +3765,10 @@ class Exchange {
 
     public function create_post_only_order($symbol, $type, $side, $amount, $price, $params = array()) {
         if (!$this->has['createPostOnlyOrder']) {
-            throw new NotSupported($this->id + 'create_post_only_order() is not supported yet');
+            throw new NotSupported($this->id . ' create_post_only_order() is not supported yet');
         }
         $array = array('postOnly' => true);
         $query = $this->extend($params, $array);
-        return $this.create_order($symbol, $type, $side, $amount, $price, $params);
+        return $this->create_order($symbol, $type, $side, $amount, $price, $params);
     }
 }
