@@ -232,39 +232,83 @@ module.exports = class lbank2 extends Exchange {
         return result;
     }
 
-    sign2 (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const query = this.omit (params, this.extractParams (path));
-        let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
-        // every endpoint ends in ".do"
-        url += '.do';
-        if (api === 'public') {
-            if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
-            }
-        } else {
-            this.checkRequiredCredentials ();
-            const query = this.keysort (this.extend ({
-                'api_key': this.apiKey,
-            }, params));
-            const queryString = this.rawencode (query);
-            const message = this.hash (this.encode (queryString).toUpperCase ());
-            const cacheSecretAsPem = this.safeValue (this.options, 'cacheSecretAsPem', true);
-            let pem = undefined;
-            if (cacheSecretAsPem) {
-                pem = this.safeValue (this.options, 'pem');
-                if (pem === undefined) {
-                    pem = this.convertSecretToPem (this.secret);
-                    this.options['pem'] = pem;
-                }
-            } else {
-                pem = this.convertSecretToPem (this.secret);
-            }
-            const sign = this.binaryToBase64 (this.rsa (message, this.encode (pem), 'RS256'));
-            query['sign'] = sign;
-            body = this.urlencode (query);
-            headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
-            return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-        }
+    async fetchOrderBook () {
+        return false;
+    }
+
+    parseTicker (ticker, market = undefined) {
+        //
+        //      {
+        //          "symbol":"btc_usdt",
+        //          "ticker": {
+        //              "high":40200.88,
+        //              "vol":7508.3096,
+        //              "low":38239.38,
+        //              "change":0.75,
+        //              "turnover":292962771.34,
+        //              "latest":39577.95
+        //               },
+        //           "timestamp":1647005189792
+        //      }
+        //
+        const marketId = this.safeString (ticker, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        const timestamp = this.safeString (ticker, 'timestamp');
+        const tickerData = this.safeValue (ticker, 'ticker');
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeString (tickerData, 'high'),
+            'low': this.safeString (tickerData, 'low'),
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': undefined,
+            'close': undefined,
+            'last': this.safeString (tickerData, 'latest'),
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': this.safeString (tickerData, 'change'),
+            'average': undefined,
+            'baseVolume': this.safeString (tickerData, 'vol'),
+            'quoteVolume': this.safeString (tickerData, 'turnover'),
+            'info': ticker,
+        }, market, false);
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        // preferred ticker/24h endpoint is down
+        const response = await this.publicGetTicker (this.extend (request, params));
+        //
+        //      {
+        //          "result":"true",
+        //          "data": [
+        //              {
+        //                  "symbol":"btc_usdt",
+        //                  "ticker":{
+        //                          "high":40200.88,
+        //                          "vol":7508.3096,
+        //                          "low":38239.38,
+        //                          "change":0.75,
+        //                          "turnover":292962771.34,
+        //                          "latest":39577.95
+        //                      },
+        //                  "timestamp":1647005189792
+        //               }
+        //                   ],
+        //          "error_code":0,"ts":1647005190755
+        //      }
+        //
+        const result = this.safeValue (response, 'data')[0];
+        return this.parseTicker (result, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
