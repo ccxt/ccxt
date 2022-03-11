@@ -70,6 +70,7 @@ module.exports = class hitbtc extends Exchange {
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
+                'fetchTradingFees': false,
                 'fetchTransactions': true,
                 'fetchWithdrawals': undefined,
                 'reduceMargin': false,
@@ -105,7 +106,6 @@ module.exports = class hitbtc extends Exchange {
                 'referral': 'https://hitbtc.com/?ref_id=5a5d39a65d466',
                 'doc': [
                     'https://api.hitbtc.com',
-                    'https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv2.md',
                 ],
                 'fees': [
                     'https://hitbtc.com/fees-and-limits',
@@ -491,6 +491,8 @@ module.exports = class hitbtc extends Exchange {
             'symbol': this.safeSymbol (undefined, market),
             'maker': this.safeNumber (fee, 'provideLiquidityRate'),
             'taker': this.safeNumber (fee, 'takeLiquidityRate'),
+            'percentage': true,
+            'tierBased': true,
         };
     }
 
