@@ -39,8 +39,8 @@ module.exports = class gateio extends Exchange {
                 },
                 'test': {
                     'public': {
-                        'futures': 'https://api.gateio.ws/api/v4',
-                        'delivery': 'https://api.gateio.ws/api/v4',
+                        'futures': 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'delivery': 'https://fx-api-testnet.gateio.ws/api/v4',
                     },
                     'private': {
                         'futures': 'https://fx-api-testnet.gateio.ws/api/v4',
