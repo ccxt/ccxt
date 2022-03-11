@@ -1320,6 +1320,7 @@ module.exports = class gateio extends Exchange {
         let request = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
+            symbol = market['symbol'];
             request = this.prepareRequest (market);
         }
         let type = undefined;
