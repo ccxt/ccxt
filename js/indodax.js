@@ -58,6 +58,8 @@ module.exports = class indodax extends Exchange {
                 'fetchTickers': undefined,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': false,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
