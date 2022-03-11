@@ -360,6 +360,7 @@ module.exports = class gateio extends Exchange {
                     'BEP20': 'BSC',
                 },
                 'accountsByType': {
+                    'funding': 'spot',
                     'spot': 'spot',
                     'margin': 'margin',
                     'future': 'futures',
