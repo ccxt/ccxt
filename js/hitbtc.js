@@ -105,7 +105,7 @@ module.exports = class hitbtc extends Exchange {
                 'www': 'https://hitbtc.com',
                 'referral': 'https://hitbtc.com/?ref_id=5a5d39a65d466',
                 'doc': [
-                    'https://api.hitbtc.com',
+                    'https://api.hitbtc.com/v2',
                 ],
                 'fees': [
                     'https://hitbtc.com/fees-and-limits',
