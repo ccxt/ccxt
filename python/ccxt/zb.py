@@ -42,7 +42,7 @@ class zb(Exchange):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': None,  # has but unimplemented
+                'margin': True,
                 'swap': True,
                 'future': None,
                 'option': None,
@@ -54,6 +54,9 @@ class zb(Exchange):
                 'createReduceOnlyOrder': False,
                 'fetchBalance': True,
                 'fetchBorrowRate': True,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
@@ -3176,6 +3179,44 @@ class zb(Exchange):
     def fetch_borrow_rate(self, code, params={}):
         self.load_markets()
         currency = self.currency(code)
+        request = {
+            'coin': currency['id'],
+        }
+        response = self.spotV1PrivateGetGetLoans(self.extend(request, params))
+        #
+        #     {
+        #         code: '1000',
+        #         message: '操作成功',
+        #         result: [
+        #             {
+        #                 interestRateOfDay: '0.0005',
+        #                 repaymentDay: '30',
+        #                 amount: '148804.4841',
+        #                 balance: '148804.4841',
+        #                 rateOfDayShow: '0.05 %',
+        #                 coinName: 'USDT',
+        #                 lowestAmount: '0.01'
+        #             },
+        #         ]
+        #     }
+        #
+        timestamp = self.milliseconds()
+        data = self.safe_value(response, 'result', [])
+        rate = self.safe_value(data, 0, {})
+        return {
+            'currency': self.safe_currency_code(self.safe_string(rate, 'coinName')),
+            'rate': self.safe_number(rate, 'interestRateOfDay'),
+            'period': self.safe_number(rate, 'repaymentDay'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': rate,
+        }
+
+    def fetch_borrow_rates(self, params={}):
+        if params['coin'] is None:
+            raise ArgumentsRequired(self.id + ' fetchBorrowRates() requires a coin argument in the params')
+        self.load_markets()
+        currency = self.currency(self.safe_string(params, 'coin'))
         request = {
             'coin': currency['id'],
         }
