@@ -240,7 +240,8 @@
         "ext-openssl": "*",
         "ext-gmp": "*",
         "symfony/polyfill-mbstring": "^1.7",
-        "pear/console_table": "1.3.1"
+        "pear/console_table": "1.3.1",
+        "react/http": "^1.6"
     },
     "suggest": {
         "recoil/recoil": "Required for asynchronous API calls to exchanges with PHP",
@@ -258,7 +259,5 @@
             "/python",
             "/wiki"
         ]
-    },
-    "require-dev": {
     }
 }
