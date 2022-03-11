@@ -1241,7 +1241,7 @@ module.exports = class bybit extends Exchange {
         const method = market['linear'] ? 'publicLinearGetFundingPrevFundingRate' : 'v2PublicGetFundingPrevFundingRate';
         // TODO const method = market['linear'] ? 'publicGetPublicLinearFundingPrevFundingRate' : 'publicGetV2PublicFundingRate ???? throws ExchangeError';
         const response = await this[method] (this.extend (request, params));
-        //     
+        //
         //     {
         //         "ret_code":0,
         //         "ret_msg":"OK",
