@@ -4645,20 +4645,67 @@ Returns
 
 ## Transfers
 
-Transfers are internal transfers of funds between accounts on the same exchange
+The `transfer` method make internal transfers of funds between accounts on the same exchange. If an exchange is separated on CCXT into a spot and futures class (e.g. `binanceusdm`, `kucoinfutures`, ...), then the method `transferIn` may be available to transfer funds into the futures account, and the method `transferOut` may be available to transfer funds out of the futures account
+
+Some unified names for `fromAccount` and `toAccount` include `funding`, `spot`, `margin`, and `future`. For some exchanges `funding` and `spot` are the same account. 
+
+You can retrieve all the account types by selecting the keys from `exchange.options['accountsByType']
+
+```Javascript
+transfer (code, amount, fromAccount, toAccount, params = {})
+```
+
+Parameters
+- **code** (String) Unified CCXT currency code (e.g. `"USDT"`)
+- **amount** (Float) The amount of currency to transfer (e.g. `10.5`)
+- **fromAccount** (String) The account to transfer funds from.
+- **toAccount** (String) The account to transfer funds to
+- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+- A [transfer structure](#transfer-structure)
 
 ```Javascript
 transferIn (code, amount, params = {})
-```
-
-```Javascript
 transferOut (code, amount, params = {})
 ```
+
+Parameters
+- **code** (String) Unified CCXT currency code (e.g. `"USDT"`)
+- **amount** (Float) The amount of currency to transfer (e.g. `10.5`)
+- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+- A [transfer structure](#transfer-structure)
 
 ```Javascript
 fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {})
 ```
 
+Parameters
+- **code** (String) Unified CCXT currency code (e.g. `"USDT"`)
+- **since** (Integer) Timestamp (ms) of the earliest time to retrieve transfers for (e.g. `1646940314000`)
+- **limit** (Integer) The number of [transfer structures](#transfer-structure) to retrieve (e.g. `5`)
+- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+- An array of [transfer structures](#transfer-structure)
+
+### Transfer Structure
+
+```JavaScript
+{
+    info: { ... },
+    id: "93920432048",
+    timestamp: 1646764072000,
+    datetime: "2022-03-08T18:27:52.000Z",
+    currency: "USDT",
+    amount: 11.31,
+    fromAccount: "spot",
+    toAccount: "future",
+    status: "ok"
+}
+```
 
 ## Leverage
 
