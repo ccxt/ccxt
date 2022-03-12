@@ -54,7 +54,7 @@ function condense {
 }
 
 function removeAndColorLines {
-  local color=$2
+  local color=$1
   sed -E -e '/.*(iteration|Array|^202.*|^$)/d' -e "s/(.*)/$(tput setaf $color)\1$(tput sgr0)/"
 }
 
@@ -63,7 +63,7 @@ function writeOutput() {
   local interpretter="$1"
   local path="$2"
   local args="$3"
-  $interpretter "$path" $args | removeSpecial "$rawOutput" | condense "$noSpecial" | removeAndColorLines "$condensed" $color
+  $interpretter "$path" $args | removeSpecial "$rawOutput" | condense "$noSpecial" | removeAndColorLines $color
   ((color++))
   return $color
 }
