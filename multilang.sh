@@ -1,17 +1,16 @@
 #!/usr/bin/env bash
 
 function usage() {
-    echo "usage:"
+    echo "usage: $0 [-clsh] exchange method [...args]"
     echo "	-c      Number of lines to trim off the top and bottom of output"
     echo "	-l      View in less editor"
     echo "	-s      Remove special characters"
     echo "	-h      Display help"
-    echo "	-a      exchange, method, and method arguments"
+    exit 1
 }
 
 if [[ $# < 1 ]]; then
   usage
-  exit 1
 fi
 
 
@@ -69,16 +68,19 @@ function writeOutput() {
 }
 
 # Loop through command line arguments
-while getopts 'hc:sla:' flag; do
+while getopts 'hc:sl:' flag; do
     case "${flag}" in
         h) usage ;;
         c) numLines="${OPTARG}" ;;
         s) removeSpecial=true ;;
         l) useLess=true ;;
-        a) args="${OPTARG}" ;;
         *) usage ;;
     esac
 done
+
+shift $((OPTIND-1))
+
+args="$@"
 
 color=3
 jsOutput=$(writeOutput node $jsCli "$args")
