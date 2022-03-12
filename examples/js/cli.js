@@ -13,6 +13,7 @@ let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x
     , table = process.argv.includes ('--table')
     , iso8601 = process.argv.includes ('--iso8601')
     , cors = process.argv.includes ('--cors')
+    , cache_markets = process.argv.includes ('--cache-markets')
     , testnet =
         process.argv.includes ('--test') ||
         process.argv.includes ('--testnet') ||
@@ -42,6 +43,7 @@ const ccxt         = require ('../../ccxt.js')
     , util         = require ('util')
     , { execSync } = require ('child_process')
     , log          = require ('ololog').configure ({ locate: false }).unlimited
+    , fsPromises   = require ('fs/promises')
     , { ExchangeError, NetworkError } = ccxt
 
 //-----------------------------------------------------------------------------
@@ -141,6 +143,7 @@ function printUsage () {
     log ('--sandbox         Use the exchange sandbox if available, same as --testnet')
     log ('--testnet         Use the exchange testnet if available, same as --sandbox')
     log ('--test            Use the exchange testnet if available, same as --sandbox')
+    log ('--cache-markets   Cache the loaded markets in the .cache folder in the current directory')
 }
 
 //-----------------------------------------------------------------------------
@@ -214,8 +217,18 @@ async function main () {
             exchange.verbose = verbose
         }
 
+        const path = '.cache/' + exchangeId + '-markets.json'
+
         if (!no_load_markets) {
-            await exchange.loadMarkets ()
+            try {
+                await fsPromises.access (path, fs.constants.R_OK)
+                exchange.markets = JSON.parse (await fsPromises.readFile (path))
+            } catch {
+                await exchange.loadMarkets ()
+                if (cache_markets) {
+                    await fsPromises.writeFile (path, JSON.stringify (exchange.markets))
+                }
+            }
         }
 
         if (signIn && exchange.has.signIn) {

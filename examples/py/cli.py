@@ -160,7 +160,12 @@ if argv.testnet or argv.sandbox or argv.test:
 if argv.verbose and argv.debug:
     exchange.verbose = argv.verbose
 
-exchange.load_markets()
+markets_path = '.cache/' + exchange.id + '-markets.json'
+if os.path.exists(markets_path):
+    with open(markets_path, 'r') as f:
+        exchange.markets = json.load(f)
+else:
+    exchange.load_markets()
 
 exchange.verbose = argv.verbose  # now set verbose mode
 
