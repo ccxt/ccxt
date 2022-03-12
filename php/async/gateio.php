@@ -602,7 +602,7 @@ class gateio extends Exchange {
     public function fetch_spot_markets($params) {
         $marginResponse = yield $this->publicMarginGetCurrencyPairs ($params);
         $spotMarketsResponse = yield $this->publicSpotGetCurrencyPairs ($params);
-        $spotMarkets = $this->index_by($spotMarketsResponse, 'id');
+        $marginMarkets = $this->index_by($marginResponse, 'id');
         //
         //  Spot
         //      array(
@@ -634,11 +634,11 @@ class gateio extends Exchange {
         //       )
         //
         $result = array();
-        for ($i = 0; $i < count($marginResponse); $i++) {
-            $market = $marginResponse[$i];
+        for ($i = 0; $i < count($spotMarketsResponse); $i++) {
+            $market = $spotMarketsResponse[$i];
             $id = $this->safe_string($market, 'id');
-            $spotMarket = $this->safe_value($spotMarkets, $id);
-            $market = $this->deep_extend($spotMarket, $market);
+            $marginMarket = $this->safe_value($marginMarkets, $id);
+            $market = $this->deep_extend($marginMarket, $market);
             list($baseId, $quoteId) = explode('_', $id);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);

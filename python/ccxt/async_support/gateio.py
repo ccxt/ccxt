@@ -606,7 +606,7 @@ class gateio(Exchange):
     async def fetch_spot_markets(self, params):
         marginResponse = await self.publicMarginGetCurrencyPairs(params)
         spotMarketsResponse = await self.publicSpotGetCurrencyPairs(params)
-        spotMarkets = self.index_by(spotMarketsResponse, 'id')
+        marginMarkets = self.index_by(marginResponse, 'id')
         #
         #  Spot
         #      [
@@ -638,11 +638,11 @@ class gateio(Exchange):
         #       ]
         #
         result = []
-        for i in range(0, len(marginResponse)):
-            market = marginResponse[i]
+        for i in range(0, len(spotMarketsResponse)):
+            market = spotMarketsResponse[i]
             id = self.safe_string(market, 'id')
-            spotMarket = self.safe_value(spotMarkets, id)
-            market = self.deep_extend(spotMarket, market)
+            marginMarket = self.safe_value(marginMarkets, id)
+            market = self.deep_extend(marginMarket, market)
             baseId, quoteId = id.split('_')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
