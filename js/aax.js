@@ -2554,7 +2554,7 @@ module.exports = class aax extends Exchange {
         const timestamp = this.safeInteger (position, 'ts');
         const liquidationPrice = this.safeString (position, 'liquidationPrice');
         const bankruptPrice = this.safeString (position, 'bankruptPrice');
-        const maintenanceMargin = Precise.stringSub (liquidationPrice, bankruptPrice);
+        const maintenanceMargin = Precise.stringDiv (liquidationPrice, bankruptPrice);
         return {
             'info': position,
             'symbol': this.safeString (market, 'symbol'),
