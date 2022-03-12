@@ -146,8 +146,7 @@ function printUsage () {
 //-----------------------------------------------------------------------------
 
 const printHumanReadable = (exchange, result) => {
-
-    if (Array.isArray (result) || table) {
+    if (!no_table && Array.isArray (result) || table) {
         result = Object.values (result)
         let arrayOfObjects = (typeof result[0] === 'object')
 
@@ -158,33 +157,32 @@ const printHumanReadable = (exchange, result) => {
                 log (object)
             })
 
-        if (!no_table)
-            if (arrayOfObjects || table && Array.isArray (result)) {
-                log (result.length > 0 ? asTable (result.map (element => {
-                    let keys = Object.keys (element)
-                    delete element['info']
-                    keys.forEach (key => {
-                        if (!iso8601)
-                            return element[key]
-                        try {
-                            const iso8601 = exchange.iso8601 (element[key])
-                            if (iso8601.match (/^20[0-9]{2}[-]?/))
-                                element[key] = iso8601
-                            else
-                                throw new Error ('wrong date')
-                        } catch (e) {
-                            return element[key]
-                        }
-                    })
-                    return element
-                })) : result)
-                log (result.length, 'objects');
-            } else {
-                console.dir (result, { depth: null })
-                log (result.length, 'objects');
-            }
+        if (arrayOfObjects || table && Array.isArray (result)) {
+            log (result.length > 0 ? asTable (result.map (element => {
+                let keys = Object.keys (element)
+                delete element['info']
+                keys.forEach (key => {
+                    if (!iso8601)
+                        return element[key]
+                    try {
+                        const iso8601 = exchange.iso8601 (element[key])
+                        if (iso8601.match (/^20[0-9]{2}[-]?/))
+                            element[key] = iso8601
+                        else
+                            throw new Error ('wrong date')
+                    } catch (e) {
+                        return element[key]
+                    }
+                })
+                return element
+            })) : result)
+            log (result.length, 'objects');
+        } else {
+            console.dir (result, { depth: null })
+            log (result.length, 'objects');
+        }
     } else {
-        console.dir (result, { depth: null})
+        console.dir (result, { depth: null, maxArrayLength: null })
     }
 }
 

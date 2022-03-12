@@ -48,7 +48,6 @@ function condense {
         awk 'NF' | awk -v head=${numLines} -v tail=${numLines} 'FNR<=head
             {lines[FNR]=$0}
             END{
-                print "..."
                 for (i=FNR-tail+1; i<=FNR; i++) print lines[i]
             }'
     else
@@ -57,18 +56,18 @@ function condense {
 }
 
 function removeAndColorLines {
-  sed -E -e '/.*(iteration|Array|^202.*|^$)/d' -e "s/(.*)/$(tput setaf $color)\1$(tput sgr0)/"
+  sed -E -e '/.*(iteration|Array|^202.*|^$)/d' -e 's/  / /g' -e "s/(.*)/$(tput setaf $color)\1$(tput sgr0)/"
 }
 
 function writeOutput() {
   local interpretter="$1"
   local path="$2"
   local args="$3"
-  $interpretter "$path" $args | removeSpecial | condense | removeAndColorLines $color
+  $interpretter "$path" $args | removeSpecial | removeAndColorLines $color
 }
 
 # Loop through command line arguments
-while getopts 'hc:sl:' flag; do
+while getopts 'hc:sl' flag; do
     case "${flag}" in
         h) usage ;;
         c) numLines="${OPTARG}" ;;
@@ -83,13 +82,16 @@ shift $((OPTIND-1))
 args="$@"
 
 color=3
-jsOutput=$(writeOutput node $jsCli "$args")
+jsOutput=$(writeOutput node $jsCli "--no-table $args")
 ((color++))
 
 pythonOutput=$(writeOutput python3 $pythonCli "$args")
 ((color++))
 
+# python has the shortest output
+length=$(wc -l <<< "$pythonOutput")
+
 phpOutput=$(writeOutput php $phpCli "$args")
 ((color++))
 
-paste <(echo "$jsOutput") <(echo "$phpOutput") <(echo "$pythonOutput") | column -s $'\t' -t | display
+paste <(echo "$jsOutput") <(echo "$phpOutput") <(echo "$pythonOutput") | column -s $'\t' -t | condense | head -n $length | display
