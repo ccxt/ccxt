@@ -160,7 +160,12 @@ if argv.testnet or argv.sandbox or argv.test:
 if argv.verbose and argv.debug:
     exchange.verbose = argv.verbose
 
-exchange.load_markets()
+markets_path = '.cache/' + exchange.id + '-markets.json'
+if os.path.exists(markets_path):
+    with open(markets_path, 'r') as f:
+        exchange.markets = json.load(f)
+else:
+    exchange.load_markets()
 
 exchange.verbose = argv.verbose  # now set verbose mode
 
@@ -168,7 +173,7 @@ if argv.method:
     method = getattr(exchange, argv.method)
     # if it is a method, call it
     if callable(method):
-        print(f"{argv.exchange_id}.{argv.method}({','.join(args)})")
+        print(f"{argv.exchange_id}.{argv.method}({','.join(map(str, args))})")
         result = method(*args)
     else:  # otherwise it's a property, print it
         result = method
