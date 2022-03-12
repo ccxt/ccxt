@@ -545,7 +545,7 @@ class gateio extends Exchange {
                     'MIXED_ACCOUNT_TYPE' => '\\ccxt\\InvalidOrder',
                     'AUTO_BORROW_TOO_MUCH' => '\\ccxt\\ExchangeError',
                     'TRADE_RESTRICTED' => '\\ccxt\\InsufficientFunds',
-                    'USER_NOT_FOUND' => '\\ccxt\\ExchangeError',
+                    'USER_NOT_FOUND' => '\\ccxt\\AccountNotEnabled',
                     'CONTRACT_NO_COUNTER' => '\\ccxt\\ExchangeError',
                     'CONTRACT_NOT_FOUND' => '\\ccxt\\BadSymbol',
                     'RISK_LIMIT_EXCEEDED' => '\\ccxt\\ExchangeError',
