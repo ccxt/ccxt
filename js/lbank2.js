@@ -339,19 +339,19 @@ module.exports = class lbank2 extends Exchange {
         const id = this.safeString (trade, 'tid');
         const symbol = this.safeSymbol (undefined, market);
         return this.safeTrade ({
-            'timestamp ': timestamp,
-            'datetime ': this.iso8601 (timestamp),
-            'symbol ': symbol,
-            'id ': id,
-            'order ': undefined,
-            'type ': undefined,
-            'takerOrMaker ': undefined,
-            'side ': side,
-            'price ': priceString,
-            'amount ': amountString,
-            'cost ': undefined,
-            'fee ': undefined,
-            'info ': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'id': id,
+            'order': undefined,
+            'type': undefined,
+            'takerOrMaker': undefined,
+            'side': side,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
+            'fee': undefined,
+            'info': trade,
         }, market);
     }
 
