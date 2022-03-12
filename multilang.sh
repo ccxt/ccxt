@@ -53,6 +53,23 @@ function condense () {
     fi
 }
 
+function removeAndColorLines() {
+  local color=$2
+  sed -E -e '/.*(iteration|Array|^202.*|^$)/d' -e "s/(.*)/$(tput setaf $color)\1$(tput sgr0)/"
+}
+
+color=2
+function writeOutput() {
+  local interpretter="$1"
+  local path="$2"
+  local args="$3"
+  local rawOutput=$($interpretter "$path" $args)
+  local noSpecial=$(removeSpecial "$rawOutput")
+  condense "$noSpecial" | removeAndColorLines "$condensed" $color
+  ((color++))
+  return $color
+}
+
 # Loop through command line arguments
 while getopts 'hc:sla:' flag; do
     case "${flag}" in
@@ -65,21 +82,15 @@ while getopts 'hc:sla:' flag; do
     esac
 done
 
-function writeOutput() {
-  local interpretter="$1"
-  local path="$2"
-  local args="$3"
-  local rawOutput=$($interpretter "$path" $args)
-  local noSpecial=$(removeSpecial "$rawOutput")
-  local condensed=$(condense "$noSpecial")
-  echo "$condensed"
-}
-
 jsOutput=$(writeOutput node $jsCli "$args")
+color=$?
 
 pythonOutput=$(writeOutput python3 $pythonCli "$args")
+color=$?
 
 phpOutput=$(writeOutput php $phpCli "$args")
+color=$?
+
 
 output=$(paste <(echo "$jsOutput") <(echo "$phpOutput") <(echo "$pythonOutput") | column -s $'\t' -t)
 display "$output"
