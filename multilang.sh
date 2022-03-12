@@ -6,7 +6,7 @@ function usage() {
   echo "	-l      View in less editor"
   echo "	-s      Remove special characters"
   echo "	-h      Display help"
-  echo "  -v      Verbose mode"
+  echo "	-v      Verbose mode"
   exit 1
 }
 
