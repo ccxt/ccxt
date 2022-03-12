@@ -54,6 +54,8 @@ class latoken(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'fetchTradingFee': True,
+                'fetchTradingFees': False,
                 'fetchTransactions': True,
             },
             'urls': {
@@ -195,6 +197,9 @@ class latoken(Exchange):
                 'accounts': {
                     'ACCOUNT_TYPE_WALLET': 'wallet',
                     'ACCOUNT_TYPE_SPOT': 'spot',
+                },
+                'fetchTradingFee': {
+                    'method': 'fetchPrivateTradingFee',  # or 'fetchPublicTradingFee'
                 },
             },
         })
@@ -690,6 +695,60 @@ class latoken(Exchange):
         #     ]
         #
         return self.parse_trades(response, market, since, limit)
+
+    def fetch_trading_fee(self, symbol, params={}):
+        method = self.safe_string(params, 'method')
+        params = self.omit(params, 'method')
+        if method is None:
+            options = self.safe_value(self.options, 'fetchTradingFee', {})
+            method = self.safe_string(options, 'method', 'fetchPrivateTradingFee')
+        return getattr(self, method)(symbol, params)
+
+    def fetch_public_trading_fee(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'currency': market['baseId'],
+            'quote': market['quoteId'],
+        }
+        response = self.publicGetTradeFeeCurrencyQuote(self.extend(request, params))
+        #
+        #     {
+        #         makerFee: '0.004900000000000000',
+        #         takerFee: '0.004900000000000000',
+        #         type: 'FEE_SCHEME_TYPE_PERCENT_QUOTE',
+        #         take: 'FEE_SCHEME_TAKE_PROPORTION'
+        #     }
+        #
+        return {
+            'info': response,
+            'symbol': symbol,
+            'maker': self.safe_number(response, 'makerFee'),
+            'taker': self.safe_number(response, 'takerFee'),
+        }
+
+    def fetch_private_trading_fee(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'currency': market['baseId'],
+            'quote': market['quoteId'],
+        }
+        response = self.privateGetAuthTradeFeeCurrencyQuote(self.extend(request, params))
+        #
+        #     {
+        #         makerFee: '0.004900000000000000',
+        #         takerFee: '0.004900000000000000',
+        #         type: 'FEE_SCHEME_TYPE_PERCENT_QUOTE',
+        #         take: 'FEE_SCHEME_TAKE_PROPORTION'
+        #     }
+        #
+        return {
+            'info': response,
+            'symbol': symbol,
+            'maker': self.safe_number(response, 'makerFee'),
+            'taker': self.safe_number(response, 'takerFee'),
+        }
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()

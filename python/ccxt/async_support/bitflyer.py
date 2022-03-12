@@ -182,13 +182,23 @@ class bitflyer(Exchange):
                 quoteId = self.safe_string(currencies, 2)
             elif future:
                 alias = self.safe_string(market, 'alias')
-                splitAlias = alias.split('_')
-                currencyIds = self.safe_string(splitAlias, 0)
-                baseId = currencyIds[0:-3]
-                quoteId = currencyIds[-3:]
-                splitId = id.split(currencyIds)
-                expiryDate = self.safe_string(splitId, 1)
-                expiry = self.parse_expiry_date(expiryDate)
+                if alias is None:
+                    # no alias:
+                    # {product_code: 'BTCJPY11MAR2022', market_type: 'Futures'}
+                    # TODO self will break if there are products with 4 chars
+                    baseId = id[0:3]
+                    quoteId = id[3:6]
+                    # last 9 chars are expiry date
+                    expiryDate = id[-9:]
+                    expiry = self.parse_expiry_date(expiryDate)
+                else:
+                    splitAlias = alias.split('_')
+                    currencyIds = self.safe_string(splitAlias, 0)
+                    baseId = currencyIds[0:-3]
+                    quoteId = currencyIds[-3:]
+                    splitId = id.split(currencyIds)
+                    expiryDate = self.safe_string(splitId, 1)
+                    expiry = self.parse_expiry_date(expiryDate)
                 type = 'future'
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
