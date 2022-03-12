@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -103,6 +96,7 @@ class ftx(Exchange):
                 'fetchTickers': True,
                 'fetchTime': False,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
@@ -360,7 +354,7 @@ class ftx(Exchange):
                     'Invalid parameter': BadRequest,  # {"error":"Invalid parameter start_time","success":false}
                     'The requested URL was not found on the server': BadRequest,
                     'No such coin': BadRequest,
-                    'No such subaccount': BadRequest,
+                    'No such subaccount': AuthenticationError,
                     'No such future': BadSymbol,
                     'No such market': BadSymbol,
                     'Do not send more than': RateLimitExceeded,
@@ -610,6 +604,11 @@ class ftx(Exchange):
                     base = '-'.join(parsedId)
                 symbol = base + '/' + quote + ':' + settle + '-' + self.yymmdd(expiry, '')
             # check if a market is a spot or future market
+            sizeIncrement = self.safe_string(market, 'sizeIncrement')
+            minProvideSize = self.safe_string(market, 'minProvideSize')
+            minAmountString = sizeIncrement
+            if minProvideSize is not None:
+                minAmountString = sizeIncrement if Precise.string_gt(minProvideSize, sizeIncrement) else minProvideSize
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -635,7 +634,7 @@ class ftx(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_number(market, 'sizeIncrement'),
+                    'amount': self.parse_number(sizeIncrement),
                     'price': self.safe_number(market, 'priceIncrement'),
                 },
                 'limits': {
@@ -644,7 +643,7 @@ class ftx(Exchange):
                         'max': self.parse_number('20'),
                     },
                     'amount': {
-                        'min': None,
+                        'min': self.parse_number(minAmountString),
                         'max': None,
                     },
                     'price': {
@@ -1122,11 +1121,20 @@ class ftx(Exchange):
         #     }
         #
         result = self.safe_value(response, 'result', {})
-        return {
-            'info': response,
-            'maker': self.safe_number(result, 'makerFee'),
-            'taker': self.safe_number(result, 'takerFee'),
-        }
+        maker = self.safe_number(result, 'makerFee')
+        taker = self.safe_number(result, 'takerFee')
+        tradingFees = {}
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            tradingFees[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': maker,
+                'taker': taker,
+                'percentage': True,
+                'tierBased': True,
+            }
+        return tradingFees
 
     async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
         #
@@ -1142,6 +1150,7 @@ class ftx(Exchange):
         request = {}
         if symbol is not None:
             market = self.market(symbol)
+            symbol = market['symbol']
             request['future'] = market['id']
         if since is not None:
             request['start_time'] = int(since / 1000)
@@ -2064,7 +2073,7 @@ class ftx(Exchange):
         txid = self.safe_string(transaction, 'txid')
         tag = None
         address = self.safe_value(transaction, 'address')
-        if not isinstance(address, basestring):
+        if not isinstance(address, str):
             tag = self.safe_string(address, 'tag')
             address = self.safe_string(address, 'address')
         if address is None:

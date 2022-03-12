@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { InvalidAddress, ExchangeError, BadRequest, AuthenticationError, RateLimitExceeded, BadSymbol, InvalidOrder, InsufficientFunds, ArgumentsRequired, OrderNotFound, PermissionDenied, NotSupported } = require ('./base/errors');
+const { AccountNotEnabled, InvalidAddress, ExchangeError, BadRequest, AuthenticationError, RateLimitExceeded, BadSymbol, InvalidOrder, InsufficientFunds, ArgumentsRequired, OrderNotFound, PermissionDenied, NotSupported } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -64,6 +64,8 @@ module.exports = class mexc extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
                 'setLeverage': true,
@@ -266,7 +268,7 @@ module.exports = class mexc extends Exchange {
                     '401': AuthenticationError, // Invalid signature, fail to pass the validation
                     '403': PermissionDenied, // {"msg":"no permission to access the endpoint","code":403}
                     '429': RateLimitExceeded, // too many requests, rate limit rule is violated
-                    '1000': PermissionDenied, // {"success":false,"code":1000,"message":"Please open contract account first!"}
+                    '1000': AccountNotEnabled, // {"success":false,"code":1000,"message":"Please open contract account first!"}
                     '1002': InvalidOrder, // {"success":false,"code":1002,"message":"Contract not allow place order!"}
                     '10072': AuthenticationError, // Invalid access key
                     '10073': AuthenticationError, // Invalid request time
@@ -1065,6 +1067,52 @@ module.exports = class mexc extends Exchange {
             'cost': costString,
             'fee': fee,
         }, market);
+    }
+
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.spotPublicGetMarketSymbols (params);
+        //
+        //     {
+        //         "code":200,
+        //         "data":[
+        //             {
+        //                 "symbol":"DFD_USDT",
+        //                 "state":"ENABLED",
+        //                 "countDownMark":1,
+        //                 "vcoinName":"DFD",
+        //                 "vcoinStatus":1,
+        //                 "price_scale":4,
+        //                 "quantity_scale":2,
+        //                 "min_amount":"5", // not an amount = cost
+        //                 "max_amount":"5000000",
+        //                 "maker_fee_rate":"0.002",
+        //                 "taker_fee_rate":"0.002",
+        //                 "limited":true,
+        //                 "etf_mark":0,
+        //                 "symbol_partition":"ASSESS"
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const result = {};
+        for (let i = 0; i < data.length; i++) {
+            const fee = data[i];
+            const marketId = this.safeString (fee, 'symbol');
+            const market = this.safeMarket (marketId, undefined, '_');
+            const symbol = market['symbol'];
+            result[symbol] = {
+                'info': fee,
+                'symbol': symbol,
+                'maker': this.safeNumber (fee, 'maker_fee_rate'),
+                'taker': this.safeNumber (fee, 'taker_fee_rate'),
+                'percentage': true,
+                'tierBased': false,
+            };
+        }
+        return result;
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -2461,7 +2509,7 @@ module.exports = class mexc extends Exchange {
             });
         }
         const sorted = this.sortBy (rates, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
     }
 
     async fetchLeverageTiers (symbols = undefined, params = {}) {

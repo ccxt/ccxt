@@ -70,6 +70,8 @@ class bitget(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'fetchTradingFee': True,
+                'fetchTradingFees': True,
                 'fetchWithdrawals': False,
                 'setLeverage': True,
                 'setMarginMode': True,
@@ -1326,6 +1328,80 @@ class bitget(Exchange):
         #
         data = self.safe_value(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
+
+    def fetch_trading_fee(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = self.publicSpotGetPublicProduct(self.extend(request, params))
+        #
+        #     {
+        #         code: '00000',
+        #         msg: 'success',
+        #         requestTime: '1646255374000',
+        #         data: {
+        #           symbol: 'ethusdt_SPBL',
+        #           symbolName: null,
+        #           baseCoin: 'ETH',
+        #           quoteCoin: 'USDT',
+        #           minTradeAmount: '0',
+        #           maxTradeAmount: '0',
+        #           takerFeeRate: '0.002',
+        #           makerFeeRate: '0.002',
+        #           priceScale: '2',
+        #           quantityScale: '4',
+        #           status: 'online'
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_trading_fee(data, market)
+
+    def fetch_trading_fees(self, params={}):
+        self.load_markets()
+        response = self.publicSpotGetPublicProducts(params)
+        #
+        #     {
+        #         code: '00000',
+        #         msg: 'success',
+        #         requestTime: '1646255662391',
+        #         data: [
+        #           {
+        #             symbol: 'ALPHAUSDT_SPBL',
+        #             symbolName: 'ALPHAUSDT',
+        #             baseCoin: 'ALPHA',
+        #             quoteCoin: 'USDT',
+        #             minTradeAmount: '2',
+        #             maxTradeAmount: '0',
+        #             takerFeeRate: '0.001',
+        #             makerFeeRate: '0.001',
+        #             priceScale: '4',
+        #             quantityScale: '4',
+        #             status: 'online'
+        #           },
+        #           ...
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        result = {}
+        for i in range(0, len(data)):
+            feeInfo = data[i]
+            fee = self.parse_trading_fee(feeInfo)
+            symbol = fee['symbol']
+            result[symbol] = fee
+        return result
+
+    def parse_trading_fee(self, data, market=None):
+        marketId = self.safe_string(data, 'symbol')
+        return {
+            'info': data,
+            'symbol': self.safe_symbol(marketId, market),
+            'maker': self.safe_number(data, 'makerFeeRate'),
+            'taker': self.safe_number(data, 'takerFeeRate'),
+        }
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m'):
         # spot

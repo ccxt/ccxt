@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.74.49'
+__version__ = '1.75.92'
 
 # -----------------------------------------------------------------------------
 
@@ -126,6 +126,8 @@ class Exchange(object):
     aiohttp_trust_env = False
     session = None  # Session () by default
     verify = True  # SSL verification
+    validateServerSsl = True
+    validateClientSsl = False
     logger = None  # logging.getLogger(__name__) by default
     userAgent = None
     userAgents = {
@@ -487,6 +489,7 @@ class Exchange(object):
 
         def partialer():
             outer_kwargs = {'path': path, 'api': api_argument, 'method': uppercase_method, 'config': config}
+
             @functools.wraps(entry)
             def inner(_self, params=None, context=None):
                 """
@@ -638,7 +641,7 @@ class Exchange(object):
                 headers=request_headers,
                 timeout=int(self.timeout / 1000),
                 proxies=self.proxies,
-                verify=self.verify
+                verify=self.verify and self.validateServerSsl
             )
             # does not try to detect encoding
             response.encoding = 'utf-8'
@@ -992,9 +995,6 @@ class Exchange(object):
     def extract_params(string):
         return re.findall(r'{([\w-]+)}', string)
 
-    def implode_hostname(self, url):
-        return Exchange.implode_params(url, {'hostname': self.hostname})
-
     @staticmethod
     def implode_params(string, params):
         if isinstance(params, dict):
@@ -1002,6 +1002,15 @@ class Exchange(object):
                 if not isinstance(params[key], list):
                     string = string.replace('{' + key + '}', str(params[key]))
         return string
+
+    def implode_hostname(self, url):
+        return Exchange.implode_params(url, {'hostname': self.hostname})
+
+    def resolve_path(self, path, params):
+        return [
+            self.implode_params(path, params),
+            self.omit(params, self.extract_params(path))
+        ]
 
     @staticmethod
     def urlencode(params={}, doseq=False):
@@ -2783,9 +2792,9 @@ class Exchange(object):
             symbol = market['symbol']
             symbols_length = 0
             if (symbols is not None):
-                symbols_length = symbols.length
+                symbols_length = len(symbols)
             contract = self.safe_value(market, 'contract', False)
-            if (contract and (symbols_length == 0 or symbols.includes(symbol))):
+            if (contract and (symbols_length == 0 or symbol in symbols)):
                 tiers[symbol] = self.parse_market_leverage_tiers(item, market)
         return tiers
 

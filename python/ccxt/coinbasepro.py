@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -68,6 +61,8 @@ class coinbasepro(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
                 'withdraw': True,
@@ -708,6 +703,31 @@ class coinbasepro(Exchange):
         response = self.publicGetProductsIdTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
+    def fetch_trading_fees(self, params={}):
+        self.load_markets()
+        response = self.privateGetFees(params)
+        #
+        #    {
+        #        "maker_fee_rate": "0.0050",
+        #        "taker_fee_rate": "0.0050",
+        #        "usd_volume": "43806.92"
+        #    }
+        #
+        maker = self.safe_number(response, 'maker_fee_rate')
+        taker = self.safe_number(response, 'taker_fee_rate')
+        result = {}
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            result[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': maker,
+                'taker': taker,
+                'percentage': True,
+                'tierBased': True,
+            }
+        return result
+
     def parse_ohlcv(self, ohlcv, market=None):
         #
         #     [
@@ -1331,7 +1351,7 @@ class coinbasepro(Exchange):
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
         response = self.fetch2(path, api, method, params, headers, body, config, context)
-        if not isinstance(response, basestring):
+        if not isinstance(response, str):
             if 'message' in response:
                 raise ExchangeError(self.id + ' ' + self.json(response))
         return response

@@ -57,6 +57,8 @@ module.exports = class bybit extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': false,
                 'fetchTransactions': undefined,
                 'fetchWithdrawals': true,
                 'setLeverage': true,
@@ -1240,29 +1242,36 @@ module.exports = class bybit extends Exchange {
         // TODO const method = market['linear'] ? 'publicGetPublicLinearFundingPrevFundingRate' : 'publicGetV2PublicFundingRate ???? throws ExchangeError';
         const response = await this[method] (this.extend (request, params));
         //
-        //    {
-        //        "ret_code": 0,
-        //        "ret_msg": "ok",
-        //        "ext_code": "",
-        //        "result": {
-        //            "symbol": "BTCUSD",
-        //            "funding_rate": "0.00010000",
-        //            "funding_rate_timestamp": 1577433600  // v2PublicGetFundingPrevFundingRate
-        // //         "funding_rate_timestamp": "2022-02-05T08:00:00.000Z"  // publicLinearGetFundingPrevFundingRate
-        //        },
-        //        "ext_info": null,
-        //        "time_now": "1577445586.446797",
-        //        "rate_limit_status": 119,
-        //        "rate_limit_reset_ms": 1577445586454,
-        //        "rate_limit": 120,
-        //    }
+        //     {
+        //         "ret_code":0,
+        //         "ret_msg":"OK",
+        //         "ext_code":"",
+        //         "ext_info":"",
+        //         "result":{
+        //             "symbol":"BTCUSDT",
+        //             "funding_rate":0.00006418,
+        //             "funding_rate_timestamp":"2022-03-11T16:00:00.000Z"
+        //         },
+        //         "time_now":"1647040818.724895"
+        //     }
+        //
+        //     {
+        //         "ret_code":0,
+        //         "ret_msg":"OK",
+        //         "ext_code":"",
+        //         "ext_info":"",
+        //         "result":{
+        //             "symbol":"BTCUSD",
+        //             "funding_rate":"0.00009536",
+        //             "funding_rate_timestamp":1647014400
+        //         },
+        //         "time_now":"1647040852.515724"
+        //     }
         //
         const result = this.safeValue (response, 'result');
         const fundingRate = this.safeNumber (result, 'funding_rate');
-        let fundingTimestamp = this.safeTimestamp (result, 'funding_rate_timestamp');
-        if (fundingTimestamp === undefined) {
-            fundingTimestamp = this.parse8601 (this.safeString (result, 'funding_rate_timestamp'));
-        }
+        let fundingTimestamp = this.parse8601 (this.safeString (result, 'funding_rate_timestamp'));
+        fundingTimestamp = this.safeTimestamp (result, 'funding_rate_timestamp', fundingTimestamp);
         const currentTime = this.milliseconds ();
         return {
             'info': result,

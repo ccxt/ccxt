@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -26,6 +19,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class gemini(Exchange):
@@ -86,6 +80,8 @@ class gemini(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': None,
                 'reduceMargin': False,
@@ -708,6 +704,56 @@ class gemini(Exchange):
             result[code] = account
         return self.safe_balance(result)
 
+    async def fetch_trading_fees(self, params={}):
+        await self.load_markets()
+        response = await self.privatePostV1Notionalvolume(params)
+        #
+        #      {
+        #          "web_maker_fee_bps": 25,
+        #          "web_taker_fee_bps": 35,
+        #          "web_auction_fee_bps": 25,
+        #          "api_maker_fee_bps": 10,
+        #          "api_taker_fee_bps": 35,
+        #          "api_auction_fee_bps": 20,
+        #          "fix_maker_fee_bps": 10,
+        #          "fix_taker_fee_bps": 35,
+        #          "fix_auction_fee_bps": 20,
+        #          "block_maker_fee_bps": 0,
+        #          "block_taker_fee_bps": 50,
+        #          "notional_30d_volume": 150.00,
+        #          "last_updated_ms": 1551371446000,
+        #          "date": "2019-02-28",
+        #          "notional_1d_volume": [
+        #              {
+        #                  "date": "2019-02-22",
+        #                  "notional_volume": 75.00
+        #              },
+        #              {
+        #                  "date": "2019-02-14",
+        #                  "notional_volume": 75.00
+        #              }
+        #          ]
+        #     }
+        #
+        makerBps = self.safe_string(response, 'api_maker_fee_bps')
+        takerBps = self.safe_string(response, 'api_taker_fee_bps')
+        makerString = Precise.string_div(makerBps, '10000')
+        takerString = Precise.string_div(takerBps, '10000')
+        maker = self.parse_number(makerString)
+        taker = self.parse_number(takerString)
+        result = {}
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            result[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': maker,
+                'taker': taker,
+                'percentage': True,
+                'tierBased': True,
+            }
+        return result
+
     async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privatePostV1Balances(params)
@@ -952,7 +998,7 @@ class gemini(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            if isinstance(body, basestring):
+            if isinstance(body, str):
                 feedback = self.id + ' ' + body
                 self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             return  # fallback to default error handler

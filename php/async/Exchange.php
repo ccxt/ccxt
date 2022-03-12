@@ -28,11 +28,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.74.49';
+$version = '1.75.92';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.74.49';
+    const VERSION = '1.75.92';
 
     public static $loop;
     public static $kernel;
@@ -274,7 +274,7 @@ class Exchange extends \ccxt\Exchange {
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array()) {
         if (!$this->has['fetchTrades']) {
-            throw new NotSupported($this->$id . ' fetch_ohlcv() not supported yet');
+            throw new NotSupported($this->id . ' fetch_ohlcv() not supported yet');
         }
         yield $this->load_markets();
         $trades = yield $this->fetch_trades($symbol, $since, $limit, $params);
@@ -345,5 +345,16 @@ class Exchange extends \ccxt\Exchange {
         } else {
             throw new NotSupported($this->id + 'fetch_market_leverage_tiers() is not supported yet');
         }
+    }
+    
+    public function sleep($milliseconds) {
+        $time = $milliseconds / 1000;
+        $loop = $this->get_loop();
+        $timer = null;
+        return new React\Promise\Promise(function ($resolve) use ($loop, $time, &$timer) {
+            $timer = $loop->addTimer($time, function () use ($resolve) {
+                $resolve(null);
+            });
+        });
     }
 }

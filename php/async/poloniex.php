@@ -17,7 +17,7 @@ class poloniex extends Exchange {
             'id' => 'poloniex',
             'name' => 'Poloniex',
             'countries' => array( 'US' ),
-            'rateLimit' => 1000, // up to 6 calls per second
+            'rateLimit' => 166.667, // 6 calls per second,  1000ms / 6 = 166.667ms between requests
             'certified' => false,
             'pro' => true,
             'has' => array(
@@ -78,47 +78,47 @@ class poloniex extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'return24hVolume',
-                        'returnChartData',
-                        'returnCurrencies',
-                        'returnLoanOrders',
-                        'returnOrderBook',
-                        'returnTicker',
-                        'returnTradeHistory',
+                        'return24hVolume' => 1,
+                        'returnChartData' => 1,
+                        'returnCurrencies' => 1,
+                        'returnLoanOrders' => 1,
+                        'returnOrderBook' => 1,
+                        'returnTicker' => 1,
+                        'returnTradeHistory' => 1,
                     ),
                 ),
                 'private' => array(
                     'post' => array(
-                        'buy',
-                        'cancelLoanOffer',
-                        'cancelOrder',
-                        'cancelAllOrders',
-                        'closeMarginPosition',
-                        'createLoanOffer',
-                        'generateNewAddress',
-                        'getMarginPosition',
-                        'marginBuy',
-                        'marginSell',
-                        'moveOrder',
-                        'returnActiveLoans',
-                        'returnAvailableAccountBalances',
-                        'returnBalances',
-                        'returnCompleteBalances',
-                        'returnDepositAddresses',
-                        'returnDepositsWithdrawals',
-                        'returnFeeInfo',
-                        'returnLendingHistory',
-                        'returnMarginAccountSummary',
-                        'returnOpenLoanOffers',
-                        'returnOpenOrders',
-                        'returnOrderTrades',
-                        'returnOrderStatus',
-                        'returnTradableBalances',
-                        'returnTradeHistory',
-                        'sell',
-                        'toggleAutoRenew',
-                        'transferBalance',
-                        'withdraw',
+                        'buy' => 1,
+                        'cancelLoanOffer' => 1,
+                        'cancelOrder' => 1,
+                        'cancelAllOrders' => 1,
+                        'closeMarginPosition' => 1,
+                        'createLoanOffer' => 1,
+                        'generateNewAddress' => 1,
+                        'getMarginPosition' => 1,
+                        'marginBuy' => 1,
+                        'marginSell' => 1,
+                        'moveOrder' => 1,
+                        'returnActiveLoans' => 1,
+                        'returnAvailableAccountBalances' => 1,
+                        'returnBalances' => 1,
+                        'returnCompleteBalances' => 1,
+                        'returnDepositAddresses' => 1,
+                        'returnDepositsWithdrawals' => 1,
+                        'returnFeeInfo' => 1,
+                        'returnLendingHistory' => 1,
+                        'returnMarginAccountSummary' => 1,
+                        'returnOpenLoanOffers' => 1,
+                        'returnOpenOrders' => 1,
+                        'returnOrderTrades' => 1,
+                        'returnOrderStatus' => 1,
+                        'returnTradableBalances' => 1,
+                        'returnTradeHistory' => 1,
+                        'sell' => 1,
+                        'toggleAutoRenew' => 1,
+                        'transferBalance' => 1,
+                        'withdraw' => 1,
                     ),
                 ),
             ),
@@ -624,6 +624,19 @@ class poloniex extends Exchange {
 
     public function parse_trade($trade, $market = null) {
         //
+        // fetchTrades
+        //
+        //      {
+        //          globalTradeID => "667563407",
+        //          tradeID => "1984256",
+        //          date => "2022-03-01 20:06:06",
+        //          type => "buy",
+        //          rate => "0.13361871",
+        //          amount => "28.40841257",
+        //          total => "3.79589544",
+        //          orderNumber => "159992152911"
+        //      }
+        //
         // fetchMyTrades
         //
         //     {
@@ -631,7 +644,7 @@ class poloniex extends Exchange {
         //       tradeID => '42582',
         //       date => '2020-06-16 09:47:50',
         //       rate => '0.000079980000',
-        //       $amount => '75215.00000000',
+        //       amount => '75215.00000000',
         //       total => '6.01569570',
         //       $fee => '0.00095000',
         //       $feeDisplay => '0.26636100 TRX (0.07125%)',
@@ -662,34 +675,25 @@ class poloniex extends Exchange {
         $fee = null;
         $priceString = $this->safe_string($trade, 'rate');
         $amountString = $this->safe_string($trade, 'amount');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = null;
         $costString = $this->safe_string($trade, 'total');
-        if ($costString === null) {
-            $costString = Precise::string_mul($priceString, $amountString);
-            $cost = $this->parse_number($costString);
-        } else {
-            $cost = $this->parse_number($costString);
-        }
         $feeDisplay = $this->safe_string($trade, 'feeDisplay');
         if ($feeDisplay !== null) {
             $parts = explode(' ', $feeDisplay);
-            $feeCost = $this->safe_number($parts, 0);
-            if ($feeCost !== null) {
+            $feeCostString = $this->safe_string($parts, 0);
+            if ($feeCostString !== null) {
                 $feeCurrencyId = $this->safe_string($parts, 1);
                 $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
-                $feeRate = $this->safe_string($parts, 2);
-                if ($feeRate !== null) {
-                    $feeRate = str_replace('(', '', $feeRate);
-                    $feeRateParts = explode('%', $feeRate);
-                    $feeRate = $this->safe_string($feeRateParts, 0);
-                    $feeRate = floatval($feeRate) / 100;
+                $feeRateString = $this->safe_string($parts, 2);
+                if ($feeRateString !== null) {
+                    $feeRateString = str_replace('(', '', $feeRateString);
+                    $feeRateParts = explode('%', $feeRateString);
+                    $feeRateString = $this->safe_string($feeRateParts, 0);
+                    $feeRateString = Precise::string_div($feeRateString, '100');
                 }
                 $fee = array(
-                    'cost' => $feeCost,
+                    'cost' => $feeCostString,
                     'currency' => $feeCurrencyCode,
-                    'rate' => $feeRate,
+                    'rate' => $feeRateString,
                 );
             }
         } else {
@@ -699,9 +703,9 @@ class poloniex extends Exchange {
                 $feeBase = ($side === 'buy') ? $amountString : $costString;
                 $feeRateString = Precise::string_div($feeCostString, $feeBase);
                 $fee = array(
-                    'cost' => $this->parse_number($feeCostString),
+                    'cost' => $feeCostString,
                     'currency' => $feeCurrencyCode,
-                    'rate' => $this->parse_number($feeRateString),
+                    'rate' => $feeRateString,
                 );
             }
         }
@@ -710,7 +714,7 @@ class poloniex extends Exchange {
         if ($takerAdjustment !== null) {
             $takerOrMaker = 'taker';
         }
-        return array(
+        return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -720,11 +724,11 @@ class poloniex extends Exchange {
             'type' => 'limit',
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => $costString,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {

@@ -55,6 +55,8 @@ class bitbank extends Exchange {
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => true,
                 'reduceMargin' => false,
                 'setLeverage' => false,
                 'setMarginMode' => false,
@@ -325,6 +327,57 @@ class bitbank extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $trades = $this->safe_value($data, 'transactions', array());
         return $this->parse_trades($trades, $market, $since, $limit);
+    }
+
+    public function fetch_trading_fees($params = array ()) {
+        $this->load_markets();
+        $response = $this->marketsGetSpotPairs ($params);
+        //
+        //     {
+        //         success => '1',
+        //         $data => {
+        //           $pairs => array(
+        //             array(
+        //               name => 'btc_jpy',
+        //               base_asset => 'btc',
+        //               quote_asset => 'jpy',
+        //               maker_fee_rate_base => '0',
+        //               taker_fee_rate_base => '0',
+        //               maker_fee_rate_quote => '-0.0002',
+        //               taker_fee_rate_quote => '0.0012',
+        //               unit_amount => '0.0001',
+        //               limit_max_amount => '1000',
+        //               market_max_amount => '10',
+        //               market_allowance_rate => '0.2',
+        //               price_digits => '0',
+        //               amount_digits => '4',
+        //               is_enabled => true,
+        //               stop_order => false,
+        //               stop_order_and_cancel => false
+        //             ),
+        //             ...
+        //           )
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $pairs = $this->safe_value($data, 'pairs', array());
+        $result = array();
+        for ($i = 0; $i < count($pairs); $i++) {
+            $pair = $pairs[$i];
+            $marketId = $this->safe_string($pair, 'name');
+            $market = $this->safe_market($marketId);
+            $symbol = $market['symbol'];
+            $result[$symbol] = array(
+                'info' => $pair,
+                'symbol' => $symbol,
+                'maker' => $this->safe_number($pair, 'maker_fee_rate_quote'),
+                'taker' => $this->safe_number($pair, 'taker_fee_rate_quote'),
+                'percentage' => true,
+                'tierBased' => false,
+            );
+        }
+        return $result;
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {

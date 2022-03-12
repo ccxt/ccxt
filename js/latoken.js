@@ -43,6 +43,8 @@ module.exports = class latoken extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchTradingFee': true,
+                'fetchTradingFees': false,
                 'fetchTransactions': true,
             },
             'urls': {
@@ -184,6 +186,9 @@ module.exports = class latoken extends Exchange {
                 'accounts': {
                     'ACCOUNT_TYPE_WALLET': 'wallet',
                     'ACCOUNT_TYPE_SPOT': 'spot',
+                },
+                'fetchTradingFee': {
+                    'method': 'fetchPrivateTradingFee', // or 'fetchPublicTradingFee'
                 },
             },
         });
@@ -705,6 +710,64 @@ module.exports = class latoken extends Exchange {
         //     ]
         //
         return this.parseTrades (response, market, since, limit);
+    }
+
+    async fetchTradingFee (symbol, params = {}) {
+        let method = this.safeString (params, 'method');
+        params = this.omit (params, 'method');
+        if (method === undefined) {
+            const options = this.safeValue (this.options, 'fetchTradingFee', {});
+            method = this.safeString (options, 'method', 'fetchPrivateTradingFee');
+        }
+        return await this[method] (symbol, params);
+    }
+
+    async fetchPublicTradingFee (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'currency': market['baseId'],
+            'quote': market['quoteId'],
+        };
+        const response = await this.publicGetTradeFeeCurrencyQuote (this.extend (request, params));
+        //
+        //     {
+        //         makerFee: '0.004900000000000000',
+        //         takerFee: '0.004900000000000000',
+        //         type: 'FEE_SCHEME_TYPE_PERCENT_QUOTE',
+        //         take: 'FEE_SCHEME_TAKE_PROPORTION'
+        //     }
+        //
+        return {
+            'info': response,
+            'symbol': symbol,
+            'maker': this.safeNumber (response, 'makerFee'),
+            'taker': this.safeNumber (response, 'takerFee'),
+        };
+    }
+
+    async fetchPrivateTradingFee (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'currency': market['baseId'],
+            'quote': market['quoteId'],
+        };
+        const response = await this.privateGetAuthTradeFeeCurrencyQuote (this.extend (request, params));
+        //
+        //     {
+        //         makerFee: '0.004900000000000000',
+        //         takerFee: '0.004900000000000000',
+        //         type: 'FEE_SCHEME_TYPE_PERCENT_QUOTE',
+        //         take: 'FEE_SCHEME_TAKE_PROPORTION'
+        //     }
+        //
+        return {
+            'info': response,
+            'symbol': symbol,
+            'maker': this.safeNumber (response, 'makerFee'),
+            'taker': this.safeNumber (response, 'takerFee'),
+        };
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {

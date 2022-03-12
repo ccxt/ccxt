@@ -843,6 +843,7 @@ class huobi extends Exchange {
                 ),
                 'accountsByType' => array(
                     'spot' => 'pro',
+                    'funding' => 'pro',
                     'future' => 'futures',
                 ),
                 'typesByAccount' => array(
@@ -1670,10 +1671,15 @@ class huobi extends Exchange {
         } else {
             if ($limit !== null) {
                 // Valid depths are 5, 10, 20 or empty https://huobiapi.github.io/docs/spot/v1/en/#get-$market-depth
-                if (($limit !== 5) && ($limit !== 10) && ($limit !== 20)) {
-                    throw new BadRequest($this->id . ' fetchOrderBook() $limit argument must be null, 5, 10 or 20, default is 150');
+                if (($limit !== 5) && ($limit !== 10) && ($limit !== 20) && ($limit !== 150)) {
+                    throw new BadRequest($this->id . ' fetchOrderBook() $limit argument must be null, 5, 10, 20, or 150, default is 150');
                 }
-                $request['depth'] = $limit;
+                // only set the depth if it is not 150
+                // 150 is the implicit default on the exchange side for step0 and no orderbook aggregation
+                // it is not accepted by the exchange if you set it explicitly
+                if ($limit !== 150) {
+                    $request['depth'] = $limit;
+                }
             }
         }
         $request[$fieldName] = $market['id'];
@@ -2074,7 +2080,7 @@ class huobi extends Exchange {
             }
         }
         $result = $this->sort_by($result, 'timestamp');
-        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
+        return $this->filter_by_symbol_since_limit($result, $market['symbol'], $since, $limit);
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
@@ -4489,7 +4495,7 @@ class huobi extends Exchange {
             );
         }
         $sorted = $this->sort_by($rates, 'timestamp');
-        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
     public function parse_funding_rate($fundingRate, $market = null) {

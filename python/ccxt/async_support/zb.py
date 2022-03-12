@@ -42,22 +42,34 @@ class zb(Exchange):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': None,  # has but unimplemented
-                'swap': None,  # has but unimplemented
+                'margin': True,
+                'swap': True,
                 'future': None,
                 'option': None,
+                'addMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createMarketOrder': None,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': True,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': True,
                 'fetchDeposits': True,
+                'fetchFundingHistory': False,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
+                'fetchFundingRates': True,
+                'fetchLedger': True,
+                'fetchLeverage': False,
+                'fetchLeverageTiers': False,
+                'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
@@ -66,31 +78,38 @@ class zb(Exchange):
                 'fetchOrders': True,
                 'fetchPosition': True,
                 'fetchPositions': True,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchWithdrawals': True,
+                'reduceMargin': True,
                 'setLeverage': True,
+                'setMarginMode': False,
+                'setPositionMode': False,
+                'transfer': True,
                 'withdraw': True,
             },
             'timeframes': {
-                '1m': '1min',
-                '3m': '3min',
-                '5m': '5min',
-                '15m': '15min',
-                '30m': '30min',
-                '1h': '1hour',
-                '2h': '2hour',
-                '4h': '4hour',
-                '6h': '6hour',
-                '12h': '12hour',
-                '1d': '1day',
-                '3d': '3day',
-                '1w': '1week',
+                '1m': '1m',
+                '3m': '3m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '2h': '2h',
+                '4h': '4h',
+                '6h': '6h',
+                '12h': '12h',
+                '1d': '1d',
+                '3d': '3d',
+                '5d': '5d',
+                '1w': '1w',
             },
             'exceptions': {
                 'ws': {
-                    #  '1000': ExchangeError,  # The call is successful.
+                    # '1000': ExchangeError,  # The call is successful.
                     '1001': ExchangeError,  # General error prompt
                     '1002': ExchangeError,  # Internal Error
                     '1003': AuthenticationError,  # Fail to verify
@@ -309,7 +328,7 @@ class zb(Exchange):
                     '9999': ExchangeError,  # Unknown error
                 },
                 'broad': {
-                    '提币地址有误，请先添加提币地址。': InvalidAddress,  # {"code":1001,"message":"提币地址有误，请先添加提币地址。"}
+                    '提币地址有误, 请先添加提币地址。': InvalidAddress,  # {"code":1001,"message":"提币地址有误，请先添加提币地址。"}
                     '资金不足,无法划账': InsufficientFunds,  # {"code":1001,"message":"资金不足,无法划账"}
                     '响应超时': RequestTimeout,  # {"code":1001,"message":"响应超时"}
                 },
@@ -419,7 +438,7 @@ class zb(Exchange):
                                 'fundingRate',
                                 'indexKline',
                                 'indexPrice',
-                                'kCline',
+                                'kline',
                                 'markKline',
                                 'markPrice',
                                 'ticker',
@@ -490,6 +509,35 @@ class zb(Exchange):
                 'ENT': 'ENTCash',
                 'BCHABC': 'BCHABC',  # conflict with BCH / BCHA
                 'BCHSV': 'BCHSV',  # conflict with BCH / BSV
+            },
+            'options': {
+                'timeframes': {
+                    'spot': {
+                        '1m': '1min',
+                        '3m': '3min',
+                        '5m': '5min',
+                        '15m': '15min',
+                        '30m': '30min',
+                        '1h': '1hour',
+                        '2h': '2hour',
+                        '4h': '4hour',
+                        '6h': '6hour',
+                        '12h': '12hour',
+                        '1d': '1day',
+                        '3d': '3day',
+                        '1w': '1week',
+                    },
+                    'swap': {
+                        '1m': '1M',
+                        '5m': '5M',
+                        '15m': '15M',
+                        '30m': '30M',
+                        '1h': '1H',
+                        '6h': '6H',
+                        '1d': '1D',
+                        '5d': '5D',
+                    },
+                },
             },
         })
 
@@ -760,19 +808,129 @@ class zb(Exchange):
             result[code] = account
         return self.safe_balance(result)
 
+    def parse_margin_balance(self, response, marginType):
+        result = {
+            'info': response,
+        }
+        levers = None
+        if marginType == 'isolated':
+            message = self.safe_value(response, 'message', {})
+            data = self.safe_value(message, 'datas', {})
+            levers = self.safe_value(data, 'levers', [])
+        else:
+            crossResponse = self.safe_value(response, 'result', {})
+            levers = self.safe_value(crossResponse, 'list', [])
+        for i in range(0, len(levers)):
+            balance = levers[i]
+            #
+            # Isolated Margin
+            #
+            #     {
+            #         "cNetUSD": "0.00",
+            #         "repayLeverShow": "-",
+            #         "cCanLoanIn": "0.002115400000000",
+            #         "fNetCNY": "147.76081161",
+            #         "fLoanIn": "0.00",
+            #         "repayLevel": 0,
+            #         "level": 1,
+            #         "netConvertCNY": "147.760811613032",
+            #         "cFreeze": "0.00",
+            #         "cUnitTag": "BTC",
+            #         "version": 1646783178609,
+            #         "cAvailableUSD": "0.00",
+            #         "cNetCNY": "0.00",
+            #         "riskRate": "-",
+            #         "fAvailableUSD": "20.49273433",
+            #         "fNetUSD": "20.49273432",
+            #         "cShowName": "BTC",
+            #         "leverMultiple": "5.00",
+            #         "couldTransferOutFiat": "20.49273433",
+            #         "noticeLine": "1.13",
+            #         "fFreeze": "0.00",
+            #         "cUnitDecimal": 8,
+            #         "fCanLoanIn": "81.970937320000000",
+            #         "cAvailable": "0.00",
+            #         "repayLock": False,
+            #         "status": 1,
+            #         "forbidType": 0,
+            #         "totalConvertCNY": "147.760811613032",
+            #         "cAvailableCNY": "0.00",
+            #         "unwindPrice": "0.00",
+            #         "fOverdraft": "0.00",
+            #         "fShowName": "USDT",
+            #         "statusShow": "%E6%AD%A3%E5%B8%B8",
+            #         "cOverdraft": "0.00",
+            #         "netConvertUSD": "20.49273433",
+            #         "cNetBtc": "0.00",
+            #         "loanInConvertCNY": "0.00",
+            #         "fAvailableCNY": "147.760811613032",
+            #         "key": "btcusdt",
+            #         "fNetBtc": "0.0005291",
+            #         "fUnitDecimal": 8,
+            #         "loanInConvertUSD": "0.00",
+            #         "showName": "BTC/USDT",
+            #         "startLine": "1.25",
+            #         "totalConvertUSD": "20.49273433",
+            #         "couldTransferOutCoin": "0.00",
+            #         "cEnName": "BTC",
+            #         "leverMultipleInterest": "3.00",
+            #         "fAvailable": "20.49273433",
+            #         "fEnName": "USDT",
+            #         "forceRepayLine": "1.08",
+            #         "cLoanIn": "0.00"
+            #     }
+            #
+            # Cross Margin
+            #
+            #     [
+            #         {
+            #             "fundType": 2,
+            #             "loanIn": 0,
+            #             "amount": 0,
+            #             "freeze": 0,
+            #             "overdraft": 0,
+            #             "key": "BTC",
+            #             "canTransferOut": 0
+            #         },
+            #     ],
+            #
+            account = self.account()
+            if marginType == 'isolated':
+                code = self.safe_currency_code(self.safe_string(balance, 'fShowName'))
+                account['total'] = self.safe_string(balance, 'fAvailableUSD')  # total amount in USD
+                account['free'] = self.safe_string(balance, 'couldTransferOutFiat')
+                account['used'] = self.safe_string(balance, 'fFreeze')
+                result[code] = account
+            else:
+                code = self.safe_currency_code(self.safe_string(balance, 'key'))
+                account['total'] = self.safe_string(balance, 'amount')
+                account['free'] = self.safe_string(balance, 'canTransferOut')
+                account['used'] = self.safe_string(balance, 'freeze')
+                result[code] = account
+        return self.safe_balance(result)
+
     async def fetch_balance(self, params={}):
         await self.load_markets()
         marketType, query = self.handle_market_type_and_params('fetchBalance', None, params)
+        margin = (marketType == 'margin')
+        swap = (marketType == 'swap')
+        marginMethod = None
+        defaultMargin = 'isolated' if margin else 'cross'
+        marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', defaultMargin)
+        if marginType == 'isolated':
+            marginMethod = 'spotV1PrivateGetGetLeverAssetsInfo'
+        elif marginType == 'cross':
+            marginMethod = 'spotV1PrivateGetGetCrossAssets'
         method = self.get_supported_mapping(marketType, {
             'spot': 'spotV1PrivateGetGetAccountInfo',
             'swap': 'contractV2PrivateGetFundBalance',
+            'margin': marginMethod,
         })
         request = {
             # 'futuresAccountType': 1,  # SWAP
             # 'currencyId': currency['id'],  # SWAP
             # 'currencyName': 'usdt',  # SWAP
         }
-        swap = (marketType == 'swap')
         if swap:
             request['futuresAccountType'] = 1
         response = await getattr(self, method)(self.extend(request, query))
@@ -836,10 +994,105 @@ class zb(Exchange):
         #         "desc": "操作成功"
         #     }
         #
+        # Isolated Margin
+        #
+        #     {
+        #         "code": 1000,
+        #         "message": {
+        #             "des": "success",
+        #             "isSuc": True,
+        #             "datas": {
+        #                 "leverPerm": True,
+        #                 "levers": [
+        #                     {
+        #                         "cNetUSD": "0.00",
+        #                         "repayLeverShow": "-",
+        #                         "cCanLoanIn": "0.002115400000000",
+        #                         "fNetCNY": "147.76081161",
+        #                         "fLoanIn": "0.00",
+        #                         "repayLevel": 0,
+        #                         "level": 1,
+        #                         "netConvertCNY": "147.760811613032",
+        #                         "cFreeze": "0.00",
+        #                         "cUnitTag": "BTC",
+        #                         "version": 1646783178609,
+        #                         "cAvailableUSD": "0.00",
+        #                         "cNetCNY": "0.00",
+        #                         "riskRate": "-",
+        #                         "fAvailableUSD": "20.49273433",
+        #                         "fNetUSD": "20.49273432",
+        #                         "cShowName": "BTC",
+        #                         "leverMultiple": "5.00",
+        #                         "couldTransferOutFiat": "20.49273433",
+        #                         "noticeLine": "1.13",
+        #                         "fFreeze": "0.00",
+        #                         "cUnitDecimal": 8,
+        #                         "fCanLoanIn": "81.970937320000000",
+        #                         "cAvailable": "0.00",
+        #                         "repayLock": False,
+        #                         "status": 1,
+        #                         "forbidType": 0,
+        #                         "totalConvertCNY": "147.760811613032",
+        #                         "cAvailableCNY": "0.00",
+        #                         "unwindPrice": "0.00",
+        #                         "fOverdraft": "0.00",
+        #                         "fShowName": "USDT",
+        #                         "statusShow": "%E6%AD%A3%E5%B8%B8",
+        #                         "cOverdraft": "0.00",
+        #                         "netConvertUSD": "20.49273433",
+        #                         "cNetBtc": "0.00",
+        #                         "loanInConvertCNY": "0.00",
+        #                         "fAvailableCNY": "147.760811613032",
+        #                         "key": "btcusdt",
+        #                         "fNetBtc": "0.0005291",
+        #                         "fUnitDecimal": 8,
+        #                         "loanInConvertUSD": "0.00",
+        #                         "showName": "BTC/USDT",
+        #                         "startLine": "1.25",
+        #                         "totalConvertUSD": "20.49273433",
+        #                         "couldTransferOutCoin": "0.00",
+        #                         "cEnName": "BTC",
+        #                         "leverMultipleInterest": "3.00",
+        #                         "fAvailable": "20.49273433",
+        #                         "fEnName": "USDT",
+        #                         "forceRepayLine": "1.08",
+        #                         "cLoanIn": "0.00"
+        #                     }
+        #                 ]
+        #             }
+        #         }
+        #     }
+        #
+        # Cross Margin
+        #
+        #     {
+        #         "code": 1000,
+        #         "message": "操作成功",
+        #         "result": {
+        #             "loanIn": 0,
+        #             "total": 71.167,
+        #             "riskRate": "-",
+        #             "list" :[
+        #                 {
+        #                     "fundType": 2,
+        #                     "loanIn": 0,
+        #                     "amount": 0,
+        #                     "freeze": 0,
+        #                     "overdraft": 0,
+        #                     "key": "BTC",
+        #                     "canTransferOut": 0
+        #                 },
+        #             ],
+        #             "net": 71.167
+        #         }
+        #     }
+        #
         # todo: use self somehow
         # permissions = response['result']['base']
         if swap:
             return self.parse_swap_balance(response)
+        elif margin:
+            return self.parse_margin_balance(response, marginType)
         else:
             return self.parse_balance(response)
 
@@ -1138,28 +1391,164 @@ class zb(Exchange):
         }, market, False)
 
     def parse_ohlcv(self, ohlcv, market=None):
-        return [
-            self.safe_integer(ohlcv, 0),
-            self.safe_number(ohlcv, 1),
-            self.safe_number(ohlcv, 2),
-            self.safe_number(ohlcv, 3),
-            self.safe_number(ohlcv, 4),
-            self.safe_number(ohlcv, 5),
-        ]
+        if market['swap']:
+            ohlcvLength = len(ohlcv)
+            if ohlcvLength > 5:
+                return [
+                    self.safe_integer(ohlcv, 5),
+                    self.safe_number(ohlcv, 0),
+                    self.safe_number(ohlcv, 1),
+                    self.safe_number(ohlcv, 2),
+                    self.safe_number(ohlcv, 3),
+                    self.safe_number(ohlcv, 4),
+                ]
+            else:
+                return [
+                    self.safe_integer(ohlcv, 4),
+                    self.safe_number(ohlcv, 0),
+                    self.safe_number(ohlcv, 1),
+                    self.safe_number(ohlcv, 2),
+                    self.safe_number(ohlcv, 3),
+                    None,
+                ]
+        else:
+            return [
+                self.safe_integer(ohlcv, 0),
+                self.safe_number(ohlcv, 1),
+                self.safe_number(ohlcv, 2),
+                self.safe_number(ohlcv, 3),
+                self.safe_number(ohlcv, 4),
+                self.safe_number(ohlcv, 5),
+            ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        swap = market['swap']
+        options = self.safe_value(self.options, 'timeframes', {})
+        timeframes = self.safe_value(options, market['type'], {})
+        timeframeValue = self.safe_string(timeframes, timeframe)
+        if timeframeValue is None:
+            raise NotSupported(self.id + ' fetchOHLCV() does not support ' + timeframe + ' timeframe for ' + market['type'] + ' markets')
         if limit is None:
             limit = 1000
         request = {
-            'market': market['id'],
-            'type': self.timeframes[timeframe],
-            'limit': limit,
+            # 'market': market['id'],  # spot only
+            # 'symbol': market['id'],  # swap only
+            # 'type': timeframeValue,  # spot only
+            # 'period': timeframeValue,  # swap only
+            # 'since': since,  # spot only
+            # 'limit': limit,  # spot only
+            # 'size': limit,  # swap only
+        }
+        marketIdField = 'symbol' if swap else 'market'
+        request[marketIdField] = market['id']
+        periodField = 'period' if swap else 'type'
+        request[periodField] = timeframeValue
+        sizeField = 'size' if swap else 'limit'
+        request[sizeField] = limit
+        method = self.get_supported_mapping(market['type'], {
+            'spot': 'spotV1PublicGetKline',
+            'swap': 'contractV1PublicGetKline',
+        })
+        if since is not None:
+            request['since'] = since
+        if limit is not None:
+            request['size'] = limit
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        # Spot
+        #
+        #     {
+        #         "symbol": "BTC",
+        #         "data": [
+        #             [1645091400000,43183.24,43187.49,43145.92,43182.28,0.9110],
+        #             [1645091460000,43182.18,43183.15,43182.06,43183.15,1.4393],
+        #             [1645091520000,43182.11,43240.1,43182.11,43240.1,0.3802]
+        #         ],
+        #         "moneyType": "USDT"
+        #     }
+        #
+        # Swap
+        #
+        #     {
+        #         "code": 10000,
+        #         "desc": "操作成功",
+        #         "data": [
+        #             [41433.44,41433.44,41405.88,41408.75,21.368,1646366460],
+        #             [41409.25,41423.74,41408.8,41423.42,9.828,1646366520],
+        #             [41423.96,41429.39,41369.98,41370.31,123.104,1646366580]
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_ohlcvs(data, market, timeframe, since, limit)
+
+    async def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        options = self.safe_value(self.options, 'timeframes', {})
+        timeframes = self.safe_value(options, market['type'], {})
+        timeframeValue = self.safe_string(timeframes, timeframe)
+        if timeframeValue is None:
+            raise NotSupported(self.id + ' fetchMarkOHLCV() does not support ' + timeframe + ' timeframe for ' + market['type'] + ' markets')
+        if limit is None:
+            limit = 1000
+        request = {
+            'symbol': market['id'],
+            'period': timeframeValue,
+            'size': limit,
         }
         if since is not None:
             request['since'] = since
-        response = await self.spotV1PublicGetKline(self.extend(request, params))
+        if limit is not None:
+            request['size'] = limit
+        response = await self.contractV1PublicGetMarkKline(self.extend(request, params))
+        #
+        #     {
+        #         "code": 10000,
+        #         "desc": "操作成功",
+        #         "data": [
+        #             [41603.39,41603.39,41591.59,41600.81,1646381760],
+        #             [41600.36,41605.75,41587.69,41601.97,1646381820],
+        #             [41601.97,41601.97,41562.62,41593.96,1646381880]
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_ohlcvs(data, market, timeframe, since, limit)
+
+    async def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        options = self.safe_value(self.options, 'timeframes', {})
+        timeframes = self.safe_value(options, market['type'], {})
+        timeframeValue = self.safe_string(timeframes, timeframe)
+        if timeframeValue is None:
+            raise NotSupported(self.id + ' fetchIndexOHLCV() does not support ' + timeframe + ' timeframe for ' + market['type'] + ' markets')
+        if limit is None:
+            limit = 1000
+        request = {
+            'symbol': market['id'],
+            'period': timeframeValue,
+            'size': limit,
+        }
+        if since is not None:
+            request['since'] = since
+        if limit is not None:
+            request['size'] = limit
+        response = await self.contractV1PublicGetIndexKline(self.extend(request, params))
+        #
+        #     {
+        #         "code": 10000,
+        #         "desc": "操作成功",
+        #         "data": [
+        #             [41697.53,41722.29,41689.16,41689.16,1646381640],
+        #             [41690.1,41691.73,41611.61,41611.61,1646381700],
+        #             [41611.61,41619.49,41594.87,41594.87,1646381760]
+        #         ]
+        #     }
+        #
         data = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
@@ -1324,12 +1713,22 @@ class zb(Exchange):
         })
         request = {
             'amount': self.amount_to_precision(symbol, amount),
+            # 'acctType': 0,  # Spot, Margin 0/1/2 [Spot/Isolated/Cross] Optional, Default to: 0 Spot
+            # 'customerOrderId': '1f2g',  # Spot, Margin
+            # 'orderType': 1,  # Spot, Margin order type 1/2 [PostOnly/IOC] Optional
         }
         if price:
             request['price'] = self.price_to_precision(symbol, price)
         if spot:
             request['tradeType'] = '1' if (side == 'buy') else '0'
             request['currency'] = market['id']
+            if timeInForce is not None:
+                if timeInForce == 'PO':
+                    request['orderType'] = 1
+                elif timeInForce == 'IOC':
+                    request['orderType'] = 2
+                else:
+                    raise InvalidOrder(self.id + ' createOrder() on ' + market['type'] + ' markets does not allow ' + timeInForce + ' orders')
         elif swap:
             reduceOnly = self.safe_value(params, 'reduceOnly')
             params = self.omit(params, 'reduceOnly')
@@ -1384,12 +1783,43 @@ class zb(Exchange):
         return self.parse_order(response, market)
 
     async def cancel_order(self, id, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
+        market = self.market(symbol)
+        swap = market['swap']
         request = {
-            'id': str(id),
-            'currency': self.market_id(symbol),
+            # 'currency': self.market_id(symbol),  # only applicable to SPOT
+            # 'id': str(id),  # only applicable to SPOT
+            # 'symbol': self.market_id(symbol),  # only applicable to SWAP
+            # 'orderId': str(id),  # only applicable to SWAP
+            # 'clientOrderId': params['clientOrderId'],  # only applicable to SWAP
         }
-        return await self.spotV1PrivateGetCancelOrder(self.extend(request, params))
+        marketIdField = 'symbol' if swap else 'currency'
+        request[marketIdField] = self.market_id(symbol)
+        orderIdField = 'orderId' if swap else 'id'
+        request[orderIdField] = str(id)
+        method = self.get_supported_mapping(market['type'], {
+            'spot': 'spotV1PrivateGetCancelOrder',
+            'swap': 'contractV2PrivatePostTradeCancelOrder',
+        })
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        # Spot
+        #
+        #     {
+        #         "code": 1000,
+        #         "message": "Success。"
+        #     }
+        #
+        # Swap
+        #
+        #     {
+        #         "code": 10007,
+        #         "desc": "orderId与clientOrderId选填1个"
+        #     }
+        #
+        return self.parse_order(response, market)
 
     async def cancel_all_orders(self, symbol=None, params={}):
         if symbol is None:
@@ -1407,11 +1837,26 @@ class zb(Exchange):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         await self.load_markets()
+        market = self.market(symbol)
+        swap = market['swap']
         request = {
-            'id': str(id),
-            'currency': self.market_id(symbol),
+            # 'currency': self.market_id(symbol),  # only applicable to SPOT
+            # 'id': str(id),  # only applicable to SPOT
+            # 'symbol': self.market_id(symbol),  # only applicable to SWAP
+            # 'orderId': str(id),  # only applicable to SWAP
+            # 'clientOrderId': params['clientOrderId'],  # only applicable to SWAP
         }
-        response = await self.spotV1PrivateGetGetOrder(self.extend(request, params))
+        marketIdField = 'symbol' if swap else 'currency'
+        request[marketIdField] = self.market_id(symbol)
+        orderIdField = 'orderId' if swap else 'id'
+        request[orderIdField] = str(id)
+        method = self.get_supported_mapping(market['type'], {
+            'spot': 'spotV1PrivateGetGetOrder',
+            'swap': 'contractV2PrivateGetTradeGetOrder',
+        })
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        # Spot
         #
         #     {
         #         'total_amount': 0.01,
@@ -1425,7 +1870,43 @@ class zb(Exchange):
         #         'currency': 'eth_usdt'
         #     }
         #
-        return self.parse_order(response, None)
+        # Swap
+        #
+        #     {
+        #         "code": 10000,
+        #         "data": {
+        #             "action": 1,
+        #             "amount": "0.002",
+        #             "availableAmount": "0.002",
+        #             "availableValue": "60",
+        #             "avgPrice": "0",
+        #             "canCancel": True,
+        #             "cancelStatus": 20,
+        #             "createTime": "1646185684379",
+        #             "entrustType": 1,
+        #             "id": "6904603200733782016",
+        #             "leverage": 2,
+        #             "margin": "30",
+        #             "marketId": "100",
+        #             "modifyTime": "1646185684416",
+        #             "price": "30000",
+        #             "priority": 0,
+        #             "showStatus": 1,
+        #             "side": 1,
+        #             "sourceType": 4,
+        #             "status": 12,
+        #             "tradeAmount": "0",
+        #             "tradeValue": "0",
+        #             "type": 1,
+        #             "userId": "6896693805014120448",
+        #             "value": "60"
+        #         },
+        #         "desc":"操作成功"
+        #     }
+        #
+        if swap:
+            response = self.safe_value(response, 'data', {})
+        return self.parse_order(response, market)
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
@@ -1665,6 +2146,36 @@ class zb(Exchange):
         #         useZbFee: False
         #     },
         #
+        # fetchOrder Swap
+        #
+        #     {
+        #         "action": 1,
+        #         "amount": "0.002",
+        #         "availableAmount": "0.002",
+        #         "availableValue": "60",
+        #         "avgPrice": "0",
+        #         "canCancel": True,
+        #         "cancelStatus": 20,
+        #         "createTime": "1646185684379",
+        #         "entrustType": 1,
+        #         "id": "6904603200733782016",
+        #         "leverage": 2,
+        #         "margin": "30",
+        #         "marketId": "100",
+        #         "modifyTime": "1646185684416",
+        #         "price": "30000",
+        #         "priority": 0,
+        #         "showStatus": 1,
+        #         "side": 1,
+        #         "sourceType": 4,
+        #         "status": 12,
+        #         "tradeAmount": "0",
+        #         "tradeValue": "0",
+        #         "type": 1,
+        #         "userId": "6896693805014120448",
+        #         "value": "60"
+        #     },
+        #
         # Spot
         #
         #     {
@@ -1687,17 +2198,23 @@ class zb(Exchange):
         #     }
         #
         orderId = self.safe_value(order, 'orderId') if market['swap'] else self.safe_value(order, 'id')
+        if orderId is None:
+            orderId = self.safe_value(order, 'id')
         side = self.safe_integer(order, 'type')
         if side is None:
             side = None
         else:
             side = 'buy' if (side == 1) else 'sell'
         timestamp = self.safe_integer(order, 'trade_date')
+        if timestamp is None:
+            timestamp = self.safe_integer(order, 'createTime')
         marketId = self.safe_string(order, 'currency')
         market = self.safe_market(marketId, market, '_')
         price = self.safe_string(order, 'price')
-        filled = self.safe_string(order, 'trade_amount')
+        filled = self.safe_string(order, 'tradeAmount') if market['swap'] else self.safe_string(order, 'trade_amount')
         amount = self.safe_string(order, 'total_amount')
+        if amount is None:
+            amount = self.safe_string(order, 'amount')
         cost = self.safe_string(order, 'trade_money')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         timeInForce = self.safe_string(order, 'timeInForce')
@@ -1718,7 +2235,7 @@ class zb(Exchange):
         return self.safe_order({
             'info': order,
             'id': orderId,
-            'clientOrderId': None,
+            'clientOrderId': self.safe_string(order, 'userId'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -1729,7 +2246,7 @@ class zb(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
-            'average': None,
+            'average': self.safe_string(order, 'avgPrice'),
             'cost': cost,
             'amount': amount,
             'filled': filled,
@@ -1871,6 +2388,7 @@ class zb(Exchange):
         }
         if symbol is not None:
             market = self.market(symbol)
+            symbol = market['symbol']
             request['symbol'] = market['id']
         if since is not None:
             request['startTime'] = since
@@ -1938,9 +2456,21 @@ class zb(Exchange):
 
     def parse_funding_rate(self, contract, market=None):
         #
+        # fetchFundingRate
+        #
         #     {
         #         "fundingRate": "0.0001",
         #         "nextCalculateTime": "2022-02-19 00:00:00"
+        #     }
+        #
+        # fetchFundingRates
+        #
+        #     {
+        #         "symbol": "BTC_USDT",
+        #         "markPrice": "43254.42",
+        #         "indexPrice": "43278.61",
+        #         "lastFundingRate": "0.0001",
+        #         "nextFundingTime": "1646121600000"
         #     }
         #
         marketId = self.safe_string(contract, 'symbol')
@@ -1950,8 +2480,8 @@ class zb(Exchange):
         return {
             'info': contract,
             'symbol': symbol,
-            'markPrice': None,
-            'indexPrice': None,
+            'markPrice': self.safe_string(contract, 'markPrice'),
+            'indexPrice': self.safe_string(contract, 'indexPrice'),
             'interestRate': None,
             'estimatedSettlePrice': None,
             'timestamp': None,
@@ -1962,10 +2492,32 @@ class zb(Exchange):
             'nextFundingRate': None,
             'nextFundingTimestamp': self.parse8601(nextFundingDatetime),
             'nextFundingDatetime': nextFundingDatetime,
-            'previousFundingRate': None,
+            'previousFundingRate': self.safe_string(contract, 'lastFundingRate'),
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
         }
+
+    async def fetch_funding_rates(self, symbols, params={}):
+        await self.load_markets()
+        response = await self.contractV2PublicGetPremiumIndex(params)
+        #
+        #     {
+        #         "code": 10000,
+        #         "data": [
+        #             {
+        #                 "symbol": "BTC_USDT",
+        #                 "markPrice": "43254.42",
+        #                 "indexPrice": "43278.61",
+        #                 "lastFundingRate": "0.0001",
+        #                 "nextFundingTime": "1646121600000"
+        #             },
+        #         ],
+        #         "desc":"操作成功"
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        result = self.parse_funding_rates(data)
+        return self.filter_by_array(result, 'symbol', symbols)
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
@@ -2316,6 +2868,400 @@ class zb(Exchange):
         for i in range(0, len(positions)):
             result.append(self.parse_position(positions[i]))
         return result
+
+    def parse_ledger_entry_type(self, type):
+        types = {
+            '1': 'realized pnl',
+            '2': 'commission',
+            '3': 'funding fee subtract',
+            '4': 'funding fee addition',
+            '5': 'insurance clear',
+            '6': 'transfer in',
+            '7': 'transfer out',
+            '8': 'margin addition',
+            '9': 'margin subtraction',
+            '10': 'commission addition',
+            '11': 'bill type freeze',
+            '12': 'bill type unfreeze',
+            '13': 'system take over margin',
+            '14': 'transfer',
+            '15': 'realized pnl collection',
+            '16': 'funding fee collection',
+            '17': 'recommender return commission',
+            '18': 'by level subtract positions',
+            '19': 'system add',
+            '20': 'system subtract',
+            '23': 'trading competition take over fund',
+            '24': 'trading contest tickets',
+            '25': 'return of trading contest tickets',
+            '26': 'experience expired recall',
+            '50': 'test register gift',
+            '51': 'register gift',
+            '52': 'deposit gift',
+            '53': 'trading volume gift',
+            '54': 'awards gift',
+            '55': 'trading volume gift',
+            '56': 'awards gift expire',
+            '201': 'open positions',
+            '202': 'close positions',
+            '203': 'take over positions',
+            '204': 'trading competition take over positions',
+            '205': 'one way open long',
+            '206': 'one way open short',
+            '207': 'one way close long',
+            '208': 'one way close short',
+            '301': 'coupon deduction service charge',
+            '302': 'experience deduction',
+            '303': 'experience expired',
+        }
+        return self.safe_string(types, type, type)
+
+    def parse_ledger_entry(self, item, currency=None):
+        #
+        #     [
+        #         {
+        #             "type": 3,
+        #             "changeAmount": "0.00434664",
+        #             "isIn": 0,
+        #             "beforeAmount": "30.53353135",
+        #             "beforeFreezeAmount": "21.547",
+        #             "createTime": "1646121604997",
+        #             "available": "30.52918471",
+        #             "unit": "usdt",
+        #             "symbol": "BTC_USDT"
+        #         },
+        #     ],
+        #
+        timestamp = self.safe_string(item, 'createTime')
+        direction = None
+        changeDirection = self.safe_number(item, 'isIn')
+        if changeDirection == 1:
+            direction = 'increase'
+        else:
+            direction = 'reduce'
+        fee = None
+        feeCost = self.safe_number(item, 'fee')
+        if feeCost is not None:
+            fee = {
+                'cost': feeCost,
+                'currency': self.safe_currency_code(self.safe_string(item, 'unit')),
+            }
+        return {
+            'id': self.safe_string(item, 'id'),
+            'info': item,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'direction': direction,
+            'account': self.safe_string(item, 'userId'),
+            'referenceId': None,
+            'referenceAccount': None,
+            'type': self.parse_ledger_entry_type(self.safe_integer(item, 'type')),
+            'currency': self.safe_currency_code(self.safe_string(item, 'unit')),
+            'amount': self.safe_number(item, 'changeAmount'),
+            'before': self.safe_number(item, 'beforeAmount'),
+            'after': self.safe_number(item, 'available'),
+            'status': None,
+            'fee': fee,
+        }
+
+    async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+        if code is None:
+            raise ArgumentsRequired(self.id + ' fetchLedger() requires a code argument')
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'futuresAccountType': 1,
+            # 'currencyId': '11',
+            # 'type': 1,
+            # 'endTime': self.milliseconds(),
+            # 'pageNum': 1,
+        }
+        if code is not None:
+            request['currencyName'] = currency['id']
+        if since is not None:
+            request['startTime'] = since
+        if limit is not None:
+            request['pageSize'] = limit
+        response = await self.contractV2PrivateGetFundGetBill(self.extend(request, params))
+        #
+        #     {
+        #         "code": 10000,
+        #         "data": {
+        #             "list": [
+        #                 {
+        #                     "type": 3,
+        #                     "changeAmount": "0.00434664",
+        #                     "isIn": 0,
+        #                     "beforeAmount": "30.53353135",
+        #                     "beforeFreezeAmount": "21.547",
+        #                     "createTime": "1646121604997",
+        #                     "available": "30.52918471",
+        #                     "unit": "usdt",
+        #                     "symbol": "BTC_USDT"
+        #                 },
+        #             ],
+        #             "pageNum": 1,
+        #             "pageSize": 10
+        #         },
+        #         "desc": "操作成功"
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        list = self.safe_value(data, 'list', [])
+        return self.parse_ledger(list, currency, since, limit)
+
+    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        await self.load_markets()
+        marketType, query = self.handle_market_type_and_params('transfer', None, params)
+        currency = self.currency(code)
+        margin = (marketType == 'margin')
+        swap = (marketType == 'swap')
+        side = None
+        marginMethod = None
+        request = {
+            'amount': amount,  # Swap, Cross Margin, Isolated Margin
+            # 'coin': currency['id'],  # Margin
+            # 'currencyName': currency['id'],  # Swap
+            # 'clientId': self.safe_string(params, 'clientId'),  # Swap "2sdfsdfsdf232342"
+            # 'side': side,  # Swap, 1：Deposit(zb account -> futures account)，0：Withdrawal(futures account -> zb account)
+            # 'marketName': self.safe_string(params, 'marketName'),  # Isolated Margin
+        }
+        if swap:
+            if fromAccount == 'spot' or toAccount == 'future':
+                side = 1
+            else:
+                side = 0
+            request['currencyName'] = currency['id']
+            request['clientId'] = self.safe_string(params, 'clientId')
+            request['side'] = side
+        else:
+            defaultMargin = 'isolated' if margin else 'cross'
+            marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', defaultMargin)
+            if marginType == 'isolated':
+                if fromAccount == 'spot' or toAccount == 'isolated':
+                    marginMethod = 'spotV1PrivateGetTransferInLever'
+                else:
+                    marginMethod = 'spotV1PrivateGetTransferOutLever'
+                request['marketName'] = self.safe_string(params, 'marketName')
+            elif marginType == 'cross':
+                if fromAccount == 'spot' or toAccount == 'cross':
+                    marginMethod = 'spotV1PrivateGetTransferInCross'
+                else:
+                    marginMethod = 'spotV1PrivateGetTransferOutCross'
+            request['coin'] = currency['id']
+        method = self.get_supported_mapping(marketType, {
+            'swap': 'contractV2PrivatePostFundTransferFund',
+            'margin': marginMethod,
+        })
+        response = await getattr(self, method)(self.extend(request, query))
+        #
+        # Swap
+        #
+        #     {
+        #         "code": 10000,
+        #         "data": "2sdfsdfsdf232342",
+        #         "desc": "Success"
+        #     }
+        #
+        # Margin
+        #
+        #     {
+        #         "code": 1000,
+        #         "message": "Success"
+        #     }
+        #
+        timestamp = self.milliseconds()
+        transfer = {
+            'id': self.safe_string(response, 'data'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'currency': code,
+            'amount': amount,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': self.safe_integer(response, 'code'),
+        }
+        return self.parse_transfer(transfer, code)
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        #     {
+        #         "id": "2sdfsdfsdf232342",
+        #         "timestamp": "",
+        #         "datetime": "",
+        #         "currency": "USDT",
+        #         "amount": "10",
+        #         "fromAccount": "futures account",
+        #         "toAccount": "zb account",
+        #         "status": 10000,
+        #     }
+        #
+        currencyId = self.safe_string(transfer, 'currency')
+        return {
+            'info': transfer,
+            'id': self.safe_string(transfer, 'id'),
+            'timestamp': self.safe_integer(transfer, 'timestamp'),
+            'datetime': self.safe_string(transfer, 'datetime'),
+            'currency': self.safe_currency_code(currencyId, currency),
+            'amount': self.safe_number(transfer, 'amount'),
+            'fromAccount': self.safe_string(transfer, 'fromAccount'),
+            'toAccount': self.safe_string(transfer, 'toAccount'),
+            'status': self.safe_integer(transfer, 'status'),
+        }
+
+    async def modify_margin_helper(self, symbol, amount, type, params={}):
+        if params['positionsId'] is None:
+            raise ArgumentsRequired(self.id + ' modifyMarginHelper() requires a positionsId argument in the params')
+        await self.load_markets()
+        market = self.market(symbol)
+        amount = self.amount_to_precision(symbol, amount)
+        position = self.safe_string(params, 'positionsId')
+        request = {
+            'positionsId': position,
+            'amount': amount,
+            'type': type,  # 1 increase, 0 reduce
+            'futuresAccountType': 1,  # 1: USDT Perpetual Futures
+        }
+        response = await self.contractV2PrivatePostPositionsUpdateMargin(self.extend(request, params))
+        #
+        #     {
+        #         "code": 10000,
+        #         "data": {
+        #             "amount": "0.002",
+        #             "appendAmount": "0",
+        #             "avgPrice": "43927.23",
+        #             "bankruptcyPrice": "41730.86",
+        #             "createTime": "1646208695609",
+        #             "freezeAmount": "0",
+        #             "id": "6900781818669377576",
+        #             "keyMark": "6896693805014120448-100-1-",
+        #             "lastAppendAmount": "0",
+        #             "lastTime": "1646209235505",
+        #             "leverage": 20,
+        #             "liquidateLevel": 1,
+        #             "liquidatePrice": "41898.46",
+        #             "maintainMargin": "0",
+        #             "margin": "4.392723",
+        #             "marginAppendCount": 0,
+        #             "marginBalance": "0",
+        #             "marginMode": 1,
+        #             "marginRate": "0",
+        #             "marketId": "100",
+        #             "marketName": "BTC_USDT",
+        #             "modifyTime": "1646209235505",
+        #             "nominalValue": "87.88828",
+        #             "originAppendAmount": "0",
+        #             "originId": "6904699716827818029",
+        #             "positionsMode": 2,
+        #             "sellerCurrencyId": "1",
+        #             "side": 1,
+        #             "status": 1,
+        #             "unrealizedPnl": "0.03382",
+        #             "usable": True,
+        #             "userId": "6896693805014120448"
+        #         },
+        #         "desc":"操作成功"
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        side = 'add' if (type == 1) else 'reduce'
+        errorCode = self.safe_integer(data, 'status')
+        status = 'ok' if (errorCode == 1) else 'failed'
+        return {
+            'info': response,
+            'type': side,
+            'amount': amount,
+            'code': market['quote'],
+            'symbol': market['symbol'],
+            'status': status,
+        }
+
+    async def reduce_margin(self, symbol, amount, params={}):
+        if params['positionsId'] is None:
+            raise ArgumentsRequired(self.id + ' reduceMargin() requires a positionsId argument in the params')
+        return await self.modify_margin_helper(symbol, amount, 0, params)
+
+    async def add_margin(self, symbol, amount, params={}):
+        if params['positionsId'] is None:
+            raise ArgumentsRequired(self.id + ' addMargin() requires a positionsId argument in the params')
+        return await self.modify_margin_helper(symbol, amount, 1, params)
+
+    async def fetch_borrow_rate(self, code, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'coin': currency['id'],
+        }
+        response = await self.spotV1PrivateGetGetLoans(self.extend(request, params))
+        #
+        #     {
+        #         code: '1000',
+        #         message: '操作成功',
+        #         result: [
+        #             {
+        #                 interestRateOfDay: '0.0005',
+        #                 repaymentDay: '30',
+        #                 amount: '148804.4841',
+        #                 balance: '148804.4841',
+        #                 rateOfDayShow: '0.05 %',
+        #                 coinName: 'USDT',
+        #                 lowestAmount: '0.01'
+        #             },
+        #         ]
+        #     }
+        #
+        timestamp = self.milliseconds()
+        data = self.safe_value(response, 'result', [])
+        rate = self.safe_value(data, 0, {})
+        return {
+            'currency': self.safe_currency_code(self.safe_string(rate, 'coinName')),
+            'rate': self.safe_number(rate, 'interestRateOfDay'),
+            'period': self.safe_number(rate, 'repaymentDay'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': rate,
+        }
+
+    async def fetch_borrow_rates(self, params={}):
+        if params['coin'] is None:
+            raise ArgumentsRequired(self.id + ' fetchBorrowRates() requires a coin argument in the params')
+        await self.load_markets()
+        currency = self.currency(self.safe_string(params, 'coin'))
+        request = {
+            'coin': currency['id'],
+        }
+        response = await self.spotV1PrivateGetGetLoans(self.extend(request, params))
+        #
+        #     {
+        #         code: '1000',
+        #         message: '操作成功',
+        #         result: [
+        #             {
+        #                 interestRateOfDay: '0.0005',
+        #                 repaymentDay: '30',
+        #                 amount: '148804.4841',
+        #                 balance: '148804.4841',
+        #                 rateOfDayShow: '0.05 %',
+        #                 coinName: 'USDT',
+        #                 lowestAmount: '0.01'
+        #             },
+        #         ]
+        #     }
+        #
+        timestamp = self.milliseconds()
+        data = self.safe_value(response, 'result')
+        rates = []
+        for i in range(0, len(data)):
+            entry = data[i]
+            rates.append({
+                'currency': self.safe_currency_code(self.safe_string(entry, 'coinName')),
+                'rate': self.safe_number(entry, 'interestRateOfDay'),
+                'period': self.safe_number(entry, 'repaymentDay'),
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+                'info': entry,
+            })
+        return rates
 
     def nonce(self):
         return self.milliseconds()

@@ -9,6 +9,7 @@ import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import AccountNotEnabled
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
@@ -78,6 +79,8 @@ class mexc(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
                 'setLeverage': True,
@@ -280,7 +283,7 @@ class mexc(Exchange):
                     '401': AuthenticationError,  # Invalid signature, fail to pass the validation
                     '403': PermissionDenied,  # {"msg":"no permission to access the endpoint","code":403}
                     '429': RateLimitExceeded,  # too many requests, rate limit rule is violated
-                    '1000': PermissionDenied,  # {"success":false,"code":1000,"message":"Please open contract account first!"}
+                    '1000': AccountNotEnabled,  # {"success":false,"code":1000,"message":"Please open contract account first!"}
                     '1002': InvalidOrder,  # {"success":false,"code":1002,"message":"Contract not allow place order!"}
                     '10072': AuthenticationError,  # Invalid access key
                     '10073': AuthenticationError,  # Invalid request time
@@ -1042,6 +1045,50 @@ class mexc(Exchange):
             'cost': costString,
             'fee': fee,
         }, market)
+
+    def fetch_trading_fees(self, params={}):
+        self.load_markets()
+        response = self.spotPublicGetMarketSymbols(params)
+        #
+        #     {
+        #         "code":200,
+        #         "data":[
+        #             {
+        #                 "symbol":"DFD_USDT",
+        #                 "state":"ENABLED",
+        #                 "countDownMark":1,
+        #                 "vcoinName":"DFD",
+        #                 "vcoinStatus":1,
+        #                 "price_scale":4,
+        #                 "quantity_scale":2,
+        #                 "min_amount":"5",  # not an amount = cost
+        #                 "max_amount":"5000000",
+        #                 "maker_fee_rate":"0.002",
+        #                 "taker_fee_rate":"0.002",
+        #                 "limited":true,
+        #                 "etf_mark":0,
+        #                 "symbol_partition":"ASSESS"
+        #             },
+        #             ...
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        result = {}
+        for i in range(0, len(data)):
+            fee = data[i]
+            marketId = self.safe_string(fee, 'symbol')
+            market = self.safe_market(marketId, None, '_')
+            symbol = market['symbol']
+            result[symbol] = {
+                'info': fee,
+                'symbol': symbol,
+                'maker': self.safe_number(fee, 'maker_fee_rate'),
+                'taker': self.safe_number(fee, 'taker_fee_rate'),
+                'percentage': True,
+                'tierBased': False,
+            }
+        return result
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()
@@ -2325,7 +2372,7 @@ class mexc(Exchange):
                 'datetime': self.iso8601(timestamp),
             })
         sorted = self.sort_by(rates, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
     def fetch_leverage_tiers(self, symbols=None, params={}):
         self.load_markets()

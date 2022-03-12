@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -77,6 +70,8 @@ class yobit(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': True,
                 'fetchTransactions': None,
                 'fetchWithdrawals': None,
                 'reduceMargin': False,
@@ -583,6 +578,49 @@ class yobit(Exchange):
                 return []
         return self.parse_trades(response[market['id']], market, since, limit)
 
+    def fetch_trading_fees(self, params={}):
+        self.load_markets()
+        response = self.publicGetInfo(params)
+        #
+        #     {
+        #         "server_time":1615856752,
+        #         "pairs":{
+        #             "ltc_btc":{
+        #                 "decimal_places":8,
+        #                 "min_price":0.00000001,
+        #                 "max_price":10000,
+        #                 "min_amount":0.0001,
+        #                 "min_total":0.0001,
+        #                 "hidden":0,
+        #                 "fee":0.2,
+        #                 "fee_buyer":0.2,
+        #                 "fee_seller":0.2
+        #             },
+        #             ...
+        #         },
+        #     }
+        #
+        pairs = self.safe_value(response, 'pairs')
+        marketIds = list(pairs.keys())
+        result = {}
+        for i in range(0, len(marketIds)):
+            marketId = marketIds[i]
+            pair = self.safe_value(pairs, marketId, {})
+            symbol = self.safe_symbol(marketId, None, '_')
+            takerString = self.safe_string(pair, 'fee_buyer')
+            makerString = self.safe_string(pair, 'fee_seller')
+            taker = self.parse_number(Precise.string_div(takerString, '100'))
+            maker = self.parse_number(Precise.string_div(makerString, '100'))
+            result[symbol] = {
+                'info': pair,
+                'symbol': symbol,
+                'taker': taker,
+                'maker': maker,
+                'percentage': True,
+                'tierBased': False,
+            }
+        return result
+
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
@@ -734,7 +772,7 @@ class yobit(Exchange):
                 'trade_id': id,
             }), market)
             result.append(trade)
-        return self.filter_by_symbol_since_limit(result, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(result, market['symbol'], since, limit)
 
     def create_deposit_address(self, code, params={}):
         request = {
@@ -851,7 +889,7 @@ class yobit(Exchange):
             # To cover points 1, 2, 3 and 4 combined self handler should work like self:
             #
             success = self.safe_value(response, 'success', False)
-            if isinstance(success, basestring):
+            if isinstance(success, str):
                 if (success == 'true') or (success == '1'):
                     success = True
                 else:

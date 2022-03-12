@@ -206,10 +206,10 @@ class Transpiler {
             // [ /([^\s]+)\s+\=\=\=?\s+false/g, 'isinstance($1, bool) and ($1 is False)' ],
             // [ /([^\s]+)\s+\!\=\=?\s+false/g, 'isinstance($1, bool) and ($1 is not False)' ],
 
-            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'string\'/g, 'isinstance($1[$2], basestring)' ],
-            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'string\'/g, 'not isinstance($1[$2], basestring)' ],
-            [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'string\'/g, 'isinstance($1, basestring)' ],
-            [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'string\'/g, 'not isinstance($1, basestring)' ],
+            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'string\'/g, 'isinstance($1[$2], str)' ],
+            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'string\'/g, 'not isinstance($1[$2], str)' ],
+            [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'string\'/g, 'isinstance($1, str)' ],
+            [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'string\'/g, 'not isinstance($1, str)' ],
 
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'object\'/g, 'isinstance($1[$2], dict)' ],
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'object\'/g, 'not isinstance($1[$2], dict)' ],
@@ -233,6 +233,7 @@ class Transpiler {
             [ /Precise\.stringNeg\s/g, 'Precise.string_neg' ],
             [ /Precise\.stringMod\s/g, 'Precise.string_mod' ],
             [ /Precise\.stringEquals\s/g, 'Precise.string_equals' ],
+            [ /Precise\.stringEq\s/g, 'Precise.string_eq' ],
             [ /Precise\.stringMin\s/g, 'Precise.string_min' ],
             [ /Precise\.stringMax\s/g, 'Precise.string_max' ],
             [ /Precise\.stringGt\s/g, 'Precise.string_gt' ],
@@ -575,16 +576,6 @@ class Transpiler {
             "# https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code",
             "",
             ... imports,
-            // 'from ' + importFrom + ' import ' + baseClass,
-            ... (bodyAsString.match (/basestring/) ? [
-                "",
-                "# -----------------------------------------------------------------------------",
-                "",
-                "try:",
-                "    basestring  # Python 3",
-                "except NameError:",
-                "    basestring = str  # Python 2",
-            ] : [])
         ]
     }
 
@@ -822,7 +813,7 @@ class Transpiler {
 
     transpilePython3ToPython2 (py) {
 
-        // remove await from Python 2 body (transpile Python 3 → Python 2)
+        // remove await from Python sync body (transpile Python async → Python sync)
         let python2Body = this.regexAll (py, this.getPython2Regexes ())
 
         return python2Body
@@ -899,7 +890,7 @@ class Transpiler {
         // transpile JS → Python 3
         let python3Body = this.transpileJavaScriptToPython3 (args)
 
-        // remove await from Python 2 body (transpile Python 3 → Python 2)
+        // remove await from Python sync body (transpile Python async → Python sync)
         let python2Body = this.transpilePython3ToPython2 (python3Body)
 
         // transpile JS → Async PHP
@@ -1051,12 +1042,12 @@ class Transpiler {
             // compile the final Python code for the method signature
             let pythonString = 'def ' + method + '(self' + (pythonArgs.length ? ', ' + pythonArgs : '') + '):'
 
-            // compile signature + body for Python 2
+            // compile signature + body for Python sync
             python2.push ('');
             python2.push ('    ' + pythonString);
             python2.push (python2Body);
 
-            // compile signature + body for Python 3
+            // compile signature + body for Python async
             python3.push ('');
             python3.push ('    ' + keyword + pythonString);
             python3.push (python3Body);
@@ -1075,7 +1066,7 @@ class Transpiler {
 
         return {
 
-            // altogether in PHP, async PHP, Python 2 and 3 (async)
+            // altogether in PHP, async PHP, Python sync and async
             python2:      this.createPythonClass (className, baseClass, python2,  methodNames),
             python3:      this.createPythonClass (className, baseClass, python3,  methodNames, true),
             php:          this.createPHPClass    (className, baseClass, php,      methodNames),
@@ -1601,10 +1592,6 @@ class Transpiler {
 
         const pythonHeader = [
             'import numbers  # noqa: E402',
-            'try:',
-            '    basestring  # basestring was removed in Python 3',
-            'except NameError:',
-            '    basestring = str',
             '',
             '',
         ].join('\n')

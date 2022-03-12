@@ -217,6 +217,7 @@ class cryptocom extends Exchange {
             'options' => array(
                 'defaultType' => 'spot',
                 'accountsByType' => array(
+                    'funding' => 'SPOT',
                     'spot' => 'SPOT',
                     'derivatives' => 'DERIVATIVES',
                     'swap' => 'DERIVATIVES',
