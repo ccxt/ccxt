@@ -606,7 +606,7 @@ module.exports = class okx extends Exchange {
                 'fetchOHLCV': {
                     // 'type': 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
                 },
-                'createOrder': 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder'
+                'createOrder': 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder' or 'privatePostTradeOrderAlgo'
                 'createMarketBuyOrderRequiresPrice': false,
                 'fetchMarkets': [ 'spot', 'futures', 'swap', 'option' ], // spot, futures, swap, option
                 'defaultType': 'spot', // 'funding', 'spot', 'margin', 'futures', 'swap', 'option'
@@ -1783,7 +1783,7 @@ module.exports = class okx extends Exchange {
             //
             'side': side,
             // 'posSide': 'long', // long, short, // required in the long/short mode, and can only be long or short
-            'ordType': type, // market, limit, post_only, fok, ioc
+            'ordType': type, // market, limit, post_only, fok, ioc, (conditional for stop loss and take profit orders)
             //
             //     for SPOT/MARGIN bought and sold at a limit price, sz refers to the amount of trading currency
             //     for SPOT/MARGIN bought at a market price, sz refers to the amount of quoted currency
@@ -1793,6 +1793,12 @@ module.exports = class okx extends Exchange {
             // 'sz': this.amountToPrecision (symbol, amount),
             // 'px': this.priceToPrecision (symbol, price), // limit orders only
             // 'reduceOnly': false, // MARGIN orders only
+            // 'tpTriggerPx': 10, // Conditional order take profit trigger price
+            // 'tpOrdPx': 10, // Conditional order take profit order price -1, take-profit will be executed at the market price.
+            // 'tpTriggerPxType': 'last', // Conditional default is last, mark or index
+            // 'slTriggerPx': 10, // Conditional order stop loss trigger price
+            // 'slOrdPx': 10, // Conditional order stop loss order price, -1 stop-loss will be executed at the market price.
+            // 'slTriggerPxType': 'last', // Conditional default is last, mark or index
         };
         const tdMode = this.safeStringLower (params, 'tdMode');
         if (market['spot']) {
@@ -1855,8 +1861,22 @@ module.exports = class okx extends Exchange {
             request['px'] = this.priceToPrecision (symbol, price);
         }
         let extendedRequest = undefined;
-        const defaultMethod = this.safeString (this.options, 'createOrder', 'privatePostTradeBatchOrders'); // or privatePostTradeOrder
-        if (defaultMethod === 'privatePostTradeOrder') {
+        let defaultMethod = this.safeString (this.options, 'createOrder', 'privatePostTradeBatchOrders'); // or privatePostTradeOrder or privatePostTradeOrderAlgo
+        const stopPrice = this.safeNumber2 (params, 'slOrdPx', 'stopPrice');
+        const stopTrigger = this.safeNumber (params, 'slTriggerPx');
+        const takeProfitPrice = this.safeNumber (params, 'tpOrdPx');
+        const takeProfitTrigger = this.safeNumber (params, 'tpTriggerPx');
+        params = this.omit (params, [ 'slOrdPx', 'stopPrice', 'tpOrdPx', 'tpTriggerPx', 'slTriggerPx' ]);
+        if (stopPrice || stopTrigger) {
+            defaultMethod = 'privatePostTradeOrderAlgo';
+            request['slOrdPx'] = this.priceToPrecision (symbol, stopPrice);
+            request['slTriggerPx'] = this.priceToPrecision (symbol, stopTrigger);
+        } else if (takeProfitPrice || takeProfitTrigger) {
+            defaultMethod = 'privatePostTradeOrderAlgo';
+            request['tpOrdPx'] = this.priceToPrecision (symbol, takeProfitPrice);
+            request['tpTriggerPx'] = this.priceToPrecision (symbol, takeProfitTrigger);
+        }
+        if (defaultMethod === 'privatePostTradeOrder' || defaultMethod === 'privatePostTradeOrderAlgo') {
             extendedRequest = this.extend (request, params);
         } else if (defaultMethod === 'privatePostTradeBatchOrders') {
             // keep the request body the same
@@ -1880,6 +1900,20 @@ module.exports = class okx extends Exchange {
         //                 "sMsg": ""
         //             }
         //         ]
+        //     }
+        //
+        // Conditional Order
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "algoId": "422774258702659590",
+        //                 "sCode": "0",
+        //                 "sMsg": ""
+        //             }
+        //         ],
+        //         "msg": ""
         //     }
         //
         const data = this.safeValue (response, 'data', []);
