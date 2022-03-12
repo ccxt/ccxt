@@ -2913,7 +2913,7 @@ module.exports = class gateio extends Exchange {
             'side': side,
             'price': this.parseNumber (price),
             'stopPrice': this.safeNumber (trigger, 'price'),
-            'average': this.safeNumber (order, 'fill_price'),
+            'average': this.safeNumber (order, 'price'),
             'amount': this.parseNumber (Precise.stringAbs (amount)),
             'cost': cost,
             'filled': this.parseNumber (filled),
