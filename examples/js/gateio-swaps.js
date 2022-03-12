@@ -4,7 +4,7 @@ const exchange = new ccxt.gateio ({
     'apiKey': 'YOUR_API_KEY',
     'secret': 'YOUR_SECRET_KEY',
     'options': {
-        'defaultType': 'future',
+        'defaultType': 'swap',
     },
 })
 
@@ -15,7 +15,7 @@ const exchange = new ccxt.gateio ({
 
     exchange.verbose = true // uncomment for debugging purposes if necessary
 
-    // Example 1: Creating and canceling a linear future (limit) order
+    // Example 1: Creating and canceling a linear swap (limit) order
     try {
         const symbol = 'LTC/USDT:USDT'
         const type = 'limit'
@@ -38,7 +38,7 @@ const exchange = new ccxt.gateio ({
         console.log (e.constructor.name, e.message)
     }
 
-    // Example 2: Creating and canceling a inverse future (stop-limit) order with leverage
+    // Example 2: Creating and canceling a linear swap (stop-limit) order with leverage
     try {
         const symbol = 'LTC/USDT:USDT'
         const type = 'limit'
