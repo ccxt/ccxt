@@ -252,7 +252,6 @@ module.exports = class bkex extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             result.push ({
                 'id': id,
-                'marketId': baseId + '_' + quoteId,
                 'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
