@@ -12,7 +12,7 @@ const Precise = require ('./base/Precise');
 module.exports = class interactivebrokers extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'interactivebrokers2',
+            'id': 'interactivebrokers',
             'name': 'Interactive Brokers ',
             'countries': [ 'US' ], // USA
             'rateLimit': 100,
@@ -149,27 +149,27 @@ module.exports = class interactivebrokers extends Exchange {
                         'ccp/positions': 1,
                         'ccp/orders': 1,
                         'ccp/trades': 1,
-                        'iserver/account/trades': 1,
-                        'iserver/accounts': 1,
-                        'iserver/account/:accountId/alerts': 1,
-                        'iserver/account/alert/:id': 1,
-                        'iserver/account/mta': 1,
-                        'iserver/account/orders': 1,
-                        'iserver/account/order/status/{orderId}': 1,
-                        'iserver/marketdata/snapshot': 1,
-                        'iserver/marketdata/{conid}/unsubscribe': 1,
-                        'iserver/marketdata/unsubscribeall': 1,
-                        'iserver/marketdata/history': 1,
-                        'iserver/contract/{conid}/info': 1,
-                        'iserver/secdef/strikes': 1,
-                        'iserver/secdef/info': 1,
-                        'iserver/contract/{conid}/algos': 1,
-                        'iserver/contract/{conid}/info-and-rules': 1,
-                        'iserver/scanner/params': 1,
-                        'iserver/account/pnl/partitioned': 1,
-                        'trsrv/secdef/schedule': 1,
-                        'trsrv/futures': 1,
-                        'trsrv/stocks': 1,
+                        'iserver/account/trades': 1, // auth issue
+                        'iserver/accounts': 1, // auth issue
+                        'iserver/account/:accountId/alerts': 1, // auth issue
+                        'iserver/account/alert/:id': 1, // auth issue
+                        'iserver/account/mta': 1, // auth issue
+                        'iserver/account/orders': 1, // auth issue
+                        'iserver/account/order/status/{orderId}': 1, // auth issue
+                        'iserver/marketdata/snapshot': 1, // auth issue
+                        'iserver/marketdata/{conid}/unsubscribe': 1, // auth issue
+                        'iserver/marketdata/unsubscribeall': 1, // auth issue
+                        'iserver/marketdata/history': 1, // auth issue
+                        'iserver/contract/{conid}/info': 1, // auth issue
+                        'iserver/secdef/strikes': 1, // auth issue
+                        'iserver/secdef/info': 1, // auth issue
+                        'iserver/contract/{conid}/algos': 1, // auth issue
+                        'iserver/contract/{conid}/info-and-rules': 1, // auth issue
+                        'iserver/scanner/params': 1, // auth issue
+                        'iserver/account/pnl/partitioned': 1, // auth issue
+                        'trsrv/secdef/schedule': 1, // trading schedule up to a month for the requested contract
+                        'trsrv/futures': 1, // a list of non-expired future contracts (conid) for given symbol(s)
+                        'trsrv/stocks': 1, // an object contains all stock contracts (conid) for given symbol(s)
                         'portfolio/accounts': 1,
                         'portfolio/subaccounts': 1,
                         'portfolio/{accountId}/meta': 1,
@@ -184,7 +184,7 @@ module.exports = class interactivebrokers extends Exchange {
                     },
                     'post': {
                         'ws': 1,
-                        'tickle': 1,
+                        'tickle': 1, // documented: validates the login
                         'logout': 1,
                         'ccp/auth/init': 1,
                         'fyi/settings/{typecode}': 1,
