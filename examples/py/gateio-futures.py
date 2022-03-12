@@ -25,7 +25,6 @@ markets = exchange.load_markets()
 # exchange.verbose = True  # uncomment for debugging purposes if necessary
 
 # Example 1: Creating a future (market) order
-
 try:
     # find a valid future
     futures = []
