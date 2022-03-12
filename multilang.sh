@@ -24,9 +24,9 @@ phpCli="${cliFolder}/php/cli.php"
 function display () {
     # Displays output in a less window or just to stdout
     if [ -z ${useLess+x} ]; then
-        echo "$1"
+        tee
     else
-        echo "$1" | less -S -R
+        less -S -R
     fi
 }
 
@@ -63,9 +63,7 @@ function writeOutput() {
   local interpretter="$1"
   local path="$2"
   local args="$3"
-  $interpretter "$path" $args | removeSpecial "$rawOutput" | condense "$noSpecial" | removeAndColorLines $color
-  ((color++))
-  return $color
+  $interpretter "$path" $args | removeSpecial | condense | removeAndColorLines $color
 }
 
 # Loop through command line arguments
@@ -81,16 +79,12 @@ while getopts 'hc:sla:' flag; do
 done
 
 jsOutput=$(writeOutput node $jsCli "$args")
-color=$?
+((color++))
 
 pythonOutput=$(writeOutput python3 $pythonCli "$args")
-color=$?
+((color++))
 
 phpOutput=$(writeOutput php $phpCli "$args")
-color=$?
+((color++))
 
-
-output=$(paste <(echo "$jsOutput") <(echo "$phpOutput") <(echo "$pythonOutput") | column -s $'\t' -t)
-display "$output"
-
-exit 0
+paste <(echo "$jsOutput") <(echo "$phpOutput") <(echo "$pythonOutput") | column -s $'\t' -t | display

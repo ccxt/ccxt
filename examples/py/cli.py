@@ -168,6 +168,7 @@ if argv.method:
     method = getattr(exchange, argv.method)
     # if it is a method, call it
     if callable(method):
+        print(f"{exchange}.{argv.exchange_id}({','.join(args)})")
         result = method(*args)
     else:  # otherwise it's a property, print it
         result = method
