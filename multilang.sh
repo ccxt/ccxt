@@ -6,7 +6,7 @@ function usage() {
     echo "	-l      View in less editor"
     echo "	-s      Remove special characters"
     echo "	-h      Display help"
-    echo "	-a      exchange method and method arguments"
+    echo "	-a      exchange, method, and method arguments"
 }
 
 if [[ $# < 1 ]]; then
