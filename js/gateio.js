@@ -586,7 +586,8 @@ module.exports = class gateio extends Exchange {
         if (type === 'option') {
             result = await this.fetchOptionMarkets (query);
         }
-        if (result.length === 0) {
+        const resultLength = result.length;
+        if (resultLength === 0) {
             throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to " + "'spot', 'margin', 'swap', 'future' or 'option'"); // eslint-disable-line quotes
         }
         return result;
