@@ -5,7 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const Precise = require ('./base/Precise');
 const { TICK_SIZE } = require ('./base/functions/number');
-const { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, AccountNotEnabled } = require ('./base/errors');
+const { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled } = require ('./base/errors');
 
 module.exports = class gateio extends Exchange {
     describe () {
@@ -22,8 +22,30 @@ module.exports = class gateio extends Exchange {
                 'doc': 'https://www.gate.io/docs/apiv4/en/index.html',
                 'www': 'https://gate.io/',
                 'api': {
-                    'public': 'https://api.gateio.ws/api/v4',
-                    'private': 'https://api.gateio.ws/api/v4',
+                    'public': {
+                        'futures': 'https://api.gateio.ws/api/v4',
+                        'margin': 'https://api.gateio.ws/api/v4',
+                        'delivery': 'https://api.gateio.ws/api/v4',
+                        'spot': 'https://api.gateio.ws/api/v4',
+                        'options': 'https://api.gateio.ws/api/v4',
+                    },
+                    'private': {
+                        'futures': 'https://api.gateio.ws/api/v4',
+                        'margin': 'https://api.gateio.ws/api/v4',
+                        'delivery': 'https://api.gateio.ws/api/v4',
+                        'spot': 'https://api.gateio.ws/api/v4',
+                        'options': 'https://api.gateio.ws/api/v4',
+                    },
+                },
+                'test': {
+                    'public': {
+                        'futures': 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'delivery': 'https://fx-api-testnet.gateio.ws/api/v4',
+                    },
+                    'private': {
+                        'futures': 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'delivery': 'https://fx-api-testnet.gateio.ws/api/v4',
+                    },
                 },
                 'referral': {
                     'url': 'https://www.gate.io/ref/2436035',
@@ -1056,6 +1078,11 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        // sandbox/testnet only supports future markets
+        const apiBackup = this.safeString (this.urls, 'apiBackup');
+        if (apiBackup !== undefined) {
+            return undefined;
+        }
         const response = await this.publicSpotGetCurrencies (params);
         //
         //     {
@@ -3697,7 +3724,11 @@ module.exports = class gateio extends Exchange {
         path = this.implodeParams (path, params);
         const endPart = (path === '') ? '' : ('/' + path);
         const entirePath = '/' + type + endPart;
-        let url = this.urls['api'][authentication] + entirePath;
+        let url = this.urls['api'][authentication][type];
+        if (url === undefined) {
+            throw new NotSupported (this.id + ' does not have a testnet for the ' + type + ' market type.');
+        }
+        url += entirePath;
         if (authentication === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
