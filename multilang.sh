@@ -21,44 +21,46 @@ jsCli="${cliFolder}/js/cli.js"
 pythonCli="${cliFolder}/py/cli.py"
 phpCli="${cliFolder}/php/cli.php"
 
+useLess=false
+removeSpecial=false
+numLines=0
+
 function display () {
     # Displays output in a less window or just to stdout
-    if [ -z ${useLess+x} ]; then
-        tee
-    else
+    if ${useLess}; then
         less -S -R
+    else
+        tee
     fi
 }
 
 function removeSpecial {
     # Removes special characters
-    if [ -z ${removeSpecial+x} ]; then # if removeSpecial is unset
-        tee
-    else
+    if ${removeSpecial}; then
         sed -e 's/\[[0-9]\{1,2\}m//g'
+    else
+        tee
     fi
 }
 
 function condense {
     # Trims output down to a set number of lines on the top and the bottom
-    if [ -z ${numLines+x} ]; then
-        tee
-    else
+    if [ ${numLines} -gt 0 ]; then
         awk 'NF' | awk -v head=${numLines} -v tail=${numLines} 'FNR<=head
             {lines[FNR]=$0}
             END{
                 print "..."
                 for (i=FNR-tail+1; i<=FNR; i++) print lines[i]
             }'
+    else
+        tee
     fi
 }
 
 function removeAndColorLines {
-  local color=$1
   sed -E -e '/.*(iteration|Array|^202.*|^$)/d' -e "s/(.*)/$(tput setaf $color)\1$(tput sgr0)/"
 }
 
-color=3
 function writeOutput() {
   local interpretter="$1"
   local path="$2"
@@ -71,13 +73,14 @@ while getopts 'hc:sla:' flag; do
     case "${flag}" in
         h) usage ;;
         c) numLines="${OPTARG}" ;;
-        s) removeSpecial=True ;;
-        l) useLess=True ;;
+        s) removeSpecial=true ;;
+        l) useLess=true ;;
         a) args="${OPTARG}" ;;
         *) usage ;;
     esac
 done
 
+color=3
 jsOutput=$(writeOutput node $jsCli "$args")
 ((color++))
 
