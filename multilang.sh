@@ -1,3 +1,20 @@
+#!/usr/bin/env bash
+
+function usage() {
+    echo "usage:"
+    echo "	-c      Number of lines to trim off the top and bottom of output"
+    echo "	-l      View in less editor"
+    echo "	-s      Remove special characters"
+    echo "	-h      Display help"
+    echo "	-a      exchange method and method arguments"
+}
+
+if [[ $# < 1 ]]; then
+  usage
+  exit 1
+fi
+
+
 cliFolder='./examples'
 
 jsCli="${cliFolder}/js/cli.js"
@@ -36,38 +53,33 @@ function condense () {
     fi
 }
 
-function help() {
-    echo "usage:"
-    echo "	-c      Number of lines to trim off the top and bottom of output"
-    echo "	-l      View in less editor"
-    echo "	-s      Remove special characters"
-    echo "	-h      Display help"
-    echo "	-a      exchange method and method arguments"
-}
-
 # Loop through command line arguments
 while getopts 'hc:sla:' flag; do
     case "${flag}" in
-        h) help ;;
+        h) usage ;;
         c) num_lines="${OPTARG}" ;;
         s) removeSpecial=True ;;
         l) use_less=True ;;
         a) args="${OPTARG}" ;;
-        *) help ;;
+        *) usage ;;
     esac
 done
 
-jsOutput=$(node $jsCli ${args})
-noSpecialJs=$(removeSpecial "$jsOutput")
-jsOutput=$(condense "$noSpecialJs")
+function writeOutput() {
+  local interpretter="$1"
+  local path="$2"
+  local args="$3"
+  local rawOutput=$($interpretter "$path" $args)
+  local noSpecial=$(removeSpecial "$rawOutput")
+  local condensed=$(condense "$noSpecial")
+  echo "$condensed"
+}
 
-pythonOutput=$(python3 $pythonCli ${args})
-noSpecialPython=$(removeSpecial "$pythonOutput")
-pythonOutput=$(condense "$noSpecialPython")
+jsOutput=$(writeOutput node $jsCli "$args")
 
-phpOutput=$(php $phpCli ${args})
-noSpecialPhp=$(removeSpecial "$phpOutput")
-phpOutput=$(condense "$phpOutput")
+pythonOutput=$(writeOutput python3 $pythonCli "$args")
+
+phpOutput=$(writeOutput php $phpCli "$args")
 
 output=$(paste <(echo "$jsOutput") <(echo "$phpOutput") <(echo "$pythonOutput") | column -s $'\t' -t)
 display "$output"
