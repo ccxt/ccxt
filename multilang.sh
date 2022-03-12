@@ -30,21 +30,21 @@ function display () {
     fi
 }
 
-function removeSpecial () {
+function removeSpecial {
     # Removes special characters
     if [ -z ${removeSpecial+x} ]; then # if removeSpecial is unset
-        echo "$1"
+        tee
     else
-        echo "$1" | sed -e 's/\[[0-9]\{1,2\}m//g'
+        sed -e 's/\[[0-9]\{1,2\}m//g'
     fi
 }
 
-function condense () {
+function condense {
     # Trims output down to a set number of lines on the top and the bottom
     if [ -z ${numLines+x} ]; then
-        echo "$1"
+        tee
     else
-        echo "$1" | awk 'NF' | awk -v head=${numLines} -v tail=${numLines} 'FNR<=head
+        awk 'NF' | awk -v head=${numLines} -v tail=${numLines} 'FNR<=head
             {lines[FNR]=$0}
             END{
                 print "..."
@@ -53,19 +53,17 @@ function condense () {
     fi
 }
 
-function removeAndColorLines() {
+function removeAndColorLines {
   local color=$2
   sed -E -e '/.*(iteration|Array|^202.*|^$)/d' -e "s/(.*)/$(tput setaf $color)\1$(tput sgr0)/"
 }
 
-color=2
+color=3
 function writeOutput() {
   local interpretter="$1"
   local path="$2"
   local args="$3"
-  local rawOutput=$($interpretter "$path" $args)
-  local noSpecial=$(removeSpecial "$rawOutput")
-  condense "$noSpecial" | removeAndColorLines "$condensed" $color
+  $interpretter "$path" $args | removeSpecial "$rawOutput" | condense "$noSpecial" | removeAndColorLines "$condensed" $color
   ((color++))
   return $color
 }
