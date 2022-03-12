@@ -23,7 +23,7 @@ phpCli="${cliFolder}/php/cli.php"
 
 function display () {
     # Displays output in a less window or just to stdout
-    if [ -z ${use_less+x} ]; then
+    if [ -z ${useLess+x} ]; then
         echo "$1"
     else
         echo "$1" | less -S -R
@@ -41,10 +41,10 @@ function removeSpecial () {
 
 function condense () {
     # Trims output down to a set number of lines on the top and the bottom
-    if [ -z ${num_lines+x} ]; then
+    if [ -z ${numLines+x} ]; then
         echo "$1"
     else
-        echo "$1" | awk 'NF' | awk -v head=${num_lines} -v tail=${num_lines} 'FNR<=head
+        echo "$1" | awk 'NF' | awk -v head=${numLines} -v tail=${numLines} 'FNR<=head
             {lines[FNR]=$0}
             END{
                 print "..."
@@ -74,9 +74,9 @@ function writeOutput() {
 while getopts 'hc:sla:' flag; do
     case "${flag}" in
         h) usage ;;
-        c) num_lines="${OPTARG}" ;;
+        c) numLines="${OPTARG}" ;;
         s) removeSpecial=True ;;
-        l) use_less=True ;;
+        l) useLess=True ;;
         a) args="${OPTARG}" ;;
         *) usage ;;
     esac
