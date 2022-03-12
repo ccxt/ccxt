@@ -858,16 +858,20 @@ module.exports = class ftx extends Exchange {
         };
         const price = this.safeString (params, 'price');
         params = this.omit (params, 'price');
-        // max 1501 candles, including the current candle when since is not specified
-        limit = (limit === undefined) ? 1501 : limit;
-        if (since === undefined) {
-            request['end_time'] = this.seconds ();
+        if (limit !== undefined) {
             request['limit'] = limit;
-            request['start_time'] = request['end_time'] - limit * this.parseTimeframe (timeframe);
-        } else {
+        }
+        if (since !== undefined) {
+            // This exchange always returns candles amount (1499 default, or according to 'limit' argment) counting
+            // from (independent the fact if you provide 'start_time' argument or not). So, if we want the exchange
+            // to return from 'start_time' argument realistically, we have to provide the appropriate 'end_time',
+            // which must not be far than 1499[or limit] candles equivalent.
+            let selectedAmount = (limit !== undefined) ? limit : 1499;
+            selectedAmount = Math.min (selectedAmount, 5000); // maximum allowed currently is 5000
             request['start_time'] = parseInt (since / 1000);
-            request['limit'] = limit;
-            request['end_time'] = this.sum (request['start_time'], limit * this.parseTimeframe (timeframe));
+            request['end_time'] = this.sum (request['start_time'], selectedAmount * this.parseTimeframe (timeframe));
+            // we need to limit 'end_time' to avoid the number to be too far in future
+            request['end_time'] = Math.min (request['end_time'], this.seconds ());
         }
         let method = 'publicGetMarketsMarketNameCandles';
         if (price === 'index') {
