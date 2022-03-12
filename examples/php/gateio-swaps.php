@@ -6,11 +6,11 @@ include $root . '/ccxt.php';
 
 date_default_timezone_set ('UTC');
 
-$exchange = new \ccxt\huobipro (array (
+$exchange = new \ccxt\gateio (array (
     'apiKey' => 'YOUR_API_KEY', // ←------------ replace with your keys
     'secret' => 'YOUR_SECRET_KEY',
     'options' => array(
-        'defaultType' => 'future',
+        'defaultType' => 'swap',
     ),
     // 'verbose' => true, // uncomment if debug output is needed
 ));
@@ -24,13 +24,8 @@ try {
     $amount = 1;
     $price = 55;
 
-    $params = array (
-        'offset' => $offset,
-        'lever_rate' => $leverage,
-    );
-
     // placing an order
-    $order = $exchange->create_order ($symbol, $order_type, $side, $amount, $price, $params);
+    $order = $exchange->create_order ($symbol, $type, $side, $amount, $price);
     var_dump ($order);
 
     // listing open orders
