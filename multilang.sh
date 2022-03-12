@@ -25,7 +25,7 @@ verbose=false
 removeSpecial=false
 numLines=0
 
-function display() {
+function display {
   # Displays output in a less window or just to stdout
   if ${useLess}; then
     less -S -R
@@ -120,7 +120,7 @@ jsOutput=$(padOutput "$jsOutput" $length)
 pythonOutput=$(padOutput "$pythonOutput" $length)
 
 if ${verbose}; then
-  echo "$jsOutput $phpOutput $pythonOutput"
+  echo "$jsOutput $phpOutput $pythonOutput" | display
 else
   paste <(echo "$jsOutput") <(echo "$phpOutput") <(echo "$pythonOutput") | column -s $'\t' -t | condense $pythonLength | display
 fi
