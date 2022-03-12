@@ -1173,6 +1173,7 @@ class ftx extends Exchange {
         $request = array();
         if ($symbol !== null) {
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $request['future'] = $market['id'];
         }
         if ($since !== null) {

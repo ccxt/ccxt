@@ -66,7 +66,7 @@ module.exports = class kucoin extends Exchange {
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
-                'fetchTradingFees': undefined,
+                'fetchTradingFees': false,
                 'fetchWithdrawals': true,
                 'transfer': true,
                 'withdraw': true,
@@ -1682,6 +1682,8 @@ module.exports = class kucoin extends Exchange {
             'symbol': this.safeSymbol (marketId, market),
             'maker': this.safeNumber (first, 'makerFeeRate'),
             'taker': this.safeNumber (first, 'takerFeeRate'),
+            'percentage': true,
+            'tierBased': true,
         };
     }
 

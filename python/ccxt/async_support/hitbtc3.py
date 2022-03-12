@@ -296,7 +296,9 @@ class hitbtc3(Exchange):
                 },
                 'accountsByType': {
                     'spot': 'spot',
+                    'funding': 'wallet',
                     'wallet': 'wallet',
+                    'future': 'derivatives',
                     'derivatives': 'derivatives',
                 },
             },
@@ -1459,6 +1461,7 @@ class hitbtc3(Exchange):
         }
         if symbol is not None:
             market = self.market(symbol)
+            symbol = market['symbol']
             request['symbols'] = market['id']
         if since is not None:
             request['from'] = since

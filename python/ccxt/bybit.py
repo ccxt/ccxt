@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -2738,7 +2731,7 @@ class bybit(Exchange):
             response = self.v2PrivateGetPositionList(self.extend(request, params))
         elif type == 'inverseFuture':
             response = self.futuresPrivateGetPositionList(self.extend(request, params))
-        if (isinstance(response, basestring)) and self.is_json_encoded_object(response):
+        if (isinstance(response, str)) and self.is_json_encoded_object(response):
             response = json.loads(response)
         #
         #     {

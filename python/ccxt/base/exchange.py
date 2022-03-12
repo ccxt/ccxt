@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.75.14'
+__version__ = '1.75.87'
 
 # -----------------------------------------------------------------------------
 
@@ -126,6 +126,8 @@ class Exchange(object):
     aiohttp_trust_env = False
     session = None  # Session () by default
     verify = True  # SSL verification
+    validateServerSsl = True
+    validateClientSsl = False
     logger = None  # logging.getLogger(__name__) by default
     userAgent = None
     userAgents = {
@@ -487,6 +489,7 @@ class Exchange(object):
 
         def partialer():
             outer_kwargs = {'path': path, 'api': api_argument, 'method': uppercase_method, 'config': config}
+
             @functools.wraps(entry)
             def inner(_self, params=None, context=None):
                 """
@@ -638,7 +641,7 @@ class Exchange(object):
                 headers=request_headers,
                 timeout=int(self.timeout / 1000),
                 proxies=self.proxies,
-                verify=self.verify
+                verify=self.verify and self.validateServerSsl
             )
             # does not try to detect encoding
             response.encoding = 'utf-8'

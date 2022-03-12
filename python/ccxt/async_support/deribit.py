@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1765,7 +1758,7 @@ class deribit(Exchange):
         code = None
         if symbols is None:
             code = self.code_from_options('fetchPositions', params)
-        elif isinstance(symbols, basestring):
+        elif isinstance(symbols, str):
             code = symbols
         else:
             if isinstance(symbols, list):

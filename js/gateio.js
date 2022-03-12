@@ -5,7 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const Precise = require ('./base/Precise');
 const { TICK_SIZE } = require ('./base/functions/number');
-const { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported } = require ('./base/errors');
+const { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled } = require ('./base/errors');
 
 module.exports = class gateio extends Exchange {
     describe () {
@@ -369,9 +369,9 @@ module.exports = class gateio extends Exchange {
                 'apiKey': true,
                 'secret': true,
             },
-            // 'headers': {
-            //     'X-Gate-Channel-Id': 'ccxt',
-            // },
+            'headers': {
+                'X-Gate-Channel-Id': 'ccxt',
+            },
             'options': {
                 'createOrder': {
                     'expiration': 86400, // for conditional orders
@@ -382,6 +382,7 @@ module.exports = class gateio extends Exchange {
                     'BEP20': 'BSC',
                 },
                 'accountsByType': {
+                    'funding': 'spot',
                     'spot': 'spot',
                     'margin': 'margin',
                     'future': 'futures',
@@ -560,7 +561,7 @@ module.exports = class gateio extends Exchange {
                     'MIXED_ACCOUNT_TYPE': InvalidOrder,
                     'AUTO_BORROW_TOO_MUCH': ExchangeError,
                     'TRADE_RESTRICTED': InsufficientFunds,
-                    'USER_NOT_FOUND': ExchangeError,
+                    'USER_NOT_FOUND': AccountNotEnabled,
                     'CONTRACT_NO_COUNTER': ExchangeError,
                     'CONTRACT_NOT_FOUND': BadSymbol,
                     'RISK_LIMIT_EXCEEDED': ExchangeError,
@@ -1054,15 +1055,17 @@ module.exports = class gateio extends Exchange {
     }
 
     prepareRequest (market) {
-        if (market['contract']) {
-            return {
-                'contract': market['id'],
-                'settle': market['settleId'],
-            };
-        } else {
-            return {
-                'currency_pair': market['id'],
-            };
+        if (market !== undefined) {
+            if (market['contract']) {
+                return {
+                    'contract': market['id'],
+                    'settle': market['settleId'],
+                };
+            } else {
+                return {
+                    'currency_pair': market['id'],
+                };
+            }
         }
     }
 
@@ -1499,41 +1502,83 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires a symbol argument');
-        }
         await this.loadMarkets ();
         // let defaultType = 'future';
-        const market = this.market (symbol);
-        const request = this.prepareRequest (market);
+        let market = undefined;
+        let request = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            symbol = market['symbol'];
+            request = this.prepareRequest (market);
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchFundingHistory', market, params);
+        if (market === undefined) {
+            const defaultSettle = (type === 'swap') ? 'usdt' : 'btc';
+            const settle = this.safeString (params, 'settle', defaultSettle);
+            request['settle'] = settle;
+            params = this.omit (params, 'settle');
+        }
         request['type'] = 'fund';  // 'dnw' 'pnl' 'fee' 'refr' 'fund' 'point_dnw' 'point_fee' 'point_refr'
         if (since !== undefined) {
-            request['from'] = since;
+            request['from'] = since / 1000;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const method = this.getSupportedMapping (market['type'], {
+        const method = this.getSupportedMapping (type, {
             'swap': 'privateFuturesGetSettleAccountBook',
             'future': 'privateDeliveryGetSettleAccountBook',
         });
         const response = await this[method] (this.extend (request, params));
+        //
+        //    [
+        //        {
+        //            "time": 1646899200,
+        //            "change": "-0.027722",
+        //            "balance": "11.653120591841",
+        //            "text": "XRP_USDT",
+        //            "type": "fund"
+        //        },
+        //        ...
+        //    ]
+        //
+        return this.parseFundingHistories (response, symbol, since, limit);
+    }
+
+    parseFundingHistories (response, symbol, since, limit) {
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
-            const timestamp = this.safeTimestamp (entry, 'time');
-            result.push ({
-                'info': entry,
-                'symbol': symbol,
-                'code': this.safeCurrencyCode (this.safeString (entry, 'text')),
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-                'id': undefined,
-                'amount': this.safeNumber (entry, 'change'),
-            });
+            const funding = this.parseFundingHistory (entry);
+            result.push (funding);
         }
         const sorted = this.sortBy (result, 'timestamp');
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+    }
+
+    parseFundingHistory (info, market = undefined) {
+        //
+        //    {
+        //        "time": 1646899200,
+        //        "change": "-0.027722",
+        //        "balance": "11.653120591841",
+        //        "text": "XRP_USDT",
+        //        "type": "fund"
+        //    }
+        //
+        const timestamp = this.safeTimestamp (info, 'time');
+        const marketId = this.safeString (info, 'text');
+        market = this.safeMarket (marketId, market);
+        return {
+            'info': info,
+            'symbol': this.safeString (market, 'symbol'),
+            'code': this.safeString (market, 'settle'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'id': undefined,
+            'amount': this.safeNumber (info, 'change'),
+        };
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -1962,7 +2007,7 @@ module.exports = class gateio extends Exchange {
             });
         }
         const sorted = this.sortBy (rates, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
     }
 
     async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -3239,10 +3284,14 @@ module.exports = class gateio extends Exchange {
         //
         return {
             'info': response,
-            'from': fromId,
-            'to': toId,
+            'id': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': code,
             'amount': truncated,
-            'code': code,
+            'fromAccount': fromId,
+            'toAccount': toId,
+            'status': undefined,
         };
     }
 
@@ -3370,7 +3419,7 @@ module.exports = class gateio extends Exchange {
             'notional': this.parseNumber (notional),
             'leverage': this.safeNumber (position, 'leverage'),
             'unrealizedPnl': this.parseNumber (unrealisedPnl),
-            'contracts': this.parseNumber (size),
+            'contracts': this.parseNumber (Precise.stringAbs (size)),
             'contractSize': this.safeValue (market, 'contractSize'),
             //     realisedPnl: position['realised_pnl'],
             'marginRatio': undefined,

@@ -270,6 +270,8 @@ module.exports = class Exchange {
 
         // do not delete this line, it is needed for users to be able to define their own fetchImplementation
         this.fetchImplementation = defaultFetch
+        this.validateServerSsl = true
+        this.validateClientSsl = false
 
         this.timeout       = 10000 // milliseconds
         this.verbose       = false
@@ -334,6 +336,10 @@ module.exports = class Exchange {
             'keepAlive': true,
         }
 
+        if (!this.validateServerSsl) {
+            agentOptions['rejectUnauthorized'] = false;
+        }
+    
         if (!this.httpAgent && defaultFetch.http && isNode) {
             this.httpAgent = new defaultFetch.http.Agent (agentOptions)
         }

@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -266,7 +259,7 @@ class bit2c(Exchange):
         if limit is not None:
             request['limit'] = limit  # max 100000
         response = await getattr(self, method)(self.extend(request, params))
-        if isinstance(response, basestring):
+        if isinstance(response, str):
             raise ExchangeError(response)
         return self.parse_trades(response, market, since, limit)
 
