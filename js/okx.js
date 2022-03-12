@@ -4043,7 +4043,7 @@ module.exports = class okx extends Exchange {
         return this.parseBorrowRate (rate);
     }
 
-    parseBorrowRate (info) {
+    parseBorrowRate (info, currency = undefined) {
         //
         //    {
         //        "amt": "992.10341195",

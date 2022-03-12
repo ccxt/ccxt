@@ -5432,7 +5432,7 @@ module.exports = class binance extends Exchange {
         return this.filterByCurrencySinceLimit (sorted, code, since, limit);
     }
 
-    parseBorrowRate (info) {
+    parseBorrowRate (info, currency = undefined) {
         //
         //    {
         //        "asset": "USDT",

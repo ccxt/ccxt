@@ -2549,7 +2549,14 @@ module.exports = class ftx extends Exchange {
         return result;
     }
 
-    parseBorrowRate (info) {
+    parseBorrowRate (info, currency = undefined) {
+        //
+        //    {
+        //        "coin": "1INCH",
+        //        "previous": 0.0000462375,
+        //        "estimate": 0.0000462375
+        //    }
+        //
         const coin = this.safeString (info, 'coin');
         const datetime = this.safeString (info, 'time');
         const timestamp = this.parse8601 (datetime);
