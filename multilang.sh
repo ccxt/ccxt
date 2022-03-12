@@ -94,4 +94,4 @@ length=$(wc -l <<< "$pythonOutput")
 phpOutput=$(writeOutput php $phpCli "$args")
 ((color++))
 
-paste <(echo "$jsOutput") <(echo "$phpOutput") <(echo "$pythonOutput") | column -s $'\t' -t | condense | head -n $length | display
+paste <(echo "$jsOutput") <(echo "$phpOutput") <(echo "$pythonOutput") | column -s $'\t' -t | head -n $length | condense | display
