@@ -5,6 +5,7 @@ pyCli="${cliFolder}/py/cli.py"
 phpCli="${cliFolder}/php/cli.php"
 
 function display () {
+    # Displays output in a less window or just to stdout
     if [ $use_less ]; then
         echo $1 | less -S -R
     else
@@ -13,6 +14,7 @@ function display () {
 }
 
 function remove_special () {
+    # Removes special characters
     if [ $remove_special ]; then
         echo $1 | sed -e 's/\[[0-9]\{1,2\}m//g'
     else
@@ -21,6 +23,7 @@ function remove_special () {
 }
 
 function condense () {
+    # Trims output down to a set number of lines on the top and the bottom
     if [ $num_lines ]; then
         echo $1 | awk 'NF' | awk -v head=$num_lines -v tail=$num_lines 'FNR<=head
             {lines[FNR]=$0}
@@ -42,6 +45,7 @@ function help() {
     echo "	-a,--args        exchange method"
 }
 
+# Loop through command line arguments
 case $* in
 --help|-h)
 help
