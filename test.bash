@@ -42,7 +42,7 @@ function help() {
     echo "	-l      View in less editor"
     echo "	-s      Remove special characters"
     echo "	-h      Display help"
-    echo "	-a      exchange method"
+    echo "	-a      exchange method and method arguments"
 }
 
 # Loop through command line arguments
