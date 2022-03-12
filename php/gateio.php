@@ -591,7 +591,8 @@ class gateio extends Exchange {
         if ($type === 'option') {
             $result = $this->fetch_option_markets($query);
         }
-        if (strlen($result) === 0) {
+        $resultLength = is_array($result) ? count($result) : 0;
+        if ($resultLength === 0) {
             throw new ExchangeError($this->id . " does not support '" . $type . "' $type, set exchange.options['defaultType'] to " . "'spot', 'margin', 'swap', 'future' or 'option'"); // eslint-disable-line quotes
         }
         return $result;

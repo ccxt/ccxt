@@ -598,7 +598,8 @@ class gateio(Exchange):
             result = self.fetch_contract_markets(query)  # futures and swaps
         if type == 'option':
             result = self.fetch_option_markets(query)
-        if len(result) == 0:
+        resultLength = len(result)
+        if resultLength == 0:
             raise ExchangeError(self.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to " + "'spot', 'margin', 'swap', 'future' or 'option'")  # eslint-disable-line quotes
         return result
 
