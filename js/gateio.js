@@ -596,7 +596,7 @@ module.exports = class gateio extends Exchange {
     async fetchSpotMarkets (params) {
         const marginResponse = await this.publicMarginGetCurrencyPairs (params);
         const spotMarketsResponse = await this.publicSpotGetCurrencyPairs (params);
-        const spotMarkets = this.indexBy (spotMarketsResponse, 'id');
+        const marginMarkets = this.indexBy (marginResponse, 'id');
         //
         //  Spot
         //      [
@@ -628,11 +628,11 @@ module.exports = class gateio extends Exchange {
         //       ]
         //
         const result = [];
-        for (let i = 0; i < marginResponse.length; i++) {
-            let market = marginResponse[i];
+        for (let i = 0; i < spotMarketsResponse.length; i++) {
+            let market = spotMarketsResponse[i];
             const id = this.safeString (market, 'id');
-            const spotMarket = this.safeValue (spotMarkets, id);
-            market = this.deepExtend (spotMarket, market);
+            const marginMarket = this.safeValue (marginMarkets, id);
+            market = this.deepExtend (marginMarket, market);
             const [ baseId, quoteId ] = id.split ('_');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
