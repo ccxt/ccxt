@@ -10,6 +10,7 @@ use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
 use \ccxt\InvalidOrder;
+use \ccxt\NotSupported;
 
 class gateio extends Exchange {
 
@@ -27,8 +28,30 @@ class gateio extends Exchange {
                 'doc' => 'https://www.gate.io/docs/apiv4/en/index.html',
                 'www' => 'https://gate.io/',
                 'api' => array(
-                    'public' => 'https://api.gateio.ws/api/v4',
-                    'private' => 'https://api.gateio.ws/api/v4',
+                    'public' => array(
+                        'futures' => 'https://api.gateio.ws/api/v4',
+                        'margin' => 'https://api.gateio.ws/api/v4',
+                        'delivery' => 'https://api.gateio.ws/api/v4',
+                        'spot' => 'https://api.gateio.ws/api/v4',
+                        'options' => 'https://api.gateio.ws/api/v4',
+                    ),
+                    'private' => array(
+                        'futures' => 'https://api.gateio.ws/api/v4',
+                        'margin' => 'https://api.gateio.ws/api/v4',
+                        'delivery' => 'https://api.gateio.ws/api/v4',
+                        'spot' => 'https://api.gateio.ws/api/v4',
+                        'options' => 'https://api.gateio.ws/api/v4',
+                    ),
+                ),
+                'test' => array(
+                    'public' => array(
+                        'futures' => 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'delivery' => 'https://fx-api-testnet.gateio.ws/api/v4',
+                    ),
+                    'private' => array(
+                        'futures' => 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'delivery' => 'https://fx-api-testnet.gateio.ws/api/v4',
+                    ),
                 ),
                 'referral' => array(
                     'url' => 'https://www.gate.io/ref/2436035',
@@ -1061,6 +1084,11 @@ class gateio extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        // sandbox/testnet only supports future markets
+        $apiBackup = $this->safe_string($this->urls, 'apiBackup');
+        if ($apiBackup !== null) {
+            return null;
+        }
         $response = $this->publicSpotGetCurrencies ($params);
         //
         //     {
@@ -3702,7 +3730,11 @@ class gateio extends Exchange {
         $path = $this->implode_params($path, $params);
         $endPart = ($path === '') ? '' : ('/' . $path);
         $entirePath = '/' . $type . $endPart;
-        $url = $this->urls['api'][$authentication] . $entirePath;
+        $url = $this->urls['api'][$authentication][$type];
+        if ($url === null) {
+            throw new NotSupported($this->id . ' does not have a testnet for the ' . $type . ' market $type->');
+        }
+        $url .= $entirePath;
         if ($authentication === 'public') {
             if ($query) {
                 $url .= '?' . $this->urlencode($query);

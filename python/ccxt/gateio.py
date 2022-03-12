@@ -16,6 +16,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -38,8 +39,30 @@ class gateio(Exchange):
                 'doc': 'https://www.gate.io/docs/apiv4/en/index.html',
                 'www': 'https://gate.io/',
                 'api': {
-                    'public': 'https://api.gateio.ws/api/v4',
-                    'private': 'https://api.gateio.ws/api/v4',
+                    'public': {
+                        'futures': 'https://api.gateio.ws/api/v4',
+                        'margin': 'https://api.gateio.ws/api/v4',
+                        'delivery': 'https://api.gateio.ws/api/v4',
+                        'spot': 'https://api.gateio.ws/api/v4',
+                        'options': 'https://api.gateio.ws/api/v4',
+                    },
+                    'private': {
+                        'futures': 'https://api.gateio.ws/api/v4',
+                        'margin': 'https://api.gateio.ws/api/v4',
+                        'delivery': 'https://api.gateio.ws/api/v4',
+                        'spot': 'https://api.gateio.ws/api/v4',
+                        'options': 'https://api.gateio.ws/api/v4',
+                    },
+                },
+                'test': {
+                    'public': {
+                        'futures': 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'delivery': 'https://fx-api-testnet.gateio.ws/api/v4',
+                    },
+                    'private': {
+                        'futures': 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'delivery': 'https://fx-api-testnet.gateio.ws/api/v4',
+                    },
                 },
                 'referral': {
                     'url': 'https://www.gate.io/ref/2436035',
@@ -1047,6 +1070,10 @@ class gateio(Exchange):
         return self.safe_value(fetchMarketsContractOptions, 'settlementCurrencies', defaultSettle)
 
     def fetch_currencies(self, params={}):
+        # sandbox/testnet only supports future markets
+        apiBackup = self.safe_string(self.urls, 'apiBackup')
+        if apiBackup is not None:
+            return None
         response = self.publicSpotGetCurrencies(params)
         #
         #     {
@@ -3545,7 +3572,10 @@ class gateio(Exchange):
         path = self.implode_params(path, params)
         endPart = '' if (path == '') else ('/' + path)
         entirePath = '/' + type + endPart
-        url = self.urls['api'][authentication] + entirePath
+        url = self.urls['api'][authentication][type]
+        if url is None:
+            raise NotSupported(self.id + ' does not have a testnet for the ' + type + ' market type.')
+        url += entirePath
         if authentication == 'public':
             if query:
                 url += '?' + self.urlencode(query)
