@@ -65,9 +65,9 @@ module.exports = class bkex extends Exchange {
                 'fetchMarkOHLCV': undefined,
                 'fetchMyTrades': undefined,
                 'fetchOHLCV': true,
-                'fetchOpenOrder': undefined,
+                'fetchOpenOrder': true,
                 'fetchOpenOrders': true,
-                'fetchOrder': true,
+                'fetchOrder': false,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': undefined,
                 'fetchOrders': undefined,
@@ -424,11 +424,13 @@ module.exports = class bkex extends Exchange {
         ];
     }
 
-    async fetchTickersHelper (symbolsString, params = {}) {
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'symbol': symbolsString,
+            'symbol': market['id'],
         };
-        return await this.publicGetQTickers (this.extend (request, params));
+        const response = await this.publicGetQTickers (this.extend (request, params));
         //
         // {
         //     "code": "0",
@@ -449,12 +451,6 @@ module.exports = class bkex extends Exchange {
         //     "status": 0
         // }
         //
-    }
-
-    async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const response = await this.fetchTickersHelper (market['id'], params);
         const tickers = this.safeValue (response, 'data');
         const ticker = this.safeValue (tickers, 0);
         return this.parseTicker (ticker, market);
@@ -462,7 +458,7 @@ module.exports = class bkex extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let marketIdsString = undefined;
+        const request = {};
         if (symbols !== undefined) {
             if (!Array.isArray (symbols)) {
                 throw new BadRequest (this.id + ' fetchTickers() symbols argument should be an array');
@@ -474,9 +470,9 @@ module.exports = class bkex extends Exchange {
                 const market = this.market (symbols[i]);
                 marketIds.push (market['id']);
             }
-            marketIdsString = marketIds.join (',');
+            request['symbol'] = marketIds.join (',');
         }
-        const response = await this.fetchTickersHelper (marketIdsString, params);
+        const response = await this.publicGetQTickers (this.extend (request, params));
         const tickers = this.safeValue (response, 'data');
         return this.parseTickers (tickers, symbols, params);
     }
@@ -764,7 +760,7 @@ module.exports = class bkex extends Exchange {
         for (let i = 0; i < dataInner.length; i++) {
             dataInner[i]['transactType'] = 'deposit';
         }
-        return this.parseTransactions (dataInner, code, since, limit, params);
+        return this.parseTransactions (dataInner, currency, since, limit, params);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -805,7 +801,7 @@ module.exports = class bkex extends Exchange {
         for (let i = 0; i < dataInner.length; i++) {
             dataInner[i]['transactType'] = 'withdrawal';
         }
-        return this.parseTransactions (dataInner, code, since, limit, params);
+        return this.parseTransactions (dataInner, currency, since, limit, params);
     }
 
     parseTransaction (transaction, currency = undefined) {
@@ -863,6 +859,7 @@ module.exports = class bkex extends Exchange {
             '-1': 'failed',
             '0': 'ok',
             '3': 'pending',
+            '5': 'pending',
         };
         return this.safeString (statuses, status, status);
     }
@@ -870,14 +867,14 @@ module.exports = class bkex extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const direction = side === 'buy' ? 'BID' : 'ASK';
+        const direction = (side === 'buy') ? 'BID' : 'ASK';
         const request = {
             'symbol': market['id'],
             'type': type.toUpperCase (),
             'volume': this.amountToPrecision (symbol, amount),
             'direction': direction,
         };
-        if (price !== undefined) {
+        if ((type !== 'market') && (price !== undefined)) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const response = await this.privatePostUOrderCreate (this.extend (request, params));
@@ -889,12 +886,12 @@ module.exports = class bkex extends Exchange {
         //     "status": 0
         // }
         //
-        const data = this.safeValue (response, 'data');
-        return this.parseOrder (data, market);
+        return this.parseOrder (response, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
+        const market = (symbol !== undefined) ? this.market (symbol) : undefined;
         const request = {
             'orderId': id,
         };
@@ -906,9 +903,7 @@ module.exports = class bkex extends Exchange {
         //     "status": 0
         // }
         //
-        const data = this.safeValue (response, 'data');
-        const market = (symbol !== undefined) ? this.market (symbol) : undefined;
-        return this.parseOrder (data, market);
+        return this.parseOrder (response, market);
     }
 
     async cancelOrders (ids, symbol = undefined, params = {}) {
@@ -916,9 +911,8 @@ module.exports = class bkex extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelOrders() ids argument should be an array');
         }
         await this.loadMarkets ();
-        const orderIds = ids.join (',');
         const request = {
-            'orders': orderIds,
+            'orders': this.json (ids),
         };
         const response = await this.privatePostUOrderBatchCancel (this.extend (request, params));
         // {
@@ -985,7 +979,7 @@ module.exports = class bkex extends Exchange {
         return this.parseOrders (innerData, market, since, limit, params);
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOpenOrder (id, symbol = undefined, params = {}) {
         const request = {
             'orderId': id,
         };
@@ -1072,60 +1066,50 @@ module.exports = class bkex extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let id = undefined;
-        let timestamp = undefined;
-        let updateTime = undefined;
-        let side = undefined;
-        let price = undefined;
-        let amount = undefined;
-        let filled = undefined;
-        let status = undefined;
-        let stopPrice = undefined;
-        let cost = undefined;
-        let type = undefined;
-        let average = undefined;
-        if (typeof order === 'string') {
-            // createOrder, cancelOrder, cancelOrders
-            id = order;
-            market = this.safeMarket (undefined, market);
-            // status = 'success';
-        } else {
-            //
-            // fetchOpenOrders
-            //
-            //  {
-            //       "createdTime": "1646248301418",
-            //       "dealVolume": "0E-18",
-            //       "direction": "BID",
-            //       "frozenVolumeByOrder": "2.421300000000000000",
-            //       "id": "2022030303114141830007699",
-            //       "price": "0.150000000000000000",
-            //       "source": "WALLET",
-            //       "status": "0",
-            //       "symbol": "BKK_USDT",
-            //       "totalVolume": "16.142000000000000000",
-            //       "type": "LIMIT"
-            //       "stopPrice":  "0.14",            // present only for 'stop' order types
-            //       "operator":  ">="                // present only for 'stop' order types
-            //       "dealAvgPrice": "0",             // only present in 'fetchOrder' & 'fetchClosedOrders'
-            //       "updateTime": 1646248301418      // only present in 'fetchOrder' & 'fetchClosedOrders'
-            //  }
-            //
-            timestamp = this.safeInteger (order, 'createdTime');
-            updateTime = this.safeInteger (order, 'updateTime');
-            filled = this.safeNumber (order, 'dealVolume');
-            side = this.parseOrderSide (this.safeString (order, 'direction'));
-            cost = this.safeNumber (order, 'frozenVolumeByOrder');
-            id = this.safeString (order, 'id');
-            price = this.safeNumber (order, 'price');
-            status = this.parseOrderStatus (this.safeString (order, 'status'));
-            const marketId = this.safeString (order, 'symbol');
-            market = this.safeMarket (marketId, market);
-            amount = this.safeNumber (order, 'totalVolume');
-            type = this.parseOrderType (this.safeString (order, 'type'));
-            stopPrice = this.safeNumber (order, 'stopPrice');
-            average = this.safeNumber (order, 'dealAvgPrice');
+        //
+        // fetchOpenOrders
+        //
+        //  {
+        //       "createdTime": "1646248301418",
+        //       "dealVolume": "0E-18",
+        //       "direction": "BID",
+        //       "frozenVolumeByOrder": "2.421300000000000000",
+        //       "id": "2022030303114141830007699",
+        //       "price": "0.150000000000000000",
+        //       "source": "WALLET",
+        //       "status": "0",
+        //       "symbol": "BKK_USDT",
+        //       "totalVolume": "16.142000000000000000",
+        //       "type": "LIMIT"
+        //       "stopPrice":  "0.14",            // present only for 'stop' order types
+        //       "operator":  ">="                // present only for 'stop' order types
+        //       "dealAvgPrice": "0",             // only present in 'fetchOrder' & 'fetchClosedOrders'
+        //       "updateTime": 1646248301418      // only present in 'fetchOrder' & 'fetchClosedOrders'
+        //  }
+        //
+        const timestamp = this.safeInteger (order, 'createdTime');
+        const updateTime = this.safeInteger (order, 'updateTime');
+        const filled = this.safeString (order, 'dealVolume');
+        const side = this.parseOrderSide (this.safeString (order, 'direction'));
+        const id = this.safeString2 (order, 'id', 'data');
+        const price = this.safeString (order, 'price');
+        const rawStatus = this.safeString (order, 'status');
+        const rawType = this.safeString (order, 'type');
+        const type = this.parseOrderType (rawType);
+        let postOnly = false;
+        if (rawType === 'LIMIT_MAKER') {
+            postOnly = true;
         }
+        let status = undefined;
+        if (timestamp !== undefined) {
+            // cancelOrder handling
+            status = this.parseOrderStatus (rawStatus);
+        }
+        const marketId = this.safeString (order, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const amount = this.safeString (order, 'totalVolume');
+        const stopPrice = this.safeNumber (order, 'stopPrice');
+        const average = this.safeString (order, 'dealAvgPrice');
         return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
@@ -1136,7 +1120,7 @@ module.exports = class bkex extends Exchange {
             'symbol': market['symbol'],
             'type': type,
             'timeInForce': undefined,
-            'postOnly': undefined,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
@@ -1144,7 +1128,7 @@ module.exports = class bkex extends Exchange {
             'amount': amount,
             'filled': filled,
             'remaining': undefined,
-            'cost': cost,
+            'cost': undefined,
             'trades': undefined,
             'fee': undefined,
             'info': order,
@@ -1173,8 +1157,8 @@ module.exports = class bkex extends Exchange {
         const statuses = {
             'MARKET': 'market',
             'LIMIT': 'limit',
-            'LIMIT_MAKER': 'stop-limit',
-            'STOP_LIMIT': 'stop-limit',
+            'LIMIT_MAKER': 'limit',
+            'STOP_LIMIT': 'limit',
         };
         return this.safeString (statuses, status, status);
     }
@@ -1184,7 +1168,7 @@ module.exports = class bkex extends Exchange {
         params = this.omit (params, this.extractParams (path));
         let paramsSortedEncoded = '';
         if (Object.keys (params).length) {
-            paramsSortedEncoded = this.urlencode (this.keysort (params));
+            paramsSortedEncoded = this.rawencode (this.keysort (params));
             if (method === 'GET') {
                 url += '?' + paramsSortedEncoded;
             }

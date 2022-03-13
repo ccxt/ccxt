@@ -96,10 +96,12 @@ if (count($argv) > 2) {
             } catch (\ccxt\NetworkError $e) {
 
                 echo get_class($e) . ': ' . $e->getMessage() . "\n";
+                exit(1);
 
             } catch (\ccxt\ExchangeError $e) {
 
                 echo get_class($e) . ': ' . $e->getMessage() . "\n";
+                exit(1);
 
             } catch (Exception $e) {
 
@@ -113,17 +115,20 @@ if (count($argv) > 2) {
 
                     echo $exchange->id . '->' . $member . ": no such property\n";
                 }
+                exit(1);
             }
         // }
 
     } else {
 
         echo 'Exchange ' . $id . " not found\n";
+        exit(1);
     }
 
 } else {
 
     print_r('Usage: php -f ' . __FILE__ . " exchange_id member [args...]\n");
+    exit(1);
 
 }
 
