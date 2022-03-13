@@ -21,7 +21,7 @@ class bkex(Exchange):
             'countries': ['BVI'],  # British Virgin Islands
             'rateLimit': 100,
             'version': 'v2',
-            'certified': True,
+            'certified': False,
             'has': {
                 'CORS': None,
                 'spot': None,
