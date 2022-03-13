@@ -540,6 +540,7 @@ declare module 'ccxt' {
     export class okex extends okx {}
     export class okex5 extends okex {}
     export class okx extends Exchange {}
+    export class patriotexchange extends Exchange {}
     export class paymium extends Exchange {}
     export class phemex extends Exchange {}
     export class poloniex extends Exchange {}
@@ -661,6 +662,7 @@ declare module 'ccxt' {
         | 'okex'
         | 'okex5'
         | 'okx'
+        | 'patriotexchange'
         | 'paymium'
         | 'phemex'
         | 'poloniex'

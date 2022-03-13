@@ -156,6 +156,7 @@ class Exchange {
         'okex',
         'okex5',
         'okx',
+        'patriotexchange',
         'paymium',
         'phemex',
         'poloniex',
