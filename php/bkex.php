@@ -116,7 +116,7 @@ class bkex extends Exchange {
                 '1w' => '1w',
             ),
             'urls' => array(
-                'logo' => '',
+                'logo' => 'https://user-images.githubusercontent.com/1294454/158043180-bb079a65-69e8-45a2-b393-f094d334e610.jpg',
                 'api' => array(
                     'public' => 'https://api.bkex.com',
                     'private' => 'https://api.bkex.com',
@@ -128,7 +128,6 @@ class bkex extends Exchange {
                 'fees' => array(
                     'https://www.bkex.com/help/instruction/33',
                 ),
-                'referral' => '',
             ),
             'api' => array(
                 'public' => array(

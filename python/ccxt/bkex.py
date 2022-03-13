@@ -118,7 +118,7 @@ class bkex(Exchange):
                 '1w': '1w',
             },
             'urls': {
-                'logo': '',
+                'logo': 'https://user-images.githubusercontent.com/1294454/158043180-bb079a65-69e8-45a2-b393-f094d334e610.jpg',
                 'api': {
                     'public': 'https://api.bkex.com',
                     'private': 'https://api.bkex.com',
@@ -130,7 +130,6 @@ class bkex(Exchange):
                 'fees': [
                     'https://www.bkex.com/help/instruction/33',
                 ],
-                'referral': '',
             },
             'api': {
                 'public': {
