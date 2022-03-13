@@ -851,7 +851,7 @@ module.exports = class ftx extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        // this method doesn't accept `timeframe` above 1 day. See: https://github.com/ccxt/ccxt/pull/12326#issuecomment-1066094149
+        // This method doesn't accept `timeframe` argument above 1 day. See: https://github.com/ccxt/ccxt/pull/12326#issuecomment-1066094149 , however, you can still call them by `params`
         await this.loadMarkets ();
         const [ market, marketId ] = this.getMarketParams (symbol, 'market_name', params);
         const request = {
