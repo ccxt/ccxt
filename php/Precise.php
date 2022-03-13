@@ -184,7 +184,7 @@ class Precise {
             return $this;
         }
         $this->decimals -= $difference;
-        $this->integer = gmp_init(mb_substr($string, 0, $i + 1), 10);
+        $this->integer = gmp_init(substr($string, 0, $i + 1), 10);
     }
 
     public function equals ($other) {
