@@ -10,6 +10,7 @@ use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
 use \ccxt\InvalidOrder;
+use \ccxt\NotSupported;
 
 class gateio extends Exchange {
 
@@ -27,8 +28,30 @@ class gateio extends Exchange {
                 'doc' => 'https://www.gate.io/docs/apiv4/en/index.html',
                 'www' => 'https://gate.io/',
                 'api' => array(
-                    'public' => 'https://api.gateio.ws/api/v4',
-                    'private' => 'https://api.gateio.ws/api/v4',
+                    'public' => array(
+                        'futures' => 'https://api.gateio.ws/api/v4',
+                        'margin' => 'https://api.gateio.ws/api/v4',
+                        'delivery' => 'https://api.gateio.ws/api/v4',
+                        'spot' => 'https://api.gateio.ws/api/v4',
+                        'options' => 'https://api.gateio.ws/api/v4',
+                    ),
+                    'private' => array(
+                        'futures' => 'https://api.gateio.ws/api/v4',
+                        'margin' => 'https://api.gateio.ws/api/v4',
+                        'delivery' => 'https://api.gateio.ws/api/v4',
+                        'spot' => 'https://api.gateio.ws/api/v4',
+                        'options' => 'https://api.gateio.ws/api/v4',
+                    ),
+                ),
+                'test' => array(
+                    'public' => array(
+                        'futures' => 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'delivery' => 'https://fx-api-testnet.gateio.ws/api/v4',
+                    ),
+                    'private' => array(
+                        'futures' => 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'delivery' => 'https://fx-api-testnet.gateio.ws/api/v4',
+                    ),
                 ),
                 'referral' => array(
                     'url' => 'https://www.gate.io/ref/2436035',
@@ -601,7 +624,7 @@ class gateio extends Exchange {
     public function fetch_spot_markets($params) {
         $marginResponse = $this->publicMarginGetCurrencyPairs ($params);
         $spotMarketsResponse = $this->publicSpotGetCurrencyPairs ($params);
-        $spotMarkets = $this->index_by($spotMarketsResponse, 'id');
+        $marginMarkets = $this->index_by($marginResponse, 'id');
         //
         //  Spot
         //      array(
@@ -633,11 +656,11 @@ class gateio extends Exchange {
         //       )
         //
         $result = array();
-        for ($i = 0; $i < count($marginResponse); $i++) {
-            $market = $marginResponse[$i];
+        for ($i = 0; $i < count($spotMarketsResponse); $i++) {
+            $market = $spotMarketsResponse[$i];
             $id = $this->safe_string($market, 'id');
-            $spotMarket = $this->safe_value($spotMarkets, $id);
-            $market = $this->deep_extend($spotMarket, $market);
+            $marginMarket = $this->safe_value($marginMarkets, $id);
+            $market = $this->deep_extend($marginMarket, $market);
             list($baseId, $quoteId) = explode('_', $id);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
@@ -1061,6 +1084,11 @@ class gateio extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        // sandbox/testnet only supports future markets
+        $apiBackup = $this->safe_string($this->urls, 'apiBackup');
+        if ($apiBackup !== null) {
+            return null;
+        }
         $response = $this->publicSpotGetCurrencies ($params);
         //
         //     {
@@ -3702,7 +3730,11 @@ class gateio extends Exchange {
         $path = $this->implode_params($path, $params);
         $endPart = ($path === '') ? '' : ('/' . $path);
         $entirePath = '/' . $type . $endPart;
-        $url = $this->urls['api'][$authentication] . $entirePath;
+        $url = $this->urls['api'][$authentication][$type];
+        if ($url === null) {
+            throw new NotSupported($this->id . ' does not have a testnet for the ' . $type . ' market $type->');
+        }
+        $url .= $entirePath;
         if ($authentication === 'public') {
             if ($query) {
                 $url .= '?' . $this->urlencode($query);
