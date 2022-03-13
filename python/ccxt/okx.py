@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import hashlib
 import json
 from ccxt.base.errors import ExchangeError
@@ -197,6 +190,7 @@ class okx(Exchange):
                         'public/position-tiers': 2,
                         'public/underlying': 1,
                         'public/interest-rate-loan-quota': 10,
+                        'public/vip-interest-rate-loan-quota': 10,
                         'rubik/stat/trading-data/support-coin': 4,
                         'rubik/stat/taker-volume': 4,
                         'rubik/stat/margin/loan-ratio': 4,
@@ -258,12 +252,21 @@ class okx(Exchange):
                         'asset/subaccount/bills': 5 / 3,
                         'users/subaccount/list': 10,
                         'users/subaccount/apikey': 10,
+                        'users/entrust-subaccount-list': 10,
                         # broker
                         'broker/nd/info': 10,
                         'broker/nd/subaccount-info': 10,
                         'asset/broker/nd/subaccount-deposit-address': 4,
                         'asset/broker/nd/subaccount-deposit-history': 4,
                         'broker/nd/rebate-daily': 1,
+                        # convert
+                        'asset/convert/currencies': 5 / 3,
+                        'asset/convert/currency-pair': 5 / 3,
+                        'asset/convert/estimate-quote': 5,
+                        'asset/convert/trade': 5,
+                        'asset/convert/history': 5 / 3,
+                        # options
+                        'account/greeks': 2,
                     },
                     'post': {
                         'account/set-position-mode': 4,
@@ -613,6 +616,10 @@ class okx(Exchange):
                     'ETH': 'ERC20',
                     'TRX': 'TRC20',
                     'OMNI': 'Omni',
+                    'SOLANA': 'Solana',
+                    'POLYGON': 'Polygon',
+                    'OEC': 'OEC',
+                    'ALGO': 'ALGO',  # temporarily unavailable
                 },
                 'layerTwo': {
                     'Lightning': True,
@@ -634,6 +641,7 @@ class okx(Exchange):
                 # 1 = SPOT, 3 = FUTURES, 5 = MARGIN, 6 = FUNDING, 9 = SWAP, 12 = OPTION, 18 = Unified account
                 'accountsByType': {
                     'spot': '1',
+                    'future': '3',
                     'futures': '3',
                     'margin': '5',
                     'funding': '6',
@@ -1462,7 +1470,7 @@ class okx(Exchange):
                 'datetime': self.iso8601(timestamp),
             })
         sorted = self.sort_by(rates, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
     def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         request = {
@@ -1856,7 +1864,7 @@ class okx(Exchange):
         request = []
         clientOrderId = self.safe_value_2(params, 'clOrdId', 'clientOrderId')
         if clientOrderId is None:
-            if isinstance(ids, basestring):
+            if isinstance(ids, str):
                 orderIds = ids.split(',')
                 for i in range(0, len(orderIds)):
                     request.append({
@@ -1875,7 +1883,7 @@ class okx(Exchange):
                     'instId': market['id'],
                     'clOrdId': clientOrderId[i],
                 })
-        elif isinstance(clientOrderId, basestring):
+        elif isinstance(clientOrderId, str):
             request.append({
                 'instId': market['id'],
                 'clOrdId': clientOrderId,
@@ -2630,6 +2638,44 @@ class okx(Exchange):
         networks = self.safe_value(currency, 'networks', {})
         networksById = self.index_by(networks, 'id')
         networkData = self.safe_value(networksById, chain)
+        # inconsistent naming responses from exchange
+        # with respect to network naming provided in currency info vs address chain-names and ids
+        #
+        # response from address endpoint:
+        #      {
+        #          "chain":"USDT-Polygon",
+        #          "ctAddr":"",
+        #          "ccy":"USDT",
+        #          "to":"6",
+        #          "addr":"0x1903441e386cc49d937f6302955b5feb4286dcfa",
+        #          "selected":true
+        #      }
+        # network information from currency['networks'] field:
+        # Polygon: {
+        #       info: {
+        #         canDep: False,
+        #         canInternal: False,
+        #         canWd: False,
+        #         ccy: 'USDT',
+        #         chain: 'USDT-Polygon-Bridge',
+        #         mainNet: False,
+        #         maxFee: '26.879528',
+        #         minFee: '13.439764',
+        #         minWd: '0.001',
+        #         name: ''
+        #       },
+        #       id: 'USDT-Polygon-Bridge',
+        #       network: 'Polygon',
+        #       active: False,
+        #       deposit: False,
+        #       withdraw: False,
+        #       fee: 13.439764,
+        #       precision: None,
+        #       limits: {withdraw: {min: 0.001, max: None}}
+        #     },
+        #
+        if chain == 'USDT-Polygon':
+            networkData = self.safe_value(networksById, 'USDT-Polygon-Bridge')
         network = self.safe_string(networkData, 'network')
         self.check_address(address)
         return {
@@ -3575,6 +3621,9 @@ class okx(Exchange):
         }
         if limit is not None:
             request['limit'] = str(limit)  # default 100, max 100
+        if symbol is not None:
+            market = self.market(symbol)
+            symbol = market['symbol']
         response = self.privateGetAccountBills(self.extend(request, params))
         #
         #     {

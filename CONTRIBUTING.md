@@ -245,7 +245,7 @@ The `ccxt.browser.js` is generated with Babel from source.
 These files containing derived exchange classes are transpiled from JS into Python:
 
 - `js/[_a-z].js` → `python/ccxt/async/[_a-z].py`
-- `python/ccxt/async[_a-z].py` → `python/ccxt/[_a-z].py` (Python 3 asyncio → Python 2 sync transpilation stage)
+- `python/ccxt/async[_a-z].py` → `python/ccxt/[_a-z].py` (Python 3 asyncio → Python sync transpilation stage)
 - `python/ccxt/test/test_async.py` → `python/ccxt/test/test_sync.py` (the sync test is generated from the async test)
 
 These Python base classes and files are not transpiled:
@@ -987,7 +987,7 @@ node run-tests --js                  # test master ccxt.js, all exchanges
 
 # other examples require the 'npm run build' to run
 
-node run-tests --python              # test Python 2 version, all exchanges
+node run-tests --python              # test Python sync version, all exchanges
 node run-tests --php bitfinex        # test Bitfinex with PHP
 node run-tests --python-async kraken # test Kraken with Python async test, requires 'npm run build'
 ```

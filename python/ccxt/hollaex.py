@@ -11,6 +11,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NetworkError
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class hollaex(Exchange):
@@ -74,6 +75,8 @@ class hollaex(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': True,
                 'fetchTransactions': None,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
@@ -586,6 +589,57 @@ class hollaex(Exchange):
             'cost': None,
             'fee': fee,
         }, market)
+
+    def fetch_trading_fees(self, params={}):
+        self.load_markets()
+        response = self.publicGetTiers(params)
+        #
+        #     {
+        #         '1': {
+        #             id: '1',
+        #             name: 'Silver',
+        #             icon: '',
+        #             description: 'Your crypto journey starts here! Make your first deposit to start trading, and verify your account to level up!',
+        #             deposit_limit: '0',
+        #             withdrawal_limit: '1000',
+        #             fees: {
+        #                 maker: {
+        #                     'eth-btc': '0.1',
+        #                     'ada-usdt': '0.1',
+        #                     ...
+        #                 },
+        #                 taker: {
+        #                     'eth-btc': '0.1',
+        #                     'ada-usdt': '0.1',
+        #                     ...
+        #                 }
+        #             },
+        #             note: '<ul>\n<li>Login and verify email</li>\n</ul>\n',
+        #             created_at: '2021-03-22T03:51:39.129Z',
+        #             updated_at: '2021-11-01T02:51:56.214Z'
+        #         },
+        #         ...
+        #     }
+        #
+        firstTier = self.safe_value(response, '1', {})
+        fees = self.safe_value(firstTier, 'fees', {})
+        makerFees = self.safe_value(fees, 'maker', {})
+        takerFees = self.safe_value(fees, 'taker', {})
+        result = {}
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            market = self.market(symbol)
+            makerString = self.safe_string(makerFees, market['id'])
+            takerString = self.safe_string(takerFees, market['id'])
+            result[symbol] = {
+                'info': fees,
+                'symbol': symbol,
+                'maker': self.parse_number(Precise.string_div(makerString, '100')),
+                'taker': self.parse_number(Precise.string_div(takerString, '100')),
+                'percentage': True,
+                'tierBased': True,
+            }
+        return result
 
     def fetch_ohlcv(self, symbol, timeframe='1h', since=None, limit=None, params={}):
         self.load_markets()

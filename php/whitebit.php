@@ -907,6 +907,7 @@ class whitebit extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $request['market'] = $market['id'];
         }
         if ($limit !== null) {
@@ -1235,13 +1236,15 @@ class whitebit extends Exchange {
             // For cases where we have a meaningful $status
             // array("response":null,"status":422,"errors":array("orderId":["Finished order id 435453454535 not found on your account"]),"notification":null,"warning":"Finished order id 435453454535 not found on your account","_token":null)
             $status = $this->safe_integer($response, 'status');
+            // array("code":10,"message":"Unauthorized request.")
+            $message = $this->safe_string($response, 'message');
             // For these cases where we have a generic $code variable error key
             // array("code":0,"message":"Validation failed","errors":array("amount":["Amount must be greater than 0"]))
             $code = $this->safe_integer($response, 'code');
             $hasErrorStatus = $status !== null && $status !== '200';
             if ($hasErrorStatus || $code !== null) {
                 $feedback = $this->id . ' ' . $body;
-                $errorInfo = null;
+                $errorInfo = $message;
                 if ($hasErrorStatus) {
                     $errorInfo = $status;
                 } else {

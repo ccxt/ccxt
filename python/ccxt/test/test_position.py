@@ -1,14 +1,10 @@
 import numbers  # noqa: E402
-try:
-    basestring  # basestring was removed in Python 3
-except NameError:
-    basestring = str
 
 
 def test_position(exchange, position, symbol, now):
     assert position
     assert 'id' in position
-    assert position['id'] is None or isinstance(position['id'], basestring)
+    assert position['id'] is None or isinstance(position['id'], str)
     assert 'timestamp' in position
     assert isinstance(position['timestamp'], numbers.Real)
     assert position['timestamp'] > 1230940800000  # 03 Jan 2009 - first cryptocurrency block creation time

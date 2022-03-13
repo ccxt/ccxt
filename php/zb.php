@@ -29,7 +29,7 @@ class zb extends Exchange {
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
-                'margin' => null, // has but unimplemented
+                'margin' => true,
                 'swap' => true,
                 'future' => null,
                 'option' => null,
@@ -40,6 +40,10 @@ class zb extends Exchange {
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => true,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
@@ -802,19 +806,134 @@ class zb extends Exchange {
         return $this->safe_balance($result);
     }
 
+    public function parse_margin_balance($response, $marginType) {
+        $result = array(
+            'info' => $response,
+        );
+        $levers = null;
+        if ($marginType === 'isolated') {
+            $message = $this->safe_value($response, 'message', array());
+            $data = $this->safe_value($message, 'datas', array());
+            $levers = $this->safe_value($data, 'levers', array());
+        } else {
+            $crossResponse = $this->safe_value($response, 'result', array());
+            $levers = $this->safe_value($crossResponse, 'list', array());
+        }
+        for ($i = 0; $i < count($levers); $i++) {
+            $balance = $levers[$i];
+            //
+            // Isolated Margin
+            //
+            //     {
+            //         "cNetUSD" => "0.00",
+            //         "repayLeverShow" => "-",
+            //         "cCanLoanIn" => "0.002115400000000",
+            //         "fNetCNY" => "147.76081161",
+            //         "fLoanIn" => "0.00",
+            //         "repayLevel" => 0,
+            //         "level" => 1,
+            //         "netConvertCNY" => "147.760811613032",
+            //         "cFreeze" => "0.00",
+            //         "cUnitTag" => "BTC",
+            //         "version" => 1646783178609,
+            //         "cAvailableUSD" => "0.00",
+            //         "cNetCNY" => "0.00",
+            //         "riskRate" => "-",
+            //         "fAvailableUSD" => "20.49273433",
+            //         "fNetUSD" => "20.49273432",
+            //         "cShowName" => "BTC",
+            //         "leverMultiple" => "5.00",
+            //         "couldTransferOutFiat" => "20.49273433",
+            //         "noticeLine" => "1.13",
+            //         "fFreeze" => "0.00",
+            //         "cUnitDecimal" => 8,
+            //         "fCanLoanIn" => "81.970937320000000",
+            //         "cAvailable" => "0.00",
+            //         "repayLock" => false,
+            //         "status" => 1,
+            //         "forbidType" => 0,
+            //         "totalConvertCNY" => "147.760811613032",
+            //         "cAvailableCNY" => "0.00",
+            //         "unwindPrice" => "0.00",
+            //         "fOverdraft" => "0.00",
+            //         "fShowName" => "USDT",
+            //         "statusShow" => "%E6%AD%A3%E5%B8%B8",
+            //         "cOverdraft" => "0.00",
+            //         "netConvertUSD" => "20.49273433",
+            //         "cNetBtc" => "0.00",
+            //         "loanInConvertCNY" => "0.00",
+            //         "fAvailableCNY" => "147.760811613032",
+            //         "key" => "btcusdt",
+            //         "fNetBtc" => "0.0005291",
+            //         "fUnitDecimal" => 8,
+            //         "loanInConvertUSD" => "0.00",
+            //         "showName" => "BTC/USDT",
+            //         "startLine" => "1.25",
+            //         "totalConvertUSD" => "20.49273433",
+            //         "couldTransferOutCoin" => "0.00",
+            //         "cEnName" => "BTC",
+            //         "leverMultipleInterest" => "3.00",
+            //         "fAvailable" => "20.49273433",
+            //         "fEnName" => "USDT",
+            //         "forceRepayLine" => "1.08",
+            //         "cLoanIn" => "0.00"
+            //     }
+            //
+            // Cross Margin
+            //
+            //     array(
+            //         array(
+            //             "fundType" => 2,
+            //             "loanIn" => 0,
+            //             "amount" => 0,
+            //             "freeze" => 0,
+            //             "overdraft" => 0,
+            //             "key" => "BTC",
+            //             "canTransferOut" => 0
+            //         ),
+            //     ),
+            //
+            $account = $this->account();
+            if ($marginType === 'isolated') {
+                $code = $this->safe_currency_code($this->safe_string($balance, 'fShowName'));
+                $account['total'] = $this->safe_string($balance, 'fAvailableUSD'); // total amount in USD
+                $account['free'] = $this->safe_string($balance, 'couldTransferOutFiat');
+                $account['used'] = $this->safe_string($balance, 'fFreeze');
+                $result[$code] = $account;
+            } else {
+                $code = $this->safe_currency_code($this->safe_string($balance, 'key'));
+                $account['total'] = $this->safe_string($balance, 'amount');
+                $account['free'] = $this->safe_string($balance, 'canTransferOut');
+                $account['used'] = $this->safe_string($balance, 'freeze');
+                $result[$code] = $account;
+            }
+        }
+        return $this->safe_balance($result);
+    }
+
     public function fetch_balance($params = array ()) {
         $this->load_markets();
         list($marketType, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        $margin = ($marketType === 'margin');
+        $swap = ($marketType === 'swap');
+        $marginMethod = null;
+        $defaultMargin = $margin ? 'isolated' : 'cross';
+        $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', $defaultMargin);
+        if ($marginType === 'isolated') {
+            $marginMethod = 'spotV1PrivateGetGetLeverAssetsInfo';
+        } else if ($marginType === 'cross') {
+            $marginMethod = 'spotV1PrivateGetGetCrossAssets';
+        }
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'spotV1PrivateGetGetAccountInfo',
             'swap' => 'contractV2PrivateGetFundBalance',
+            'margin' => $marginMethod,
         ));
         $request = array(
             // 'futuresAccountType' => 1, // SWAP
             // 'currencyId' => currency['id'], // SWAP
             // 'currencyName' => 'usdt', // SWAP
         );
-        $swap = ($marketType === 'swap');
         if ($swap) {
             $request['futuresAccountType'] = 1;
         }
@@ -879,10 +998,105 @@ class zb extends Exchange {
         //         "desc" => "操作成功"
         //     }
         //
+        // Isolated Margin
+        //
+        //     {
+        //         "code" => 1000,
+        //         "message" => {
+        //             "des" => "success",
+        //             "isSuc" => true,
+        //             "datas" => {
+        //                 "leverPerm" => true,
+        //                 "levers" => array(
+        //                     {
+        //                         "cNetUSD" => "0.00",
+        //                         "repayLeverShow" => "-",
+        //                         "cCanLoanIn" => "0.002115400000000",
+        //                         "fNetCNY" => "147.76081161",
+        //                         "fLoanIn" => "0.00",
+        //                         "repayLevel" => 0,
+        //                         "level" => 1,
+        //                         "netConvertCNY" => "147.760811613032",
+        //                         "cFreeze" => "0.00",
+        //                         "cUnitTag" => "BTC",
+        //                         "version" => 1646783178609,
+        //                         "cAvailableUSD" => "0.00",
+        //                         "cNetCNY" => "0.00",
+        //                         "riskRate" => "-",
+        //                         "fAvailableUSD" => "20.49273433",
+        //                         "fNetUSD" => "20.49273432",
+        //                         "cShowName" => "BTC",
+        //                         "leverMultiple" => "5.00",
+        //                         "couldTransferOutFiat" => "20.49273433",
+        //                         "noticeLine" => "1.13",
+        //                         "fFreeze" => "0.00",
+        //                         "cUnitDecimal" => 8,
+        //                         "fCanLoanIn" => "81.970937320000000",
+        //                         "cAvailable" => "0.00",
+        //                         "repayLock" => false,
+        //                         "status" => 1,
+        //                         "forbidType" => 0,
+        //                         "totalConvertCNY" => "147.760811613032",
+        //                         "cAvailableCNY" => "0.00",
+        //                         "unwindPrice" => "0.00",
+        //                         "fOverdraft" => "0.00",
+        //                         "fShowName" => "USDT",
+        //                         "statusShow" => "%E6%AD%A3%E5%B8%B8",
+        //                         "cOverdraft" => "0.00",
+        //                         "netConvertUSD" => "20.49273433",
+        //                         "cNetBtc" => "0.00",
+        //                         "loanInConvertCNY" => "0.00",
+        //                         "fAvailableCNY" => "147.760811613032",
+        //                         "key" => "btcusdt",
+        //                         "fNetBtc" => "0.0005291",
+        //                         "fUnitDecimal" => 8,
+        //                         "loanInConvertUSD" => "0.00",
+        //                         "showName" => "BTC/USDT",
+        //                         "startLine" => "1.25",
+        //                         "totalConvertUSD" => "20.49273433",
+        //                         "couldTransferOutCoin" => "0.00",
+        //                         "cEnName" => "BTC",
+        //                         "leverMultipleInterest" => "3.00",
+        //                         "fAvailable" => "20.49273433",
+        //                         "fEnName" => "USDT",
+        //                         "forceRepayLine" => "1.08",
+        //                         "cLoanIn" => "0.00"
+        //                     }
+        //                 )
+        //             }
+        //         }
+        //     }
+        //
+        // Cross Margin
+        //
+        //     {
+        //         "code" => 1000,
+        //         "message" => "操作成功",
+        //         "result" => {
+        //             "loanIn" => 0,
+        //             "total" => 71.167,
+        //             "riskRate" => "-",
+        //             "list" :array(
+        //                 array(
+        //                     "fundType" => 2,
+        //                     "loanIn" => 0,
+        //                     "amount" => 0,
+        //                     "freeze" => 0,
+        //                     "overdraft" => 0,
+        //                     "key" => "BTC",
+        //                     "canTransferOut" => 0
+        //                 ),
+        //             ),
+        //             "net" => 71.167
+        //         }
+        //     }
+        //
         // todo => use this somehow
         // $permissions = $response['result']['base'];
         if ($swap) {
             return $this->parse_swap_balance($response);
+        } else if ($margin) {
+            return $this->parse_margin_balance($response, $marginType);
         } else {
             return $this->parse_balance($response);
         }
@@ -1550,6 +1764,9 @@ class zb extends Exchange {
         ));
         $request = array(
             'amount' => $this->amount_to_precision($symbol, $amount),
+            // 'acctType' => 0, // Spot, Margin 0/1/2 [Spot/Isolated/Cross] Optional, Default to => 0 Spot
+            // 'customerOrderId' => '1f2g', // Spot, Margin
+            // 'orderType' => 1, // Spot, Margin order $type 1/2 [PostOnly/IOC] Optional
         );
         if ($price) {
             $request['price'] = $this->price_to_precision($symbol, $price);
@@ -1557,6 +1774,15 @@ class zb extends Exchange {
         if ($spot) {
             $request['tradeType'] = ($side === 'buy') ? '1' : '0';
             $request['currency'] = $market['id'];
+            if ($timeInForce !== null) {
+                if ($timeInForce === 'PO') {
+                    $request['orderType'] = 1;
+                } else if ($timeInForce === 'IOC') {
+                    $request['orderType'] = 2;
+                } else {
+                    throw new InvalidOrder($this->id . ' createOrder() on ' . $market['type'] . ' markets does not allow ' . $timeInForce . ' orders');
+                }
+            }
         } else if ($swap) {
             $reduceOnly = $this->safe_value($params, 'reduceOnly');
             $params = $this->omit($params, 'reduceOnly');
@@ -2263,6 +2489,7 @@ class zb extends Exchange {
         );
         if ($symbol !== null) {
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $request['symbol'] = $market['id'];
         }
         if ($since !== null) {
@@ -2922,25 +3149,67 @@ class zb extends Exchange {
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
         $this->load_markets();
-        $side = null;
-        if ($fromAccount === 'spot' || $toAccount === 'future') {
-            $side = 1;
-        } else {
-            $side = 0;
-        }
+        list($marketType, $query) = $this->handle_market_type_and_params('transfer', null, $params);
         $currency = $this->currency($code);
+        $margin = ($marketType === 'margin');
+        $swap = ($marketType === 'swap');
+        $side = null;
+        $marginMethod = null;
         $request = array(
-            'currencyName' => $currency['id'],
-            'amount' => $amount,
-            'clientId' => $this->safe_string($params, 'clientId'), // "2sdfsdfsdf232342"
-            'side' => $side, // 1：Deposit (zb account -> futures account)，0：Withdrawal (futures account -> zb account)
+            'amount' => $amount, // Swap, Cross Margin, Isolated Margin
+            // 'coin' => $currency['id'], // Margin
+            // 'currencyName' => $currency['id'], // Swap
+            // 'clientId' => $this->safe_string($params, 'clientId'), // Swap "2sdfsdfsdf232342"
+            // 'side' => $side, // Swap, 1：Deposit (zb account -> futures account)，0：Withdrawal (futures account -> zb account)
+            // 'marketName' => $this->safe_string($params, 'marketName'), // Isolated Margin
         );
-        $response = $this->contractV2PrivatePostFundTransferFund (array_merge($request, $params));
+        if ($swap) {
+            if ($fromAccount === 'spot' || $toAccount === 'future') {
+                $side = 1;
+            } else {
+                $side = 0;
+            }
+            $request['currencyName'] = $currency['id'];
+            $request['clientId'] = $this->safe_string($params, 'clientId');
+            $request['side'] = $side;
+        } else {
+            $defaultMargin = $margin ? 'isolated' : 'cross';
+            $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', $defaultMargin);
+            if ($marginType === 'isolated') {
+                if ($fromAccount === 'spot' || $toAccount === 'isolated') {
+                    $marginMethod = 'spotV1PrivateGetTransferInLever';
+                } else {
+                    $marginMethod = 'spotV1PrivateGetTransferOutLever';
+                }
+                $request['marketName'] = $this->safe_string($params, 'marketName');
+            } else if ($marginType === 'cross') {
+                if ($fromAccount === 'spot' || $toAccount === 'cross') {
+                    $marginMethod = 'spotV1PrivateGetTransferInCross';
+                } else {
+                    $marginMethod = 'spotV1PrivateGetTransferOutCross';
+                }
+            }
+            $request['coin'] = $currency['id'];
+        }
+        $method = $this->get_supported_mapping($marketType, array(
+            'swap' => 'contractV2PrivatePostFundTransferFund',
+            'margin' => $marginMethod,
+        ));
+        $response = $this->$method (array_merge($request, $query));
+        //
+        // Swap
         //
         //     {
         //         "code" => 10000,
         //         "data" => "2sdfsdfsdf232342",
         //         "desc" => "Success"
+        //     }
+        //
+        // Margin
+        //
+        //     {
+        //         "code" => 1000,
+        //         "message" => "Success"
         //     }
         //
         $timestamp = $this->milliseconds();
@@ -2980,7 +3249,7 @@ class zb extends Exchange {
             'amount' => $this->safe_number($transfer, 'amount'),
             'fromAccount' => $this->safe_string($transfer, 'fromAccount'),
             'toAccount' => $this->safe_string($transfer, 'toAccount'),
-            'status' => $this->safe_string($transfer, 'status'),
+            'status' => $this->safe_integer($transfer, 'status'),
         );
     }
 
@@ -3065,6 +3334,87 @@ class zb extends Exchange {
             throw new ArgumentsRequired($this->id . ' addMargin() requires a positionsId argument in the params');
         }
         return $this->modify_margin_helper($symbol, $amount, 1, $params);
+    }
+
+    public function fetch_borrow_rate($code, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'coin' => $currency['id'],
+        );
+        $response = $this->spotV1PrivateGetGetLoans (array_merge($request, $params));
+        //
+        //     {
+        //         $code => '1000',
+        //         message => '操作成功',
+        //         result => array(
+        //             array(
+        //                 interestRateOfDay => '0.0005',
+        //                 repaymentDay => '30',
+        //                 amount => '148804.4841',
+        //                 balance => '148804.4841',
+        //                 rateOfDayShow => '0.05 %',
+        //                 coinName => 'USDT',
+        //                 lowestAmount => '0.01'
+        //             ),
+        //         )
+        //     }
+        //
+        $timestamp = $this->milliseconds();
+        $data = $this->safe_value($response, 'result', array());
+        $rate = $this->safe_value($data, 0, array());
+        return array(
+            'currency' => $this->safe_currency_code($this->safe_string($rate, 'coinName')),
+            'rate' => $this->safe_number($rate, 'interestRateOfDay'),
+            'period' => $this->safe_number($rate, 'repaymentDay'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $rate,
+        );
+    }
+
+    public function fetch_borrow_rates($params = array ()) {
+        if ($params['coin'] === null) {
+            throw new ArgumentsRequired($this->id . ' fetchBorrowRates() requires a coin argument in the params');
+        }
+        $this->load_markets();
+        $currency = $this->currency($this->safe_string($params, 'coin'));
+        $request = array(
+            'coin' => $currency['id'],
+        );
+        $response = $this->spotV1PrivateGetGetLoans (array_merge($request, $params));
+        //
+        //     {
+        //         code => '1000',
+        //         message => '操作成功',
+        //         result => array(
+        //             array(
+        //                 interestRateOfDay => '0.0005',
+        //                 repaymentDay => '30',
+        //                 amount => '148804.4841',
+        //                 balance => '148804.4841',
+        //                 rateOfDayShow => '0.05 %',
+        //                 coinName => 'USDT',
+        //                 lowestAmount => '0.01'
+        //             ),
+        //         )
+        //     }
+        //
+        $timestamp = $this->milliseconds();
+        $data = $this->safe_value($response, 'result');
+        $rates = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $entry = $data[$i];
+            $rates[] = array(
+                'currency' => $this->safe_currency_code($this->safe_string($entry, 'coinName')),
+                'rate' => $this->safe_number($entry, 'interestRateOfDay'),
+                'period' => $this->safe_number($entry, 'repaymentDay'),
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+                'info' => $entry,
+            );
+        }
+        return $rates;
     }
 
     public function nonce() {

@@ -37,6 +37,8 @@ module.exports = class bitflyer extends Exchange {
                 'fetchPositions': true,
                 'fetchTicker': true,
                 'fetchTrades': true,
+                'fetchTradingFee': true,
+                'fetchTradingFees': false,
                 'fetchWithdrawals': true,
                 'withdraw': true,
             },
@@ -179,13 +181,24 @@ module.exports = class bitflyer extends Exchange {
                 quoteId = this.safeString (currencies, 2);
             } else if (future) {
                 const alias = this.safeString (market, 'alias');
-                const splitAlias = alias.split ('_');
-                const currencyIds = this.safeString (splitAlias, 0);
-                baseId = currencyIds.slice (0, -3);
-                quoteId = currencyIds.slice (-3);
-                const splitId = id.split (currencyIds);
-                const expiryDate = this.safeString (splitId, 1);
-                expiry = this.parseExpiryDate (expiryDate);
+                if (alias === undefined) {
+                    // no alias:
+                    // { product_code: 'BTCJPY11MAR2022', market_type: 'Futures' }
+                    // TODO this will break if there are products with 4 chars
+                    baseId = id.slice (0, 3);
+                    quoteId = id.slice (3, 6);
+                    // last 9 chars are expiry date
+                    const expiryDate = id.slice (-9);
+                    expiry = this.parseExpiryDate (expiryDate);
+                } else {
+                    const splitAlias = alias.split ('_');
+                    const currencyIds = this.safeString (splitAlias, 0);
+                    baseId = currencyIds.slice (0, -3);
+                    quoteId = currencyIds.slice (-3);
+                    const splitId = id.split (currencyIds);
+                    const expiryDate = this.safeString (splitId, 1);
+                    expiry = this.parseExpiryDate (expiryDate);
+                }
                 type = 'future';
             }
             const base = this.safeCurrencyCode (baseId);
@@ -414,6 +427,27 @@ module.exports = class bitflyer extends Exchange {
         };
         const response = await this.publicGetGetexecutions (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
+    }
+
+    async fetchTradingFee (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'product_code': market['id'],
+        };
+        const response = await this.privateGetGettradingcommission (this.extend (request, params));
+        //
+        //   {
+        //       commission_rate: '0.0020'
+        //   }
+        //
+        const fee = this.safeNumber (response, 'commission_rate');
+        return {
+            'info': response,
+            'symbol': symbol,
+            'maker': fee,
+            'taker': fee,
+        };
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

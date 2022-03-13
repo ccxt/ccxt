@@ -570,9 +570,9 @@ class phemex extends Exchange {
             'expiryDatetime' => null,
             'strike' => null,
             'optionType' => null,
-            'priceScale' => $this->parse_number('8'),
-            'valueScale' => $this->parse_number('8'),
-            'ratioScale' => $this->parse_number('8'),
+            'priceScale' => 8,
+            'valueScale' => 8,
+            'ratioScale' => 8,
             'precision' => array(
                 'amount' => $precisionAmount,
                 'price' => $precisionPrice,

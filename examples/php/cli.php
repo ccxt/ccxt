@@ -11,20 +11,22 @@ echo 'CCXT v' . \ccxt\Exchange::VERSION . "\n";
 
 if (count($argv) > 2) {
 
-    $id = $argv[1];
-    $member = $argv[2];
-    $args = array_slice($argv, 3);
+    # first we filter the args
+    $verbose = count(array_filter($argv, function ($option) { return strstr($option, '--verbose') !== false; })) > 0;
+    $args = array_values(array_filter($argv, function ($option) { return strstr($option, '--verbose') === false; }));
+
+    $test = count(array_filter($args, function ($option) { return strstr($option, '--test') !== false || strstr($option, '--testnet') !== false || strstr($option, '--sandbox') !== false; })) > 0;
+    $args = array_values(array_filter($args, function ($option) { return strstr($option, '--test') === false || strstr($option, '--testnet') !== false || strstr($option, '--sandbox') !== false; }));
+
+    $debug = count(array_filter($args, function ($option) { return strstr($option, '--debug') !== false; })) > 0;
+    $args = array_values(array_filter($args, function ($option) { return strstr($option, '--debug') === false; }));
+
+    $id = $args[1];
+    $member = $args[2];
+    $args = array_slice($args, 3);
     $exchange_found = in_array($id, \ccxt\Exchange::$exchanges);
 
     if ($exchange_found) {
-        $verbose = count(array_filter($args, function ($option) { return strstr($option, '--verbose') !== false; })) > 0;
-        $args = array_filter($args, function ($option) { return strstr($option, '--+') === false; });
-
-        $test = count(array_filter($args, function ($option) { return strstr($option, '--test') !== false || strstr($option, '--testnet') !== false || strstr($option, '--sandbox') !== false; })) > 0;
-        $args = array_filter($args, function ($option) { return strstr($option, '--test') === false || strstr($option, '--testnet') !== false || strstr($option, '--sandbox') !== false; });
-
-        $debug = count(array_filter($args, function ($option) { return strstr($option, '--debug') !== false; })) > 0;
-        $args = array_filter($args, function ($option) { return strstr($option, '--debug') === false; });
 
         $keys_global = './keys.json';
         $keys_local = './keys.local.json';
@@ -71,7 +73,13 @@ if (count($argv) > 2) {
                 return $arg;
         }, $args);
 
-        $exchange->load_markets();
+        $markets_path = '.cache/' . $exchange->id . '-markets.json';
+        if (file_exists($markets_path)) {
+            $markets = json_decode(file_get_contents($markets_path), true);
+            $exchange->markets = $markets;
+        } else {
+            $exchange->load_markets();
+        }
 
         $exchange->verbose = $verbose;
 

@@ -45,6 +45,8 @@ class latoken extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => true,
+                'fetchTradingFees' => false,
                 'fetchTransactions' => true,
             ),
             'urls' => array(
@@ -186,6 +188,9 @@ class latoken extends Exchange {
                 'accounts' => array(
                     'ACCOUNT_TYPE_WALLET' => 'wallet',
                     'ACCOUNT_TYPE_SPOT' => 'spot',
+                ),
+                'fetchTradingFee' => array(
+                    'method' => 'fetchPrivateTradingFee', // or 'fetchPublicTradingFee'
                 ),
             ),
         ));
@@ -707,6 +712,64 @@ class latoken extends Exchange {
         //     )
         //
         return $this->parse_trades($response, $market, $since, $limit);
+    }
+
+    public function fetch_trading_fee($symbol, $params = array ()) {
+        $method = $this->safe_string($params, 'method');
+        $params = $this->omit($params, 'method');
+        if ($method === null) {
+            $options = $this->safe_value($this->options, 'fetchTradingFee', array());
+            $method = $this->safe_string($options, 'method', 'fetchPrivateTradingFee');
+        }
+        return $this->$method ($symbol, $params);
+    }
+
+    public function fetch_public_trading_fee($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'currency' => $market['baseId'],
+            'quote' => $market['quoteId'],
+        );
+        $response = $this->publicGetTradeFeeCurrencyQuote (array_merge($request, $params));
+        //
+        //     {
+        //         makerFee => '0.004900000000000000',
+        //         takerFee => '0.004900000000000000',
+        //         type => 'FEE_SCHEME_TYPE_PERCENT_QUOTE',
+        //         take => 'FEE_SCHEME_TAKE_PROPORTION'
+        //     }
+        //
+        return array(
+            'info' => $response,
+            'symbol' => $symbol,
+            'maker' => $this->safe_number($response, 'makerFee'),
+            'taker' => $this->safe_number($response, 'takerFee'),
+        );
+    }
+
+    public function fetch_private_trading_fee($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'currency' => $market['baseId'],
+            'quote' => $market['quoteId'],
+        );
+        $response = $this->privateGetAuthTradeFeeCurrencyQuote (array_merge($request, $params));
+        //
+        //     {
+        //         makerFee => '0.004900000000000000',
+        //         takerFee => '0.004900000000000000',
+        //         type => 'FEE_SCHEME_TYPE_PERCENT_QUOTE',
+        //         take => 'FEE_SCHEME_TAKE_PROPORTION'
+        //     }
+        //
+        return array(
+            'info' => $response,
+            'symbol' => $symbol,
+            'maker' => $this->safe_number($response, 'makerFee'),
+            'taker' => $this->safe_number($response, 'takerFee'),
+        );
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
