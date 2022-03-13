@@ -104,6 +104,8 @@ module.exports = class ftx extends Exchange {
                 // '2w': '1209600',
                 // '1M': '2592000',
             },
+            // temporarily, to give meaningful exception message to current users, we might retain the exclusion list
+            'exceptionTimeframes': [ '3d', '1w', '2w', '1M' ],
             'api': {
                 'public': {
                     'get': {
@@ -851,6 +853,9 @@ module.exports = class ftx extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        if (this.exceptionTimeframes.indexOf (timeframe) >= 0) {
+            throw new BadRequest (this.id + ' fetchOHLCV () no longer supports provided timeframe. Please see the reason and solution at https://github.com/ccxt/ccxt/pull/12326#issuecomment-1066094149');
+        }
         // This method doesn't accept `timeframe` argument above 1 day. See: https://github.com/ccxt/ccxt/pull/12326#issuecomment-1066094149 , however, you can still call them by `params`
         await this.loadMarkets ();
         const [ market, marketId ] = this.getMarketParams (symbol, 'market_name', params);
