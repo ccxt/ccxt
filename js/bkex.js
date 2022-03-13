@@ -15,7 +15,7 @@ module.exports = class bkex extends Exchange {
             'countries': [ 'BVI' ], // British Virgin Islands
             'rateLimit': 100,
             'version': 'v2',
-            'certified': true,
+            'certified': false,
             'has': {
                 'CORS': undefined,
                 'spot': undefined,
