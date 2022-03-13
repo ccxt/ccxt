@@ -196,8 +196,8 @@ class Precise {
     public function __toString() {
         $this->reduce();
         $sign = gmp_sign($this->integer) === -1 ? '-' : '';
-        $integerArray = str_split(str_pad(gmp_abs($this->integer), $this->decimals, '0', STR_PAD_LEFT));
-        $index = count($integerArray) - $this->decimals;
+        $integerStr = str_pad(gmp_abs($this->integer), $this->decimals, '0', STR_PAD_LEFT);
+        $index = strlen($integerStr) - $this->decimals;
         if ($index === 0) {
             // if we are adding to the front
             $item = '0.';
@@ -208,8 +208,8 @@ class Precise {
         } else {
             $item = '.';
         }
-        array_splice($integerArray, $index, 0, $item);
-        return $sign . implode('', $integerArray);
+        $integerStr = $sign . substr($integerStr,0,$index) . $item . substr($integerStr,$index); 
+        return $integerStr;
     }
 
     public static function string_mul($string1, $string2) {
