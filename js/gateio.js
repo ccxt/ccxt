@@ -2858,6 +2858,7 @@ module.exports = class gateio extends Exchange {
         let filled = Precise.stringSub (amount, remaining);
         let cost = this.safeNumber (order, 'filled_total');
         let rawStatus = undefined;
+        let average = undefined;
         if (put) {
             remaining = amount;
             filled = '0';
@@ -2868,6 +2869,7 @@ module.exports = class gateio extends Exchange {
             type = isMarketOrder ? 'market' : 'limit';
             side = Precise.stringGt (amount, '0') ? 'buy' : 'sell';
             rawStatus = this.safeString (order, 'finish_as', 'open');
+            average = this.safeNumber(order, 'fill_price');
         } else {
             rawStatus = this.safeString (order, 'status');
         }
@@ -2913,7 +2915,7 @@ module.exports = class gateio extends Exchange {
             'side': side,
             'price': this.parseNumber (price),
             'stopPrice': this.safeNumber (trigger, 'price'),
-            'average': this.safeNumber (order, 'price'),
+            'average': average,
             'amount': this.parseNumber (Precise.stringAbs (amount)),
             'cost': cost,
             'filled': this.parseNumber (filled),
