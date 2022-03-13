@@ -2953,6 +2953,14 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * Retrieves information on an order
+         * @param {string} id: Order id
+         * @param {string} symbol: Unified market symbol
+         * @param {boolean} params.stop: True if the order being fetched is a trigger order
+         * @param {dictionary} params: Parameters specified by the exchange api
+         * @returns Order structure
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
@@ -3126,6 +3134,14 @@ module.exports = class gateio extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * Cancels an open order
+         * @param {string} id: Order id
+         * @param {string} symbol: Unified market symbol
+         * @param {boolean} params.stop: True if the order to be cancelled is a trigger order
+         * @param {dictionary} params: Parameters specified by the exchange api
+         * @returns Order structure
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
@@ -3139,8 +3155,9 @@ module.exports = class gateio extends Exchange {
         } else {
             request['currency_pair'] = market['id'];
         }
-        const isStop = this.safeValue (params, 'isStop', false);
-        const pathMiddle = isStop ? 'Price' : '';
+        const stop = this.safeValue2 (params, 'is_stop_order', 'stop', false);
+        params = this.omit (params, [ 'is_stop_order', 'stop' ]);
+        const pathMiddle = stop ? 'Price' : '';
         const method = this.getSupportedMapping (market['type'], {
             'spot': 'privateSpotDelete' + pathMiddle + 'OrdersOrderId',
             'margin': 'privateSpotDelete' + pathMiddle + 'OrdersOrderId',
