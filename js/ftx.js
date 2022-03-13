@@ -867,10 +867,11 @@ module.exports = class ftx extends Exchange {
             // from (independent the fact if you provide 'start_time' argument or not). So, if we want the exchange
             // to return from 'start_time' argument realistically, we have to provide the appropriate 'end_time',
             // which must not be far than 1499[or limit] candles equivalent.
-            let selectedAmount = (limit !== undefined) ? limit : 1499;
-            selectedAmount = Math.min (selectedAmount, 5000); // maximum allowed currently is 5000
+            let limitChosen = (limit !== undefined) ? limit : 1499;
+            limitChosen = Math.min (limitChosen, 5000); // maximum allowed currently is 5000
             request['start_time'] = parseInt (since / 1000);
-            request['end_time'] = this.sum (request['start_time'], selectedAmount * this.parseTimeframe (timeframe));
+            request['limit'] = limitChosen;
+            request['end_time'] = this.sum (request['start_time'], limitChosen * this.parseTimeframe (timeframe));
             // we need to limit 'end_time' to avoid the number to be too far in future
             request['end_time'] = Math.min (request['end_time'], this.seconds ());
         }
