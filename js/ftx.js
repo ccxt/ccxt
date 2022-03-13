@@ -98,7 +98,7 @@ module.exports = class ftx extends Exchange {
                 '1h': '3600',
                 '4h': '14400',
                 '1d': '86400',
-                // Above 1 day, all timeframes removed from 'supported' approach. See: https://github.com/ccxt/ccxt/pull/12326#issuecomment-1066094149
+                // See comments under 'fetchOHLCV' method
                 // '3d': '259200',
                 // '1w': '604800',
                 // '2w': '1209600',
@@ -851,6 +851,7 @@ module.exports = class ftx extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        // this method doesn't accept `timeframe` above 1 day. See: https://github.com/ccxt/ccxt/pull/12326#issuecomment-1066094149
         await this.loadMarkets ();
         const [ market, marketId ] = this.getMarketParams (symbol, 'market_name', params);
         const request = {
