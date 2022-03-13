@@ -3112,8 +3112,9 @@ module.exports = class gateio extends Exchange {
         } else {
             request['currency_pair'] = market['id'];
         }
-        const isStop = this.safeValue (params, 'isStop', false);
-        const pathMiddle = isStop ? 'Price' : '';
+        const stop = this.safeValue2 (params, 'is_stop_order', 'stop', false);
+        params = this.omit (params, [ 'is_stop_order', 'stop' ]);
+        const pathMiddle = stop ? 'Price' : '';
         const method = this.getSupportedMapping (market['type'], {
             'spot': 'privateSpotDelete' + pathMiddle + 'OrdersOrderId',
             'margin': 'privateSpotDelete' + pathMiddle + 'OrdersOrderId',
