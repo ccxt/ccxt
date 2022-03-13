@@ -98,10 +98,11 @@ module.exports = class ftx extends Exchange {
                 '1h': '3600',
                 '4h': '14400',
                 '1d': '86400',
-                '3d': '259200',
-                '1w': '604800',
-                '2w': '1209600',
-                '1M': '2592000',
+                // Above 1 day, all timeframes removed from 'supported' approach. See: https://github.com/ccxt/ccxt/pull/12326#issuecomment-1066094149
+                // '3d': '259200',
+                // '1w': '604800',
+                // '2w': '1209600',
+                // '1M': '2592000',
             },
             'api': {
                 'public': {
