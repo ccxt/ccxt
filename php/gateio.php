@@ -2959,6 +2959,14 @@ class gateio extends Exchange {
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
+        /**
+         * Retrieves information on an order
+         * @param {string} $id => Order $id
+         * @param {string} $symbol => Unified $market $symbol
+         * @param {boolean} $params->stop => True if the order being fetched is a trigger order
+         * @param {dictionary} $params => Parameters specified by the exchange api
+         * @returns Order structure
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
@@ -3132,6 +3140,14 @@ class gateio extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * Cancels an open order
+         * @param {string} $id => Order $id
+         * @param {string} $symbol => Unified $market $symbol
+         * @param {boolean} $params->stop => True if the order to be cancelled is a trigger order
+         * @param {dictionary} $params => Parameters specified by the exchange api
+         * @returns Order structure
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
@@ -3145,8 +3161,9 @@ class gateio extends Exchange {
         } else {
             $request['currency_pair'] = $market['id'];
         }
-        $isStop = $this->safe_value($params, 'isStop', false);
-        $pathMiddle = $isStop ? 'Price' : '';
+        $stop = $this->safe_value_2($params, 'is_stop_order', 'stop', false);
+        $params = $this->omit($params, array( 'is_stop_order', 'stop' ));
+        $pathMiddle = $stop ? 'Price' : '';
         $method = $this->get_supported_mapping($market['type'], array(
             'spot' => 'privateSpotDelete' . $pathMiddle . 'OrdersOrderId',
             'margin' => 'privateSpotDelete' . $pathMiddle . 'OrdersOrderId',

@@ -2841,6 +2841,14 @@ class gateio(Exchange):
         }, market)
 
     def fetch_order(self, id, symbol=None, params={}):
+        '''
+         * Retrieves information on an order
+         * @param {string} id: Order id
+         * @param {string} symbol: Unified market symbol
+         * @param {boolean} params.stop: True if the order being fetched is a trigger order
+         * @param {dictionary} params: Parameters specified by the exchange api
+         * @returns Order structure
+        '''
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         self.load_markets()
@@ -3000,6 +3008,14 @@ class gateio(Exchange):
         return self.parse_orders(response, market, since, limit)
 
     def cancel_order(self, id, symbol=None, params={}):
+        '''
+         * Cancels an open order
+         * @param {string} id: Order id
+         * @param {string} symbol: Unified market symbol
+         * @param {boolean} params.stop: True if the order to be cancelled is a trigger order
+         * @param {dictionary} params: Parameters specified by the exchange api
+         * @returns Order structure
+        '''
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         self.load_markets()
@@ -3011,8 +3027,9 @@ class gateio(Exchange):
             request['settle'] = market['settleId']
         else:
             request['currency_pair'] = market['id']
-        isStop = self.safe_value(params, 'isStop', False)
-        pathMiddle = 'Price' if isStop else ''
+        stop = self.safe_value_2(params, 'is_stop_order', 'stop', False)
+        params = self.omit(params, ['is_stop_order', 'stop'])
+        pathMiddle = 'Price' if stop else ''
         method = self.get_supported_mapping(market['type'], {
             'spot': 'privateSpotDelete' + pathMiddle + 'OrdersOrderId',
             'margin': 'privateSpotDelete' + pathMiddle + 'OrdersOrderId',
