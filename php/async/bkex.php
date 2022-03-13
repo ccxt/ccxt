@@ -19,7 +19,7 @@ class bkex extends Exchange {
             'countries' => array( 'BVI' ), // British Virgin Islands
             'rateLimit' => 100,
             'version' => 'v2',
-            'certified' => true,
+            'certified' => false,
             'has' => array(
                 'CORS' => null,
                 'spot' => null,
