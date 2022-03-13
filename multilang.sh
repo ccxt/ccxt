@@ -61,14 +61,27 @@ function condense {
 }
 
 function removeAndColorLines {
-  sed -E -e '/.*(iteration|Array|^202.*|^$)/d' -e 's/  / /g' -e 's/  / /g' -e "s/(.*)/$(tput setaf $color)\1$(tput sgr0)/"
+  sed -E -e '/.*(iteration|^Array|^202.*|^$)/d' -e 's/  / /g' -e 's/  / /g' -e "s/(.*)/$(tput setaf $color)\1/"
 }
 
 function writeOutput {
   local interpretter="$1"
   local path="$2"
   local args="$3"
-  $interpretter "$path" $args | removeSpecial | removeAndColorLines $color
+  if result=$($interpretter "$path" $args); then
+    if ${verbose}; then
+      echo "$interpretter completed" >&2
+    fi
+    removeSpecial <<< "$result" | removeAndColorLines $color
+  else
+    exit $?
+  fi
+}
+
+function checkExitCode {
+  if [ $? -ne 0 ]; then
+    exit $?
+  fi
 }
 
 function padOutput {
@@ -77,7 +90,9 @@ function padOutput {
   echo "$input"
   lines=$(wc -l <<< "$input")
   toPad=$(($length - $lines))
-  yes "$(tput setaf 1)$(tput sgr0)" | head -n $toPad
+  if [ $toPad -gt 0 ]; then
+    yes "$(tput setaf 1)" | head -n $toPad
+  fi
 }
 
 # Loop through command line arguments
@@ -106,21 +121,23 @@ phpArgs=$(<<< "$args" sed -E -e 's/(undefined|None)/null/g')
 
 color=3
 jsOutput=$(writeOutput node $jsCli "--no-table --cache-markets $jsArgs")
+checkExitCode
 ((color++))
 
 pythonOutput=$(writeOutput python3 $pythonCli "$pythonArgs")
+checkExitCode
 pythonLength=$(wc -l <<< "$pythonOutput")
 ((color++))
 
 phpOutput=$(writeOutput php $phpCli "$phpArgs")
-
-# use padding here
-length=$(wc -l <<< "$phpOutput")
-jsOutput=$(padOutput "$jsOutput" $length)
-pythonOutput=$(padOutput "$pythonOutput" $length)
+checkExitCode
 
 if ${verbose}; then
-  echo "$jsOutput $phpOutput $pythonOutput" | display
+  echo -e "$jsOutput\n$phpOutput\n$pythonOutput" | display
 else
+  # use padding here
+  length=$(wc -l <<< "$phpOutput")
+  jsOutput=$(padOutput "$jsOutput" $length)
+  pythonOutput=$(padOutput "$pythonOutput" $length)
   paste <(echo "$jsOutput") <(echo "$phpOutput") <(echo "$pythonOutput") | column -s $'\t' -t | condense $pythonLength | display
 fi
