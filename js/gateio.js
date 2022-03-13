@@ -2869,7 +2869,7 @@ module.exports = class gateio extends Exchange {
             type = isMarketOrder ? 'market' : 'limit';
             side = Precise.stringGt (amount, '0') ? 'buy' : 'sell';
             rawStatus = this.safeString (order, 'finish_as', 'open');
-            average = this.safeNumber(order, 'fill_price');
+            average = this.safeNumber (order, 'fill_price');
         } else {
             rawStatus = this.safeString (order, 'status');
         }
