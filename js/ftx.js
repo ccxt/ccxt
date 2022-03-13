@@ -854,7 +854,7 @@ module.exports = class ftx extends Exchange {
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         if (this.exceptionTimeframes.indexOf (timeframe) >= 0) {
-            throw new BadRequest (this.id + ' fetchOHLCV () no longer supports provided timeframe. Please see the reason and solution at https://github.com/ccxt/ccxt/pull/12326#issuecomment-1066094149');
+            throw new BadRequest (this.id + ' fetchOHLCV () no longer supports provided timeframe. Please see the reason and workaround at https://github.com/ccxt/ccxt/pull/12326#issuecomment-1066094149');
         }
         // This method doesn't accept `timeframe` argument above 1 day. See: https://github.com/ccxt/ccxt/pull/12326#issuecomment-1066094149 , however, you can still call them by `params`
         await this.loadMarkets ();
