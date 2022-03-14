@@ -101,7 +101,6 @@ module.exports = class ftx extends Exchange {
                 '3d': '259200',
                 '1w': '604800',
                 '2w': '1209600',
-                '1M': '2592000',
             },
             'api': {
                 'public': {
