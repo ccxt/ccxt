@@ -2,60 +2,58 @@
 
 /*  ------------------------------------------------------------------------ */
 
+const { "strictEqual": equal, deepEqual } = require ('assert')
 const { deepExtend, groupBy, filterBy, omit, sum, sortBy } = require ('../../../../ccxt')
-const { strictEqual: equal, deepEqual } = require ('assert')
 
 /*  ------------------------------------------------------------------------ */
 
 it ('deepExtend() works', () => {
 
-    let count = 0
+    const count = 0
 
-    const values = [{
-        a: 1,
-        b: 2,
-        d: {
-            a: 1,
-            b: [],
-            c: { test1: 123, test2: 321 }},
-        f: 5,
-        g: 123,
-        i: 321,
-        j: [1, 2],
+    const values = [ {
+        "a": 1,
+        "b": 2,
+        "d": { "a": 1,
+            "b": [],
+            "c": { "test1": 123, "test2": 321 }},
+        "f": 5,
+        "g": 123,
+        "i": 321,
+        "j": [ 1, 2 ],
     },
     {
-        b: 3,
-        c: 5,
-        d: {
-            b: { first: 'one', second: 'two' },
-            c: { test2: 222 }},
-        e: { one: 1, two: 2 },
-        f: [{ 'foo': 'bar' }],
-        g: (void 0),
-        h: /abc/g,
-        i: null,
-        j: [3, 4]
-    }]
+        "b": 3,
+        "c": 5,
+        "d": { "b": { "first": 'one', "second": 'two' },
+            "c": { "test2": 222 }},
+        "e": { "one": 1, "two": 2 },
+        "f": [ { 'foo': 'bar' } ],
+        "g": (void 0),
+        "h": /abc/g,
+        "i": null,
+        "j": [ 3, 4 ]
+    } ]
 
     const extended = deepExtend (...values)
     deepEqual (extended, {
-        a: 1,
-        b: 3,
-        d: {
-            a: 1,
-            b: { first: 'one', second: 'two' },
-            c: { test1: 123, test2: 222 }
+        "a": 1,
+        "b": 3,
+        "d": {
+            "a": 1,
+            "b": { "first": 'one', "second": 'two' },
+            "c": { "test1": 123, "test2": 222 }
         },
-        f: [{ 'foo': 'bar' }],
-        g: undefined,
-        c: 5,
-        e: { one: 1, two: 2 },
-        h: /abc/g,
-        i: null,
-        j: [3, 4]
+        "f": [ { 'foo': 'bar' } ],
+        "g": undefined,
+        "c": 5,
+        "e": { "one": 1, "two": 2 },
+        "h": /abc/g,
+        "i": null,
+        "j": [ 3, 4 ]
     })
 
-    deepEqual (deepExtend (undefined, undefined, {'foo': 'bar' }), { 'foo': 'bar' })
+    deepEqual (deepExtend (undefined, undefined, { 'foo': 'bar' }), { 'foo': 'bar' })
 })
 
 /*  ------------------------------------------------------------------------ */
@@ -106,14 +104,14 @@ it ('filterBy() works', () => {
 it ('omit works', () => {
 
     deepEqual (omit ({ }, 'foo'), {})
-    deepEqual (omit ({ foo: 2 }, 'foo'), { })
-    deepEqual (omit ({ foo: 2, bar: 3 }, 'foo'), { bar: 3 })
-    deepEqual (omit ({ foo: 2, bar: 3 }, ['foo']), { bar: 3 })
-    deepEqual (omit ({ foo: 2, bar: 3 }), { foo: 2, bar: 3 })
-    deepEqual (omit ({ foo: 2, bar: 3 }, 'foo', 'bar'), {})
-    deepEqual (omit ({ foo: 2, bar: 3 }, ['foo'], 'bar'), {})
-    deepEqual (omit ({ 5: 2, bar: 3 }, [ 5 ]), { bar: 3 })
-    deepEqual (omit ({ 5: 2, bar: 3 }, 5), { bar: 3 })
+    deepEqual (omit ({ "foo": 2 }, 'foo'), { })
+    deepEqual (omit ({ "foo": 2, "bar": 3 }, 'foo'), { "bar": 3 })
+    deepEqual (omit ({ "foo": 2, "bar": 3 }, [ 'foo' ]), { "bar": 3 })
+    deepEqual (omit ({ "foo": 2, "bar": 3 }), { "foo": 2, "bar": 3 })
+    deepEqual (omit ({ "foo": 2, "bar": 3 }, 'foo', 'bar'), {})
+    deepEqual (omit ({ "foo": 2, "bar": 3 }, [ 'foo' ], 'bar'), {})
+    deepEqual (omit ({ "5": 2, "bar": 3 }, [ 5 ]), { "bar": 3 })
+    deepEqual (omit ({ "5": 2, "bar": 3 }, 5), { "bar": 3 })
 })
 
 /*  ------------------------------------------------------------------------ */
@@ -130,7 +128,7 @@ it ('sum works', () => {
 
 it ('sortBy works', () => {
 
-    const arr = [{ 'x': 5 }, { 'x': 2 }, { 'x': 4 }, { 'x': 0 }, { 'x': 1 }, { 'x': 3 }]
+    const arr = [ { 'x': 5 }, { 'x': 2 }, { 'x': 4 }, { 'x': 0 }, { 'x': 1 }, { 'x': 3 } ]
     sortBy (arr, 'x')
 
     deepEqual (arr, [

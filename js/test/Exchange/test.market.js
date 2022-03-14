@@ -51,12 +51,12 @@ function testMarket (exchange, market, method) {
             },
         },
         'info': {}, // the original unparsed market info from the exchange
-    };
-    let keys = Object.keys (format);
+    }
+    let keys = Object.keys (format)
     for (let i = 0; i < keys.length; i++) {
-        const key = keys[i];
-        const keyPresent = (key in market);
-        assert (keyPresent, key + ' missing ' + exchange.json (market));
+        const key = keys[i]
+        const keyPresent = (key in market)
+        assert (keyPresent, key + ' missing ' + exchange.json (market))
     }
     keys = [
         'id',
@@ -67,21 +67,21 @@ function testMarket (exchange, market, method) {
         'quote',
         'precision',
         'limits',
-    ];
+    ]
     for (let i = 0; i < keys.length; i++) {
-        const key = keys[i];
-        assert (market[key] !== undefined, key + ' undefined ' + exchange.json (market));
+        const key = keys[i]
+        assert (market[key] !== undefined, key + ' undefined ' + exchange.json (market))
     }
-    assert ((market['taker'] === undefined) || (typeof market['taker'] === 'number'));
-    assert ((market['maker'] === undefined) || (typeof market['maker'] === 'number'));
+    assert ((market['taker'] === undefined) || (typeof market['taker'] === 'number'))
+    assert ((market['maker'] === undefined) || (typeof market['maker'] === 'number'))
     if (market['contract']) {
-        assert (market['linear'] !== market['inverse']);
+        assert (market['linear'] !== market['inverse'])
     } else {
-        assert ((market['linear'] === undefined) && (market['inverse'] === undefined));
+        assert ((market['linear'] === undefined) && (market['inverse'] === undefined))
     }
     if (market['option']) {
-        assert (market['strike'] !== undefined);
-        assert (market['optionType'] !== undefined);
+        assert (market['strike'] !== undefined)
+        assert (market['optionType'] !== undefined)
     }
     const validTypes = {
         'spot': true,
@@ -89,20 +89,20 @@ function testMarket (exchange, market, method) {
         'swap': true,
         'future': true,
         'option': true,
-    };
-    const type = market['type'];
+    }
+    const type = market['type']
     //
     // binance has type = 'delivery'
     // https://github.com/ccxt/ccxt/issues/11121
     //
     // assert (type in validTypes);
     //
-    const types = Object.keys (validTypes);
+    const types = Object.keys (validTypes)
     for (let i = 0; i < types.length; i++) {
-        const entry = types[i];
+        const entry = types[i]
         if (entry in market) {
-            const value = market[entry];
-            assert ((value === undefined) || value || !value);
+            const value = market[entry]
+            assert ((value === undefined) || value || !value)
         }
     }
     //
@@ -126,4 +126,4 @@ function testMarket (exchange, market, method) {
     // }
 }
 
-module.exports = testMarket;
+module.exports = testMarket

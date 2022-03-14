@@ -30,7 +30,7 @@ module.exports = async (exchange, symbol) => {
             const position = positions[i]
             testPosition (exchange, position, undefined, now)
         }
-        
+
         // with symbol
         const positionsForSymbol = await exchange.fetchPositions ([ symbol ])
         console.log ('fetched', positions.length, 'positions (' + symbol + '), asserting each...')
