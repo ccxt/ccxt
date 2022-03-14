@@ -4,6 +4,7 @@
     "bcex":          { "skip": true },
     "bibox":         { "has": { "fetchCurrencies": false }},
     "bitbns":        { "skip": true },
+    "bitbank":       { "skip": true },
     "bitcoincom":    { "skip": true },
     "bitforex":      { "skip": true },
     "bitflyer":      { "skip": true },
