@@ -778,7 +778,8 @@ module.exports = class gateio extends ccxt.gateio {
             if (this.uid === undefined) {
                 throw new ArgumentsRequired (this.id + ' requires uid for this method');
             }
-            payload = [this.uid].concat (payload);
+            const idArray = [this.uid];
+            payload = this.arrayConcat (idArray, payload);
         }
         const time = this.seconds ();
         const event = 'subscribe';
