@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { ExchangeError, AuthenticationError, BadRequest, ArgumentsRequired, NotSupported, BadSymbol } = require ('ccxt/js/base/errors');
+const { ExchangeError, AuthenticationError, BadRequest, ArgumentsRequired, NotSupported } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -58,7 +58,7 @@ module.exports = class gateio extends ccxt.gateio {
             'exceptions': {
                 'ws': {
                     'exact': {
-                        '2': BadSymbol,
+                        '2': BadRequest,
                         '4': AuthenticationError,
                         '6': AuthenticationError,
                         '11': AuthenticationError,
