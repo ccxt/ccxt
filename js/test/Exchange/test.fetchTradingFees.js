@@ -1,12 +1,12 @@
 'use strict'
 
-const testTradingFee = require("./test.tradingFee")
+const testTradingFee = require ("./test.tradingFee")
 
 module.exports = async (exchange) => {
     const skippedExchanges = []
     if (skippedExchanges.includes (exchange.id)) {
         console.log (exchange.id, 'found in ignored exchanges, skipping fetchTradingFees...')
-        return;
+        return
     }
     if (exchange.has.fetchTradingFees) {
         const fees = await exchange.fetchTradingFees ()
