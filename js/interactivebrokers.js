@@ -1,7 +1,7 @@
 'use strict';
 
 //  ---------------------------------------------------------------------------
- 
+
 const Exchange = require ('./base/Exchange');
 const { BadSymbol, ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, BadRequest } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
@@ -137,7 +137,6 @@ module.exports = class interactivebrokers extends Exchange {
                 },
                 'private': {
                     'get': {
-                        'sso/Dispatcher': 1, // uncodumented: validates the login
                         'fyi/unreadnumber': 1,
                         'fyi/settings': 1,
                         'fyi/disclaimer/{typecode}': 1,
@@ -149,27 +148,32 @@ module.exports = class interactivebrokers extends Exchange {
                         'ccp/positions': 1,
                         'ccp/orders': 1,
                         'ccp/trades': 1,
-                        'iserver/account/trades': 1, // auth issue
-                        'iserver/accounts': 1, // auth issue
-                        'iserver/account/:accountId/alerts': 1, // auth issue
-                        'iserver/account/alert/:id': 1, // auth issue
-                        'iserver/account/mta': 1, // auth issue
-                        'iserver/account/orders': 1, // auth issue
-                        'iserver/account/order/status/{orderId}': 1, // auth issue
-                        'iserver/marketdata/snapshot': 1, // auth issue
-                        'iserver/marketdata/{conid}/unsubscribe': 1, // auth issue
-                        'iserver/marketdata/unsubscribeall': 1, // auth issue
-                        'iserver/marketdata/history': 1, // auth issue
-                        'iserver/contract/{conid}/info': 1, // auth issue
-                        'iserver/secdef/strikes': 1, // auth issue
-                        'iserver/secdef/info': 1, // auth issue
-                        'iserver/contract/{conid}/algos': 1, // auth issue
-                        'iserver/contract/{conid}/info-and-rules': 1, // auth issue
-                        'iserver/scanner/params': 1, // auth issue
-                        'iserver/account/pnl/partitioned': 1, // auth issue
+                        // The below endpoint returns a list of accounts the user has trading access to,
+                        //   their respective aliases and the currently selected account.
+                        //   Note 1: this endpoint must be called before modifying an order or querying open orders.
+                        //   Note 2: 'iserver' endpoints doesn't seem to work on free-trial accounts.
+                        'iserver/accounts': 1, // +
+                        'iserver/account/trades': 1, // -
+                        'iserver/account/:accountId/alerts': 1,
+                        'iserver/account/alert/:id': 1,
+                        'iserver/account/mta': 1,
+                        'iserver/account/orders': 1, // -
+                        'iserver/account/order/status/{orderId}': 1, // -
+                        'iserver/marketdata/snapshot': 1,
+                        'iserver/marketdata/{conid}/unsubscribe': 1,
+                        'iserver/marketdata/unsubscribeall': 1,
+                        'iserver/marketdata/history': 1,
+                        'iserver/contract/{conid}/info': 1,
+                        'iserver/secdef/strikes': 1,
+                        'iserver/secdef/info': 1,
+                        'iserver/contract/{conid}/algos': 1,
+                        'iserver/contract/{conid}/info-and-rules': 1,
+                        'iserver/scanner/params': 1,
+                        'iserver/account/pnl/partitioned': 1,
                         'trsrv/secdef/schedule': 1, // trading schedule up to a month for the requested contract
                         'trsrv/futures': 1, // a list of non-expired future contracts (conid) for given symbol(s)
                         'trsrv/stocks': 1, // an object contains all stock contracts (conid) for given symbol(s)
+                        // In non-tiered account structures, the below endpoint returns a list of accounts for which the user can view position and account information. This endpoint must be called prior to calling other /portfolio endpoints for those accounts.
                         'portfolio/accounts': 1,
                         'portfolio/subaccounts': 1,
                         'portfolio/{accountId}/meta': 1,
@@ -179,8 +183,9 @@ module.exports = class interactivebrokers extends Exchange {
                         'portfolio/{accountId}/summary': 1,
                         'portfolio/{accountId}/ledger': 1,
                         'portfolio/positions/{conid}': 1,
-                        'sso/validate': 1,
                         'ibcust/entity/info': 1,
+                        '/portal/sso/validate': 1, // extends active session
+                        'sso/Dispatcher': 1, // uncodumented: validates the login
                     },
                     'post': {
                         'ws': 1,
@@ -243,6 +248,7 @@ module.exports = class interactivebrokers extends Exchange {
                 'broad': {
                 },
                 'exact': {
+                    // 400 Bad Request {"error":"Bad Request: Conid(s) missing","statusCode":400}
                 },
             },
             'commonCurrencies': {
@@ -254,99 +260,88 @@ module.exports = class interactivebrokers extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
-        const response = await this.publicGetGetInstruments (params);
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
-            const id = this.safeString (market, 'InstrumentId');
-            // const lowercaseId = this.safeStringLower (market, 'symbol');
-            const baseId = this.safeString (market, 'Product1');
-            const quoteId = this.safeString (market, 'Product2');
-            const base = this.safeCurrencyCode (this.safeString (market, 'Product1Symbol'));
-            const quote = this.safeCurrencyCode (this.safeString (market, 'Product2Symbol'));
-            const sessionStatus = this.safeString (market, 'SessionStatus');
-            const isDisable = this.safeValue (market, 'IsDisable');
-            const sessionRunning = (sessionStatus === 'Running');
-            result.push ({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': (sessionRunning && !isDisable),
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.safeNumber (market, 'QuantityIncrement'),
-                    'price': this.safeNumber (market, 'PriceIncrement'),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': this.safeNumber (market, 'MinimumQuantity'),
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': this.safeNumber (market, 'MinimumPrice'),
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'info': market,
-            });
-        }
-        return result;
+    async isConnected (params = {}) {
+        const response = await this.privatePostTickle (params);
+        //
+        //     {
+        //         "session": "140a9b1902d27e94x236dc142ce933a6",
+        //         "ssoExpires": 483732,
+        //         "collission": false,
+        //         "userId": 46130428,
+        //         "iserver": {
+        //             "authStatus": {
+        //                 "authenticated": true,
+        //                 "competing": false,
+        //                 "connected": true,
+        //                 "message": "",
+        //                 "MAC": "F4:03:43:E4:EF:C0",
+        //                 "serverInfo": {
+        //                     "serverName": "JieZ46418",
+        //                     "serverVersion": "Build 10.14.0l, Mar 1, 2022 5:28:08 PM"
+        //                 }
+        //             }
+        //         }
+        //     }
+        //
+        const expires = this.safeInteger (response, 'expires');
+        return (expires > 0);
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        [ path, params ] = this.resolvePath (path, params);
-        let url = this.urls['api'][api] + this.version + '/api/' + path;
-        if (method === 'GET' || method === 'DELETE') {
-            if (Object.keys (params).length) {
-                url += '?' + this.urlencode (params);
-            }
-        } else {
-            body = this.json (params);
-        }
-        if (api === 'private') {
-            this.checkRequiredCredentials ();
-        }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    }
-
-    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (!response) {
-            return; // fallback to default error handler
-        }
-        const errorMessage = this.safeString (response, 'errorMessage', '');
-        const errorCode = this.safeString (response, 'errorCode', '');
-        if (errorMessage !== '') {
-            const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
-            throw new ExchangeError (feedback); // unknown message
-        }
+    async fetchAccounts (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetIserverAccounts (params);
+        //
+        //     {
+        //         "accounts": [
+        //           "U3449298"
+        //         ],
+        //         "acctProps": {
+        //           "U3449298": {
+        //             "hasChildAccounts": false,
+        //             "supportsCashQty": true,
+        //             "supportsFractions": false
+        //           }
+        //         },
+        //         "aliases": {
+        //           "U3449298": "U3449298"
+        //         },
+        //         "chartPeriods": {
+        //           "STK": ["*"],
+        //           "CFD": ["*"],
+        //           "OPT": ["2h","1d","2d","1w","1m"],
+        //           "FOP": ["2h","1d","2d","1w","1m"],
+        //           "WAR": ["*"],
+        //           "IOPT": ["*"],
+        //           "FUT": ["*"],
+        //           "CASH": ["*"],
+        //           "IND": ["*"],
+        //           "BOND": ["*"],
+        //           "FUND": ["*"],
+        //           "CMDTY": ["*"],
+        //           "PHYSS": ["*"],
+        //           "CRYPTO": ["*"]
+        //         },
+        //         "selectedAccount": "U3449298",
+        //         "allowFeatures": {
+        //           "showGFIS": true,
+        //           "allowFXConv": true,
+        //           "allowTypeAhead": true,
+        //           "snapshotRefreshTimeout": "30",
+        //           "liteUser": false,
+        //           "showWebNews": true,
+        //           "research": true,
+        //           "debugPnl": true,
+        //           "showTaxOpt": true,
+        //           "showImpactDashboard": true,
+        //           "allowedAssetTypes": "STK,CFD,OPT,FOP,WAR,FUT,BAG,CASH,IND,BOND,BILL,FUND,SLB,News,CMDTY,IOPT,ICU,ICS,PHYSS,CRYPTO"
+        //         },
+        //         "serverInfo": {
+        //           "serverName": "JaeZ01197",
+        //           "serverVersion": "Build 10.14.0l, Mar 1, 2022 5:28:08 PM"
+        //         },
+        //         "sessionId": "613de523.0000000b"
+        //     }
+        //
+        return response;
     }
 };
