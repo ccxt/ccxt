@@ -4,10 +4,9 @@
 
 const { 'strictEqual': equal } = require ('assert')
 const { setTimeout_safe, timeout, now, isWindows } = require ('../../../../ccxt')
-      , approxEqual = (a, b) => equal (true, Math.abs (a - b) <= 20)
-      , rejectsWith = (msg, x) =>
-        x.then (() => { throw new Error ('not rejected!') })
-         .catch ((e) => { equal (e.message, msg) })
+    , approxEqual = (a, b) => equal (true, Math.abs (a - b) <= 20)
+    , rejectsWith = (msg, x) => x.then (() => { throw new Error ('not rejected!') })
+        .catch ((e) => { equal (e.message, msg) })
 
 // these tests break Travis 80% of the time
 // TODO: make a more robust test that is not failing on certain machines under certain conditions

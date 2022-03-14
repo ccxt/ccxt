@@ -2,8 +2,8 @@
 
 /*  ------------------------------------------------------------------------ */
 
+const { "strictEqual": equal, deepEqual } = require ('assert')
 const { safeFloat, safeInteger, safeValue } = require ('../../../../ccxt')
-const { strictEqual: equal, deepEqual } = require ('assert')
 
 /*  ------------------------------------------------------------------------ */
 
@@ -13,14 +13,14 @@ it ('safeFloat/safeInteger is robust', async () => {
 
     const fns = { safeFloat, safeInteger }
 
-    for (const fn of ['safeFloat', 'safeInteger']) {
+    for (const fn of [ 'safeFloat', 'safeInteger' ]) {
 
         equal (fns[fn] ({ 'x': false }, 'x', $default), $default)
         equal (fns[fn] ({ 'x': true }, 'x', $default), $default)
         equal (fns[fn] ({ 'x': [] }, 'x', $default), $default)
-        equal (fns[fn] ({ 'x': [0] }, 'x', $default), $default)
-        equal (fns[fn] ({ 'x': [1] }, 'x', $default), $default)
-        equal (fns[fn] ({ 'x': {} }, 'x', $default), $default)
+        equal (fns[fn] ({ 'x': [ 0 ] }, 'x', $default), $default)
+        equal (fns[fn] ({ 'x': [ 1 ] }, 'x', $default), $default)
+        equal (fns[fn] ({ 'x': {}}, 'x', $default), $default)
         equal (fns[fn] ({ 'x': Number.NaN }, 'x'), undefined)
         equal (fns[fn] ({ 'x': Number.POSITIVE_INFINITY }, 'x'), undefined)
         equal (fns[fn] ({ 'x': null }, 'x', undefined), undefined)
