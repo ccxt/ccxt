@@ -187,8 +187,8 @@ module.exports = class bkex extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': 0.15 / 100,
-                    'taker': 0.2 / 100,
+                    'maker': this.parseNumber ('0.0015'),
+                    'taker': this.parseNumber ('0.002'),
                 },
             },
             'options': {
