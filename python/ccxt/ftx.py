@@ -851,8 +851,9 @@ class ftx(Exchange):
         self.load_markets()
         market, marketId = self.get_market_params(symbol, 'market_name', params)
         # max 1501 candles, including the current candle when since is not specified
-        maxLimit = 1501
-        limit = maxLimit if (limit is None) else min(limit, maxLimit)
+        maxLimit = 5000
+        defaultLimit = 1500
+        limit = defaultLimit if (limit is None) else min(limit, maxLimit)
         request = {
             'resolution': self.timeframes[timeframe],
             'market_name': marketId,
