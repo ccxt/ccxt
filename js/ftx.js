@@ -101,6 +101,11 @@ module.exports = class ftx extends Exchange {
                 '3d': '259200',
                 '1w': '604800',
                 '2w': '1209600',
+                // the exchange does not align candles to the start of the month
+                // it can only fetch candles in fixed intervals of multiples of whole days
+                // that works for all timeframes, except the monthly timeframe
+                // because months have varying numbers of days
+                '1M': '2592000',
             },
             'api': {
                 'public': {
@@ -866,8 +871,13 @@ module.exports = class ftx extends Exchange {
         if (since !== undefined) {
             const startTime = parseInt (since / 1000);
             request['start_time'] = startTime;
-            const endTime = this.sum (startTime, limit * this.parseTimeframe (timeframe));
+            const duration = this.parseTimeframe (timeframe);
+            const endTime = this.sum (startTime, limit * duration);
             request['end_time'] = Math.min (endTime, this.seconds ());
+            if (duration > 86400) {
+                const wholeDaysInTimeframe = parseInt (duration / 86400);
+                request['limit'] = Math.min (limit * wholeDaysInTimeframe, maxLimit);
+            }
         }
         let method = 'publicGetMarketsMarketNameCandles';
         if (price === 'index') {
