@@ -630,12 +630,13 @@ class bitopro extends Exchange {
         //         )
         //     }
         //
-        $result = array( 'info' => $response );
+        $result = array();
         $maker = $this->safe_number($first, 'makerFee');
         $taker = $this->safe_number($first, 'takerFee');
         for ($i = 0; $i < count($this->symbols); $i++) {
             $symbol = $this->symbols[$i];
             $result[$symbol] = array(
+                'info' => $first,
                 'symbol' => $symbol,
                 'maker' => $maker,
                 'taker' => $taker,

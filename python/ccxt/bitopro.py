@@ -615,12 +615,13 @@ class bitopro(Exchange):
         #         ]
         #     }
         #
-        result = {'info': response}
+        result = {}
         maker = self.safe_number(first, 'makerFee')
         taker = self.safe_number(first, 'takerFee')
         for i in range(0, len(self.symbols)):
             symbol = self.symbols[i]
             result[symbol] = {
+                'info': first,
                 'symbol': symbol,
                 'maker': maker,
                 'taker': taker,
