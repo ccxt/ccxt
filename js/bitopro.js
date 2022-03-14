@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, AuthenticationError, InvalidOrder, InsufficientFunds, BadRequest } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -78,7 +79,7 @@ module.exports = class bitopro extends Exchange {
                 '1M': '1M',
             },
             'urls': {
-                'logo': 'https://www.bitopro.com/bitoPro_logo.svg',
+                'logo': 'https://user-images.githubusercontent.com/14319357/158210693-30c8f976-3847-4cfa-b0cf-529402b71a00.jpg',
                 'api': 'https://api.bitopro.com/v3',
                 'www': 'https://www.bitopro.com',
                 'doc': [
@@ -157,6 +158,14 @@ module.exports = class bitopro extends Exchange {
                             [ this.parseNumber ('1300000000'), this.parseNumber ('0.0003') ],
                         ],
                     },
+                },
+            },
+            'options': {
+                'networks': {
+                    'ERC20': 'ERC20',
+                    'ETH': 'ERC20',
+                    'TRX': 'TRX',
+                    'TRC20': 'TRX',
                 },
             },
             'exceptions': {
@@ -555,7 +564,7 @@ module.exports = class bitopro extends Exchange {
         await this.loadMarkets ();
         const response = await this.publicGetProvisioningLimitationsAndFees (params);
         const tradingFeeRate = this.safeValue (response, 'tradingFeeRate', {});
-        const result = this.safeValue (tradingFeeRate, 0);
+        const first = this.safeValue (tradingFeeRate, 0);
         //
         //     {
         //         "tradingFeeRate":[
@@ -617,11 +626,20 @@ module.exports = class bitopro extends Exchange {
         //         ]
         //     }
         //
-        return {
-            'info': response,
-            'maker': this.safeNumber (result, 'makerFee'),
-            'taker': this.safeNumber (result, 'takerFee'),
-        };
+        const result = { 'info': response };
+        const maker = this.safeNumber (first, 'makerFee');
+        const taker = this.safeNumber (first, 'takerFee');
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            result[symbol] = {
+                'symbol': symbol,
+                'maker': maker,
+                'taker': taker,
+                'percentage': true,
+                'tierBased': true,
+            };
+        }
+        return result;
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
@@ -635,7 +653,7 @@ module.exports = class bitopro extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = 500, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const resolution = this.timeframes[timeframe];
@@ -643,12 +661,17 @@ module.exports = class bitopro extends Exchange {
             'pair': market['id'],
             'resolution': resolution,
         };
+        // we need to have a limit argument because "to" and "from" are required
+        if (limit === undefined) {
+            limit = 500;
+        }
+        const timeframeInSeconds = this.parseTimeframe (timeframe);
         if (since === undefined) {
             request['to'] = this.seconds ();
-            request['from'] = request['to'] - limit * this.parseTimeframe (timeframe);
+            request['from'] = request['to'] - (limit * timeframeInSeconds);
         } else {
-            request['from'] = parseInt (since / 1000);
-            request['to'] = this.sum (request['from'], limit * this.parseTimeframe (timeframe));
+            request['from'] = Math.floor (since / 1000);
+            request['to'] = this.sum (request['from'], limit * timeframeInSeconds);
         }
         const response = await this.publicGetTradingHistoryPair (this.extend (request, params));
         const data = this.safeValue (response, 'data', []);
@@ -666,7 +689,41 @@ module.exports = class bitopro extends Exchange {
         //         ]
         //     }
         //
-        return this.parseOHLCVs (data, market, timeframe, since, limit);
+        const sparse = this.parseOHLCVs (data, market, timeframe, since, limit);
+        const timeframeInMilliseconds = timeframeInSeconds * 1000;
+        const alignedSince = Math.floor (since / timeframeInMilliseconds) * timeframeInMilliseconds;
+        return this.insertMissingCandles (sparse, timeframeInSeconds, alignedSince, limit);
+    }
+
+    insertMissingCandles (candles, distance, since, limit) {
+        // the exchange doesn't send zero volume candles so we emulate them instead
+        // otherwise sending a limit arg leads to unexpected results
+        const result = [];
+        let copyFrom = candles[0];
+        let timestamp = since;
+        let i = 0;
+        const candleLength = candles.length;
+        let resultLength = 0;
+        while ((resultLength < limit) && (i < candleLength)) {
+            const candle = candles[i];
+            if (candle[0] === timestamp) {
+                result.push (candle);
+                i = this.sum (i, 1);
+            } else {
+                const copy = this.arrayConcat ([], copyFrom);
+                copy[0] = timestamp;
+                // set open, high, low to close
+                copy[1] = copy[4];
+                copy[2] = copy[4];
+                copy[3] = copy[4];
+                copy[5] = this.parseNumber ('0');
+                result.push (copy);
+            }
+            timestamp = this.sum (timestamp, distance * 1000);
+            resultLength = result.length;
+            copyFrom = result[resultLength - 1];
+        }
+        return result;
     }
 
     parseBalance (response) {
@@ -765,10 +822,10 @@ module.exports = class bitopro extends Exchange {
         //         }
         //
         const id = this.safeString2 (order, 'id', 'orderId');
-        const timestamp = this.safeInteger (order, 'timestamp');
+        const timestamp = this.safeInteger2 (order, 'timestamp', 'createdTimestamp');
         let side = this.safeString (order, 'action');
         side = side.toLowerCase ();
-        const amount = this.safeString (order, 'amount');
+        const amount = this.safeString2 (order, 'amount', 'originalAmount');
         const price = this.safeString (order, 'price');
         const marketId = this.safeString (order, 'pair');
         market = this.safeMarket (marketId, market, '_');
@@ -783,7 +840,7 @@ module.exports = class bitopro extends Exchange {
         let fee = undefined;
         const feeAmount = this.safeString (order, 'fee');
         const feeSymbol = this.safeCurrencyCode (this.safeString (order, 'feeSymbol'));
-        if (feeAmount !== undefined) {
+        if (Precise.stringGt (feeAmount, '0')) {
             fee = {
                 'currency': feeSymbol,
                 'cost': feeAmount,
@@ -821,7 +878,7 @@ module.exports = class bitopro extends Exchange {
             'type': type,
             'pair': market['id'],
             'action': side,
-            'amount': this.numberToString (amount),
+            'amount': this.amountToPrecision (symbol, amount),
             'timestamp': this.milliseconds (),
         };
         const orderType = type.toUpperCase ();
@@ -963,7 +1020,10 @@ module.exports = class bitopro extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.privateGetOrdersAllPair (this.extend (request, params), params);
-        const orders = this.safeValue (response, 'data', []);
+        let orders = this.safeValue (response, 'data');
+        if (orders === undefined) {
+            orders = [];
+        }
         //
         //     {
         //         "data":[
@@ -1112,7 +1172,7 @@ module.exports = class bitopro extends Exchange {
             'id': id,
             'txid': txId,
             'timestamp': timestamp,
-            'datetime': undefined,
+            'datetime': this.iso8601 (timestamp),
             'network': undefined,
             'addressFrom': undefined,
             'address': address,
@@ -1256,8 +1316,17 @@ module.exports = class bitopro extends Exchange {
             'currency': currency['id'],
             'amount': this.numberToString (amount),
             'address': address,
-            // 'protocol': '',
         };
+        if ('network' in params) {
+            const networks = this.safeValue (this.options, 'networks', {});
+            const requestedNetwork = this.safeStringUpper (params, 'network');
+            params = this.omit (params, [ 'network' ]);
+            const networkId = this.safeString (networks, requestedNetwork);
+            if (networkId === undefined) {
+                throw new ExchangeError (this.id + ' invalid network ' + requestedNetwork);
+            }
+            request['protocol'] = networkId;
+        }
         if (tag !== undefined) {
             request['message'] = tag;
         }
