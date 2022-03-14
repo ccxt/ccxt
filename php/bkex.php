@@ -85,8 +85,8 @@ class bkex extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
-                'fetchTradingFee' => null,
-                'fetchTradingFees' => null,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => false,
                 'fetchTradingLimits' => null,
                 'fetchTransactions' => null,
                 'fetchTransfers' => null,
@@ -191,8 +191,8 @@ class bkex extends Exchange {
                 'trading' => array(
                     'tierBased' => false,
                     'percentage' => true,
-                    'maker' => 0.15 / 100,
-                    'taker' => 0.2 / 100,
+                    'maker' => $this->parse_number('0.0015'),
+                    'taker' => $this->parse_number('0.002'),
                 ),
             ),
             'options' => array(

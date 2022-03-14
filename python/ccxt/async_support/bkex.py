@@ -87,8 +87,8 @@ class bkex(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
-                'fetchTradingFee': None,
-                'fetchTradingFees': None,
+                'fetchTradingFee': False,
+                'fetchTradingFees': False,
                 'fetchTradingLimits': None,
                 'fetchTransactions': None,
                 'fetchTransfers': None,
@@ -193,8 +193,8 @@ class bkex(Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.15 / 100,
-                    'taker': 0.2 / 100,
+                    'maker': self.parse_number('0.0015'),
+                    'taker': self.parse_number('0.002'),
                 },
             },
             'options': {
