@@ -994,6 +994,8 @@ class gemini(Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         url = self.urls['api'][api] + url
+        if (method == 'POST') or (method == 'DELETE'):
+            body = self.json(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):

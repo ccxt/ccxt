@@ -1040,6 +1040,9 @@ class gemini extends Exchange {
             }
         }
         $url = $this->urls['api'][$api] . $url;
+        if (($method === 'POST') || ($method === 'DELETE')) {
+            $body = $this->json($query);
+        }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
