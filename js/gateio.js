@@ -775,8 +775,8 @@ module.exports = class gateio extends ccxt.gateio {
         this.checkRequiredCredentials ();
         // uid is required for some subscriptions only so it's not a part of required credentials
         if (requiresUID) {
-            if (this.uid === undefined) {
-                throw new ArgumentsRequired (this.id + ' requires uid for this method');
+            if (this.uid === undefined || this.uid.length === 0) {
+                throw new ArgumentsRequired (this.id + ' requires uid to subscribe');
             }
             const idArray = [this.uid];
             payload = this.arrayConcat (idArray, payload);
