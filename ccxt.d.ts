@@ -468,6 +468,7 @@ declare module 'ccxt' {
     export class bithumb extends Exchange {}
     export class bitmart extends Exchange {}
     export class bitmex extends Exchange {}
+    export class bitopro extends Exchange {}
     export class bitpanda extends Exchange {}
     export class bitrue extends Exchange {}
     export class bitso extends Exchange {}
@@ -590,6 +591,7 @@ declare module 'ccxt' {
         | 'bithumb'
         | 'bitmart'
         | 'bitmex'
+        | 'bitopro'
         | 'bitpanda'
         | 'bitrue'
         | 'bitso'
