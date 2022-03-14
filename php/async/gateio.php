@@ -2731,6 +2731,7 @@ class gateio extends Exchange {
 
     public function parse_order_status($status) {
         $statuses = array(
+            '_new' => 'open',
             'filled' => 'closed',
             'cancelled' => 'canceled',
             'liquidated' => 'closed',

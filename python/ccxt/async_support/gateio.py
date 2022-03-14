@@ -2620,6 +2620,7 @@ class gateio(Exchange):
 
     def parse_order_status(self, status):
         statuses = {
+            '_new': 'open',
             'filled': 'closed',
             'cancelled': 'canceled',
             'liquidated': 'closed',
