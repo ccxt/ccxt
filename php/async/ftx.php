@@ -862,8 +862,9 @@ class ftx extends Exchange {
         yield $this->load_markets();
         list($market, $marketId) = $this->get_market_params($symbol, 'market_name', $params);
         // max 1501 candles, including the current candle when $since is not specified
-        $maxLimit = 1501;
-        $limit = ($limit === null) ? $maxLimit : min ($limit, $maxLimit);
+        $maxLimit = 5000;
+        $defaultLimit = 1500;
+        $limit = ($limit === null) ? $defaultLimit : min ($limit, $maxLimit);
         $request = array(
             'resolution' => $this->timeframes[$timeframe],
             'market_name' => $marketId,
