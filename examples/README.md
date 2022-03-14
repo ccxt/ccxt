@@ -79,6 +79,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 [CCXT - Crypto Trading](https://www.youtube.com/playlist?list=PLvzuUVysUFOv5XEPHeqefgyHZcDfLxH-W) – An awesome video playlist on CCXT and tons of other cool videos by [Part Time Larry](https://www.youtube.com/c/parttimelarry)!
 
+[Crypto Trading Bot In Python](https://medium.com/coinmonks/crypto-trading-bot-on-python-22a245f1a9d) – An article on structuring a basic bot with CCXT and Python.
+
 [Writing a crypto trading bot](https://www.kleemans.ch/writing-a-crypto-trading-bot) – How to write an automated trading bot, for fun and profit.
 
 [graphql-ccxt](https://github.com/fibo/graphql-ccxt) – Joins together GraphQL and CCXT: can fetch prices, read balance, open orders, ... on multiple exchanges at once.
