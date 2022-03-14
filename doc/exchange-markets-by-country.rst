@@ -1234,7 +1234,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version *
      
    * - Taiwan
-     - .. image:: https://user-images.githubusercontent.com/14319357/158210693-30c8f976-3847-4cfa-b0cf-529402b71a00.jpg
+     - .. image:: https://user-images.githubusercontent.com/1294454/158227251-3a92a220-9222-453c-9277-977c6677fe71.jpg
           :target: https://www.bitopro.com
           :alt: bitopro
      
