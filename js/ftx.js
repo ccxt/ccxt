@@ -98,14 +98,11 @@ module.exports = class ftx extends Exchange {
                 '1h': '3600',
                 '4h': '14400',
                 '1d': '86400',
-                // See comments under 'fetchOHLCV' method
-                // '3d': '259200',
-                // '1w': '604800',
-                // '2w': '1209600',
-                // '1M': '2592000',
+                '3d': '259200',
+                '1w': '604800',
+                '2w': '1209600',
+                '1M': '2592000',
             },
-            // temporarily, to give meaningful exception message to current users, we might retain the exclusion list
-            'exceptionTimeframes': [ '3d', '1w', '2w', '1M' ],
             'api': {
                 'public': {
                     'get': {
@@ -853,36 +850,25 @@ module.exports = class ftx extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        // To avoid confusion and reactions, we should throw meaningful exception message, so everyone knows the reason
-        for (let i = 0; i < this.exceptionTimeframes.length; i++) {
-            if (this.exceptionTimeframes[i] === timeframe) {
-                throw new BadRequest (this.id + ' fetchOHLCV () no longer supports provided timeframe. Please see the reason and workaround at https://github.com/ccxt/ccxt/pull/12326#issuecomment-1066094149');
-            }
-        }
-        // This method doesn't accept `timeframe` argument above 1 day. See: https://github.com/ccxt/ccxt/pull/12326#issuecomment-1066094149 , however, you can still call them by `params`
         await this.loadMarkets ();
         const [ market, marketId ] = this.getMarketParams (symbol, 'market_name', params);
+        // max 1501 candles, including the current candle when since is not specified
+        const maxLimit = 1501;
+        limit = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
         const request = {
             'resolution': this.timeframes[timeframe],
             'market_name': marketId,
+            // 'start_time': parseInt (since / 1000),
+            // 'end_time': this.seconds (),
+            'limit': limit,
         };
         const price = this.safeString (params, 'price');
         params = this.omit (params, 'price');
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
         if (since !== undefined) {
-            // This exchange always returns candles amount (1499 default, or according to 'limit' argment) counting
-            // from (independent the fact if you provide 'start_time' argument or not). So, if we want the exchange
-            // to return from 'start_time' argument realistically, we have to provide the appropriate 'end_time',
-            // which must not be far than 1499[or limit] candles equivalent.
-            let limitChosen = (limit !== undefined) ? limit : 1499;
-            limitChosen = Math.min (limitChosen, 5000); // maximum allowed currently is 5000
-            request['start_time'] = parseInt (since / 1000);
-            request['limit'] = limitChosen;
-            request['end_time'] = this.sum (request['start_time'], limitChosen * this.parseTimeframe (timeframe));
-            // we need to limit 'end_time' to avoid the number to be too far in future
-            request['end_time'] = Math.min (request['end_time'], this.seconds ());
+            const startTime = parseInt (since / 1000);
+            request['start_time'] = startTime;
+            const endTime = this.sum (startTime, limit * this.parseTimeframe (timeframe));
+            request['end_time'] = Math.min (endTime, this.seconds ());
         }
         let method = 'publicGetMarketsMarketNameCandles';
         if (price === 'index') {
