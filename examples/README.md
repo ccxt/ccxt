@@ -73,6 +73,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 [FTX API (Crypto Exchange) and Google Cloud Functions](https://www.youtube.com/watch?v=mtpA3vDg5js) – A video on trading with CCXT and Google Cloud Functions!
 
+[VectorBT Scheduler, Alpaca Crypto API, Stochastic Oscillator](https://www.youtube.com/watch?v=ZffdACbvFjc) – A video tutorial on CCXT + VectorBT Scheduler + Alpaca Crypto API + Stochastic Oscillator.
+
 [Coinbase Pro, TradingView Webhooks, and Google Cloud Functions](https://www.youtube.com/watch?v=3jA2vAJSdAI) – How to automate your trading by connecting Coinbase Pro to Google Cloud Functions using TradingView Webhooks and CCXT!
 
 [CCXT - Crypto Trading](https://www.youtube.com/playlist?list=PLvzuUVysUFOv5XEPHeqefgyHZcDfLxH-W) – An awesome video playlist on CCXT and tons of other cool videos by [Part Time Larry](https://www.youtube.com/c/parttimelarry)!
