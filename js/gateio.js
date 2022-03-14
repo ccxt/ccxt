@@ -2724,6 +2724,7 @@ module.exports = class gateio extends Exchange {
 
     parseOrderStatus (status) {
         const statuses = {
+            '_new': 'open',
             'filled': 'closed',
             'cancelled': 'canceled',
             'liquidated': 'closed',
