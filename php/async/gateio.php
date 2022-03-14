@@ -2892,6 +2892,7 @@ class gateio extends Exchange {
         $filled = Precise::string_sub($amount, $remaining);
         $cost = $this->safe_number($order, 'filled_total');
         $rawStatus = null;
+        $average = null;
         if ($put) {
             $remaining = $amount;
             $filled = '0';
@@ -2902,6 +2903,7 @@ class gateio extends Exchange {
             $type = $isMarketOrder ? 'market' : 'limit';
             $side = Precise::string_gt($amount, '0') ? 'buy' : 'sell';
             $rawStatus = $this->safe_string($order, 'finish_as', 'open');
+            $average = $this->safe_number($order, 'fill_price');
         } else {
             $rawStatus = $this->safe_string($order, 'status');
         }
@@ -2947,7 +2949,7 @@ class gateio extends Exchange {
             'side' => $side,
             'price' => $this->parse_number($price),
             'stopPrice' => $this->safe_number($trigger, 'price'),
-            'average' => $this->safe_number($order, 'fill_price'),
+            'average' => $average,
             'amount' => $this->parse_number(Precise::string_abs($amount)),
             'cost' => $cost,
             'filled' => $this->parse_number($filled),

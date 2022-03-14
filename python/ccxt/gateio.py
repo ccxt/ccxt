@@ -2779,6 +2779,7 @@ class gateio(Exchange):
         filled = Precise.string_sub(amount, remaining)
         cost = self.safe_number(order, 'filled_total')
         rawStatus = None
+        average = None
         if put:
             remaining = amount
             filled = '0'
@@ -2788,6 +2789,7 @@ class gateio(Exchange):
             type = 'market' if isMarketOrder else 'limit'
             side = 'buy' if Precise.string_gt(amount, '0') else 'sell'
             rawStatus = self.safe_string(order, 'finish_as', 'open')
+            average = self.safe_number(order, 'fill_price')
         else:
             rawStatus = self.safe_string(order, 'status')
         timestamp = self.safe_timestamp_2(order, 'create_time', 'ctime')
@@ -2829,7 +2831,7 @@ class gateio(Exchange):
             'side': side,
             'price': self.parse_number(price),
             'stopPrice': self.safe_number(trigger, 'price'),
-            'average': self.safe_number(order, 'fill_price'),
+            'average': average,
             'amount': self.parse_number(Precise.string_abs(amount)),
             'cost': cost,
             'filled': self.parse_number(filled),
