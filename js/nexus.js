@@ -126,10 +126,10 @@ module.exports = class nexus extends Exchange {
                 'price': this.safeNumber (market, 'price_decimals'),
             };
             result.push ({
-                'id': market['id'],
-                'symbol': market['name'],
-                'base': market['base_product'],
-                'quote': market['quote_product'],
+                'id': this.safeString (market, 'id'),
+                'symbol': this.safeString (market, 'name'),
+                'base': this.safeString (market, 'base_product'),
+                'quote': this.safeString (market, 'quote_product'),
                 'baseId': this.safeStringLower (market, 'base_product'),
                 'quoteId': this.safeStringLower (market, 'quote_product'),
                 'active': true,
@@ -140,7 +140,7 @@ module.exports = class nexus extends Exchange {
                         'max': this.safeNumber (market, 'max_quantity'),
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
+                        'min': Math.pow (10, -this.safeNumber (precision, 'price')),
                         'max': undefined,
                     },
                 },
@@ -158,7 +158,7 @@ module.exports = class nexus extends Exchange {
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const id = this.safeStringLower (currency, 'id');
-            result[currency['id']] = {
+            result[this.safeString (currency, 'id')] = {
                 'id': id,
                 'code': this.safeCurrencyCode (id),
                 'active': true,
@@ -168,7 +168,7 @@ module.exports = class nexus extends Exchange {
                         'max': this.safeNumber (currency, 'daily_withdrawal_limit'),
                     },
                 },
-                'type': currency['type'],
+                'type': this.safeString (currency, 'type'),
                 'info': currency,
             };
         }
@@ -178,12 +178,13 @@ module.exports = class nexus extends Exchange {
     parseTicker (ticker, market = undefined) {
         let symbol = undefined;
         if (market) {
-            symbol = market['symbol'];
+            symbol = this.safeTicker (market, 'symbol');
+            console.log(symbol)
         }
         return this.safeTicker ({
             'symbol': symbol,
             'datetime': this.iso8601 (ticker['timestamp']),
-            'timestamp': ticker['timestamp'],
+            'timestamp': this.safeNumber (ticker, 'timestamp'),
             'ask': this.safeNumber (ticker, 'close_ask'),
             'bid': this.safeNumber (ticker, 'close_bid'),
             'high': this.safeNumber (ticker, 'high_ask'),
@@ -205,27 +206,27 @@ module.exports = class nexus extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
-        symbol = symbol.replace ('/', '');
+        await this.loadMarkets ();
+        const market = this.market (symbol);
         const ts = this.nonce () * 1000;
         const msInDay = 24 * 3600 * 1000;
         params = this.extend (params, {
-            'exchange': this.options['exchangeName'],
-            'instrument': symbol,
+            'exchange': this.safeString (this.options, 'exchangeName'),
+            'instrument': market['id'],
             'start_time': ts - ts % msInDay,
             'periodicity': 'day',
         });
         const response = await this.edsGetBars (params);
-        await this.loadMarkets ();
-        const market = this.market (symbol);
         return this.parseTicker (response['bars'][1]['aggregated_bar'], market);
     }
 
     async fetchTickers (symbols, params = {}) {
+        await this.loadMarkets ();
         const result = {};
         for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i].replace ('/', '');
-            const ticker = await this.fetchTicker (symbol, params);
-            result[symbol] = ticker;
+            const market = this.market (symbols[i]);
+            const ticker = await this.fetchTicker (market['id'], params);
+            result[market['id']] = ticker;
         }
         return result;
     }
@@ -238,10 +239,11 @@ module.exports = class nexus extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        const instrument = symbol.replace ('/', '');
+        await this.loadMarkets ();
+        const market = this.market (symbol);
         const orderbook = await this.tradeGetOrderbookSnapshotExchangeInstrument ({
-            'exchange': this.options['exchangeName'],
-            'instrument': instrument,
+            'exchange': this.safeString (this.options, 'exchangeName'),
+            'instrument': market['id'],
         });
         const nonce = this.nonce ();
         const ts = nonce * 1000;
@@ -261,11 +263,13 @@ module.exports = class nexus extends Exchange {
         return result;
     }
 
-    parseTrade (trade, instrument) {
+    parseTrade (trade, market) {
+        const marketId = this.safeString (trade, 'instrument');
+        const symbol = this.safeSymbol (marketId, market);
         return {
             'timestamp': this.safeNumber (trade, 'timestamp'),
-            'symbol': instrument,
-            'side': trade['side'],
+            'symbol': symbol,
+            'side': this.safeString (trade, 'side'),
             'price': this.safeNumber (trade, 'price'),
             'amount': this.safeNumber (trade, 'quantity'),
             'info': trade,
@@ -273,14 +277,19 @@ module.exports = class nexus extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        const instrument = symbol.replace ('/', '');
-        params = this.extend (params, { 'exchange': this.options['exchangeName'], 'instrument': instrument, 'limit': limit });
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        params = this.extend (params, {
+            'exchange': this.safeString (this.options, 'exchangeName'),
+            'instrument': market['id'],
+            'limit': limit,
+        });
         const response = await this.edsGetTrades (params);
         const trades = response['trades'];
         const result = [];
         for (let i = 0; i < trades.length; i++) {
-            const trade = this.parseTrade (trades[i], symbol);
-            if (trade['timestamp'] > since) {
+            const trade = this.parseTrade (trades[i], market['id']);
+            if (this.safeNumber (trade, 'timestamp') > since) {
                 result.push (trade);
             }
         }
@@ -301,10 +310,10 @@ module.exports = class nexus extends Exchange {
             const free = this.safeNumber (balance['balance'], 'withdraw');
             const used = total - free;
             if (total > 0) {
-                result['free'][balance['product']] = free;
-                result['used'][balance['product']] = used;
-                result['total'][balance['product']] = total;
-                result[balance['product']] = {
+                result['free'][this.safeString (balance, 'product')] = free;
+                result['used'][this.safeString (balance, 'product')] = used;
+                result['total'][this.safeString (balance, 'product')] = total;
+                result[this.safeString (balance, 'product')] = {
                     'free': free,
                     'used': used,
                     'total': total,
@@ -327,11 +336,11 @@ module.exports = class nexus extends Exchange {
         const result = {
             'id': order['id'],
             'timestamp': this.safeNumber (order, 'open_time'),
-            'status': order['status'],
-            'symbol': order['instrument_id'],
-            'type': order['type'],
+            'status': this.safeString (order, 'status'),
+            'symbol': this.safeString (order, 'instrument_id'),
+            'type': this.safeString (order, 'type'),
             'timeInForce': this.safeStringUpper (order, 'status'),
-            'side': order['side'],
+            'side': this.safeString (order, 'side'),
             'price': price,
             'amount': amount,
             'filled': filled,
@@ -343,10 +352,12 @@ module.exports = class nexus extends Exchange {
     }
 
     async fetchOrder (orderId, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
         params = this.extend (params, { 'id': orderId });
         const response = await this.tradeGetTradeOrderId (params);
         const order = this.parseOrder (response);
-        if (order['symbol'] === symbol) {
+        if (order['symbol'] === market['id']) {
             return order;
         } else {
             throw new BadRequest ('Order not found');
@@ -354,8 +365,10 @@ module.exports = class nexus extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const openOrders = await this.fetchOpenOrders (symbol, since, limit, params);
-        const closedOrders = await this.fetchClosedOrders (symbol, since, limit, params);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const openOrders = await this.fetchOpenOrders (market['id'], since, limit, params);
+        const closedOrders = await this.fetchClosedOrders (market['id'], since, limit, params);
         const allOrders = openOrders;
         for (let i = 0; i < closedOrders.length; i++) {
             allOrders.push (closedOrders[i]);
@@ -364,8 +377,10 @@ module.exports = class nexus extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol) {
-            params['instrument'] = symbol;
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['id']) {
+            params['instrument'] = market['id'];
         }
         if (since) {
             params['fromTimestamp'] = this.iso8601 (since);
@@ -382,8 +397,10 @@ module.exports = class nexus extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol) {
-            params['instrument'] = symbol;
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['id']) {
+            params['instrument'] = market['id'];
         }
         if (since) {
             params['filter_date_from'] = this.iso8601 (since);
@@ -401,8 +418,10 @@ module.exports = class nexus extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
         params = this.extend (params, {
-            'instrument': symbol,
+            'instrument': market['id'],
             'type': type,
             'side': side,
             'quantity': amount,
@@ -410,18 +429,23 @@ module.exports = class nexus extends Exchange {
             'stop_price': price,
         });
         const response = await this.tradePostTradeOrder (params);
-        return await this.fetchOrder (response['order_id']);
+        return await this.fetchOrder (
+            this.safeString (response, 'order_id'),
+            this.safeString (response, 'symbol')
+        );
     }
 
     async cancelOrder (orderId, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
         await this.tradeDeleteTradeOrderId ({ 'id': orderId });
-        return await this.fetchOrder (orderId);
+        return await this.fetchOrder (orderId, market['id']);
     }
 
     parseAddress (address) {
         return {
-            'currency': address['currency'],
-            'address': address['address'],
+            'currency': this.safeString (address, 'currency'),
+            'address': this.safeString (address, 'address'),
             'tag': this.safeStringUpper (address, 'currency'),
             'info': address,
         };
@@ -439,10 +463,10 @@ module.exports = class nexus extends Exchange {
 
     parseTransaction (transaction) {
         return {
-            'id': transaction['id'],
-            'txid': transaction['txid_hash'],
+            'id': this.safeString (transaction, 'id'),
+            'txid': this.safeString (transaction, 'txid_hash'),
             'timestamp': this.safeNumber (transaction, 'created_at'),
-            'address': transaction['address'],
+            'address': this.safeString (transaction, 'address'),
             'type': this.safeStringLower (transaction, 'type'),
             'amount': this.safeNumber (transaction, 'amount'),
             'currency': this.safeStringUpper (transaction, 'currency'),
