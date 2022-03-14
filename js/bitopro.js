@@ -626,12 +626,13 @@ module.exports = class bitopro extends Exchange {
         //         ]
         //     }
         //
-        const result = { 'info': response };
+        const result = {};
         const maker = this.safeNumber (first, 'makerFee');
         const taker = this.safeNumber (first, 'takerFee');
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             result[symbol] = {
+                'info': first,
                 'symbol': symbol,
                 'maker': maker,
                 'taker': taker,
