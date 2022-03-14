@@ -12,6 +12,7 @@ const errorHierarchy = {
             'ArgumentsRequired': {},
             'BadRequest': {
                 'BadSymbol': {},
+                'MarginModeAlreadySet': {},
             },
             'BadResponse': {
                 'NullResponse': {},

@@ -1268,6 +1268,7 @@ class bittrex extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             // because of this line we will have to rethink the entire v3
             // in other words, markets define all the rest of the API
             // and v3 $market ids are reversed in comparison to v1

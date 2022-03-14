@@ -58,6 +58,8 @@ module.exports = class indodax extends Exchange {
                 'fetchTickers': undefined,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': false,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
@@ -555,6 +557,7 @@ module.exports = class indodax extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
+            symbol = market['symbol'];
             request['pair'] = market['id'];
         }
         const response = await this.privatePostOrderHistory (this.extend (request, params));

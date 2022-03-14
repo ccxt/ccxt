@@ -966,8 +966,8 @@ class bitmex extends Exchange {
         if (!$market['active']) {
             throw new BadSymbol($this->id . ' fetchTicker() $symbol ' . $symbol . ' is not tradable');
         }
-        $tickers = $this->fetch_tickers(array( $symbol ), $params);
-        $ticker = $this->safe_value($tickers, $symbol);
+        $tickers = $this->fetch_tickers([ $market['symbol'] ], $params);
+        $ticker = $this->safe_value($tickers, $market['symbol']);
         if ($ticker === null) {
             throw new BadSymbol($this->id . ' fetchTicker() $symbol ' . $symbol . ' not found');
         }
@@ -985,7 +985,15 @@ class bitmex extends Exchange {
                 $result[$symbol] = $ticker;
             }
         }
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        $uniformSymbols = array();
+        if ($symbols !== null) {
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
+                $market = $this->market($symbol);
+                $uniformSymbols[] = $market['symbol'];
+            }
+        }
+        return $this->filter_by_array($result, 'symbol', $uniformSymbols);
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -1783,7 +1791,8 @@ class bitmex extends Exchange {
             }
         }
         $url = $this->urls['api'][$api] . $query;
-        if ($this->apiKey && $this->secret) {
+        if ($api === 'private') {
+            $this->check_required_credentials();
             $auth = $method . $query;
             $expires = $this->safe_integer($this->options, 'api-expires');
             $headers = array(

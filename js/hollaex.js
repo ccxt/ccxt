@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { BadRequest, AuthenticationError, NetworkError, ArgumentsRequired, OrderNotFound, InsufficientFunds } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -68,6 +69,8 @@ module.exports = class hollaex extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': true,
                 'fetchTransactions': undefined,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
@@ -595,6 +598,59 @@ module.exports = class hollaex extends Exchange {
             'cost': undefined,
             'fee': fee,
         }, market);
+    }
+
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetTiers (params);
+        //
+        //     {
+        //         '1': {
+        //             id: '1',
+        //             name: 'Silver',
+        //             icon: '',
+        //             description: 'Your crypto journey starts here! Make your first deposit to start trading, and verify your account to level up!',
+        //             deposit_limit: '0',
+        //             withdrawal_limit: '1000',
+        //             fees: {
+        //                 maker: {
+        //                     'eth-btc': '0.1',
+        //                     'ada-usdt': '0.1',
+        //                     ...
+        //                 },
+        //                 taker: {
+        //                     'eth-btc': '0.1',
+        //                     'ada-usdt': '0.1',
+        //                     ...
+        //                 }
+        //             },
+        //             note: '<ul>\n<li>Login and verify email</li>\n</ul>\n',
+        //             created_at: '2021-03-22T03:51:39.129Z',
+        //             updated_at: '2021-11-01T02:51:56.214Z'
+        //         },
+        //         ...
+        //     }
+        //
+        const firstTier = this.safeValue (response, '1', {});
+        const fees = this.safeValue (firstTier, 'fees', {});
+        const makerFees = this.safeValue (fees, 'maker', {});
+        const takerFees = this.safeValue (fees, 'taker', {});
+        const result = {};
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            const market = this.market (symbol);
+            const makerString = this.safeString (makerFees, market['id']);
+            const takerString = this.safeString (takerFees, market['id']);
+            result[symbol] = {
+                'info': fees,
+                'symbol': symbol,
+                'maker': this.parseNumber (Precise.stringDiv (makerString, '100')),
+                'taker': this.parseNumber (Precise.stringDiv (takerString, '100')),
+                'percentage': true,
+                'tierBased': true,
+            };
+        }
+        return result;
     }
 
     async fetchOHLCV (symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {

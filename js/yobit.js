@@ -59,6 +59,8 @@ module.exports = class yobit extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': true,
                 'fetchTransactions': undefined,
                 'fetchWithdrawals': undefined,
                 'reduceMargin': false,
@@ -594,6 +596,51 @@ module.exports = class yobit extends Exchange {
         return this.parseTrades (response[market['id']], market, since, limit);
     }
 
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetInfo (params);
+        //
+        //     {
+        //         "server_time":1615856752,
+        //         "pairs":{
+        //             "ltc_btc":{
+        //                 "decimal_places":8,
+        //                 "min_price":0.00000001,
+        //                 "max_price":10000,
+        //                 "min_amount":0.0001,
+        //                 "min_total":0.0001,
+        //                 "hidden":0,
+        //                 "fee":0.2,
+        //                 "fee_buyer":0.2,
+        //                 "fee_seller":0.2
+        //             },
+        //             ...
+        //         },
+        //     }
+        //
+        const pairs = this.safeValue (response, 'pairs');
+        const marketIds = Object.keys (pairs);
+        const result = {};
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            const pair = this.safeValue (pairs, marketId, {});
+            const symbol = this.safeSymbol (marketId, undefined, '_');
+            const takerString = this.safeString (pair, 'fee_buyer');
+            const makerString = this.safeString (pair, 'fee_seller');
+            const taker = this.parseNumber (Precise.stringDiv (takerString, '100'));
+            const maker = this.parseNumber (Precise.stringDiv (makerString, '100'));
+            result[symbol] = {
+                'info': pair,
+                'symbol': symbol,
+                'taker': taker,
+                'maker': maker,
+                'percentage': true,
+                'tierBased': false,
+            };
+        }
+        return result;
+    }
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         if (type === 'market') {
             throw new ExchangeError (this.id + ' allows limit orders only');
@@ -760,7 +807,7 @@ module.exports = class yobit extends Exchange {
             }), market);
             result.push (trade);
         }
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (result, market['symbol'], since, limit);
     }
 
     async createDepositAddress (code, params = {}) {

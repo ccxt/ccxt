@@ -68,7 +68,7 @@ class bitfinex(Exchange):
                 'fetchTickers': True,
                 'fetchTime': False,
                 'fetchTrades': True,
-                'fetchTradingFee': True,
+                'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': None,
@@ -383,6 +383,13 @@ class bitfinex(Exchange):
                     'limit': 'exchange limit',
                     'market': 'exchange market',
                 },
+                'fiat': {
+                    'USD': 'USD',
+                    'EUR': 'EUR',
+                    'JPY': 'JPY',
+                    'GBP': 'GBP',
+                    'CNH': 'CNH',
+                },
                 'accountsByType': {
                     'spot': 'exchange',
                     'margin': 'trading',
@@ -416,31 +423,71 @@ class bitfinex(Exchange):
         response = await self.privatePostSummary(params)
         #
         #     {
-        #         time: '2019-02-20T15:50:19.152000Z',
-        #         trade_vol_30d: [
-        #             {
-        #                 curr: 'Total(USD)',
-        #                 vol: 0,
-        #                 vol_maker: 0,
-        #                 vol_BFX: 0,
-        #                 vol_BFX_maker: 0,
-        #                 vol_ETHFX: 0,
-        #                 vol_ETHFX_maker: 0
-        #             }
-        #         ],
-        #         fees_funding_30d: {},
-        #         fees_funding_total_30d: 0,
-        #         fees_trading_30d: {},
-        #         fees_trading_total_30d: 0,
-        #         maker_fee: 0.001,
-        #         taker_fee: 0.002
+        #          time: '2022-02-23T16:05:47.659000Z',
+        #          status: {resid_hint: null, login_last: '2022-02-23T16:05:48Z'},
+        #          is_locked: False,
+        #          leo_lev: '0',
+        #          leo_amount_avg: '0.0',
+        #          trade_vol_30d: [
+        #          {
+        #              curr: 'Total(USD)',
+        #              vol: '0.0',
+        #              vol_safe: '0.0',
+        #              vol_maker: '0.0',
+        #              vol_BFX: '0.0',
+        #              vol_BFX_safe: '0.0',
+        #              vol_BFX_maker: '0.0'
+        #          }
+        #          ],
+        #          fees_funding_30d: {},
+        #          fees_funding_total_30d: '0',
+        #          fees_trading_30d: {},
+        #          fees_trading_total_30d: '0',
+        #          rebates_trading_30d: {},
+        #          rebates_trading_total_30d: '0',
+        #          maker_fee: '0.001',
+        #          taker_fee: '0.002',
+        #          maker_fee_2crypto: '0.001',
+        #          maker_fee_2stablecoin: '0.001',
+        #          maker_fee_2fiat: '0.001',
+        #          maker_fee_2deriv: '0.0002',
+        #          taker_fee_2crypto: '0.002',
+        #          taker_fee_2stablecoin: '0.002',
+        #          taker_fee_2fiat: '0.002',
+        #          taker_fee_2deriv: '0.00065',
+        #          deriv_maker_rebate: '0.0002',
+        #          deriv_taker_fee: '0.00065',
+        #          trade_last: null
         #     }
         #
-        return {
-            'info': response,
-            'maker': self.safe_number(response, 'maker_fee'),
-            'taker': self.safe_number(response, 'taker_fee'),
-        }
+        result = {}
+        fiat = self.safe_value(self.options, 'fiat', {})
+        makerFee = self.safe_number(response, 'maker_fee')
+        takerFee = self.safe_number(response, 'taker_fee')
+        makerFee2Fiat = self.safe_number(response, 'maker_fee_2fiat')
+        takerFee2Fiat = self.safe_number(response, 'taker_fee_2fiat')
+        makerFee2Deriv = self.safe_number(response, 'maker_fee_2deriv')
+        takerFee2Deriv = self.safe_number(response, 'taker_fee_2deriv')
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            market = self.market(symbol)
+            fee = {
+                'info': response,
+                'symbol': symbol,
+                'percentage': True,
+                'tierBased': True,
+            }
+            if market['quote'] in fiat:
+                fee['maker'] = makerFee2Fiat
+                fee['taker'] = takerFee2Fiat
+            elif market['contract']:
+                fee['maker'] = makerFee2Deriv
+                fee['taker'] = takerFee2Deriv
+            else:
+                fee['maker'] = makerFee
+                fee['taker'] = takerFee
+            result[symbol] = fee
+        return result
 
     async def fetch_markets(self, params={}):
         ids = await self.publicGetSymbols()

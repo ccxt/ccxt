@@ -156,13 +156,12 @@ class phemex(Exchange):
                         'exchange/wallets/v2/depositAddress',  # ?currency=<currency>
                         'api-data/spots/funds',  # ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         'assets/convert',  # ?startTime=<startTime>&endTime=<endTime>&limit=<limit>&offset=<offset>
-                        'assets/transfer',  # ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         # transfer
-                        'assets/transfer',
-                        'assets/spots/sub-accounts/transfer',
-                        'assets/spots/sub-accounts/transfer',
-                        'assets/quote',
-                        'assets/convert',
+                        'assets/transfer',  # ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'assets/spots/sub-accounts/transfer',  # ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'assets/futures/sub-accounts/transfer',  # ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'assets/quote',  # ?fromCurrency=<currency>&toCurrency=<currency>&amountEv=<amount>
+                        'assets/convert',  # ?fromCurrency=<currency>&toCurrency=<currency>&startTime=<start>&endTime=<end>&limit=<limit>&offset=<offset>
                     ],
                     'post': [
                         # spot
@@ -343,6 +342,24 @@ class phemex(Exchange):
                     '11113': BadRequest,  # TE_USER_ID_INVALID UserId is invalid
                     '11114': InvalidOrder,  # TE_ORDER_VALUE_TOO_LARGE Order value is too large
                     '11115': InvalidOrder,  # TE_ORDER_VALUE_TOO_SMALL Order value is too small
+                    '11116': InvalidOrder,  # TE_BO_NUM_EXCEEDS Details: the total count of brakcet orders should equal or less than 5
+                    '11117': InvalidOrder,  # TE_BO_CANNOT_HAVE_BO_WITH_DIFF_SIDE Details: all bracket orders should have the same Side.
+                    '11118': InvalidOrder,  # TE_BO_TP_PRICE_INVALID Details: bracker order take profit price is invalid
+                    '11119': InvalidOrder,  # TE_BO_SL_PRICE_INVALID Details: bracker order stop loss price is invalid
+                    '11120': InvalidOrder,  # TE_BO_SL_TRIGGER_PRICE_INVALID Details: bracker order stop loss trigger price is invalid
+                    '11121': InvalidOrder,  # TE_BO_CANNOT_REPLACE Details: cannot replace bracket order.
+                    '11122': InvalidOrder,  # TE_BO_BOTP_STATUS_INVALID Details: bracket take profit order status is invalid
+                    '11123': InvalidOrder,  # TE_BO_CANNOT_PLACE_BOTP_OR_BOSL_ORDER Details: cannot place bracket take profit order
+                    '11124': InvalidOrder,  # TE_BO_CANNOT_REPLACE_BOTP_OR_BOSL_ORDER Details: cannot place bracket stop loss order
+                    '11125': InvalidOrder,  # TE_BO_CANNOT_CANCEL_BOTP_OR_BOSL_ORDER Details: cannot cancel bracket sl/tp order
+                    '11126': InvalidOrder,  # TE_BO_DONOT_SUPPORT_API Details: doesn't support bracket order via API
+                    '11128': InvalidOrder,  # TE_BO_INVALID_EXECINST Details: ExecInst value is invalid
+                    '11129': InvalidOrder,  # TE_BO_MUST_BE_SAME_SIDE_AS_POS Details: bracket order should have the same side as position's side
+                    '11130': InvalidOrder,  # TE_BO_WRONG_SL_TRIGGER_TYPE Details: bracket stop loss order trigger type is invalid
+                    '11131': InvalidOrder,  # TE_BO_WRONG_TP_TRIGGER_TYPE Details: bracket take profit order trigger type is invalid
+                    '11132': InvalidOrder,  # TE_BO_ABORT_BOSL_DUE_BOTP_CREATE_FAILED Details: cancel bracket stop loss order due failed to create take profit order.
+                    '11133': InvalidOrder,  # TE_BO_ABORT_BOSL_DUE_BOPO_CANCELED Details: cancel bracket stop loss order due main order canceled.
+                    '11134': InvalidOrder,  # TE_BO_ABORT_BOTP_DUE_BOPO_CANCELED Details: cancel bracket take profit order due main order canceled.
                     # not documented
                     '30000': BadRequest,  # {"code":30000,"msg":"Please double check input arguments","data":null}
                     '30018': BadRequest,  # {"code":30018,"msg":"phemex.data.size.uplimt","data":null}
@@ -574,9 +591,9 @@ class phemex(Exchange):
             'expiryDatetime': None,
             'strike': None,
             'optionType': None,
-            'priceScale': self.parse_number('8'),
-            'valueScale': self.parse_number('8'),
-            'ratioScale': self.parse_number('8'),
+            'priceScale': 8,
+            'valueScale': 8,
+            'ratioScale': 8,
             'precision': {
                 'amount': precisionAmount,
                 'price': precisionPrice,

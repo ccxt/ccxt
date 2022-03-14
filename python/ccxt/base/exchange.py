@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.74.3'
+__version__ = '1.76.12'
 
 # -----------------------------------------------------------------------------
 
@@ -18,6 +18,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import BadRequest
 from ccxt.base.errors import RateLimitExceeded
 
 # -----------------------------------------------------------------------------
@@ -125,6 +126,8 @@ class Exchange(object):
     aiohttp_trust_env = False
     session = None  # Session () by default
     verify = True  # SSL verification
+    validateServerSsl = True
+    validateClientSsl = False
     logger = None  # logging.getLogger(__name__) by default
     userAgent = None
     userAgents = {
@@ -299,6 +302,7 @@ class Exchange(object):
         'fetchLedger': None,
         'fetchLedgerEntry': None,
         'fetchLeverageTiers': None,
+        'fetchMarketLeverageTiers': None,
         'fetchMarkets': True,
         'fetchMarkOHLCV': None,
         'fetchMyTrades': None,
@@ -326,7 +330,6 @@ class Exchange(object):
         'fetchTransfers': None,
         'fetchWithdrawal': None,
         'fetchWithdrawals': None,
-        'loadLeverageBrackets': None,
         'loadMarkets': True,
         'reduceMargin': None,
         'setLeverage': None,
@@ -440,7 +443,10 @@ class Exchange(object):
 
     def __del__(self):
         if self.session:
-            self.session.close()
+            try:
+                self.session.close()
+            except Exception as e:
+                pass
 
     def __repr__(self):
         return 'ccxt.' + ('async_support.' if self.asyncio_loop else '') + self.id + '()'
@@ -486,6 +492,7 @@ class Exchange(object):
 
         def partialer():
             outer_kwargs = {'path': path, 'api': api_argument, 'method': uppercase_method, 'config': config}
+
             @functools.wraps(entry)
             def inner(_self, params=None, context=None):
                 """
@@ -637,7 +644,7 @@ class Exchange(object):
                 headers=request_headers,
                 timeout=int(self.timeout / 1000),
                 proxies=self.proxies,
-                verify=self.verify
+                verify=self.verify and self.validateServerSsl
             )
             # does not try to detect encoding
             response.encoding = 'utf-8'
@@ -991,9 +998,6 @@ class Exchange(object):
     def extract_params(string):
         return re.findall(r'{([\w-]+)}', string)
 
-    def implode_hostname(self, url):
-        return Exchange.implode_params(url, {'hostname': self.hostname})
-
     @staticmethod
     def implode_params(string, params):
         if isinstance(params, dict):
@@ -1001,6 +1005,15 @@ class Exchange(object):
                 if not isinstance(params[key], list):
                     string = string.replace('{' + key + '}', str(params[key]))
         return string
+
+    def implode_hostname(self, url):
+        return Exchange.implode_params(url, {'hostname': self.hostname})
+
+    def resolve_path(self, path, params):
+        return [
+            self.implode_params(path, params),
+            self.omit(params, self.extract_params(path))
+        ]
 
     @staticmethod
     def urlencode(params={}, doseq=False):
@@ -2685,6 +2698,12 @@ class Exchange(object):
             if 'rate' in fee:
                 fee['rate'] = self.safe_number(fee, 'rate')
             entry['fee'] = fee
+        # timeInForceHandling
+        timeInForce = self.safe_string(order, 'timeInForce')
+        if self.safe_value(order, 'postOnly', False):
+            timeInForce = 'PO'
+        elif self.safe_string(order, 'type') == 'market':
+            timeInForce = 'IOC'
         return self.extend(order, {
             'lastTradeTimestamp': lastTradeTimeTimestamp,
             'price': self.parse_number(price),
@@ -2694,6 +2713,7 @@ class Exchange(object):
             'filled': self.parse_number(filled),
             'remaining': self.parse_number(remaining),
             'trades': trades,
+            'timeInForce': timeInForce,
         })
 
     def parse_number(self, value, default=None):
@@ -2773,3 +2793,27 @@ class Exchange(object):
         after = self.milliseconds()
         self.options['timeDifference'] = after - server_time
         return self.options['timeDifference']
+
+    def parse_leverage_tiers(self, response, symbols, market_id_key):
+        tiers = {}
+        for item in response:
+            id = self.safe_string(item, market_id_key)
+            market = self.safe_market(id)
+            symbol = market['symbol']
+            symbols_length = 0
+            if (symbols is not None):
+                symbols_length = len(symbols)
+            contract = self.safe_value(market, 'contract', False)
+            if (contract and (symbols_length == 0 or symbol in symbols)):
+                tiers[symbol] = self.parse_market_leverage_tiers(item, market)
+        return tiers
+
+    def fetch_market_leverage_tiers(self, symbol, params={}):
+        if self.has['fetchLeverageTiers']:
+            market = self.market(symbol)
+            if (not market['contract']):
+                raise BadRequest(self.id + ' fetch_leverage_tiers() supports contract markets only')
+            tiers = self.fetch_leverage_tiers([symbol])
+            return self.safe_value(tiers, symbol)
+        else:
+            raise NotSupported(self.id + 'fetch_market_leverage_tiers() is not supported yet')

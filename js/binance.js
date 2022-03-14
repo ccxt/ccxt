@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet } = require ('./base/errors');
 const { TRUNCATE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -63,6 +63,7 @@ module.exports = class binance extends Exchange {
                 'fetchLedger': undefined,
                 'fetchLeverage': undefined,
                 'fetchLeverageTiers': true,
+                'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
                 'fetchMyBuys': undefined,
@@ -93,7 +94,6 @@ module.exports = class binance extends Exchange {
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': false,
-                'loadLeverageBrackets': true,
                 'reduceMargin': true,
                 'setLeverage': true,
                 'setMarginMode': true,
@@ -783,6 +783,12 @@ module.exports = class binance extends Exchange {
                 'defaultType': 'spot', // 'spot', 'future', 'margin', 'delivery'
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
+                // not an error
+                // https://github.com/ccxt/ccxt/issues/11268
+                // https://github.com/ccxt/ccxt/pull/11624
+                // POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
+                // binanceusdm
+                'throwMarginModeAlreadySet': false,
                 'fetchPositions': 'positionRisk', // or 'account'
                 'recvWindow': 5 * 1000, // 5 sec, binance default
                 'timeDifference': 0, // the difference between system clock and Binance clock
@@ -1918,7 +1924,7 @@ module.exports = class binance extends Exchange {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit; // default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
+            request['limit'] = limit; // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
         }
         let method = 'publicGetDepth';
         if (market['linear']) {
@@ -2399,12 +2405,6 @@ module.exports = class binance extends Exchange {
         }
         let method = this.safeString (this.options, 'fetchTradesMethod', defaultMethod);
         if (method === 'publicGetAggTrades') {
-            if (since !== undefined) {
-                request['startTime'] = since;
-                // https://github.com/ccxt/ccxt/issues/6400
-                // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
-                request['endTime'] = this.sum (since, 3600000);
-            }
             if (type === 'future') {
                 method = 'fapiPublicGetAggTrades';
             } else if (type === 'delivery') {
@@ -2416,6 +2416,12 @@ module.exports = class binance extends Exchange {
             } else if (type === 'delivery') {
                 method = 'dapiPublicGetHistoricalTrades';
             }
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+            // https://github.com/ccxt/ccxt/issues/6400
+            // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
+            request['endTime'] = this.sum (since, 3600000);
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default = 500, maximum = 1000
@@ -4238,6 +4244,7 @@ module.exports = class binance extends Exchange {
         }
         if (symbol !== undefined) {
             const market = this.market (symbol);
+            symbol = market['symbol'];
             request['symbol'] = market['id'];
             if (market['linear']) {
                 method = 'fapiPublicGetFundingRate';
@@ -4445,9 +4452,7 @@ module.exports = class binance extends Exchange {
         let entryPrice = this.parseNumber (entryPriceString);
         const notionalString = this.safeString2 (position, 'notional', 'notionalValue');
         const notionalStringAbs = Precise.stringAbs (notionalString);
-        const notionalFloat = parseFloat (notionalString);
-        const notionalFloatAbs = parseFloat (notionalStringAbs);
-        const notional = this.parseNumber (Precise.stringAbs (notionalString));
+        const notional = this.parseNumber (notionalStringAbs);
         let contractsString = this.safeString (position, 'positionAmt');
         let contractsStringAbs = Precise.stringAbs (contractsString);
         if (contractsString === undefined) {
@@ -4462,7 +4467,7 @@ module.exports = class binance extends Exchange {
         let maintenanceMarginPercentageString = undefined;
         for (let i = 0; i < leverageBracket.length; i++) {
             const bracket = leverageBracket[i];
-            if (notionalFloatAbs < bracket[0]) {
+            if (Precise.stringLt (notionalStringAbs, bracket[0])) {
                 break;
             }
             maintenanceMarginPercentageString = bracket[1];
@@ -4495,10 +4500,10 @@ module.exports = class binance extends Exchange {
         let liquidationPrice = undefined;
         const contractSize = this.safeValue (market, 'contractSize');
         const contractSizeString = this.numberToString (contractSize);
-        if (notionalFloat === 0.0) {
+        if (Precise.stringEquals (notionalString, '0')) {
             entryPrice = undefined;
         } else {
-            side = (notionalFloat < 0) ? 'short' : 'long';
+            side = Precise.stringLt (notionalString, '0') ? 'short' : 'long';
             marginRatio = this.parseNumber (Precise.stringDiv (Precise.stringAdd (Precise.stringDiv (maintenanceMarginString, collateralString), '5e-5'), '1', 4));
             percentage = this.parseNumber (Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMarginString, 4), '100'));
             if (usdm) {
@@ -4622,17 +4627,15 @@ module.exports = class binance extends Exchange {
         //
         const marketId = this.safeString (position, 'symbol');
         market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol');
         const leverageBrackets = this.safeValue (this.options, 'leverageBrackets', {});
         const leverageBracket = this.safeValue (leverageBrackets, symbol, []);
         const notionalString = this.safeString2 (position, 'notional', 'notionalValue');
         const notionalStringAbs = Precise.stringAbs (notionalString);
-        const notionalFloatAbs = parseFloat (notionalStringAbs);
-        const notionalFloat = parseFloat (notionalString);
         let maintenanceMarginPercentageString = undefined;
         for (let i = 0; i < leverageBracket.length; i++) {
             const bracket = leverageBracket[i];
-            if (notionalFloatAbs < bracket[0]) {
+            if (Precise.stringLt (notionalStringAbs, bracket[0])) {
                 break;
             }
             maintenanceMarginPercentageString = bracket[1];
@@ -4649,9 +4652,9 @@ module.exports = class binance extends Exchange {
         let collateralString = undefined;
         const marginType = this.safeString (position, 'marginType');
         let side = undefined;
-        if (notionalFloat > 0) {
+        if (Precise.stringGt (notionalString, '0')) {
             side = 'long';
-        } else if (notionalFloat < 0) {
+        } else if (Precise.stringLt (notionalString, '0')) {
             side = 'short';
         }
         const entryPriceString = this.safeString (position, 'entryPrice');
@@ -4662,6 +4665,7 @@ module.exports = class binance extends Exchange {
         const linear = ('notional' in position);
         if (marginType === 'cross') {
             // calculate collateral
+            const precision = this.safeValue (market, 'precision');
             if (linear) {
                 // walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
                 let onePlusMaintenanceMarginPercentageString = undefined;
@@ -4674,7 +4678,8 @@ module.exports = class binance extends Exchange {
                 }
                 const inner = Precise.stringMul (liquidationPriceString, onePlusMaintenanceMarginPercentageString);
                 const leftSide = Precise.stringAdd (inner, entryPriceSignString);
-                collateralString = Precise.stringDiv (Precise.stringMul (leftSide, contractsAbs), '1', market['precision']['quote']);
+                const quotePrecision = this.safeInteger (precision, 'quote');
+                collateralString = Precise.stringDiv (Precise.stringMul (leftSide, contractsAbs), '1', quotePrecision);
             } else {
                 // walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
                 let onePlusMaintenanceMarginPercentageString = undefined;
@@ -4687,13 +4692,13 @@ module.exports = class binance extends Exchange {
                 }
                 const leftSide = Precise.stringMul (contractsAbs, contractSizeString);
                 const rightSide = Precise.stringSub (Precise.stringDiv ('1', entryPriceSignString), Precise.stringDiv (onePlusMaintenanceMarginPercentageString, liquidationPriceString));
-                collateralString = Precise.stringDiv (Precise.stringMul (leftSide, rightSide), '1', market['precision']['base']);
+                const basePrecision = this.safeInteger (precision, 'base');
+                collateralString = Precise.stringDiv (Precise.stringMul (leftSide, rightSide), '1', basePrecision);
             }
         } else {
             collateralString = this.safeString (position, 'isolatedMargin');
         }
         collateralString = (collateralString === undefined) ? '0' : collateralString;
-        const collateralFloat = parseFloat (collateralString);
         const collateral = this.parseNumber (collateralString);
         const markPrice = this.parseNumber (this.omitZero (this.safeString (position, 'markPrice')));
         let timestamp = this.safeInteger (position, 'updateTime');
@@ -4712,7 +4717,7 @@ module.exports = class binance extends Exchange {
         const initialMargin = this.parseNumber (initialMarginString);
         let marginRatio = undefined;
         let percentage = undefined;
-        if (collateralFloat !== 0.0) {
+        if (!Precise.stringEquals (collateralString, '0')) {
             marginRatio = this.parseNumber (Precise.stringDiv (Precise.stringAdd (Precise.stringDiv (maintenanceMarginString, collateralString), '5e-5'), '1', 4));
             percentage = this.parseNumber (Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMarginString, 4), '100'));
         }
@@ -4771,8 +4776,7 @@ module.exports = class binance extends Exchange {
                 const result = [];
                 for (let j = 0; j < brackets.length; j++) {
                     const bracket = brackets[j];
-                    // we use floats here internally on purpose
-                    const floorValue = this.safeFloat2 (bracket, 'notionalFloor', 'qtyFloor');
+                    const floorValue = this.safeString2 (bracket, 'notionalFloor', 'qtyFloor');
                     const maintenanceMarginPercentage = this.safeString (bracket, 'maintMarginRatio');
                     result.push ([ floorValue, maintenanceMarginPercentage ]);
                 }
@@ -4782,7 +4786,7 @@ module.exports = class binance extends Exchange {
         return this.options['leverageBrackets'];
     }
 
-    async fetchLeverageTiers (symbol = undefined, params = {}) {
+    async fetchLeverageTiers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchLeverageTiers', undefined, params);
         let method = undefined;
@@ -4812,38 +4816,46 @@ module.exports = class binance extends Exchange {
         //        }
         //    ]
         //
-        const leverageBrackets = {};
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const marketId = this.safeString (entry, 'symbol');
-            const safeSymbol = this.safeSymbol (marketId);
-            let market = { 'base': undefined };
-            if (safeSymbol in this.markets) {
-                market = this.market (safeSymbol);
+        return this.parseLeverageTiers (response, symbols, 'symbol');
+    }
+
+    parseMarketLeverageTiers (info, market) {
+        /**
+            @param info: Exchange response for 1 market
+            {
+                "symbol": "SUSHIUSDT",
+                "brackets": [
+                    {
+                        "bracket": 1,
+                        "initialLeverage": 50,
+                        "notionalCap": 50000,
+                        "notionalFloor": 0,
+                        "maintMarginRatio": 0.01,
+                        "cum": 0.0
+                    },
+                    ...
+                ]
             }
-            const brackets = this.safeValue (entry, 'brackets');
-            const result = [];
-            for (let j = 0; j < brackets.length; j++) {
-                const bracket = brackets[j];
-                result.push ({
-                    'tier': this.safeNumber (bracket, 'bracket'),
-                    'currency': market['quote'],
-                    'notionalFloor': this.safeFloat2 (bracket, 'notionalFloor', 'qtyFloor'),
-                    'notionalCap': this.safeNumber (bracket, 'notionalCap'),
-                    'maintenanceMarginRate': this.safeNumber (bracket, 'maintMarginRatio'),
-                    'maxLeverage': this.safeNumber (bracket, 'initialLeverage'),
-                    'info': bracket,
-                });
-            }
-            leverageBrackets[safeSymbol] = result;
+            @param market: CCXT market
+        */
+        const marketId = this.safeString (info, 'symbol');
+        const safeSymbol = this.safeSymbol (marketId);
+        market = this.safeMarket (safeSymbol, market);
+        const brackets = this.safeValue (info, 'brackets');
+        const tiers = [];
+        for (let j = 0; j < brackets.length; j++) {
+            const bracket = brackets[j];
+            tiers.push ({
+                'tier': this.safeNumber (bracket, 'bracket'),
+                'currency': market['quote'],
+                'notionalFloor': this.safeNumber2 (bracket, 'notionalFloor', 'qtyFloor'),
+                'notionalCap': this.safeNumber (bracket, 'notionalCap'),
+                'maintenanceMarginRate': this.safeNumber (bracket, 'maintMarginRatio'),
+                'maxLeverage': this.safeNumber (bracket, 'initialLeverage'),
+                'info': bracket,
+            });
         }
-        if (symbol !== undefined) {
-            const result = {};
-            result[symbol] = this.safeValue (leverageBrackets, symbol);
-            return result;
-        } else {
-            return leverageBrackets;
-        }
+        return tiers;
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
@@ -5062,7 +5074,25 @@ module.exports = class binance extends Exchange {
             'symbol': market['id'],
             'marginType': marginType,
         };
-        return await this[method] (this.extend (request, params));
+        let response = undefined;
+        try {
+            response = await this[method] (this.extend (request, params));
+        } catch (e) {
+            // not an error
+            // https://github.com/ccxt/ccxt/issues/11268
+            // https://github.com/ccxt/ccxt/pull/11624
+            // POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
+            // binanceusdm
+            if (e instanceof MarginModeAlreadySet) {
+                const throwMarginModeAlreadySet = this.safeValue (this.options, 'throwMarginModeAlreadySet', false);
+                if (throwMarginModeAlreadySet) {
+                    throw e;
+                } else {
+                    response = { 'code': -4046, 'msg': 'No need to change margin type.' };
+                }
+            }
+        }
+        return response;
     }
 
     async setPositionMode (hedged, symbol = undefined, params = {}) {
@@ -5175,7 +5205,7 @@ module.exports = class binance extends Exchange {
                 throw new InvalidOrder (this.id + ' order amount should be evenly divisible by lot size ' + body);
             }
             if (body.indexOf ('PRICE_FILTER') >= 0) {
-                throw new InvalidOrder (this.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use this.priceToPrecision (symbol, amount) ' + body);
+                throw new InvalidOrder (this.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use this.priceToPrecision (symbol, amount) ' + body);
             }
         }
         if (response === undefined) {
@@ -5218,15 +5248,15 @@ module.exports = class binance extends Exchange {
             if ((error === '-2015') && this.options['hasAlreadyAuthenticatedSuccessfully']) {
                 throw new DDoSProtection (this.id + ' temporary banned: ' + body);
             }
+            const feedback = this.id + ' ' + body;
             if (message === 'No need to change margin type.') {
                 // not an error
                 // https://github.com/ccxt/ccxt/issues/11268
                 // https://github.com/ccxt/ccxt/pull/11624
                 // POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
                 // binanceusdm {"code":-4046,"msg":"No need to change margin type."}
-                return true;
+                throw new MarginModeAlreadySet (feedback);
             }
-            const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
             throw new ExchangeError (feedback);
         }

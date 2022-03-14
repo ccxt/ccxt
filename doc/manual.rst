@@ -51,7 +51,7 @@ Exchanges
 
 
 
-The CCXT library currently supports the following 113 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 114 cryptocurrency exchange markets and trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -72,10 +72,7 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
           :target: https://www.aaxpro.com/apidoc/index.html
           :alt: API Version 2
      
-     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
-          :target: https://github.com/ccxt/ccxt/wiki/Certification
-          :alt: CCXT Certified
-     
+     - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
           :alt: CCXT Pro
@@ -311,9 +308,9 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
      
      - bitget
      - `Bitget <https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j>`__
-     - .. image:: https://img.shields.io/badge/3-lightgray
+     - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://bitgetlimited.github.io/apidoc/en/swap
-          :alt: API Version 3
+          :alt: API Version 1
      
      - 
      - 
@@ -458,6 +455,18 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
+   * - .. image:: https://user-images.githubusercontent.com/1294454/158043180-bb079a65-69e8-45a2-b393-f094d334e610.jpg
+          :target: https://www.bkex.com/
+          :alt: bkex
+     
+     - bkex
+     - `BKEX <https://www.bkex.com/>`__
+     - .. image:: https://img.shields.io/badge/2-lightgray
+          :target: https://bkexapi.github.io/docs/api_en.htm
+          :alt: API Version 2
+     
+     - 
+     - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg
           :target: https://bl3p.eu
           :alt: bl3p
@@ -942,7 +951,7 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
      - hitbtc
      - `HitBTC <https://hitbtc.com/?ref_id=5a5d39a65d466>`__
      - .. image:: https://img.shields.io/badge/2-lightgray
-          :target: https://api.hitbtc.com
+          :target: https://api.hitbtc.com/v2
           :alt: API Version 2
      
      - 
@@ -1166,15 +1175,15 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
      
      - 
      - 
-   * - .. image:: https://user-images.githubusercontent.com/1294454/34487620-3139a7b0-efe6-11e7-90f5-e520cef74451.jpg
+   * - .. image:: https://user-images.githubusercontent.com/1294454/155840500-1ea4fdf0-47c0-4daa-9597-c6c1cd51b9ec.jpg
           :target: https://www.lykke.com
           :alt: lykke
      
      - lykke
      - `Lykke <https://www.lykke.com>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://hft-api.lykke.com/swagger/ui/
-          :alt: API Version 1
+     - .. image:: https://img.shields.io/badge/2-lightgray
+          :target: https://hft-apiv2.lykke.com/swagger/ui/index.html
+          :alt: API Version 2
      
      - 
      - 
@@ -2965,7 +2974,7 @@ To use the async version of the library, use the ``ccxt_async`` namespace, as in
    }, $loop);
    $kernel->run();
 
-See further examples in the ``examples/php`` directory; look for filenames that include the ``async`` word. Also, make sure you have installed the required dependencies using ``composer require recoil/recoil clue/buzz-react react/event-loop recoil/react``. Lastly, `this article <https://sergeyzhuk.me/2018/10/26/from-promise-to-coroutines/>`__ provides a good introduction to the methods used here. While syntactically the change is simple (i.e., just using a ``yield`` keyword before relevant methods), concurrency has significant implications for the overall design of your code.
+See further examples in the ``examples/php`` directory; look for filenames that include the ``async`` word. Also, make sure you have installed the required dependencies using ``composer require recoil/recoil clue/buzz-react react/event-loop recoil/react react/http``. Lastly, `this article <https://sergeyzhuk.me/2018/10/26/from-promise-to-coroutines/>`__ provides a good introduction to the methods used here. While syntactically the change is simple (i.e., just using a ``yield`` keyword before relevant methods), concurrency has significant implications for the overall design of your code.
 
 Returned JSON Objects
 ^^^^^^^^^^^^^^^^^^^^^
@@ -4012,21 +4021,28 @@ The possible values in the ``status`` field are:
  * ``'error'`` means that either the exchange API is broken, or the implementation of the exchange in CCXT is broken
  * ``'maintenance'`` means regular maintenance, and the ``eta`` field should contain the datetime when the exchange is expected to be operational again
 
-Fetch Leverage Tiers
---------------------
+Leverage Tiers and Market Leverage Tiers
+----------------------------------------
+
+
+ * These are private methods on **Binance**
 
 You can obtain the absolute maximum leverage for a market by accessing ``market['limits']['leverage']['max']``.
 For many contracts, the maximum leverage will depend on the size of your position.
-You can access those limits via the ``fetchLeverageTiers()`` method.
+You can access those limits via the ``fetchLeverageTiers()`` (multiple symbols) and ``fetchMarketLeverageTiers()`` (single symbol) methods.
 
 .. code-block:: Javascript
 
-   fetchLeverageTiers(symbol, params = {})
+   fetchLeverageTiers(symbols = undefined, params = {})
+
+.. code-block:: Javascript
+
+   fetchMarketLeverageTiers(symbol, params = {})
 
 The ``fetchLeverageTiers()`` method can be used to obtain the maximum leverage for a market at varying position sizes. It can also be used to obtain the maintenance margin rate, and the max tradeable amount for a market when that information is not available from the market object:
 
-Fetch Leverage Tiers Structure
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Leverage Tiers Structure
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 The ``fetchLeverageTiers()`` method will return a structure like shown below:
 
@@ -4043,29 +4059,49 @@ The ``fetchLeverageTiers()`` method will return a structure like shown below:
                "maxLeverage": 75,               // max available leverage for this market when the value of the trade is > notionalFloor and < notionalCap
                "info": { ... }                  // Response from exchange
            },
-           {
-               "tier": 2,
-               "notionalCurrency": "USDT",
-               "notionalFloor": 10000,          // min stake amount at 50x leverage = 200.0
-               "notionalCap": 50000,            // max stake amount at 50x leverage = 1000.0
-               "maintenanceMarginRatio": 0.01,
-               "maxLeverage": 50,
-               "info": { ... },
-           },
            ...
-           {
-               "tier": 9,
-               "notionalCurrency": "USDT",
-               "notionalFloor": 20000000,
-               "notionalCap": 50000000,
-               "maintenanceMarginRate": 0.5,
-               "maxLeverage": 1,
-               "info": { ... },
-           },
        ]
        ...
      ],
    }
+
+Market Leverage Tiers Structure
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The ``fetchMarketLeverageTiers()`` method will return a structure like shown below:
+
+.. code-block:: JavaScript
+
+   [
+       {
+           "tier": 1,                       // tier index
+           "notionalCurrency": "USDT",      // the currency that notionalFloor and notionalCap are in
+           "notionalFloor": 0,              // the lowest amount of this tier // stake = 0.0
+           "notionalCap": 10000,            // the highest amount of this tier // max stake amount at 75x leverage = 133.33333333333334
+           "maintenanceMarginRate": 0.0065, // maintenance margin rate
+           "maxLeverage": 75,               // max available leverage for this market when the value of the trade is > notionalFloor and < notionalCap
+           "info": { ... }                  // Response from exchange
+       },
+       {
+           "tier": 2,
+           "notionalCurrency": "USDT",
+           "notionalFloor": 10000,          // min stake amount at 50x leverage = 200.0
+           "notionalCap": 50000,            // max stake amount at 50x leverage = 1000.0
+           "maintenanceMarginRate": 0.01,
+           "maxLeverage": 50,
+           "info": { ... },
+       },
+       ...
+       {
+           "tier": 9,
+           "notionalCurrency": "USDT",
+           "notionalFloor": 20000000,
+           "notionalCap": 50000000,
+           "maintenanceMarginRate": 0.5,
+           "maxLeverage": 1,
+           "info": { ... },
+       },
+   ]
 
 In the example above:
 
@@ -4074,6 +4110,128 @@ In the example above:
  * stakes from 200 + 1000    = a max leverage of 50
  * a stake amount of 150     = a max leverage of (10000 / 150)   = 66.66
  * stakes between 133.33-200 = a max leverage of (10000 / stake) = 50.01 -> 74.99
+
+ **Note for Huobi users:** Huobi uses both leverage and amount to determine maintenance margin rates: https://www.huobi.com/support/en-us/detail/900000089903
+
+Funding Rate and Funding Rates
+------------------------------
+
+
+ * contract only
+
+Data on the current, most recent, and next funding rates can be obtained using the methods
+
+
+ * ``fetchFundingRates ()`` for all market symbols
+ * ``fetchFundingRates ([ symbol1, symbol2, ... ])`` for multiple market symbols
+ * ``fetchFundingRate (symbol)`` for a single market symbol
+
+.. code-block:: Javascript
+
+   fetchFundingRate (symbol, params = {})
+
+
+ * **symbol** (String) Unified CCXT symbol, required (e.g. ``"BTC/USDT:USDT"``\ )
+ * **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. ``{"endTime": 1645807945000}``\ )
+
+.. code-block:: Javascript
+
+   fetchFundingRates (symbols = undefined, params = {})
+
+
+ * **symbols** (Array[String]) An optional array/list of unified CCXT symbols (e.g. ``["BTC/USDT:USDT", "ETH/USDT:USDT"]``\ )
+ * **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. ``{"endTime": 1645807945000}``\ )
+
+Funding Rate Structure
+^^^^^^^^^^^^^^^^^^^^^^
+
+The ``fetchFundingRate()`` method will return a structure like shown below:
+
+.. code-block:: Javascript
+
+   {
+       info: { ... },
+       symbol: 'BTC/USDT:USDT',
+       markPrice: 39294.43,
+       indexPrice: 39291.78,
+       interestRate: 0.0003,
+       estimatedSettlePrice: undefined,
+       timestamp: undefined,
+       datetime: undefined,
+       fundingRate: 0.000072,
+       fundingTimestamp: 1645833600000,
+       fundingDatetime: '2022-02-26T00:00:00.000Z',
+       nextFundingRate: -0.000018,
+       nextFundingTimestamp: undefined,
+       nextFundingDatetime: undefined,
+       previousFundingRate: undefined,
+       previousFundingTimestamp: undefined,
+       previousFundingDatetime: undefined
+   }
+
+Funding Rates Structure
+^^^^^^^^^^^^^^^^^^^^^^^
+
+The ``fetchFundingRates()`` method will return a structure like shown below:
+
+.. code-block:: Javascript
+
+   {
+       'BTC/USDT:USDT': {
+           info: { ... },
+           symbol: 'BTC/USDT:USDT',
+           markPrice: 39294.43,
+           indexPrice: 39291.78,
+           interestRate: 0.0003,
+           estimatedSettlePrice: undefined,
+           timestamp: undefined,
+           datetime: undefined,
+           fundingRate: 0.000072,
+           fundingTimestamp: 1645833600000,
+           fundingDatetime: '2022-02-26T00:00:00.000Z',
+           nextFundingRate: -0.000018,
+           nextFundingTimestamp: undefined,
+           nextFundingDatetime: undefined,
+           previousFundingRate: undefined,
+           previousFundingTimestamp: undefined,
+           previousFundingDatetime: undefined
+       },
+       ...
+   }
+
+Funding Rate History
+--------------------
+
+
+ * contract only
+
+.. code-block:: Javascript
+
+   fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {})
+
+
+ * **symbol** (String) Unified CCXT symbol (e.g. ``"BTC/USDT:USDT"``\ )
+ * **since** (Integer) Timestamp for the earliest funding rate (e.g. ``1645807945000``\ )
+ * **limit** (Integer) The maximum number of funding rates to retrieve (e.g. ``10``\ )
+ * **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. ``{"endTime": 1645807945000}``\ )
+
+Funding Rate History Structure
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The ``fetchFundingRateHistory()`` method will return a structure like shown below:
+
+.. code-block:: Javascript
+
+   [
+       {
+           info: { ... },
+           symbol: "BTC/USDT:USDT",
+           fundingRate: -0.000068,
+           timestamp: 1642953600000,
+           datetime: "2022-01-23T16:00:00.000Z"
+       },
+       ...
+   ]
 
 Private API
 ===========
@@ -4618,7 +4776,7 @@ Most of methods returning orders within ccxt unified API will usually yield an o
        'datetime':          '2017-08-17 12:42:48.000', // ISO8601 datetime of 'timestamp' with milliseconds
        'timestamp':          1502962946216, // order placing/opening Unix timestamp in milliseconds
        'lastTradeTimestamp': 1502962956216, // Unix timestamp of the most recent trade on this order
-       'status':      'open',        // 'open', 'closed', 'canceled', 'expired'
+       'status':      'open',        // 'open', 'closed', 'canceled', 'expired', 'rejected'
        'symbol':      'ETH/BTC',     // symbol
        'type':        'limit',       // 'market', 'limit'
        'timeInForce': 'GTC',         // 'GTC', 'IOC', 'FOK', 'PO'
@@ -4650,12 +4808,19 @@ Most of methods returning orders within ccxt unified API will usually yield an o
  * The ``cost`` of an order is: ``{ filled * price }``
  * The ``cost`` of an order means the total *quote* volume of the order (whereas the ``amount`` is the *base* volume). The value of ``cost`` should be as close to the actual most recent known order cost as possible. The ``cost`` field itself is there mostly for convenience and can be deduced from other fields.
  * The ``clientOrderId`` field can be set upon placing orders by the user with :ref:`custom order params <custom order params>`. Using the ``clientOrderId`` the user can later distinguish between own orders. This is only available for the exchanges that do support ``clientOrderId`` at this time.
- * The ``timeInForce`` field may be ``undefined/None/null`` if not specified by the exchange. The unification of ``timeInForce`` is a work in progress. Possible values for the\ ``timeInForce`` field:
 
-  * ``'GTC'`` = *Good Till Cancel(ed)*\ , the order stays on the orderbook until it is matched or canceled.
-  * ``'IOC'`` = *Immediate Or Cancel*\ , the order has to be matched immediately and filled either partially or completely, the unfilled remainder is canceled (or the entire order is canceled).
-  * ``'FOK'`` = *Fill Or Kill*\ , the order has to get fully filled and closed immediately, otherwise the entire order is canceled.
-  * ``'PO'`` = *Post Only*\ , the order has to land on the orderbook and spend at least some time there in an unfilled state, this makes it a maker order by definition, otherwise it is not placed. The post only ``timeInForce`` is not too common across the exchanges, since orders are allowed to be both ``GTC`` and ``PO`` at the same time, therefore the post only mode is often returned as a separate flag. The unification of ``timeInForce`` and ``postOnly`` is a work in progress.
+timeInForce
+~~~~~~~~~~~
+
+The ``timeInForce`` field may be ``undefined/None/null`` if not specified by the exchange. The unification of ``timeInForce`` is a work in progress. Possible values for the\ ``timeInForce`` field:
+
+.. code-block::
+
+   - `'GTC'` = _Good Till Cancel(ed)_, the order stays on the orderbook until it is matched or canceled.
+   - `'IOC'` = _Immediate Or Cancel_, the order has to be matched immediately and filled either partially or completely, the unfilled remainder is canceled (or the entire order is canceled).
+   - `'FOK'` = _Fill Or Kill_, the order has to get fully filled and closed immediately, otherwise the entire order is canceled.
+   - `'PO'` = _Post Only_, the order has to land on the orderbook and spend at least some time there in an unfilled state, this makes it a maker order by definition, otherwise it is not placed. The post only `timeInForce` is not too common across the exchanges, since orders are allowed to be both `GTC` and `PO` at the same time, therefore the post only mode is often returned as a separate flag. The unification of `timeInForce` and `postOnly` is a work in progress.
+
 
 Placing Orders
 ^^^^^^^^^^^^^^

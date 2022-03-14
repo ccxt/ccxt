@@ -68,7 +68,8 @@ class okx extends Exchange {
                 'fetchLedger' => true,
                 'fetchLedgerEntry' => null,
                 'fetchLeverage' => true,
-                'fetchLeverageTiers' => true,
+                'fetchLeverageTiers' => false,
+                'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
                 'fetchMyBuys' => null,
@@ -100,7 +101,6 @@ class okx extends Exchange {
                 'fetchWithdrawal' => null,
                 'fetchWithdrawals' => true,
                 'fetchWithdrawalWhitelist' => null,
-                'loadLeverageBrackets' => null,
                 'reduceMargin' => true,
                 'setLeverage' => true,
                 'setMarginMode' => true,
@@ -173,6 +173,7 @@ class okx extends Exchange {
                         'public/position-tiers' => 2,
                         'public/underlying' => 1,
                         'public/interest-rate-loan-quota' => 10,
+                        'public/vip-interest-rate-loan-quota' => 10,
                         'rubik/stat/trading-data/support-coin' => 4,
                         'rubik/stat/taker-volume' => 4,
                         'rubik/stat/margin/loan-ratio' => 4,
@@ -234,12 +235,21 @@ class okx extends Exchange {
                         'asset/subaccount/bills' => 5 / 3,
                         'users/subaccount/list' => 10,
                         'users/subaccount/apikey' => 10,
+                        'users/entrust-subaccount-list' => 10,
                         // broker
                         'broker/nd/info' => 10,
                         'broker/nd/subaccount-info' => 10,
                         'asset/broker/nd/subaccount-deposit-address' => 4,
                         'asset/broker/nd/subaccount-deposit-history' => 4,
                         'broker/nd/rebate-daily' => 1,
+                        // convert
+                        'asset/convert/currencies' => 5 / 3,
+                        'asset/convert/currency-pair' => 5 / 3,
+                        'asset/convert/estimate-quote' => 5,
+                        'asset/convert/trade' => 5,
+                        'asset/convert/history' => 5 / 3,
+                        // options
+                        'account/greeks' => 2,
                     ),
                     'post' => array(
                         'account/set-position-mode' => 4,
@@ -589,6 +599,10 @@ class okx extends Exchange {
                     'ETH' => 'ERC20',
                     'TRX' => 'TRC20',
                     'OMNI' => 'Omni',
+                    'SOLANA' => 'Solana',
+                    'POLYGON' => 'Polygon',
+                    'OEC' => 'OEC',
+                    'ALGO' => 'ALGO', // temporarily unavailable
                 ),
                 'layerTwo' => array(
                     'Lightning' => true,
@@ -610,6 +624,7 @@ class okx extends Exchange {
                 // 1 = SPOT, 3 = FUTURES, 5 = MARGIN, 6 = FUNDING, 9 = SWAP, 12 = OPTION, 18 = Unified account
                 'accountsByType' => array(
                     'spot' => '1',
+                    'future' => '3',
                     'futures' => '3',
                     'margin' => '5',
                     'funding' => '6',
@@ -1489,7 +1504,7 @@ class okx extends Exchange {
             );
         }
         $sorted = $this->sort_by($rates, 'timestamp');
-        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
     public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -2726,6 +2741,45 @@ class okx extends Exchange {
         $networks = $this->safe_value($currency, 'networks', array());
         $networksById = $this->index_by($networks, 'id');
         $networkData = $this->safe_value($networksById, $chain);
+        // inconsistent naming responses from exchange
+        // with respect to $network naming provided in $currency info vs $address $chain-names and ids
+        //
+        // response from $address endpoint:
+        //      {
+        //          "chain":"USDT-Polygon",
+        //          "ctAddr":"",
+        //          "ccy":"USDT",
+        //          "to":"6",
+        //          "addr":"0x1903441e386cc49d937f6302955b5feb4286dcfa",
+        //          "selected":true
+        //      }
+        // $network information from $currency['networks'] field:
+        // Polygon => array(
+        //       info => array(
+        //         canDep => false,
+        //         canInternal => false,
+        //         canWd => false,
+        //         ccy => 'USDT',
+        //         $chain => 'USDT-Polygon-Bridge',
+        //         mainNet => false,
+        //         maxFee => '26.879528',
+        //         minFee => '13.439764',
+        //         minWd => '0.001',
+        //         name => ''
+        //       ),
+        //       id => 'USDT-Polygon-Bridge',
+        //       $network => 'Polygon',
+        //       active => false,
+        //       deposit => false,
+        //       withdraw => false,
+        //       fee => 13.439764,
+        //       precision => null,
+        //       limits => array( withdraw => array( min => 0.001, max => null ) )
+        //     ),
+        //
+        if ($chain === 'USDT-Polygon') {
+            $networkData = $this->safe_value($networksById, 'USDT-Polygon-Bridge');
+        }
         $network = $this->safe_string($networkData, 'network');
         $this->check_address($address);
         return array(
@@ -3730,6 +3784,10 @@ class okx extends Exchange {
         if ($limit !== null) {
             $request['limit'] = (string) $limit; // default 100, max 100
         }
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+        }
         $response = $this->privateGetAccountBills (array_merge($request, $params));
         //
         //     {
@@ -4061,11 +4119,8 @@ class okx extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'add', $params);
     }
 
-    public function fetch_leverage_tiers($symbol = null, $params = array ()) {
+    public function fetch_market_leverage_tiers($symbol, $params = array ()) {
         $this->load_markets();
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchLeverageTiers() requires a $symbol argument');
-        }
         $market = $this->market($symbol);
         $type = $market['spot'] ? 'MARGIN' : strtoupper($market['type']);
         $uly = $this->safe_string($market['info'], 'uly');
@@ -4103,10 +4158,34 @@ class okx extends Exchange {
         //    }
         //
         $data = $this->safe_value($response, 'data');
-        $brackets = array();
-        for ($i = 0; $i < count($data); $i++) {
-            $tier = $data[$i];
-            $brackets[] = array(
+        return $this->parse_market_leverage_tiers($data, $market);
+    }
+
+    public function parse_market_leverage_tiers($info, $market = null) {
+        /**
+            @param $info => Exchange response for 1 $market
+            array(
+                array(
+                    "baseMaxLoan" => "500",
+                    "imr" => "0.1",
+                    "instId" => "ETH-USDT",
+                    "maxLever" => "10",
+                    "maxSz" => "500",
+                    "minSz" => "0",
+                    "mmr" => "0.03",
+                    "optMgnFactor" => "0",
+                    "quoteMaxLoan" => "200000",
+                    "tier" => "1",
+                    "uly" => ""
+                ),
+                ...
+            )
+            @param $market => CCXT $market
+        */
+        $tiers = array();
+        for ($i = 0; $i < count($info); $i++) {
+            $tier = $info[$i];
+            $tiers[] = array(
                 'tier' => $this->safe_integer($tier, 'tier'),
                 'currency' => $market['quote'],
                 'notionalFloor' => $this->safe_number($tier, 'minSz'),
@@ -4116,9 +4195,7 @@ class okx extends Exchange {
                 'info' => $tier,
             );
         }
-        $result = array();
-        $result[$symbol] = $brackets;
-        return $result;
+        return $tiers;
     }
 
     public function set_sandbox_mode($enable) {

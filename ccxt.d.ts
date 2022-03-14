@@ -21,6 +21,7 @@ declare module 'ccxt' {
     export class ArgumentsRequired extends ExchangeError {}
     export class BadRequest extends ExchangeError {}
     export class BadSymbol extends BadRequest {}
+    export class MarginModeAlreadySet extends BadRequest {}
     export class BadResponse extends ExchangeError {}
     export class NullResponse extends BadResponse {}
     export class InsufficientFunds extends ExchangeError {}
@@ -474,6 +475,7 @@ declare module 'ccxt' {
     export class bitstamp1 extends Exchange {}
     export class bittrex extends Exchange {}
     export class bitvavo extends Exchange {}
+    export class bkex extends Exchange {}
     export class bl3p extends Exchange {}
     export class blockchaincom extends Exchange {}
     export class btcalpha extends Exchange {}
@@ -595,6 +597,7 @@ declare module 'ccxt' {
         | 'bitstamp1'
         | 'bittrex'
         | 'bitvavo'
+        | 'bkex'
         | 'bl3p'
         | 'blockchaincom'
         | 'btcalpha'

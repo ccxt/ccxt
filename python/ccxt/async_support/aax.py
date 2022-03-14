@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -38,7 +31,6 @@ class aax(Exchange):
             'rateLimit': 500,
             'version': 'v2',
             'hostname': 'aaxpro.com',  # aax.com
-            'certified': True,
             'pro': True,
             'has': {
                 'CORS': None,
@@ -85,6 +77,8 @@ class aax(Exchange):
                 'fetchLedger': None,
                 'fetchLedgerEntry': None,
                 'fetchLeverage': None,
+                'fetchLeverageTiers': True,
+                'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
                 'fetchMyBuys': None,
@@ -107,15 +101,14 @@ class aax(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
-                'fetchTradingFee': None,
-                'fetchTradingFees': None,
+                'fetchTradingFee': False,
+                'fetchTradingFees': False,
                 'fetchTradingLimits': None,
                 'fetchTransactions': None,
                 'fetchTransfers': None,
                 'fetchWithdrawal': None,
                 'fetchWithdrawals': True,
                 'fetchWithdrawalWhitelist': None,
-                'loadLeverageBrackets': None,
                 'reduceMargin': None,
                 'setLeverage': True,
                 'setMarginMode': False,
@@ -1669,7 +1662,7 @@ class aax(Exchange):
         #
         # sometimes the timestamp is returned in milliseconds
         timestamp = self.safe_value(order, 'createTime')
-        if isinstance(timestamp, basestring):
+        if isinstance(timestamp, str):
             timestamp = self.parse8601(timestamp)
         status = self.parse_order_status(self.safe_string(order, 'orderStatus'))
         type = self.parse_order_type(self.safe_string(order, 'orderType'))
@@ -1694,7 +1687,7 @@ class aax(Exchange):
         if (Precise.string_equals(filled, '0')) and (Precise.string_equals(remaining, '0')):
             remaining = None
         lastTradeTimestamp = self.safe_value(order, 'transactTime')
-        if isinstance(lastTradeTimestamp, basestring):
+        if isinstance(lastTradeTimestamp, str):
             lastTradeTimestamp = self.parse8601(lastTradeTimestamp)
         fee = None
         feeCost = self.safe_number(order, 'commission')
@@ -2142,7 +2135,7 @@ class aax(Exchange):
                 'datetime': datetime,
             })
         sorted = self.sort_by(rates, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
     async def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -2207,6 +2200,92 @@ class aax(Exchange):
             'leverage': leverage,
         }
         return await self.privatePostFuturesPositionLeverage(self.extend(request, params))
+
+    async def fetch_leverage_tiers(self, symbols=None, params={}):
+        await self.load_markets()
+        response = await self.publicGetInstruments(params)
+        #
+        #     {
+        #         "code":1,
+        #         "message":"success",
+        #         "ts":1610159448962,
+        #         "data":[
+        #             {
+        #                 "tickSize":"0.01",
+        #                 "lotSize":"1",
+        #                 "base":"BTC",
+        #                 "quote":"USDT",
+        #                 "minQuantity":"1.0000000000",
+        #                 "maxQuantity":"30000",
+        #                 "minPrice":"0.0100000000",
+        #                 "maxPrice":"999999.0000000000",
+        #                 "status":"readOnly",
+        #                 "symbol":"BTCUSDTFP",
+        #                 "code":"FP",
+        #                 "takerFee":"0.00040",
+        #                 "makerFee":"0.00020",
+        #                 "multiplier":"0.001000000000",
+        #                 "mmRate":"0.00500",
+        #                 "imRate":"0.01000",
+        #                 "type":"futures",
+        #                 "settleType":"Vanilla",
+        #                 "settleCurrency":"USDT"
+        #             },
+        #             ...
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data')
+        return self.parse_leverage_tiers(data, symbols, 'symbol')
+
+    def parse_market_leverage_tiers(self, info, market):
+        '''
+            @param info: Exchange market response
+            {
+                "tickSize":"0.01",
+                "lotSize":"1",
+                "base":"BTC",
+                "quote":"USDT",
+                "minQuantity":"1.0000000000",
+                "maxQuantity":"30000",
+                "minPrice":"0.0100000000",
+                "maxPrice":"999999.0000000000",
+                "status":"readOnly",
+                "symbol":"BTCUSDTFP",
+                "code":"FP",
+                "takerFee":"0.00040",
+                "makerFee":"0.00020",
+                "multiplier":"0.001000000000",
+                "mmRate":"0.00500",
+                "imRate":"0.01000",
+                "type":"futures",
+                "settleType":"Vanilla",
+                "settleCurrency":"USDT"
+            @param market: CCXT Market
+       '''
+        maintenanceMarginRate = self.safe_string(info, 'mmRate')
+        initialMarginRate = self.safe_string(info, 'imRate')
+        maxVol = self.safe_string(info, 'maxQuantity')
+        riskIncrVol = maxVol  # TODO
+        riskIncrMmr = '0.0'  # TODO
+        riskIncrImr = '0.0'  # TODO
+        floor = '0'
+        tiers = []
+        while(Precise.string_lt(floor, maxVol)):
+            cap = Precise.string_add(floor, riskIncrVol)
+            tiers.append({
+                'tier': self.parse_number(Precise.string_div(cap, riskIncrVol)),
+                'currency': market['base'],
+                'notionalFloor': self.parse_number(floor),
+                'notionalCap': self.parse_number(cap),
+                'maintenanceMarginRate': self.parse_number(maintenanceMarginRate),
+                'maxLeverage': self.parse_number(Precise.string_div('1', initialMarginRate)),
+                'info': info,
+            })
+            maintenanceMarginRate = Precise.string_add(maintenanceMarginRate, riskIncrMmr)
+            initialMarginRate = Precise.string_add(initialMarginRate, riskIncrImr)
+            floor = cap
+        return tiers
 
     def nonce(self):
         return self.milliseconds()

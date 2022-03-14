@@ -51,6 +51,8 @@ class cex extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => true,
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -520,12 +522,13 @@ class cex extends Exchange {
             'currencies' => implode('/', $currencies),
         );
         $response = yield $this->publicGetTickersCurrencies (array_merge($request, $params));
-        $tickers = $response['data'];
+        $tickers = $this->safe_value($response, 'data', array());
         $result = array();
         for ($t = 0; $t < count($tickers); $t++) {
             $ticker = $tickers[$t];
-            $symbol = str_replace(':', '/', $ticker['pair']);
-            $market = $this->markets[$symbol];
+            $marketId = $this->safe_string($ticker, 'pair');
+            $market = $this->safe_market($marketId, null, ':');
+            $symbol = $market['symbol'];
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
         return $this->filter_by_array($result, 'symbol', $symbols);
@@ -585,6 +588,41 @@ class cex extends Exchange {
         );
         $response = yield $this->publicGetTradeHistoryPair (array_merge($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
+    }
+
+    public function fetch_trading_fees($params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->privatePostGetMyfee ($params);
+        //
+        //      {
+        //          e => 'get_myfee',
+        //          ok => 'ok',
+        //          $data => {
+        //            'BTC:USD' => array( buy => '0.25', sell => '0.25', buyMaker => '0.15', sellMaker => '0.15' ),
+        //            'ETH:USD' => array( buy => '0.25', sell => '0.25', buyMaker => '0.15', sellMaker => '0.15' ),
+        //            ..
+        //          }
+        //      }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $result = array();
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
+            $market = $this->market($symbol);
+            $fee = $this->safe_value($data, $market['id'], array());
+            $makerString = $this->safe_string($fee, 'buyMaker');
+            $takerString = $this->safe_string($fee, 'buy');
+            $maker = $this->parse_number(Precise::string_div($makerString, '100'));
+            $taker = $this->parse_number(Precise::string_div($takerString, '100'));
+            $result[$symbol] = array(
+                'info' => $fee,
+                'symbol' => $symbol,
+                'maker' => $maker,
+                'taker' => $taker,
+                'percentage' => true,
+            );
+        }
+        return $result;
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

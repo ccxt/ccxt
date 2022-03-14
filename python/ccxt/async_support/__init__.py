@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.74.3'
+__version__ = '1.76.12'
 
 # -----------------------------------------------------------------------------
 
@@ -29,6 +29,7 @@ from ccxt.base.errors import AccountSuspended               # noqa: F401
 from ccxt.base.errors import ArgumentsRequired              # noqa: F401
 from ccxt.base.errors import BadRequest                     # noqa: F401
 from ccxt.base.errors import BadSymbol                      # noqa: F401
+from ccxt.base.errors import MarginModeAlreadySet           # noqa: F401
 from ccxt.base.errors import BadResponse                    # noqa: F401
 from ccxt.base.errors import NullResponse                   # noqa: F401
 from ccxt.base.errors import InsufficientFunds              # noqa: F401
@@ -81,6 +82,7 @@ from ccxt.async_support.bitstamp import bitstamp                          # noqa
 from ccxt.async_support.bitstamp1 import bitstamp1                        # noqa: F401
 from ccxt.async_support.bittrex import bittrex                            # noqa: F401
 from ccxt.async_support.bitvavo import bitvavo                            # noqa: F401
+from ccxt.async_support.bkex import bkex                                  # noqa: F401
 from ccxt.async_support.bl3p import bl3p                                  # noqa: F401
 from ccxt.async_support.blockchaincom import blockchaincom                # noqa: F401
 from ccxt.async_support.btcalpha import btcalpha                          # noqa: F401
@@ -200,6 +202,7 @@ exchanges = [
     'bitstamp1',
     'bittrex',
     'bitvavo',
+    'bkex',
     'bl3p',
     'blockchaincom',
     'btcalpha',

@@ -54,6 +54,8 @@ module.exports = class btcalpha extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': undefined,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': false,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,

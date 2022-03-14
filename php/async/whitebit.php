@@ -57,6 +57,7 @@ class whitebit extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
                 'withdraw' => true,
             ),
@@ -408,12 +409,43 @@ class whitebit extends Exchange {
     }
 
     public function fetch_trading_fees($params = array ()) {
-        $response = yield $this->v2PublicGetFee ($params);
-        $fees = $this->safe_value($response, 'result');
-        return array(
-            'maker' => $this->safe_number($fees, 'makerFee'),
-            'taker' => $this->safe_number($fees, 'takerFee'),
-        );
+        $response = yield $this->v4PublicGetAssets ($params);
+        //
+        //      {
+        //          '1INCH' => array(
+        //              name => '1inch',
+        //              unified_cryptoasset_id => '8104',
+        //              can_withdraw => true,
+        //              can_deposit => true,
+        //              min_withdraw => '33',
+        //              max_withdraw => '0',
+        //              maker_fee => '0.1',
+        //              taker_fee => '0.1',
+        //              min_deposit => '30',
+        //              max_deposit => '0'
+        //            ),
+        //            ...
+        //      }
+        //
+        $result = array();
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
+            $market = $this->market($symbol);
+            $fee = $this->safe_value($response, $market['baseId'], array());
+            $makerFee = $this->safe_string($fee, 'maker_fee');
+            $takerFee = $this->safe_string($fee, 'taker_fee');
+            $makerFee = Precise::string_div($makerFee, '100');
+            $takerFee = Precise::string_div($takerFee, '100');
+            $result[$symbol] = array(
+                'info' => $fee,
+                'symbol' => $market['symbol'],
+                'percentage' => true,
+                'tierBased' => false,
+                'maker' => $this->parse_number($makerFee),
+                'taker' => $this->parse_number($takerFee),
+            );
+        }
+        return $result;
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -876,6 +908,7 @@ class whitebit extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $request['market'] = $market['id'];
         }
         if ($limit !== null) {
@@ -1204,13 +1237,15 @@ class whitebit extends Exchange {
             // For cases where we have a meaningful $status
             // array("response":null,"status":422,"errors":array("orderId":["Finished order id 435453454535 not found on your account"]),"notification":null,"warning":"Finished order id 435453454535 not found on your account","_token":null)
             $status = $this->safe_integer($response, 'status');
+            // array("code":10,"message":"Unauthorized request.")
+            $message = $this->safe_string($response, 'message');
             // For these cases where we have a generic $code variable error key
             // array("code":0,"message":"Validation failed","errors":array("amount":["Amount must be greater than 0"]))
             $code = $this->safe_integer($response, 'code');
             $hasErrorStatus = $status !== null && $status !== '200';
             if ($hasErrorStatus || $code !== null) {
                 $feedback = $this->id . ' ' . $body;
-                $errorInfo = null;
+                $errorInfo = $message;
                 if ($hasErrorStatus) {
                     $errorInfo = $status;
                 } else {

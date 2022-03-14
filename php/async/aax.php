@@ -23,7 +23,6 @@ class aax extends Exchange {
             'rateLimit' => 500,
             'version' => 'v2',
             'hostname' => 'aaxpro.com', // aax.com
-            'certified' => true,
             'pro' => true,
             'has' => array(
                 'CORS' => null,
@@ -70,6 +69,8 @@ class aax extends Exchange {
                 'fetchLedger' => null,
                 'fetchLedgerEntry' => null,
                 'fetchLeverage' => null,
+                'fetchLeverageTiers' => true,
+                'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
                 'fetchMyBuys' => null,
@@ -92,15 +93,14 @@ class aax extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
-                'fetchTradingFee' => null,
-                'fetchTradingFees' => null,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => false,
                 'fetchTradingLimits' => null,
                 'fetchTransactions' => null,
                 'fetchTransfers' => null,
                 'fetchWithdrawal' => null,
                 'fetchWithdrawals' => true,
                 'fetchWithdrawalWhitelist' => null,
-                'loadLeverageBrackets' => null,
                 'reduceMargin' => null,
                 'setLeverage' => true,
                 'setMarginMode' => false,
@@ -2230,7 +2230,7 @@ class aax extends Exchange {
             );
         }
         $sorted = $this->sort_by($rates, 'timestamp');
-        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
     public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -2304,6 +2304,96 @@ class aax extends Exchange {
             'leverage' => $leverage,
         );
         return yield $this->privatePostFuturesPositionLeverage (array_merge($request, $params));
+    }
+
+    public function fetch_leverage_tiers($symbols = null, $params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->publicGetInstruments ($params);
+        //
+        //     {
+        //         "code":1,
+        //         "message":"success",
+        //         "ts":1610159448962,
+        //         "data":array(
+        //             array(
+        //                 "tickSize":"0.01",
+        //                 "lotSize":"1",
+        //                 "base":"BTC",
+        //                 "quote":"USDT",
+        //                 "minQuantity":"1.0000000000",
+        //                 "maxQuantity":"30000",
+        //                 "minPrice":"0.0100000000",
+        //                 "maxPrice":"999999.0000000000",
+        //                 "status":"readOnly",
+        //                 "symbol":"BTCUSDTFP",
+        //                 "code":"FP",
+        //                 "takerFee":"0.00040",
+        //                 "makerFee":"0.00020",
+        //                 "multiplier":"0.001000000000",
+        //                 "mmRate":"0.00500",
+        //                 "imRate":"0.01000",
+        //                 "type":"futures",
+        //                 "settleType":"Vanilla",
+        //                 "settleCurrency":"USDT"
+        //             ),
+        //             ...
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'data');
+        return $this->parse_leverage_tiers($data, $symbols, 'symbol');
+    }
+
+    public function parse_market_leverage_tiers($info, $market) {
+        /**
+            @param $info => Exchange $market response
+            {
+                "tickSize":"0.01",
+                "lotSize":"1",
+                "base":"BTC",
+                "quote":"USDT",
+                "minQuantity":"1.0000000000",
+                "maxQuantity":"30000",
+                "minPrice":"0.0100000000",
+                "maxPrice":"999999.0000000000",
+                "status":"readOnly",
+                "symbol":"BTCUSDTFP",
+                "code":"FP",
+                "takerFee":"0.00040",
+                "makerFee":"0.00020",
+                "multiplier":"0.001000000000",
+                "mmRate":"0.00500",
+                "imRate":"0.01000",
+                "type":"futures",
+                "settleType":"Vanilla",
+                "settleCurrency":"USDT"
+            }
+            @param $market => CCXT Market
+        */
+        $maintenanceMarginRate = $this->safe_string($info, 'mmRate');
+        $initialMarginRate = $this->safe_string($info, 'imRate');
+        $maxVol = $this->safe_string($info, 'maxQuantity');
+        $riskIncrVol = $maxVol; // TODO
+        $riskIncrMmr = '0.0'; // TODO
+        $riskIncrImr = '0.0'; // TODO
+        $floor = '0';
+        $tiers = array();
+        while (Precise::string_lt($floor, $maxVol)) {
+            $cap = Precise::string_add($floor, $riskIncrVol);
+            $tiers[] = array(
+                'tier' => $this->parse_number(Precise::string_div($cap, $riskIncrVol)),
+                'currency' => $market['base'],
+                'notionalFloor' => $this->parse_number($floor),
+                'notionalCap' => $this->parse_number($cap),
+                'maintenanceMarginRate' => $this->parse_number($maintenanceMarginRate),
+                'maxLeverage' => $this->parse_number(Precise::string_div('1', $initialMarginRate)),
+                'info' => $info,
+            );
+            $maintenanceMarginRate = Precise::string_add($maintenanceMarginRate, $riskIncrMmr);
+            $initialMarginRate = Precise::string_add($initialMarginRate, $riskIncrImr);
+            $floor = $cap;
+        }
+        return $tiers;
     }
 
     public function nonce() {

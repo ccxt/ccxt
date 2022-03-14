@@ -62,7 +62,8 @@ module.exports = class kraken extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTradingFees': true,
+                'fetchTradingFee': true,
+                'fetchTradingFees': false,
                 'fetchWithdrawals': true,
                 'setLeverage': false,
                 'setMarginMode': false, // Kraken only supports cross margin
@@ -120,58 +121,6 @@ module.exports = class kraken extends Exchange {
                             [ 5000000, 0.0002 ],
                             [ 10000000, 0.0 ],
                         ],
-                    },
-                },
-                // this is a bad way of hardcoding fees that change on daily basis
-                // hardcoding is now considered obsolete, we will remove all of it eventually
-                'funding': {
-                    'tierBased': false,
-                    'percentage': false,
-                    'withdraw': {
-                        'BTC': 0.001,
-                        'ETH': 0.005,
-                        'XRP': 0.02,
-                        'XLM': 0.00002,
-                        'LTC': 0.02,
-                        'DOGE': 2,
-                        'ZEC': 0.00010,
-                        'ICN': 0.02,
-                        'REP': 0.01,
-                        'ETC': 0.005,
-                        'MLN': 0.003,
-                        'XMR': 0.05,
-                        'DASH': 0.005,
-                        'GNO': 0.01,
-                        'EOS': 0.5,
-                        'BCH': 0.001,
-                        'XTZ': 0.05,
-                        'USD': 5, // if domestic wire
-                        'EUR': 5, // if domestic wire
-                        'CAD': 10, // CAD EFT Withdrawal
-                        'JPY': 300, // if domestic wire
-                    },
-                    'deposit': {
-                        'BTC': 0,
-                        'ETH': 0,
-                        'XRP': 0,
-                        'XLM': 0,
-                        'LTC': 0,
-                        'DOGE': 0,
-                        'ZEC': 0,
-                        'ICN': 0,
-                        'REP': 0,
-                        'ETC': 0,
-                        'MLN': 0,
-                        'XMR': 0,
-                        'DASH': 0,
-                        'GNO': 0,
-                        'EOS': 0,
-                        'BCH': 0,
-                        'XTZ': 0.05,
-                        'USD': 5, // if domestic wire
-                        'EUR': 0, // free deposit if EUR SEPA Deposit
-                        'CAD': 5, // if domestic wire
-                        'JPY': 0, // Domestic Deposit (Free, ¥5,000 deposit minimum)
                     },
                 },
             },
@@ -607,27 +556,59 @@ module.exports = class kraken extends Exchange {
         return result;
     }
 
-    async fetchTradingFees (params = {}) {
+    async fetchTradingFee (symbol, params = {}) {
         await this.loadMarkets ();
-        const response = await this.privatePostTradeVolume (params);
-        const tradedVolume = this.safeNumber (response['result'], 'volume');
-        const tiers = this.fees['trading']['tiers'];
-        let taker = tiers['taker'][1];
-        let maker = tiers['maker'][1];
-        for (let i = 0; i < tiers['taker'].length; i++) {
-            if (tradedVolume >= tiers['taker'][i][0]) {
-                taker = tiers['taker'][i][1];
-            }
-        }
-        for (let i = 0; i < tiers['maker'].length; i++) {
-            if (tradedVolume >= tiers['maker'][i][0]) {
-                maker = tiers['maker'][i][1];
-            }
-        }
+        const market = this.market (symbol);
+        const request = {
+            'pair': market['id'],
+            'fee-info': true,
+        };
+        const response = await this.privatePostTradeVolume (this.extend (request, params));
+        //
+        //     {
+        //        error: [],
+        //        result: {
+        //          currency: 'ZUSD',
+        //          volume: '0.0000',
+        //          fees: {
+        //            XXBTZUSD: {
+        //              fee: '0.2600',
+        //              minfee: '0.1000',
+        //              maxfee: '0.2600',
+        //              nextfee: '0.2400',
+        //              tiervolume: '0.0000',
+        //              nextvolume: '50000.0000'
+        //            }
+        //          },
+        //          fees_maker: {
+        //            XXBTZUSD: {
+        //              fee: '0.1600',
+        //              minfee: '0.0000',
+        //              maxfee: '0.1600',
+        //              nextfee: '0.1400',
+        //              tiervolume: '0.0000',
+        //              nextvolume: '50000.0000'
+        //            }
+        //          }
+        //        }
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        return this.parseTradingFee (result, market);
+    }
+
+    parseTradingFee (response, market) {
+        const makerFees = this.safeValue (response, 'fees_maker', {});
+        const takerFees = this.safeValue (response, 'fees', {});
+        const symbolMakerFee = this.safeValue (makerFees, market['id'], {});
+        const symbolTakerFee = this.safeValue (takerFees, market['id'], {});
         return {
             'info': response,
-            'maker': maker,
-            'taker': taker,
+            'symbol': market['symbol'],
+            'maker': this.safeNumber (symbolMakerFee, 'fee'),
+            'taker': this.safeNumber (symbolTakerFee, 'fee'),
+            'percentage': true,
+            'tierBased': true,
         };
     }
 

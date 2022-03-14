@@ -81,6 +81,7 @@ module.exports = class ftx extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': false,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
@@ -100,6 +101,10 @@ module.exports = class ftx extends Exchange {
                 '3d': '259200',
                 '1w': '604800',
                 '2w': '1209600',
+                // the exchange does not align candles to the start of the month
+                // it can only fetch candles in fixed intervals of multiples of whole days
+                // that works for all timeframes, except the monthly timeframe
+                // because months have varying numbers of days
                 '1M': '2592000',
             },
             'api': {
@@ -338,7 +343,7 @@ module.exports = class ftx extends Exchange {
                     'Invalid parameter': BadRequest, // {"error":"Invalid parameter start_time","success":false}
                     'The requested URL was not found on the server': BadRequest,
                     'No such coin': BadRequest,
-                    'No such subaccount': BadRequest,
+                    'No such subaccount': AuthenticationError,
                     'No such future': BadSymbol,
                     'No such market': BadSymbol,
                     'Do not send more than': RateLimitExceeded,
@@ -595,6 +600,12 @@ module.exports = class ftx extends Exchange {
                 symbol = base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry, '');
             }
             // check if a market is a spot or future market
+            const sizeIncrement = this.safeString (market, 'sizeIncrement');
+            const minProvideSize = this.safeString (market, 'minProvideSize');
+            let minAmountString = sizeIncrement;
+            if (minProvideSize !== undefined) {
+                minAmountString = Precise.stringGt (minProvideSize, sizeIncrement) ? sizeIncrement : minProvideSize;
+            }
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -620,7 +631,7 @@ module.exports = class ftx extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeNumber (market, 'sizeIncrement'),
+                    'amount': this.parseNumber (sizeIncrement),
                     'price': this.safeNumber (market, 'priceIncrement'),
                 },
                 'limits': {
@@ -629,7 +640,7 @@ module.exports = class ftx extends Exchange {
                         'max': this.parseNumber ('20'),
                     },
                     'amount': {
-                        'min': undefined,
+                        'min': this.parseNumber (minAmountString),
                         'max': undefined,
                     },
                     'price': {
@@ -845,22 +856,29 @@ module.exports = class ftx extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const [ market, marketId ] = this.getMarketParams (symbol, 'market_name', params);
+        // max 1501 candles, including the current candle when since is not specified
+        const maxLimit = 5000;
+        const defaultLimit = 1500;
+        limit = (limit === undefined) ? defaultLimit : Math.min (limit, maxLimit);
         const request = {
             'resolution': this.timeframes[timeframe],
             'market_name': marketId,
+            // 'start_time': parseInt (since / 1000),
+            // 'end_time': this.seconds (),
+            'limit': limit,
         };
         const price = this.safeString (params, 'price');
         params = this.omit (params, 'price');
-        // max 1501 candles, including the current candle when since is not specified
-        limit = (limit === undefined) ? 1501 : limit;
-        if (since === undefined) {
-            request['end_time'] = this.seconds ();
-            request['limit'] = limit;
-            request['start_time'] = request['end_time'] - limit * this.parseTimeframe (timeframe);
-        } else {
-            request['start_time'] = parseInt (since / 1000);
-            request['limit'] = limit;
-            request['end_time'] = this.sum (request['start_time'], limit * this.parseTimeframe (timeframe));
+        if (since !== undefined) {
+            const startTime = parseInt (since / 1000);
+            request['start_time'] = startTime;
+            const duration = this.parseTimeframe (timeframe);
+            const endTime = this.sum (startTime, limit * duration);
+            request['end_time'] = Math.min (endTime, this.seconds ());
+            if (duration > 86400) {
+                const wholeDaysInTimeframe = parseInt (duration / 86400);
+                request['limit'] = Math.min (limit * wholeDaysInTimeframe, maxLimit);
+            }
         }
         let method = 'publicGetMarketsMarketNameCandles';
         if (price === 'index') {
@@ -1131,11 +1149,21 @@ module.exports = class ftx extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        return {
-            'info': response,
-            'maker': this.safeNumber (result, 'makerFee'),
-            'taker': this.safeNumber (result, 'takerFee'),
-        };
+        const maker = this.safeNumber (result, 'makerFee');
+        const taker = this.safeNumber (result, 'takerFee');
+        const tradingFees = {};
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            tradingFees[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': maker,
+                'taker': taker,
+                'percentage': true,
+                'tierBased': true,
+            };
+        }
+        return tradingFees;
     }
 
     async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1152,6 +1180,7 @@ module.exports = class ftx extends Exchange {
         const request = {};
         if (symbol !== undefined) {
             const market = this.market (symbol);
+            symbol = market['symbol'];
             request['future'] = market['id'];
         }
         if (since !== undefined) {

@@ -52,6 +52,7 @@ module.exports = class whitebit extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'withdraw': true,
             },
@@ -403,12 +404,43 @@ module.exports = class whitebit extends Exchange {
     }
 
     async fetchTradingFees (params = {}) {
-        const response = await this.v2PublicGetFee (params);
-        const fees = this.safeValue (response, 'result');
-        return {
-            'maker': this.safeNumber (fees, 'makerFee'),
-            'taker': this.safeNumber (fees, 'takerFee'),
-        };
+        const response = await this.v4PublicGetAssets (params);
+        //
+        //      {
+        //          '1INCH': {
+        //              name: '1inch',
+        //              unified_cryptoasset_id: '8104',
+        //              can_withdraw: true,
+        //              can_deposit: true,
+        //              min_withdraw: '33',
+        //              max_withdraw: '0',
+        //              maker_fee: '0.1',
+        //              taker_fee: '0.1',
+        //              min_deposit: '30',
+        //              max_deposit: '0'
+        //            },
+        //            ...
+        //      }
+        //
+        const result = {};
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            const market = this.market (symbol);
+            const fee = this.safeValue (response, market['baseId'], {});
+            let makerFee = this.safeString (fee, 'maker_fee');
+            let takerFee = this.safeString (fee, 'taker_fee');
+            makerFee = Precise.stringDiv (makerFee, '100');
+            takerFee = Precise.stringDiv (takerFee, '100');
+            result[symbol] = {
+                'info': fee,
+                'symbol': market['symbol'],
+                'percentage': true,
+                'tierBased': false,
+                'maker': this.parseNumber (makerFee),
+                'taker': this.parseNumber (takerFee),
+            };
+        }
+        return result;
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -871,6 +903,7 @@ module.exports = class whitebit extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
+            symbol = market['symbol'];
             request['market'] = market['id'];
         }
         if (limit !== undefined) {
@@ -1199,13 +1232,15 @@ module.exports = class whitebit extends Exchange {
             // For cases where we have a meaningful status
             // {"response":null,"status":422,"errors":{"orderId":["Finished order id 435453454535 not found on your account"]},"notification":null,"warning":"Finished order id 435453454535 not found on your account","_token":null}
             const status = this.safeInteger (response, 'status');
+            // {"code":10,"message":"Unauthorized request."}
+            const message = this.safeString (response, 'message');
             // For these cases where we have a generic code variable error key
             // {"code":0,"message":"Validation failed","errors":{"amount":["Amount must be greater than 0"]}}
             const code = this.safeInteger (response, 'code');
             const hasErrorStatus = status !== undefined && status !== '200';
             if (hasErrorStatus || code !== undefined) {
                 const feedback = this.id + ' ' + body;
-                let errorInfo = undefined;
+                let errorInfo = message;
                 if (hasErrorStatus) {
                     errorInfo = status;
                 } else {

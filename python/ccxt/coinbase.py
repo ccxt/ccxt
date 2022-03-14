@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -85,6 +78,8 @@ class coinbase(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': None,
+                'fetchTradingFee': False,
+                'fetchTradingFees': False,
                 'fetchTransactions': None,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
@@ -770,7 +765,7 @@ class coinbase(Exchange):
         bid = None
         last = None
         timestamp = self.milliseconds()
-        if not isinstance(ticker, basestring):
+        if not isinstance(ticker, str):
             spot, buy, sell = ticker
             spotData = self.safe_value(spot, 'data', {})
             buyData = self.safe_value(buy, 'data', {})

@@ -10,6 +10,7 @@ use \ccxt\ExchangeError;
 use \ccxt\AuthenticationError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
+use \ccxt\MarginModeAlreadySet;
 use \ccxt\InvalidOrder;
 use \ccxt\NotSupported;
 use \ccxt\DDoSProtection;
@@ -70,6 +71,7 @@ class binance extends Exchange {
                 'fetchLedger' => null,
                 'fetchLeverage' => null,
                 'fetchLeverageTiers' => true,
+                'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
                 'fetchMyBuys' => null,
@@ -100,7 +102,6 @@ class binance extends Exchange {
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
                 'fetchWithdrawalWhitelist' => false,
-                'loadLeverageBrackets' => true,
                 'reduceMargin' => true,
                 'setLeverage' => true,
                 'setMarginMode' => true,
@@ -790,6 +791,12 @@ class binance extends Exchange {
                 'defaultType' => 'spot', // 'spot', 'future', 'margin', 'delivery'
                 'hasAlreadyAuthenticatedSuccessfully' => false,
                 'warnOnFetchOpenOrdersWithoutSymbol' => true,
+                // not an error
+                // https://github.com/ccxt/ccxt/issues/11268
+                // https://github.com/ccxt/ccxt/pull/11624
+                // POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
+                // binanceusdm
+                'throwMarginModeAlreadySet' => false,
                 'fetchPositions' => 'positionRisk', // or 'account'
                 'recvWindow' => 5 * 1000, // 5 sec, binance default
                 'timeDifference' => 0, // the difference between system clock and Binance clock
@@ -1925,7 +1932,7 @@ class binance extends Exchange {
             'symbol' => $market['id'],
         );
         if ($limit !== null) {
-            $request['limit'] = $limit; // default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
+            $request['limit'] = $limit; // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
         }
         $method = 'publicGetDepth';
         if ($market['linear']) {
@@ -2406,12 +2413,6 @@ class binance extends Exchange {
         }
         $method = $this->safe_string($this->options, 'fetchTradesMethod', $defaultMethod);
         if ($method === 'publicGetAggTrades') {
-            if ($since !== null) {
-                $request['startTime'] = $since;
-                // https://github.com/ccxt/ccxt/issues/6400
-                // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
-                $request['endTime'] = $this->sum($since, 3600000);
-            }
             if ($type === 'future') {
                 $method = 'fapiPublicGetAggTrades';
             } else if ($type === 'delivery') {
@@ -2423,6 +2424,12 @@ class binance extends Exchange {
             } else if ($type === 'delivery') {
                 $method = 'dapiPublicGetHistoricalTrades';
             }
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+            // https://github.com/ccxt/ccxt/issues/6400
+            // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
+            $request['endTime'] = $this->sum($since, 3600000);
         }
         if ($limit !== null) {
             $request['limit'] = $limit; // default = 500, maximum = 1000
@@ -4245,6 +4252,7 @@ class binance extends Exchange {
         }
         if ($symbol !== null) {
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $request['symbol'] = $market['id'];
             if ($market['linear']) {
                 $method = 'fapiPublicGetFundingRate';
@@ -4452,9 +4460,7 @@ class binance extends Exchange {
         $entryPrice = $this->parse_number($entryPriceString);
         $notionalString = $this->safe_string_2($position, 'notional', 'notionalValue');
         $notionalStringAbs = Precise::string_abs($notionalString);
-        $notionalFloat = floatval($notionalString);
-        $notionalFloatAbs = floatval($notionalStringAbs);
-        $notional = $this->parse_number(Precise::string_abs($notionalString));
+        $notional = $this->parse_number($notionalStringAbs);
         $contractsString = $this->safe_string($position, 'positionAmt');
         $contractsStringAbs = Precise::string_abs($contractsString);
         if ($contractsString === null) {
@@ -4469,7 +4475,7 @@ class binance extends Exchange {
         $maintenanceMarginPercentageString = null;
         for ($i = 0; $i < count($leverageBracket); $i++) {
             $bracket = $leverageBracket[$i];
-            if ($notionalFloatAbs < $bracket[0]) {
+            if (Precise::string_lt($notionalStringAbs, $bracket[0])) {
                 break;
             }
             $maintenanceMarginPercentageString = $bracket[1];
@@ -4502,10 +4508,10 @@ class binance extends Exchange {
         $liquidationPrice = null;
         $contractSize = $this->safe_value($market, 'contractSize');
         $contractSizeString = $this->number_to_string($contractSize);
-        if ($notionalFloat === 0.0) {
+        if (Precise::string_equals($notionalString, '0')) {
             $entryPrice = null;
         } else {
-            $side = ($notionalFloat < 0) ? 'short' : 'long';
+            $side = Precise::string_lt($notionalString, '0') ? 'short' : 'long';
             $marginRatio = $this->parse_number(Precise::string_div(Precise::string_add(Precise::string_div($maintenanceMarginString, $collateralString), '5e-5'), '1', 4));
             $percentage = $this->parse_number(Precise::string_mul(Precise::string_div($unrealizedPnlString, $initialMarginString, 4), '100'));
             if ($usdm) {
@@ -4629,17 +4635,15 @@ class binance extends Exchange {
         //
         $marketId = $this->safe_string($position, 'symbol');
         $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol');
         $leverageBrackets = $this->safe_value($this->options, 'leverageBrackets', array());
         $leverageBracket = $this->safe_value($leverageBrackets, $symbol, array());
         $notionalString = $this->safe_string_2($position, 'notional', 'notionalValue');
         $notionalStringAbs = Precise::string_abs($notionalString);
-        $notionalFloatAbs = floatval($notionalStringAbs);
-        $notionalFloat = floatval($notionalString);
         $maintenanceMarginPercentageString = null;
         for ($i = 0; $i < count($leverageBracket); $i++) {
             $bracket = $leverageBracket[$i];
-            if ($notionalFloatAbs < $bracket[0]) {
+            if (Precise::string_lt($notionalStringAbs, $bracket[0])) {
                 break;
             }
             $maintenanceMarginPercentageString = $bracket[1];
@@ -4656,9 +4660,9 @@ class binance extends Exchange {
         $collateralString = null;
         $marginType = $this->safe_string($position, 'marginType');
         $side = null;
-        if ($notionalFloat > 0) {
+        if (Precise::string_gt($notionalString, '0')) {
             $side = 'long';
-        } else if ($notionalFloat < 0) {
+        } else if (Precise::string_lt($notionalString, '0')) {
             $side = 'short';
         }
         $entryPriceString = $this->safe_string($position, 'entryPrice');
@@ -4669,6 +4673,7 @@ class binance extends Exchange {
         $linear = (is_array($position) && array_key_exists('notional', $position));
         if ($marginType === 'cross') {
             // calculate $collateral
+            $precision = $this->safe_value($market, 'precision');
             if ($linear) {
                 // walletBalance = ($liquidationPrice * (±1 . mmp) ± $entryPrice) * $contracts
                 $onePlusMaintenanceMarginPercentageString = null;
@@ -4681,7 +4686,8 @@ class binance extends Exchange {
                 }
                 $inner = Precise::string_mul($liquidationPriceString, $onePlusMaintenanceMarginPercentageString);
                 $leftSide = Precise::string_add($inner, $entryPriceSignString);
-                $collateralString = Precise::string_div(Precise::string_mul($leftSide, $contractsAbs), '1', $market['precision']['quote']);
+                $quotePrecision = $this->safe_integer($precision, 'quote');
+                $collateralString = Precise::string_div(Precise::string_mul($leftSide, $contractsAbs), '1', $quotePrecision);
             } else {
                 // walletBalance = ($contracts * $contractSize) * (±1/entryPrice - (±1 - mmp) / $liquidationPrice)
                 $onePlusMaintenanceMarginPercentageString = null;
@@ -4694,13 +4700,13 @@ class binance extends Exchange {
                 }
                 $leftSide = Precise::string_mul($contractsAbs, $contractSizeString);
                 $rightSide = Precise::string_sub(Precise::string_div('1', $entryPriceSignString), Precise::string_div($onePlusMaintenanceMarginPercentageString, $liquidationPriceString));
-                $collateralString = Precise::string_div(Precise::string_mul($leftSide, $rightSide), '1', $market['precision']['base']);
+                $basePrecision = $this->safe_integer($precision, 'base');
+                $collateralString = Precise::string_div(Precise::string_mul($leftSide, $rightSide), '1', $basePrecision);
             }
         } else {
             $collateralString = $this->safe_string($position, 'isolatedMargin');
         }
         $collateralString = ($collateralString === null) ? '0' : $collateralString;
-        $collateralFloat = floatval($collateralString);
         $collateral = $this->parse_number($collateralString);
         $markPrice = $this->parse_number($this->omit_zero($this->safe_string($position, 'markPrice')));
         $timestamp = $this->safe_integer($position, 'updateTime');
@@ -4719,7 +4725,7 @@ class binance extends Exchange {
         $initialMargin = $this->parse_number($initialMarginString);
         $marginRatio = null;
         $percentage = null;
-        if ($collateralFloat !== 0.0) {
+        if (!Precise::string_equals($collateralString, '0')) {
             $marginRatio = $this->parse_number(Precise::string_div(Precise::string_add(Precise::string_div($maintenanceMarginString, $collateralString), '5e-5'), '1', 4));
             $percentage = $this->parse_number(Precise::string_mul(Precise::string_div($unrealizedPnlString, $initialMarginString, 4), '100'));
         }
@@ -4778,8 +4784,7 @@ class binance extends Exchange {
                 $result = array();
                 for ($j = 0; $j < count($brackets); $j++) {
                     $bracket = $brackets[$j];
-                    // we use floats here internally on purpose
-                    $floorValue = $this->safe_float_2($bracket, 'notionalFloor', 'qtyFloor');
+                    $floorValue = $this->safe_string_2($bracket, 'notionalFloor', 'qtyFloor');
                     $maintenanceMarginPercentage = $this->safe_string($bracket, 'maintMarginRatio');
                     $result[] = array( $floorValue, $maintenanceMarginPercentage );
                 }
@@ -4789,7 +4794,7 @@ class binance extends Exchange {
         return $this->options['leverageBrackets'];
     }
 
-    public function fetch_leverage_tiers($symbol = null, $params = array ()) {
+    public function fetch_leverage_tiers($symbols = null, $params = array ()) {
         yield $this->load_markets();
         list($type, $query) = $this->handle_market_type_and_params('fetchLeverageTiers', null, $params);
         $method = null;
@@ -4819,38 +4824,46 @@ class binance extends Exchange {
         //        }
         //    )
         //
-        $leverageBrackets = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $entry = $response[$i];
-            $marketId = $this->safe_string($entry, 'symbol');
-            $safeSymbol = $this->safe_symbol($marketId);
-            $market = array( 'base' => null );
-            if (is_array($this->markets) && array_key_exists($safeSymbol, $this->markets)) {
-                $market = $this->market($safeSymbol);
+        return $this->parse_leverage_tiers($response, $symbols, 'symbol');
+    }
+
+    public function parse_market_leverage_tiers($info, $market) {
+        /**
+            @param $info => Exchange response for 1 $market
+            {
+                "symbol" => "SUSHIUSDT",
+                "brackets" => array(
+                    array(
+                        "bracket" => 1,
+                        "initialLeverage" => 50,
+                        "notionalCap" => 50000,
+                        "notionalFloor" => 0,
+                        "maintMarginRatio" => 0.01,
+                        "cum" => 0.0
+                    ),
+                    ...
+                )
             }
-            $brackets = $this->safe_value($entry, 'brackets');
-            $result = array();
-            for ($j = 0; $j < count($brackets); $j++) {
-                $bracket = $brackets[$j];
-                $result[] = array(
-                    'tier' => $this->safe_number($bracket, 'bracket'),
-                    'currency' => $market['quote'],
-                    'notionalFloor' => $this->safe_float_2($bracket, 'notionalFloor', 'qtyFloor'),
-                    'notionalCap' => $this->safe_number($bracket, 'notionalCap'),
-                    'maintenanceMarginRate' => $this->safe_number($bracket, 'maintMarginRatio'),
-                    'maxLeverage' => $this->safe_number($bracket, 'initialLeverage'),
-                    'info' => $bracket,
-                );
-            }
-            $leverageBrackets[$safeSymbol] = $result;
+            @param $market => CCXT $market
+        */
+        $marketId = $this->safe_string($info, 'symbol');
+        $safeSymbol = $this->safe_symbol($marketId);
+        $market = $this->safe_market($safeSymbol, $market);
+        $brackets = $this->safe_value($info, 'brackets');
+        $tiers = array();
+        for ($j = 0; $j < count($brackets); $j++) {
+            $bracket = $brackets[$j];
+            $tiers[] = array(
+                'tier' => $this->safe_number($bracket, 'bracket'),
+                'currency' => $market['quote'],
+                'notionalFloor' => $this->safe_number_2($bracket, 'notionalFloor', 'qtyFloor'),
+                'notionalCap' => $this->safe_number($bracket, 'notionalCap'),
+                'maintenanceMarginRate' => $this->safe_number($bracket, 'maintMarginRatio'),
+                'maxLeverage' => $this->safe_number($bracket, 'initialLeverage'),
+                'info' => $bracket,
+            );
         }
-        if ($symbol !== null) {
-            $result = array();
-            $result[$symbol] = $this->safe_value($leverageBrackets, $symbol);
-            return $result;
-        } else {
-            return $leverageBrackets;
-        }
+        return $tiers;
     }
 
     public function fetch_positions($symbols = null, $params = array ()) {
@@ -5069,7 +5082,25 @@ class binance extends Exchange {
             'symbol' => $market['id'],
             'marginType' => $marginType,
         );
-        return yield $this->$method (array_merge($request, $params));
+        $response = null;
+        try {
+            $response = yield $this->$method (array_merge($request, $params));
+        } catch (Exception $e) {
+            // not an error
+            // https://github.com/ccxt/ccxt/issues/11268
+            // https://github.com/ccxt/ccxt/pull/11624
+            // POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
+            // binanceusdm
+            if ($e instanceof MarginModeAlreadySet) {
+                $throwMarginModeAlreadySet = $this->safe_value($this->options, 'throwMarginModeAlreadySet', false);
+                if ($throwMarginModeAlreadySet) {
+                    throw $e;
+                } else {
+                    $response = array( 'code' => -4046, 'msg' => 'No need to change margin type.' );
+                }
+            }
+        }
+        return $response;
     }
 
     public function set_position_mode($hedged, $symbol = null, $params = array ()) {
@@ -5182,7 +5213,7 @@ class binance extends Exchange {
                 throw new InvalidOrder($this->id . ' order amount should be evenly divisible by lot size ' . $body);
             }
             if (mb_strpos($body, 'PRICE_FILTER') !== false) {
-                throw new InvalidOrder($this->id . ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use $this->price_to_precision(symbol, amount) ' . $body);
+                throw new InvalidOrder($this->id . ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use $this->price_to_precision(symbol, amount) ' . $body);
             }
         }
         if ($response === null) {
@@ -5225,15 +5256,15 @@ class binance extends Exchange {
             if (($error === '-2015') && $this->options['hasAlreadyAuthenticatedSuccessfully']) {
                 throw new DDoSProtection($this->id . ' temporary banned => ' . $body);
             }
+            $feedback = $this->id . ' ' . $body;
             if ($message === 'No need to change margin type.') {
                 // not an $error
                 // https://github.com/ccxt/ccxt/issues/11268
                 // https://github.com/ccxt/ccxt/pull/11624
                 // POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
                 // binanceusdm array("code":-4046,"msg":"No need to change margin type.")
-                return true;
+                throw new MarginModeAlreadySet($feedback);
             }
-            $feedback = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $feedback);
             throw new ExchangeError($feedback);
         }

@@ -961,8 +961,8 @@ module.exports = class bitmex extends Exchange {
         if (!market['active']) {
             throw new BadSymbol (this.id + ' fetchTicker() symbol ' + symbol + ' is not tradable');
         }
-        const tickers = await this.fetchTickers ([ symbol ], params);
-        const ticker = this.safeValue (tickers, symbol);
+        const tickers = await this.fetchTickers ([ market['symbol'] ], params);
+        const ticker = this.safeValue (tickers, market['symbol']);
         if (ticker === undefined) {
             throw new BadSymbol (this.id + ' fetchTicker() symbol ' + symbol + ' not found');
         }
@@ -980,7 +980,15 @@ module.exports = class bitmex extends Exchange {
                 result[symbol] = ticker;
             }
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        const uniformSymbols = [];
+        if (symbols !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const market = this.market (symbol);
+                uniformSymbols.push (market['symbol']);
+            }
+        }
+        return this.filterByArray (result, 'symbol', uniformSymbols);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -1778,7 +1786,8 @@ module.exports = class bitmex extends Exchange {
             }
         }
         const url = this.urls['api'][api] + query;
-        if (this.apiKey && this.secret) {
+        if (api === 'private') {
+            this.checkRequiredCredentials ();
             let auth = method + query;
             let expires = this.safeInteger (this.options, 'api-expires');
             headers = {

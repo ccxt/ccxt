@@ -68,6 +68,8 @@ class ripio(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': True,
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setMarginMode': False,
@@ -533,6 +535,56 @@ class ripio(Exchange):
         #     ]
         #
         return self.parse_trades(response, market, since, limit)
+
+    async def fetch_trading_fees(self, params={}):
+        await self.load_markets()
+        response = await self.publicGetPair(params)
+        #
+        #     {
+        #         next: null,
+        #         previous: null,
+        #         results: [
+        #             {
+        #                 base: 'BTC',
+        #                 base_name: 'Bitcoin',
+        #                 quote: 'USDC',
+        #                 quote_name: 'USD Coin',
+        #                 symbol: 'BTC_USDC',
+        #                 fees: [
+        #                     {
+        #                         traded_volume: '0.0',
+        #                         maker_fee: '0.0',
+        #                         taker_fee: '0.0',
+        #                         cancellation_fee: '0.0'
+        #                     }
+        #                 ],
+        #                 country: 'ZZ',
+        #                 enabled: True,
+        #                 priority: '10',
+        #                 min_amount: '0.0000100000',
+        #                 price_tick: '0.000001',
+        #                 min_value: '10',
+        #                 limit_price_threshold: '25.00'
+        #             },
+        #         ]
+        #     }
+        #
+        results = self.safe_value(response, 'results', [])
+        result = {}
+        for i in range(0, len(results)):
+            pair = results[i]
+            marketId = self.safe_string(pair, 'symbol')
+            symbol = self.safe_symbol(marketId, None, '_')
+            fees = self.safe_value(pair, 'fees', [])
+            fee = self.safe_value(fees, 0, {})
+            result[symbol] = {
+                'info': pair,
+                'symbol': symbol,
+                'maker': self.safe_number(fee, 'maker_fee'),
+                'taker': self.safe_number(fee, 'taker_fee'),
+                'tierBased': False,
+            }
+        return result
 
     def parse_balance(self, response):
         result = {'info': response}

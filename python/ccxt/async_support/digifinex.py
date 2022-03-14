@@ -57,6 +57,8 @@ class digifinex(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': False,
                 'fetchWithdrawals': True,
                 'withdraw': True,
             },
@@ -142,7 +144,7 @@ class digifinex(Exchange):
             },
             'fees': {
                 'trading': {
-                    'tierBased': False,
+                    'tierBased': True,
                     'percentage': True,
                     'maker': self.parse_number('0.002'),
                     'taker': self.parse_number('0.002'),

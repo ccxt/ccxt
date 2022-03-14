@@ -86,6 +86,7 @@ class ftx extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => false,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
@@ -105,6 +106,10 @@ class ftx extends Exchange {
                 '3d' => '259200',
                 '1w' => '604800',
                 '2w' => '1209600',
+                // the exchange does not align candles to the start of the month
+                // it can only fetch candles in fixed intervals of multiples of whole days
+                // that works for all timeframes, except the monthly timeframe
+                // because months have varying numbers of days
                 '1M' => '2592000',
             ),
             'api' => array(
@@ -343,7 +348,7 @@ class ftx extends Exchange {
                     'Invalid parameter' => '\\ccxt\\BadRequest', // array("error":"Invalid parameter start_time","success":false)
                     'The requested URL was not found on the server' => '\\ccxt\\BadRequest',
                     'No such coin' => '\\ccxt\\BadRequest',
-                    'No such subaccount' => '\\ccxt\\BadRequest',
+                    'No such subaccount' => '\\ccxt\\AuthenticationError',
                     'No such future' => '\\ccxt\\BadSymbol',
                     'No such market' => '\\ccxt\\BadSymbol',
                     'Do not send more than' => '\\ccxt\\RateLimitExceeded',
@@ -483,8 +488,8 @@ class ftx extends Exchange {
         //         enabled =>  true,
         //         postOnly =>  false,
         //         priceIncrement => "1.0",
-        //         sizeIncrement => "0.0001",
-        //         minProvideSize => "0.001",
+        //         $sizeIncrement => "0.0001",
+        //         $minProvideSize => "0.001",
         //         last => "60397.0",
         //         bid => "60387.0",
         //         ask => "60388.0",
@@ -521,7 +526,7 @@ class ftx extends Exchange {
         //                enabled => true,
         //                postOnly => false,
         //                priceIncrement => "0.0001",
-        //                sizeIncrement => "1.0",
+        //                $sizeIncrement => "1.0",
         //                last => "2.5556",
         //                bid => "2.5555",
         //                ask => "2.5563",
@@ -600,6 +605,12 @@ class ftx extends Exchange {
                 $symbol = $base . '/' . $quote . ':' . $settle . '-' . $this->yymmdd($expiry, '');
             }
             // check if a $market is a $spot or $future $market
+            $sizeIncrement = $this->safe_string($market, 'sizeIncrement');
+            $minProvideSize = $this->safe_string($market, 'minProvideSize');
+            $minAmountString = $sizeIncrement;
+            if ($minProvideSize !== null) {
+                $minAmountString = Precise::string_gt($minProvideSize, $sizeIncrement) ? $sizeIncrement : $minProvideSize;
+            }
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -625,7 +636,7 @@ class ftx extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_number($market, 'sizeIncrement'),
+                    'amount' => $this->parse_number($sizeIncrement),
                     'price' => $this->safe_number($market, 'priceIncrement'),
                 ),
                 'limits' => array(
@@ -634,7 +645,7 @@ class ftx extends Exchange {
                         'max' => $this->parse_number('20'),
                     ),
                     'amount' => array(
-                        'min' => null,
+                        'min' => $this->parse_number($minAmountString),
                         'max' => null,
                     ),
                     'price' => array(
@@ -850,22 +861,29 @@ class ftx extends Exchange {
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
         list($market, $marketId) = $this->get_market_params($symbol, 'market_name', $params);
+        // max 1501 candles, including the current candle when $since is not specified
+        $maxLimit = 5000;
+        $defaultLimit = 1500;
+        $limit = ($limit === null) ? $defaultLimit : min ($limit, $maxLimit);
         $request = array(
             'resolution' => $this->timeframes[$timeframe],
             'market_name' => $marketId,
+            // 'start_time' => intval($since / 1000),
+            // 'end_time' => $this->seconds(),
+            'limit' => $limit,
         );
         $price = $this->safe_string($params, 'price');
         $params = $this->omit($params, 'price');
-        // max 1501 candles, including the current candle when $since is not specified
-        $limit = ($limit === null) ? 1501 : $limit;
-        if ($since === null) {
-            $request['end_time'] = $this->seconds();
-            $request['limit'] = $limit;
-            $request['start_time'] = $request['end_time'] - $limit * $this->parse_timeframe($timeframe);
-        } else {
-            $request['start_time'] = intval($since / 1000);
-            $request['limit'] = $limit;
-            $request['end_time'] = $this->sum($request['start_time'], $limit * $this->parse_timeframe($timeframe));
+        if ($since !== null) {
+            $startTime = intval($since / 1000);
+            $request['start_time'] = $startTime;
+            $duration = $this->parse_timeframe($timeframe);
+            $endTime = $this->sum($startTime, $limit * $duration);
+            $request['end_time'] = min ($endTime, $this->seconds());
+            if ($duration > 86400) {
+                $wholeDaysInTimeframe = intval($duration / 86400);
+                $request['limit'] = min ($limit * $wholeDaysInTimeframe, $maxLimit);
+            }
         }
         $method = 'publicGetMarketsMarketNameCandles';
         if ($price === 'index') {
@@ -1136,11 +1154,21 @@ class ftx extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        return array(
-            'info' => $response,
-            'maker' => $this->safe_number($result, 'makerFee'),
-            'taker' => $this->safe_number($result, 'takerFee'),
-        );
+        $maker = $this->safe_number($result, 'makerFee');
+        $taker = $this->safe_number($result, 'takerFee');
+        $tradingFees = array();
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
+            $tradingFees[$symbol] = array(
+                'info' => $response,
+                'symbol' => $symbol,
+                'maker' => $maker,
+                'taker' => $taker,
+                'percentage' => true,
+                'tierBased' => true,
+            );
+        }
+        return $tradingFees;
     }
 
     public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -1157,6 +1185,7 @@ class ftx extends Exchange {
         $request = array();
         if ($symbol !== null) {
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $request['future'] = $market['id'];
         }
         if ($since !== null) {

@@ -75,6 +75,8 @@ class idex(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': True,
                 'fetchTransactions': None,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
@@ -510,6 +512,43 @@ class idex(Exchange):
             'cost': costString,
             'fee': fee,
         }, market)
+
+    def fetch_trading_fees(self, params={}):
+        self.check_required_credentials()
+        self.load_markets()
+        nonce = self.uuidv1()
+        request = {
+            'nonce': nonce,
+        }
+        response = None
+        response = self.privateGetUser(self.extend(request, params))
+        #
+        #     {
+        #         depositEnabled: True,
+        #         orderEnabled: True,
+        #         cancelEnabled: True,
+        #         withdrawEnabled: True,
+        #         totalPortfolioValueUsd: '0.00',
+        #         makerFeeRate: '0.0000',
+        #         takerFeeRate: '0.0025',
+        #         takerIdexFeeRate: '0.0005',
+        #         takerLiquidityProviderFeeRate: '0.0020'
+        #     }
+        #
+        maker = self.safe_number(response, 'makerFeeRate')
+        taker = self.safe_number(response, 'takerFeeRate')
+        result = {}
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            result[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': maker,
+                'taker': taker,
+                'percentage': True,
+                'tierBased': False,
+            }
+        return result
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

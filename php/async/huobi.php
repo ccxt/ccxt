@@ -75,6 +75,8 @@ class huobi extends Exchange {
                 'fetchLedger' => true,
                 'fetchLedgerEntry' => null,
                 'fetchLeverage' => false,
+                'fetchLeverageTiers' => true,
+                'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
                 'fetchMyBuys' => null,
@@ -106,7 +108,6 @@ class huobi extends Exchange {
                 'fetchWithdrawal' => null,
                 'fetchWithdrawals' => true,
                 'fetchWithdrawalWhitelist' => null,
-                'loadLeverageBrackets' => null,
                 'reduceMargin' => null,
                 'setLeverage' => true,
                 'setMarginMode' => false,
@@ -324,6 +325,7 @@ class huobi extends Exchange {
                             'v1/common/timestamp' => 1,
                             'v1/common/exchange' => 1, // order limits
                             // Market Data
+                            'market/history/candles' => 1,
                             'market/history/kline' => 1,
                             'market/detail/merged' => 1,
                             'market/tickers' => 1,
@@ -842,6 +844,7 @@ class huobi extends Exchange {
                 ),
                 'accountsByType' => array(
                     'spot' => 'pro',
+                    'funding' => 'pro',
                     'future' => 'futures',
                 ),
                 'typesByAccount' => array(
@@ -1666,6 +1669,19 @@ class huobi extends Exchange {
                 $method = 'contractPublicGetSwapExMarketDepth';
                 $fieldName = 'contract_code';
             }
+        } else {
+            if ($limit !== null) {
+                // Valid depths are 5, 10, 20 or empty https://huobiapi.github.io/docs/spot/v1/en/#get-$market-depth
+                if (($limit !== 5) && ($limit !== 10) && ($limit !== 20) && ($limit !== 150)) {
+                    throw new BadRequest($this->id . ' fetchOrderBook() $limit argument must be null, 5, 10, 20, or 150, default is 150');
+                }
+                // only set the depth if it is not 150
+                // 150 is the implicit default on the exchange side for step0 and no orderbook aggregation
+                // it is not accepted by the exchange if you set it explicitly
+                if ($limit !== 150) {
+                    $request['depth'] = $limit;
+                }
+            }
         }
         $request[$fieldName] = $market['id'];
         $response = yield $this->$method (array_merge($request, $params));
@@ -2065,7 +2081,7 @@ class huobi extends Exchange {
             }
         }
         $result = $this->sort_by($result, 'timestamp');
-        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
+        return $this->filter_by_symbol_since_limit($result, $market['symbol'], $since, $limit);
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
@@ -2091,20 +2107,29 @@ class huobi extends Exchange {
         );
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = 1000, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
             'period' => $this->timeframes[$timeframe],
             // 'symbol' => $market['id'], // spot, future
             // 'contract_code' => $market['id'], // swap
-            // 'side' => $limit, // max 2000
+            // 'size' => 1000, // max 1000 for spot, 2000 for contracts
+            // 'from' => intval($since / 1000), spot only
+            // 'to' => $this->seconds(), spot only
         );
         $fieldName = 'symbol';
         $price = $this->safe_string($params, 'price');
         $params = $this->omit($params, 'price');
-        $method = 'spotPublicGetMarketHistoryKline';
-        if ($market['future']) {
+        $method = 'spotPublicGetMarketHistoryCandles';
+        if ($market['spot']) {
+            if ($since !== null) {
+                $request['from'] = intval($since / 1000);
+            }
+            if ($limit !== null) {
+                $request['size'] = $limit; // max 2000
+            }
+        } else if ($market['future']) {
             if ($market['inverse']) {
                 if ($price === 'mark') {
                     $method = 'contractPublicGetIndexMarketHistoryMarkPriceKline';
@@ -2151,10 +2176,24 @@ class huobi extends Exchange {
             }
             $fieldName = 'contract_code';
         }
-        $request[$fieldName] = $market['id'];
-        if ($limit !== null) {
-            $request['size'] = $limit; // max 2000
+        if ($market['contract']) {
+            if ($limit === null) {
+                $limit = 2000;
+            }
+            if ($price === null) {
+                $duration = $this->parse_timeframe($timeframe);
+                if ($since === null) {
+                    $now = $this->seconds();
+                    $request['from'] = $now - $duration * ($limit - 1);
+                    $request['to'] = $now;
+                } else {
+                    $start = intval($since / 1000);
+                    $request['from'] = $start;
+                    $request['to'] = $this->sum($start, $duration * ($limit - 1));
+                }
+            }
         }
+        $request[$fieldName] = $market['id'];
         $response = yield $this->$method (array_merge($request, $params));
         //
         //     {
@@ -4457,7 +4496,7 @@ class huobi extends Exchange {
             );
         }
         $sorted = $this->sort_by($rates, 'timestamp');
-        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
     public function parse_funding_rate($fundingRate, $market = null) {
@@ -5409,5 +5448,120 @@ class huobi extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_ledger($data, $currency, $since, $limit);
+    }
+
+    public function fetch_leverage_tiers($symbols = null, $params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->contractPublicGetLinearSwapApiV1SwapAdjustfactor ($params);
+        //
+        //    {
+        //        "status" => "ok",
+        //        "data" => array(
+        //            {
+        //                "symbol" => "MANA",
+        //                "contract_code" => "MANA-USDT",
+        //                "margin_mode" => "isolated",
+        //                "trade_partition" => "USDT",
+        //                "list" => array(
+        //                    array(
+        //                        "lever_rate" => 75,
+        //                        "ladders" => array(
+        //                            array(
+        //                                "ladder" => 0,
+        //                                "min_size" => 0,
+        //                                "max_size" => 999,
+        //                                "adjust_factor" => 0.7
+        //                            ),
+        //                            ...
+        //                        )
+        //                    }
+        //                    ...
+        //                )
+        //            ),
+        //            ...
+        //        )
+        //    }
+        //
+        $data = $this->safe_value($response, 'data');
+        return $this->parse_leverage_tiers($data, $symbols, 'contract_code');
+    }
+
+    public function fetch_market_leverage_tiers($symbol, $params = array ()) {
+        yield $this->load_markets();
+        $request = array();
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            if (!$market['contract']) {
+                throw new BadRequest($this->id . '.fetchLeverageTiers $symbol supports contract markets only');
+            }
+            $request['contract_code'] = $market['id'];
+        }
+        $response = yield $this->contractPublicGetLinearSwapApiV1SwapAdjustfactor (array_merge($request, $params));
+        //
+        //    {
+        //        "status" => "ok",
+        //        "data" => array(
+        //            {
+        //                "symbol" => "MANA",
+        //                "contract_code" => "MANA-USDT",
+        //                "margin_mode" => "isolated",
+        //                "trade_partition" => "USDT",
+        //                "list" => array(
+        //                    array(
+        //                        "lever_rate" => 75,
+        //                        "ladders" => array(
+        //                            array(
+        //                                "ladder" => 0,
+        //                                "min_size" => 0,
+        //                                "max_size" => 999,
+        //                                "adjust_factor" => 0.7
+        //                            ),
+        //                            ...
+        //                        )
+        //                    }
+        //                    ...
+        //                )
+        //            ),
+        //            ...
+        //        )
+        //    }
+        //
+        $data = $this->safe_value($response, 'data');
+        $tiers = $this->parse_leverage_tiers($data, array( $symbol ), 'contract_code');
+        return $this->safe_value($tiers, $symbol);
+    }
+
+    public function parse_leverage_tiers($response, $symbols, $marketIdKey) {
+        $result = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $item = $response[$i];
+            $list = $this->safe_value($item, 'list', array());
+            $tiers = array();
+            $currency = $this->safe_string($item, 'trade_partition');
+            $id = $this->safe_string($item, $marketIdKey);
+            $symbol = $this->safe_symbol($id);
+            if ($this->in_array($symbols, $symbol)) {
+                for ($j = 0; $j < count($list); $j++) {
+                    $obj = $list[$j];
+                    $leverage = $this->safe_string($obj, 'lever_rate');
+                    $ladders = $this->safe_value($obj, 'ladders', array());
+                    for ($k = 0; $k < count($ladders); $k++) {
+                        $bracket = $ladders[$k];
+                        $adjustFactor = $this->safe_string($bracket, 'adjust_factor');
+                        $tiers[] = array(
+                            'tier' => $this->safe_integer($bracket, 'ladder'),
+                            'currency' => $this->safe_currency_code($currency),
+                            'notionalFloor' => $this->safe_number($bracket, 'min_size'),
+                            'notionalCap' => $this->safe_number($bracket, 'max_size'),
+                            'maintenanceMarginRate' => $this->parse_number(Precise::string_div($adjustFactor, $leverage)),
+                            'maxLeverage' => $this->parse_number($leverage),
+                            'info' => $bracket,
+                        );
+                    }
+                }
+                $result[$symbol] = $tiers;
+            }
+        }
+        return $result;
     }
 }

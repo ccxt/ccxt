@@ -245,7 +245,7 @@ The `ccxt.browser.js` is generated with Babel from source.
 These files containing derived exchange classes are transpiled from JS into Python:
 
 - `js/[_a-z].js` → `python/ccxt/async/[_a-z].py`
-- `python/ccxt/async[_a-z].py` → `python/ccxt/[_a-z].py` (Python 3 asyncio → Python 2 sync transpilation stage)
+- `python/ccxt/async[_a-z].py` → `python/ccxt/[_a-z].py` (Python 3 asyncio → Python sync transpilation stage)
 - `python/ccxt/test/test_async.py` → `python/ccxt/test/test_sync.py` (the sync test is generated from the async test)
 
 These Python base classes and files are not transpiled:
@@ -496,14 +496,18 @@ if (object['key'] || other_value) { /* will not work in Python or PHP! */ }
 
 Therefore we have a family of `safe*` functions:
 
-- `safeInteger (object, key)`, `safeInteger2 (object, key1, key2)`
-- `safeFloat (object, key)`, `safeFloat2 (object, key1, key2)`
-- `safeString (object, key)`, `safeString2 (object, key1, key2)`
-- `safeValue (object, key)`, `safeValue2 (object, key1, key2)`
+- `safeInteger (object, key, default)`, `safeInteger2 (object, key1, key2, default)` –for parsing timestamps in milliseconds
+- `safeNumber (object, key, default)`, `safeNumber2 (object, key1, key2, default)` – for parsing amounts, prices, costs
+- `safeString (object, key, default)`, `safeString2 (object, key1, key2, default)` – for parsing ids, types, statuses
+- `safeStringLower (object, key, default)`, `safeStringLower2 (object, key1, key2, default)` – for parsing and turning to lowercase
+- `safeStringUpper (object, key, default)`, `safeStringUpper2 (object, key1, key2, default)` – for parsing and turning to lowercase
+- `safeValue (object, key, default)`, `safeValue2 (object, key1, key2, default)` – for parsing objects (dictionaries) and arrays (lists)
+- `safeTimestamp (object, key, default)`, `safeTimestamp2 (object, key1, key2, default)` – for parsing UNIX timestamps in seconds
+
 
 The `safeValue` function is used for objects inside objects, arrays inside objects and boolean `true/false` values.
 
-The above safe-functions will check for the existence of the key in the object and will properly return `undefined/None/null` values for JS/Python/PHP. Each function also accepts the default value to be returned instead of `undefined/None/null` in the last argument.
+The above safe-functions will check for the existence of the `key` (or `key1`, `key2`) in the object and will properly return `undefined/None/null` values for JS/Python/PHP. Each function also accepts the `default` value to be returned instead of `undefined/None/null` in the last argument.
 
 Alternatively, you could check for the key existence first...
 
@@ -878,6 +882,47 @@ Incoming pull requests are automatically validated by the CI service. You can wa
 
 ### How To Build & Run Tests On Your Local Machine
 
+#### Adding Exchange Credentials
+
+CCXT has tests for both the public API and the private authenticated API. By default, CCXT's built-in tests will only test the public APIs, because the code repository does not include the [API keys](https://github.com/ccxt/ccxt/wiki/Manual#authentication) that are required for the private API tests. Also, the included private tests will not alter the balance of the account in any way, all tests are non-intrusive. In order to enable private API testing, one must configure the API keys. That can be done either in `keys.local.json` or with the `env` variables.
+
+##### Configuring API keys and options in `keys.local.json`
+
+Exchange API keys can be added to the `keys.local.json` in the root folder inside the repository. If it does not exist on your side – create it first. That file is in `.gitignore` and in `.npmignore`. You can add exchange credentials and various options for different exchanges to the `keys.local.json` file.
+
+An example of `keys.local.json` file:
+
+```JavaScript
+{
+    "ftx": {
+        "apiKey": "XXX",
+        "secret": "YYY"
+    },
+    "binance": {
+        "apiKey": "XXX",
+        "secret": "YYY",
+        "options": {
+            "some-option": "some value"
+        }
+    },
+    // ...
+}
+```
+
+##### Configuring API keys as environment variables
+
+You can also define API keys as `env` variables:
+
+- https://www.google.com/search?q=set+env+variable+linux
+- https://www.google.com/search?q=set+env+variable+mac
+- https://www.google.com/search?q=set+env+variable+windows
+
+Consult the docs for your OS and shell on how to set an environment variable. Most of the time a `set` command, or a `export` command will work. The `env` command might help check the already-set environment variables.
+
+Examples of `env` variables: `BINANCE_APIKEY`, `BINANCE_SECRET`, `KRAKEN_APIKEY`, `KRAKEN_SECRET`, etc.
+
+#### Building
+
 Before building for the first time, install Node dependencies (skip this step if you're running our Docker image):
 
 ```
@@ -889,6 +934,8 @@ The command below will build everything and generate PHP/Python versions from so
 ```
 npm run build
 ```
+
+#### Testing
 
 The following command will test the built generated files (for all exchanges, symbols and languages):
 
@@ -940,7 +987,7 @@ node run-tests --js                  # test master ccxt.js, all exchanges
 
 # other examples require the 'npm run build' to run
 
-node run-tests --python              # test Python 2 version, all exchanges
+node run-tests --python              # test Python sync version, all exchanges
 node run-tests --php bitfinex        # test Bitfinex with PHP
 node run-tests --python-async kraken # test Kraken with Python async test, requires 'npm run build'
 ```

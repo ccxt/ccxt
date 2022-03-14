@@ -14,7 +14,7 @@ module.exports = class poloniex extends Exchange {
             'id': 'poloniex',
             'name': 'Poloniex',
             'countries': [ 'US' ],
-            'rateLimit': 1000, // up to 6 calls per second
+            'rateLimit': 166.667, // 6 calls per second,  1000ms / 6 = 166.667ms between requests
             'certified': false,
             'pro': true,
             'has': {
@@ -47,6 +47,7 @@ module.exports = class poloniex extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
@@ -73,49 +74,49 @@ module.exports = class poloniex extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'return24hVolume',
-                        'returnChartData',
-                        'returnCurrencies',
-                        'returnLoanOrders',
-                        'returnOrderBook',
-                        'returnTicker',
-                        'returnTradeHistory',
-                    ],
+                    'get': {
+                        'return24hVolume': 1,
+                        'returnChartData': 1,
+                        'returnCurrencies': 1,
+                        'returnLoanOrders': 1,
+                        'returnOrderBook': 1,
+                        'returnTicker': 1,
+                        'returnTradeHistory': 1,
+                    },
                 },
                 'private': {
-                    'post': [
-                        'buy',
-                        'cancelLoanOffer',
-                        'cancelOrder',
-                        'cancelAllOrders',
-                        'closeMarginPosition',
-                        'createLoanOffer',
-                        'generateNewAddress',
-                        'getMarginPosition',
-                        'marginBuy',
-                        'marginSell',
-                        'moveOrder',
-                        'returnActiveLoans',
-                        'returnAvailableAccountBalances',
-                        'returnBalances',
-                        'returnCompleteBalances',
-                        'returnDepositAddresses',
-                        'returnDepositsWithdrawals',
-                        'returnFeeInfo',
-                        'returnLendingHistory',
-                        'returnMarginAccountSummary',
-                        'returnOpenLoanOffers',
-                        'returnOpenOrders',
-                        'returnOrderTrades',
-                        'returnOrderStatus',
-                        'returnTradableBalances',
-                        'returnTradeHistory',
-                        'sell',
-                        'toggleAutoRenew',
-                        'transferBalance',
-                        'withdraw',
-                    ],
+                    'post': {
+                        'buy': 1,
+                        'cancelLoanOffer': 1,
+                        'cancelOrder': 1,
+                        'cancelAllOrders': 1,
+                        'closeMarginPosition': 1,
+                        'createLoanOffer': 1,
+                        'generateNewAddress': 1,
+                        'getMarginPosition': 1,
+                        'marginBuy': 1,
+                        'marginSell': 1,
+                        'moveOrder': 1,
+                        'returnActiveLoans': 1,
+                        'returnAvailableAccountBalances': 1,
+                        'returnBalances': 1,
+                        'returnCompleteBalances': 1,
+                        'returnDepositAddresses': 1,
+                        'returnDepositsWithdrawals': 1,
+                        'returnFeeInfo': 1,
+                        'returnLendingHistory': 1,
+                        'returnMarginAccountSummary': 1,
+                        'returnOpenLoanOffers': 1,
+                        'returnOpenOrders': 1,
+                        'returnOrderTrades': 1,
+                        'returnOrderStatus': 1,
+                        'returnTradableBalances': 1,
+                        'returnTradeHistory': 1,
+                        'sell': 1,
+                        'toggleAutoRenew': 1,
+                        'transferBalance': 1,
+                        'withdraw': 1,
+                    },
                 },
             },
             'fees': {
@@ -395,7 +396,7 @@ module.exports = class poloniex extends Exchange {
 
     async fetchTradingFees (params = {}) {
         await this.loadMarkets ();
-        const fees = await this.privatePostReturnFeeInfo (params);
+        const response = await this.privatePostReturnFeeInfo (params);
         //
         //     {
         //         makerFee: '0.00100000',
@@ -406,13 +407,19 @@ module.exports = class poloniex extends Exchange {
         //         nextTier: 500000,
         //     }
         //
-        return {
-            'info': fees,
-            'maker': this.safeNumber (fees, 'makerFee'),
-            'taker': this.safeNumber (fees, 'takerFee'),
-            'withdraw': {},
-            'deposit': {},
-        };
+        const result = {};
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            result[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': this.safeNumber (response, 'makerFee'),
+                'taker': this.safeNumber (response, 'takerFee'),
+                'percentage': true,
+                'tierBased': true,
+            };
+        }
+        return result;
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -614,6 +621,19 @@ module.exports = class poloniex extends Exchange {
 
     parseTrade (trade, market = undefined) {
         //
+        // fetchTrades
+        //
+        //      {
+        //          globalTradeID: "667563407",
+        //          tradeID: "1984256",
+        //          date: "2022-03-01 20:06:06",
+        //          type: "buy",
+        //          rate: "0.13361871",
+        //          amount: "28.40841257",
+        //          total: "3.79589544",
+        //          orderNumber: "159992152911"
+        //      }
+        //
         // fetchMyTrades
         //
         //     {
@@ -652,34 +672,25 @@ module.exports = class poloniex extends Exchange {
         let fee = undefined;
         const priceString = this.safeString (trade, 'rate');
         const amountString = this.safeString (trade, 'amount');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        let cost = undefined;
-        let costString = this.safeString (trade, 'total');
-        if (costString === undefined) {
-            costString = Precise.stringMul (priceString, amountString);
-            cost = this.parseNumber (costString);
-        } else {
-            cost = this.parseNumber (costString);
-        }
+        const costString = this.safeString (trade, 'total');
         const feeDisplay = this.safeString (trade, 'feeDisplay');
         if (feeDisplay !== undefined) {
             const parts = feeDisplay.split (' ');
-            const feeCost = this.safeNumber (parts, 0);
-            if (feeCost !== undefined) {
+            const feeCostString = this.safeString (parts, 0);
+            if (feeCostString !== undefined) {
                 const feeCurrencyId = this.safeString (parts, 1);
                 const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
-                let feeRate = this.safeString (parts, 2);
-                if (feeRate !== undefined) {
-                    feeRate = feeRate.replace ('(', '');
-                    const feeRateParts = feeRate.split ('%');
-                    feeRate = this.safeString (feeRateParts, 0);
-                    feeRate = parseFloat (feeRate) / 100;
+                let feeRateString = this.safeString (parts, 2);
+                if (feeRateString !== undefined) {
+                    feeRateString = feeRateString.replace ('(', '');
+                    const feeRateParts = feeRateString.split ('%');
+                    feeRateString = this.safeString (feeRateParts, 0);
+                    feeRateString = Precise.stringDiv (feeRateString, '100');
                 }
                 fee = {
-                    'cost': feeCost,
+                    'cost': feeCostString,
                     'currency': feeCurrencyCode,
-                    'rate': feeRate,
+                    'rate': feeRateString,
                 };
             }
         } else {
@@ -689,9 +700,9 @@ module.exports = class poloniex extends Exchange {
                 const feeBase = (side === 'buy') ? amountString : costString;
                 const feeRateString = Precise.stringDiv (feeCostString, feeBase);
                 fee = {
-                    'cost': this.parseNumber (feeCostString),
+                    'cost': feeCostString,
                     'currency': feeCurrencyCode,
-                    'rate': this.parseNumber (feeRateString),
+                    'rate': feeRateString,
                 };
             }
         }
@@ -700,7 +711,7 @@ module.exports = class poloniex extends Exchange {
         if (takerAdjustment !== undefined) {
             takerOrMaker = 'taker';
         }
-        return {
+        return this.safeTrade ({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -710,11 +721,11 @@ module.exports = class poloniex extends Exchange {
             'type': 'limit',
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {

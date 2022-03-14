@@ -46,6 +46,8 @@ class digifinex extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => false,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
             ),
@@ -131,7 +133,7 @@ class digifinex extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
-                    'tierBased' => false,
+                    'tierBased' => true,
                     'percentage' => true,
                     'maker' => $this->parse_number('0.002'),
                     'taker' => $this->parse_number('0.002'),

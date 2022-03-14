@@ -49,6 +49,8 @@ module.exports = class coincheck extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'setLeverage': false,
@@ -471,6 +473,46 @@ module.exports = class coincheck extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
+    }
+
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetAccounts (params);
+        //
+        //     {
+        //         success: true,
+        //         id: '7487995',
+        //         email: 'some@email.com',
+        //         identity_status: 'identity_pending',
+        //         bitcoin_address: null,
+        //         lending_leverage: '4',
+        //         taker_fee: '0.0',
+        //         maker_fee: '0.0',
+        //         exchange_fees: {
+        //           btc_jpy: { taker_fee: '0.0', maker_fee: '0.0' },
+        //           etc_jpy: { taker_fee: '0.0', maker_fee: '0.0' },
+        //           fct_jpy: { taker_fee: '0.0', maker_fee: '0.0' },
+        //           mona_jpy: { taker_fee: '0.0', maker_fee: '0.0' },
+        //           plt_jpy: { taker_fee: '0.0', maker_fee: '0.0' }
+        //         }
+        //     }
+        //
+        const fees = this.safeValue (response, 'exchange_fees', {});
+        const result = {};
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            const market = this.market (symbol);
+            const fee = this.safeValue (fees, market['id'], {});
+            result[symbol] = {
+                'info': fee,
+                'symbol': symbol,
+                'maker': this.safeNumber (fee, 'maker_fee'),
+                'taker': this.safeNumber (fee, 'taker_fee'),
+                'percentage': true,
+                'tierBased': false,
+            };
+        }
+        return result;
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

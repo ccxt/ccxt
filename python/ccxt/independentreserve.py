@@ -53,6 +53,8 @@ class independentreserve(Exchange):
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': True,
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setMarginMode': False,
@@ -506,6 +508,43 @@ class independentreserve(Exchange):
         }
         response = self.publicGetGetRecentTrades(self.extend(request, params))
         return self.parse_trades(response['Trades'], market, since, limit)
+
+    def fetch_trading_fees(self, params={}):
+        self.load_markets()
+        response = self.privatePostGetBrokerageFees(params)
+        #
+        #     [
+        #         {
+        #             "CurrencyCode": "Xbt",
+        #             "Fee": 0.005
+        #         }
+        #         ...
+        #     ]
+        #
+        fees = {}
+        for i in range(0, len(response)):
+            fee = response[i]
+            currencyId = self.safe_string(fee, 'CurrencyCode')
+            code = self.safe_currency_code(currencyId)
+            tradingFee = self.safe_number(fee, 'Fee')
+            fees[code] = {
+                'info': fee,
+                'fee': tradingFee,
+            }
+        result = {}
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            market = self.market(symbol)
+            fee = self.safe_value(fees, market['base'], {})
+            result[symbol] = {
+                'info': self.safe_value(fee, 'info'),
+                'symbol': symbol,
+                'maker': self.safe_number(fee, 'fee'),
+                'taker': self.safe_number(fee, 'fee'),
+                'percentage': True,
+                'tierBased': True,
+            }
+        return result
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

@@ -107,6 +107,7 @@ module.exports = class Exchange {
                 'fetchLedger': undefined,
                 'fetchLedgerEntry': undefined,
                 'fetchLeverageTiers': undefined,
+                'fetchMarketLeverageTiers': undefined,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': undefined,
                 'fetchMyTrades': undefined,
@@ -134,7 +135,6 @@ module.exports = class Exchange {
                 'fetchTransfers': undefined,
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': undefined,
-                'loadLeverageBrackets': undefined,
                 'loadMarkets': true,
                 'reduceMargin': undefined,
                 'setLeverage': undefined,
@@ -270,6 +270,8 @@ module.exports = class Exchange {
 
         // do not delete this line, it is needed for users to be able to define their own fetchImplementation
         this.fetchImplementation = defaultFetch
+        this.validateServerSsl = true
+        this.validateClientSsl = false
 
         this.timeout       = 10000 // milliseconds
         this.verbose       = false
@@ -332,6 +334,10 @@ module.exports = class Exchange {
 
         const agentOptions = {
             'keepAlive': true,
+        }
+
+        if (!this.validateServerSsl) {
+            agentOptions['rejectUnauthorized'] = false;
         }
 
         if (!this.httpAgent && defaultFetch.http && isNode) {
@@ -1061,6 +1067,13 @@ module.exports = class Exchange {
 
     implodeHostname (url) {
         return this.implodeParams (url, { 'hostname': this.hostname })
+    }
+
+    resolvePath (path, params) {
+        return [
+            this.implodeParams (path, params),
+            this.omit (params, this.extractParams (path))
+        ];
     }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
@@ -2066,6 +2079,13 @@ module.exports = class Exchange {
             }
             entry['fee'] = fee;
         }
+        // timeInForceHandling
+        let timeInForce = this.safeString (order, 'timeInForce');
+        if (this.safeValue (order, 'postOnly', false)) {
+            timeInForce = 'PO';
+        } else if (this.safeString (order, 'type') === 'market') {
+            timeInForce = 'IOC';
+        }
         return this.extend (order, {
             'lastTradeTimestamp': lastTradeTimeTimestamp,
             'price': this.parseNumber (price),
@@ -2074,6 +2094,7 @@ module.exports = class Exchange {
             'average': this.parseNumber (average),
             'filled': this.parseNumber (filled),
             'remaining': this.parseNumber (remaining),
+            'timeInForce': timeInForce,
             'trades': trades,
         });
     }
@@ -2167,5 +2188,38 @@ module.exports = class Exchange {
         const after = this.milliseconds ();
         this.options['timeDifference'] = after - serverTime;
         return this.options['timeDifference'];
+    }
+
+    parseLeverageTiers (response, symbols, marketIdKey) {
+        const tiers = {};
+        for (let i = 0; i < response.length; i++) {
+            const item = response[i];
+            const id = this.safeString (item, marketIdKey);
+            const market = this.safeMarket (id);
+            const symbol = market['symbol'];
+            let symbolsLength = 0;
+            if (symbols !== undefined) {
+                symbolsLength = symbols.length;
+            }
+            const contract = this.safeValue (market, 'contract', false);
+            if (contract && (symbolsLength === 0 || symbols.includes (symbol))) {
+                tiers[symbol] = this.parseMarketLeverageTiers (item, market);
+            }
+        }
+        return tiers;
+    }
+
+    async fetchMarketLeverageTiers (symbol, params = {}) {
+        if (this.has['fetchLeverageTiers']) {
+            const market = await this.market (symbol);
+            if (!market['contract']) {
+                throw new BadSymbol (this.id + ' fetchLeverageTiers() supports contract markets only');
+            }
+            const tiers = await this.fetchLeverageTiers ([ symbol ]);
+            return this.safeValue (tiers, symbol);
+        } else {
+            throw new NotSupported (this.id + 'fetchMarketLeverageTiers() is not supported yet');
+        }
+
     }
 }

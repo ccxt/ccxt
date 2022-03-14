@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -103,6 +96,7 @@ class ftx(Exchange):
                 'fetchTickers': True,
                 'fetchTime': False,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
@@ -122,6 +116,10 @@ class ftx(Exchange):
                 '3d': '259200',
                 '1w': '604800',
                 '2w': '1209600',
+                # the exchange does not align candles to the start of the month
+                # it can only fetch candles in fixed intervals of multiples of whole days
+                # that works for all timeframes, except the monthly timeframe
+                # because months have varying numbers of days
                 '1M': '2592000',
             },
             'api': {
@@ -360,7 +358,7 @@ class ftx(Exchange):
                     'Invalid parameter': BadRequest,  # {"error":"Invalid parameter start_time","success":false}
                     'The requested URL was not found on the server': BadRequest,
                     'No such coin': BadRequest,
-                    'No such subaccount': BadRequest,
+                    'No such subaccount': AuthenticationError,
                     'No such future': BadSymbol,
                     'No such market': BadSymbol,
                     'Do not send more than': RateLimitExceeded,
@@ -610,6 +608,11 @@ class ftx(Exchange):
                     base = '-'.join(parsedId)
                 symbol = base + '/' + quote + ':' + settle + '-' + self.yymmdd(expiry, '')
             # check if a market is a spot or future market
+            sizeIncrement = self.safe_string(market, 'sizeIncrement')
+            minProvideSize = self.safe_string(market, 'minProvideSize')
+            minAmountString = sizeIncrement
+            if minProvideSize is not None:
+                minAmountString = sizeIncrement if Precise.string_gt(minProvideSize, sizeIncrement) else minProvideSize
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -635,7 +638,7 @@ class ftx(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_number(market, 'sizeIncrement'),
+                    'amount': self.parse_number(sizeIncrement),
                     'price': self.safe_number(market, 'priceIncrement'),
                 },
                 'limits': {
@@ -644,7 +647,7 @@ class ftx(Exchange):
                         'max': self.parse_number('20'),
                     },
                     'amount': {
-                        'min': None,
+                        'min': self.parse_number(minAmountString),
                         'max': None,
                     },
                     'price': {
@@ -847,22 +850,28 @@ class ftx(Exchange):
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market, marketId = self.get_market_params(symbol, 'market_name', params)
+        # max 1501 candles, including the current candle when since is not specified
+        maxLimit = 5000
+        defaultLimit = 1500
+        limit = defaultLimit if (limit is None) else min(limit, maxLimit)
         request = {
             'resolution': self.timeframes[timeframe],
             'market_name': marketId,
+            # 'start_time': int(since / 1000),
+            # 'end_time': self.seconds(),
+            'limit': limit,
         }
         price = self.safe_string(params, 'price')
         params = self.omit(params, 'price')
-        # max 1501 candles, including the current candle when since is not specified
-        limit = 1501 if (limit is None) else limit
-        if since is None:
-            request['end_time'] = self.seconds()
-            request['limit'] = limit
-            request['start_time'] = request['end_time'] - limit * self.parse_timeframe(timeframe)
-        else:
-            request['start_time'] = int(since / 1000)
-            request['limit'] = limit
-            request['end_time'] = self.sum(request['start_time'], limit * self.parse_timeframe(timeframe))
+        if since is not None:
+            startTime = int(since / 1000)
+            request['start_time'] = startTime
+            duration = self.parse_timeframe(timeframe)
+            endTime = self.sum(startTime, limit * duration)
+            request['end_time'] = min(endTime, self.seconds())
+            if duration > 86400:
+                wholeDaysInTimeframe = int(duration / 86400)
+                request['limit'] = min(limit * wholeDaysInTimeframe, maxLimit)
         method = 'publicGetMarketsMarketNameCandles'
         if price == 'index':
             if symbol in self.markets:
@@ -1122,11 +1131,20 @@ class ftx(Exchange):
         #     }
         #
         result = self.safe_value(response, 'result', {})
-        return {
-            'info': response,
-            'maker': self.safe_number(result, 'makerFee'),
-            'taker': self.safe_number(result, 'takerFee'),
-        }
+        maker = self.safe_number(result, 'makerFee')
+        taker = self.safe_number(result, 'takerFee')
+        tradingFees = {}
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            tradingFees[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': maker,
+                'taker': taker,
+                'percentage': True,
+                'tierBased': True,
+            }
+        return tradingFees
 
     async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
         #
@@ -1142,6 +1160,7 @@ class ftx(Exchange):
         request = {}
         if symbol is not None:
             market = self.market(symbol)
+            symbol = market['symbol']
             request['future'] = market['id']
         if since is not None:
             request['start_time'] = int(since / 1000)
@@ -2064,7 +2083,7 @@ class ftx(Exchange):
         txid = self.safe_string(transaction, 'txid')
         tag = None
         address = self.safe_value(transaction, 'address')
-        if not isinstance(address, basestring):
+        if not isinstance(address, str):
             tag = self.safe_string(address, 'tag')
             address = self.safe_string(address, 'address')
         if address is None:
