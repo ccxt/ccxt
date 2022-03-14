@@ -1,7 +1,7 @@
 'use strict';
 
 //  ---------------------------------------------------------------------------
-
+ 
 const Exchange = require ('./base/Exchange');
 const { BadSymbol, ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, BadRequest } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
@@ -137,43 +137,36 @@ module.exports = class interactivebrokers extends Exchange {
                 },
                 'private': {
                     'get': {
-                        'fyi/unreadnumber': 1,
-                        'fyi/settings': 1,
-                        'fyi/disclaimer/{typecode}': 1,
-                        'fyi/deliveryoptions': 1,
-                        'fyi/notifications': 1,
-                        'fyi/notifications/more': 1,
-                        'ccp/status': 1,
-                        'ccp/account': 1,
-                        'ccp/positions': 1,
-                        'ccp/orders': 1,
-                        'ccp/trades': 1,
-                        // The below endpoint returns a list of accounts the user has trading access to,
-                        //   their respective aliases and the currently selected account.
-                        //   Note 1: this endpoint must be called before modifying an order or querying open orders.
-                        //   Note 2: 'iserver' endpoints doesn't seem to work on free-trial accounts.
-                        'iserver/accounts': 1, // +
+                        // ISERVER
                         'iserver/account/trades': 1, // -
-                        'iserver/account/:accountId/alerts': 1,
-                        'iserver/account/alert/:id': 1,
+                        'iserver/account/{accountId}/alerts': 1,
+                        'iserver/account/alert/{id}': 1,
                         'iserver/account/mta': 1,
                         'iserver/account/orders': 1, // -
                         'iserver/account/order/status/{orderId}': 1, // -
-                        'iserver/marketdata/snapshot': 1,
-                        'iserver/marketdata/{conid}/unsubscribe': 1,
+                        'iserver/account/pnl/partitioned': 1, // unrealized pln (?)
+                        //     The below endpoint returns a list of accounts the user has trading access to,
+                        //     their respective aliases and the currently selected account.
+                        //     Note 1: this endpoint must be called before modifying an order or querying open orders.
+                        //     Note 2: 'iserver' endpoints doesn't seem to work on free-trial accounts.
+                        'iserver/accounts': 1, // +
+                        'iserver/marketdata/snapshot': 1, // needs conid !!!!
+                        'iserver/marketdata/{conid}/unsubscribe': 1, // needs conid !!!!
                         'iserver/marketdata/unsubscribeall': 1,
-                        'iserver/marketdata/history': 1,
-                        'iserver/contract/{conid}/info': 1,
-                        'iserver/secdef/strikes': 1,
-                        'iserver/secdef/info': 1,
-                        'iserver/contract/{conid}/algos': 1,
-                        'iserver/contract/{conid}/info-and-rules': 1,
-                        'iserver/scanner/params': 1,
-                        'iserver/account/pnl/partitioned': 1,
-                        'trsrv/secdef/schedule': 1, // trading schedule up to a month for the requested contract
+                        'iserver/marketdata/history': 1, // needs conid !!!!
+                        'iserver/contract/{conid}/info': 1, // needs conid !!!!
+                        'iserver/secdef/strikes': 1, // needs conid !!!!
+                        'iserver/secdef/info': 1, // needs conid !!!!
+                        'iserver/contract/{conid}/algos': 1, // needs conid !!!!
+                        'iserver/contract/{conid}/info-and-rules': 1, // needs conid !!!!
+                        'iserver/scanner/params': 1, // scannable params (sample: pastebin(dot)com/bQh3nr35)
+                        'trsrv/secdef/schedule': 1, // trading schedule up to a month for the requested contract (sample: pastebin(dot)com/BTQW7Pxc)
                         'trsrv/futures': 1, // a list of non-expired future contracts (conid) for given symbol(s)
                         'trsrv/stocks': 1, // an object contains all stock contracts (conid) for given symbol(s)
-                        // In non-tiered account structures, the below endpoint returns a list of accounts for which the user can view position and account information. This endpoint must be called prior to calling other /portfolio endpoints for those accounts.
+                        // PORTFOLIO
+                        //      In non-tiered account structures, the below endpoint returns a list of accounts for which
+                        //      the user can view position and account information. This endpoint must be called prior to
+                        //      calling other /portfolio endpoints for those accounts.
                         'portfolio/accounts': 1,
                         'portfolio/subaccounts': 1,
                         'portfolio/{accountId}/meta': 1,
@@ -183,24 +176,31 @@ module.exports = class interactivebrokers extends Exchange {
                         'portfolio/{accountId}/summary': 1,
                         'portfolio/{accountId}/ledger': 1,
                         'portfolio/positions/{conid}': 1,
+                        // CCP (Beta)
+                        'ccp/status': 1,
+                        'ccp/account': 1,
+                        'ccp/positions': 1,
+                        'ccp/orders': 1,
+                        'ccp/trades': 1,
+                        // FYI
+                        'fyi/unreadnumber': 1,
+                        'fyi/settings': 1,
+                        'fyi/disclaimer/{typecode}': 1,
+                        'fyi/deliveryoptions': 1,
+                        'fyi/notifications': 1,
+                        'fyi/notifications/more': 1,
+                        // others
                         'ibcust/entity/info': 1,
-                        '/portal/sso/validate': 1, // extends active session
+                        'portal/sso/validate': 1, // extends active session
                         'sso/Dispatcher': 1, // uncodumented: validates the login
                     },
                     'post': {
-                        'ws': 1,
-                        'tickle': 1, // documented: validates the login
-                        'logout': 1,
-                        'ccp/auth/init': 1,
-                        'fyi/settings/{typecode}': 1,
-                        'fyi/deliveryoptions/device': 1,
-                        'ccp/auth/response': 1,
-                        'ccp/order': 1,
+                        // ISERVER
                         'iserver/auth/status': 1,
                         'iserver/reauthenticate': 1,
                         'iserver/account': 1,
                         'iserver/account/{accountId}/alert': 1,
-                        'iserver/account/:accountId/alert/activate': 1,
+                        'iserver/account/{accountId}/alert/activate': 1,
                         'iserver/account/{accountId}/order': 1,
                         'iserver/account/{accountId}/orders': 1,
                         'iserver/account/orders/{faGroup}': 1,
@@ -210,12 +210,24 @@ module.exports = class interactivebrokers extends Exchange {
                         'iserver/account/{accountId}/order/{orderId}': 1,
                         'iserver/secdef/search': 1,
                         'iserver/scanner/run': 1,
-                        'trsrv/secdef': 1,
+                        // portfolio
                         'portfolio/allocation': 1,
                         'portfolio/{accountId}/positions/invalidate': 1,
+                        // CCP (Beta)
+                        'ccp/auth/init': 1,
+                        'ccp/auth/response': 1,
+                        'ccp/order': 1,
+                        // FYI
+                        'fyi/settings/{typecode}': 1,
+                        'fyi/deliveryoptions/device': 1,
+                        // others
                         'pa/performance': 1,
                         'pa/summary': 1,
                         'pa/transactions': 1,
+                        'ws': 1,
+                        'tickle': 1, // validates the login
+                        'logout': 1,
+                        'trsrv/secdef': 1,
                     },
                     'put': {
                         'fyi/disclaimer/{typecode}': 1,
@@ -243,6 +255,7 @@ module.exports = class interactivebrokers extends Exchange {
             'precisionMode': TICK_SIZE,
             // exchange-specific options
             'options': {
+                'fetchAccountsMethod': 'privateGetIserverAccounts', // privateGetIserverAccounts, privateGetPortfolioAccounts
             },
             'exceptions': {
                 'broad': {
@@ -289,7 +302,12 @@ module.exports = class interactivebrokers extends Exchange {
 
     async fetchAccounts (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetIserverAccounts (params);
+        let method = this.safeString (this.options, 'fetchAccountsMethod');
+        method = this.safeString (params, 'method', method);
+        params = this.omit (params, 'method');
+        const response = await this[method] (params);
+        //
+        // iserver/accounts
         //
         //     {
         //         "accounts": [
@@ -342,6 +360,66 @@ module.exports = class interactivebrokers extends Exchange {
         //         "sessionId": "613de523.0000000b"
         //     }
         //
+        //
+        // portfolio/accounts
+        //
+        //     [
+        //         {
+        //             "id": "U3449298",
+        //             "accountId": "U3449298",
+        //             "accountVan": "U3449298",
+        //             "accountTitle": "John Doe",
+        //             "displayName": "John Doe",
+        //             "accountAlias": null,
+        //             "accountStatus": "1646607600000",
+        //             "currency": "USD",
+        //             "type": "INDIVIDUAL",
+        //             "tradingType": "STKNOPT",
+        //             "ibEntity": "IBLLC-US",
+        //             "faclient": false,
+        //             "clearingStatus": "O",
+        //             "covestor": false,
+        //             "parent": {
+        //                 "mmc": [],
+        //                 "accountId": "",
+        //                 "isMParent": false,
+        //                 "isMChild": false,
+        //                 "isMultiplex": false
+        //             },
+        //             "desc": "U3449298"
+        //         }
+        //     ]
+        //
         return response;
+    }
+
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        [ path, params ] = this.resolvePath (path, params);
+        let url = this.urls['api'][api] + this.version + '/api/' + path;
+        if (method === 'GET' || method === 'DELETE') {
+            if (Object.keys (params).length) {
+                url += '?' + this.urlencode (params);
+            }
+        } else {
+            body = this.json (params);
+        }
+        if (api === 'private') {
+            this.checkRequiredCredentials ();
+        }
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (!response) {
+            return; // fallback to default error handler
+        }
+        const errorMessage = this.safeString (response, 'errorMessage', '');
+        const errorCode = this.safeString (response, 'errorCode', '');
+        if (errorMessage !== '') {
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
+            throw new ExchangeError (feedback); // unknown message
+        }
     }
 };
