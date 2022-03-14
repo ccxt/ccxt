@@ -105,6 +105,10 @@ class ftx extends Exchange {
                 '3d' => '259200',
                 '1w' => '604800',
                 '2w' => '1209600',
+                // the exchange does not align candles to the start of the month
+                // it can only fetch candles in fixed intervals of multiples of whole days
+                // that works for all timeframes, except the monthly timeframe
+                // because months have varying numbers of days
                 '1M' => '2592000',
             ),
             'api' => array(
@@ -856,22 +860,28 @@ class ftx extends Exchange {
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         list($market, $marketId) = $this->get_market_params($symbol, 'market_name', $params);
+        // max 1501 candles, including the current candle when $since is not specified
+        $maxLimit = 1501;
+        $limit = ($limit === null) ? $maxLimit : min ($limit, $maxLimit);
         $request = array(
             'resolution' => $this->timeframes[$timeframe],
             'market_name' => $marketId,
+            // 'start_time' => intval($since / 1000),
+            // 'end_time' => $this->seconds(),
+            'limit' => $limit,
         );
         $price = $this->safe_string($params, 'price');
         $params = $this->omit($params, 'price');
-        // max 1501 candles, including the current candle when $since is not specified
-        $limit = ($limit === null) ? 1501 : $limit;
-        if ($since === null) {
-            $request['end_time'] = $this->seconds();
-            $request['limit'] = $limit;
-            $request['start_time'] = $request['end_time'] - $limit * $this->parse_timeframe($timeframe);
-        } else {
-            $request['start_time'] = intval($since / 1000);
-            $request['limit'] = $limit;
-            $request['end_time'] = $this->sum($request['start_time'], $limit * $this->parse_timeframe($timeframe));
+        if ($since !== null) {
+            $startTime = intval($since / 1000);
+            $request['start_time'] = $startTime;
+            $duration = $this->parse_timeframe($timeframe);
+            $endTime = $this->sum($startTime, $limit * $duration);
+            $request['end_time'] = min ($endTime, $this->seconds());
+            if ($duration > 86400) {
+                $wholeDaysInTimeframe = intval($duration / 86400);
+                $request['limit'] = min ($limit * $wholeDaysInTimeframe, $maxLimit);
+            }
         }
         $method = 'publicGetMarketsMarketNameCandles';
         if ($price === 'index') {

@@ -116,6 +116,10 @@ class ftx(Exchange):
                 '3d': '259200',
                 '1w': '604800',
                 '2w': '1209600',
+                # the exchange does not align candles to the start of the month
+                # it can only fetch candles in fixed intervals of multiples of whole days
+                # that works for all timeframes, except the monthly timeframe
+                # because months have varying numbers of days
                 '1M': '2592000',
             },
             'api': {
@@ -846,22 +850,27 @@ class ftx(Exchange):
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market, marketId = self.get_market_params(symbol, 'market_name', params)
+        # max 1501 candles, including the current candle when since is not specified
+        maxLimit = 1501
+        limit = maxLimit if (limit is None) else min(limit, maxLimit)
         request = {
             'resolution': self.timeframes[timeframe],
             'market_name': marketId,
+            # 'start_time': int(since / 1000),
+            # 'end_time': self.seconds(),
+            'limit': limit,
         }
         price = self.safe_string(params, 'price')
         params = self.omit(params, 'price')
-        # max 1501 candles, including the current candle when since is not specified
-        limit = 1501 if (limit is None) else limit
-        if since is None:
-            request['end_time'] = self.seconds()
-            request['limit'] = limit
-            request['start_time'] = request['end_time'] - limit * self.parse_timeframe(timeframe)
-        else:
-            request['start_time'] = int(since / 1000)
-            request['limit'] = limit
-            request['end_time'] = self.sum(request['start_time'], limit * self.parse_timeframe(timeframe))
+        if since is not None:
+            startTime = int(since / 1000)
+            request['start_time'] = startTime
+            duration = self.parse_timeframe(timeframe)
+            endTime = self.sum(startTime, limit * duration)
+            request['end_time'] = min(endTime, self.seconds())
+            if duration > 86400:
+                wholeDaysInTimeframe = int(duration / 86400)
+                request['limit'] = min(limit * wholeDaysInTimeframe, maxLimit)
         method = 'publicGetMarketsMarketNameCandles'
         if price == 'index':
             if symbol in self.markets:
