@@ -517,11 +517,10 @@ module.exports = class gateio extends ccxt.gateio {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol argument');
         }
-        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         let type = 'spot';
-        if (market['future']) {
+        if (market['future'] || market['swap']) {
             type = 'futures';
         } else if (market['option']) {
             type = 'options';
@@ -529,10 +528,12 @@ module.exports = class gateio extends ccxt.gateio {
         const method = type + '.orders';
         let messageHash = method;
         messageHash = method + ':' + market['id'];
-        const isBtcContract = ((type !== 'spot') && (market['settleId'] === 'btc')) ? true : false;
+        const isSettleBTC = market['settleId'] === 'btc';
+        const isBtcContract = (market['contract'] && isSettleBTC) ? true : false;
         const url = this.getUrlByMarketType (market['type'], isBtcContract);
         const payload = [market['id']];
-        const orders = await this.subscribePrivate (url, method, messageHash, payload, undefined);
+        const requiresUID = (type !== 'spot');
+        const orders = await this.subscribePrivate (url, method, messageHash, payload, undefined, requiresUID);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -673,7 +674,15 @@ module.exports = class gateio extends ccxt.gateio {
         }
     }
 
-    async subscribePrivate (url, channel, messageHash, payload, subscription) {
+    async subscribePrivate (url, channel, messageHash, payload, subscription = undefined, requiresUID = false) {
+        this.checkRequiredCredentials ();
+        // uid is required for some subscriptions only so it's not a part of required credentials
+        if (requiresUID) {
+            if (this.uid === undefined) {
+                throw new ArgumentsRequired (this.id + ' requires uid for this method');
+            }
+            payload = [this.uid].concat (payload);
+        }
         const time = this.seconds ();
         const event = 'subscribe';
         const signaturePayload = 'channel=' + channel + '&event=' + event + '&time=' + time.toString ();
