@@ -56,6 +56,8 @@ class coinfalcon extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'fetchTradinFee' => false,
+                'fetchTradingFees' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
                 'setLeverage' => false,
@@ -415,6 +417,38 @@ class coinfalcon extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_trades($data, $market, $since, $limit);
+    }
+
+    public function fetch_trading_fees($params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetUserFees ($params);
+        //
+        //    {
+        //        $data => {
+        //            maker_fee => '0.0',
+        //            taker_fee => '0.2',
+        //            btc_volume_30d => '0.0'
+        //        }
+        //    }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $makerString = $this->safe_string($data, 'maker_fee');
+        $takerString = $this->safe_string($data, 'taker_fee');
+        $maker = $this->parse_number(Precise::string_div($makerString, '100'));
+        $taker = $this->parse_number(Precise::string_div($takerString, '100'));
+        $result = array();
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
+            $result[$symbol] = array(
+                'info' => $response,
+                'symbol' => $symbol,
+                'maker' => $maker,
+                'taker' => $taker,
+                'percentage' => true,
+                'tierBased' => true,
+            );
+        }
+        return $result;
     }
 
     public function parse_balance($response) {

@@ -60,6 +60,8 @@ class bybit extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => false,
                 'fetchTransactions' => null,
                 'fetchWithdrawals' => true,
                 'setLeverage' => true,
@@ -1243,29 +1245,36 @@ class bybit extends Exchange {
         // TODO $method = $market['linear'] ? 'publicGetPublicLinearFundingPrevFundingRate' : 'publicGetV2PublicFundingRate ???? throws ExchangeError';
         $response = yield $this->$method (array_merge($request, $params));
         //
-        //    {
-        //        "ret_code" => 0,
-        //        "ret_msg" => "ok",
-        //        "ext_code" => "",
-        //        "result" => array(
-        //            "symbol" => "BTCUSD",
-        //            "funding_rate" => "0.00010000",
-        //            "funding_rate_timestamp" => 1577433600  // v2PublicGetFundingPrevFundingRate
-        // //         "funding_rate_timestamp" => "2022-02-05T08:00:00.000Z"  // publicLinearGetFundingPrevFundingRate
-        //        ),
-        //        "ext_info" => null,
-        //        "time_now" => "1577445586.446797",
-        //        "rate_limit_status" => 119,
-        //        "rate_limit_reset_ms" => 1577445586454,
-        //        "rate_limit" => 120,
-        //    }
+        //     {
+        //         "ret_code":0,
+        //         "ret_msg":"OK",
+        //         "ext_code":"",
+        //         "ext_info":"",
+        //         "result":array(
+        //             "symbol":"BTCUSDT",
+        //             "funding_rate":0.00006418,
+        //             "funding_rate_timestamp":"2022-03-11T16:00:00.000Z"
+        //         ),
+        //         "time_now":"1647040818.724895"
+        //     }
+        //
+        //     {
+        //         "ret_code":0,
+        //         "ret_msg":"OK",
+        //         "ext_code":"",
+        //         "ext_info":"",
+        //         "result":array(
+        //             "symbol":"BTCUSD",
+        //             "funding_rate":"0.00009536",
+        //             "funding_rate_timestamp":1647014400
+        //         ),
+        //         "time_now":"1647040852.515724"
+        //     }
         //
         $result = $this->safe_value($response, 'result');
         $fundingRate = $this->safe_number($result, 'funding_rate');
-        $fundingTimestamp = $this->safe_timestamp($result, 'funding_rate_timestamp');
-        if ($fundingTimestamp === null) {
-            $fundingTimestamp = $this->parse8601($this->safe_string($result, 'funding_rate_timestamp'));
-        }
+        $fundingTimestamp = $this->parse8601($this->safe_string($result, 'funding_rate_timestamp'));
+        $fundingTimestamp = $this->safe_timestamp($result, 'funding_rate_timestamp', $fundingTimestamp);
         $currentTime = $this->milliseconds();
         return array(
             'info' => $result,

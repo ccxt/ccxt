@@ -49,6 +49,8 @@ class bl3p extends Exchange {
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => true,
                 'reduceMargin' => false,
                 'setLeverage' => false,
                 'setMarginMode' => false,
@@ -238,6 +240,55 @@ class bl3p extends Exchange {
             'market' => $market['id'],
         ), $params));
         $result = $this->parse_trades($response['data']['trades'], $market, $since, $limit);
+        return $result;
+    }
+
+    public function fetch_trading_fees($params = array ()) {
+        $this->load_markets();
+        $response = $this->privatePostGENMKTMoneyInfo ($params);
+        //
+        //     {
+        //         $result => 'success',
+        //         $data => {
+        //             user_id => '13396',
+        //             wallets => {
+        //                 BTC => array(
+        //                     balance => array(
+        //                         value_int => '0',
+        //                         display => '0.00000000 BTC',
+        //                         currency => 'BTC',
+        //                         value => '0.00000000',
+        //                         display_short => '0.00 BTC'
+        //                     ),
+        //                     available => array(
+        //                         value_int => '0',
+        //                         display => '0.00000000 BTC',
+        //                         currency => 'BTC',
+        //                         value => '0.00000000',
+        //                         display_short => '0.00 BTC'
+        //                     }
+        //                 ),
+        //                 ...
+        //             ),
+        //             trade_fee => '0.25'
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $feeString = $this->safe_string($data, 'trade_fee');
+        $fee = $this->parse_number(Precise::string_div($feeString, '100'));
+        $result = array();
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
+            $result[$symbol] = array(
+                'info' => $data,
+                'symbol' => $symbol,
+                'maker' => $fee,
+                'taker' => $fee,
+                'percentage' => true,
+                'tierBased' => false,
+            );
+        }
         return $result;
     }
 

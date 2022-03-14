@@ -61,6 +61,8 @@ class yobit extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => true,
                 'fetchTransactions' => null,
                 'fetchWithdrawals' => null,
                 'reduceMargin' => false,
@@ -596,6 +598,51 @@ class yobit extends Exchange {
         return $this->parse_trades($response[$market['id']], $market, $since, $limit);
     }
 
+    public function fetch_trading_fees($params = array ()) {
+        $this->load_markets();
+        $response = $this->publicGetInfo ($params);
+        //
+        //     {
+        //         "server_time":1615856752,
+        //         "pairs":array(
+        //             "ltc_btc":array(
+        //                 "decimal_places":8,
+        //                 "min_price":0.00000001,
+        //                 "max_price":10000,
+        //                 "min_amount":0.0001,
+        //                 "min_total":0.0001,
+        //                 "hidden":0,
+        //                 "fee":0.2,
+        //                 "fee_buyer":0.2,
+        //                 "fee_seller":0.2
+        //             ),
+        //             ...
+        //         ),
+        //     }
+        //
+        $pairs = $this->safe_value($response, 'pairs');
+        $marketIds = is_array($pairs) ? array_keys($pairs) : array();
+        $result = array();
+        for ($i = 0; $i < count($marketIds); $i++) {
+            $marketId = $marketIds[$i];
+            $pair = $this->safe_value($pairs, $marketId, array());
+            $symbol = $this->safe_symbol($marketId, null, '_');
+            $takerString = $this->safe_string($pair, 'fee_buyer');
+            $makerString = $this->safe_string($pair, 'fee_seller');
+            $taker = $this->parse_number(Precise::string_div($takerString, '100'));
+            $maker = $this->parse_number(Precise::string_div($makerString, '100'));
+            $result[$symbol] = array(
+                'info' => $pair,
+                'symbol' => $symbol,
+                'taker' => $taker,
+                'maker' => $maker,
+                'percentage' => true,
+                'tierBased' => false,
+            );
+        }
+        return $result;
+    }
+
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type === 'market') {
             throw new ExchangeError($this->id . ' allows limit orders only');
@@ -762,7 +809,7 @@ class yobit extends Exchange {
             )), $market);
             $result[] = $trade;
         }
-        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
+        return $this->filter_by_symbol_since_limit($result, $market['symbol'], $since, $limit);
     }
 
     public function create_deposit_address($code, $params = array ()) {

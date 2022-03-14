@@ -59,6 +59,8 @@ class btcalpha(Exchange):
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': None,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': False,
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setMarginMode': False,

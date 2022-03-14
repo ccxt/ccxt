@@ -67,8 +67,8 @@ class bitfinex2(bitfinex):
                 'fetchStatus': True,
                 'fetchTickers': True,
                 'fetchTime': False,
-                'fetchTradingFee': None,
-                'fetchTradingFees': None,
+                'fetchTradingFee': False,
+                'fetchTradingFees': True,
                 'fetchTransactions': True,
                 'withdraw': True,
             },
@@ -329,6 +329,7 @@ class bitfinex2(bitfinex):
                     'EUR': 'EUR',
                     'JPY': 'JPY',
                     'GBP': 'GBP',
+                    'CHN': 'CHN',
                 },
                 # actually the correct names unlike the v1
                 # we don't want to self.extend self with accountsByType in v1
@@ -338,6 +339,7 @@ class bitfinex2(bitfinex):
                     'funding': 'funding',
                     'margin': 'margin',
                     'derivatives': 'margin',
+                    'future': 'margin',
                 },
             },
             'exceptions': {
@@ -1517,6 +1519,108 @@ class bitfinex2(bitfinex):
                 'rate': None,
             },
         }
+
+    def fetch_trading_fees(self, params={}):
+        self.load_markets()
+        response = self.privatePostAuthRSummary(params)
+        #
+        #      Response Spec:
+        #      [
+        #         PLACEHOLDER,
+        #         PLACEHOLDER,
+        #         PLACEHOLDER,
+        #         PLACEHOLDER,
+        #         [
+        #            [
+        #             MAKER_FEE,
+        #             MAKER_FEE,
+        #             MAKER_FEE,
+        #             PLACEHOLDER,
+        #             PLACEHOLDER,
+        #             DERIV_REBATE
+        #            ],
+        #            [
+        #             TAKER_FEE_TO_CRYPTO,
+        #             TAKER_FEE_TO_STABLE,
+        #             TAKER_FEE_TO_FIAT,
+        #             PLACEHOLDER,
+        #             PLACEHOLDER,
+        #             DERIV_TAKER_FEE
+        #            ]
+        #         ],
+        #         PLACEHOLDER,
+        #         PLACEHOLDER,
+        #         PLACEHOLDER,
+        #         PLACEHOLDER,
+        #         {
+        #             LEO_LEV,
+        #             LEO_AMOUNT_AVG
+        #         }
+        #     ]
+        #
+        #      Example response:
+        #
+        #     [
+        #         null,
+        #         null,
+        #         null,
+        #         null,
+        #         [
+        #          [0.001, 0.001, 0.001, null, null, 0.0002],
+        #          [0.002, 0.002, 0.002, null, null, 0.00065]
+        #         ],
+        #         [
+        #          [
+        #              {
+        #              curr: 'Total(USD)',
+        #              vol: '0',
+        #              vol_safe: '0',
+        #              vol_maker: '0',
+        #              vol_BFX: '0',
+        #              vol_BFX_safe: '0',
+        #              vol_BFX_maker: '0'
+        #              }
+        #          ],
+        #          {},
+        #          0
+        #         ],
+        #         [null, {}, 0],
+        #         null,
+        #         null,
+        #         {leo_lev: '0', leo_amount_avg: '0'}
+        #     ]
+        #
+        result = {}
+        fiat = self.safe_value(self.options, 'fiat', {})
+        feeData = self.safe_value(response, 4, [])
+        makerData = self.safe_value(feeData, 0, [])
+        takerData = self.safe_value(feeData, 1, [])
+        makerFee = self.safe_number(makerData, 0)
+        makerFeeFiat = self.safe_number(makerData, 2)
+        makerFeeDeriv = self.safe_number(makerData, 5)
+        takerFee = self.safe_number(takerData, 0)
+        takerFeeFiat = self.safe_number(takerData, 2)
+        takerFeeDeriv = self.safe_number(takerData, 5)
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            market = self.market(symbol)
+            fee = {
+                'info': response,
+                'symbol': symbol,
+                'percentage': True,
+                'tierBased': True,
+            }
+            if market['quote'] in fiat:
+                fee['maker'] = makerFeeFiat
+                fee['taker'] = takerFeeFiat
+            elif market['contract']:
+                fee['maker'] = makerFeeDeriv
+                fee['taker'] = takerFeeDeriv
+            else:  # TODO check if stable coin
+                fee['maker'] = makerFee
+                fee['taker'] = takerFee
+            result[symbol] = fee
+        return result
 
     def fetch_transactions(self, code=None, since=None, limit=None, params={}):
         self.load_markets()

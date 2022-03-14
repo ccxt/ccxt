@@ -37,6 +37,8 @@ module.exports = class coinex extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchTradingFee': true,
+                'fetchTradingFees': true,
                 'fetchWithdrawals': true,
                 'withdraw': true,
             },
@@ -486,6 +488,78 @@ module.exports = class coinex extends Exchange {
         //      }
         //
         return this.parseTrades (response['data'], market, since, limit);
+    }
+
+    async fetchTradingFee (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+        };
+        const response = await this.publicGetMarketDetail (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //           "name": "BTCUSDC",
+        //           "min_amount": "0.0005",
+        //           "maker_fee_rate": "0.002",
+        //           "taker_fee_rate": "0.002",
+        //           "pricing_name": "USDC",
+        //           "pricing_decimal": 2,
+        //           "trading_name": "BTC",
+        //           "trading_decimal": 8
+        //         },
+        //         "message": "OK"
+        //      }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseTradingFee (data);
+    }
+
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetMarketInfo (params);
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "WAVESBTC": {
+        //                 "name": "WAVESBTC",
+        //                 "min_amount": "1",
+        //                 "maker_fee_rate": "0.001",
+        //                 "taker_fee_rate": "0.001",
+        //                 "pricing_name": "BTC",
+        //                 "pricing_decimal": 8,
+        //                 "trading_name": "WAVES",
+        //                 "trading_decimal": 8
+        //             }
+        //             ...
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const result = {};
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            const market = this.market (symbol);
+            const fee = this.safeValue (data, market['id'], {});
+            result[symbol] = this.parseTradingFee (fee, market);
+        }
+        return result;
+    }
+
+    parseTradingFee (fee, market = undefined) {
+        const marketId = this.safeValue (fee, 'name');
+        const symbol = this.safeSymbol (marketId, market);
+        return {
+            'info': fee,
+            'symbol': symbol,
+            'maker': this.safeNumber (fee, 'maker_fee_rate'),
+            'taker': this.safeNumber (fee, 'taker_fee_rate'),
+            'percentage': true,
+            'tierBased': true,
+        };
     }
 
     parseOHLCV (ohlcv, market = undefined) {

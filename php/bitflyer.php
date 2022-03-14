@@ -41,6 +41,8 @@ class bitflyer extends Exchange {
                 'fetchPositions' => true,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => true,
+                'fetchTradingFees' => false,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
             ),
@@ -183,13 +185,24 @@ class bitflyer extends Exchange {
                 $quoteId = $this->safe_string($currencies, 2);
             } else if ($future) {
                 $alias = $this->safe_string($market, 'alias');
-                $splitAlias = explode('_', $alias);
-                $currencyIds = $this->safe_string($splitAlias, 0);
-                $baseId = mb_substr($currencyIds, 0, -3 - 0);
-                $quoteId = mb_substr($currencyIds, -3);
-                $splitId = explode($currencyIds, $id);
-                $expiryDate = $this->safe_string($splitId, 1);
-                $expiry = $this->parse_expiry_date($expiryDate);
+                if ($alias === null) {
+                    // no $alias:
+                    // array( product_code => 'BTCJPY11MAR2022', market_type => 'Futures' )
+                    // TODO this will break if there are products with 4 chars
+                    $baseId = mb_substr($id, 0, 3 - 0);
+                    $quoteId = mb_substr($id, 3, 6 - 3);
+                    // last 9 chars are $expiry date
+                    $expiryDate = mb_substr($id, -9);
+                    $expiry = $this->parse_expiry_date($expiryDate);
+                } else {
+                    $splitAlias = explode('_', $alias);
+                    $currencyIds = $this->safe_string($splitAlias, 0);
+                    $baseId = mb_substr($currencyIds, 0, -3 - 0);
+                    $quoteId = mb_substr($currencyIds, -3);
+                    $splitId = explode($currencyIds, $id);
+                    $expiryDate = $this->safe_string($splitId, 1);
+                    $expiry = $this->parse_expiry_date($expiryDate);
+                }
                 $type = 'future';
             }
             $base = $this->safe_currency_code($baseId);
@@ -418,6 +431,27 @@ class bitflyer extends Exchange {
         );
         $response = $this->publicGetGetexecutions (array_merge($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
+    }
+
+    public function fetch_trading_fee($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'product_code' => $market['id'],
+        );
+        $response = $this->privateGetGettradingcommission (array_merge($request, $params));
+        //
+        //   {
+        //       commission_rate => '0.0020'
+        //   }
+        //
+        $fee = $this->safe_number($response, 'commission_rate');
+        return array(
+            'info' => $response,
+            'symbol' => $symbol,
+            'maker' => $fee,
+            'taker' => $fee,
+        );
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

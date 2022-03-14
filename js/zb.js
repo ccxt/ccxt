@@ -21,22 +21,34 @@ module.exports = class zb extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined, // has but unimplemented
-                'swap': undefined, // has but unimplemented
+                'margin': true,
+                'swap': true,
                 'future': undefined,
                 'option': undefined,
+                'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createMarketOrder': undefined,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowRate': true,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': true,
                 'fetchDeposits': true,
+                'fetchFundingHistory': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
+                'fetchFundingRates': true,
+                'fetchLedger': true,
+                'fetchLeverage': false,
+                'fetchLeverageTiers': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
@@ -45,31 +57,38 @@ module.exports = class zb extends Exchange {
                 'fetchOrders': true,
                 'fetchPosition': true,
                 'fetchPositions': true,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
+                'reduceMargin': true,
                 'setLeverage': true,
+                'setMarginMode': false,
+                'setPositionMode': false,
+                'transfer': true,
                 'withdraw': true,
             },
             'timeframes': {
-                '1m': '1min',
-                '3m': '3min',
-                '5m': '5min',
-                '15m': '15min',
-                '30m': '30min',
-                '1h': '1hour',
-                '2h': '2hour',
-                '4h': '4hour',
-                '6h': '6hour',
-                '12h': '12hour',
-                '1d': '1day',
-                '3d': '3day',
-                '1w': '1week',
+                '1m': '1m',
+                '3m': '3m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '2h': '2h',
+                '4h': '4h',
+                '6h': '6h',
+                '12h': '12h',
+                '1d': '1d',
+                '3d': '3d',
+                '5d': '5d',
+                '1w': '1w',
             },
             'exceptions': {
                 'ws': {
-                    //  '1000': ExchangeError, // The call is successful.
+                    // '1000': ExchangeError, // The call is successful.
                     '1001': ExchangeError, // General error prompt
                     '1002': ExchangeError, // Internal Error
                     '1003': AuthenticationError, // Fail to verify
@@ -288,7 +307,7 @@ module.exports = class zb extends Exchange {
                     '9999': ExchangeError, // Unknown error
                 },
                 'broad': {
-                    '提币地址有误，请先添加提币地址。': InvalidAddress, // {"code":1001,"message":"提币地址有误，请先添加提币地址。"}
+                    '提币地址有误, 请先添加提币地址。': InvalidAddress, // {"code":1001,"message":"提币地址有误，请先添加提币地址。"}
                     '资金不足,无法划账': InsufficientFunds, // {"code":1001,"message":"资金不足,无法划账"}
                     '响应超时': RequestTimeout, // {"code":1001,"message":"响应超时"}
                 },
@@ -398,7 +417,7 @@ module.exports = class zb extends Exchange {
                                 'fundingRate',
                                 'indexKline',
                                 'indexPrice',
-                                'kCline',
+                                'kline',
                                 'markKline',
                                 'markPrice',
                                 'ticker',
@@ -469,6 +488,35 @@ module.exports = class zb extends Exchange {
                 'ENT': 'ENTCash',
                 'BCHABC': 'BCHABC', // conflict with BCH / BCHA
                 'BCHSV': 'BCHSV', // conflict with BCH / BSV
+            },
+            'options': {
+                'timeframes': {
+                    'spot': {
+                        '1m': '1min',
+                        '3m': '3min',
+                        '5m': '5min',
+                        '15m': '15min',
+                        '30m': '30min',
+                        '1h': '1hour',
+                        '2h': '2hour',
+                        '4h': '4hour',
+                        '6h': '6hour',
+                        '12h': '12hour',
+                        '1d': '1day',
+                        '3d': '3day',
+                        '1w': '1week',
+                    },
+                    'swap': {
+                        '1m': '1M',
+                        '5m': '5M',
+                        '15m': '15M',
+                        '30m': '30M',
+                        '1h': '1H',
+                        '6h': '6H',
+                        '1d': '1D',
+                        '5d': '5D',
+                    },
+                },
             },
         });
     }
@@ -750,19 +798,134 @@ module.exports = class zb extends Exchange {
         return this.safeBalance (result);
     }
 
+    parseMarginBalance (response, marginType) {
+        const result = {
+            'info': response,
+        };
+        let levers = undefined;
+        if (marginType === 'isolated') {
+            const message = this.safeValue (response, 'message', {});
+            const data = this.safeValue (message, 'datas', {});
+            levers = this.safeValue (data, 'levers', []);
+        } else {
+            const crossResponse = this.safeValue (response, 'result', {});
+            levers = this.safeValue (crossResponse, 'list', []);
+        }
+        for (let i = 0; i < levers.length; i++) {
+            const balance = levers[i];
+            //
+            // Isolated Margin
+            //
+            //     {
+            //         "cNetUSD": "0.00",
+            //         "repayLeverShow": "-",
+            //         "cCanLoanIn": "0.002115400000000",
+            //         "fNetCNY": "147.76081161",
+            //         "fLoanIn": "0.00",
+            //         "repayLevel": 0,
+            //         "level": 1,
+            //         "netConvertCNY": "147.760811613032",
+            //         "cFreeze": "0.00",
+            //         "cUnitTag": "BTC",
+            //         "version": 1646783178609,
+            //         "cAvailableUSD": "0.00",
+            //         "cNetCNY": "0.00",
+            //         "riskRate": "-",
+            //         "fAvailableUSD": "20.49273433",
+            //         "fNetUSD": "20.49273432",
+            //         "cShowName": "BTC",
+            //         "leverMultiple": "5.00",
+            //         "couldTransferOutFiat": "20.49273433",
+            //         "noticeLine": "1.13",
+            //         "fFreeze": "0.00",
+            //         "cUnitDecimal": 8,
+            //         "fCanLoanIn": "81.970937320000000",
+            //         "cAvailable": "0.00",
+            //         "repayLock": false,
+            //         "status": 1,
+            //         "forbidType": 0,
+            //         "totalConvertCNY": "147.760811613032",
+            //         "cAvailableCNY": "0.00",
+            //         "unwindPrice": "0.00",
+            //         "fOverdraft": "0.00",
+            //         "fShowName": "USDT",
+            //         "statusShow": "%E6%AD%A3%E5%B8%B8",
+            //         "cOverdraft": "0.00",
+            //         "netConvertUSD": "20.49273433",
+            //         "cNetBtc": "0.00",
+            //         "loanInConvertCNY": "0.00",
+            //         "fAvailableCNY": "147.760811613032",
+            //         "key": "btcusdt",
+            //         "fNetBtc": "0.0005291",
+            //         "fUnitDecimal": 8,
+            //         "loanInConvertUSD": "0.00",
+            //         "showName": "BTC/USDT",
+            //         "startLine": "1.25",
+            //         "totalConvertUSD": "20.49273433",
+            //         "couldTransferOutCoin": "0.00",
+            //         "cEnName": "BTC",
+            //         "leverMultipleInterest": "3.00",
+            //         "fAvailable": "20.49273433",
+            //         "fEnName": "USDT",
+            //         "forceRepayLine": "1.08",
+            //         "cLoanIn": "0.00"
+            //     }
+            //
+            // Cross Margin
+            //
+            //     [
+            //         {
+            //             "fundType": 2,
+            //             "loanIn": 0,
+            //             "amount": 0,
+            //             "freeze": 0,
+            //             "overdraft": 0,
+            //             "key": "BTC",
+            //             "canTransferOut": 0
+            //         },
+            //     ],
+            //
+            const account = this.account ();
+            if (marginType === 'isolated') {
+                const code = this.safeCurrencyCode (this.safeString (balance, 'fShowName'));
+                account['total'] = this.safeString (balance, 'fAvailableUSD'); // total amount in USD
+                account['free'] = this.safeString (balance, 'couldTransferOutFiat');
+                account['used'] = this.safeString (balance, 'fFreeze');
+                result[code] = account;
+            } else {
+                const code = this.safeCurrencyCode (this.safeString (balance, 'key'));
+                account['total'] = this.safeString (balance, 'amount');
+                account['free'] = this.safeString (balance, 'canTransferOut');
+                account['used'] = this.safeString (balance, 'freeze');
+                result[code] = account;
+            }
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const margin = (marketType === 'margin');
+        const swap = (marketType === 'swap');
+        let marginMethod = undefined;
+        const defaultMargin = margin ? 'isolated' : 'cross';
+        const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', defaultMargin);
+        if (marginType === 'isolated') {
+            marginMethod = 'spotV1PrivateGetGetLeverAssetsInfo';
+        } else if (marginType === 'cross') {
+            marginMethod = 'spotV1PrivateGetGetCrossAssets';
+        }
         const method = this.getSupportedMapping (marketType, {
             'spot': 'spotV1PrivateGetGetAccountInfo',
             'swap': 'contractV2PrivateGetFundBalance',
+            'margin': marginMethod,
         });
         const request = {
             // 'futuresAccountType': 1, // SWAP
             // 'currencyId': currency['id'], // SWAP
             // 'currencyName': 'usdt', // SWAP
         };
-        const swap = (marketType === 'swap');
         if (swap) {
             request['futuresAccountType'] = 1;
         }
@@ -827,10 +990,105 @@ module.exports = class zb extends Exchange {
         //         "desc": "操作成功"
         //     }
         //
+        // Isolated Margin
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": {
+        //             "des": "success",
+        //             "isSuc": true,
+        //             "datas": {
+        //                 "leverPerm": true,
+        //                 "levers": [
+        //                     {
+        //                         "cNetUSD": "0.00",
+        //                         "repayLeverShow": "-",
+        //                         "cCanLoanIn": "0.002115400000000",
+        //                         "fNetCNY": "147.76081161",
+        //                         "fLoanIn": "0.00",
+        //                         "repayLevel": 0,
+        //                         "level": 1,
+        //                         "netConvertCNY": "147.760811613032",
+        //                         "cFreeze": "0.00",
+        //                         "cUnitTag": "BTC",
+        //                         "version": 1646783178609,
+        //                         "cAvailableUSD": "0.00",
+        //                         "cNetCNY": "0.00",
+        //                         "riskRate": "-",
+        //                         "fAvailableUSD": "20.49273433",
+        //                         "fNetUSD": "20.49273432",
+        //                         "cShowName": "BTC",
+        //                         "leverMultiple": "5.00",
+        //                         "couldTransferOutFiat": "20.49273433",
+        //                         "noticeLine": "1.13",
+        //                         "fFreeze": "0.00",
+        //                         "cUnitDecimal": 8,
+        //                         "fCanLoanIn": "81.970937320000000",
+        //                         "cAvailable": "0.00",
+        //                         "repayLock": false,
+        //                         "status": 1,
+        //                         "forbidType": 0,
+        //                         "totalConvertCNY": "147.760811613032",
+        //                         "cAvailableCNY": "0.00",
+        //                         "unwindPrice": "0.00",
+        //                         "fOverdraft": "0.00",
+        //                         "fShowName": "USDT",
+        //                         "statusShow": "%E6%AD%A3%E5%B8%B8",
+        //                         "cOverdraft": "0.00",
+        //                         "netConvertUSD": "20.49273433",
+        //                         "cNetBtc": "0.00",
+        //                         "loanInConvertCNY": "0.00",
+        //                         "fAvailableCNY": "147.760811613032",
+        //                         "key": "btcusdt",
+        //                         "fNetBtc": "0.0005291",
+        //                         "fUnitDecimal": 8,
+        //                         "loanInConvertUSD": "0.00",
+        //                         "showName": "BTC/USDT",
+        //                         "startLine": "1.25",
+        //                         "totalConvertUSD": "20.49273433",
+        //                         "couldTransferOutCoin": "0.00",
+        //                         "cEnName": "BTC",
+        //                         "leverMultipleInterest": "3.00",
+        //                         "fAvailable": "20.49273433",
+        //                         "fEnName": "USDT",
+        //                         "forceRepayLine": "1.08",
+        //                         "cLoanIn": "0.00"
+        //                     }
+        //                 ]
+        //             }
+        //         }
+        //     }
+        //
+        // Cross Margin
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": "操作成功",
+        //         "result": {
+        //             "loanIn": 0,
+        //             "total": 71.167,
+        //             "riskRate": "-",
+        //             "list" :[
+        //                 {
+        //                     "fundType": 2,
+        //                     "loanIn": 0,
+        //                     "amount": 0,
+        //                     "freeze": 0,
+        //                     "overdraft": 0,
+        //                     "key": "BTC",
+        //                     "canTransferOut": 0
+        //                 },
+        //             ],
+        //             "net": 71.167
+        //         }
+        //     }
+        //
         // todo: use this somehow
         // let permissions = response['result']['base'];
         if (swap) {
             return this.parseSwapBalance (response);
+        } else if (margin) {
+            return this.parseMarginBalance (response, marginType);
         } else {
             return this.parseBalance (response);
         }
@@ -1145,31 +1403,181 @@ module.exports = class zb extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined) {
-        return [
-            this.safeInteger (ohlcv, 0),
-            this.safeNumber (ohlcv, 1),
-            this.safeNumber (ohlcv, 2),
-            this.safeNumber (ohlcv, 3),
-            this.safeNumber (ohlcv, 4),
-            this.safeNumber (ohlcv, 5),
-        ];
+        if (market['swap']) {
+            const ohlcvLength = ohlcv.length;
+            if (ohlcvLength > 5) {
+                return [
+                    this.safeInteger (ohlcv, 5),
+                    this.safeNumber (ohlcv, 0),
+                    this.safeNumber (ohlcv, 1),
+                    this.safeNumber (ohlcv, 2),
+                    this.safeNumber (ohlcv, 3),
+                    this.safeNumber (ohlcv, 4),
+                ];
+            } else {
+                return [
+                    this.safeInteger (ohlcv, 4),
+                    this.safeNumber (ohlcv, 0),
+                    this.safeNumber (ohlcv, 1),
+                    this.safeNumber (ohlcv, 2),
+                    this.safeNumber (ohlcv, 3),
+                    undefined,
+                ];
+            }
+        } else {
+            return [
+                this.safeInteger (ohlcv, 0),
+                this.safeNumber (ohlcv, 1),
+                this.safeNumber (ohlcv, 2),
+                this.safeNumber (ohlcv, 3),
+                this.safeNumber (ohlcv, 4),
+                this.safeNumber (ohlcv, 5),
+            ];
+        }
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const swap = market['swap'];
+        const options = this.safeValue (this.options, 'timeframes', {});
+        const timeframes = this.safeValue (options, market['type'], {});
+        const timeframeValue = this.safeString (timeframes, timeframe);
+        if (timeframeValue === undefined) {
+            throw new NotSupported (this.id + ' fetchOHLCV() does not support ' + timeframe + ' timeframe for ' + market['type'] + ' markets');
+        }
         if (limit === undefined) {
             limit = 1000;
         }
         const request = {
-            'market': market['id'],
-            'type': this.timeframes[timeframe],
-            'limit': limit,
+            // 'market': market['id'], // spot only
+            // 'symbol': market['id'], // swap only
+            // 'type': timeframeValue, // spot only
+            // 'period': timeframeValue, // swap only
+            // 'since': since, // spot only
+            // 'limit': limit, // spot only
+            // 'size': limit, // swap only
+        };
+        const marketIdField = swap ? 'symbol' : 'market';
+        request[marketIdField] = market['id'];
+        const periodField = swap ? 'period' : 'type';
+        request[periodField] = timeframeValue;
+        const sizeField = swap ? 'size' : 'limit';
+        request[sizeField] = limit;
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'spotV1PublicGetKline',
+            'swap': 'contractV1PublicGetKline',
+        });
+        if (since !== undefined) {
+            request['since'] = since;
+        }
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // Spot
+        //
+        //     {
+        //         "symbol": "BTC",
+        //         "data": [
+        //             [1645091400000,43183.24,43187.49,43145.92,43182.28,0.9110],
+        //             [1645091460000,43182.18,43183.15,43182.06,43183.15,1.4393],
+        //             [1645091520000,43182.11,43240.1,43182.11,43240.1,0.3802]
+        //         ],
+        //         "moneyType": "USDT"
+        //     }
+        //
+        // Swap
+        //
+        //     {
+        //         "code": 10000,
+        //         "desc": "操作成功",
+        //         "data": [
+        //             [41433.44,41433.44,41405.88,41408.75,21.368,1646366460],
+        //             [41409.25,41423.74,41408.8,41423.42,9.828,1646366520],
+        //             [41423.96,41429.39,41369.98,41370.31,123.104,1646366580]
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
+    }
+
+    async fetchMarkOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const options = this.safeValue (this.options, 'timeframes', {});
+        const timeframes = this.safeValue (options, market['type'], {});
+        const timeframeValue = this.safeString (timeframes, timeframe);
+        if (timeframeValue === undefined) {
+            throw new NotSupported (this.id + ' fetchMarkOHLCV() does not support ' + timeframe + ' timeframe for ' + market['type'] + ' markets');
+        }
+        if (limit === undefined) {
+            limit = 1000;
+        }
+        const request = {
+            'symbol': market['id'],
+            'period': timeframeValue,
+            'size': limit,
         };
         if (since !== undefined) {
             request['since'] = since;
         }
-        const response = await this.spotV1PublicGetKline (this.extend (request, params));
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        const response = await this.contractV1PublicGetMarkKline (this.extend (request, params));
+        //
+        //     {
+        //         "code": 10000,
+        //         "desc": "操作成功",
+        //         "data": [
+        //             [41603.39,41603.39,41591.59,41600.81,1646381760],
+        //             [41600.36,41605.75,41587.69,41601.97,1646381820],
+        //             [41601.97,41601.97,41562.62,41593.96,1646381880]
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
+    }
+
+    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const options = this.safeValue (this.options, 'timeframes', {});
+        const timeframes = this.safeValue (options, market['type'], {});
+        const timeframeValue = this.safeString (timeframes, timeframe);
+        if (timeframeValue === undefined) {
+            throw new NotSupported (this.id + ' fetchIndexOHLCV() does not support ' + timeframe + ' timeframe for ' + market['type'] + ' markets');
+        }
+        if (limit === undefined) {
+            limit = 1000;
+        }
+        const request = {
+            'symbol': market['id'],
+            'period': timeframeValue,
+            'size': limit,
+        };
+        if (since !== undefined) {
+            request['since'] = since;
+        }
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        const response = await this.contractV1PublicGetIndexKline (this.extend (request, params));
+        //
+        //     {
+        //         "code": 10000,
+        //         "desc": "操作成功",
+        //         "data": [
+        //             [41697.53,41722.29,41689.16,41689.16,1646381640],
+        //             [41690.1,41691.73,41611.61,41611.61,1646381700],
+        //             [41611.61,41619.49,41594.87,41594.87,1646381760]
+        //         ]
+        //     }
+        //
         const data = this.safeValue (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
@@ -1348,6 +1756,9 @@ module.exports = class zb extends Exchange {
         });
         const request = {
             'amount': this.amountToPrecision (symbol, amount),
+            // 'acctType': 0, // Spot, Margin 0/1/2 [Spot/Isolated/Cross] Optional, Default to: 0 Spot
+            // 'customerOrderId': '1f2g', // Spot, Margin
+            // 'orderType': 1, // Spot, Margin order type 1/2 [PostOnly/IOC] Optional
         };
         if (price) {
             request['price'] = this.priceToPrecision (symbol, price);
@@ -1355,6 +1766,15 @@ module.exports = class zb extends Exchange {
         if (spot) {
             request['tradeType'] = (side === 'buy') ? '1' : '0';
             request['currency'] = market['id'];
+            if (timeInForce !== undefined) {
+                if (timeInForce === 'PO') {
+                    request['orderType'] = 1;
+                } else if (timeInForce === 'IOC') {
+                    request['orderType'] = 2;
+                } else {
+                    throw new InvalidOrder (this.id + ' createOrder() on ' + market['type'] + ' markets does not allow ' + timeInForce + ' orders');
+                }
+            }
         } else if (swap) {
             const reduceOnly = this.safeValue (params, 'reduceOnly');
             params = this.omit (params, 'reduceOnly');
@@ -1414,12 +1834,44 @@ module.exports = class zb extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        }
         await this.loadMarkets ();
+        const market = this.market (symbol);
+        const swap = market['swap'];
         const request = {
-            'id': id.toString (),
-            'currency': this.marketId (symbol),
+            // 'currency': this.marketId (symbol), // only applicable to SPOT
+            // 'id': id.toString (), // only applicable to SPOT
+            // 'symbol': this.marketId (symbol), // only applicable to SWAP
+            // 'orderId': id.toString (), // only applicable to SWAP
+            // 'clientOrderId': params['clientOrderId'], // only applicable to SWAP
         };
-        return await this.spotV1PrivateGetCancelOrder (this.extend (request, params));
+        const marketIdField = swap ? 'symbol' : 'currency';
+        request[marketIdField] = this.marketId (symbol);
+        const orderIdField = swap ? 'orderId' : 'id';
+        request[orderIdField] = id.toString ();
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'spotV1PrivateGetCancelOrder',
+            'swap': 'contractV2PrivatePostTradeCancelOrder',
+        });
+        const response = await this[method] (this.extend (request, params));
+        //
+        // Spot
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": "Success。"
+        //     }
+        //
+        // Swap
+        //
+        //     {
+        //         "code": 10007,
+        //         "desc": "orderId与clientOrderId选填1个"
+        //     }
+        //
+        return this.parseOrder (response, market);
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
@@ -1442,11 +1894,26 @@ module.exports = class zb extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
+        const market = this.market (symbol);
+        const swap = market['swap'];
         const request = {
-            'id': id.toString (),
-            'currency': this.marketId (symbol),
+            // 'currency': this.marketId (symbol), // only applicable to SPOT
+            // 'id': id.toString (), // only applicable to SPOT
+            // 'symbol': this.marketId (symbol), // only applicable to SWAP
+            // 'orderId': id.toString (), // only applicable to SWAP
+            // 'clientOrderId': params['clientOrderId'], // only applicable to SWAP
         };
-        const response = await this.spotV1PrivateGetGetOrder (this.extend (request, params));
+        const marketIdField = swap ? 'symbol' : 'currency';
+        request[marketIdField] = this.marketId (symbol);
+        const orderIdField = swap ? 'orderId' : 'id';
+        request[orderIdField] = id.toString ();
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'spotV1PrivateGetGetOrder',
+            'swap': 'contractV2PrivateGetTradeGetOrder',
+        });
+        let response = await this[method] (this.extend (request, params));
+        //
+        // Spot
         //
         //     {
         //         'total_amount': 0.01,
@@ -1460,7 +1927,44 @@ module.exports = class zb extends Exchange {
         //         'currency': 'eth_usdt'
         //     }
         //
-        return this.parseOrder (response, undefined);
+        // Swap
+        //
+        //     {
+        //         "code": 10000,
+        //         "data": {
+        //             "action": 1,
+        //             "amount": "0.002",
+        //             "availableAmount": "0.002",
+        //             "availableValue": "60",
+        //             "avgPrice": "0",
+        //             "canCancel": true,
+        //             "cancelStatus": 20,
+        //             "createTime": "1646185684379",
+        //             "entrustType": 1,
+        //             "id": "6904603200733782016",
+        //             "leverage": 2,
+        //             "margin": "30",
+        //             "marketId": "100",
+        //             "modifyTime": "1646185684416",
+        //             "price": "30000",
+        //             "priority": 0,
+        //             "showStatus": 1,
+        //             "side": 1,
+        //             "sourceType": 4,
+        //             "status": 12,
+        //             "tradeAmount": "0",
+        //             "tradeValue": "0",
+        //             "type": 1,
+        //             "userId": "6896693805014120448",
+        //             "value": "60"
+        //         },
+        //         "desc":"操作成功"
+        //     }
+        //
+        if (swap) {
+            response = this.safeValue (response, 'data', {});
+        }
+        return this.parseOrder (response, market);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1718,6 +2222,36 @@ module.exports = class zb extends Exchange {
         //         useZbFee: false
         //     },
         //
+        // fetchOrder Swap
+        //
+        //     {
+        //         "action": 1,
+        //         "amount": "0.002",
+        //         "availableAmount": "0.002",
+        //         "availableValue": "60",
+        //         "avgPrice": "0",
+        //         "canCancel": true,
+        //         "cancelStatus": 20,
+        //         "createTime": "1646185684379",
+        //         "entrustType": 1,
+        //         "id": "6904603200733782016",
+        //         "leverage": 2,
+        //         "margin": "30",
+        //         "marketId": "100",
+        //         "modifyTime": "1646185684416",
+        //         "price": "30000",
+        //         "priority": 0,
+        //         "showStatus": 1,
+        //         "side": 1,
+        //         "sourceType": 4,
+        //         "status": 12,
+        //         "tradeAmount": "0",
+        //         "tradeValue": "0",
+        //         "type": 1,
+        //         "userId": "6896693805014120448",
+        //         "value": "60"
+        //     },
+        //
         // Spot
         //
         //     {
@@ -1739,19 +2273,28 @@ module.exports = class zb extends Exchange {
         //         price: 30000
         //     }
         //
-        const orderId = market['swap'] ? this.safeValue (order, 'orderId') : this.safeValue (order, 'id');
+        let orderId = market['swap'] ? this.safeValue (order, 'orderId') : this.safeValue (order, 'id');
+        if (orderId === undefined) {
+            orderId = this.safeValue (order, 'id');
+        }
         let side = this.safeInteger (order, 'type');
         if (side === undefined) {
             side = undefined;
         } else {
             side = (side === 1) ? 'buy' : 'sell';
         }
-        const timestamp = this.safeInteger (order, 'trade_date');
+        let timestamp = this.safeInteger (order, 'trade_date');
+        if (timestamp === undefined) {
+            timestamp = this.safeInteger (order, 'createTime');
+        }
         const marketId = this.safeString (order, 'currency');
         market = this.safeMarket (marketId, market, '_');
         const price = this.safeString (order, 'price');
-        const filled = this.safeString (order, 'trade_amount');
-        const amount = this.safeString (order, 'total_amount');
+        const filled = market['swap'] ? this.safeString (order, 'tradeAmount') : this.safeString (order, 'trade_amount');
+        let amount = this.safeString (order, 'total_amount');
+        if (amount === undefined) {
+            amount = this.safeString (order, 'amount');
+        }
         const cost = this.safeString (order, 'trade_money');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const timeInForce = this.safeString (order, 'timeInForce');
@@ -1774,7 +2317,7 @@ module.exports = class zb extends Exchange {
         return this.safeOrder ({
             'info': order,
             'id': orderId,
-            'clientOrderId': undefined,
+            'clientOrderId': this.safeString (order, 'userId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -1785,7 +2328,7 @@ module.exports = class zb extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
-            'average': undefined,
+            'average': this.safeString (order, 'avgPrice'),
             'cost': cost,
             'amount': amount,
             'filled': filled,
@@ -1938,6 +2481,7 @@ module.exports = class zb extends Exchange {
         };
         if (symbol !== undefined) {
             const market = this.market (symbol);
+            symbol = market['symbol'];
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {
@@ -2013,9 +2557,21 @@ module.exports = class zb extends Exchange {
 
     parseFundingRate (contract, market = undefined) {
         //
+        // fetchFundingRate
+        //
         //     {
         //         "fundingRate": "0.0001",
         //         "nextCalculateTime": "2022-02-19 00:00:00"
+        //     }
+        //
+        // fetchFundingRates
+        //
+        //     {
+        //         "symbol": "BTC_USDT",
+        //         "markPrice": "43254.42",
+        //         "indexPrice": "43278.61",
+        //         "lastFundingRate": "0.0001",
+        //         "nextFundingTime": "1646121600000"
         //     }
         //
         const marketId = this.safeString (contract, 'symbol');
@@ -2025,8 +2581,8 @@ module.exports = class zb extends Exchange {
         return {
             'info': contract,
             'symbol': symbol,
-            'markPrice': undefined,
-            'indexPrice': undefined,
+            'markPrice': this.safeString (contract, 'markPrice'),
+            'indexPrice': this.safeString (contract, 'indexPrice'),
             'interestRate': undefined,
             'estimatedSettlePrice': undefined,
             'timestamp': undefined,
@@ -2037,10 +2593,33 @@ module.exports = class zb extends Exchange {
             'nextFundingRate': undefined,
             'nextFundingTimestamp': this.parse8601 (nextFundingDatetime),
             'nextFundingDatetime': nextFundingDatetime,
-            'previousFundingRate': undefined,
+            'previousFundingRate': this.safeString (contract, 'lastFundingRate'),
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
         };
+    }
+
+    async fetchFundingRates (symbols, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.contractV2PublicGetPremiumIndex (params);
+        //
+        //     {
+        //         "code": 10000,
+        //         "data": [
+        //             {
+        //                 "symbol": "BTC_USDT",
+        //                 "markPrice": "43254.42",
+        //                 "indexPrice": "43278.61",
+        //                 "lastFundingRate": "0.0001",
+        //                 "nextFundingTime": "1646121600000"
+        //             },
+        //         ],
+        //         "desc":"操作成功"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const result = this.parseFundingRates (data);
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
@@ -2408,6 +2987,426 @@ module.exports = class zb extends Exchange {
             result.push (this.parsePosition (positions[i]));
         }
         return result;
+    }
+
+    parseLedgerEntryType (type) {
+        const types = {
+            '1': 'realized pnl',
+            '2': 'commission',
+            '3': 'funding fee subtract',
+            '4': 'funding fee addition',
+            '5': 'insurance clear',
+            '6': 'transfer in',
+            '7': 'transfer out',
+            '8': 'margin addition',
+            '9': 'margin subtraction',
+            '10': 'commission addition',
+            '11': 'bill type freeze',
+            '12': 'bill type unfreeze',
+            '13': 'system take over margin',
+            '14': 'transfer',
+            '15': 'realized pnl collection',
+            '16': 'funding fee collection',
+            '17': 'recommender return commission',
+            '18': 'by level subtract positions',
+            '19': 'system add',
+            '20': 'system subtract',
+            '23': 'trading competition take over fund',
+            '24': 'trading contest tickets',
+            '25': 'return of trading contest tickets',
+            '26': 'experience expired recall',
+            '50': 'test register gift',
+            '51': 'register gift',
+            '52': 'deposit gift',
+            '53': 'trading volume gift',
+            '54': 'awards gift',
+            '55': 'trading volume gift',
+            '56': 'awards gift expire',
+            '201': 'open positions',
+            '202': 'close positions',
+            '203': 'take over positions',
+            '204': 'trading competition take over positions',
+            '205': 'one way open long',
+            '206': 'one way open short',
+            '207': 'one way close long',
+            '208': 'one way close short',
+            '301': 'coupon deduction service charge',
+            '302': 'experience deduction',
+            '303': 'experience expired',
+        };
+        return this.safeString (types, type, type);
+    }
+
+    parseLedgerEntry (item, currency = undefined) {
+        //
+        //     [
+        //         {
+        //             "type": 3,
+        //             "changeAmount": "0.00434664",
+        //             "isIn": 0,
+        //             "beforeAmount": "30.53353135",
+        //             "beforeFreezeAmount": "21.547",
+        //             "createTime": "1646121604997",
+        //             "available": "30.52918471",
+        //             "unit": "usdt",
+        //             "symbol": "BTC_USDT"
+        //         },
+        //     ],
+        //
+        const timestamp = this.safeString (item, 'createTime');
+        let direction = undefined;
+        const changeDirection = this.safeNumber (item, 'isIn');
+        if (changeDirection === 1) {
+            direction = 'increase';
+        } else {
+            direction = 'reduce';
+        }
+        let fee = undefined;
+        const feeCost = this.safeNumber (item, 'fee');
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': this.safeCurrencyCode (this.safeString (item, 'unit')),
+            };
+        }
+        return {
+            'id': this.safeString (item, 'id'),
+            'info': item,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'direction': direction,
+            'account': this.safeString (item, 'userId'),
+            'referenceId': undefined,
+            'referenceAccount': undefined,
+            'type': this.parseLedgerEntryType (this.safeInteger (item, 'type')),
+            'currency': this.safeCurrencyCode (this.safeString (item, 'unit')),
+            'amount': this.safeNumber (item, 'changeAmount'),
+            'before': this.safeNumber (item, 'beforeAmount'),
+            'after': this.safeNumber (item, 'available'),
+            'status': undefined,
+            'fee': fee,
+        };
+    }
+
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchLedger() requires a code argument');
+        }
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'futuresAccountType': 1,
+            // 'currencyId': '11',
+            // 'type': 1,
+            // 'endTime': this.milliseconds (),
+            // 'pageNum': 1,
+        };
+        if (code !== undefined) {
+            request['currencyName'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
+        const response = await this.contractV2PrivateGetFundGetBill (this.extend (request, params));
+        //
+        //     {
+        //         "code": 10000,
+        //         "data": {
+        //             "list": [
+        //                 {
+        //                     "type": 3,
+        //                     "changeAmount": "0.00434664",
+        //                     "isIn": 0,
+        //                     "beforeAmount": "30.53353135",
+        //                     "beforeFreezeAmount": "21.547",
+        //                     "createTime": "1646121604997",
+        //                     "available": "30.52918471",
+        //                     "unit": "usdt",
+        //                     "symbol": "BTC_USDT"
+        //                 },
+        //             ],
+        //             "pageNum": 1,
+        //             "pageSize": 10
+        //         },
+        //         "desc": "操作成功"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const list = this.safeValue (data, 'list', []);
+        return this.parseLedger (list, currency, since, limit);
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        await this.loadMarkets ();
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('transfer', undefined, params);
+        const currency = this.currency (code);
+        const margin = (marketType === 'margin');
+        const swap = (marketType === 'swap');
+        let side = undefined;
+        let marginMethod = undefined;
+        const request = {
+            'amount': amount, // Swap, Cross Margin, Isolated Margin
+            // 'coin': currency['id'], // Margin
+            // 'currencyName': currency['id'], // Swap
+            // 'clientId': this.safeString (params, 'clientId'), // Swap "2sdfsdfsdf232342"
+            // 'side': side, // Swap, 1：Deposit (zb account -> futures account)，0：Withdrawal (futures account -> zb account)
+            // 'marketName': this.safeString (params, 'marketName'), // Isolated Margin
+        };
+        if (swap) {
+            if (fromAccount === 'spot' || toAccount === 'future') {
+                side = 1;
+            } else {
+                side = 0;
+            }
+            request['currencyName'] = currency['id'];
+            request['clientId'] = this.safeString (params, 'clientId');
+            request['side'] = side;
+        } else {
+            const defaultMargin = margin ? 'isolated' : 'cross';
+            const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', defaultMargin);
+            if (marginType === 'isolated') {
+                if (fromAccount === 'spot' || toAccount === 'isolated') {
+                    marginMethod = 'spotV1PrivateGetTransferInLever';
+                } else {
+                    marginMethod = 'spotV1PrivateGetTransferOutLever';
+                }
+                request['marketName'] = this.safeString (params, 'marketName');
+            } else if (marginType === 'cross') {
+                if (fromAccount === 'spot' || toAccount === 'cross') {
+                    marginMethod = 'spotV1PrivateGetTransferInCross';
+                } else {
+                    marginMethod = 'spotV1PrivateGetTransferOutCross';
+                }
+            }
+            request['coin'] = currency['id'];
+        }
+        const method = this.getSupportedMapping (marketType, {
+            'swap': 'contractV2PrivatePostFundTransferFund',
+            'margin': marginMethod,
+        });
+        const response = await this[method] (this.extend (request, query));
+        //
+        // Swap
+        //
+        //     {
+        //         "code": 10000,
+        //         "data": "2sdfsdfsdf232342",
+        //         "desc": "Success"
+        //     }
+        //
+        // Margin
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": "Success"
+        //     }
+        //
+        const timestamp = this.milliseconds ();
+        const transfer = {
+            'id': this.safeString (response, 'data'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': code,
+            'amount': amount,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': this.safeInteger (response, 'code'),
+        };
+        return this.parseTransfer (transfer, code);
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        //     {
+        //         "id": "2sdfsdfsdf232342",
+        //         "timestamp": "",
+        //         "datetime": "",
+        //         "currency": "USDT",
+        //         "amount": "10",
+        //         "fromAccount": "futures account",
+        //         "toAccount": "zb account",
+        //         "status": 10000,
+        //     }
+        //
+        const currencyId = this.safeString (transfer, 'currency');
+        return {
+            'info': transfer,
+            'id': this.safeString (transfer, 'id'),
+            'timestamp': this.safeInteger (transfer, 'timestamp'),
+            'datetime': this.safeString (transfer, 'datetime'),
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': this.safeNumber (transfer, 'amount'),
+            'fromAccount': this.safeString (transfer, 'fromAccount'),
+            'toAccount': this.safeString (transfer, 'toAccount'),
+            'status': this.safeInteger (transfer, 'status'),
+        };
+    }
+
+    async modifyMarginHelper (symbol, amount, type, params = {}) {
+        if (params['positionsId'] === undefined) {
+            throw new ArgumentsRequired (this.id + ' modifyMarginHelper() requires a positionsId argument in the params');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        amount = this.amountToPrecision (symbol, amount);
+        const position = this.safeString (params, 'positionsId');
+        const request = {
+            'positionsId': position,
+            'amount': amount,
+            'type': type, // 1 increase, 0 reduce
+            'futuresAccountType': 1, // 1: USDT Perpetual Futures
+        };
+        const response = await this.contractV2PrivatePostPositionsUpdateMargin (this.extend (request, params));
+        //
+        //     {
+        //         "code": 10000,
+        //         "data": {
+        //             "amount": "0.002",
+        //             "appendAmount": "0",
+        //             "avgPrice": "43927.23",
+        //             "bankruptcyPrice": "41730.86",
+        //             "createTime": "1646208695609",
+        //             "freezeAmount": "0",
+        //             "id": "6900781818669377576",
+        //             "keyMark": "6896693805014120448-100-1-",
+        //             "lastAppendAmount": "0",
+        //             "lastTime": "1646209235505",
+        //             "leverage": 20,
+        //             "liquidateLevel": 1,
+        //             "liquidatePrice": "41898.46",
+        //             "maintainMargin": "0",
+        //             "margin": "4.392723",
+        //             "marginAppendCount": 0,
+        //             "marginBalance": "0",
+        //             "marginMode": 1,
+        //             "marginRate": "0",
+        //             "marketId": "100",
+        //             "marketName": "BTC_USDT",
+        //             "modifyTime": "1646209235505",
+        //             "nominalValue": "87.88828",
+        //             "originAppendAmount": "0",
+        //             "originId": "6904699716827818029",
+        //             "positionsMode": 2,
+        //             "sellerCurrencyId": "1",
+        //             "side": 1,
+        //             "status": 1,
+        //             "unrealizedPnl": "0.03382",
+        //             "usable": true,
+        //             "userId": "6896693805014120448"
+        //         },
+        //         "desc":"操作成功"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const side = (type === 1) ? 'add' : 'reduce';
+        const errorCode = this.safeInteger (data, 'status');
+        const status = (errorCode === 1) ? 'ok' : 'failed';
+        return {
+            'info': response,
+            'type': side,
+            'amount': amount,
+            'code': market['quote'],
+            'symbol': market['symbol'],
+            'status': status,
+        };
+    }
+
+    async reduceMargin (symbol, amount, params = {}) {
+        if (params['positionsId'] === undefined) {
+            throw new ArgumentsRequired (this.id + ' reduceMargin() requires a positionsId argument in the params');
+        }
+        return await this.modifyMarginHelper (symbol, amount, 0, params);
+    }
+
+    async addMargin (symbol, amount, params = {}) {
+        if (params['positionsId'] === undefined) {
+            throw new ArgumentsRequired (this.id + ' addMargin() requires a positionsId argument in the params');
+        }
+        return await this.modifyMarginHelper (symbol, amount, 1, params);
+    }
+
+    async fetchBorrowRate (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'coin': currency['id'],
+        };
+        const response = await this.spotV1PrivateGetGetLoans (this.extend (request, params));
+        //
+        //     {
+        //         code: '1000',
+        //         message: '操作成功',
+        //         result: [
+        //             {
+        //                 interestRateOfDay: '0.0005',
+        //                 repaymentDay: '30',
+        //                 amount: '148804.4841',
+        //                 balance: '148804.4841',
+        //                 rateOfDayShow: '0.05 %',
+        //                 coinName: 'USDT',
+        //                 lowestAmount: '0.01'
+        //             },
+        //         ]
+        //     }
+        //
+        const timestamp = this.milliseconds ();
+        const data = this.safeValue (response, 'result', []);
+        const rate = this.safeValue (data, 0, {});
+        return {
+            'currency': this.safeCurrencyCode (this.safeString (rate, 'coinName')),
+            'rate': this.safeNumber (rate, 'interestRateOfDay'),
+            'period': this.safeNumber (rate, 'repaymentDay'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': rate,
+        };
+    }
+
+    async fetchBorrowRates (params = {}) {
+        if (params['coin'] === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchBorrowRates() requires a coin argument in the params');
+        }
+        await this.loadMarkets ();
+        const currency = this.currency (this.safeString (params, 'coin'));
+        const request = {
+            'coin': currency['id'],
+        };
+        const response = await this.spotV1PrivateGetGetLoans (this.extend (request, params));
+        //
+        //     {
+        //         code: '1000',
+        //         message: '操作成功',
+        //         result: [
+        //             {
+        //                 interestRateOfDay: '0.0005',
+        //                 repaymentDay: '30',
+        //                 amount: '148804.4841',
+        //                 balance: '148804.4841',
+        //                 rateOfDayShow: '0.05 %',
+        //                 coinName: 'USDT',
+        //                 lowestAmount: '0.01'
+        //             },
+        //         ]
+        //     }
+        //
+        const timestamp = this.milliseconds ();
+        const data = this.safeValue (response, 'result');
+        const rates = [];
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            rates.push ({
+                'currency': this.safeCurrencyCode (this.safeString (entry, 'coinName')),
+                'rate': this.safeNumber (entry, 'interestRateOfDay'),
+                'period': this.safeNumber (entry, 'repaymentDay'),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'info': entry,
+            });
+        }
+        return rates;
     }
 
     nonce () {

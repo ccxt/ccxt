@@ -245,7 +245,7 @@ The `ccxt.browser.js` is generated with Babel from source.
 These files containing derived exchange classes are transpiled from JS into Python:
 
 - `js/[_a-z].js` → `python/ccxt/async/[_a-z].py`
-- `python/ccxt/async[_a-z].py` → `python/ccxt/[_a-z].py` (Python 3 asyncio → Python 2 sync transpilation stage)
+- `python/ccxt/async[_a-z].py` → `python/ccxt/[_a-z].py` (Python 3 asyncio → Python sync transpilation stage)
 - `python/ccxt/test/test_async.py` → `python/ccxt/test/test_sync.py` (the sync test is generated from the async test)
 
 These Python base classes and files are not transpiled:
@@ -496,14 +496,18 @@ if (object['key'] || other_value) { /* will not work in Python or PHP! */ }
 
 Therefore we have a family of `safe*` functions:
 
-- `safeInteger (object, key)`, `safeInteger2 (object, key1, key2)`
-- `safeFloat (object, key)`, `safeFloat2 (object, key1, key2)`
-- `safeString (object, key)`, `safeString2 (object, key1, key2)`
-- `safeValue (object, key)`, `safeValue2 (object, key1, key2)`
+- `safeInteger (object, key, default)`, `safeInteger2 (object, key1, key2, default)` –for parsing timestamps in milliseconds
+- `safeNumber (object, key, default)`, `safeNumber2 (object, key1, key2, default)` – for parsing amounts, prices, costs
+- `safeString (object, key, default)`, `safeString2 (object, key1, key2, default)` – for parsing ids, types, statuses
+- `safeStringLower (object, key, default)`, `safeStringLower2 (object, key1, key2, default)` – for parsing and turning to lowercase
+- `safeStringUpper (object, key, default)`, `safeStringUpper2 (object, key1, key2, default)` – for parsing and turning to lowercase
+- `safeValue (object, key, default)`, `safeValue2 (object, key1, key2, default)` – for parsing objects (dictionaries) and arrays (lists)
+- `safeTimestamp (object, key, default)`, `safeTimestamp2 (object, key1, key2, default)` – for parsing UNIX timestamps in seconds
+
 
 The `safeValue` function is used for objects inside objects, arrays inside objects and boolean `true/false` values.
 
-The above safe-functions will check for the existence of the key in the object and will properly return `undefined/None/null` values for JS/Python/PHP. Each function also accepts the default value to be returned instead of `undefined/None/null` in the last argument.
+The above safe-functions will check for the existence of the `key` (or `key1`, `key2`) in the object and will properly return `undefined/None/null` values for JS/Python/PHP. Each function also accepts the `default` value to be returned instead of `undefined/None/null` in the last argument.
 
 Alternatively, you could check for the key existence first...
 
@@ -983,7 +987,7 @@ node run-tests --js                  # test master ccxt.js, all exchanges
 
 # other examples require the 'npm run build' to run
 
-node run-tests --python              # test Python 2 version, all exchanges
+node run-tests --python              # test Python sync version, all exchanges
 node run-tests --php bitfinex        # test Bitfinex with PHP
 node run-tests --python-async kraken # test Kraken with Python async test, requires 'npm run build'
 ```

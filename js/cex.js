@@ -45,6 +45,8 @@ module.exports = class cex extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -514,12 +516,13 @@ module.exports = class cex extends Exchange {
             'currencies': currencies.join ('/'),
         };
         const response = await this.publicGetTickersCurrencies (this.extend (request, params));
-        const tickers = response['data'];
+        const tickers = this.safeValue (response, 'data', []);
         const result = {};
         for (let t = 0; t < tickers.length; t++) {
             const ticker = tickers[t];
-            const symbol = ticker['pair'].replace (':', '/');
-            const market = this.markets[symbol];
+            const marketId = this.safeString (ticker, 'pair');
+            const market = this.safeMarket (marketId, undefined, ':');
+            const symbol = market['symbol'];
             result[symbol] = this.parseTicker (ticker, market);
         }
         return this.filterByArray (result, 'symbol', symbols);
@@ -579,6 +582,41 @@ module.exports = class cex extends Exchange {
         };
         const response = await this.publicGetTradeHistoryPair (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
+    }
+
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privatePostGetMyfee (params);
+        //
+        //      {
+        //          e: 'get_myfee',
+        //          ok: 'ok',
+        //          data: {
+        //            'BTC:USD': { buy: '0.25', sell: '0.25', buyMaker: '0.15', sellMaker: '0.15' },
+        //            'ETH:USD': { buy: '0.25', sell: '0.25', buyMaker: '0.15', sellMaker: '0.15' },
+        //            ..
+        //          }
+        //      }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const result = {};
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            const market = this.market (symbol);
+            const fee = this.safeValue (data, market['id'], {});
+            const makerString = this.safeString (fee, 'buyMaker');
+            const takerString = this.safeString (fee, 'buy');
+            const maker = this.parseNumber (Precise.stringDiv (makerString, '100'));
+            const taker = this.parseNumber (Precise.stringDiv (takerString, '100'));
+            result[symbol] = {
+                'info': fee,
+                'symbol': symbol,
+                'maker': maker,
+                'taker': taker,
+                'percentage': true,
+            };
+        }
+        return result;
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

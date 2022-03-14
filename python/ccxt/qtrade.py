@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadSymbol
@@ -1462,7 +1455,7 @@ class qtrade(Exchange):
             ])  # eslint-disable-line quotes
             hash = self.hash(self.encode(auth), 'sha256', 'base64')
             key = self.apiKey
-            if not isinstance(key, basestring):
+            if not isinstance(key, str):
                 key = str(key)
             signature = 'HMAC-SHA256 ' + key + ':' + hash
             headers = {

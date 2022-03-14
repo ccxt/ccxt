@@ -69,6 +69,8 @@ class bytetrade extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
                 'setLeverage' => false,
@@ -658,6 +660,57 @@ class bytetrade extends Exchange {
         }
         $response = yield $this->marketGetTrades (array_merge($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
+    }
+
+    public function fetch_trading_fees($params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->publicGetSymbols ($params);
+        //
+        //     array(
+        //         {
+        //             "symbol" => "122406567911",
+        //             "name" => "BTC/USDT",
+        //             "base" => "32",
+        //             "quote" => "57",
+        //             "marketStatus" => 0,
+        //             "baseName" => "BTC",
+        //             "quoteName" => "USDT",
+        //             "active" => true,
+        //             "maker" => "0.0008",
+        //             "taker" => "0.0008",
+        //             "precision" => array(
+        //                 "amount" => 6,
+        //                 "price" => 2,
+        //                 "minPrice":1
+        //             ),
+        //             "limits" => {
+        //                 "amount" => array(
+        //                     "min" => "0.000001",
+        //                     "max" => "-1"
+        //                 ),
+        //                 "price" => {
+        //                     "min" => "0.01",
+        //                     "max" => "-1"
+        //                 }
+        //             }
+        //        }
+        //        ...
+        //    )
+        //
+        $result = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $symbolInfo = $response[$i];
+            $marketId = $this->safe_string($symbolInfo, 'name');
+            $symbol = $this->safe_symbol($marketId);
+            $result[$symbol] = array(
+                'info' => $symbolInfo,
+                'symbol' => $symbol,
+                'maker' => $this->safe_number($symbolInfo, 'maker'),
+                'taker' => $this->safe_number($symbolInfo, 'taker'),
+                'percentage' => true,
+            );
+        }
+        return $result;
     }
 
     public function parse_order($order, $market = null) {

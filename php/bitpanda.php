@@ -66,6 +66,7 @@ class bitpanda extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
                 'fetchWithdrawals' => true,
                 'privateAPI' => true,
@@ -412,7 +413,7 @@ class bitpanda extends Exchange {
         //     array(
         //         {
         //             "fee_group_id":"default",
-        //             "display_text":"The standard $fee plan.",
+        //             "display_text":"The standard fee plan.",
         //             "fee_tiers":array(
         //                 array("volume":"0.0","fee_group_id":"default","maker_fee":"0.1","taker_fee":"0.15"),
         //                 array("volume":"100.0","fee_group_id":"default","maker_fee":"0.1","taker_fee":"0.13"),
@@ -427,43 +428,22 @@ class bitpanda extends Exchange {
         //         }
         //     )
         //
-        $feeGroupsById = $this->index_by($response, 'fee_group_id');
-        $feeGroupId = $this->safe_value($this->options, 'fee_group_id', 'default');
-        $feeGroup = $this->safe_value($feeGroupsById, $feeGroupId, array());
-        $feeTiers = $this->safe_value($feeGroup, 'fee_tiers');
+        $first = $this->safe_value($response, 0, array());
+        $feeTiers = $this->safe_value($first, 'fee_tiers');
+        $tiers = $this->parse_fee_tiers($feeTiers);
+        $firstTier = $this->safe_value($feeTiers, 0, array());
         $result = array();
         for ($i = 0; $i < count($this->symbols); $i++) {
             $symbol = $this->symbols[$i];
-            $fee = array(
-                'info' => $feeGroup,
+            $result[$symbol] = array(
+                'info' => $first,
                 'symbol' => $symbol,
-                'maker' => null,
-                'taker' => null,
+                'maker' => $this->safe_number($firstTier, 'maker_fee'),
+                'taker' => $this->safe_number($firstTier, 'taker_fee'),
                 'percentage' => true,
                 'tierBased' => true,
+                'tiers' => $tiers,
             );
-            $takerFees = array();
-            $makerFees = array();
-            for ($i = 0; $i < count($feeTiers); $i++) {
-                $tier = $feeTiers[$i];
-                $volume = $this->safe_number($tier, 'volume');
-                $taker = $this->safe_number($tier, 'taker_fee');
-                $maker = $this->safe_number($tier, 'maker_fee');
-                $taker /= 100;
-                $maker /= 100;
-                $takerFees[] = array( $volume, $taker );
-                $makerFees[] = array( $volume, $maker );
-                if ($i === 0) {
-                    $fee['taker'] = $taker;
-                    $fee['maker'] = $maker;
-                }
-            }
-            $tiers = array(
-                'taker' => $takerFees,
-                'maker' => $makerFees,
-            );
-            $fee['tiers'] = $tiers;
-            $result[$symbol] = $fee;
         }
         return $result;
     }
@@ -493,32 +473,45 @@ class bitpanda extends Exchange {
         //     }
         //
         $activeFeeTier = $this->safe_value($response, 'active_fee_tier', array());
-        $result = array(
-            'info' => $response,
-            'maker' => $this->safe_number($activeFeeTier, 'maker_fee'),
-            'taker' => $this->safe_number($activeFeeTier, 'taker_fee'),
-            'percentage' => true,
-            'tierBased' => true,
-        );
+        $makerFee = $this->safe_string($activeFeeTier, 'maker_fee');
+        $takerFee = $this->safe_string($activeFeeTier, 'taker_fee');
+        $makerFee = Precise::string_div($makerFee, '100');
+        $takerFee = Precise::string_div($takerFee, '100');
         $feeTiers = $this->safe_value($response, 'fee_tiers');
+        $result = array();
+        $tiers = $this->parse_fee_tiers($feeTiers);
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
+            $result[$symbol] = array(
+                'info' => $response,
+                'symbol' => $symbol,
+                'maker' => $this->parse_number($makerFee),
+                'taker' => $this->parse_number($takerFee),
+                'percentage' => true,
+                'tierBased' => true,
+                'tiers' => $tiers,
+            );
+        }
+        return $result;
+    }
+
+    public function parse_fee_tiers($feeTiers, $market = null) {
         $takerFees = array();
         $makerFees = array();
         for ($i = 0; $i < count($feeTiers); $i++) {
             $tier = $feeTiers[$i];
             $volume = $this->safe_number($tier, 'volume');
-            $taker = $this->safe_number($tier, 'taker_fee');
-            $maker = $this->safe_number($tier, 'maker_fee');
-            $taker /= 100;
-            $maker /= 100;
-            $takerFees[] = array( $volume, $taker );
-            $makerFees[] = array( $volume, $maker );
+            $taker = $this->safe_string($tier, 'taker_fee');
+            $maker = $this->safe_string($tier, 'maker_fee');
+            $maker = Precise::string_div($maker, '100');
+            $taker = Precise::string_div($taker, '100');
+            $makerFees[] = array( $volume, $this->parse_number($maker) );
+            $takerFees[] = array( $volume, $this->parse_number($taker) );
         }
-        $tiers = array(
-            'taker' => $takerFees,
+        return array(
             'maker' => $makerFees,
+            'taker' => $takerFees,
         );
-        $result['tiers'] = $tiers;
-        return $result;
     }
 
     public function parse_ticker($ticker, $market = null) {

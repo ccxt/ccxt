@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
@@ -88,7 +81,8 @@ class kraken(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
-                'fetchTradingFees': True,
+                'fetchTradingFee': True,
+                'fetchTradingFees': False,
                 'fetchWithdrawals': True,
                 'setLeverage': False,
                 'setMarginMode': False,  # Kraken only supports cross margin
@@ -146,58 +140,6 @@ class kraken(Exchange):
                             [5000000, 0.0002],
                             [10000000, 0.0],
                         ],
-                    },
-                },
-                # self is a bad way of hardcoding fees that change on daily basis
-                # hardcoding is now considered obsolete, we will remove all of it eventually
-                'funding': {
-                    'tierBased': False,
-                    'percentage': False,
-                    'withdraw': {
-                        'BTC': 0.001,
-                        'ETH': 0.005,
-                        'XRP': 0.02,
-                        'XLM': 0.00002,
-                        'LTC': 0.02,
-                        'DOGE': 2,
-                        'ZEC': 0.00010,
-                        'ICN': 0.02,
-                        'REP': 0.01,
-                        'ETC': 0.005,
-                        'MLN': 0.003,
-                        'XMR': 0.05,
-                        'DASH': 0.005,
-                        'GNO': 0.01,
-                        'EOS': 0.5,
-                        'BCH': 0.001,
-                        'XTZ': 0.05,
-                        'USD': 5,  # if domestic wire
-                        'EUR': 5,  # if domestic wire
-                        'CAD': 10,  # CAD EFT Withdrawal
-                        'JPY': 300,  # if domestic wire
-                    },
-                    'deposit': {
-                        'BTC': 0,
-                        'ETH': 0,
-                        'XRP': 0,
-                        'XLM': 0,
-                        'LTC': 0,
-                        'DOGE': 0,
-                        'ZEC': 0,
-                        'ICN': 0,
-                        'REP': 0,
-                        'ETC': 0,
-                        'MLN': 0,
-                        'XMR': 0,
-                        'DASH': 0,
-                        'GNO': 0,
-                        'EOS': 0,
-                        'BCH': 0,
-                        'XTZ': 0.05,
-                        'USD': 5,  # if domestic wire
-                        'EUR': 0,  # free deposit if EUR SEPA Deposit
-                        'CAD': 5,  # if domestic wire
-                        'JPY': 0,  # Domestic Deposit(Free, ¥5,000 deposit minimum)
                     },
                 },
             },
@@ -617,23 +559,58 @@ class kraken(Exchange):
             }
         return result
 
-    def fetch_trading_fees(self, params={}):
+    def fetch_trading_fee(self, symbol, params={}):
         self.load_markets()
-        response = self.privatePostTradeVolume(params)
-        tradedVolume = self.safe_number(response['result'], 'volume')
-        tiers = self.fees['trading']['tiers']
-        taker = tiers['taker'][1]
-        maker = tiers['maker'][1]
-        for i in range(0, len(tiers['taker'])):
-            if tradedVolume >= tiers['taker'][i][0]:
-                taker = tiers['taker'][i][1]
-        for i in range(0, len(tiers['maker'])):
-            if tradedVolume >= tiers['maker'][i][0]:
-                maker = tiers['maker'][i][1]
+        market = self.market(symbol)
+        request = {
+            'pair': market['id'],
+            'fee-info': True,
+        }
+        response = self.privatePostTradeVolume(self.extend(request, params))
+        #
+        #     {
+        #        error: [],
+        #        result: {
+        #          currency: 'ZUSD',
+        #          volume: '0.0000',
+        #          fees: {
+        #            XXBTZUSD: {
+        #              fee: '0.2600',
+        #              minfee: '0.1000',
+        #              maxfee: '0.2600',
+        #              nextfee: '0.2400',
+        #              tiervolume: '0.0000',
+        #              nextvolume: '50000.0000'
+        #            }
+        #          },
+        #          fees_maker: {
+        #            XXBTZUSD: {
+        #              fee: '0.1600',
+        #              minfee: '0.0000',
+        #              maxfee: '0.1600',
+        #              nextfee: '0.1400',
+        #              tiervolume: '0.0000',
+        #              nextvolume: '50000.0000'
+        #            }
+        #          }
+        #        }
+        #     }
+        #
+        result = self.safe_value(response, 'result', {})
+        return self.parse_trading_fee(result, market)
+
+    def parse_trading_fee(self, response, market):
+        makerFees = self.safe_value(response, 'fees_maker', {})
+        takerFees = self.safe_value(response, 'fees', {})
+        symbolMakerFee = self.safe_value(makerFees, market['id'], {})
+        symbolTakerFee = self.safe_value(takerFees, market['id'], {})
         return {
             'info': response,
-            'maker': maker,
-            'taker': taker,
+            'symbol': market['symbol'],
+            'maker': self.safe_number(symbolMakerFee, 'fee'),
+            'taker': self.safe_number(symbolTakerFee, 'fee'),
+            'percentage': True,
+            'tierBased': True,
         }
 
     def parse_bid_ask(self, bidask, priceKey=0, amountKey=1):
@@ -998,7 +975,7 @@ class kraken(Exchange):
             tradeLength = len(trade)
             if tradeLength > 6:
                 id = self.safe_string(trade, 6)  # artificially added as per  #1794
-        elif isinstance(trade, basestring):
+        elif isinstance(trade, str):
             id = trade
         elif 'ordertxid' in trade:
             marketId = self.safe_string(trade, 'pair')
@@ -1405,7 +1382,7 @@ class kraken(Exchange):
         else:
             for i in range(0, len(orderTrades)):
                 orderTrade = orderTrades[i]
-                if isinstance(orderTrade, basestring):
+                if isinstance(orderTrade, str):
                     tradeIds.append(orderTrade)
                 else:
                     tradeIds.append(orderTrade['id'])
@@ -2023,7 +2000,7 @@ class kraken(Exchange):
         if response is None:
             return
         if body[0] == '{':
-            if not isinstance(response, basestring):
+            if not isinstance(response, str):
                 if 'error' in response:
                     numErrors = len(response['error'])
                     if numErrors:
