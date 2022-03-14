@@ -443,7 +443,10 @@ class Exchange(object):
 
     def __del__(self):
         if self.session:
-            self.session.close()
+            try:
+                self.session.close()
+            except Exception as e:
+                pass
 
     def __repr__(self):
         return 'ccxt.' + ('async_support.' if self.asyncio_loop else '') + self.id + '()'
