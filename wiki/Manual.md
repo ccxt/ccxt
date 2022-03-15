@@ -2530,7 +2530,7 @@ fetchMarketLeverageTiers(symbol, params = {})
 
 Parameters
 - **symbol** (String) *required* Unified CCXT symbol (e.g. `"BTC/USDT:USDT"`)
-- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"settle": "usdt"}`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"settle": "usdt"}`)
 
 Returns
 - a [leverage-tiers-structure](#leverage-tiers-structure)
@@ -2542,7 +2542,7 @@ fetchLeverageTiers(symbols = undefined, params = {})
 
 Parameters
 - **symbols** (\[String\]) Unified CCXT symbol (e.g. `"BTC/USDT:USDT"`)
-- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"settle": "usdt"}`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"settle": "usdt"}`)
 
 Returns
 - an array of [leverage-tiers-structures](#leverage-tiers-structure)
@@ -2606,7 +2606,7 @@ fetchFundingRate (symbol, params = {})
 
 Parameters
 - **symbol** (String) *required* Unified CCXT symbol (e.g. `"BTC/USDT:USDT"`)
-- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
 
 Returns
 - a [funding rate structure](#funding-rate-structure)
@@ -2617,7 +2617,7 @@ fetchFundingRates (symbols = undefined, params = {})
 
 Parameters
 - **symbols** (\[String\]) An optional array/list of unified CCXT symbols (e.g. `["BTC/USDT:USDT", "ETH/USDT:USDT"]`)
-- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
 
 Returns
 - a dictionary of [funding rate structures](#funding-rate-structure) indexed by market symbols
@@ -2690,7 +2690,7 @@ fetchBorrowRate (code, params = {})
 
 Parameters
 - **code** (String) Unified CCXT currency code, required (e.g. `"USDT"`)
-- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"marginMode": "cross"}`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"marginMode": "cross"}`)
 
 Returns
 - An [transaction structure](#transaction-structure)
@@ -2700,7 +2700,7 @@ fetchBorrowRates (params = {})
 ```
 
 Parameters
-- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"marginMode": "cross"}`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"marginMode": "cross"}`)
 
 Returns
 - A dictionary of [borrow rate structures](#borrow-rate-structure) with unified currency codes as keys
@@ -2710,7 +2710,7 @@ fetchBorrowRatesPerSymbol (params = {})
 ```
 
 Parameters
-- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"marginMode": "cross"}`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"marginMode": "cross"}`)
 
 Returns
 - A dictionary of [borrow rate structures](#borrow-rate-structure) with unified market symbols as keys
@@ -4025,7 +4025,7 @@ Parameters
 - **code** (String) *required* Unified CCXT currency code, required (e.g. `"USDT"`)
 - **amount** (Float) *required* The amount of currency to send in the deposit (e.g. `20`)
 - **address** (String) *required* The recipient address of the deposit (e.g. `"TEY6qjnKDyyq5jDc3DJizWLCdUySrpQ4yp"`)
-- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"network": "TRX"}`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"network": "TRX"}`)
 
 Returns
 - An [transaction structure](#transaction-structure)
@@ -4045,7 +4045,7 @@ fetchDeposit (id, code = undefined, params = {})
 Parameters
 - **id** (String) *required* Deposit id
 - **code** (String) Unified CCXT currency code, required (e.g. `"USDT"`)
-- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"network": "TRX"}`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"network": "TRX"}`)
 
 Returns
 - An [transaction structure](#transaction-structure)
@@ -4058,7 +4058,7 @@ Parameters
 - **code** (String) Unified CCXT currency code (e.g. `"USDT"`)
 - **since** (Integer) Timestamp (ms) of the earliest time to retrieve deposits for (e.g. `1646940314000`)
 - **limit** (Integer) The number of [transaction structures](#transaction-structure) to retrieve (e.g. `5`)
-- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
 
 Returns
 - An array of [transaction structures](#transaction-structure)
@@ -4093,7 +4093,7 @@ Parameters
 - **amount** (Float) *required* The amount of currency to withdraw (e.g. `20`)
 - **address** (String) *required* The recipient address of the withdrawal (e.g. `"TEY6qjnKDyyq5jDc3DJizWLCdUySrpQ4yp"`)
 - **tag** (String) Required for some networks (e.g. `"52055"`)
-- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"network": "TRX"}`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"network": "TRX"}`)
 
 Returns
 - An [transaction structure](#transaction-structure)
@@ -4113,7 +4113,7 @@ fetchWithdrawal (id, code = undefined, params = {})
 Parameters
 - **id** (String) *required* Withdrawal id
 - **code** (String) Unified CCXT currency code (e.g. `"USDT"`)
-- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"network": "TRX"}`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"network": "TRX"}`)
 
 ```Javascript
 fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {})
@@ -4123,7 +4123,7 @@ Parameters
 - **code** (String) Unified CCXT currency code (e.g. `"USDT"`)
 - **since** (Integer) Timestamp (ms) of the earliest time to retrieve withdrawals for (e.g. `1646940314000`)
 - **limit** (Integer) The number of [transaction structures](#transaction-structure) to retrieve (e.g. `5`)
-- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
 
 Returns
 - An array of [transaction structures](#transaction-structure)
@@ -4315,7 +4315,7 @@ createDepositAddress (code, params = {})
 
 Parameters
 - **code** (String) *required* Unified CCXT currency code (e.g. `"USDT"`)
-- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
 
 Returns
 - an [address structure](#address-structure)
@@ -4330,7 +4330,7 @@ fetchDepositAddresses (codes = undefined, params = {})
 
 Parameters
 - **code** (\[String\]) Array of unified CCXT currency codes. May or may not be required depending on the exchange (e.g. `["USDT", "BTC"]`)
-- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
 
 Returns
 - an array of [address structures](#address-structure)
@@ -4341,7 +4341,7 @@ fetchDepositAddressesByNetwork (code, params = {})
 
 Parameters
 - **code** (String) *required* Unified CCXT currency code (e.g. `"USDT"`)
-- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
 
 Returns
 - an array of [address structures](#address-structure)
@@ -4532,17 +4532,31 @@ exchange.currencies['BTC']['fee'] // tx/withdrawal fee rate for BTC
 
 Some exchanges have an endpoint for fetching the funding fee schedule, this is mapped to the unified methods
 
-- `fetchFundingFee` for a single funding fee schedule
-- `fetchFundingFees` for all funding fee schedules
-
+- `fetchFundingFee ()` for a single funding fee schedule
+- `fetchFundingFees ()` for all funding fee schedules
 
 ```Javascript
 fetchFundingFee (code, params = {})
 ```
 
+Parameters
+- **code** (String) *required* Unified CCXT currency code, required (e.g. `"USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"type": "deposit"}`)
+
+Returns
+- A [funding fee structure](#funding-fee-structure)
+
 ```Javascript
 fetchFundingFees (params = {})
 ```
+
+Parameters
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"type": "deposit"}`)
+
+Returns
+- An array of [funding fee structures](#funding-fee-structure)
+
+##### Funding Fee Structure
 
 ```JavaScript
 {
@@ -4583,7 +4597,7 @@ fetchLedgerEntry (id, code = undefined, params = {})
 Parameters
 - **id** (String) *required* Ledger entry id
 - **code** (String) Unified CCXT currency code, required (e.g. `"USDT"`)
-- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"type": "deposit"}`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"type": "deposit"}`)
 
 Returns
 - A [ledger entry structure](#ledger-entry-structure)
@@ -4596,7 +4610,7 @@ Parameters
 - **code** (String) Unified CCXT currency code; *required* if fetching all ledger entries for all assets at once is not supported (e.g. `"USDT"`)
 - **since** (Integer) Timestamp (ms) of the earliest time to retrieve withdrawals for (e.g. `1646940314000`)
 - **limit** (Integer) The number of [ledger entry structures](#ledger-entry-structure) to retrieve (e.g. `5`)
-- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
 
 Returns
 - An array of [ledger entry structures](#ledger-entry-structure)
@@ -4674,7 +4688,7 @@ setMarginMode (marginType, symbol = undefined, params = {})
 Parameters
 - **marginType** (String) *required* `"cross"` or `"isolated"`
 - **symbol** (String) Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`) *required* on most exchanges. Is not required when the margin mode is not specific to a market
-- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"leverage": 5}`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"leverage": 5}`)
 
 Returns 
 - response from the exchange
@@ -4723,7 +4737,7 @@ Parameters
 - **symbol** (String) Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`)
 - **since** (Integer) Timestamp (ms) of the earliest time to retrieve funding history for (e.g. `1646940314000`)
 - **limit** (Integer) The number of [funding history structures](#funding-history-structure) to retrieve (e.g. `5`)
-- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
 
 Returns
 - An array of [funding history structures](#funding-history-structure)
@@ -4759,7 +4773,7 @@ Parameters
 - **amount** (Float) The amount of currency to transfer (e.g. `10.5`)
 - **fromAccount** (String) The account to transfer funds from.
 - **toAccount** (String) The account to transfer funds to
-- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
 
 Returns
 - A [transfer structure](#transfer-structure)
@@ -4772,7 +4786,7 @@ transferOut (code, amount, params = {})
 Parameters
 - **code** (String) Unified CCXT currency code (e.g. `"USDT"`)
 - **amount** (Float) The amount of currency to transfer (e.g. `10.5`)
-- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
 
 Returns
 - A [transfer structure](#transfer-structure)
@@ -4785,7 +4799,7 @@ Parameters
 - **code** (String) Unified CCXT currency code (e.g. `"USDT"`)
 - **since** (Integer) Timestamp (ms) of the earliest time to retrieve transfers for (e.g. `1646940314000`)
 - **limit** (Integer) The number of [transfer structures](#transfer-structure) to retrieve (e.g. `5`)
-- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
 
 Returns
 - An array of [transfer structures](#transfer-structure)
@@ -4817,7 +4831,7 @@ setLeverage (leverage, symbol = undefined, params = {})
 Parameters
 - **leverage** (Integer) *required* The desired leverage
 - **symbol** (String) Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`) *required* on most exchanges. Is not required when leverage is not specific to a market (e.g. Not required on **FTX** because leverage is set for the account and not per market)
-- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"marginMode": "cross"}`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"marginMode": "cross"}`)
 
 Returns 
 - response from the exchange
@@ -4831,7 +4845,7 @@ signIn (params = {})
 ```
 
 Parameters
-- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"2fa": "329293"}`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"2fa": "329293"}`)
 
 Returns 
 - response from the exchange
