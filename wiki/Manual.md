@@ -2510,54 +2510,44 @@ The possible values in the `status` field are:
 - `'maintenance'` means regular maintenance, and the `eta` field should contain the datetime when the exchange is expected to be operational again
 
 ## Leverage Tiers
+*contract only*
 
-* contract only
-* These are private methods on **binance**
+- Leverage Tier methods are private on **binance**
 
-You can obtain the absolute maximum leverage for a market by accessing `market['limits']['leverage']['max']`.
-For many contracts, the maximum leverage will depend on the size of your position.
+The `fetchLeverageTiers()` method can be used to obtain the maximum leverage for a market at varying position sizes. It can also be used to obtain the maintenance margin rate, and the max tradeable amount for a market when that information is not available from the market object
+
+While you can obtain the absolute maximum leverage for a market by accessing `market['limits']['leverage']['max']`, for many contract markets, the maximum leverage will depend on the size of your position.
 
 You can access those limits by using
 
-- `fetchLeverageTiers()` (multiple symbols) 
 - `fetchMarketLeverageTiers()` (single symbol)
-
-```Javascript
-fetchLeverageTiers(symbols = undefined, params = {})
-```
+- `fetchLeverageTiers([symbol1, symbol2, ...])` (multiple symbols) 
+- `fetchLeverageTiers()` (all market symbols) 
 
 ```Javascript
 fetchMarketLeverageTiers(symbol, params = {})
 ```
 
-The `fetchLeverageTiers()` method can be used to obtain the maximum leverage for a market at varying position sizes. It can also be used to obtain the maintenance margin rate, and the max tradeable amount for a market when that information is not available from the market object:
+Parameters
+- **symbol** (String) *required* Unified CCXT symbol (e.g. `"BTC/USDT:USDT"`)
+- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"settle": "usdt"}`)
 
-### Leverage Tiers Structure
+Returns
+- a [leverage-tiers-structure](#leverage-tiers-structure)
 
-The `fetchLeverageTiers()` method will return a structure like shown below:
 
-```JavaScript
-{
-    'BNB/USDT': [
-        {
-            "tier": 1,                       // tier index
-            "notionalCurrency": "USDT",      // the currency that notionalFloor and notionalCap are in
-            "notionalFloor": 0,              // the lowest amount of this tier // stake = 0.0
-            "notionalCap": 10000,            // the highest amount of this tier // max stake amount at 75x leverage = 133.33333333333334
-            "maintenanceMarginRate": 0.0065, // maintenance margin rate
-            "maxLeverage": 75,               // max available leverage for this market when the value of the trade is > notionalFloor and < notionalCap
-            "info": { ... }                  // Response from exchange
-        },
-        ...
-    ]
-    ...
-  ],
-}
+```Javascript
+fetchLeverageTiers(symbols = undefined, params = {})
 ```
 
-### Market Leverage Tiers Structure
+Parameters
+- **symbols** (\[String\]) Unified CCXT symbol (e.g. `"BTC/USDT:USDT"`)
+- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"settle": "usdt"}`)
 
-The `fetchMarketLeverageTiers()` method will return a structure like shown below:
+Returns
+- an array of [leverage-tiers-structures](#leverage-tiers-structure)
+
+### Leverage Tiers Structure
 
 ```JavaScript
 [
@@ -2615,7 +2605,7 @@ fetchFundingRate (symbol, params = {})
 ```
 
 Parameters
-- **symbol** (String) *required* Unified CCXT symbol, required (e.g. `"BTC/USDT:USDT"`)
+- **symbol** (String) *required* Unified CCXT symbol (e.g. `"BTC/USDT:USDT"`)
 - **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
 
 Returns
@@ -2626,7 +2616,7 @@ fetchFundingRates (symbols = undefined, params = {})
 ```
 
 Parameters
-- **symbols** ([String]) An optional array/list of unified CCXT symbols (e.g. `["BTC/USDT:USDT", "ETH/USDT:USDT"]`)
+- **symbols** (\[String\]) An optional array/list of unified CCXT symbols (e.g. `["BTC/USDT:USDT", "ETH/USDT:USDT"]`)
 - **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
 
 Returns
@@ -3723,7 +3713,7 @@ cancelOrders (ids, symbol = undefined, params = {})
 ```
 
 Parameters
-- **ids** ([String]) *required* Order ids (e.g. `1645807945000`)
+- **ids** (\[String\]) *required* Order ids (e.g. `1645807945000`)
 - **symbol** (String) Unified CCXT market symbol **required** on some exchanges (e.g. `"BTC/USDT"`)
 - **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"settle": "usdt"}`)
 
@@ -4339,7 +4329,7 @@ fetchDepositAddresses (codes = undefined, params = {})
 ```
 
 Parameters
-- **code** ([String]) Array of unified CCXT currency codes. May or may not be required depending on the exchange (e.g. `["USDT", "BTC"]`)
+- **code** (\[String\]) Array of unified CCXT currency codes. May or may not be required depending on the exchange (e.g. `["USDT", "BTC"]`)
 - **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
 
 Returns
