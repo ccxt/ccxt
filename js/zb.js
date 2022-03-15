@@ -21,7 +21,7 @@ module.exports = class zb extends ccxt.zb {
                 'api': {
                     'ws': {
                         'spot': 'wss://api.zb.work/websocket',
-                        'future': 'wss://fapi.zb.com/ws/public/v1',
+                        'contract': 'wss://fapi.zb.com/ws/public/v1',
                     },
                 },
             },
@@ -128,14 +128,14 @@ module.exports = class zb extends ccxt.zb {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const type = market['type'];
+        const type = market['spot'] ? 'spot' : 'contract';
         let request = undefined;
-        let messageHash = market['baseId'] + market['quoteId'];
+        let messageHash = undefined;
         let url = this.urls['api']['ws'][type];
         if (market['type'] === 'spot') {
             url += '/' + market['baseId'];
             const name = 'quick_depth';
-            messageHash += '_' + name;
+            messageHash = market['baseId'] + market['quoteId'] + '_' + name;
             request = {
                 'event': 'addChannel',
                 'channel': messageHash,
@@ -143,18 +143,26 @@ module.exports = class zb extends ccxt.zb {
             };
         } else {
             const name = 'Depth';
-            messageHash += '.' + name;
+            messageHash = market['id'] + '.' + name;
             request = {
-                'event': 'addChannel',
+                'action': 'subscribe',
                 'channel': messageHash,
                 'size': limit,
             };
         }
-        const orderbook = await this.watchPublic (url, messageHash, this.handleOrderBook, request, params);
+        const subscription = {
+            'symbol': symbol,
+            'messageHash': messageHash,
+            'limit': limit,
+            'method': this.handleOrderBook,
+        };
+        const message = this.extend (request, params);
+        const orderbook = await this.watch (url, messageHash, message, messageHash, subscription);
         return orderbook.limit (limit);
     }
 
     handleOrderBook (client, message, subscription) {
+        // spot snapshot
         //
         //     {
         //         lastTime: 1624524640066,
@@ -185,19 +193,91 @@ module.exports = class zb extends ccxt.zb {
         //         showMarket: 'btcusdt'
         //     }
         //
+        // contract snapshot
+        // {
+        //     channel: 'BTC_USDT.Depth',
+        //     type: 'Whole',
+        //     data: {
+        //       asks: [ [Array], [Array], [Array], [Array], [Array] ],
+        //       bids: [ [Array], [Array], [Array], [Array], [Array] ],
+        //       time: '1647359998198'
+        //     }
+        //   }
+        //
+        // contract deltas
+        // {
+        //     channel: 'BTC_USDT.Depth',
+        //     data: {
+        //       bids: [ [Array], [Array], [Array], [Array] ],
+        //       asks: [ [Array], [Array], [Array] ],
+        //       time: '1647360038079'
+        //     }
+        //  }
+        //
+        const type = this.safeString2 (message, 'type', 'dataType');
         const channel = this.safeString (message, 'channel');
-        const limit = this.safeInteger (subscription, 'limit');
         const symbol = this.safeString (subscription, 'symbol');
         let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook ({}, limit);
-            this.orderbooks[symbol] = orderbook;
+        if (type !== undefined) {
+            // handle orderbook snapshot
+            const timestamp = this.safeInteger2 (message, 'lastTime', 'time');
+            const asksKey = (type === 'whole') ? 'asks' : 'listUp';
+            const bidsKey = (type === 'whole') ? 'bids' : 'listDown';
+            const snapshot = this.parseOrderBook (message, symbol, timestamp, asksKey, bidsKey);
+            if (!(symbol in this.orderbooks)) {
+                const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
+                const limit = this.safeInteger (subscription, 'limit', defaultLimit);
+                orderbook = this.orderBook (snapshot, limit);
+                this.orderbooks[symbol] = orderbook;
+            } else {
+                orderbook = this.orderbooks[symbol];
+                orderbook.reset (snapshot);
+            }
+            orderbook['symbol'] = symbol;
+            if (type === 'whole') {
+                // unroll the accumulated deltas for contract markets
+                const messages = orderbook.cache;
+                for (let i = 0; i < messages.length; i++) {
+                    const message = messages[i];
+                    this.handleOrderBookMessage (client, message, orderbook);
+                }
+            }
+            client.resolve (orderbook, channel);
+        } else {
+            // handle deltas for contract markets
+            const nonce = this.safeInteger (orderbook, 'nonce');
+            if (nonce === undefined) {
+                orderbook.cache.push (message);
+            } else {
+                this.handleOrderBookMessage (client, message, orderbook);
+                client.resolve (orderbook, channel);
+            }
         }
-        const timestamp = this.safeInteger (message, 'lastTime');
-        const parsed = this.parseOrderBook (message, symbol, timestamp, 'listDown', 'listUp');
-        orderbook.reset (parsed);
-        orderbook['symbol'] = symbol;
-        client.resolve (orderbook, channel);
+    }
+
+    handleOrderBookMessage (client, message, orderbook) {
+        //
+        // {
+        //     channel: 'BTC_USDT.Depth',
+        //     data: {
+        //       bids: [ [Array], [Array], [Array], [Array] ],
+        //       asks: [ [Array], [Array], [Array] ],
+        //       time: '1647360038079'
+        //     }
+        //  }
+        //
+        const data = this.safeValue (message, 'data', {});
+        const seqNum = this.safeInteger (data, 'time');
+        if (seqNum > orderbook['nonce']) {
+            const asks = this.safeValue (data, 'asks', []);
+            const bids = this.safeValue (data, 'bids', []);
+            this.handleDeltas (orderbook['asks'], asks);
+            this.handleDeltas (orderbook['bids'], bids);
+            orderbook['nonce'] = seqNum;
+            orderbook['timestamp'] = seqNum;
+            orderbook['datetime'] = this.iso8601 (seqNum);
+        }
+        return orderbook;
     }
 
     handleMessage (client, message) {
@@ -238,6 +318,26 @@ module.exports = class zb extends ccxt.zb {
         //         channel: 'btcusdt_trades'
         //     }
         //
+        // contract snapshot
+        // {
+        //     channel: 'BTC_USDT.Depth',
+        //     type: 'Whole',
+        //     data: {
+        //       asks: [ [Array], [Array], [Array], [Array], [Array] ],
+        //       bids: [ [Array], [Array], [Array], [Array], [Array] ],
+        //       time: '1647359998198'
+        //     }
+        //   }
+        // contract deltas update
+        // {
+        //     channel: 'BTC_USDT.Depth',
+        //     data: {
+        //       bids: [ [Array], [Array], [Array], [Array] ],
+        //       asks: [ [Array], [Array], [Array] ],
+        //       time: '1647360038079'
+        //     }
+        //   }
+        //
         const dataType = this.safeString (message, 'dataType');
         if (dataType !== undefined) {
             const channel = this.safeString (message, 'channel');
@@ -249,6 +349,15 @@ module.exports = class zb extends ccxt.zb {
                 }
             }
             return message;
+        }
+        const type = this.safeString (message, 'type');
+        if (type === 'Whole') {
+            this.handleOrderBookSnapshot (client, message);
+            return;
+        }
+        const channel = this.safeString (message, 'channel');
+        if (channel.indexOf ('Depth') !== -1) {
+            this.handleOrderBookMessage (client, message);
         }
     }
 };
