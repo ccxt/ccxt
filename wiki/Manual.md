@@ -1659,9 +1659,11 @@ In most cases users are **required to use at least some type of pagination** in 
 - `fetchTrades()`
 - `fetchOHLCV()`
 - `fetchOrders()`
+- `fetchCanceledOrders()`
+- `fetchClosedOrder()`
+- `fetchClosedOrders()`
 - `fetchOpenOrder()`
 - `fetchOpenOrders()`
-- `fetchClosedOrder()`
 - `fetchClosedOrders()`
 - `fetchMyTrades()`
 - `fetchTransactions()`
@@ -2830,7 +2832,7 @@ The exchanges' private APIs will usually allow the following types of interactio
 - the user can place and cancel orders with `createOrder()`, `cancelOrder()`, as well as fetch current open orders and the past order history with methods like `fetchOrder`, `fetchOrders()`, `fetchOpenOrder()`, `fetchOpenOrders()`, `fetchClosedOrder`, `fetchClosedOrders`, as described in the section on [Orders](#orders)
 - the user can query the history of past trades executed with their account using `fetchMyTrades`, as described in the [My Trades](#my-trades) section, also see [How Orders Are Related To Trades](https://docs.ccxt.com/en/latest/manual.html#how-orders-are-related-to-trades)
 - the user can query their positions with `fetchPositions()` and `fetchPosition()` as described in the [Positions](#positions) section
-- the user can fetch the history of their transactions (on-chain _transactions_ which are either _deposits_ to the exchange account or _withdrawals_ from the exchange account) with `fetchTransactions()`, or with `fetchDeposits()` and `fetchWithdrawals()` separately, depending on what is available from the exchange API
+- the user can fetch the history of their transactions (on-chain _transactions_ which are either _deposits_ to the exchange account or _withdrawals_ from the exchange account) with `fetchTransactions()`, or with `fetchDeposit()`, `fetchDeposits()` `fetchWithdrawal()`, and `fetchWithdrawals()` separately, depending on what is available from the exchange API
 - if the exchange API provides a ledger endpoint, the user can fetch a history of all money movements that somehow affected the balance, with `fetchLedger` that will return all accounting ledger entries such as trades, deposits, withdrawals, internal transfers between accounts, rebates, bonuses, fees, staking profits and so on, as described in the [Ledger](#ledger) section.
 
 ## Authentication
@@ -3376,11 +3378,14 @@ Most of methods returning orders within ccxt unified API will usually yield an o
 
 #### timeInForce
 
-The `timeInForce` field may be `undefined/None/null` if not specified by the exchange. The unification of `timeInForce` is a work in progress. Possible values for the`timeInForce` field:
-    - `'GTC'` = _Good Till Cancel(ed)_, the order stays on the orderbook until it is matched or canceled.
-    - `'IOC'` = _Immediate Or Cancel_, the order has to be matched immediately and filled either partially or completely, the unfilled remainder is canceled (or the entire order is canceled).
-    - `'FOK'` = _Fill Or Kill_, the order has to get fully filled and closed immediately, otherwise the entire order is canceled.
-    - `'PO'` = _Post Only_, the order has to land on the orderbook and spend at least some time there in an unfilled state, this makes it a maker order by definition, otherwise it is not placed. The post only `timeInForce` is not too common across the exchanges, since orders are allowed to be both `GTC` and `PO` at the same time, therefore the post only mode is often returned as a separate flag. The unification of `timeInForce` and `postOnly` is a work in progress.
+The `timeInForce` field may be `undefined/None/null` if not specified by the exchange. The unification of `timeInForce` is a work in progress. 
+
+Possible values for the`timeInForce` field:
+
+- `'GTC'` = _Good Till Cancel(ed)_, the order stays on the orderbook until it is matched or canceled.
+- `'IOC'` = _Immediate Or Cancel_, the order has to be matched immediately and filled either partially or completely, the unfilled remainder is canceled (or the entire order is canceled).
+- `'FOK'` = _Fill Or Kill_, the order has to get fully filled and closed immediately, otherwise the entire order is canceled.
+- `'PO'` = _Post Only_, the order is either placed as a maker order, or it is canceled. This means the order must be placed on orderbook for at at least time in an unfilled state. The unification of `PO` as a `timeInForce` option is a work in progress with unified exchanges having `exchange.has['postOnly'] == True`.
 
 ### Placing Orders
 
@@ -3390,7 +3395,7 @@ To place an order you will need the following information:
 - `side`, a string literal for the direction of your order, `buy` or `sell`. When you place a buy order you give quote currency and receive base currency. For example, buying `BTC/USD` means that you will receive bitcoins for your dollars. When you are selling `BTC/USD` the outcome is the opposite and you receive dollars for your bitcoins.
 - `type`, a string literal type of order, **ccxt currently unifies `market` and `limit` orders only**, see #custom-order-params and #other-order-types
 - `amount`, how much of currency you want to trade. This usually refers to base currency of the trading pair symbol, though some exchanges require the amount in quote currency and a few of them require base or quote amount depending on the side of the order. See their API docs for details.
-- `price`, how much quote currency you are willing to pay for a trade lot of base currency (for limit orders only)
+- `price`, how much quote currency you are willing to pay for a trade lot of base currency (ignored in market orders)
 
 A successful call to a unified method for placing market or limit orders returns the unified [order structure](#order-structure).
 
@@ -3407,31 +3412,63 @@ You can use the `id` from the returned unified [order structure](#order-structur
 
 - **Some exchanges will allow to trade with limit orders only.** See [their docs](#exchanges) for details.
 
-## createLimitOrder
+#### Limit Orders
 
-```Javascript
-createLimitOrder (symbol, side, amount, price = undefined, params = {})
-```
+Limit orders placed on the order book of the exchange for a price specified by the trader. They are fullfilled(closed) when there are no orders in the same market at a better price, and another trader creates a [market order](market-orders) or an opposite order for a price that matches or exceeds the price of the limit order. 
 
-
-#### Market Orders
-
-Market price orders are also known as *spot price orders*, *instant orders* or simply *market orders*. A market order gets executed immediately. The matching engine of the exchange closes the order (fulfills it) with one or more transactions from the top of the order book stack.
-
-The exchange will close your market order for the best price available. You are not guaranteed though, that the order will be executed for the price you observe prior to placing your order. There can be a slight change of the price for the traded market while your order is being executed, also known as *price slippage*. The price can slip because of networking roundtrip latency, high loads on the exchange, price volatility and other factors. When placing a market order you don't need to specify the price of the order.
+Limit orders may not be fully filled. This happens when the filling order is for a smaller amount than the amount specified by the limit order.
 
 ```JavaScript
 // camelCaseNotation
-exchange.createMarketSellOrder (symbol, amount[, params])
-exchange.createMarketBuyOrder (symbol, amount[, params])
+exchange.createLimitSellOrder (symbol, amount, price, params)
+exchange.createLimitBuyOrder (symbol, amount, price, params)
 
 // underscore_notation
-exchange.create_market_sell_order (symbol, amount[, params])
-exchange.create_market_buy_order (symbol, amount[, params])
+exchange.create_limit_sell_order (symbol, amount, price, params)
+exchange.create_limit_buy_order (symbol, amount, price, params)
+
+// using general createLimitOrder and side = 'buy' or 'sell'
+exchange.createLimitOrder (symbol, side, amount, price, params)
+exchange.create_limit_order (symbol, side, amount, price, params)
+
+// using general createOrder, type = 'limit' and side = 'buy' or 'sell'
+exchange.createOrder (symbol, 'limit', side, amount, price, params)
+exchange.create_order (symbol, 'limit', side, amount, price, params)
+```
+
+#### Market Orders
+
+*also known as*
+- market price orders
+- spot price orders 
+- instant orders 
+
+Market orders are executed immediately by fulfilling one of more already existing orders from the ask side of the exchanges order book. The orders that your market order fulfills are chosen from th top of the order book stack, meaning your market order is fulfilled at the best price available. When placing a market order you don't need to specify the price of the order, and if the price is specified, it will be ignored.
+
+You are not guaranteed that the order will be executed for the price you observe prior to placing your order. There are multiple reasons for this, including:
+
+- **price slippage** a slight change of the price for the traded market while your order is being executed. Reasons for price slippage include, but are not limited to
+    - networking roundtrip latency
+    - high loads on the exchange
+    - price volatility
+- **unequivocal order sizes** if a market order is for an amount that is larger than the size of the top order on the order book, then after the top order is filled, the market order will proceed to fill the next order in the order book, which means the market order is filled at multiple prices
+
+```JavaScript
+// camelCaseNotation
+exchange.createMarketSellOrder (symbol, amount, params)
+exchange.createMarketBuyOrder (symbol, amount, params)
+
+// underscore_notation
+exchange.create_market_sell_order (symbol, amount, params)
+exchange.create_market_buy_order (symbol, amount, params)
+
+// using general createMarketOrder and side = 'buy' or 'sell'
+exchange.createMarketOrder (symbol, side, amount, params)
+exchange.create_market_order (symbol, side, amount, params)
 
 // using general createOrder, type = 'market' and side = 'buy' or 'sell'
-exchange.createOrder (symbol, 'market', 'sell', amount, ...)
-exchange.create_order (symbol, 'market', 'buy', amount, ...)
+exchange.createOrder (symbol, 'market', side, amount, ...)
+exchange.create_order (symbol, 'market', side, amount, ...)
 ```
 
 **Note, that some exchanges will not accept market orders (they allow limit orders only).** In order to detect programmatically if the exchange in question does support market orders or not, you can use the `.has['createMarketOrder']` exchange property:
