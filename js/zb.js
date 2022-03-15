@@ -3,8 +3,9 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { ExchangeError } = require ('ccxt/js/base/errors');
-const { ArrayCache } = require ('./base/Cache');
+const { ExchangeError, NotSupported } = require ('ccxt/js/base/errors');
+const time = require ('ccxt/js/base/functions/time');
+const { ArrayCache, ArrayCacheByTimestamp } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -78,6 +79,82 @@ module.exports = class zb extends ccxt.zb {
         ticker['symbol'] = symbol;
         this.tickers[symbol] = ticker;
         client.resolve (ticker, channel);
+        return message;
+    }
+
+    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['spot']) {
+            throw NotSupported (this.id + ' watchOHLCV() supports contract markets only');
+        }
+        if (limit === undefined) {
+            limit = 20;
+        }
+        const interval = this.timeframes[timeframe];
+        const messageHash = market['id'] + '.KLine' + '_' + interval;
+        const url = this.urls['api']['ws']['contract'];
+        const request = {
+            'action': 'subscribe',
+            'channel': messageHash,
+            'size': limit,
+        };
+        const subscription = {
+            'symbol': symbol,
+            'messageHash': messageHash,
+            'limit': limit,
+            'timeframe': timeframe,
+            'method': this.handleOHLCV,
+        };
+        const ohlcv = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
+        if (this.newUpdates) {
+            limit = ohlcv.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+    }
+
+    handleOHLCV (client, message) {
+        //
+        // snapshot update
+        //    {
+        //        channel: 'BTC_USDT.KLine_1m',
+        //        type: 'Whole',
+        //        data: [
+        //          [ 48543.77, 48543.77, 48542.82, 48542.82, 0.43, 1640227260 ],
+        //          [ 48542.81, 48542.81, 48529.89, 48529.89, 1.202, 1640227320 ],
+        //          [ 48529.95, 48529.99, 48529.85, 48529.9, 4.226, 1640227380 ],
+        //          [ 48529.96, 48529.99, 48525.11, 48525.11, 8.858, 1640227440 ],
+        //          [ 48525.05, 48525.05, 48464.17, 48476.63, 32.772, 1640227500 ],
+        //          [ 48475.62, 48485.65, 48475.12, 48479.36, 20.04, 1640227560 ],
+        //        ]
+        //    }
+        // partial update
+        //    {
+        //        channel: 'BTC_USDT.KLine_1m',
+        //        data: [
+        //          [ 39095.45, 45339.48, 36923.58, 39204.94, 1215304.988, 1645920000 ]
+        //        ]
+        //    }
+        //
+        const data = this.safeValue (message, 'data', []);
+        const channel = this.safeString (message, 'channel');
+        const subscription = this.safeValue (client.subscriptions, channel);
+        const symbol = this.safeString (subscription, 'symbol');
+        const market = this.market (symbol);
+        const timeframe = this.safeString (subscription, 'symbol');
+        for (let i = 0; i < data.length; i++) {
+            const candle = data[i];
+            const parsed = this.parseOHLCV (candle, market);
+            this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+            if (stored === undefined) {
+                const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+                stored = new ArrayCacheByTimestamp (limit);
+                this.ohlcvs[symbol][timeframe] = stored;
+            }
+            stored.append (parsed);
+            client.resolve (stored, channel);
+        }
         return message;
     }
 
@@ -220,10 +297,12 @@ module.exports = class zb extends ccxt.zb {
         let orderbook = this.safeValue (this.orderbooks, symbol);
         if (type !== undefined) {
             // handle orderbook snapshot
-            const timestamp = this.safeInteger2 (message, 'lastTime', 'time');
-            const asksKey = (type === 'whole') ? 'asks' : 'listUp';
-            const bidsKey = (type === 'whole') ? 'bids' : 'listDown';
-            const snapshot = this.parseOrderBook (message, symbol, timestamp, asksKey, bidsKey);
+            const isContractSnapshot = (type === 'Whole');
+            const data = isContractSnapshot ? this.safeValue (message, 'data') : message;
+            const timestamp = this.safeInteger2 (data, 'lastTime', 'time');
+            const asksKey = isContractSnapshot ? 'asks' : 'listUp';
+            const bidsKey = isContractSnapshot ? 'bids' : 'listDown';
+            const snapshot = this.parseOrderBook (data, symbol, timestamp, asksKey, bidsKey);
             if (!(symbol in this.orderbooks)) {
                 const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
                 const limit = this.safeInteger (subscription, 'limit', defaultLimit);
@@ -234,7 +313,8 @@ module.exports = class zb extends ccxt.zb {
                 orderbook.reset (snapshot);
             }
             orderbook['symbol'] = symbol;
-            if (type === 'whole') {
+            orderbook['nonce'] = timestamp;
+            if (isContractSnapshot) {
                 // unroll the accumulated deltas for contract markets
                 const messages = orderbook.cache;
                 for (let i = 0; i < messages.length; i++) {
@@ -278,6 +358,18 @@ module.exports = class zb extends ccxt.zb {
             orderbook['datetime'] = this.iso8601 (seqNum);
         }
         return orderbook;
+    }
+
+    handleDelta (bookside, delta) {
+        const price = this.safeFloat (delta, 0);
+        const amount = this.safeFloat (delta, 1);
+        bookside.store (price, amount);
+    }
+
+    handleDeltas (bookside, deltas) {
+        for (let i = 0; i < deltas.length; i++) {
+            this.handleDelta (bookside, deltas[i]);
+        }
     }
 
     handleMessage (client, message) {
@@ -338,26 +430,16 @@ module.exports = class zb extends ccxt.zb {
         //     }
         //   }
         //
-        const dataType = this.safeString (message, 'dataType');
-        if (dataType !== undefined) {
-            const channel = this.safeString (message, 'channel');
-            const subscription = this.safeValue (client.subscriptions, channel);
-            if (subscription !== undefined) {
-                const method = this.safeValue (subscription, 'method');
-                if (method !== undefined) {
-                    return method.call (this, client, message, subscription);
-                }
-            }
-            return message;
-        }
-        const type = this.safeString (message, 'type');
-        if (type === 'Whole') {
-            this.handleOrderBookSnapshot (client, message);
-            return;
-        }
+        // const dataType = this.safeString2 (message, 'dataType', 'type');
+        // if (dataType !== undefined) {
         const channel = this.safeString (message, 'channel');
-        if (channel.indexOf ('Depth') !== -1) {
-            this.handleOrderBookMessage (client, message);
+        const subscription = this.safeValue (client.subscriptions, channel);
+        if (subscription !== undefined) {
+            const method = this.safeValue (subscription, 'method');
+            if (method !== undefined) {
+                return method.call (this, client, message, subscription);
+            }
         }
+        return message;
     }
 };
