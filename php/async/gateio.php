@@ -37,6 +37,8 @@ class gateio extends Exchange {
                         'options' => 'https://api.gateio.ws/api/v4',
                     ),
                     'private' => array(
+                        'withdrawals' => 'https://api.gateio.ws/api/v4',
+                        'wallet' => 'https://api.gateio.ws/api/v4',
                         'futures' => 'https://api.gateio.ws/api/v4',
                         'margin' => 'https://api.gateio.ws/api/v4',
                         'delivery' => 'https://api.gateio.ws/api/v4',
