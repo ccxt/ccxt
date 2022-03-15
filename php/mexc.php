@@ -1785,7 +1785,7 @@ class mexc extends Exchange {
         }
         $request = array(
             'symbol' => $market['id'],
-            'price' => floatval($this->price_to_precision($symbol, $price)),
+            // 'price' => floatval($this->price_to_precision($symbol, $price)),
             'vol' => floatval($this->amount_to_precision($symbol, $amount)),
             // 'leverage' => int, // required for isolated margin
             'side' => $side, // 1 open long, 2 close short, 3 open short, 4 close long
@@ -1806,6 +1806,9 @@ class mexc extends Exchange {
             // 'stopLossPrice' => $this->price_to_precision($symbol, stopLossPrice),
             // 'takeProfitPrice' => $this->price_to_precision($symbol, takeProfitPrice),
         );
+        if (($type !== 5) && ($type !== 6) && ($type !== 'market')) {
+            $request['price'] = floatval($this->price_to_precision($symbol, $price));
+        }
         if ($openType === 1) {
             $leverage = $this->safe_integer($params, 'leverage');
             if ($leverage === null) {
