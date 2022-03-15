@@ -2502,9 +2502,10 @@ The possible values in the `status` field are:
 - `'error'` means that either the exchange API is broken, or the implementation of the exchange in CCXT is broken
 - `'maintenance'` means regular maintenance, and the `eta` field should contain the datetime when the exchange is expected to be operational again
 
-## Leverage Tiers and Market Leverage Tiers
+## Leverage Tiers
 
-* These are private methods on **Binance**
+* contract only
+* These are private methods on **binance**
 
 You can obtain the absolute maximum leverage for a market by accessing `market['limits']['leverage']['max']`.
 For many contracts, the maximum leverage will depend on the size of your position.
