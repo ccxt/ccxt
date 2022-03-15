@@ -1801,9 +1801,9 @@ module.exports = class mexc extends Exchange {
             // 'stopLossPrice': this.priceToPrecision (symbol, stopLossPrice),
             // 'takeProfitPrice': this.priceToPrecision (symbol, takeProfitPrice),
         };
-        const stopPrice = this.safeNumber2 (params, 'stopLossPrice', 'stopPrice');
+        const stopPrice = this.safeNumber (params, 'stopLossPrice');
         const takeProfitPrice = this.safeNumber (params, 'takeProfitPrice');
-        params = this.omit (params, [ 'stopLossPrice', 'stopPrice', 'takeProfitPrice' ]);
+        params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice' ]);
         if (stopPrice) {
             request['stopLossPrice'] = this.priceToPrecision (symbol, stopPrice);
         }
