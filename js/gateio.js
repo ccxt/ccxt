@@ -35,6 +35,8 @@ module.exports = class gateio extends Exchange {
                         'delivery': 'https://api.gateio.ws/api/v4',
                         'spot': 'https://api.gateio.ws/api/v4',
                         'options': 'https://api.gateio.ws/api/v4',
+                        'withdrawals': 'https://api.gateio.ws/api/v4',
+                        'wallet': 'https://api.gateio.ws/api/v4',
                     },
                 },
                 'test': {
