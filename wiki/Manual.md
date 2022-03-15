@@ -3927,16 +3927,51 @@ if ($exchange->has['fetchOrderTrades']) {
     $trades = $exchange->fetch_order_trades($order_id, $symbol, $since, $limit, $params);
 }
 ```
-## Positions
-```diff
-- this part of the unified API is currenty a work in progress
-- there may be some issues and missing implementations here and there
-- contributions, pull requests and feedback appreciated
+
+# Contract trading
+
+```JavaScript
+//TODO
 ```
 
-Derivative trading has become increasingly popular within the crypto ecosystem. This can include futures with a set expiry date, perpetual swaps with funding payments, and inverse futures or swaps.
+This can include futures with a set expiry date, perpetual swaps with funding payments, and inverse futures or swaps.
+Information about the positions can be served from different endpoints depending on the exchange.
+In the case that there are multiple endpoints serving different types of derivatives CCXT will default to just loading the "linear" (as oppose to the "inverse") contracts or the "swap" (as oppose to the "future") contracts. 
+If you want to get the position information of the inverse contracts you can set:
 
-We present a unified structure for the positions returned by exchanges.
+## Positions
+*contract only*
+
+To get information about positions currently held in contract markets, use
+
+- fetchPosition ()            // for a single market
+- fetchPositions ()           // for all positions
+- fetchAccountPositions ()    // TODO
+- fetchIsolatedPositions ()   // for positions in isolated margin mode only
+
+```JavaScript
+fetchPosition (symbol, params = {})                         // for a single market
+```
+
+Parameters
+- **symbol** (String) *required* Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+- A [position structure](#position-structure)
+
+```JavaScript
+fetchPositions (symbols = undefined, params = {})
+fetchAccountPositions (symbols = undefined, params = {})
+fetchIsolatedPositions (symbols = undefined, params = {})
+```
+
+Parameters
+- **symbols** (\[String\]) Unified CCXT market symbols, do not set to retrieve all positions (e.g. `["BTC/USDT:USDT"]`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+- An array of [position structures](#position-structure)
 
 ### Position Structure
 
@@ -3994,24 +4029,6 @@ It is the price at which the `initialMargin + unrealized = collateral = maintena
 (1/price - 1/liquidationPrice) * contracts = maintenanceMargin
 ```
 
-### Using fetchPositions and fetchPosition
-
-Information about the positions can be served from different endpoints depending on the exchange. In the case that there are multiple endpoints serving different types of derivatives CCXT will default to just loading the "linear" (as oppose to the "inverse") contracts or the "swap" (as oppose to the "future") contracts. If you want to get the position information of the inverse contracts you can set:
-
-```Javascript
-await binanceusdm.fetchPositions ()
-
-// for inverse positions
-await binancecoinm.fetchPositions ()
-
-// for isolated positions
-await binancecoinm.fetchIsolatedPositions ()
-```
-
-```Javascript
-fetchPosition (symbol, params = {})
-```
-
 
 ## Deposit
 
@@ -4028,7 +4045,7 @@ Parameters
 - **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"network": "TRX"}`)
 
 Returns
-- An [transaction structure](#transaction-structure)
+- A [transaction structure](#transaction-structure)
 
 ---
 
