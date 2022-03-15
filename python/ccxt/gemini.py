@@ -310,12 +310,12 @@ class gemini(Exchange):
             amountPrecisionParts = amountPrecisionString.split(' ')
             idLength = len(marketId) - 0
             startingIndex = idLength - 3
-            quoteId = marketId[startingIndex:idLength]
-            quote = self.safe_currency_code(quoteId)
             pricePrecisionString = cells[3].replace('<td>', '')
             pricePrecisionParts = pricePrecisionString.split(' ')
-            baseId = marketId.replace(quoteId, '')
+            quoteId = self.safe_string_lower(pricePrecisionParts, 1, marketId[startingIndex:idLength])
+            baseId = self.safe_string_lower(amountPrecisionParts, 1, marketId.replace(quoteId, ''))
             base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             result.append({
                 'id': marketId,
                 'symbol': base + '/' + quote,
