@@ -4664,12 +4664,27 @@ The ledger entry type can be associated with a regular trade or a funding transa
 
 ## Margin
 
-```Javascript
-addMargin (symbol, amount, params = {})
+```JavaScript
+// TODO: Description
 ```
 
 ```Javascript
+addMargin (symbol, amount, params = {})
 reduceMargin (symbol, amount, params = {})
+```
+
+Parameters
+- **symbol** (String) *required* Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`)
+- **amount** (String) *required* Amount of margin to add or reduce (e.g. `20`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"leverage": 5}`)
+
+Returns
+- a [margin structure](#margin-structure)
+
+### Margin Structure
+
+```JavaScript
+// TODO
 ```
 
 ## Margin Mode
