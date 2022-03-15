@@ -19,7 +19,10 @@ module.exports = class zb extends ccxt.zb {
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://api.zb.work/websocket',
+                    'ws': {
+                        'spot': 'wss://api.zb.work/websocket',
+                        'future': 'wss://fapi.zb.com/ws/public/v1',
+                    },
                 },
             },
             'options': {
@@ -30,28 +33,21 @@ module.exports = class zb extends ccxt.zb {
         });
     }
 
-    async watchPublic (name, symbol, method, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const messageHash = market['baseId'] + market['quoteId'] + '_' + name;
-        const url = this.urls['api']['ws'];
-        const request = {
-            'event': 'addChannel',
-            'channel': messageHash,
-        };
-        const message = this.extend (request, params);
+    async watchPublic (url, messageHash, symbol, method, request, params = {}) {
         const subscription = {
-            'name': name,
+            // 'name': name,
             'symbol': symbol,
-            'marketId': market['id'],
             'messageHash': messageHash,
             'method': method,
         };
+        const message = this.extend (request, params);
         return await this.watch (url, messageHash, message, messageHash, subscription);
     }
 
     async watchTicker (symbol, params = {}) {
-        return await this.watchPublic ('ticker', symbol, this.handleTicker, params);
+        const market = this.market (symbol);
+        const messageHash = market['baseId'] + market['quoteId'] + '_' + 'ticker';
+        return await this.watchPublic (market['type'], messageHash, symbol, this.handleTicker, params);
     }
 
     handleTicker (client, message, subscription) {
@@ -132,23 +128,29 @@ module.exports = class zb extends ccxt.zb {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const name = 'quick_depth';
-        const messageHash = market['baseId'] + market['quoteId'] + '_' + name;
-        const url = this.urls['api']['ws'] + '/' + market['baseId'];
-        const request = {
-            'event': 'addChannel',
-            'channel': messageHash,
-            'length': limit,
-        };
-        const message = this.extend (request, params);
-        const subscription = {
-            'name': name,
-            'symbol': symbol,
-            'marketId': market['id'],
-            'messageHash': messageHash,
-            'method': this.handleOrderBook,
-        };
-        const orderbook = await this.watch (url, messageHash, message, messageHash, subscription);
+        const type = market['type'];
+        let request = undefined;
+        let messageHash = market['baseId'] + market['quoteId'];
+        let url = this.urls['api']['ws'][type];
+        if (market['type'] === 'spot') {
+            url += '/' + market['baseId'];
+            const name = 'quick_depth';
+            messageHash += '_' + name;
+            request = {
+                'event': 'addChannel',
+                'channel': messageHash,
+                'length': limit,
+            };
+        } else {
+            const name = 'Depth';
+            messageHash += '.' + name;
+            request = {
+                'event': 'addChannel',
+                'channel': messageHash,
+                'size': limit,
+            };
+        }
+        const orderbook = await this.watchPublic (url, messageHash, this.handleOrderBook, request, params);
         return orderbook.limit (limit);
     }
 
