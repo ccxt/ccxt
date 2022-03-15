@@ -2602,8 +2602,7 @@ In the example above:
 **Note for Huobi users:** Huobi uses both leverage and amount to determine maintenance margin rates: https://www.huobi.com/support/en-us/detail/900000089903
 
 ## Funding Rate and Funding Rates
-
-- contract only
+*contract only*
 
 Data on the current, most recent, and next funding rates can be obtained using the methods
 
@@ -2615,20 +2614,26 @@ Data on the current, most recent, and next funding rates can be obtained using t
 fetchFundingRate (symbol, params = {})
 ```
 
-- **symbol** (String) Unified CCXT symbol, required (e.g. `"BTC/USDT:USDT"`)
+Parameters
+- **symbol** (String) *required* Unified CCXT symbol, required (e.g. `"BTC/USDT:USDT"`)
 - **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+- a [funding rate structure](#funding-rate-structure)
 
 ```Javascript
 fetchFundingRates (symbols = undefined, params = {})
 ```
 
-- **symbols** (Array[String]) An optional array/list of unified CCXT symbols (e.g. `["BTC/USDT:USDT", "ETH/USDT:USDT"]`)
+Parameters
+- **symbols** ([String]) An optional array/list of unified CCXT symbols (e.g. `["BTC/USDT:USDT", "ETH/USDT:USDT"]`)
 - **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+- a dictionary of [funding rate structures](#funding-rate-structure) indexed by market symbols
 
 
 ### Funding Rate Structure
-
-The `fetchFundingRate()` method will return a structure like shown below:
 
 ```Javascript
 {
@@ -2649,35 +2654,6 @@ The `fetchFundingRate()` method will return a structure like shown below:
     previousFundingRate: undefined,
     previousFundingTimestamp: undefined,
     previousFundingDatetime: undefined
-}
-```
-
-### Funding Rates Structure
-
-The `fetchFundingRates()` method will return a structure like shown below:
-
-```Javascript
-{
-    'BTC/USDT:USDT': {
-        info: { ... },
-        symbol: 'BTC/USDT:USDT',
-        markPrice: 39294.43,
-        indexPrice: 39291.78,
-        interestRate: 0.0003,
-        estimatedSettlePrice: undefined,
-        timestamp: undefined,
-        datetime: undefined,
-        fundingRate: 0.000072,
-        fundingTimestamp: 1645833600000,
-        fundingDatetime: '2022-02-26T00:00:00.000Z',
-        nextFundingRate: -0.000018,
-        nextFundingTimestamp: undefined,
-        nextFundingDatetime: undefined,
-        previousFundingRate: undefined,
-        previousFundingTimestamp: undefined,
-        previousFundingDatetime: undefined
-    },
-    ...
 }
 ```
 
