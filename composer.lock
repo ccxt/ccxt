@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c247c514af1e3c37e618f7ee73c32181",
+    "content-hash": "d273fa5797a98ce025b9334a53d02066",
     "packages": [
         {
             "name": "ccxt/ccxt",
-            "version": "1.75.1",
+            "version": "1.75.64",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ccxt/ccxt.git",
-                "reference": "461fbea91df608afcfdc5f188fb66504c0b0526c"
+                "reference": "ccc6d836855cbef401b17c2ce081cfa6daa18898"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/461fbea91df608afcfdc5f188fb66504c0b0526c",
-                "reference": "461fbea91df608afcfdc5f188fb66504c0b0526c",
+                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/ccc6d836855cbef401b17c2ce081cfa6daa18898",
+                "reference": "ccc6d836855cbef401b17c2ce081cfa6daa18898",
                 "shasum": ""
             },
             "require": {
@@ -280,7 +280,7 @@
             ],
             "support": {
                 "issues": "https://github.com/ccxt/ccxt/issues",
-                "source": "https://github.com/ccxt/ccxt/tree/1.75.1"
+                "source": "https://github.com/ccxt/ccxt/tree/1.75.64"
             },
             "funding": [
                 {
@@ -288,7 +288,7 @@
                     "type": "open_collective"
                 }
             ],
-            "time": "2022-03-05T02:45:15+00:00"
+            "time": "2022-03-10T21:59:55+00:00"
         },
         {
             "name": "evenement/evenement",
@@ -1629,30 +1629,30 @@
         },
         {
             "name": "recoil/kernel",
-            "version": "1.0.4",
+            "version": "1.0.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/recoilphp/kernel.git",
-                "reference": "e6a412293ffa684d84e7c71d3175ae0172b3f54e"
+                "reference": "aa80bf44a25a5be5c1fa7a2bb53def27a81fc188"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/recoilphp/kernel/zipball/e6a412293ffa684d84e7c71d3175ae0172b3f54e",
-                "reference": "e6a412293ffa684d84e7c71d3175ae0172b3f54e",
+                "url": "https://api.github.com/repos/recoilphp/kernel/zipball/aa80bf44a25a5be5c1fa7a2bb53def27a81fc188",
+                "reference": "aa80bf44a25a5be5c1fa7a2bb53def27a81fc188",
                 "shasum": ""
             },
             "require": {
                 "icecave/repr": "^4|^3|^2",
-                "php": "^7.1",
-                "recoil/api": "^1"
+                "php": ">=7.4",
+                "recoil/api": "^1.0.2"
             },
             "require-dev": {
-                "eloquent/phony": "^3.2",
+                "eloquent/phony": "^5",
                 "friendsofphp/php-cs-fixer": "^2",
                 "hamcrest/hamcrest-php": "^2",
-                "peridot-php/leo": "^1",
-                "peridot-php/peridot": "^1",
-                "peridot-php/peridot-code-coverage-reporters": "^2"
+                "peridot-php/leo": "dev-php-8 as 1.999.999",
+                "peridot-php/peridot": "dev-php-8 as 1.999.999",
+                "peridot-php/peridot-code-coverage-reporters": "dev-php-8 as 2.999.999"
             },
             "type": "library",
             "autoload": {
@@ -1687,9 +1687,9 @@
             ],
             "support": {
                 "issues": "https://github.com/recoilphp/kernel/issues",
-                "source": "https://github.com/recoilphp/kernel/tree/1.0.4"
+                "source": "https://github.com/recoilphp/kernel/tree/1.0.5"
             },
-            "time": "2021-12-19T22:49:38+00:00"
+            "time": "2022-03-06T02:46:48+00:00"
         },
         {
             "name": "recoil/react",
