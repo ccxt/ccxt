@@ -302,12 +302,12 @@ module.exports = class gemini extends Exchange {
             const amountPrecisionParts = amountPrecisionString.split (' ');
             const idLength = marketId.length - 0;
             const startingIndex = idLength - 3;
-            const quoteId = marketId.slice (startingIndex, idLength);
-            const quote = this.safeCurrencyCode (quoteId);
             const pricePrecisionString = cells[3].replace ('<td>', '');
             const pricePrecisionParts = pricePrecisionString.split (' ');
-            const baseId = marketId.replace (quoteId, '');
+            const quoteId = this.safeStringLower (pricePrecisionParts, 1, marketId.slice (startingIndex, idLength));
+            const baseId = this.safeStringLower (amountPrecisionParts, 1, marketId.replace (quoteId, ''));
             const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             result.push ({
                 'id': marketId,
                 'symbol': base + '/' + quote,
