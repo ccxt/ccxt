@@ -1256,7 +1256,7 @@ module.exports = class kucoinfutures extends kucoin {
         await this.loadMarkets ();
         // only fetches one balance at a time
         const request = {};
-        const coin = this.safeString (params, 'coin');
+        const coin = this.safeString (params, 'code', 'currency');
         let defaultCode = this.safeString (this.options, 'code');
         const fetchBalanceOptions = this.safeValue (this.options, 'fetchBalance', {});
         defaultCode = this.safeString (fetchBalanceOptions, 'code', defaultCode);
