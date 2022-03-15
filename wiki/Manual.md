@@ -3072,9 +3072,13 @@ To query for balance and get the amount of funds available for trading or funds 
 fetchBalance (params = {})
 ```
 
-### Balance Structure
+Parameters
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"currency": "usdt"}`)
 
-The returned balance structure is as follows:
+Returns
+- A [balance structure](#balance-structure)
+
+### Balance Structure
 
 ```JavaScript
 {
@@ -3334,7 +3338,7 @@ if (exchange.has['fetchClosedOrders'])
 
 ### Order Structure
 
-Most of methods returning orders within ccxt unified API will usually yield an order structure as described below:
+Most of methods returning orders within ccxt unified API will yield an order structure as described below:
 
 ```JavaScript
 {
