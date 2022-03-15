@@ -2682,33 +2682,29 @@ The `fetchFundingRates()` method will return a structure like shown below:
 ```
 
 ## Funding Rate History
-
-- contract only
+*contract only*
 
 ```Javascript
 fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {})
 ```
 
+Parameters
 - **symbol** (String) Unified CCXT symbol (e.g. `"BTC/USDT:USDT"`)
 - **since** (Integer) Timestamp for the earliest funding rate (e.g. `1645807945000`)
 - **limit** (Integer) The maximum number of funding rates to retrieve (e.g. `10`)
 - **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
 
+Returns
+- An array of [funding rate history structures](#funding-rate-history-structure)
 ### Funding Rate History Structure
-
-The `fetchFundingRateHistory()` method will return a structure like shown below:
-
 ```Javascript
-[
-    {
-        info: { ... },
-        symbol: "BTC/USDT:USDT",
-        fundingRate: -0.000068,
-        timestamp: 1642953600000,
-        datetime: "2022-01-23T16:00:00.000Z"
-    },
-    ...
-]
+{
+    info: { ... },
+    symbol: "BTC/USDT:USDT",
+    fundingRate: -0.000068,
+    timestamp: 1642953600000,
+    datetime: "2022-01-23T16:00:00.000Z"
+}
 ```
 
 ## Borrow Rates
