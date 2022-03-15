@@ -4686,7 +4686,10 @@ setMarginMode (marginType, symbol = undefined, params = {})
 ```
 
 Parameters
-- **marginType** (String) *required* `"cross"` or `"isolated"`
+- **marginType** (String) *required* the type of margin used 
+    **Unified values**
+    - `"cross"`
+    - `"isolated"`
 - **symbol** (String) Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`) *required* on most exchanges. Is not required when the margin mode is not specific to a market
 - **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"leverage": 5}`)
 
@@ -4758,11 +4761,7 @@ Returns
 
 ## Transfers
 
-The `transfer` method make internal transfers of funds between accounts on the same exchange. If an exchange is separated on CCXT into a spot and futures class (e.g. `binanceusdm`, `kucoinfutures`, ...), then the method `transferIn` may be available to transfer funds into the futures account, and the method `transferOut` may be available to transfer funds out of the futures account
-
-Some unified names for `fromAccount` and `toAccount` include `funding`, `spot`, `margin`, and `future`. For some exchanges `funding` and `spot` are the same account. 
-
-You can retrieve all the account types by selecting the keys from `exchange.options['accountsByType']
+The `transfer` method makes internal transfers of funds between accounts on the same exchange. If an exchange is separated on CCXT into a spot and futures class (e.g. `binanceusdm`, `kucoinfutures`, ...), then the method `transferIn` may be available to transfer funds into the futures account, and the method `transferOut` may be available to transfer funds out of the futures account
 
 ```Javascript
 transfer (code, amount, fromAccount, toAccount, params = {})
@@ -4774,6 +4773,16 @@ Parameters
 - **fromAccount** (String) The account to transfer funds from.
 - **toAccount** (String) The account to transfer funds to
 - **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+**Account Types**
+
+Unified values for `fromAccount` and `toAccount` include 
+- `funding` *For some exchanges `funding` and `spot` are the same account*
+- `spot`
+- `margin`
+- `future`
+
+You can retrieve all the account types by selecting the keys from `exchange.options['accountsByType']
 
 Returns
 - A [transfer structure](#transfer-structure)
@@ -4821,7 +4830,6 @@ Returns
 ```
 
 ## Leverage
-
 *margin and contract only*
 
 ```Javascript
@@ -4849,7 +4857,6 @@ Parameters
 
 Returns 
 - response from the exchange
-
 
 # Error Handling
 
