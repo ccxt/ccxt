@@ -457,15 +457,15 @@ module.exports = class interactivebrokers extends Exchange {
         //         }
         //     }
         //
-        const result = { 'info': response };
-        const balance = response[i];
-        const type = this.safeString (balance, 'type');
-        const currencyId = this.safeStringLower (balance, 'currency', '');
-        const account = this.account ();
-        account['free'] = this.safeString (balance, 'available');
-        account['total'] = this.safeString (balance, 'amount');
-        result['USD'] = account;
-        return this.safeBalance (result);
+        // const result = { 'info': response };
+        // const balance = response[i];
+        // const type = this.safeString (balance, 'type');
+        // const currencyId = this.safeStringLower (balance, 'currency', '');
+        // const account = this.account ();
+        // account['free'] = this.safeString (balance, 'available');
+        // account['total'] = this.safeString (balance, 'amount');
+        // result['USD'] = account;
+        // return this.safeBalance (result);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
