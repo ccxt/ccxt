@@ -3389,17 +3389,35 @@ Possible values for the`timeInForce` field:
 
 ### Placing Orders
 
-To place an order you will need the following information:
+To place an order use the `createOrder` method. You can use the `id` from the returned unified [order structure](#order-structure) to query the status and the state of the order later.
 
-- `symbol`, a string literal symbol of the market you wish to trade on, like `BTC/USD`, `ZEC/ETH`, `DOGE/DASH`, etc... Make sure the symbol in question exists with the target exchange and is available for trading.
-- `side`, a string literal for the direction of your order, `buy` or `sell`. When you place a buy order you give quote currency and receive base currency. For example, buying `BTC/USD` means that you will receive bitcoins for your dollars. When you are selling `BTC/USD` the outcome is the opposite and you receive dollars for your bitcoins.
-- `type`, a string literal type of order, **ccxt currently unifies `market` and `limit` orders only**, see #custom-order-params and #other-order-types
-- `amount`, how much of currency you want to trade. This usually refers to base currency of the trading pair symbol, though some exchanges require the amount in quote currency and a few of them require base or quote amount depending on the side of the order. See their API docs for details.
-- `price`, how much quote currency you are willing to pay for a trade lot of base currency (ignored in market orders)
+```JavaScript
+createOrder (symbol, type, side, amount, price = undefined, params = {})
+```
 
-A successful call to a unified method for placing market or limit orders returns the unified [order structure](#order-structure).
+Parameters
+- **symbol** (String) *required* Unified CCXT market symbol
+    - Make sure the symbol in question exists with the target exchange and is available for trading.
+- **side** *required* a string literal for the direction of your order. 
+    **Unified options include**
+    - `buy` give quote currency and receive base currency; for example, buying `BTC/USD` means that you will receive bitcoins for your dollars.
+    - `sell` give base currency and receive quote currency; for example, buying `BTC/USD` means that you will receive dollars for your bitcoins.
+- **type** a string literal type of order
+    **Unified options include** 
+    - [`market`](market-orders) not allowed by some exchanges, see [their docs](#exchanges) for details 
+    - [`limit`](limit-orders)
+    see #custom-order-params and #other-order-types for non-unified options
+- **amount**, how much of currency you want to trade usually, but not always, in units of the base currency of the trading pair symbol (the units for some exchanges are dependent on the side of the order: see their API docs for details.)
+- **price** the price at which the order is to be fullfilled at in units of the quote currency (ignored in market orders)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"settle": "usdt"}`)
 
-Note, that some fields from the order structure returned from `createOrder` may be `undefined / None / null` if the underlying exchange API does not return that information in the response. In general, the user is guaranteed that the `createOrder` method will return a unified [order structure](#order-structure) that will contain at least the order `id` and the `info` (a raw response from the exchange "as is"):
+Returns
+- A successful order call returns a [order structure](#order-structure)
+
+**Notes on createOrder**
+- Some exchanges will allow to trade with limit orders only. 
+
+Some fields from the returned order structure may be `undefined / None / null` if that information is not returned from the exchange API's response. The user is guaranteed that the `createOrder` method will return a unified [order structure](#order-structure) that will contain at least the order `id` and the `info` (a raw response from the exchange "as is"):
 
 ```JavaScript
 {
@@ -3407,10 +3425,6 @@ Note, that some fields from the order structure returned from `createOrder` may 
     'info': { ... }, // decoded original JSON response from the exchange as is
 }
 ```
-
-You can use the `id` from the returned unified [order structure](#order-structure) to query the status and the state of the order later.
-
-- **Some exchanges will allow to trade with limit orders only.** See [their docs](#exchanges) for details.
 
 #### Limit Orders
 
@@ -3709,27 +3723,48 @@ editOrder (id, symbol, type, side, amount, price = undefined, params = {})
 
 ### Canceling Orders
 
-To cancel an existing order pass the order id to `cancelOrder (id, symbol, params) / cancel_order (id, symbol, params)` method. Note, that some exchanges require a second symbol parameter even to cancel a known order by id. The usage is shown in the following examples:
+To cancel an existing use
+
+- `cancelOrder ()` for a single order
+- `cancelOrders ()` for multiple orders
+- `cancelAllOrders ()` for all open orders
 
 ```JavaScript
-// JavaScript
-exchange.cancelOrder ('1234567890') // replace with your order id here (a string)
+cancelOrder (id, symbol = undefined, params = {})
 ```
+
+Parameters
+- **id** (String) *required* Order id (e.g. `1645807945000`)
+- **symbol** (String) Unified CCXT market symbol **required** on some exchanges (e.g. `"BTC/USDT"`)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"settle": "usdt"}`)
+
+Returns
+- An [order structure](#order-structure)
+
 
 ```Javascript
 cancelOrders (ids, symbol = undefined, params = {})
 ```
 
+Parameters
+- **ids** ([String]) *required* Order ids (e.g. `1645807945000`)
+- **symbol** (String) Unified CCXT market symbol **required** on some exchanges (e.g. `"BTC/USDT"`)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"settle": "usdt"}`)
 
-```Python
-# Python
-exchange.cancel_order ('1234567890') # replace with your order id here (a string)
+Returns
+- An array of [order structures](#order-structure)
+
+
+```JavaScript
+async cancelAllOrders (symbol = undefined, params = {})
 ```
 
-```PHP
-// PHP
-$exchange->cancel_order ('1234567890'); // replace with your order id here (a string)
-```
+Parameters
+- **symbol** (String) Unified CCXT market symbol **required** on some exchanges (e.g. `"BTC/USDT"`)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"settle": "usdt"}`)
+
+Returns
+- An array of [order structures](#order-structure)
 
 #### Exceptions on order canceling
 
