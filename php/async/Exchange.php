@@ -364,6 +364,6 @@ class Exchange extends \ccxt\Exchange {
         }
         $array = array('postOnly' => true);
         $query = $this->extend($params, $array);
-        return yield $this.create_order($symbol, $type, $side, $amount, $price, $params);
+        return yield $this->create_order($symbol, $type, $side, $amount, $price, $params);
     }
 }
