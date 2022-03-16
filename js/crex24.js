@@ -826,7 +826,7 @@ module.exports = class crex24 extends Exchange {
 
     async fetchPrivateTradingFees (params = {}) {
         await this.loadMarkets ();
-        const response = await this.TradingGetTradingFee (params);
+        const response = await this.tradingGetTradingFee (params);
         //
         //     {
         //         "feeRates": [{
