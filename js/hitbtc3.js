@@ -1324,19 +1324,19 @@ module.exports = class hitbtc3 extends Exchange {
         const stopPrice = this.safeNumber2 (params, 'stopPrice', 'stop_price');
         if ((type === 'limit') || (type === 'stopLimit') || (type === 'takeProfitLimit')) {
             if (price === undefined) {
-                throw new ExchangeError (this.id + ' limit order requires price');
+                throw new ExchangeError (this.id + ' createOrder() requires a price argument for limit orders');
             }
             request['price'] = this.priceToPrecision (symbol, price);
         }
         if ((timeInForce === 'GTD')) {
             if (expireTime === undefined) {
-                throw new ExchangeError (this.id + ' GTD order requires expire_time');
+                throw new ExchangeError (this.id + ' createOrder() requires an expire_time parameter for a GTD order');
             }
             request['expire_time'] = expireTime;
         }
         if ((type === 'stopLimit') || (type === 'stopMarket') || (type === 'takeProfitLimit') || (type === 'takeProfitMarket')) {
             if (stopPrice === undefined) {
-                throw new ExchangeError (this.id + ' Stop and take profit orders require stop_price');
+                throw new ExchangeError (this.id + ' createOrder() requires a stopPrice parameter for stop-loss and take-profit orders');
             }
             request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
         }
