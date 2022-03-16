@@ -771,41 +771,32 @@ module.exports = class crex24 extends Exchange {
         await this.loadMarkets ();
         const response = await this.publicGetTradingFeeSchedules (params);
         //
-        //     [{
-        //         "name": "FeeSchedule05",
-        //         "feeRates": [{
-        //                 "volumeThreshold": 0.0,
-        //                 "maker": 0.0005,
-        //                 "taker": 0.0005
-        //             },
-        //             {
-        //                 "volumeThreshold": 5.0,
-        //                 "maker": 0.0004,
-        //                 "taker": 0.0004
-        //             },
-        //             ...
-        //         ]
-        //     },
-        //     {
-        //         "name": "FeeSchedule08",
-        //         "feeRates": [{
-        //                 "volumeThreshold": 0.0,
-        //                 "maker": 0.0008,
-        //                 "taker": 0.0008
-        //             },
-        //             {
-        //                 "volumeThreshold": 5.0,
-        //                 "maker": 0.0007,
-        //                 "taker": 0.0007
-        //             },
-        //             ...
-        //         ]
-        //     },
-        //     ...
+        //     [
+        //         {
+        //             name: 'FeeSchedule05',
+        //             feeRates: [
+        //                 { volumeThreshold: 0, maker: 0.0005, taker: 0.0005 },
+        //                 { volumeThreshold: 5, maker: 0.0004, taker: 0.0004 },
+        //                 { volumeThreshold: 15, maker: 0.0003, taker: 0.0003 },
+        //                 { volumeThreshold: 30, maker: 0.0002, taker: 0.0002 },
+        //                 { volumeThreshold: 50, maker: 0.0001, taker: 0.0001 }
+        //             ]
+        //         },
+        //         {
+        //             name: 'OriginalSchedule',
+        //             feeRates: [
+        //                 { volumeThreshold: 0, maker: -0.0001, taker: 0.001 },
+        //                 { volumeThreshold: 5, maker: -0.0002, taker: 0.0009 },
+        //                 { volumeThreshold: 15, maker: -0.0003, taker: 0.0008 },
+        //                 { volumeThreshold: 30, maker: -0.0004, taker: 0.0007 },
+        //                 { volumeThreshold: 50, maker: -0.0005, taker: 0.0006 }
+        //             ]
+        //         }
         //     ]
         //
-        const lastFeeSchedule = this.safeValue (response, response.length - 1, {});
-        const feeRates = this.safeValue (lastFeeSchedule, 'feeRates', []);
+        const feeSchedulesByName = this.indexBy (response, 'name');
+        const originalSchedule = this.safeValue (feeSchedulesByName, 'OriginalSchedule', {});
+        const feeRates = this.safeValue (originalSchedule, 'feeRates', []);
         const firstFee = this.safeValue (feeRates, 0, {});
         const maker = this.safeNumber (firstFee, 'maker');
         const taker = this.safeNumber (firstFee, 'taker');
@@ -829,26 +820,26 @@ module.exports = class crex24 extends Exchange {
         const response = await this.tradingGetTradingFee (params);
         //
         //     {
-        //         "feeRates": [{
-        //                 "schedule": "A",
-        //                 "maker": -0.0001,
-        //                 "taker": 0.0010
-        //             },
-        //             {
-        //                 "schedule": "B",
-        //                 "maker": 0.0010,
-        //                 "taker": 0.0010
-        //             },
-        //             ...
-        //         ]
-        //         "tradingVolume": 0.958,
-        //         "lastUpdate": "2020-01-31T15:48:03Z"
+        //         feeRates: [
+        //             { schedule: 'FeeSchedule05', maker: 0.0005, taker: 0.0005 },
+        //             { schedule: 'FeeSchedule08', maker: 0.0008, taker: 0.0008 },
+        //             { schedule: 'FeeSchedule10', maker: 0.001, taker: 0.001 },
+        //             { schedule: 'FeeSchedule15', maker: 0.0015, taker: 0.0015 },
+        //             { schedule: 'FeeSchedule20', maker: 0.002, taker: 0.002 },
+        //             { schedule: 'FeeSchedule30', maker: 0.003, taker: 0.003 },
+        //             { schedule: 'FeeSchedule40', maker: 0.004, taker: 0.004 },
+        //             { schedule: 'FeeSchedule50', maker: 0.005, taker: 0.005 },
+        //             { schedule: 'OriginalSchedule', maker: -0.0001, taker: 0.001 }
+        //         ],
+        //         tradingVolume: 0,
+        //         lastUpdate: '2022-03-16T04:55:02Z'
         //     }
         //
         const feeRates = this.safeValue (response, 'feeRates', []);
-        const lastFeeSchedule = this.safeValue (feeRates, feeRates.length - 1, {});
-        const maker = this.safeNumber (lastFeeSchedule, 'maker');
-        const taker = this.safeNumber (lastFeeSchedule, 'taker');
+        const feeRatesBySchedule = this.indexBy (feeRates, 'schedule');
+        const originalSchedule = this.safeValue (feeRatesBySchedule, 'OriginalSchedule', {});
+        const maker = this.safeNumber (originalSchedule, 'maker');
+        const taker = this.safeNumber (originalSchedule, 'taker');
         const result = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
