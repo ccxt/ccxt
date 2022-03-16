@@ -1896,7 +1896,7 @@ module.exports = class okx extends Exchange {
         //         ]
         //     }
         //
-        // Conditional Order
+        // Trigger Order
         //
         //     {
         //         "code": "0",
