@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, DDoSProtection, AuthenticationError, InvalidOrder } = require ('./base/errors');
+const { ExchangeError, DDoSProtection, AuthenticationError, InvalidOrder, ArgumentsRequired} = require ('./base/errors');
 // const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -81,6 +81,7 @@ module.exports = class lbank2 extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38063602-9605e28a-3302-11e8-81be-64b1e53c4cfb.jpg',
                 'api': 'https://api.lbank.info',
+                'api2': 'https://api.lbkex.com',
                 'www': 'https://www.lbank.info',
                 'doc': 'https://github.com/LBank-exchange/lbank-official-api-docs',
                 'fees': 'https://lbankinfo.zendesk.com/hc/en-gb/articles/360012072873-Trading-Fees',
@@ -316,8 +317,7 @@ module.exports = class lbank2 extends Exchange {
         const response = await this.publicGetIncrDepth (this.extend (request, params));
         const result = this.safeValue (response, 'data', {});
         const timestamp = result['timestamp'];
-        const orderbook = this.parseOrderBook (result, symbol, timestamp);
-        return orderbook;
+        return this.parseOrderBook (result, symbol, timestamp);
     }
 
     parseTrade (trade, market = undefined) {
@@ -385,14 +385,52 @@ module.exports = class lbank2 extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        // endpoint doesnt work
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            // 'type': this.parseTimeframe (timeframe),
+            'type': timeframe,
+            'time': this.milliseconds (),
+            'size': limit ? limit : 100, // max 2000
+        };
+        const response = await this.publicGetKline (this.extend (request, params));
+        const ohlcvs = this.safeValue (response, 'data', []);
+        //
+        // supposedly:
+        //
+        // [
+        //   [
+        //     1482311500,
+        //     5423.23,
+        //     5472.80,
+        //     5516.09,
+        //     5462,
+        //     234.3250
+        //   ],
+        //   [
+        //     1482311400,
+        //     5432.52,
+        //     5459.87,
+        //     5414.30,
+        //     5428.23,
+        //     213.7329
+        //   ]
+        // ]
+        //
+        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = this.omit (params, this.extractParams (path));
-        let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
+        let url = this.urls['api2'] + '/' + this.version + '/' + this.implodeParams (path, params);
         // Every endpoint ends with ".do"
         url += '.do';
         if (api === 'public') {
             if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
+                url += '?' + this.urlencode (this.keysort (query));
             }
         } else {
             this.checkRequiredCredentials ();
