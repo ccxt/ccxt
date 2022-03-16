@@ -34,22 +34,28 @@ module.exports = class zb extends ccxt.zb {
         });
     }
 
-    async watchPublic (messageHash, symbol, method, params = {}) {
+    async watchPublic (url, messageHash, symbol, method, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const type = market['spot'] ? 'spot' : 'contract';
-        const url = this.urls['api']['ws'][type];
         let request = undefined;
+        const isLimitSet = limit !== undefined;
         if (type === 'spot') {
             request = {
                 'event': 'addChannel',
                 'channel': messageHash,
             };
+            if (isLimitSet) {
+                request['length'] = limit;
+            }
         } else {
             request = {
                 'action': 'subscribe',
                 'channel': messageHash,
             };
+            if (isLimitSet) {
+                request['size'] = limit;
+            }
         }
         const message = this.extend (request, params);
         const subscription = {
@@ -57,6 +63,9 @@ module.exports = class zb extends ccxt.zb {
             'messageHash': messageHash,
             'method': method,
         };
+        if (isLimitSet) {
+            subscription['limit'] = limit;
+        }
         return await this.watch (url, messageHash, message, messageHash, subscription);
     }
 
@@ -180,19 +189,7 @@ module.exports = class zb extends ccxt.zb {
         const interval = this.timeframes[timeframe];
         const messageHash = market['id'] + '.KLine' + '_' + interval;
         const url = this.urls['api']['ws']['contract'];
-        const request = {
-            'action': 'subscribe',
-            'channel': messageHash,
-            'size': limit,
-        };
-        const subscription = {
-            'symbol': symbol,
-            'messageHash': messageHash,
-            'limit': limit,
-            'timeframe': timeframe,
-            'method': this.handleOHLCV,
-        };
-        const ohlcv = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
+        const ohlcv = await this.watchPublic (url, messageHash, symbol, this.handleOHLCV, limit, params);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
@@ -223,11 +220,14 @@ module.exports = class zb extends ccxt.zb {
         //    }
         //
         const data = this.safeValue (message, 'data', []);
-        const channel = this.safeString (message, 'channel');
+        const channel = this.safeString (message, 'channel', '');
+        const parts = channel.split ('_');
+        const partsLength = parts.length;
+        const interval = this.safeString (parts, partsLength - 1);
+        const timeframe = this.findTimeframe (interval);
         const subscription = this.safeValue (client.subscriptions, channel);
         const symbol = this.safeString (subscription, 'symbol');
         const market = this.market (symbol);
-        const timeframe = this.safeString (subscription, 'symbol');
         for (let i = 0; i < data.length; i++) {
             const candle = data[i];
             const parsed = this.parseOHLCV (candle, market);
@@ -245,7 +245,16 @@ module.exports = class zb extends ccxt.zb {
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        const trades = await this.watchPublic ('trades', symbol, this.handleTrades, params);
+        const market = this.market (symbol);
+        let messageHash = undefined;
+        const type = market['spot'] ? 'spot' : 'contract';
+        if (type === 'spot') {
+            messageHash = market['baseId'] + market['quoteId'] + '_' + 'ticker';
+        } else {
+            messageHash = market['id'] + '.' + 'Trade';
+        }
+        const url = this.urls['api']['ws'][type];
+        const trades = await await this.watchPublic (url, messageHash, symbol, this.handleTrades, limit, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -253,6 +262,32 @@ module.exports = class zb extends ccxt.zb {
     }
 
     handleTrades (client, message, subscription) {
+        // contract trades
+        // {
+        //     "channel":"BTC_USDT.Trade",
+        //     "type":"Whole",
+        //     "data":[
+        //        [
+        //           40768.07,
+        //           0.01,
+        //           1,
+        //           1647442757
+        //        ],
+        //        [
+        //           40792.22,
+        //           0.334,
+        //           -1,
+        //           1647442765
+        //        ],
+        //        [
+        //           40789.77,
+        //           0.14,
+        //           1,
+        //           1647442766
+        //        ]
+        //     ]
+        //  }
+        // spot trades
         //
         //     {
         //         data: [
@@ -268,7 +303,19 @@ module.exports = class zb extends ccxt.zb {
         const symbol = this.safeString (subscription, 'symbol');
         const market = this.market (symbol);
         const data = this.safeValue (message, 'data');
-        const trades = this.parseTrades (data, market);
+        const type = this.safeString (message, 'type');
+        let trades = [];
+        if (type === 'Whole') {
+            // contract trades
+            for (let i = 0; i < data.length; i++) {
+                const trade = data[i];
+                const parsed = this.parseWsTrade (trade, market);
+                trades.push (parsed);
+            }
+        } else {
+            // spot trades
+            trades = this.parseTrades (data, market);
+        }
         let array = this.safeValue (this.trades, symbol);
         if (array === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -292,36 +339,48 @@ module.exports = class zb extends ccxt.zb {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const type = market['spot'] ? 'spot' : 'contract';
-        let request = undefined;
         let messageHash = undefined;
         let url = this.urls['api']['ws'][type];
-        if (market['type'] === 'spot') {
+        if (type === 'spot') {
             url += '/' + market['baseId'];
-            const name = 'quick_depth';
-            messageHash = market['baseId'] + market['quoteId'] + '_' + name;
-            request = {
-                'event': 'addChannel',
-                'channel': messageHash,
-                'length': limit,
-            };
+            messageHash = market['baseId'] + market['quoteId'] + '_' + 'quick_depth';
         } else {
-            const name = 'Depth';
-            messageHash = market['id'] + '.' + name;
-            request = {
-                'action': 'subscribe',
-                'channel': messageHash,
-                'size': limit,
-            };
+            messageHash = market['id'] + '.' + 'Depth';
         }
-        const subscription = {
-            'symbol': symbol,
-            'messageHash': messageHash,
-            'limit': limit,
-            'method': this.handleOrderBook,
-        };
-        const message = this.extend (request, params);
-        const orderbook = await this.watch (url, messageHash, message, messageHash, subscription);
+        const orderbook = await this.watchPublic (url, messageHash, symbol, this.handleOrderBook, limit, params);
         return orderbook.limit (limit);
+    }
+
+    parseWsTrade (trade, market = undefined) {
+        //
+        //    [
+        //       40768.07, // price
+        //       0.01, // quantity
+        //       1, // buy or -1 sell
+        //       1647442757 // time
+        //    ],
+        //
+        const timestamp = this.safeTimestamp (trade, 3);
+        const price = this.safeString (trade, 0);
+        const amount = this.safeString (trade, 1);
+        market = this.safeMarket (undefined, market);
+        const sideNumber = this.safeInteger (trade, 2);
+        const side = (sideNumber === 1) ? 'buy' : 'sell';
+        return this.safeTrade ({
+            'id': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'order': undefined,
+            'type': 'limit',
+            'side': side,
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': undefined,
+            'fee': undefined,
+            'info': trade,
+        }, market);
     }
 
     handleOrderBook (client, message, subscription) {
@@ -506,7 +565,6 @@ module.exports = class zb extends ccxt.zb {
         //     }
         //   }
         //
-        // const dataType = this.safeString2 (message, 'dataType', 'type');
         const channel = this.safeString (message, 'channel');
         const subscription = this.safeValue (client.subscriptions, channel);
         if (subscription !== undefined) {
