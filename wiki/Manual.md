@@ -4683,9 +4683,11 @@ The ledger entry type can be associated with a regular trade or a funding transa
 
 ## Margin
 
-```JavaScript
-// TODO: Description
-```
+To increase or reduce your margin balance (collateral) in an open leveraged position, use `addMargin`  and `reduceMargin` respectively. This is kind of like adjusting the amount of leverage you're using with a position that's already open. 
+
+Some scenarios to use these methods include
+- if the trade is going against you, you can add margin to, reducing the risk of liquidation
+- if your trade is going well you can reduce your position's margin balance and take profits
 
 ```Javascript
 addMargin (symbol, amount, params = {})
@@ -4703,7 +4705,14 @@ Returns
 ### Margin Structure
 
 ```JavaScript
-// TODO
+{
+    info: { ... },
+    type: 'add',
+    amount: 1,
+    code: 'USDT',
+    symbol: 'XRP/USDT:USDT',
+    status: 'ok'
+}
 ```
 
 ## Margin Mode
