@@ -177,6 +177,7 @@ class latoken extends Exchange {
                     'invalid API key, signature or digest' => '\\ccxt\\AuthenticationError', // array("result":false,"message":"invalid API key, signature or digest","error":"BAD_REQUEST","status":"FAILURE")
                     'request expired or bad' => '\\ccxt\\InvalidNonce', // array("result":false,"message":"request expired or bad <timeAlive>/<timestamp> format","error":"BAD_REQUEST","status":"FAILURE")
                     'For input string' => '\\ccxt\\BadRequest', // array("result":false,"message":"Internal error","error":"For input string => \"NaN\"","status":"FAILURE")
+                    'Unable to resolve currency by tag' => '\\ccxt\\BadSymbol', // array("message":"Unable to resolve currency by tag (null)","error":"NOT_FOUND","status":"FAILURE")
                 ),
             ),
             'options' => array(
