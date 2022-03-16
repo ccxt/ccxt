@@ -2640,8 +2640,8 @@ module.exports = class aax extends Exchange {
         if (symbols !== undefined) {
             let symbol = undefined;
             if (Array.isArray (symbols)) {
-                const symLen = symbols.length;
-                if (symLen > 1) {
+                const symbolsLength = symbols.length;
+                if (symbolsLength > 1) {
                     throw new BadRequest (this.id + ' fetchPositions symbols argument cannot contain more than 1 symbol');
                 }
                 symbol = symbols[0];
