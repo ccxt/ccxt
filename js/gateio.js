@@ -3291,12 +3291,17 @@ module.exports = class gateio extends Exchange {
         let marginType = this.safeString (params, 'marginType', defaultMarginType);
         if (crossLeverageLimit !== undefined) {
             marginType = 'cross';
+            leverage = crossLeverageLimit;
         }
         if (marginType === 'cross') {
-            request['cross_leverage_limit'] = leverage.toString ();
-            request['leverage'] = '0';
+            request['query'] = {
+                'cross_leverage_limit': leverage.toString (),
+                'leverage': '0',
+            };
         } else {
-            request['leverage'] = leverage.toString ();
+            request['query'] = {
+                'leverage': leverage.toString (),
+            };
         }
         const response = await this[method] (this.extend (request, params));
         //
