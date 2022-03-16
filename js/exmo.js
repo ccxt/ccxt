@@ -47,6 +47,7 @@ module.exports = class exmo extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
@@ -77,7 +78,6 @@ module.exports = class exmo extends Exchange {
                 'referral': 'https://exmo.me/?ref=131685',
                 'doc': [
                     'https://exmo.me/en/api_doc?ref=131685',
-                    'https://github.com/exmo-dev/exmo_api_lib/tree/master/nodejs',
                 ],
                 'fees': 'https://exmo.com/en/docs/fees',
             },
@@ -149,10 +149,10 @@ module.exports = class exmo extends Exchange {
             'fees': {
                 'trading': {
                     'feeSide': 'get',
-                    'tierBased': false,
+                    'tierBased': true,
                     'percentage': true,
-                    'maker': this.parseNumber ('0.002'),
-                    'taker': this.parseNumber ('0.002'),
+                    'maker': this.parseNumber ('0.004'),
+                    'taker': this.parseNumber ('0.004'),
                 },
                 'funding': {
                     'tierBased': false,
@@ -163,6 +163,9 @@ module.exports = class exmo extends Exchange {
                 'networks': {
                     'ETH': 'ERC20',
                     'TRX': 'TRC20',
+                },
+                'fetchTradingFees': {
+                    'method': 'fetchPrivateTradingFees', // or 'fetchPublicTradingFees'
                 },
             },
             'exceptions': {
@@ -194,10 +197,106 @@ module.exports = class exmo extends Exchange {
     }
 
     async fetchTradingFees (params = {}) {
-        return {
-            'maker': this.fees['trading']['maker'],
-            'taker': this.fees['trading']['taker'],
-        };
+        let method = this.safeString (params, 'method');
+        params = this.omit (params, 'method');
+        if (method === undefined) {
+            const options = this.safeValue (this.options, 'fetchTradingFees', {});
+            method = this.safeString (options, 'method', 'fetchPrivateTradingFees');
+        }
+        return await this[method] (params);
+    }
+
+    async fetchPrivateTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privatePostMarginPairList (params);
+        //
+        //     {
+        //         pairs: [{
+        //             name: 'EXM_USD',
+        //             buy_price: '0.02728391',
+        //             sell_price: '0.0276',
+        //             last_trade_price: '0.0276',
+        //             ticker_updated: '1646956050056696046',
+        //             is_fair_price: true,
+        //             max_price_precision: '8',
+        //             min_order_quantity: '1',
+        //             max_order_quantity: '50000',
+        //             min_order_price: '0.00000001',
+        //             max_order_price: '1000',
+        //             max_position_quantity: '50000',
+        //             trade_taker_fee: '0.05',
+        //             trade_maker_fee: '0',
+        //             liquidation_fee: '0.5',
+        //             max_leverage: '3',
+        //             default_leverage: '3',
+        //             liquidation_level: '5',
+        //             margin_call_level: '7.5',
+        //             position: '1',
+        //             updated: '1638976144797807397'
+        //         }
+        //         ...
+        //         ]
+        //     }
+        //
+        const pairs = this.safeValue (response, 'pairs', []);
+        const result = {};
+        for (let i = 0; i < pairs.length; i++) {
+            const pair = pairs[i];
+            const marketId = this.safeString (pair, 'name');
+            const symbol = this.safeSymbol (marketId, undefined, '_');
+            const makerString = this.safeString (pair, 'trade_maker_fee');
+            const takerString = this.safeString (pair, 'trade_taker_fee');
+            const maker = this.parseNumber (Precise.stringDiv (makerString, '100'));
+            const taker = this.parseNumber (Precise.stringDiv (takerString, '100'));
+            result[symbol] = {
+                'info': pair,
+                'symbol': symbol,
+                'maker': maker,
+                'taker': taker,
+                'percentage': true,
+                'tierBased': true,
+            };
+        }
+        return result;
+    }
+
+    async fetchPublicTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetPairSettings (params);
+        //
+        //     {
+        //         BTC_USD: {
+        //             min_quantity: '0.00002',
+        //             max_quantity: '1000',
+        //             min_price: '1',
+        //             max_price: '150000',
+        //             max_amount: '500000',
+        //             min_amount: '1',
+        //             price_precision: '2',
+        //             commission_taker_percent: '0.3',
+        //             commission_maker_percent: '0.3'
+        //         },
+        //     }
+        //
+        const result = {};
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            const market = this.market (symbol);
+            const fee = this.safeValue (response, market['id'], {});
+            const makerString = this.safeString (fee, 'commission_maker_percent');
+            const takerString = this.safeString (fee, 'commission_taker_percent');
+            const maker = this.parseNumber (Precise.stringDiv (makerString, '100'));
+            const taker = this.parseNumber (Precise.stringDiv (takerString, '100'));
+            result[symbol] = {
+                'info': fee,
+                'symbol': symbol,
+                'maker': maker,
+                'taker': taker,
+                'percentage': true,
+                'tierBased': true,
+            };
+        }
+        return result;
     }
 
     parseFixedFloatValue (input) {

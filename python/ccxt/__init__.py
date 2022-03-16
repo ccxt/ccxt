@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.75.76'
+__version__ = '1.76.30'
 
 # ----------------------------------------------------------------------------
 
@@ -93,6 +93,7 @@ from ccxt.bitget import bitget                              # noqa: F401
 from ccxt.bithumb import bithumb                            # noqa: F401
 from ccxt.bitmart import bitmart                            # noqa: F401
 from ccxt.bitmex import bitmex                              # noqa: F401
+from ccxt.bitopro import bitopro                            # noqa: F401
 from ccxt.bitpanda import bitpanda                          # noqa: F401
 from ccxt.bitrue import bitrue                              # noqa: F401
 from ccxt.bitso import bitso                                # noqa: F401
@@ -100,6 +101,7 @@ from ccxt.bitstamp import bitstamp                          # noqa: F401
 from ccxt.bitstamp1 import bitstamp1                        # noqa: F401
 from ccxt.bittrex import bittrex                            # noqa: F401
 from ccxt.bitvavo import bitvavo                            # noqa: F401
+from ccxt.bkex import bkex                                  # noqa: F401
 from ccxt.bl3p import bl3p                                  # noqa: F401
 from ccxt.blockchaincom import blockchaincom                # noqa: F401
 from ccxt.btcalpha import btcalpha                          # noqa: F401
@@ -212,6 +214,7 @@ exchanges = [
     'bithumb',
     'bitmart',
     'bitmex',
+    'bitopro',
     'bitpanda',
     'bitrue',
     'bitso',
@@ -219,6 +222,7 @@ exchanges = [
     'bitstamp1',
     'bittrex',
     'bitvavo',
+    'bkex',
     'bl3p',
     'blockchaincom',
     'btcalpha',

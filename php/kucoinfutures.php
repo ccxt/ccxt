@@ -270,6 +270,7 @@ class kucoinfutures extends kucoin {
                 'version' => 'v1',
                 'symbolSeparator' => '-',
                 'defaultType' => 'swap',
+                'code' => 'USDT',
                 'marginTypes' => array(),
                 // endpoint versions
                 'versions' => array(
@@ -1257,18 +1258,14 @@ class kucoinfutures extends kucoin {
     public function fetch_balance($params = array ()) {
         $this->load_markets();
         // only fetches one balance at a time
-        $request = array();
-        $coin = $this->safe_string($params, 'coin');
         $defaultCode = $this->safe_string($this->options, 'code');
         $fetchBalanceOptions = $this->safe_value($this->options, 'fetchBalance', array());
         $defaultCode = $this->safe_string($fetchBalanceOptions, 'code', $defaultCode);
         $code = $this->safe_string($params, 'code', $defaultCode);
-        if ($coin !== null) {
-            $request['currency'] = $coin;
-        } else if ($code !== null) {
-            $currency = $this->currency($code);
-            $request['currency'] = $currency['id'];
-        }
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => $currency['id'],
+        );
         $response = $this->futuresPrivateGetAccountOverview (array_merge($request, $params));
         //
         //     {

@@ -1713,12 +1713,22 @@ class zb(Exchange):
         })
         request = {
             'amount': self.amount_to_precision(symbol, amount),
+            # 'acctType': 0,  # Spot, Margin 0/1/2 [Spot/Isolated/Cross] Optional, Default to: 0 Spot
+            # 'customerOrderId': '1f2g',  # Spot, Margin
+            # 'orderType': 1,  # Spot, Margin order type 1/2 [PostOnly/IOC] Optional
         }
         if price:
             request['price'] = self.price_to_precision(symbol, price)
         if spot:
             request['tradeType'] = '1' if (side == 'buy') else '0'
             request['currency'] = market['id']
+            if timeInForce is not None:
+                if timeInForce == 'PO':
+                    request['orderType'] = 1
+                elif timeInForce == 'IOC':
+                    request['orderType'] = 2
+                else:
+                    raise InvalidOrder(self.id + ' createOrder() on ' + market['type'] + ' markets does not allow ' + timeInForce + ' orders')
         elif swap:
             reduceOnly = self.safe_value(params, 'reduceOnly')
             params = self.omit(params, 'reduceOnly')

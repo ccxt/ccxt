@@ -16,7 +16,9 @@ module.exports = class okcoin extends Exchange {
             'name': 'OKCoin',
             'countries': [ 'CN', 'US' ],
             'version': 'v3',
-            'rateLimit': 1000, // up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
+            // cheapest endpoint is 100 requests per 2 seconds
+            // 50 requests per second => 1000 / 50 = 20ms
+            'rateLimit': 20,
             'pro': true,
             'has': {
                 'CORS': undefined,
@@ -85,91 +87,157 @@ module.exports = class okcoin extends Exchange {
             },
             'api': {
                 'general': {
-                    'get': [
-                        'time',
-                    ],
+                    'get': {
+                        'time': 8.3334,
+                    },
                 },
                 'account': {
-                    'get': [
-                        'wallet',
-                        'sub-account',
-                        'asset-valuation',
-                        'wallet/{currency}',
-                        'withdrawal/history',
-                        'withdrawal/history/{currency}',
-                        'ledger',
-                        'deposit/address',
-                        'deposit/history',
-                        'deposit/history/{currency}',
-                        'currencies',
-                        'withdrawal/fee',
-                    ],
-                    'post': [
-                        'transfer',
-                        'withdrawal',
-                    ],
+                    'get': {
+                        'wallet': 8.3334,
+                        'sub-account': 1000,
+                        'asset-valuation': 1000,
+                        'wallet/{currency}': 8.3334,
+                        'withdrawal/history': 8.3334,
+                        'withdrawal/history/{currency}': 8.3334,
+                        'ledger': 5,
+                        'deposit/address': 8.3334,
+                        'deposit/history': 8.3334,
+                        'deposit/history/{currency}': 8.3334,
+                        'currencies': 8.3334,
+                        'withdrawal/fee': 8.3334,
+                        'deposit-lightning': 50,
+                        'withdrawal-lightning': 50,
+                        'fiat/deposit/detail': 5,
+                        'fiat/deposit/details': 8.3334,
+                        'fiat/withdraw/detail': 5,
+                        'fiat/withdraw/details': 8.3334,
+                        'fiat/channel': 8.3334,
+                    },
+                    'post': {
+                        'transfer': 100, // 1 request per 2 seconds (per currency)
+                        'withdrawal': 8.3334,
+                        'fiat/cancel_deposit': 1,
+                        'fiat/deposit': 8.3334,
+                        'fiat/withdraw': 8.3334,
+                        'fiat/cancel_withdrawal': 1,
+                    },
+                },
+                // TODO fix signing issue in sign ()
+                // all other endpoints of the format
+                // api/account/v3/wallet
+                // otc endpoints actually of the format: (exchanged places)
+                // api/v3/otc/rfq/instruments
+                'otc': {
+                    'get': {
+                        'rfq/instruments': 50, // represents: GET api/v3/otc/rfq/instruments
+                        'rfq/trade': 50,
+                        'rfq/history': 50,
+                    },
+                    'post': {
+                        'rfq/quote': 50,
+                        'rfq/trade': 50,
+                    },
+                },
+                // TODO fix signing issue as above
+                'users': {
+                    'get': {
+                        'subaccount-info': 20,
+                        'account-info': 20,
+                        'subaccount/apikey': 20,
+                    },
+                    'post': {
+                        'create-subaccount': 5, // represents: POST api/v3/users/create-subaccount
+                        'delete-subaccount': 5,
+                        'subaccount/apikey': 50,
+                        'subacount/delete-apikey': 20,
+                        'subacount/modify-apikey': 20,
+                    },
+                },
+                'earning': {
+                    'get': {
+                        'offers': 5,
+                        'orders': 5,
+                        'positions': 8.3334,
+                    },
+                    'post': {
+                        'purchase': 5,
+                        'redeem': 5,
+                        'cancel': 5,
+                    },
                 },
                 'spot': {
-                    'get': [
-                        'accounts',
-                        'accounts/{currency}',
-                        'accounts/{currency}/ledger',
-                        'orders',
-                        'amend_order/{instrument_id}',
-                        'orders_pending',
-                        'orders/{order_id}',
-                        'orders/{client_oid}',
-                        'trade_fee',
-                        'fills',
-                        'algo',
+                    'get': {
+                        'accounts': 5,
+                        'accounts/{currency}': 5,
+                        'accounts/{currency}/ledger': 5,
+                        'orders': 10,
+                        'orders_pending': 5,
+                        'orders/{order_id}': 5,
+                        'orders/{client_oid}': 5,
+                        'trade_fee': 5,
+                        'fills': 10,
+                        'algo': 5,
                         // public
-                        'instruments',
-                        'instruments/{instrument_id}/book',
-                        'instruments/ticker',
-                        'instruments/{instrument_id}/ticker',
-                        'instruments/{instrument_id}/trades',
-                        'instruments/{instrument_id}/candles',
-                        'instruments/{instrument_id}/history/candles',
-                    ],
-                    'post': [
-                        'order_algo',
-                        'orders',
-                        'batch_orders',
-                        'cancel_orders/{order_id}',
-                        'cancel_orders/{client_oid}',
-                        'cancel_batch_algos',
-                        'cancel_batch_orders',
-                    ],
+                        'instruments': 5,
+                        'instruments/{instrument_id}/book': 5,
+                        'instruments/ticker': 5,
+                        'instruments/{instrument_id}/ticker': 5,
+                        'instruments/{instrument_id}/trades': 5,
+                        'instruments/{instrument_id}/candles': 5,
+                    },
+                    'post': {
+                        'order_algo': 2.5,
+                        'orders': 1,
+                        'batch_orders': 2,
+                        'cancel_orders/{order_id}': 1,
+                        'cancel_orders/{client_oid}': 1,
+                        'cancel_batch_algos': 5,
+                        'cancel_batch_orders': 5,
+                        'amend_order/{instrument_id}': 2.5,
+                        'amend_batch_orders': 5,
+                    },
                 },
                 'margin': {
-                    'get': [
-                        'accounts',
-                        'accounts/{instrument_id}',
-                        'accounts/{instrument_id}/ledger',
-                        'accounts/availability',
-                        'accounts/{instrument_id}/availability',
-                        'accounts/borrowed',
-                        'accounts/{instrument_id}/borrowed',
-                        'orders',
-                        'accounts/{instrument_id}/leverage',
-                        'orders/{order_id}',
-                        'orders/{client_oid}',
-                        'orders_pending',
-                        'fills',
+                    'get': {
+                        'accounts': 5,
+                        'accounts/{instrument_id}': 5,
+                        'accounts/{instrument_id}/ledger': 5,
+                        'accounts/availability': 5,
+                        'accounts/{instrument_id}/availability': 5,
+                        'accounts/borrowed': 5,
+                        'accounts/{instrument_id}/borrowed': 5,
+                        'orders': 10,
+                        'accounts/{instrument_id}/leverage': 1,
+                        'orders/{order_id}': 5,
+                        'orders/{client_oid}': 5,
+                        'orders_pending': 5,
+                        'fills': 10,
                         // public
-                        'instruments/{instrument_id}/mark_price',
-                    ],
-                    'post': [
-                        'accounts/borrow',
-                        'accounts/repayment',
-                        'orders',
-                        'batch_orders',
-                        'cancel_orders',
-                        'cancel_orders/{order_id}',
-                        'cancel_orders/{client_oid}',
-                        'cancel_batch_orders',
-                        'accounts/{instrument_id}/leverage',
-                    ],
+                        'instruments/{instrument_id}/mark_price': 5,
+                    },
+                    'post': {
+                        'accounts/borrow': 1,
+                        'accounts/repayment': 1,
+                        'orders': 1,
+                        'batch_orders': 2,
+                        'cancel_orders': 1,
+                        'cancel_orders/{order_id}': 1,
+                        'cancel_orders/{client_oid}': 1,
+                        'cancel_batch_orders': 2,
+                        'amend_order/{instrument_id}': 2.5,
+                        'amend_batch_orders': 5,
+                        'accounts/{instrument_id}/leverage': 1,
+                    },
+                },
+                'system': {
+                    'get': {
+                        'status': 250,
+                    },
+                },
+                'market': {
+                    'get': {
+                        'oracle': 250,
+                    },
                 },
                 'futures': {
                     'get': [

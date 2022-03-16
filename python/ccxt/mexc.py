@@ -1700,7 +1700,7 @@ class mexc(Exchange):
             raise InvalidOrder(self.id + ' createSwapOrder() order side must be 1 open long, 2 close short, 3 open short or 4 close long')
         request = {
             'symbol': market['id'],
-            'price': float(self.price_to_precision(symbol, price)),
+            # 'price': float(self.price_to_precision(symbol, price)),
             'vol': float(self.amount_to_precision(symbol, amount)),
             # 'leverage': int,  # required for isolated margin
             'side': side,  # 1 open long, 2 close short, 3 open short, 4 close long
@@ -1721,6 +1721,8 @@ class mexc(Exchange):
             # 'stopLossPrice': self.price_to_precision(symbol, stopLossPrice),
             # 'takeProfitPrice': self.price_to_precision(symbol, takeProfitPrice),
         }
+        if (type != 5) and (type != 6) and (type != 'market'):
+            request['price'] = float(self.price_to_precision(symbol, price))
         if openType == 1:
             leverage = self.safe_integer(params, 'leverage')
             if leverage is None:

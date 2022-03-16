@@ -213,6 +213,7 @@ class probit extends Exchange {
                 'SOC' => 'Soda Coin',
                 'SST' => 'SocialSwap',
                 'TCT' => 'Top Coin Token',
+                'TOR' => 'Torex',
                 'TPAY' => 'Tetra Pay',
                 'UNI' => 'UNICORN Token',
                 'UNISWAP' => 'UNI',

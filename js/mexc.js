@@ -1780,7 +1780,7 @@ module.exports = class mexc extends Exchange {
         }
         const request = {
             'symbol': market['id'],
-            'price': parseFloat (this.priceToPrecision (symbol, price)),
+            // 'price': parseFloat (this.priceToPrecision (symbol, price)),
             'vol': parseFloat (this.amountToPrecision (symbol, amount)),
             // 'leverage': int, // required for isolated margin
             'side': side, // 1 open long, 2 close short, 3 open short, 4 close long
@@ -1814,6 +1814,9 @@ module.exports = class mexc extends Exchange {
             request['executeCycle'] = this.safeInteger (params, 'executeCycle', 1);
             request['trend'] = this.safeInteger (params, 'trend', 1);
             request['orderType'] = this.safeInteger (params, 'orderType', 1);
+        }
+        if ((type !== 5) && (type !== 6) && (type !== 'market')) {
+            request['price'] = parseFloat (this.priceToPrecision (symbol, price));
         }
         if (openType === 1) {
             const leverage = this.safeInteger (params, 'leverage');

@@ -1765,6 +1765,9 @@ class zb extends Exchange {
         ));
         $request = array(
             'amount' => $this->amount_to_precision($symbol, $amount),
+            // 'acctType' => 0, // Spot, Margin 0/1/2 [Spot/Isolated/Cross] Optional, Default to => 0 Spot
+            // 'customerOrderId' => '1f2g', // Spot, Margin
+            // 'orderType' => 1, // Spot, Margin order $type 1/2 [PostOnly/IOC] Optional
         );
         if ($price) {
             $request['price'] = $this->price_to_precision($symbol, $price);
@@ -1772,6 +1775,15 @@ class zb extends Exchange {
         if ($spot) {
             $request['tradeType'] = ($side === 'buy') ? '1' : '0';
             $request['currency'] = $market['id'];
+            if ($timeInForce !== null) {
+                if ($timeInForce === 'PO') {
+                    $request['orderType'] = 1;
+                } else if ($timeInForce === 'IOC') {
+                    $request['orderType'] = 2;
+                } else {
+                    throw new InvalidOrder($this->id . ' createOrder() on ' . $market['type'] . ' markets does not allow ' . $timeInForce . ' orders');
+                }
+            }
         } else if ($swap) {
             $reduceOnly = $this->safe_value($params, 'reduceOnly');
             $params = $this->omit($params, 'reduceOnly');

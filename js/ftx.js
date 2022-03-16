@@ -101,6 +101,10 @@ module.exports = class ftx extends Exchange {
                 '3d': '259200',
                 '1w': '604800',
                 '2w': '1209600',
+                // the exchange does not align candles to the start of the month
+                // it can only fetch candles in fixed intervals of multiples of whole days
+                // that works for all timeframes, except the monthly timeframe
+                // because months have varying numbers of days
                 '1M': '2592000',
             },
             'api': {
@@ -852,22 +856,29 @@ module.exports = class ftx extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const [ market, marketId ] = this.getMarketParams (symbol, 'market_name', params);
+        // max 1501 candles, including the current candle when since is not specified
+        const maxLimit = 5000;
+        const defaultLimit = 1500;
+        limit = (limit === undefined) ? defaultLimit : Math.min (limit, maxLimit);
         const request = {
             'resolution': this.timeframes[timeframe],
             'market_name': marketId,
+            // 'start_time': parseInt (since / 1000),
+            // 'end_time': this.seconds (),
+            'limit': limit,
         };
         const price = this.safeString (params, 'price');
         params = this.omit (params, 'price');
-        // max 1501 candles, including the current candle when since is not specified
-        limit = (limit === undefined) ? 1501 : limit;
-        if (since === undefined) {
-            request['end_time'] = this.seconds ();
-            request['limit'] = limit;
-            request['start_time'] = request['end_time'] - limit * this.parseTimeframe (timeframe);
-        } else {
-            request['start_time'] = parseInt (since / 1000);
-            request['limit'] = limit;
-            request['end_time'] = this.sum (request['start_time'], limit * this.parseTimeframe (timeframe));
+        if (since !== undefined) {
+            const startTime = parseInt (since / 1000);
+            request['start_time'] = startTime;
+            const duration = this.parseTimeframe (timeframe);
+            const endTime = this.sum (startTime, limit * duration);
+            request['end_time'] = Math.min (endTime, this.seconds ());
+            if (duration > 86400) {
+                const wholeDaysInTimeframe = parseInt (duration / 86400);
+                request['limit'] = Math.min (limit * wholeDaysInTimeframe, maxLimit);
+            }
         }
         let method = 'publicGetMarketsMarketNameCandles';
         if (price === 'index') {

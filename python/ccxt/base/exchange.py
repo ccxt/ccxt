@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.75.76'
+__version__ = '1.76.30'
 
 # -----------------------------------------------------------------------------
 
@@ -126,6 +126,8 @@ class Exchange(object):
     aiohttp_trust_env = False
     session = None  # Session () by default
     verify = True  # SSL verification
+    validateServerSsl = True
+    validateClientSsl = False
     logger = None  # logging.getLogger(__name__) by default
     userAgent = None
     userAgents = {
@@ -441,7 +443,10 @@ class Exchange(object):
 
     def __del__(self):
         if self.session:
-            self.session.close()
+            try:
+                self.session.close()
+            except Exception as e:
+                pass
 
     def __repr__(self):
         return 'ccxt.' + ('async_support.' if self.asyncio_loop else '') + self.id + '()'
@@ -639,7 +644,7 @@ class Exchange(object):
                 headers=request_headers,
                 timeout=int(self.timeout / 1000),
                 proxies=self.proxies,
-                verify=self.verify
+                verify=self.verify and self.validateServerSsl
             )
             # does not try to detect encoding
             response.encoding = 'utf-8'
@@ -1921,6 +1926,10 @@ class Exchange(object):
                 change = percentage / 100 * last
             if (open is None) and (last is not None) and (change is not None):
                 open = last - change
+            if (vwap is not None) and (baseVolume is not None) and (quoteVolume is None):
+                quoteVolume = vwap / baseVolume
+            if (vwap is not None) and (quoteVolume is not None) and (baseVolume is None):
+                baseVolume = quoteVolume / vwap
             ticker['symbol'] = symbol
             ticker['timestamp'] = timestamp
             ticker['datetime'] = self.iso8601(timestamp)
@@ -2693,6 +2702,12 @@ class Exchange(object):
             if 'rate' in fee:
                 fee['rate'] = self.safe_number(fee, 'rate')
             entry['fee'] = fee
+        # timeInForceHandling
+        timeInForce = self.safe_string(order, 'timeInForce')
+        if self.safe_value(order, 'postOnly', False):
+            timeInForce = 'PO'
+        elif self.safe_string(order, 'type') == 'market':
+            timeInForce = 'IOC'
         return self.extend(order, {
             'lastTradeTimestamp': lastTradeTimeTimestamp,
             'price': self.parse_number(price),
@@ -2702,6 +2717,7 @@ class Exchange(object):
             'filled': self.parse_number(filled),
             'remaining': self.parse_number(remaining),
             'trades': trades,
+            'timeInForce': timeInForce,
         })
 
     def parse_number(self, value, default=None):
@@ -2790,9 +2806,9 @@ class Exchange(object):
             symbol = market['symbol']
             symbols_length = 0
             if (symbols is not None):
-                symbols_length = symbols.length
+                symbols_length = len(symbols)
             contract = self.safe_value(market, 'contract', False)
-            if (contract and (symbols_length == 0 or symbols.includes(symbol))):
+            if (contract and (symbols_length == 0 or symbol in symbols)):
                 tiers[symbol] = self.parse_market_leverage_tiers(item, market)
         return tiers
 

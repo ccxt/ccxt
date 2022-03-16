@@ -185,13 +185,24 @@ class bitflyer extends Exchange {
                 $quoteId = $this->safe_string($currencies, 2);
             } else if ($future) {
                 $alias = $this->safe_string($market, 'alias');
-                $splitAlias = explode('_', $alias);
-                $currencyIds = $this->safe_string($splitAlias, 0);
-                $baseId = mb_substr($currencyIds, 0, -3 - 0);
-                $quoteId = mb_substr($currencyIds, -3);
-                $splitId = explode($currencyIds, $id);
-                $expiryDate = $this->safe_string($splitId, 1);
-                $expiry = $this->parse_expiry_date($expiryDate);
+                if ($alias === null) {
+                    // no $alias:
+                    // array( product_code => 'BTCJPY11MAR2022', market_type => 'Futures' )
+                    // TODO this will break if there are products with 4 chars
+                    $baseId = mb_substr($id, 0, 3 - 0);
+                    $quoteId = mb_substr($id, 3, 6 - 3);
+                    // last 9 chars are $expiry date
+                    $expiryDate = mb_substr($id, -9);
+                    $expiry = $this->parse_expiry_date($expiryDate);
+                } else {
+                    $splitAlias = explode('_', $alias);
+                    $currencyIds = $this->safe_string($splitAlias, 0);
+                    $baseId = mb_substr($currencyIds, 0, -3 - 0);
+                    $quoteId = mb_substr($currencyIds, -3);
+                    $splitId = explode($currencyIds, $id);
+                    $expiryDate = $this->safe_string($splitId, 1);
+                    $expiry = $this->parse_expiry_date($expiryDate);
+                }
                 $type = 'future';
             }
             $base = $this->safe_currency_code($baseId);

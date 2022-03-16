@@ -270,6 +270,8 @@ module.exports = class Exchange {
 
         // do not delete this line, it is needed for users to be able to define their own fetchImplementation
         this.fetchImplementation = defaultFetch
+        this.validateServerSsl = true
+        this.validateClientSsl = false
 
         this.timeout       = 10000 // milliseconds
         this.verbose       = false
@@ -332,6 +334,10 @@ module.exports = class Exchange {
 
         const agentOptions = {
             'keepAlive': true,
+        }
+
+        if (!this.validateServerSsl) {
+            agentOptions['rejectUnauthorized'] = false;
         }
 
         if (!this.httpAgent && defaultFetch.http && isNode) {
@@ -1288,6 +1294,12 @@ module.exports = class Exchange {
             if ((open === undefined) && (last !== undefined) && (change !== undefined)) {
                 open = last - change;
             }
+            if ((vwap !== undefined) && (baseVolume !== undefined) && (quoteVolume === undefined)) {
+                quoteVolume = vwap / baseVolume;
+            }
+            if ((vwap !== undefined) && (quoteVolume !== undefined) && (baseVolume === undefined)) {
+                baseVolume = quoteVolume / vwap;
+            }
             ticker['symbol'] = symbol;
             ticker['timestamp'] = timestamp;
             ticker['datetime'] = this.iso8601 (timestamp);
@@ -2073,6 +2085,13 @@ module.exports = class Exchange {
             }
             entry['fee'] = fee;
         }
+        // timeInForceHandling
+        let timeInForce = this.safeString (order, 'timeInForce');
+        if (this.safeValue (order, 'postOnly', false)) {
+            timeInForce = 'PO';
+        } else if (this.safeString (order, 'type') === 'market') {
+            timeInForce = 'IOC';
+        }
         return this.extend (order, {
             'lastTradeTimestamp': lastTradeTimeTimestamp,
             'price': this.parseNumber (price),
@@ -2081,6 +2100,7 @@ module.exports = class Exchange {
             'average': this.parseNumber (average),
             'filled': this.parseNumber (filled),
             'remaining': this.parseNumber (remaining),
+            'timeInForce': timeInForce,
             'trades': trades,
         });
     }

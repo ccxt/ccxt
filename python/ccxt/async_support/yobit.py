@@ -171,6 +171,7 @@ class yobit(Exchange):
                 'GCC': 'GlobalCryptocurrency',
                 'GEN': 'Genstake',
                 'GENE': 'Genesiscoin',
+                'GMR': 'Gimmer',
                 'GOLD': 'GoldMint',
                 'GOT': 'Giotto Coin',
                 'GSX': 'GlowShares',

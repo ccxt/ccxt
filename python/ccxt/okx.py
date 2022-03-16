@@ -1148,7 +1148,7 @@ class okx(Exchange):
         symbol = market['symbol']
         last = self.safe_string(ticker, 'last')
         open = self.safe_string(ticker, 'open24h')
-        quoteVolume = self.safe_string(ticker, 'volCcy24h')
+        quoteVolume = self.safe_string(ticker, 'volCcy24h') if market['spot'] else None
         baseVolume = self.safe_string(ticker, 'vol24h')
         return self.safe_ticker({
             'symbol': symbol,

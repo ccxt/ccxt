@@ -5,7 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const Precise = require ('./base/Precise');
 const { TICK_SIZE } = require ('./base/functions/number');
-const { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound } = require ('./base/errors');
+const { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled } = require ('./base/errors');
 
 module.exports = class gateio extends Exchange {
     describe () {
@@ -22,8 +22,32 @@ module.exports = class gateio extends Exchange {
                 'doc': 'https://www.gate.io/docs/apiv4/en/index.html',
                 'www': 'https://gate.io/',
                 'api': {
-                    'public': 'https://api.gateio.ws/api/v4',
-                    'private': 'https://api.gateio.ws/api/v4',
+                    'public': {
+                        'futures': 'https://api.gateio.ws/api/v4',
+                        'margin': 'https://api.gateio.ws/api/v4',
+                        'delivery': 'https://api.gateio.ws/api/v4',
+                        'spot': 'https://api.gateio.ws/api/v4',
+                        'options': 'https://api.gateio.ws/api/v4',
+                    },
+                    'private': {
+                        'withdrawals': 'https://api.gateio.ws/api/v4',
+                        'wallet': 'https://api.gateio.ws/api/v4',
+                        'futures': 'https://api.gateio.ws/api/v4',
+                        'margin': 'https://api.gateio.ws/api/v4',
+                        'delivery': 'https://api.gateio.ws/api/v4',
+                        'spot': 'https://api.gateio.ws/api/v4',
+                        'options': 'https://api.gateio.ws/api/v4',
+                    },
+                },
+                'test': {
+                    'public': {
+                        'futures': 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'delivery': 'https://fx-api-testnet.gateio.ws/api/v4',
+                    },
+                    'private': {
+                        'futures': 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'delivery': 'https://fx-api-testnet.gateio.ws/api/v4',
+                    },
                 },
                 'referral': {
                     'url': 'https://www.gate.io/ref/2436035',
@@ -368,6 +392,7 @@ module.exports = class gateio extends Exchange {
                     'delivery': 'delivery',
                 },
                 'defaultType': 'spot',
+                'defaultMarginType': 'isolated',
                 'swap': {
                     'fetchMarkets': {
                         'settlementCurrencies': [ 'usdt', 'btc' ],
@@ -539,7 +564,7 @@ module.exports = class gateio extends Exchange {
                     'MIXED_ACCOUNT_TYPE': InvalidOrder,
                     'AUTO_BORROW_TOO_MUCH': ExchangeError,
                     'TRADE_RESTRICTED': InsufficientFunds,
-                    'USER_NOT_FOUND': ExchangeError,
+                    'USER_NOT_FOUND': AccountNotEnabled,
                     'CONTRACT_NO_COUNTER': ExchangeError,
                     'CONTRACT_NOT_FOUND': BadSymbol,
                     'RISK_LIMIT_EXCEEDED': ExchangeError,
@@ -586,7 +611,8 @@ module.exports = class gateio extends Exchange {
         if (type === 'option') {
             result = await this.fetchOptionMarkets (query);
         }
-        if (result.length === 0) {
+        const resultLength = result.length;
+        if (resultLength === 0) {
             throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to " + "'spot', 'margin', 'swap', 'future' or 'option'"); // eslint-disable-line quotes
         }
         return result;
@@ -595,7 +621,7 @@ module.exports = class gateio extends Exchange {
     async fetchSpotMarkets (params) {
         const marginResponse = await this.publicMarginGetCurrencyPairs (params);
         const spotMarketsResponse = await this.publicSpotGetCurrencyPairs (params);
-        const spotMarkets = this.indexBy (spotMarketsResponse, 'id');
+        const marginMarkets = this.indexBy (marginResponse, 'id');
         //
         //  Spot
         //      [
@@ -627,11 +653,11 @@ module.exports = class gateio extends Exchange {
         //       ]
         //
         const result = [];
-        for (let i = 0; i < marginResponse.length; i++) {
-            let market = marginResponse[i];
+        for (let i = 0; i < spotMarketsResponse.length; i++) {
+            let market = spotMarketsResponse[i];
             const id = this.safeString (market, 'id');
-            const spotMarket = this.safeValue (spotMarkets, id);
-            market = this.deepExtend (spotMarket, market);
+            const marginMarket = this.safeValue (marginMarkets, id);
+            market = this.deepExtend (marginMarket, market);
             const [ baseId, quoteId ] = id.split ('_');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
@@ -1055,6 +1081,11 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        // sandbox/testnet only supports future markets
+        const apiBackup = this.safeString (this.urls, 'apiBackup');
+        if (apiBackup !== undefined) {
+            return undefined;
+        }
         const response = await this.publicSpotGetCurrencies (params);
         //
         //     {
@@ -2696,6 +2727,7 @@ module.exports = class gateio extends Exchange {
 
     parseOrderStatus (status) {
         const statuses = {
+            '_new': 'open',
             'filled': 'closed',
             'cancelled': 'canceled',
             'liquidated': 'closed',
@@ -2857,6 +2889,7 @@ module.exports = class gateio extends Exchange {
         let filled = Precise.stringSub (amount, remaining);
         let cost = this.safeNumber (order, 'filled_total');
         let rawStatus = undefined;
+        let average = undefined;
         if (put) {
             remaining = amount;
             filled = '0';
@@ -2867,6 +2900,7 @@ module.exports = class gateio extends Exchange {
             type = isMarketOrder ? 'market' : 'limit';
             side = Precise.stringGt (amount, '0') ? 'buy' : 'sell';
             rawStatus = this.safeString (order, 'finish_as', 'open');
+            average = this.safeNumber (order, 'fill_price');
         } else {
             rawStatus = this.safeString (order, 'status');
         }
@@ -2912,7 +2946,7 @@ module.exports = class gateio extends Exchange {
             'side': side,
             'price': this.parseNumber (price),
             'stopPrice': this.safeNumber (trigger, 'price'),
-            'average': this.safeNumber (order, 'fill_price'),
+            'average': average,
             'amount': this.parseNumber (Precise.stringAbs (amount)),
             'cost': cost,
             'filled': this.parseNumber (filled),
@@ -2925,6 +2959,14 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * Retrieves information on an order
+         * @param {string} id: Order id
+         * @param {string} symbol: Unified market symbol
+         * @param {boolean} params.stop: True if the order being fetched is a trigger order
+         * @param {dictionary} params: Parameters specified by the exchange api
+         * @returns Order structure
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
@@ -3098,6 +3140,14 @@ module.exports = class gateio extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * Cancels an open order
+         * @param {string} id: Order id
+         * @param {string} symbol: Unified market symbol
+         * @param {boolean} params.stop: True if the order to be cancelled is a trigger order
+         * @param {dictionary} params: Parameters specified by the exchange api
+         * @returns Order structure
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
@@ -3111,8 +3161,9 @@ module.exports = class gateio extends Exchange {
         } else {
             request['currency_pair'] = market['id'];
         }
-        const isStop = this.safeValue (params, 'isStop', false);
-        const pathMiddle = isStop ? 'Price' : '';
+        const stop = this.safeValue2 (params, 'is_stop_order', 'stop', false);
+        params = this.omit (params, [ 'is_stop_order', 'stop' ]);
+        const pathMiddle = stop ? 'Price' : '';
         const method = this.getSupportedMapping (market['type'], {
             'spot': 'privateSpotDelete' + pathMiddle + 'OrdersOrderId',
             'margin': 'privateSpotDelete' + pathMiddle + 'OrdersOrderId',
@@ -3284,15 +3335,22 @@ module.exports = class gateio extends Exchange {
             'future': 'privateDeliveryPostSettlePositionsContractLeverage',
         });
         const request = this.prepareRequest (market);
-        request['query'] = {
-            'leverage': leverage.toString (),
-        };
-        if ('cross_leverage_limit' in params) {
-            if (leverage !== 0) {
-                throw new BadRequest (this.id + ' cross margin leverage(valid only when leverage is 0)');
-            }
-            request['cross_leverage_limit'] = params['cross_leverage_limit'].toString ();
-            params = this.omit (params, 'cross_leverage_limit');
+        const defaultMarginType = this.safeString (this.options, 'marginType', 'defaultMarginType');
+        const crossLeverageLimit = this.safeString (params, 'cross_leverage_limit');
+        let marginType = this.safeString (params, 'marginType', defaultMarginType);
+        if (crossLeverageLimit !== undefined) {
+            marginType = 'cross';
+            leverage = crossLeverageLimit;
+        }
+        if (marginType === 'cross') {
+            request['query'] = {
+                'cross_leverage_limit': leverage.toString (),
+                'leverage': '0',
+            };
+        } else {
+            request['query'] = {
+                'leverage': leverage.toString (),
+            };
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -3696,7 +3754,11 @@ module.exports = class gateio extends Exchange {
         path = this.implodeParams (path, params);
         const endPart = (path === '') ? '' : ('/' + path);
         const entirePath = '/' + type + endPart;
-        let url = this.urls['api'][authentication] + entirePath;
+        let url = this.urls['api'][authentication][type];
+        if (url === undefined) {
+            throw new NotSupported (this.id + ' does not have a testnet for the ' + type + ' market type.');
+        }
+        url += entirePath;
         if (authentication === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
