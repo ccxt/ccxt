@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, DDoSProtection, AuthenticationError, InvalidOrder, ArgumentsRequired} = require ('./base/errors');
+const { ExchangeError, DDoSProtection, AuthenticationError, InvalidOrder } = require ('./base/errors');
 // const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -95,12 +95,12 @@ module.exports = class lbank2 extends Exchange {
                         'usdToCny': 2.5,
                         'withdrawConfigs': 2.5, // fetchWithdrawalFees (symbol)
                         'timestamp': 2.5,
-                        'ticker/24h': 2.5, // down
+                        'ticker/24h': 2.5, // TODO (down)
                         'ticker': 2.5, // fetchTicker
                         'depth': 2.5,
                         'incrDepth': 2.5, // fetchOrderBook
                         'trades': 2.5, // fetchTrades
-                        'kline': 2.5, // fetchOHLCV
+                        'kline': 2.5, // fetchOHLCV TODO (down)
                     },
                 },
                 'private': {
@@ -391,8 +391,7 @@ module.exports = class lbank2 extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            // 'type': this.parseTimeframe (timeframe),
-            'type': timeframe,
+            'type': this.timeframes[timeframe],
             'time': this.milliseconds (),
             'size': limit ? limit : 100, // max 2000
         };
@@ -423,9 +422,38 @@ module.exports = class lbank2 extends Exchange {
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
+    parseBalance (response) {
+        const result = {
+            'info': response,
+            'timestamp': this.safeInteger (response, 'ts'),
+            'datetime': this.iso8601 (this.safeInteger (response, 'ts')),
+        };
+        const data = this.safeValue (response, 'data', {});
+        const free = this.safeValue (data, 'free', {});
+        const used = this.safeValue (data, 'freeze', {});
+        const total = this.safeValue (data, 'asset', {});
+        const currencyIds = Object.keys (free);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (free, currencyId);
+            account['used'] = this.safeString (used, currencyId);
+            account['total'] = this.safeString (total, currencyId);
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privatePostUserInfo ();
+        return this.parseBalance (response);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = this.omit (params, this.extractParams (path));
-        let url = this.urls['api2'] + '/' + this.version + '/' + this.implodeParams (path, params);
+        let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
         // Every endpoint ends with ".do"
         url += '.do';
         if (api === 'public') {
