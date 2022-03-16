@@ -1711,7 +1711,7 @@ class Exchange {
 
         curl_setopt($this->curl, CURLOPT_HEADER, 1);
         // match the same http version as python and js
-        curl_setopt($this->curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+        curl_setopt($this->curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
 
         // user-defined cURL options (if any)
         if (!empty($this->curl_options)) {
