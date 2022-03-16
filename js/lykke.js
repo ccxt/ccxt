@@ -717,7 +717,7 @@ module.exports = class lykke extends Exchange {
             'volume': parseFloat (this.amountToPrecision (symbol, amount)),
         };
         if (type === 'limit') {
-            query['price'] = parseFloat (this.priceToPrecision (symbol, amount));
+            query['price'] = parseFloat (this.priceToPrecision (symbol, price));
         }
         const method = 'privatePostOrders' + this.capitalize (type);
         const result = await this[method] (this.extend (query, params));
