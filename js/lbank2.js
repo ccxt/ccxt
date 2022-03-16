@@ -396,29 +396,63 @@ module.exports = class lbank2 extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-            const timestamp = Date.now ();
+            const timestamp = this.milliseconds ().toString ();
             const echostr = this.uuid22 () + this.uuid16 ();
-            const authParameters = this.rawencode (this.keysort (this.extend ({
+            query = this.extend ({
                 'api_key': this.apiKey,
+            }, query);
+            const isRSA = this.secret.length > 32;
+            const auth = this.rawencode (this.keysort (this.extend ({
                 'echostr': echostr,
-                'signature_method': 'HmacSHA256',
+                'signature_method': isRSA ? 'RSA' : 'HmacSHA256',
                 'timestamp': timestamp,
-            }, params)));
-            const message = this.hash (authParameters).toUpperCase ();
-            const sign = this.hmac (message, this.secret);
-            query['sign'] = sign;
-            query['api_key'] = this.apiKey;
-            query = this.extend (query, params);
-            body = this.urlencode (query);
+            }, query)));
+            const hash = this.hash (auth).toUpperCase ();
+            let sign = undefined;
+            //
+            // TODO fix RSA signing
+            if (isRSA) {
+                // TODO fix RSA
+                const cacheSecretAsPem = this.safeValue (this.options, 'cacheSecretAsPem', true);
+                let pem = undefined;
+                if (cacheSecretAsPem) {
+                    pem = this.safeValue (this.options, 'pem');
+                    if (pem === undefined) {
+                        pem = this.convertSecretToPem (this.secret);
+                        this.options['pem'] = pem;
+                    }
+                } else {
+                    pem = this.convertSecretToPem (this.secret);
+                }
+                sign = this.binaryToBase64 (this.rsa (hash, this.encode (pem), 'RS256'));
+                // TODO fix RSA
+                //
+            } else {
+                sign = this.hmac (hash, this.secret);
+            }
+            body = this.urlencode (this.keysort (query)) + '&sign=' + sign;
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'timestamp': timestamp,
-                'signature_method': 'HmacSHA256',
+                'signature_method': isRSA ? 'RSA' : 'HmacSHA256',
                 'echostr': echostr,
             };
-            url += '?' + 'api_key=' + this.apiKey + '&' + 'sign=' + sign;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    convertSecretToPem (secret) {
+        const lineLength = 64;
+        const secretLength = secret.length - 0;
+        let numLines = parseInt (secretLength / lineLength);
+        numLines = this.sum (numLines, 1);
+        let pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
+        for (let i = 0; i < numLines; i++) {
+            const start = i * lineLength;
+            const end = this.sum (start, lineLength);
+            pem += this.secret.slice (start, end) + "\n"; // eslint-disable-line
+        }
+        return pem + '-----END PRIVATE KEY-----';
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
