@@ -1909,6 +1909,12 @@ if ($exchange->has['fetchMyTrades']) {
 - [Public Trades](#public-trades)
 - [Exchange Time](#exchange-time)
 - [Exchange Status](#exchange-status)
+- [Leverage Tiers](#leverage-tiers)
+- [Funding Rate](#funding-rate)
+- [Funding Rate History](#funding-rate-history)
+- [Borrow Rates](#borrow-rates)
+- [Borrow Rate History](#borrow-rate-history)
+- [Positions Risk](#positions-risk)
 
 ## Order Book
 
@@ -2626,7 +2632,7 @@ In the example above:
 
 **Note for Huobi users:** Huobi uses both leverage and amount to determine maintenance margin rates: https://www.huobi.com/support/en-us/detail/900000089903
 
-## Funding Rate and Funding Rates
+## Funding Rate
 *contract only*
 
 Data on the current, most recent, and next funding rates can be obtained using the methods
@@ -2828,6 +2834,7 @@ Returns
 # Private API
 
 - [Authentication](#authentication)
+- [Sign In](#sign-in)
 - [API Keys Setup](#api-keys-setup)
 - [Account Balance](#account-balance)
 - [Orders](#orders)
@@ -2838,6 +2845,11 @@ Returns
 - [Transactions](#transactions)
 - [Fees](#fees)
 - [Ledger](#ledger)
+- [Margin](#Margin)
+- [Margin Mode](#margin-mode)
+- [Funding History](#funding-history)
+- [Transfers](#transfers)
+- [Leverage](#leverage)
 
 In order to be able to access your user account, perform algorithmic trading by placing market and limit orders, query balances, deposit and withdraw funds and so on, you need to obtain your API keys for authentication from each exchange you want to trade with. They usually have it available on a separate tab or page within your user account settings. API keys are exchange-specific and cannnot be interchanged under any circumstances.
 
@@ -2990,6 +3002,21 @@ $exchange = new $exchange_class (array (
 ```
 
 Note that your private requests will fail with an exception or error if you don't set up your API credentials before you start trading. To avoid character escaping **always write your credentials in single quotes**, not double quotes (`'VERY_GOOD'`, `"VERY_BAD"`).
+
+### Sign In
+
+Some exchanges required you to sign in prior to calling private methods, which can be done using the `signIn` method
+
+```Javascript
+signIn (params = {})
+```
+
+Parameters
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"2fa": "329293"}`)
+
+Returns 
+- response from the exchange
+
 
 ### Overriding The Nonce
 
@@ -4975,20 +5002,6 @@ Parameters
 - **leverage** (Integer) *required* The desired leverage
 - **symbol** (String) Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`) *required* on most exchanges. Is not required when leverage is not specific to a market (e.g. Not required on **FTX** because leverage is set for the account and not per market)
 - **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"marginMode": "cross"}`)
-
-Returns 
-- response from the exchange
-
-## Sign In
-
-The `signIn` method can be used to sign into exchanges prior to calling other private methods if required by the exchange
-
-```Javascript
-signIn (params = {})
-```
-
-Parameters
-- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"2fa": "329293"}`)
 
 Returns 
 - response from the exchange
