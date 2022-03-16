@@ -70,15 +70,17 @@ module.exports = class zb extends ccxt.zb {
     }
 
     async watchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
         const market = this.market (symbol);
         let messageHash = undefined;
-        const type = market['type'];
+        const type = market['spot'] ? 'spot' : 'contract';
         if (type === 'spot') {
             messageHash = market['baseId'] + market['quoteId'] + '_' + 'ticker';
         } else {
             messageHash = market['id'] + '.' + 'Ticker';
         }
-        return await this.watchPublic (messageHash, symbol, this.handleTicker, params);
+        const url = this.urls['api']['ws'][type];
+        return await this.watchPublic (url, messageHash, symbol, this.handleTicker, undefined, params);
     }
 
     parseWsTicker (ticker, market = undefined) {
@@ -196,7 +198,7 @@ module.exports = class zb extends ccxt.zb {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client, message) {
+    handleOHLCV (client, message, subscription) {
         //
         // snapshot update
         //    {
@@ -225,7 +227,6 @@ module.exports = class zb extends ccxt.zb {
         const partsLength = parts.length;
         const interval = this.safeString (parts, partsLength - 1);
         const timeframe = this.findTimeframe (interval);
-        const subscription = this.safeValue (client.subscriptions, channel);
         const symbol = this.safeString (subscription, 'symbol');
         const market = this.market (symbol);
         for (let i = 0; i < data.length; i++) {
@@ -245,16 +246,17 @@ module.exports = class zb extends ccxt.zb {
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         const market = this.market (symbol);
         let messageHash = undefined;
         const type = market['spot'] ? 'spot' : 'contract';
         if (type === 'spot') {
-            messageHash = market['baseId'] + market['quoteId'] + '_' + 'ticker';
+            messageHash = market['baseId'] + market['quoteId'] + '_' + 'trades';
         } else {
             messageHash = market['id'] + '.' + 'Trade';
         }
         const url = this.urls['api']['ws'][type];
-        const trades = await await this.watchPublic (url, messageHash, symbol, this.handleTrades, limit, params);
+        const trades = await this.watchPublic (url, messageHash, symbol, this.handleTrades, limit, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -372,7 +374,7 @@ module.exports = class zb extends ccxt.zb {
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
             'order': undefined,
-            'type': 'limit',
+            'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
             'price': price,
@@ -546,6 +548,7 @@ module.exports = class zb extends ccxt.zb {
         //     }
         //
         // contract snapshot
+        //
         // {
         //     channel: 'BTC_USDT.Depth',
         //     type: 'Whole',
@@ -555,6 +558,7 @@ module.exports = class zb extends ccxt.zb {
         //       time: '1647359998198'
         //     }
         //   }
+        //
         // contract deltas update
         // {
         //     channel: 'BTC_USDT.Depth',
