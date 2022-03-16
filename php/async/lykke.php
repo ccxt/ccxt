@@ -719,7 +719,7 @@ class lykke extends Exchange {
             'volume' => floatval($this->amount_to_precision($symbol, $amount)),
         );
         if ($type === 'limit') {
-            $query['price'] = floatval($this->price_to_precision($symbol, $amount));
+            $query['price'] = floatval($this->price_to_precision($symbol, $price));
         }
         $method = 'privatePostOrders' . $this->capitalize($type);
         $result = yield $this->$method (array_merge($query, $params));

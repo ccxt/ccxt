@@ -704,7 +704,7 @@ class lykke(Exchange):
             'volume': float(self.amount_to_precision(symbol, amount)),
         }
         if type == 'limit':
-            query['price'] = float(self.price_to_precision(symbol, amount))
+            query['price'] = float(self.price_to_precision(symbol, price))
         method = 'privatePostOrders' + self.capitalize(type)
         result = await getattr(self, method)(self.extend(query, params))
         #
