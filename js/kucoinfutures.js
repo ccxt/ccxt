@@ -268,7 +268,6 @@ module.exports = class kucoinfutures extends kucoin {
                 'version': 'v1',
                 'symbolSeparator': '-',
                 'defaultType': 'swap',
-                'defaultCode': 'USDT',
                 'marginTypes': {},
                 // endpoint versions
                 'versions': {
@@ -288,6 +287,10 @@ module.exports = class kucoinfutures extends kucoin {
                     'ERC20': 'eth',
                     'TRC20': 'trx',
                 },
+                // 'code': 'BTC',
+                // 'fetchBalance': {
+                //    'code': 'BTC',
+                // },
             },
         });
     }
@@ -1253,9 +1256,14 @@ module.exports = class kucoinfutures extends kucoin {
         await this.loadMarkets ();
         // only fetches one balance at a time
         const request = {};
-        const defaultCode = this.safeString (this.options, 'defaultCode');
-        const code = this.safeString2 (params, 'code', 'currency', defaultCode);
-        if (code !== undefined) {
+        const currencyId = this.safeString (params, 'currency');
+        let defaultCode = this.safeString (this.options, 'code');
+        const fetchBalanceOptions = this.safeValue (this.options, 'fetchBalance', {});
+        defaultCode = this.safeString (fetchBalanceOptions, 'code', defaultCode);
+        const code = this.safeString (params, 'code', defaultCode);
+        if (currencyId !== undefined) {
+            request['currency'] = currencyId;
+        } else if (code !== undefined) {
             const currency = this.currency (code);
             request['currency'] = currency['id'];
         }
