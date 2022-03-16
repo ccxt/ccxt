@@ -279,6 +279,7 @@ class kucoinfutures(kucoin):
                 'version': 'v1',
                 'symbolSeparator': '-',
                 'defaultType': 'swap',
+                'code': 'USDT',
                 'marginTypes': {},
                 # endpoint versions
                 'versions': {
@@ -1209,17 +1210,14 @@ class kucoinfutures(kucoin):
     def fetch_balance(self, params={}):
         self.load_markets()
         # only fetches one balance at a time
-        request = {}
-        coin = self.safe_string(params, 'coin')
         defaultCode = self.safe_string(self.options, 'code')
         fetchBalanceOptions = self.safe_value(self.options, 'fetchBalance', {})
         defaultCode = self.safe_string(fetchBalanceOptions, 'code', defaultCode)
         code = self.safe_string(params, 'code', defaultCode)
-        if coin is not None:
-            request['currency'] = coin
-        elif code is not None:
-            currency = self.currency(code)
-            request['currency'] = currency['id']
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
         response = self.futuresPrivateGetAccountOverview(self.extend(request, params))
         #
         #     {
