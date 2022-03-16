@@ -368,6 +368,7 @@ module.exports = class gateio extends Exchange {
                     'delivery': 'delivery',
                 },
                 'defaultType': 'spot',
+                'defaultMarginType': 'isolated',
                 'swap': {
                     'fetchMarkets': {
                         'settlementCurrencies': [ 'usdt', 'btc' ],
@@ -3285,15 +3286,17 @@ module.exports = class gateio extends Exchange {
             'future': 'privateDeliveryPostSettlePositionsContractLeverage',
         });
         const request = this.prepareRequest (market);
-        request['query'] = {
-            'leverage': leverage.toString (),
-        };
-        if ('cross_leverage_limit' in params) {
-            if (leverage !== 0) {
-                throw new BadRequest (this.id + ' cross margin leverage(valid only when leverage is 0)');
-            }
-            request['cross_leverage_limit'] = params['cross_leverage_limit'].toString ();
-            params = this.omit (params, 'cross_leverage_limit');
+        const defaultMarginType = this.safeString (this.options, 'marginType', 'defaultMarginType');
+        const crossLeverageLimit = this.safeString (params, 'cross_leverage_limit');
+        let marginType = this.safeString (params, 'marginType', defaultMarginType);
+        if (crossLeverageLimit !== undefined) {
+            marginType = 'cross';
+        }
+        if (marginType === 'cross') {
+            request['cross_leverage_limit'] = leverage.toString ();
+            request['leverage'] = '0';
+        } else {
+            request['leverage'] = leverage.toString ();
         }
         const response = await this[method] (this.extend (request, params));
         //
