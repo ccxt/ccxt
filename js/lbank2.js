@@ -675,7 +675,7 @@ module.exports = class lbank2 extends Exchange {
                 // TODO fix RSA
                 //
             } else {
-                sign = this.hmac (hash, this.secret);
+                sign = this.hmac (this.encode (hash), this.secret);
             }
             body = this.urlencode (this.keysort (query)) + '&sign=' + sign;
             headers = {
