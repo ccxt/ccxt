@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { ExchangeError, NotSupported } = require ('ccxt/js/base/errors');
+const { ExchangeError, NotSupported, AuthenticationError } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheByTimestamp } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -72,6 +72,48 @@ module.exports = class zb extends ccxt.zb {
         return await this.watchPublic (messageHash, symbol, this.handleTicker, params);
     }
 
+    parseWsTicker (ticker, market = undefined) {
+        //
+        // contract ticker
+        //      {
+        //          data: [
+        //            38568.36, // open
+        //            39958.75, // high
+        //            38100, // low
+        //            39211.78, // last
+        //            61695.496, // volume 24h
+        //            1.67, // change
+        //            1647369457, // time
+        //            285916.615048
+        //          ]
+        //    }
+        //
+        const timestamp = this.safeInteger (ticker, 6);
+        const last = this.safeString (ticker, 3);
+        return this.safeTicker ({
+            'symbol': this.safeSymbol (undefined, market),
+            'timestamp': timestamp,
+            'datetime': undefined,
+            'high': this.safeString (ticker, 1),
+            'low': this.safeString (ticker, 2),
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': this.safeString (ticker, 0),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': this.safeString (ticker, 5),
+            'average': undefined,
+            'baseVolume': this.safeString (ticker, 4),
+            'quoteVolume': undefined,
+            'info': ticker,
+        }, market, false);
+    }
+
     handleTicker (client, message, subscription) {
         //
         // spot ticker
@@ -111,9 +153,15 @@ module.exports = class zb extends ccxt.zb {
         const symbol = this.safeString (subscription, 'symbol');
         const channel = this.safeString (message, 'channel');
         const market = this.market (symbol);
-        const data = this.safeValue (message, 'ticker');
-        data['date'] = this.safeValue (message, 'date');
-        const ticker = this.parseTicker (data, market);
+        let data = this.safeValue (message, 'ticker');
+        let ticker = undefined;
+        if (data === undefined) {
+            data = this.safeValue (message, 'data', []);
+            ticker = this.parseWsTicker (data, market);
+        } else {
+            data['date'] = this.safeValue (message, 'date');
+            ticker = this.parseTicker (data, market);
+        }
         ticker['symbol'] = symbol;
         this.tickers[symbol] = ticker;
         client.resolve (ticker, channel);
@@ -235,8 +283,8 @@ module.exports = class zb extends ccxt.zb {
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
         if (limit !== undefined) {
-            if ((limit !== 5) && (limit !== 10) && (limit !== 20)) {
-                throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 5, 10 or 20');
+            if ((limit !== 5) && (limit !== 10)) {
+                throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 5, or 10');
             }
         } else {
             limit = 5; // default
@@ -332,7 +380,7 @@ module.exports = class zb extends ccxt.zb {
         // For contract markets zb will:
         // 1: send snapshot
         // 2: send deltas
-        // 3: repeat
+        // 3: repeat 1-2
         // So we have a guarentee that deltas
         // are always updated and arrive after
         // the snapshot
@@ -459,13 +507,40 @@ module.exports = class zb extends ccxt.zb {
         //   }
         //
         // const dataType = this.safeString2 (message, 'dataType', 'type');
-        // if (dataType !== undefined) {
         const channel = this.safeString (message, 'channel');
         const subscription = this.safeValue (client.subscriptions, channel);
         if (subscription !== undefined) {
             const method = this.safeValue (subscription, 'method');
             if (method !== undefined) {
                 return method.call (this, client, message, subscription);
+            }
+        }
+        return message;
+    }
+
+    handleErrorMessage (client, message) {
+        //
+        // { errorCode: 10020, errorMsg: "action param can't be empty" }
+        // { errorCode: 10015, errorMsg: '无效的签名(1002)' }
+        //
+        const errorCode = this.safeString (message, 'errorCode');
+        try {
+            if (errorCode !== undefined) {
+                const feedback = this.id + ' ' + this.json (message);
+                this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+                const messageString = this.safeValue (message, 'message');
+                if (messageString !== undefined) {
+                    this.throwBroadlyMatchedException (this.exceptions['broad'], messageString, feedback);
+                }
+            }
+        } catch (e) {
+            if (e instanceof AuthenticationError) {
+                client.reject (e, 'authenticated');
+                const method = 'login';
+                if (method in client.subscriptions) {
+                    delete client.subscriptions[method];
+                }
+                return false;
             }
         }
         return message;
