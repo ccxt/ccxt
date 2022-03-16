@@ -2795,7 +2795,6 @@ Parameters
 Returns
 - An [position risk structures](#position-risk-structure)
 
-
 #### Positions Risk Structure
 
 ```JavaScript
@@ -2823,12 +2822,6 @@ Returns
     hedged: false,
     percentage: 78
 }
-```
-
-## Trading Limits
-
-```Javascript
-fetchTradingLimits (symbols = undefined, params = {})
 ```
 
 
