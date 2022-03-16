@@ -1294,6 +1294,12 @@ module.exports = class Exchange {
             if ((open === undefined) && (last !== undefined) && (change !== undefined)) {
                 open = last - change;
             }
+            if ((vwap !== undefined) && (baseVolume !== undefined) && (quoteVolume === undefined)) {
+                quoteVolume = vwap / baseVolume;
+            }
+            if ((vwap !== undefined) && (quoteVolume !== undefined) && (baseVolume === undefined)) {
+                baseVolume = quoteVolume / vwap;
+            }
             ticker['symbol'] = symbol;
             ticker['timestamp'] = timestamp;
             ticker['datetime'] = this.iso8601 (timestamp);

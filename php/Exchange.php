@@ -2148,6 +2148,12 @@ class Exchange {
             if (($open === null) && ($last !== null) && ($change !== null)) {
                 $open = $last - $change;
             }
+            if (($vwap !== null) && ($baseVolume !== null) && ($quoteVolume === null)) {
+                $quoteVolume = $vwap / $baseVolume;
+            }
+            if (($vwap !== null) && ($quoteVolume !== null) && ($baseVolume === null)) {
+                $baseVolume = $quoteVolume / $vwap;
+            }
             $ticker['symbol'] = $symbol;
             $ticker['timestamp'] = $timestamp;
             $ticker['datetime'] = $this->iso8601($timestamp);
