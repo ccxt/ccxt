@@ -2734,7 +2734,7 @@ Parameters
 - **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"marginMode": "cross"}`)
 
 Returns
-- An [transaction structure](#transaction-structure)
+- A [transaction structure](#transaction-structure)
 
 ```Javascript
 fetchBorrowRates (params = {})
@@ -2799,7 +2799,7 @@ Parameters
 - **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"settle": "usdt"}`)
 
 Returns
-- An [position risk structures](#position-risk-structure)
+- A [position risk structures](#position-risk-structure)
 
 #### Positions Risk Structure
 
@@ -4165,7 +4165,7 @@ Parameters
 - **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"network": "TRX"}`)
 
 Returns
-- An [transaction structure](#transaction-structure)
+- A [transaction structure](#transaction-structure)
 
 ```Javascript
 fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {})
@@ -4213,7 +4213,7 @@ Parameters
 - **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"network": "TRX"}`)
 
 Returns
-- An [transaction structure](#transaction-structure)
+- A [transaction structure](#transaction-structure)
 
 ---
 
