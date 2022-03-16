@@ -1320,6 +1320,8 @@ module.exports = class hitbtc3 extends Exchange {
             // 'make_rate': 0.001, // Optional
         };
         const timeInForce = this.safeString2 (params, 'timeInForce', 'time_in_force');
+        const expireTime = this.safeString (params, 'expire_time');
+        const stopPrice = this.safeNumber2 (params, 'stopPrice', 'stop_price');
         if ((type === 'limit') || (type === 'stopLimit') || (type === 'takeProfitLimit')) {
             if (price === undefined) {
                 throw new ExchangeError (this.id + ' limit order requires price');
@@ -1327,16 +1329,16 @@ module.exports = class hitbtc3 extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         if ((timeInForce === 'GTD')) {
-            if (price === undefined) {
+            if (expireTime === undefined) {
                 throw new ExchangeError (this.id + ' GTD order requires expire_time');
             }
-            request['expire_time'] = this.safeString (params, 'expire_time');
+            request['expire_time'] = expireTime;
         }
         if ((type === 'stopLimit') || (type === 'stopMarket') || (type === 'takeProfitLimit') || (type === 'takeProfitMarket')) {
-            if (price === undefined) {
+            if (stopPrice === undefined) {
                 throw new ExchangeError (this.id + ' Stop and take profit orders require stop_price');
             }
-            request['stop_price'] = this.safeNumber (params, 'stop_price');
+            request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
         }
         const method = this.getSupportedMapping (market['type'], {
             'spot': 'privatePostSpotOrder',
