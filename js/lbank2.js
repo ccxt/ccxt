@@ -386,7 +386,7 @@ module.exports = class lbank2 extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const query = this.omit (params, this.extractParams (path));
+        let query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
         // Every endpoint ends with ".do"
         url += '.do';
@@ -396,26 +396,27 @@ module.exports = class lbank2 extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-            const query = this.keysort (this.extend ({
+            const timestamp = Date.now ();
+            const echostr = this.uuid22 () + this.uuid16 ();
+            const authParameters = this.rawencode (this.keysort (this.extend ({
                 'api_key': this.apiKey,
-            }, params));
-            const queryString = this.rawencode (query);
-            const message = this.hash (this.encode (queryString)).toUpperCase ();
-            const cacheSecretAsPem = this.safeValue (this.options, 'cacheSecretAsPem', true);
-            let pem = undefined;
-            if (cacheSecretAsPem) {
-                pem = this.safeValue (this.options, 'pem');
-                if (pem === undefined) {
-                    pem = this.convertSecretToPem (this.secret);
-                    this.options['pem'] = pem;
-                }
-            } else {
-                pem = this.convertSecretToPem (this.secret);
-            }
-            const sign = this.binaryToBase64 (this.rsa (message, this.encode (pem), 'RS256'));
+                'echostr': echostr,
+                'signature_method': 'HmacSHA256',
+                'timestamp': timestamp,
+            }, params)));
+            const message = this.hash (authParameters).toUpperCase ();
+            const sign = this.hmac (message, this.secret);
             query['sign'] = sign;
+            query['api_key'] = this.apiKey;
+            query = this.extend (query, params);
             body = this.urlencode (query);
-            headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'timestamp': timestamp,
+                'signature_method': 'HmacSHA256',
+                'echostr': echostr,
+            };
+            url += '?' + 'api_key=' + this.apiKey + '&' + 'sign=' + sign;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
