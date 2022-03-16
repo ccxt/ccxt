@@ -4,7 +4,6 @@
 
 const ccxt = require ('ccxt');
 const { ExchangeError, NotSupported } = require ('ccxt/js/base/errors');
-const time = require ('ccxt/js/base/functions/time');
 const { ArrayCache, ArrayCacheByTimestamp } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -17,6 +16,7 @@ module.exports = class zb extends ccxt.zb {
                 'watchOrderBook': true,
                 'watchTicker': true,
                 'watchTrades': true,
+                'watchOHLCV': true,
             },
             'urls': {
                 'api': {
@@ -34,24 +34,47 @@ module.exports = class zb extends ccxt.zb {
         });
     }
 
-    async watchPublic (url, messageHash, symbol, method, request, params = {}) {
+    async watchPublic (messageHash, symbol, method, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const type = market['spot'] ? 'spot' : 'contract';
+        const url = this.urls['api']['ws'][type];
+        let request = undefined;
+        if (type === 'spot') {
+            request = {
+                'event': 'addChannel',
+                'channel': messageHash,
+            };
+        } else {
+            request = {
+                'action': 'subscribe',
+                'channel': messageHash,
+            };
+        }
+        const message = this.extend (request, params);
         const subscription = {
-            // 'name': name,
             'symbol': symbol,
             'messageHash': messageHash,
             'method': method,
         };
-        const message = this.extend (request, params);
         return await this.watch (url, messageHash, message, messageHash, subscription);
     }
 
     async watchTicker (symbol, params = {}) {
         const market = this.market (symbol);
-        const messageHash = market['baseId'] + market['quoteId'] + '_' + 'ticker';
-        return await this.watchPublic (market['type'], messageHash, symbol, this.handleTicker, params);
+        let messageHash = undefined;
+        const type = market['type'];
+        if (type === 'spot') {
+            messageHash = market['baseId'] + market['quoteId'] + '_' + 'ticker';
+        } else {
+            messageHash = market['id'] + '.' + 'Ticker';
+        }
+        return await this.watchPublic (messageHash, symbol, this.handleTicker, params);
     }
 
     handleTicker (client, message, subscription) {
+        //
+        // spot ticker
         //
         //     {
         //         date: '1624398991255',
@@ -70,6 +93,21 @@ module.exports = class zb extends ccxt.zb {
         //         channel: 'btcusdt_ticker'
         //     }
         //
+        // contract ticker
+        //      {
+        //          channel: 'BTC_USDT.Ticker',
+        //          data: [
+        //            38568.36,
+        //            39958.75,
+        //            38100,
+        //            39211.78,
+        //            61695.496,
+        //            1.67,
+        //            1647369457,
+        //            285916.615048
+        //          ]
+        //      }
+        //
         const symbol = this.safeString (subscription, 'symbol');
         const channel = this.safeString (message, 'channel');
         const market = this.market (symbol);
@@ -86,10 +124,10 @@ module.exports = class zb extends ccxt.zb {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (market['spot']) {
-            throw NotSupported (this.id + ' watchOHLCV() supports contract markets only');
+            throw new NotSupported (this.id + ' watchOHLCV() supports contract markets only');
         }
-        if (limit === undefined) {
-            limit = 20;
+        if ((limit === undefined) || (limit > 1440)) {
+            limit = 100;
         }
         const interval = this.timeframes[timeframe];
         const messageHash = market['id'] + '.KLine' + '_' + interval;
@@ -291,6 +329,14 @@ module.exports = class zb extends ccxt.zb {
         //     }
         //  }
         //
+        // For contract markets zb will:
+        // 1: send snapshot
+        // 2: send deltas
+        // 3: repeat
+        // So we have a guarentee that deltas
+        // are always updated and arrive after
+        // the snapshot
+        //
         const type = this.safeString2 (message, 'type', 'dataType');
         const channel = this.safeString (message, 'channel');
         const symbol = this.safeString (subscription, 'symbol');
@@ -313,25 +359,10 @@ module.exports = class zb extends ccxt.zb {
                 orderbook.reset (snapshot);
             }
             orderbook['symbol'] = symbol;
-            orderbook['nonce'] = timestamp;
-            if (isContractSnapshot) {
-                // unroll the accumulated deltas for contract markets
-                const messages = orderbook.cache;
-                for (let i = 0; i < messages.length; i++) {
-                    const message = messages[i];
-                    this.handleOrderBookMessage (client, message, orderbook);
-                }
-            }
             client.resolve (orderbook, channel);
         } else {
-            // handle deltas for contract markets
-            const nonce = this.safeInteger (orderbook, 'nonce');
-            if (nonce === undefined) {
-                orderbook.cache.push (message);
-            } else {
-                this.handleOrderBookMessage (client, message, orderbook);
-                client.resolve (orderbook, channel);
-            }
+            this.handleOrderBookMessage (client, message, orderbook);
+            client.resolve (orderbook, channel);
         }
     }
 
@@ -347,16 +378,13 @@ module.exports = class zb extends ccxt.zb {
         //  }
         //
         const data = this.safeValue (message, 'data', {});
-        const seqNum = this.safeInteger (data, 'time');
-        if (seqNum > orderbook['nonce']) {
-            const asks = this.safeValue (data, 'asks', []);
-            const bids = this.safeValue (data, 'bids', []);
-            this.handleDeltas (orderbook['asks'], asks);
-            this.handleDeltas (orderbook['bids'], bids);
-            orderbook['nonce'] = seqNum;
-            orderbook['timestamp'] = seqNum;
-            orderbook['datetime'] = this.iso8601 (seqNum);
-        }
+        const timestamp = this.safeInteger (data, 'time');
+        const asks = this.safeValue (data, 'asks', []);
+        const bids = this.safeValue (data, 'bids', []);
+        this.handleDeltas (orderbook['asks'], asks);
+        this.handleDeltas (orderbook['bids'], bids);
+        orderbook['timestamp'] = timestamp;
+        orderbook['datetime'] = this.iso8601 (timestamp);
         return orderbook;
     }
 
