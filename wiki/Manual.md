@@ -2782,16 +2782,47 @@ Parameters
 Returns
 - An array of [borrow rate structures](#borrow-rate-structure)
 
-## Order Books
-
-```Javascript
-fetchOrderBooks (symbols = undefined, limit = undefined, params = {})
-```
-
 ## Positions Risk
 
 ```Javascript
 fetchPositionsRisk (symbols = undefined, params = {})
+```
+
+Parameters
+- **symbols** (\[String\]) Unified CCXT symbols (e.g. `["BTC/USDT:USDT", "ETH/USDT:USDT"]`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"settle": "usdt"}`)
+
+Returns
+- An [position risk structures](#position-risk-structure)
+
+
+#### Positions Risk Structure
+
+```JavaScript
+{
+    info: { ... },
+    symbol: 'CTSI/USDT',
+    contracts: 0,
+    contractSize: 1,
+    unrealizedPnl: 0,
+    leverage: 20,
+    liquidationPrice: 0.7313,
+    collateral: 0,
+    notional: 0,
+    markPrice: 0.7724,
+    entryPrice: 0,
+    timestamp: 1647420354000,
+    initialMargin: 0,
+    initialMarginPercentage: 0.05,
+    maintenanceMargin: 0,
+    maintenanceMarginPercentage: 0.01,
+    marginRatio: 0.4881,
+    datetime: "2022-03-16T08:45:54.000Z",
+    marginType: 'cross',
+    side: "long",
+    hedged: false,
+    percentage: 78
+}
 ```
 
 ## Trading Limits
