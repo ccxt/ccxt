@@ -1865,8 +1865,10 @@ module.exports = class okx extends Exchange {
             defaultMethod = 'privatePostTradeOrderAlgo';
             request['ordType'] = 'trigger';
             request['triggerPx'] = this.priceToPrecision (symbol, stopPrice);
-            type = (type === 'market') ? -1 : this.priceToPrecision (symbol, price);
-            request['orderPx'] = type;
+            if (type === 'market') {
+                price = -1;
+            }
+            request['orderPx'] = this.priceToPrecision (symbol, price);
         }
         if (defaultMethod === 'privatePostTradeOrder' || defaultMethod === 'privatePostTradeOrderAlgo') {
             extendedRequest = this.extend (request, params);
