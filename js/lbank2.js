@@ -578,17 +578,6 @@ module.exports = class lbank2 extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    // async cancelOrder (id, symbol = undefined, params = {}) {
-    //     await this.loadMarkets ();
-    //     const market = this.market (symbol);
-    //     const request = {
-    //         'symbol': market['id'],
-    //         'order_id': id,
-    //     };
-    //     const response = await this.privatePostCancelOrder (this.extend (request, params));
-    //     return response;
-    // }
-
     async fetchOrder (id, symbol = undefined, params = {}) {
         // Id can be a list of ids delimited by a comma
         await this.loadMarkets ();
