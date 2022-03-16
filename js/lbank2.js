@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, DDoSProtection, AuthenticationError, InvalidOrder } = require ('./base/errors');
+const { ExchangeError, DDoSProtection, AuthenticationError, InvalidOrder, ArgumentsRequired } = require ('./base/errors');
 // const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -451,52 +451,101 @@ module.exports = class lbank2 extends Exchange {
         return this.parseBalance (response);
     }
 
+    parseOrderStatus (status) {
+        const statuses = {
+            '-1': 'cancelled', // cancelled
+            '0': 'open', // not traded
+            '1': 'open', // partial deal
+            '2': 'closed', // complete deal
+            '4': 'closed', // disposal processing
+        };
+        return this.safeString (statuses, status);
+    }
+
     parseOrder (order, market = undefined) {
         //
+        //
         //      {
-        //          symbol: 'doge_usdt',
-        //          amount: 10,
-        //          price: 0.15,
-        //          order_id: '72fef95f-042e-4d57-aa80-c41aef2860da',
-        //          type: 'sell',
-        //          order_type: 'limit',
-        //          info: {
-        //              result: true,
-        //              data: { order_id: '72fef95f-042e-4d57-aa80-c41aef2860da' },
-        //              error_code: '0',
-        //              ts: '1647452260926'
-        //                  }
+        //          "symbol": 'doge_usdt',
+        //          "amount": 100,
+        //          "price": 1,
+        //          "order_id": undefined,
+        //          "type": 'buy',
+        //          "order_type": 'market',
+        //          "create_time": 1647456309418,
+        //          "info": {
+        //              "result": true,
+        //              "data": {
+        //                  "order_id": 'ecef0330-601b-4b0e-a573-13668ead396c'
+        //                   },
+        //          "error_code": '0',
+        //          "ts": '1647456309193'
+        //              }
         //      }
         //
+        //
+        // fetchOrder (private)
+        //
+        //      {
+        //          "symbol":"doge_usdt",
+        //          "amount":18,
+        //          "create_time":1647455223186,
+        //          "price":0,
+        //          "avg_price":0.113344,
+        //          "type":"sell_market",
+        //          "order_id":"d4ca1ddd-40d9-42c1-9717-5de435865bec",
+        //          "deal_amount":18,
+        //          "status":2
+        //      }
+        //
+        const marketId = this.safeString (order, 'symbol');
+        const symbol = this.safeSymbol (marketId, market, '_');
+        const timestamp = this.safeInteger (order, 'create_time');
+        // Limit Order Request Returns: Order Price
+        // Market Order Returns: cny amount of market order
+        const price = this.safeString (order, 'price');
+        const amount = this.safeString (order, 'amount');
+        const filled = this.safeString (order, 'deal_amount');
+        const average = this.safeString (order, 'avg_price');
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const id = this.safeString (order, 'order_id');
-        const response = this.safeValue (order, 'info');
-        const timestamp = this.safeInteger (response, 'ts');
-        const side = this.safeString (order, 'type');
-        const type = this.safeString (order, 'order_type');
-        const priceString = this.safeString (order, 'price');
-        const amountString = this.safeString (order, 'amount');
+        const typeId = this.safeString (order, 'type');
+        const orderTypeParts = typeId.split ('_');
+        const side = orderTypeParts[0];
+        const secondPart = orderTypeParts[1];
+        let timeInForce = undefined;
+        let type = undefined;
+        if (secondPart === undefined) {
+            type = 'limit';
+        } else if (secondPart === 'market') {
+            type = 'market';
+        } else if (secondPart === 'ioc') {
+            timeInForce = 'IOC';
+        } else if (secondPart === 'fok') {
+            timeInForce = 'FOK';
+        }
         return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
-            'status': undefined,
-            'symbol': undefined,
+            'status': status,
+            'symbol': symbol,
             'type': type,
-            'timeInForce': undefined,
+            'timeInForce': timeInForce,
             'postOnly': undefined,
             'side': side,
-            'price': priceString,
+            'price': price,
             'stopPrice': undefined,
             'cost': undefined,
-            'amount': amountString,
-            'filled': undefined,
+            'amount': amount,
+            'filled': filled,
             'remaining': undefined,
             'trades': undefined,
             'fee': undefined,
             'info': this.safeValue (order, 'info', order),
-            'average': undefined,
+            'average': average,
         }, market);
     }
 
@@ -505,9 +554,9 @@ module.exports = class lbank2 extends Exchange {
         const market = this.market (symbol);
         let order = {
             'symbol': market['id'],
-            'type': side, // buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
+            'type': side,
             'amount': amount,
-            'price': 1, // even market orders require a non-zero price despite not being used
+            'price': 1, // required unused number > 0 even for market orders
         };
         if (type === 'market') {
             order['type'] += '_market';
@@ -515,25 +564,72 @@ module.exports = class lbank2 extends Exchange {
             order['price'] = price;
         }
         const response = await this.privatePostCreateOrder (this.extend (order, params));
-        //
-        // no indication in response if successful or unsuccessful...
+        // order = this.omit (order, 'type');
+        const result = this.safeValue (response, 'data');
+        order['order_id'] = this.safeString (result, 'order_id');
+        order['side'] = side;
+        if (type === 'limit') {
+            order['type'] = side;
+        } else if (type === 'market') {
+            order = this.omit (order, 'price');
+        }
+        order['create_time'] = this.safeString (response, 'ts');
+        order['info'] = response;
+        return this.parseOrder (order, market);
+    }
+
+    // async cancelOrder (id, symbol = undefined, params = {}) {
+    //     await this.loadMarkets ();
+    //     const market = this.market (symbol);
+    //     const request = {
+    //         'symbol': market['id'],
+    //         'order_id': id,
+    //     };
+    //     const response = await this.privatePostCancelOrder (this.extend (request, params));
+    //     return response;
+    // }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        // Id can be a list of ids delimited by a comma
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder () requires a symbol parameter');
+        }
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'order_id': id,
+        };
+        const response = await this.privatePostOrdersInfo (this.extend (request, params));
         //
         //      {
         //          "result":true,
-        //          "data":{
-        //              "order_id":"a8a7ec2b-e7a9-47da-a2a9-afeec9028524"
-        //              },
+        //          "data":[
+        //              {
+        //                  "symbol":"doge_usdt",
+        //                  "amount":18,
+        //                  "create_time":1647455223186,
+        //                  "price":0,
+        //                  "avg_price":0.113344,
+        //                  "type":"sell_market",
+        //                  "order_id":"d4ca1ddd-40d9-42c1-9717-5de435865bec",
+        //                  "deal_amount":18,
+        //                  "status":2
+        //                }
+        //            ],
         //          "error_code":0,
-        //          "ts":1647450617464
+        //          "ts":1647455270776
         //      }
         //
-        const result = this.safeValue (response, 'data', {});
-        order = this.omit (order, 'type');
-        order['order_id'] = result['order_id'];
-        order['type'] = side;
-        order['order_type'] = type;
-        order['info'] = response;
-        return this.parseOrder (order, market);
+        const result = this.safeValue (response, 'data', [])[0];
+        const orders = this.parseOrder (result, market);
+        // if comma separated list of orders is provided;
+        const numOrders = orders.length;
+        if (numOrders === 1) {
+            return orders[0];
+        } else {
+            return orders;
+        }
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
