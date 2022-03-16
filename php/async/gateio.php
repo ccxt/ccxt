@@ -399,6 +399,7 @@ class gateio extends Exchange {
                     'delivery' => 'delivery',
                 ),
                 'defaultType' => 'spot',
+                'defaultMarginType' => 'isolated',
                 'swap' => array(
                     'fetchMarkets' => array(
                         'settlementCurrencies' => array( 'usdt', 'btc' ),
@@ -3341,15 +3342,22 @@ class gateio extends Exchange {
             'future' => 'privateDeliveryPostSettlePositionsContractLeverage',
         ));
         $request = $this->prepare_request($market);
-        $request['query'] = array(
-            'leverage' => (string) $leverage,
-        );
-        if (is_array($params) && array_key_exists('cross_leverage_limit', $params)) {
-            if ($leverage !== 0) {
-                throw new BadRequest($this->id . ' cross margin $leverage(valid only when $leverage is 0)');
-            }
-            $request['cross_leverage_limit'] = (string) $params['cross_leverage_limit'];
-            $params = $this->omit($params, 'cross_leverage_limit');
+        $defaultMarginType = $this->safe_string($this->options, 'marginType', 'defaultMarginType');
+        $crossLeverageLimit = $this->safe_string($params, 'cross_leverage_limit');
+        $marginType = $this->safe_string($params, 'marginType', $defaultMarginType);
+        if ($crossLeverageLimit !== null) {
+            $marginType = 'cross';
+            $leverage = $crossLeverageLimit;
+        }
+        if ($marginType === 'cross') {
+            $request['query'] = array(
+                'cross_leverage_limit' => (string) $leverage,
+                'leverage' => '0',
+            );
+        } else {
+            $request['query'] = array(
+                'leverage' => (string) $leverage,
+            );
         }
         $response = yield $this->$method (array_merge($request, $params));
         //

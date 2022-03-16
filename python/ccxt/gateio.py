@@ -409,6 +409,7 @@ class gateio(Exchange):
                     'delivery': 'delivery',
                 },
                 'defaultType': 'spot',
+                'defaultMarginType': 'isolated',
                 'swap': {
                     'fetchMarkets': {
                         'settlementCurrencies': ['usdt', 'btc'],
@@ -3197,14 +3198,21 @@ class gateio(Exchange):
             'future': 'privateDeliveryPostSettlePositionsContractLeverage',
         })
         request = self.prepare_request(market)
-        request['query'] = {
-            'leverage': str(leverage),
-        }
-        if 'cross_leverage_limit' in params:
-            if leverage != 0:
-                raise BadRequest(self.id + ' cross margin leverage(valid only when leverage is 0)')
-            request['cross_leverage_limit'] = str(params['cross_leverage_limit'])
-            params = self.omit(params, 'cross_leverage_limit')
+        defaultMarginType = self.safe_string(self.options, 'marginType', 'defaultMarginType')
+        crossLeverageLimit = self.safe_string(params, 'cross_leverage_limit')
+        marginType = self.safe_string(params, 'marginType', defaultMarginType)
+        if crossLeverageLimit is not None:
+            marginType = 'cross'
+            leverage = crossLeverageLimit
+        if marginType == 'cross':
+            request['query'] = {
+                'cross_leverage_limit': str(leverage),
+                'leverage': '0',
+            }
+        else:
+            request['query'] = {
+                'leverage': str(leverage),
+            }
         response = getattr(self, method)(self.extend(request, params))
         #
         #     {
