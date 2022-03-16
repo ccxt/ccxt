@@ -268,6 +268,7 @@ module.exports = class kucoinfutures extends kucoin {
                 'version': 'v1',
                 'symbolSeparator': '-',
                 'defaultType': 'swap',
+                'code': 'USDT',
                 'marginTypes': {},
                 // endpoint versions
                 'versions': {
@@ -1255,18 +1256,14 @@ module.exports = class kucoinfutures extends kucoin {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         // only fetches one balance at a time
-        const request = {};
-        const coin = this.safeString (params, 'coin');
         let defaultCode = this.safeString (this.options, 'code');
         const fetchBalanceOptions = this.safeValue (this.options, 'fetchBalance', {});
         defaultCode = this.safeString (fetchBalanceOptions, 'code', defaultCode);
         const code = this.safeString (params, 'code', defaultCode);
-        if (coin !== undefined) {
-            request['currency'] = coin;
-        } else if (code !== undefined) {
-            const currency = this.currency (code);
-            request['currency'] = currency['id'];
-        }
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
         const response = await this.futuresPrivateGetAccountOverview (this.extend (request, params));
         //
         //     {
