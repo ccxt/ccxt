@@ -1307,14 +1307,42 @@ module.exports = class hitbtc3 extends Exchange {
             'side': side,
             'quantity': this.amountToPrecision (symbol, amount),
             'symbol': market['id'],
+            // 'client_order_id': 'r42gdPjNMZN-H_xs8RKl2wljg_dfgdg4', // Optional
+            // 'time_in_force': 'GTC', // Optional GTC, IOC, FOK, Day, GTD
+            // 'price': this.priceToPrecision (symbol, price), // Required if type is limit, stopLimit, or takeProfitLimit
+            // 'stop_price': this.safeNumber (params, 'stop_price'), // Required if type is stopLimit, stopMarket, takeProfitLimit, takeProfitMarket
+            // 'expire_time': '2021-06-15T17:01:05.092Z', // Required if timeInForce is GTD
+            // 'strict_validate': false,
+            // 'post_only': false, // Optional
+            // 'reduce_only': false, // Optional
+            // 'display_quantity': '0', // Optional
+            // 'take_rate': 0.001, // Optional
+            // 'make_rate': 0.001, // Optional
         };
-        if ((type === 'limit') || (type === 'stopLimit')) {
+        const timeInForce = this.safeString2 (params, 'timeInForce', 'time_in_force');
+        if ((type === 'limit') || (type === 'stopLimit') || (type === 'takeProfitLimit')) {
             if (price === undefined) {
                 throw new ExchangeError (this.id + ' limit order requires price');
             }
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const response = await this.privatePostSpotOrder (this.extend (request, params));
+        if ((timeInForce === 'GTD')) {
+            if (price === undefined) {
+                throw new ExchangeError (this.id + ' GTD order requires expire_time');
+            }
+            request['expire_time'] = this.safeString (params, 'expire_time');
+        }
+        if ((type === 'stopLimit') || (type === 'stopMarket') || (type === 'takeProfitLimit') || (type === 'takeProfitMarket')) {
+            if (price === undefined) {
+                throw new ExchangeError (this.id + ' Stop and take profit orders require stop_price');
+            }
+            request['stop_price'] = this.safeNumber (params, 'stop_price');
+        }
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'privatePostSpotOrder',
+            'swap': 'privatePostFuturesOrder',
+        });
+        const response = await this[method] (this.extend (request, params));
         return this.parseOrder (response, market);
     }
 
@@ -1375,6 +1403,25 @@ module.exports = class hitbtc3 extends Exchange {
         //           "taker": true
         //         }
         //       ]
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "id": 58418961892,
+        //         "client_order_id": "r42gdPjNMZN-H_xs8RKl2wljg_dfgdg4",
+        //         "symbol": "BTCUSDT_PERP",
+        //         "side": "buy",
+        //         "status": "new",
+        //         "type": "limit",
+        //         "time_in_force": "GTC",
+        //         "quantity": "0.0005",
+        //         "quantity_cumulative": "0",
+        //         "price": "30000.00",
+        //         "post_only": false,
+        //         "reduce_only": false,
+        //         "created_at": "2022-03-16T08:16:53.039Z",
+        //         "updated_at": "2022-03-16T08:16:53.039Z"
         //     }
         //
         const id = this.safeString (order, 'client_order_id');
