@@ -67,8 +67,8 @@ module.exports = class crex24 extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
-                'fetchTradingFee': undefined, // actually, true, but will be implemented later
-                'fetchTradingFees': undefined, // actually, true, but will be implemented later
+                'fetchTradingFee': false,
+                'fetchTradingFees': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
@@ -197,6 +197,9 @@ module.exports = class crex24 extends Exchange {
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
                 'parseOrderToPrecision': false, // force amounts and costs in parseOrder to precision
                 'newOrderRespType': 'RESULT', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+                'fetchTradingFees': {
+                    'method': 'fetchPrivateTradingFees', // or 'fetchPublicTradingFees'
+                },
             },
             'exceptions': {
                 'exact': {
@@ -752,6 +755,104 @@ module.exports = class crex24 extends Exchange {
         //         timestamp: "2018-10-31T04:19:35Z" }  ]
         //
         return this.parseTrades (response, market, since, limit);
+    }
+
+    async fetchTradingFees (params = {}) {
+        let method = this.safeString (params, 'method');
+        params = this.omit (params, 'method');
+        if (method === undefined) {
+            const options = this.safeValue (this.options, 'fetchTradingFees', {});
+            method = this.safeString (options, 'method', 'fetchPrivateTradingFees');
+        }
+        return await this[method] (params);
+    }
+
+    async fetchPublicTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetTradingFeeSchedules (params);
+        //
+        //     [
+        //         {
+        //             name: 'FeeSchedule05',
+        //             feeRates: [
+        //                 { volumeThreshold: 0, maker: 0.0005, taker: 0.0005 },
+        //                 { volumeThreshold: 5, maker: 0.0004, taker: 0.0004 },
+        //                 { volumeThreshold: 15, maker: 0.0003, taker: 0.0003 },
+        //                 { volumeThreshold: 30, maker: 0.0002, taker: 0.0002 },
+        //                 { volumeThreshold: 50, maker: 0.0001, taker: 0.0001 }
+        //             ]
+        //         },
+        //         {
+        //             name: 'OriginalSchedule',
+        //             feeRates: [
+        //                 { volumeThreshold: 0, maker: -0.0001, taker: 0.001 },
+        //                 { volumeThreshold: 5, maker: -0.0002, taker: 0.0009 },
+        //                 { volumeThreshold: 15, maker: -0.0003, taker: 0.0008 },
+        //                 { volumeThreshold: 30, maker: -0.0004, taker: 0.0007 },
+        //                 { volumeThreshold: 50, maker: -0.0005, taker: 0.0006 }
+        //             ]
+        //         }
+        //     ]
+        //
+        const feeSchedulesByName = this.indexBy (response, 'name');
+        const originalSchedule = this.safeValue (feeSchedulesByName, 'OriginalSchedule', {});
+        const feeRates = this.safeValue (originalSchedule, 'feeRates', []);
+        const firstFee = this.safeValue (feeRates, 0, {});
+        const maker = this.safeNumber (firstFee, 'maker');
+        const taker = this.safeNumber (firstFee, 'taker');
+        const result = {};
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            result[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': maker,
+                'taker': taker,
+                'percentage': true,
+                'tierBased': true,
+            };
+        }
+        return result;
+    }
+
+    async fetchPrivateTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.tradingGetTradingFee (params);
+        //
+        //     {
+        //         feeRates: [
+        //             { schedule: 'FeeSchedule05', maker: 0.0005, taker: 0.0005 },
+        //             { schedule: 'FeeSchedule08', maker: 0.0008, taker: 0.0008 },
+        //             { schedule: 'FeeSchedule10', maker: 0.001, taker: 0.001 },
+        //             { schedule: 'FeeSchedule15', maker: 0.0015, taker: 0.0015 },
+        //             { schedule: 'FeeSchedule20', maker: 0.002, taker: 0.002 },
+        //             { schedule: 'FeeSchedule30', maker: 0.003, taker: 0.003 },
+        //             { schedule: 'FeeSchedule40', maker: 0.004, taker: 0.004 },
+        //             { schedule: 'FeeSchedule50', maker: 0.005, taker: 0.005 },
+        //             { schedule: 'OriginalSchedule', maker: -0.0001, taker: 0.001 }
+        //         ],
+        //         tradingVolume: 0,
+        //         lastUpdate: '2022-03-16T04:55:02Z'
+        //     }
+        //
+        const feeRates = this.safeValue (response, 'feeRates', []);
+        const feeRatesBySchedule = this.indexBy (feeRates, 'schedule');
+        const originalSchedule = this.safeValue (feeRatesBySchedule, 'OriginalSchedule', {});
+        const maker = this.safeNumber (originalSchedule, 'maker');
+        const taker = this.safeNumber (originalSchedule, 'taker');
+        const result = {};
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            result[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': maker,
+                'taker': taker,
+                'percentage': true,
+                'tierBased': true,
+            };
+        }
+        return result;
     }
 
     parseOHLCV (ohlcv, market = undefined) {
