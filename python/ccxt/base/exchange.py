@@ -1926,6 +1926,10 @@ class Exchange(object):
                 change = percentage / 100 * last
             if (open is None) and (last is not None) and (change is not None):
                 open = last - change
+            if (vwap is not None) and (baseVolume is not None) and (quoteVolume is None):
+                quoteVolume = vwap / baseVolume
+            if (vwap is not None) and (quoteVolume is not None) and (baseVolume is None):
+                baseVolume = quoteVolume / vwap
             ticker['symbol'] = symbol
             ticker['timestamp'] = timestamp
             ticker['datetime'] = self.iso8601(timestamp)
