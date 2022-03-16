@@ -1783,7 +1783,7 @@ module.exports = class okx extends Exchange {
             //
             'side': side,
             // 'posSide': 'long', // long, short, // required in the long/short mode, and can only be long or short
-            'ordType': type, // market, limit, post_only, fok, ioc, (conditional for stop loss and take profit orders)
+            'ordType': type, // market, limit, post_only, fok, ioc, (trigger for stop orders)
             //
             //     for SPOT/MARGIN bought and sold at a limit price, sz refers to the amount of trading currency
             //     for SPOT/MARGIN bought at a market price, sz refers to the amount of quoted currency
@@ -1793,12 +1793,9 @@ module.exports = class okx extends Exchange {
             // 'sz': this.amountToPrecision (symbol, amount),
             // 'px': this.priceToPrecision (symbol, price), // limit orders only
             // 'reduceOnly': false, // MARGIN orders only
-            // 'tpTriggerPx': 10, // Conditional order take profit trigger price
-            // 'tpOrdPx': 10, // Conditional order take profit order price -1, take-profit will be executed at the market price.
-            // 'tpTriggerPxType': 'last', // Conditional default is last, mark or index
-            // 'slTriggerPx': 10, // Conditional order stop loss trigger price
-            // 'slOrdPx': 10, // Conditional order stop loss order price, -1 stop-loss will be executed at the market price.
-            // 'slTriggerPxType': 'last', // Conditional default is last, mark or index
+            // 'triggerPx': 10, // Stop order trigger price
+            // 'orderPx': 10, // Order price if -1, the order will be executed at the market price.
+            // 'triggerPxType': 'last', // Conditional default is last, mark or index
         };
         const tdMode = this.safeStringLower (params, 'tdMode');
         if (market['spot']) {
@@ -1862,26 +1859,16 @@ module.exports = class okx extends Exchange {
         }
         let extendedRequest = undefined;
         let defaultMethod = this.safeString (this.options, 'createOrder', 'privatePostTradeBatchOrders'); // or privatePostTradeOrder or privatePostTradeOrderAlgo
-        const stopPrice = this.safeNumber2 (params, 'slOrdPx', 'stopPrice');
-        const stopTrigger = this.safeNumber (params, 'slTriggerPx');
-        const takeProfitPrice = this.safeNumber (params, 'tpOrdPx');
-        const takeProfitTrigger = this.safeNumber (params, 'tpTriggerPx');
-        params = this.omit (params, [ 'slOrdPx', 'stopPrice', 'tpOrdPx', 'tpTriggerPx', 'slTriggerPx' ]);
-        if (stopPrice || stopTrigger) {
-            if (stopPrice && stopTrigger) {
-                defaultMethod = 'privatePostTradeOrderAlgo';
-                request['slOrdPx'] = this.priceToPrecision (symbol, stopPrice);
-                request['slTriggerPx'] = this.priceToPrecision (symbol, stopTrigger);
+        const stopPrice = this.safeNumber2 (params, 'triggerPx', 'stopPrice');
+        params = this.omit (params, [ 'triggerPx', 'stopPrice' ]);
+        if (stopPrice) {
+            defaultMethod = 'privatePostTradeOrderAlgo';
+            request['ordType'] = 'trigger';
+            request['triggerPx'] = this.priceToPrecision (symbol, stopPrice);
+            if (type === 'market') {
+                request['orderPx'] = -1;
             } else {
-                throw new ArgumentsRequired (this.id + ' createOrder() stop orders require both a slOrdPx and slTriggerPx set in the params');
-            }
-        } else if (takeProfitPrice || takeProfitTrigger) {
-            if (takeProfitPrice && takeProfitTrigger) {
-                defaultMethod = 'privatePostTradeOrderAlgo';
-                request['tpOrdPx'] = this.priceToPrecision (symbol, takeProfitPrice);
-                request['tpTriggerPx'] = this.priceToPrecision (symbol, takeProfitTrigger);
-            } else {
-                throw new ArgumentsRequired (this.id + ' createOrder() take profit orders require both a tpOrdPx and tpTriggerPx set in the params');
+                request['orderPx'] = this.priceToPrecision (symbol, price);
             }
         }
         if (defaultMethod === 'privatePostTradeOrder' || defaultMethod === 'privatePostTradeOrderAlgo') {
