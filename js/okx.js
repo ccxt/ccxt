@@ -1868,13 +1868,21 @@ module.exports = class okx extends Exchange {
         const takeProfitTrigger = this.safeNumber (params, 'tpTriggerPx');
         params = this.omit (params, [ 'slOrdPx', 'stopPrice', 'tpOrdPx', 'tpTriggerPx', 'slTriggerPx' ]);
         if (stopPrice || stopTrigger) {
-            defaultMethod = 'privatePostTradeOrderAlgo';
-            request['slOrdPx'] = this.priceToPrecision (symbol, stopPrice);
-            request['slTriggerPx'] = this.priceToPrecision (symbol, stopTrigger);
+            if (stopPrice && stopTrigger) {
+                defaultMethod = 'privatePostTradeOrderAlgo';
+                request['slOrdPx'] = this.priceToPrecision (symbol, stopPrice);
+                request['slTriggerPx'] = this.priceToPrecision (symbol, stopTrigger);
+            } else {
+                throw new ArgumentsRequired (this.id + ' createOrder() stop orders require both a slOrdPx and slTriggerPx set in the params');
+            }
         } else if (takeProfitPrice || takeProfitTrigger) {
-            defaultMethod = 'privatePostTradeOrderAlgo';
-            request['tpOrdPx'] = this.priceToPrecision (symbol, takeProfitPrice);
-            request['tpTriggerPx'] = this.priceToPrecision (symbol, takeProfitTrigger);
+            if (takeProfitPrice && takeProfitTrigger) {
+                defaultMethod = 'privatePostTradeOrderAlgo';
+                request['tpOrdPx'] = this.priceToPrecision (symbol, takeProfitPrice);
+                request['tpTriggerPx'] = this.priceToPrecision (symbol, takeProfitTrigger);
+            } else {
+                throw new ArgumentsRequired (this.id + ' createOrder() take profit orders require both a tpOrdPx and tpTriggerPx set in the params');
+            }
         }
         if (defaultMethod === 'privatePostTradeOrder' || defaultMethod === 'privatePostTradeOrderAlgo') {
             extendedRequest = this.extend (request, params);
