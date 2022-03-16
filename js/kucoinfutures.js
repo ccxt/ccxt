@@ -1098,7 +1098,106 @@ module.exports = class kucoinfutures extends kucoin {
             'margin': amount,
             'bizNo': uuid,
         };
-        return await this.futuresPrivatePostPositionMarginDepositMargin (this.extend (request, params));
+        const response = await this.futuresPrivatePostPositionMarginDepositMargin (this.extend (request, params));
+        //
+        //    {
+        //        code: '200000',
+        //        data: {
+        //            id: '62311d26064e8f00013f2c6d',
+        //            symbol: 'XRPUSDTM',
+        //            autoDeposit: false,
+        //            maintMarginReq: 0.01,
+        //            riskLimit: 200000,
+        //            realLeverage: 0.88,
+        //            crossMode: false,
+        //            delevPercentage: 0.4,
+        //            openingTimestamp: 1647385894798,
+        //            currentTimestamp: 1647414510672,
+        //            currentQty: -1,
+        //            currentCost: -7.658,
+        //            currentComm: 0.0053561,
+        //            unrealisedCost: -7.658,
+        //            realisedGrossCost: 0,
+        //            realisedCost: 0.0053561,
+        //            isOpen: true,
+        //            markPrice: 0.7635,
+        //            markValue: -7.635,
+        //            posCost: -7.658,
+        //            posCross: 1.00016084,
+        //            posInit: 7.658,
+        //            posComm: 0.00979006,
+        //            posLoss: 0,
+        //            posMargin: 8.6679509,
+        //            posMaint: 0.08637006,
+        //            maintMargin: 8.6909509,
+        //            realisedGrossPnl: 0,
+        //            realisedPnl: -0.0038335,
+        //            unrealisedPnl: 0.023,
+        //            unrealisedPnlPcnt: 0.003,
+        //            unrealisedRoePcnt: 0.003,
+        //            avgEntryPrice: 0.7658,
+        //            liquidationPrice: 1.6239,
+        //            bankruptPrice: 1.6317,
+        //            settleCurrency: 'USDT'
+        //        }
+        //    }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseMargin (data, market);
+    }
+
+    parseMargin (info, market = undefined) {
+        //
+        //    {
+        //        id: '62311d26064e8f00013f2c6d',
+        //        symbol: 'XRPUSDTM',
+        //        autoDeposit: false,
+        //        maintMarginReq: 0.01,
+        //        riskLimit: 200000,
+        //        realLeverage: 0.88,
+        //        crossMode: false,
+        //        delevPercentage: 0.4,
+        //        openingTimestamp: 1647385894798,
+        //        currentTimestamp: 1647414510672,
+        //        currentQty: -1,
+        //        currentCost: -7.658,
+        //        currentComm: 0.0053561,
+        //        unrealisedCost: -7.658,
+        //        realisedGrossCost: 0,
+        //        realisedCost: 0.0053561,
+        //        isOpen: true,
+        //        markPrice: 0.7635,
+        //        markValue: -7.635,
+        //        posCost: -7.658,
+        //        posCross: 1.00016084,
+        //        posInit: 7.658,
+        //        posComm: 0.00979006,
+        //        posLoss: 0,
+        //        posMargin: 8.6679509,
+        //        posMaint: 0.08637006,
+        //        maintMargin: 8.6909509,
+        //        realisedGrossPnl: 0,
+        //        realisedPnl: -0.0038335,
+        //        unrealisedPnl: 0.023,
+        //        unrealisedPnlPcnt: 0.003,
+        //        unrealisedRoePcnt: 0.003,
+        //        avgEntryPrice: 0.7658,
+        //        liquidationPrice: 1.6239,
+        //        bankruptPrice: 1.6317,
+        //        settleCurrency: 'USDT'
+        //    }
+        //
+        const id = this.safeString (info, 'id');
+        market = this.safeMarket (id, market);
+        const currencyId = this.safeString (info, 'settleCurrency');
+        return {
+            'info': info,
+            'type': undefined,
+            'amount': undefined,
+            'code': this.safeCurrencyCode (currencyId),
+            'symbol': this.safeString (market, 'symbol'),
+            'status': undefined,
+        };
     }
 
     async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
