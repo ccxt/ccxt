@@ -78,7 +78,6 @@ module.exports = class aax extends Exchange {
                 'fetchOrderBooks': undefined,
                 'fetchOrders': true,
                 'fetchOrderTrades': undefined,
-                'fetchPartiallyFilledOrders': undefined,
                 'fetchPosition': true,
                 'fetchPositions': true,
                 'fetchPositionsRisk': false,
