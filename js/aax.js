@@ -2553,8 +2553,6 @@ module.exports = class aax extends Exchange {
         const notional = Precise.stringMul (initialQuote, marketPrice);
         const timestamp = this.safeInteger (position, 'ts');
         const liquidationPrice = this.safeString (position, 'liquidationPrice');
-        const bankruptPrice = this.safeString (position, 'bankruptPrice');
-        const maintenanceMargin = Precise.stringDiv (liquidationPrice, bankruptPrice);
         return {
             'info': position,
             'symbol': this.safeString (market, 'symbol'),
@@ -2562,8 +2560,8 @@ module.exports = class aax extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'initialMargin': undefined,
             'initialMarginPercentage': undefined,
-            'maintenanceMargin': maintenanceMargin,
-            'maintenanceMarginPercentage': Precise.stringDiv (maintenanceMargin, notional),
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
             'entryPrice': this.safeNumber (position, 'avgEntryPrice'),
             'notional': this.parseNumber (notional),
             'leverage': this.parseNumber (leverage),
