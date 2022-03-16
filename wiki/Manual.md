@@ -1914,7 +1914,38 @@ if ($exchange->has['fetchMyTrades']) {
 
 Exchanges expose information on open orders with bid (buy) and ask (sell) prices, volumes and other data. Usually there is a separate endpoint for querying current state (stack frame) of the *order book* for a particular market. An order book is also often called *market depth*. The order book information is used in the trading decision making process.
 
-The method for fetching an order book for a particular symbol is named `fetchOrderBook` or `fetch_order_book`. It accepts a symbol and an optional dictionary with extra params (if supported by a particular exchange). The method for fetching the order book is called like shown below:
+To get data on order books, you can use 
+
+- `fetchOrderBook ()` // for a single markets order books
+- `fetchOrderBooks ( symbols )` // for multiple markets order books
+- `fetchOrderBooks ()` // for the order books of all markets
+
+```JavaScript
+async fetchOrderBook (symbol, limit = undefined, params = {})
+```
+
+Parameters
+- **symbol** (String) *required* Unified CCXT symbol (e.g. `"BTC/USDT"`)
+- **limit** (Integer) The number of orders to return in the order book (e.g. `10`)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+- An [order book structure](#order-book-structure)
+
+
+```JavaScript
+async fetchOrderBooks (symbols = undefined, limit = undefined, params = {})
+```
+
+Parameters
+- **symbols** (\[String\]) Unified CCXT symbols (e.g. `["BTC/USDT", "ETH/USDT"]`)
+- **limit** (Integer) The number of orders to return in the order book (e.g. `10`)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+- A dictionary of [order book structures](#order-book-structure) indexed by market symbols
+
+### fetchOrderBook Examples
 
 ```JavaScript
 // JavaScript
@@ -1946,8 +1977,6 @@ foreach ($exchange->markets as $symbol => $market) {
 ```
 
 ### Order Book Structure
-
-The structure of a returned order book is as follows:
 
 ```JavaScript
 {
