@@ -2761,12 +2761,6 @@ fetchOrderBooks (symbols = undefined, limit = undefined, params = {})
 fetchPositionsRisk (symbols = undefined, params = {})
 ```
 
-## Trading Fee
-
-```Javascript
-fetchTradingFee (symbol, params = {})
-```
-
 ## Trading Limits
 
 ```Javascript
@@ -4399,6 +4393,7 @@ Because the fee structure can depend on the actual volume of currencies traded b
 
 ```Javascript
 fetchFees (params = {})
+fetchTradingFee (params = {})
 fetchTradingFees (params = {})
 fetchFundingFee (params = {})
 fetchFundingFees (params = {})
@@ -4513,11 +4508,31 @@ Also, some exchanges might not specify fees as percentage of volume, check the `
 
 #### Trading Fee Schedule
 
-Some exchanges have an endpoint for fetching the trading fee schedule, this is mapped to the unified method `fetchTradingFees`:
+Some exchanges have an endpoint for fetching the trading fee schedule, this is mapped to the unified methods `fetchTradingFees`, and `fetchTradingFee`
+
+```Javascript
+fetchTradingFee (symbol, params = {})
+```
+
+Parameters
+- **symbol** (String) *required* Unified market symbol (e.g. `"BTC/USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"currency": "quote"}`)
+
+Returns
+- A [trading fee structure](#trading-fee-structure)
 
 ```Javascript
 fetchTradingFees (params = {})
 ```
+
+Parameters
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"currency": "quote"}`)
+
+Returns
+- An array of [trading fee structures](#trading-fee-structure)
+
+
+##### Trading Fee Structure
 
 ```JavaScript
 {
