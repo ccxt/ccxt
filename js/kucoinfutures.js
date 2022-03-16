@@ -1252,13 +1252,12 @@ module.exports = class kucoinfutures extends kucoin {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         // only fetches one balance at a time
-        const request = {};
         const defaultCode = this.safeString (this.options, 'defaultCode');
         const code = this.safeString2 (params, 'code', 'currency', defaultCode);
-        if (code !== undefined) {
-            const currency = this.currency (code);
-            request['currency'] = currency['id'];
-        }
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
         const response = await this.futuresPrivateGetAccountOverview (this.extend (request, params));
         //
         //     {
