@@ -451,6 +451,91 @@ module.exports = class lbank2 extends Exchange {
         return this.parseBalance (response);
     }
 
+    parseOrder (order, market = undefined) {
+        //
+        //      {
+        //          symbol: 'doge_usdt',
+        //          amount: 10,
+        //          price: 0.15,
+        //          order_id: '72fef95f-042e-4d57-aa80-c41aef2860da',
+        //          type: 'sell',
+        //          order_type: 'limit',
+        //          info: {
+        //              result: true,
+        //              data: { order_id: '72fef95f-042e-4d57-aa80-c41aef2860da' },
+        //              error_code: '0',
+        //              ts: '1647452260926'
+        //                  }
+        //      }
+        //
+        const id = this.safeString (order, 'order_id');
+        const response = this.safeValue (order, 'info');
+        const timestamp = this.safeInteger (response, 'ts');
+        const side = this.safeString (order, 'type');
+        const type = this.safeString (order, 'order_type');
+        const priceString = this.safeString (order, 'price');
+        const amountString = this.safeString (order, 'amount');
+        return this.safeOrder ({
+            'id': id,
+            'clientOrderId': undefined,
+            'datetime': this.iso8601 (timestamp),
+            'timestamp': timestamp,
+            'lastTradeTimestamp': undefined,
+            'status': undefined,
+            'symbol': undefined,
+            'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': side,
+            'price': priceString,
+            'stopPrice': undefined,
+            'cost': undefined,
+            'amount': amountString,
+            'filled': undefined,
+            'remaining': undefined,
+            'trades': undefined,
+            'fee': undefined,
+            'info': this.safeValue (order, 'info', order),
+            'average': undefined,
+        }, market);
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let order = {
+            'symbol': market['id'],
+            'type': side, // buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
+            'amount': amount,
+            'price': 1, // even market orders require a non-zero price despite not being used
+        };
+        if (type === 'market') {
+            order['type'] += '_market';
+        } else {
+            order['price'] = price;
+        }
+        const response = await this.privatePostCreateOrder (this.extend (order, params));
+        //
+        // no indication in response if successful or unsuccessful...
+        //
+        //      {
+        //          "result":true,
+        //          "data":{
+        //              "order_id":"a8a7ec2b-e7a9-47da-a2a9-afeec9028524"
+        //              },
+        //          "error_code":0,
+        //          "ts":1647450617464
+        //      }
+        //
+        const result = this.safeValue (response, 'data', {});
+        order = this.omit (order, 'type');
+        order['order_id'] = result['order_id'];
+        order['type'] = side;
+        order['order_type'] = type;
+        order['info'] = response;
+        return this.parseOrder (order, market);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
