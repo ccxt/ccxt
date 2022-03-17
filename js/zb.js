@@ -457,7 +457,7 @@ module.exports = class zb extends ccxt.zb {
             const timestamp = this.safeInteger2 (data, 'lastTime', 'time');
             const asksKey = isContractSnapshot ? 'asks' : 'listUp';
             const bidsKey = isContractSnapshot ? 'bids' : 'listDown';
-            const snapshot = this.parseOrderBook (data, symbol, timestamp, asksKey, bidsKey);
+            const snapshot = this.parseOrderBook (data, symbol, timestamp, bidsKey, asksKey);
             if (!(symbol in this.orderbooks)) {
                 const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
                 const limit = this.safeInteger (subscription, 'limit', defaultLimit);
