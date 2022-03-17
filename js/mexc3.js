@@ -3,6 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
+const { BadRequest, ExchangeError } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -209,8 +210,10 @@ module.exports = class mexc3 extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    '-1128': BadRequest,
                 },
                 'broad': {
+                    'Combination of optional parameters invalid': BadRequest, // {"msg":"Combination of optional parameters invalid.","code":-1128,"_extend":null}
                 },
             },
         });
@@ -407,15 +410,22 @@ module.exports = class mexc3 extends Exchange {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit; // default 100, max 100
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            // request['startTime'] = since; bug in api, waiting for fix
         }
         let method = undefined;
         if (market['spot']) {
-            method = 'spotPublicGetTrades';
+            method = this.safeString (params, 'method', 'spotPublicGetAggTrades'); // AggTrades, HistoricalTrades, Trades
         } else if (market['swap']) {
             method = '';
         }
         const response = await this[method] (this.extend (request, params));
+        //
+        // spot
+        //
+        //     /trades, /historicalTrades
         //
         //     [
         //         {
@@ -427,14 +437,20 @@ module.exports = class mexc3 extends Exchange {
         //             "isBuyerMaker": true,
         //             "isBestMatch": true
         //         },
+        //     ]
+        //
+        //     /aggrTrades
+        //
+        //     [
         //         {
-        //             "id": null,
-        //             "price": "40798.94",
-        //             "qty": "0.000887",
-        //             "quoteQty": "36.18865978",
-        //             "time": "1647546934360",
-        //             "isBuyerMaker": true,
-        //             "isBestMatch": true
+        //           "a": null,
+        //           "f": null,
+        //           "l": null,
+        //           "p": "40679",
+        //           "q": "0.001309",
+        //           "T": 1647551328000,
+        //           "m": true,
+        //           "M": true
         //         },
         //     ]
         //
@@ -442,29 +458,13 @@ module.exports = class mexc3 extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        //
-        // fetchTrades
-        //
-        //     spot
-        //
-        //         {
-        //             "id": null,
-        //             "price": "40798.94",
-        //             "qty": "0.000887",
-        //             "quoteQty": "36.18865978",
-        //             "time": "1647546934360",
-        //             "isBuyerMaker": true,
-        //             "isBestMatch": true
-        //         }
-        //
-        //
-        const timestamp = this.safeInteger (trade, 'time');
+        const timestamp = this.safeInteger2 (trade, 'time', 'T');
         market = this.safeMarket (undefined, market);
         const symbol = market['symbol'];
-        const priceString = this.safeString (trade, 'price');
-        const amountString = this.safeString (trade, 'qty');
+        const priceString = this.safeString2 (trade, 'price', 'p');
+        const amountString = this.safeString2 (trade, 'qty', 'q');
         const costString = this.safeString (trade, 'quoteQty');
-        const buyerMaker = this.safeString (trade, 'isBuyerMaker');
+        const buyerMaker = this.safeString2 (trade, 'isBuyerMaker', 'm');
         const type = undefined;
         let side = undefined;
         let takerOrMaker = undefined;
@@ -472,14 +472,9 @@ module.exports = class mexc3 extends Exchange {
             side = buyerMaker ? 'sell' : 'buy';
             takerOrMaker = 'taker';
         }
-        let id = this.safeString (trade, 'id');
+        let id = this.safeString2 (trade, 'id', 'a');
         if (id === undefined) {
             id = this.syntheticTradeId (market, timestamp, side, amountString, priceString, type, takerOrMaker);
-        }
-        if (id === undefined) {
-            if (timestamp !== undefined) {
-                id = timestamp.toString () + '-' + market['id'] + '-' + amountString + '-' + costString;
-            }
         }
         return this.safeTrade ({
             'id': id,
@@ -535,17 +530,20 @@ module.exports = class mexc3 extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        // if (response === undefined) {
-        //    return;
-        // }
-        //     {"code":10232,"msg":"The currency not exist"}
-        //     {"code":10216,"msg":"No available deposit address"}
+        if (response === undefined) {
+            return;
+        }
         //
-        //     {
-        //         "success":true,
-        //         "code":0,
-        //         "data":1634095541710
-        //     }
+        //     {"msg":"Combination of optional parameters invalid.","code":-1128,"_extend":null}
         //
+        const errorCode = this.safeValue (response, 'code');
+        if (errorCode !== undefined) {
+            const msg = this.safeString (response, 'msg');
+            const feedback = this.id + ' ' + body;
+            this.throwBroadlyMatchedException (this.exceptions['broad'], msg, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            throw new ExchangeError (feedback);
+        }
     }
 };
