@@ -385,20 +385,43 @@ module.exports = class lbank2 extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //   [
+        //     1482311500, // timestamp
+        //     5423.23,    // open
+        //     5472.80,    // high
+        //     5516.09,    // low
+        //     5462,       // close
+        //     234.3250    // volume
+        //   ],
+        //
+        return [
+            this.safeTimestamp (ohlcv, 0), // timestamp
+            this.safeNumber (ohlcv, 1), // open
+            this.safeNumber (ohlcv, 2), // high
+            this.safeNumber (ohlcv, 3), // low
+            this.safeNumber (ohlcv, 4), // close
+            this.safeNumber (ohlcv, 5), // volume
+        ];
+    }
+
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         // endpoint doesnt work
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (since === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOHLCV () requires a since parameter');
+        }
         const request = {
             'symbol': market['id'],
             'type': this.timeframes[timeframe],
-            'time': parseInt(since/1000),
+            'time': parseInt (since / 1000),
             'size': limit ? limit : 100, // max 2000
         };
         const response = await this.publicGetKline (this.extend (request, params));
         const ohlcvs = this.safeValue (response, 'data', []);
         //
-        // supposedly:
         //
         // [
         //   [
