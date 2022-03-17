@@ -306,7 +306,7 @@ module.exports = class zb extends ccxt.zb {
         const market = this.market (symbol);
         const data = this.safeValue (message, 'data');
         const type = this.safeString (message, 'type');
-        let trades = [];
+        let trades = undefined;
         if (type === 'Whole') {
             // contract trades
             for (let i = 0; i < data.length; i++) {
