@@ -47,10 +47,10 @@ module.exports = class lbank2 extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchOHLCV': true,
-                'fetchOpenOrders': false, // status 0 API doesn't work
-                'fetchOrder': false,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrders': false,
+                'fetchOrders': true,
                 'fetchPosition': false,
                 'fetchPositions': false,
                 'fetchPositionsRisk': false,
@@ -100,7 +100,7 @@ module.exports = class lbank2 extends Exchange {
                         'depth': 2.5,
                         'incrDepth': 2.5, // fetchOrderBook
                         'trades': 2.5, // fetchTrades
-                        'kline': 2.5, // fetchOHLCV TODO (down)
+                        'kline': 2.5, // fetchOHLCV
                     },
                 },
                 'private': {
@@ -181,6 +181,10 @@ module.exports = class lbank2 extends Exchange {
             if (isLeveragedProduct) {
                 symbol += ':' + quote;
             }
+            let linear = undefined;
+            if (isLeveragedProduct === true) {
+                linear = true;
+            }
             result.push ({
                 'id': marketId,
                 'symbol': symbol,
@@ -198,7 +202,7 @@ module.exports = class lbank2 extends Exchange {
                 'option': false,
                 'active': true,
                 'contract': isLeveragedProduct,
-                'linear': isLeveragedProduct ? true : undefined, // all leveraged ETF products are in USDT
+                'linear': linear, // all leveraged ETF products are in USDT
                 'inverse': undefined,
                 'contractSize': undefined,
                 'expiry': undefined,
@@ -411,13 +415,16 @@ module.exports = class lbank2 extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (since === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOHLCV () requires a since parameter');
+            throw new ArgumentsRequired (this.id + ' fetchOHLCV () requires a since argument');
+        }
+        if (limit === undefined) {
+            limit = 100;
         }
         const request = {
             'symbol': market['id'],
             'type': this.timeframes[timeframe],
             'time': parseInt (since / 1000),
-            'size': limit ? limit : 100, // max 2000
+            'size': limit, // max 2000
         };
         const response = await this.publicGetKline (this.extend (request, params));
         const ohlcvs = this.safeValue (response, 'data', []);
@@ -605,7 +612,7 @@ module.exports = class lbank2 extends Exchange {
         // Id can be a list of ids delimited by a comma
         await this.loadMarkets ();
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder () requires a symbol parameter');
+            throw new ArgumentsRequired (this.id + ' fetchOrder () requires a symbol argument');
         }
         const market = this.market (symbol);
         const request = {
@@ -644,6 +651,57 @@ module.exports = class lbank2 extends Exchange {
         }
     }
 
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (limit === undefined) {
+            limit = 100;
+        }
+        const request = {
+            'symbol': market['id'],
+            'current_page': 1,
+            'page_length': limit,
+            // 'status': -1：Cancelled, 0：on trading, 1：filled partially, 2：Filled totally, 3：filled partially and cancelled, 4：Cancelling
+        };
+        // this endpoint does not return open orders
+        const response = await this.privatePostOrdersInfoHistory (this.extend (request, params));
+        const result = this.safeValue (response, 'data', {});
+        const orders = this.safeValue (result, 'orders', []);
+        return this.parseOrders (orders, market, since, limit);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const market = this.market (symbol);
+        const orders = await this.fetchOrders (market['symbol'], since, limit, params);
+        const closed = this.filterBy (orders, 'status', 'closed');
+        const canceled = this.filterBy (orders, 'status', 'cancelled'); // cancelled orders may be partially filled
+        const allOrders = this.arrayConcat (closed, canceled);
+        return this.filterBySymbolSinceLimit (allOrders, market['symbol'], since, limit);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
+        }
+        const market = this.market (symbol);
+        if (limit === undefined) {
+            limit = 100;
+        }
+        const request = {
+            'symbol': market['id'],
+            'current_page': 1,
+            'page_length': limit,
+        };
+        const response = await this.privatePostOrdersInfoNoDeal (this.extend (request, params));
+        const result = this.safeValue (response, 'data', {});
+        const orders = this.safeValue (result, 'orders', []);
+        const openOrders = this.parseOrders (orders);
+        return this.filterBySymbolSinceLimit (openOrders, market['symbol'], since, limit);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
@@ -660,18 +718,21 @@ module.exports = class lbank2 extends Exchange {
             query = this.extend ({
                 'api_key': this.apiKey,
             }, query);
-            const isRSA = this.secret.length > 32;
+            let signatureMethod = undefined;
+            if (this.secret.length > 32) {
+                signatureMethod = 'RSA';
+            } else {
+                signatureMethod = 'HmacSHA256';
+            }
             const auth = this.rawencode (this.keysort (this.extend ({
                 'echostr': echostr,
-                'signature_method': isRSA ? 'RSA' : 'HmacSHA256',
+                'signature_method': signatureMethod,
                 'timestamp': timestamp,
             }, query)));
             const hash = this.hash (auth).toUpperCase ();
             let sign = undefined;
-            //
-            // TODO fix RSA signing
-            if (isRSA) {
-                // TODO fix RSA
+            if (signatureMethod === 'RSA') {
+                // TODO fix RSA signing
                 const cacheSecretAsPem = this.safeValue (this.options, 'cacheSecretAsPem', true);
                 let pem = undefined;
                 if (cacheSecretAsPem) {
@@ -684,16 +745,15 @@ module.exports = class lbank2 extends Exchange {
                     pem = this.convertSecretToPem (this.secret);
                 }
                 sign = this.binaryToBase64 (this.rsa (hash, this.encode (pem), 'RS256'));
-                // TODO fix RSA
-                //
-            } else {
+                // TODO fix RSA signing
+            } else if (signatureMethod === 'HmacSHA256') {
                 sign = this.hmac (this.encode (hash), this.secret);
             }
             body = this.urlencode (this.keysort (query)) + '&sign=' + sign;
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'timestamp': timestamp,
-                'signature_method': isRSA ? 'RSA' : 'HmacSHA256',
+                'signature_method': signatureMethod,
                 'echostr': echostr,
             };
         }
