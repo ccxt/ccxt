@@ -30,7 +30,7 @@ module.exports = class ascendex extends ccxt.ascendex {
         });
     }
 
-    async watchPublic (channel, messageHash, symbol, method, params = {}) {
+    async watchPublic (channel, messageHash, symbol, method, limit = undefined, params = {}) {
         const url = this.urls['api']['ws'];
         const id = this.nonce ();
         const request = {
@@ -46,6 +46,9 @@ module.exports = class ascendex extends ccxt.ascendex {
             'messageHash': messageHash,
             'method': method,
         };
+        if (limit !== undefined) {
+            subscription['limit'] = limit;
+        }
         return await this.watch (url, messageHash, message, messageHash, subscription);
     }
 
@@ -180,79 +183,155 @@ module.exports = class ascendex extends ccxt.ascendex {
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
-        if (limit !== undefined) {
-            if ((limit !== 5) && (limit !== 10) && (limit !== 20)) {
-                throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 5, 10 or 20');
-            }
-        } else {
-            limit = 5; // default
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const name = 'quick_depth';
-        const messageHash = market['baseId'] + market['quoteId'] + '_' + name;
-        const url = this.urls['api']['ws'] + '/' + market['baseId'];
-        const request = {
-            'event': 'addChannel',
-            'channel': messageHash,
-            'length': limit,
-        };
-        const message = this.extend (request, params);
-        const subscription = {
-            'name': name,
-            'symbol': symbol,
-            'marketId': market['id'],
-            'messageHash': messageHash,
-            'method': this.handleOrderBook,
-        };
-        const orderbook = await this.watch (url, messageHash, message, messageHash, subscription);
+        const channel = 'depth' + ':' + market['id'];
+        const orderbook = await this.watchPublic (channel, channel, symbol, this.handleOrderBook, limit, params);
         return orderbook.limit (limit);
+    }
+
+    async watchOrderBookSnapshot (client, message, subscription) {
+        await this.loadMarkets ();
+        const symbol = this.safeString (subscription, 'symbol');
+        const market = this.market (symbol);
+        const limit = this.safeInteger (subscription, 'limit');
+        const params = this.safeValue (subscription, 'params');
+        const action = 'depth-snapshot';
+        const messageHash = action + ':' + market['id'];
+        const url = this.urls['api']['ws'];
+        const requestId = this.nonce ().toString ();
+        const request = {
+            'op': 'req',
+            'action': action,
+            'id': requestId,
+            'args': {
+                'symbol': symbol,
+            },
+        };
+        const snapshotSubscription = {
+            'id': requestId,
+            'messageHash': messageHash,
+            'symbol': symbol,
+            'limit': limit,
+            'params': params,
+            'method': this.handleOrderBookSnapshot,
+        };
+        const orderbook = await this.watch (url, messageHash, request, messageHash, snapshotSubscription);
+        return orderbook.limit (limit);
+    }
+
+    handleOrderBookSnapshot (client, message, subscription) {
+        //
+        // {
+        //     m: 'depth',
+        //     symbol: 'BTC/USDT',
+        //     data: {
+        //       ts: 1647520500149,
+        //       seqnum: 28590487626,
+        //       asks: [
+        //         [Array], [Array], [Array],
+        //         [Array], [Array], [Array],
+        //       ],
+        //       bids: [
+        //         [Array], [Array], [Array],
+        //         [Array], [Array], [Array],
+        //       ]
+        //     }
+        //   }
+        //
+        const symbol = this.safeString (subscription, 'symbol');
+        const messageHash = this.safeString (subscription, 'messageHash');
+        const orderbook = this.orderbooks[symbol];
+        const data = this.safeValue (message, 'data');
+        const snapshot = this.parseOrderBook (data, symbol);
+        snapshot['nonce'] = this.safeInteger (data, 'seqnum');
+        orderbook.reset (snapshot);
+        // unroll the accumulated deltas
+        const messages = orderbook.cache;
+        for (let i = 0; i < messages.length; i++) {
+            const message = messages[i];
+            this.handleOrderBookMessage (client, message, orderbook);
+        }
+        this.orderbooks[symbol] = orderbook;
+        client.resolve (orderbook, messageHash);
     }
 
     handleOrderBook (client, message, subscription) {
         //
-        //     {
-        //         lastTime: 1624524640066,
-        //         dataType: 'quickDepth',
-        //         channel: 'btcusdt_quick_depth',
-        //         currentPrice: 33183.79,
-        //         listDown: [
-        //             [ 33166.87, 0.2331 ],
-        //             [ 33166.86, 0.15 ],
-        //             [ 33166.76, 0.15 ],
-        //             [ 33161.02, 0.212 ],
-        //             [ 33146.35, 0.6066 ]
-        //         ],
-        //         market: 'btcusdt',
-        //         listUp: [
-        //             [ 33186.88, 0.15 ],
-        //             [ 33190.1, 0.15 ],
-        //             [ 33193.03, 0.2518 ],
-        //             [ 33195.05, 0.2031 ],
-        //             [ 33199.99, 0.6066 ]
-        //         ],
-        //         high: 34816.8,
-        //         rate: '6.484',
-        //         low: 32312.41,
-        //         currentIsBuy: true,
-        //         dayNumber: 26988.5536,
-        //         totalBtc: 26988.5536,
-        //         showMarket: 'btcusdt'
-        //     }
+        //   {
+        //       m: 'depth',
+        //       symbol: 'BTC/USDT',
+        //       data: {
+        //         ts: 1647515136144,
+        //         seqnum: 28590470736,
+        //         asks: [ [Array], [Array] ],
+        //         bids: [ [Array], [Array], [Array], [Array], [Array], [Array] ]
+        //       }
+        //   }
         //
-        const channel = this.safeString (message, 'channel');
-        const limit = this.safeInteger (subscription, 'limit');
+        const messageHash = this.safeString (subscription, 'messageHash');
         const symbol = this.safeString (subscription, 'symbol');
         let orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
+            const limit = this.safeString (subscription, 'limit');
             orderbook = this.orderBook ({}, limit);
-            this.orderbooks[symbol] = orderbook;
         }
-        const timestamp = this.safeInteger (message, 'lastTime');
-        const parsed = this.parseOrderBook (message, symbol, timestamp, 'listDown', 'listUp');
-        orderbook.reset (parsed);
-        orderbook['symbol'] = symbol;
-        client.resolve (orderbook, channel);
+        if (orderbook['nonce'] === undefined) {
+            orderbook.cache.push (message);
+        } else {
+            this.handleOrderBookMessage (client, message, orderbook);
+            client.resolve (orderbook, messageHash);
+        }
+    }
+
+    handleDelta (bookside, delta) {
+        //
+        // ["40990.47","0.01619"],
+        //
+        const price = this.safeFloat (delta, 0);
+        const amount = this.safeFloat (delta, 1);
+        bookside.store (price, amount);
+    }
+
+    handleDeltas (bookside, deltas) {
+        for (let i = 0; i < deltas.length; i++) {
+            this.handleDelta (bookside, deltas[i]);
+        }
+    }
+
+    handleOrderBookMessage (client, message, orderbook) {
+        //
+        // {
+        //     "m":"depth",
+        //     "symbol":"BTC/USDT",
+        //     "data":{
+        //        "ts":1647527417715,
+        //        "seqnum":28590257013,
+        //        "asks":[
+        //           ["40990.47","0.01619"],
+        //           ["41021.21","0"],
+        //           ["41031.59","0.06096"]
+        //        ],
+        //        "bids":[
+        //           ["40990.46","0.76114"],
+        //           ["40985.18","0"]
+        //        ]
+        //     }
+        //  }
+        //
+        const data = this.safeValue (message, 'data', {});
+        const seqNum = this.safeInteger (data, 'seqnum');
+        if (seqNum > orderbook['nonce']) {
+            const asks = this.safeValue (data, 'asks', []);
+            const bids = this.safeValue (data, 'bids', []);
+            this.handleDeltas (orderbook['asks'], asks);
+            this.handleDeltas (orderbook['bids'], bids);
+            orderbook['nonce'] = seqNum;
+            const timestamp = this.safeInteger (data, 'ts');
+            orderbook['timestamp'] = timestamp;
+            orderbook['datetime'] = this.iso8601 (timestamp);
+        }
+        return orderbook;
     }
 
     handleMessage (client, message) {
@@ -260,6 +339,8 @@ module.exports = class ascendex extends ccxt.ascendex {
         //     { m: 'ping', hp: 3 }
         //
         //     { m: 'sub', ch: 'bar:BTC/USDT', code: 0 }
+        //
+        //     { m: 'sub', id: '1647515701', ch: 'depth:BTC/USDT', code: 0 }
         //
         //     { m: 'connected', type: 'unauth' }
         //
@@ -294,10 +375,53 @@ module.exports = class ascendex extends ccxt.ascendex {
         //        ]
         //    }
         //
+        // orderbook deltas
+        //
+        // {
+        //     "m":"depth",
+        //     "symbol":"BTC/USDT",
+        //     "data":{
+        //        "ts":1647527417715,
+        //        "seqnum":28590257013,
+        //        "asks":[
+        //           ["40990.47","0.01619"],
+        //           ["41021.21","0"],
+        //           ["41031.59","0.06096"]
+        //        ],
+        //        "bids":[
+        //           ["40990.46","0.76114"],
+        //           ["40985.18","0"]
+        //        ]
+        //     }
+        //  }
+        //
+        // orderbook snapshot
+        //  {
+        //     m: 'depth-snapshot',
+        //     symbol: 'BTC/USDT',
+        //     data: {
+        //       ts: 1647525938513,
+        //       seqnum: 28590504772,
+        //       asks: [
+        //         [Array], [Array], [Array], [Array], [Array], [Array], [Array],
+        //         [Array], [Array], [Array], [Array], [Array], [Array], [Array],
+        //         [Array], [Array], [Array], [Array], [Array], [Array], [Array],
+        //         [Array], [Array], [Array], [Array], [Array], [Array], [Array],
+        //         [Array], [Array], [Array], [Array], [Array], [Array], [Array],
+        //         [Array], [Array], [Array], [Array], [Array], [Array], [Array],
+        //         [Array], [Array], [Array], [Array], [Array], [Array], [Array],
+        //         [Array], [Array], [Array], [Array], [Array], [Array], [Array],
+        //         [Array], [Array], [Array], [Array], [Array], [Array], [Array],
+        //       ]
+        //     }
         //
         const subject = this.safeString (message, 'm');
         if (subject === 'ping') {
             this.handlePing (client, message);
+            return;
+        }
+        if (subject === 'sub') {
+            this.handleSubscriptionStatus (client, message);
             return;
         }
         const marketId = this.safeString2 (message, 's', 'symbol');
@@ -312,6 +436,30 @@ module.exports = class ascendex extends ccxt.ascendex {
             }
             return message;
         }
+    }
+
+    handleSubscriptionStatus (client, message) {
+        //
+        //     { m: 'sub', ch: 'bar:BTC/USDT', code: 0 }
+        //
+        //     { m: 'sub', id: '1647515701', ch: 'depth:BTC/USDT', code: 0 }
+        //
+        const channel = this.safeString (message, 'ch', '');
+        const subscription = this.safeValue (client.subscriptions, channel);
+        if (channel.indexOf ('depth') !== -1) {
+            this.handleOrderBookSubscription (client, message, subscription);
+        }
+        return message;
+    }
+
+    handleOrderBookSubscription (client, message, subscription) {
+        const symbol = this.safeString (subscription, 'symbol');
+        const limit = this.safeInteger (subscription, 'limit');
+        if (symbol in this.orderbooks) {
+            delete this.orderbooks[symbol];
+        }
+        this.orderbooks[symbol] = this.orderBook ({}, limit);
+        this.spawn (this.watchOrderBookSnapshot, client, message, subscription);
     }
 
     async pong (client, message) {
