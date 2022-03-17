@@ -1068,7 +1068,12 @@ class hitbtc3 extends Exchange {
 
     public function fetch_trading_fees($symbols = null, $params = array ()) {
         yield $this->load_markets();
-        $response = yield $this->privateGetSpotFee ($params);
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchTradingFees', null, $params);
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'privateGetSpotFee',
+            'swap' => 'privateGetFuturesFee',
+        ));
+        $response = yield $this->$method ($query);
         //
         //     array(
         //         {
