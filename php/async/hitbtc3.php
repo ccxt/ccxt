@@ -1052,7 +1052,11 @@ class hitbtc3 extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = yield $this->privateGetSpotFeeSymbol (array_merge($request, $params));
+        $method = $this->get_supported_mapping($market['type'], array(
+            'spot' => 'privateGetSpotFeeSymbol',
+            'swap' => 'privateGetFuturesFeeSymbol',
+        ));
+        $response = yield $this->$method (array_merge($request, $params));
         //
         //     {
         //         "take_rate":"0.0009",

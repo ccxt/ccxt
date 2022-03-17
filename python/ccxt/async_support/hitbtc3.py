@@ -1008,7 +1008,11 @@ class hitbtc3(Exchange):
         request = {
             'symbol': market['id'],
         }
-        response = await self.privateGetSpotFeeSymbol(self.extend(request, params))
+        method = self.get_supported_mapping(market['type'], {
+            'spot': 'privateGetSpotFeeSymbol',
+            'swap': 'privateGetFuturesFeeSymbol',
+        })
+        response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         "take_rate":"0.0009",
