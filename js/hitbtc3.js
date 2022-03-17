@@ -1143,7 +1143,12 @@ module.exports = class hitbtc3 extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetSpotHistoryOrder (this.extend (request, params));
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'privateGetSpotHistoryOrder',
+            'swap': 'privateGetFuturesHistoryOrder',
+        });
+        const response = await this[method] (this.extend (request, query));
         const parsed = this.parseOrders (response, market, since, limit);
         return this.filterByArray (parsed, 'status', [ 'closed', 'canceled' ], false);
     }
