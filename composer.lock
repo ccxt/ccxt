@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d273fa5797a98ce025b9334a53d02066",
+    "content-hash": "19b3f754b2bd37a4a29d3cd3f1b81314",
     "packages": [
         {
             "name": "ccxt/ccxt",
-            "version": "1.75.64",
+            "version": "1.76.31",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ccxt/ccxt.git",
-                "reference": "ccc6d836855cbef401b17c2ce081cfa6daa18898"
+                "reference": "3edf1d0225a934da4321284025e64a45e4fd3967"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/ccc6d836855cbef401b17c2ce081cfa6daa18898",
-                "reference": "ccc6d836855cbef401b17c2ce081cfa6daa18898",
+                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/3edf1d0225a934da4321284025e64a45e4fd3967",
+                "reference": "3edf1d0225a934da4321284025e64a45e4fd3967",
                 "shasum": ""
             },
             "require": {
@@ -36,6 +36,7 @@
                 "clue/buzz-react": "Required for asynchronous API calls to exchanges with PHP",
                 "clue/http-proxy-react": "Required for using a proxy when doing asynchronous API calls to exchanges with PHP",
                 "react/event-loop": "Required for asynchronous API calls to exchanges with PHP",
+                "react/http": "Required for asynchronous API calls to exchanges with PHP",
                 "recoil/react": "Required for asynchronous API calls to exchanges with PHP",
                 "recoil/recoil": "Required for asynchronous API calls to exchanges with PHP"
             },
@@ -280,7 +281,7 @@
             ],
             "support": {
                 "issues": "https://github.com/ccxt/ccxt/issues",
-                "source": "https://github.com/ccxt/ccxt/tree/1.75.64"
+                "source": "https://github.com/ccxt/ccxt/tree/1.76.31"
             },
             "funding": [
                 {
@@ -288,7 +289,7 @@
                     "type": "open_collective"
                 }
             ],
-            "time": "2022-03-10T21:59:55+00:00"
+            "time": "2022-03-17T09:23:58+00:00"
         },
         {
             "name": "evenement/evenement",
