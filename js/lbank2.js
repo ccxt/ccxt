@@ -27,9 +27,9 @@ module.exports = class lbank2 extends Exchange {
                 'option': false,
                 'addMargin': false,
                 'cancelOrder': false,
-                'createOrder': false,
+                'createOrder': true,
                 'createReduceOnlyOrder': false,
-                'fetchBalance': false,
+                'fetchBalance': true,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
@@ -46,7 +46,7 @@ module.exports = class lbank2 extends Exchange {
                 'fetchLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
-                'fetchOHLCV': false,
+                'fetchOHLCV': true,
                 'fetchOpenOrders': false, // status 0 API doesn't work
                 'fetchOrder': false,
                 'fetchOrderBook': true,
@@ -392,7 +392,7 @@ module.exports = class lbank2 extends Exchange {
         const request = {
             'symbol': market['id'],
             'type': this.timeframes[timeframe],
-            'time': this.milliseconds (),
+            'time': parseInt(since/1000),
             'size': limit ? limit : 100, // max 2000
         };
         const response = await this.publicGetKline (this.extend (request, params));
