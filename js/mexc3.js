@@ -400,6 +400,128 @@ module.exports = class mexc3 extends Exchange {
         return orderbook;
     }
 
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 100, max 100
+        }
+        let method = undefined;
+        if (market['spot']) {
+            method = 'spotPublicGetTrades';
+        } else if (market['swap']) {
+            method = '';
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "id": null,
+        //             "price": "40798.94",
+        //             "qty": "0.000508",
+        //             "quoteQty": "20.72586152",
+        //             "time": "1647546934374",
+        //             "isBuyerMaker": true,
+        //             "isBestMatch": true
+        //         },
+        //         {
+        //             "id": null,
+        //             "price": "40798.94",
+        //             "qty": "0.000887",
+        //             "quoteQty": "36.18865978",
+        //             "time": "1647546934360",
+        //             "isBuyerMaker": true,
+        //             "isBestMatch": true
+        //         },
+        //     ]
+        //
+        return this.parseTrades (response, market, since, limit);
+    }
+
+    parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades
+        //
+        //     spot
+        //
+        //         {
+        //             "id": null,
+        //             "price": "40798.94",
+        //             "qty": "0.000887",
+        //             "quoteQty": "36.18865978",
+        //             "time": "1647546934360",
+        //             "isBuyerMaker": true,
+        //             "isBestMatch": true
+        //         }
+        //
+        //
+        const timestamp = this.safeInteger (trade, 'time');
+        market = this.safeMarket (undefined, market);
+        const symbol = market['symbol'];
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'qty');
+        const costString = this.safeString (trade, 'quoteQty');
+        const buyerMaker = this.safeString (trade, 'isBuyerMaker');
+        const type = undefined;
+        let side = undefined;
+        let takerOrMaker = undefined;
+        if (buyerMaker !== undefined) {
+            side = buyerMaker ? 'sell' : 'buy';
+            takerOrMaker = 'taker';
+        }
+        let id = this.safeString (trade, 'id');
+        if (id === undefined) {
+            id = this.syntheticTradeId (market, timestamp, side, amountString, priceString, type, takerOrMaker);
+        }
+        if (id === undefined) {
+            if (timestamp !== undefined) {
+                id = timestamp.toString () + '-' + market['id'] + '-' + amountString + '-' + costString;
+            }
+        }
+        return this.safeTrade ({
+            'id': id,
+            'order': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
+            'fee': undefined,
+            'info': trade,
+        }, market);
+    }
+
+    syntheticTradeId (market = undefined, timestamp = undefined, side = undefined, amount = undefined, price = undefined, orderType = undefined, takerOrMaker = undefined) {
+        // TODO: can be unified method? this approach is being used by multiple exchanges (mexc, woo-coinsbit, dydx, ...)
+        let id = '';
+        if (timestamp !== undefined) {
+            id = this.numberToString (timestamp) + '-' + this.safeString (market, 'id', '_');
+            if (side !== undefined) {
+                id += '-' + side;
+            }
+            if (amount !== undefined) {
+                id += '-' + this.numberToString (amount);
+            }
+            if (price !== undefined) {
+                id += '-' + this.numberToString (price);
+            }
+            if (takerOrMaker !== undefined) {
+                id += '-' + takerOrMaker;
+            }
+            if (orderType !== undefined) {
+                id += '-' + orderType;
+            }
+        }
+        return id;
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const [ section, access ] = api;
         [ path, params ] = this.resolvePath (path, params);
