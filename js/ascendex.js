@@ -30,18 +30,19 @@ module.exports = class ascendex extends ccxt.ascendex {
         });
     }
 
-    async watchPublic (messageHash, symbol, method, params = {}) {
+    async watchPublic (channel, messageHash, symbol, method, params = {}) {
         const url = this.urls['api']['ws'];
         const id = this.nonce ();
         const request = {
-            'id': id,
+            'id': id.toString (),
             'op': 'sub',
-            'ch': messageHash,
+            'ch': channel,
         };
         const message = this.extend (request, params);
         const subscription = {
             'id': id,
             'symbol': symbol,
+            'channel': channel,
             'messageHash': messageHash,
             'method': method,
         };
@@ -55,8 +56,9 @@ module.exports = class ascendex extends ccxt.ascendex {
             limit = 100;
         }
         const interval = this.timeframes[timeframe];
-        const messageHash = 'bar' + ':' + interval + ':' + market['id'];
-        const ohlcv = await this.watchPublic (messageHash, symbol, this.handleOHLCV, limit, params);
+        const channel = 'bar' + ':' + interval + ':' + market['id'];
+        const messageHash = 'bar' + ':' + market['id'];
+        const ohlcv = await this.watchPublic (channel, messageHash, symbol, this.handleOHLCV, limit, params);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
@@ -252,26 +254,54 @@ module.exports = class ascendex extends ccxt.ascendex {
     }
 
     handleMessage (client, message) {
+        //
         //     { m: 'ping', hp: 3 }
         //
+        //     { m: 'sub', ch: 'bar:BTC/USDT', code: 0 }
+        //
+        //     { m: 'connected', type: 'unauth' }
+        //
+        // ohlcv
+        //  {
+        //     m: 'bar',
+        //     s: 'BTC/USDT',
+        //     data: {
+        //       i: '1',
+        //       ts: 1647510060000,
+        //       o: '40813.93',
+        //       c: '40804.57',
+        //       h: '40814.21',
+        //       l: '40804.56',
+        //       v: '0.01537'
+        //     }
+        //   }
         //
         //
-        const channel = this.safeString (message, 'channel');
-        const subscription = this.safeValue (client.subscriptions, channel);
-        if (subscription !== undefined) {
-            const method = this.safeValue (subscription, 'method');
-            if (method !== undefined) {
-                return method.call (this, client, message, subscription);
-            }
+        const m = this.safeString (message, 'm');
+        if (m === 'ping') {
+            this.handlePing (client, message);
+            return;
         }
-        return message;
+        const marketId = this.safeString (message, 's');
+        const subject = this.safeString (message, 'm');
+        if (marketId !== undefined) {
+            const channel = subject + ':' + marketId;
+            const subscription = this.safeValue (client.subscriptions, channel);
+            if (subscription !== undefined) {
+                const method = this.safeValue (subscription, 'method');
+                if (method !== undefined) {
+                    return method.call (this, client, message, subscription);
+                }
+            }
+            return message;
+        }
     }
 
     async pong (client, message) {
         //
         //     { m: 'ping', hp: 3 }
         //
-        await client.send ({ 'm': 'pong', 'hp': this.safeInteger (message, 'hp') });
+        await client.send ({ 'op': 'pong', 'hp': this.safeInteger (message, 'hp') });
     }
 
     handlePing (client, message) {
