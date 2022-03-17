@@ -81,27 +81,22 @@ module.exports = class ascendex extends ccxt.ascendex {
         //     }
         // }
         //
-        const data = this.safeValue (message, 'data', []);
-        const channel = this.safeString (message, 'channel', '');
-        const parts = channel.split ('_');
-        const partsLength = parts.length;
-        const interval = this.safeString (parts, partsLength - 1);
+        const data = this.safeValue (message, 'data', {});
+        const interval = this.safeString (data, 'i');
         const timeframe = this.findTimeframe (interval);
         const symbol = this.safeString (subscription, 'symbol');
         const market = this.market (symbol);
-        for (let i = 0; i < data.length; i++) {
-            const candle = data[i];
-            const parsed = this.parseOHLCV (candle, market);
-            this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
-            if (stored === undefined) {
-                const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-                stored = new ArrayCacheByTimestamp (limit);
-                this.ohlcvs[symbol][timeframe] = stored;
-            }
-            stored.append (parsed);
-            client.resolve (stored, channel);
+        const parsed = this.parseOHLCV (message, market);
+        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        if (stored === undefined) {
+            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+            stored = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][timeframe] = stored;
         }
+        stored.append (parsed);
+        const messageHash = this.safeString (subscription, 'messageHash');
+        client.resolve (stored, messageHash);
         return message;
     }
 
@@ -141,7 +136,10 @@ module.exports = class ascendex extends ccxt.ascendex {
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        const trades = await this.watchPublic ('trades', symbol, this.handleTrades, params);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const channel = 'trades' + ':' + market['id'];
+        const trades = await this.watchPublic (channel, channel, symbol, this.handleTrades, limit, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -150,20 +148,24 @@ module.exports = class ascendex extends ccxt.ascendex {
 
     handleTrades (client, message, subscription) {
         //
-        //     {
-        //         data: [
-        //             { date: 1624537147, amount: '0.0357', price: '34066.11', trade_type: 'bid', type: 'buy', tid: 1718857158 },
-        //             { date: 1624537147, amount: '0.0255', price: '34071.04', trade_type: 'bid', type: 'buy', tid: 1718857159 },
-        //             { date: 1624537147, amount: '0.0153', price: '34071.29', trade_type: 'bid', type: 'buy', tid: 1718857160 }
-        //         ],
-        //         dataType: 'trades',
-        //         channel: 'btcusdt_trades'
-        //     }
+        // {
+        //     m: 'trades',
+        //     symbol: 'BTC/USDT',
+        //     data: [
+        //       {
+        //         p: '40744.28',
+        //         q: '0.00150',
+        //         ts: 1647514330758,
+        //         bm: true,
+        //         seqnum: 72057633465800320
+        //       }
+        //     ]
+        // }
         //
-        const channel = this.safeValue (message, 'channel');
         const symbol = this.safeString (subscription, 'symbol');
+        const messageHash = this.safeString (subscription, 'messageHash');
         const market = this.market (symbol);
-        const data = this.safeValue (message, 'data');
+        const data = this.safeValue (message, 'data', []);
         const trades = this.parseTrades (data, market);
         let array = this.safeValue (this.trades, symbol);
         if (array === undefined) {
@@ -174,7 +176,7 @@ module.exports = class ascendex extends ccxt.ascendex {
             array.append (trades[i]);
         }
         this.trades[symbol] = array;
-        client.resolve (array, channel);
+        client.resolve (array, messageHash);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
@@ -276,14 +278,29 @@ module.exports = class ascendex extends ccxt.ascendex {
         //     }
         //   }
         //
+        // trades
         //
-        const m = this.safeString (message, 'm');
-        if (m === 'ping') {
+        //    {
+        //        m: 'trades',
+        //        symbol: 'BTC/USDT',
+        //        data: [
+        //          {
+        //            p: '40762.26',
+        //            q: '0.01500',
+        //            ts: 1647514306759,
+        //            bm: true,
+        //            seqnum: 72057633465795180
+        //          }
+        //        ]
+        //    }
+        //
+        //
+        const subject = this.safeString (message, 'm');
+        if (subject === 'ping') {
             this.handlePing (client, message);
             return;
         }
-        const marketId = this.safeString (message, 's');
-        const subject = this.safeString (message, 'm');
+        const marketId = this.safeString2 (message, 's', 'symbol');
         if (marketId !== undefined) {
             const channel = subject + ':' + marketId;
             const subscription = this.safeValue (client.subscriptions, channel);
