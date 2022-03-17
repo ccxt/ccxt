@@ -611,7 +611,7 @@ class okx extends Exchange {
                 'fetchOHLCV' => array(
                     // 'type' => 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
                 ),
-                'createOrder' => 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder'
+                'createOrder' => 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder' or 'privatePostTradeOrderAlgo'
                 'createMarketBuyOrderRequiresPrice' => false,
                 'fetchMarkets' => array( 'spot', 'futures', 'swap', 'option' ), // spot, futures, swap, option
                 'defaultType' => 'spot', // 'funding', 'spot', 'margin', 'futures', 'swap', 'option'
@@ -1788,7 +1788,7 @@ class okx extends Exchange {
             //
             'side' => $side,
             // 'posSide' => 'long', // long, short, // required in the long/short mode, and can only be long or short
-            'ordType' => $type, // $market, limit, post_only, fok, ioc
+            'ordType' => $type, // $market, limit, post_only, fok, ioc, (trigger for stop orders)
             //
             //     for SPOT/MARGIN bought and sold at a limit $price, sz refers to the $amount of trading currency
             //     for SPOT/MARGIN bought at a $market $price, sz refers to the $amount of quoted currency
@@ -1798,6 +1798,9 @@ class okx extends Exchange {
             // 'sz' => $this->amount_to_precision($symbol, $amount),
             // 'px' => $this->price_to_precision($symbol, $price), // limit orders only
             // 'reduceOnly' => false, // MARGIN orders only
+            // 'triggerPx' => 10, // Stop $order trigger $price
+            // 'orderPx' => 10, // Order $price if -1, the $order will be executed at the $market $price->
+            // 'triggerPxType' => 'last', // Conditional default is last, mark or index
         );
         $tdMode = $this->safe_string_lower($params, 'tdMode');
         if ($market['spot']) {
@@ -1860,8 +1863,19 @@ class okx extends Exchange {
             $request['px'] = $this->price_to_precision($symbol, $price);
         }
         $extendedRequest = null;
-        $defaultMethod = $this->safe_string($this->options, 'createOrder', 'privatePostTradeBatchOrders'); // or privatePostTradeOrder
-        if ($defaultMethod === 'privatePostTradeOrder') {
+        $defaultMethod = $this->safe_string($this->options, 'createOrder', 'privatePostTradeBatchOrders'); // or privatePostTradeOrder or privatePostTradeOrderAlgo
+        $stopPrice = $this->safe_number_2($params, 'triggerPx', 'stopPrice');
+        $params = $this->omit($params, array( 'triggerPx', 'stopPrice' ));
+        if ($stopPrice) {
+            $defaultMethod = 'privatePostTradeOrderAlgo';
+            $request['ordType'] = 'trigger';
+            $request['triggerPx'] = $this->price_to_precision($symbol, $stopPrice);
+            if ($type === 'market') {
+                $price = -1;
+            }
+            $request['orderPx'] = $this->price_to_precision($symbol, $price);
+        }
+        if ($defaultMethod === 'privatePostTradeOrder' || $defaultMethod === 'privatePostTradeOrderAlgo') {
             $extendedRequest = array_merge($request, $params);
         } else if ($defaultMethod === 'privatePostTradeBatchOrders') {
             // keep the $request body the same
@@ -1885,6 +1899,20 @@ class okx extends Exchange {
         //                 "sMsg" => ""
         //             }
         //         )
+        //     }
+        //
+        // Trigger Order
+        //
+        //     {
+        //         "code" => "0",
+        //         "data" => array(
+        //             {
+        //                 "algoId" => "422774258702659590",
+        //                 "sCode" => "0",
+        //                 "sMsg" => ""
+        //             }
+        //         ),
+        //         "msg" => ""
         //     }
         //
         $data = $this->safe_value($response, 'data', array());

@@ -1008,7 +1008,11 @@ class hitbtc3(Exchange):
         request = {
             'symbol': market['id'],
         }
-        response = self.privateGetSpotFeeSymbol(self.extend(request, params))
+        method = self.get_supported_mapping(market['type'], {
+            'spot': 'privateGetSpotFeeSymbol',
+            'swap': 'privateGetFuturesFeeSymbol',
+        })
+        response = getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         "take_rate":"0.0009",
@@ -1019,7 +1023,12 @@ class hitbtc3(Exchange):
 
     def fetch_trading_fees(self, symbols=None, params={}):
         self.load_markets()
-        response = self.privateGetSpotFee(params)
+        marketType, query = self.handle_market_type_and_params('fetchTradingFees', None, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateGetSpotFee',
+            'swap': 'privateGetFuturesFee',
+        })
+        response = getattr(self, method)(query)
         #
         #     [
         #         {
