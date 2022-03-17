@@ -1043,7 +1043,11 @@ module.exports = class hitbtc3 extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.privateGetSpotFeeSymbol (this.extend (request, params));
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'privateGetSpotFeeSymbol',
+            'swap': 'privateGetFuturesFeeSymbol',
+        });
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "take_rate":"0.0009",
