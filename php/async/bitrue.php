@@ -240,6 +240,9 @@ class bitrue extends Exchange {
                     'ADA' => 'Cardano',
                 ),
             ),
+            'commonCurrencies' => array(
+                'MIM' => 'MIM Swarm',
+            ),
             // https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
             'exceptions' => array(
                 'exact' => array(
