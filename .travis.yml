@@ -4,6 +4,9 @@ python:
 - '3.8'
 php:
   - 7.4
+cache:
+  directories:
+    - .cache
 before_install:
 - set -e
 - ". $HOME/.nvm/nvm.sh"

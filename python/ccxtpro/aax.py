@@ -6,13 +6,6 @@
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
 from ccxtpro.base.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import NotSupported
 
@@ -750,7 +743,7 @@ class aax(Exchange, ccxt.aax):
         #         event: '#publish'
         #     }
         #
-        if isinstance(message, basestring):
+        if isinstance(message, str):
             if message == '#1':
                 self.handle_ping(client, message)
         else:

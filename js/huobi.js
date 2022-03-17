@@ -3,8 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { ExchangeError } = require ('ccxt/js/base/errors');
-const { ArrayCache, ArrayCacheByTimestamp } = require ('./base/Cache');
+const { ExchangeError, ArgumentsRequired } = require ('ccxt/js/base/errors');
+const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -17,6 +17,7 @@ module.exports = class huobi extends ccxt.huobi {
                 'watchTickers': false, // for now
                 'watchTicker': true,
                 'watchTrades': true,
+                'watchMyTrades': true,
                 'watchBalance': false, // for now
                 'watchOHLCV': true,
             },
@@ -51,8 +52,30 @@ module.exports = class huobi extends ccxt.huobi {
                         },
                         // these settings work faster for clients hosted on AWS
                         'api-aws': {
-                            'public': 'wss://api-aws.huobi.pro/ws',
-                            'private': 'wss://api-aws.huobi.pro/ws/v2',
+                            'spot': {
+                                'public': 'wss://api-aws.huobi.pro/ws',
+                                'private': 'wss://api-aws.huobi.pro/ws/v2',
+                            },
+                            'future': {
+                                'linear': {
+                                    'public': 'wss://api.hbdm.vn/linear-swap-ws',
+                                    'private': 'wss://api.hbdm.vn/linear-swap-notification',
+                                },
+                                'inverse': {
+                                    'public': 'wss://api.hbdm.vn/ws',
+                                    'private': 'wss://api.hbdm.vn/notification',
+                                },
+                            },
+                            'swap': {
+                                'inverse': {
+                                    'public': 'wss://api.hbdm.vn/swap-ws',
+                                    'private': 'wss://api.hbdm.vn/swap-notification',
+                                },
+                                'linear': {
+                                    'public': 'wss://api.hbdm.vn/linear-swap-ws',
+                                    'private': 'wss://api.hbdm.vn/linear-swap-notification',
+                                },
+                            },
                         },
                     },
                 },
@@ -61,6 +84,9 @@ module.exports = class huobi extends ccxt.huobi {
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
                 'api': 'api', // or api-aws for clients hosted on AWS
+                'watchOrderBookSnapshot': {
+                    'delay': 1000,
+                },
                 'ws': {
                     'gunzip': true,
                 },
@@ -77,23 +103,9 @@ module.exports = class huobi extends ccxt.huobi {
     async watchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        // only supports a limit of 150 at this time
         const messageHash = 'market.' + market['id'] + '.detail';
-        const api = this.safeString (this.options, 'api', 'api');
-        const hostname = { 'hostname': this.hostname };
-        const url = this.implodeParams (this.urls['api']['ws'][api]['spot']['public'], hostname);
-        const requestId = this.requestId ();
-        const request = {
-            'sub': messageHash,
-            'id': requestId,
-        };
-        const subscription = {
-            'id': requestId,
-            'messageHash': messageHash,
-            'symbol': symbol,
-            'params': params,
-        };
-        return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
+        const url = this.getUrlByMarketType (market['type'], market['linear']);
+        return await this.subscribePublic (url, symbol, messageHash, undefined, params);
     }
 
     handleTicker (client, message) {
@@ -188,22 +200,8 @@ module.exports = class huobi extends ccxt.huobi {
         const market = this.market (symbol);
         const interval = this.timeframes[timeframe];
         const messageHash = 'market.' + market['id'] + '.kline.' + interval;
-        const api = this.safeString (this.options, 'api', 'api');
-        const hostname = { 'hostname': this.hostname };
-        const url = this.implodeParams (this.urls['api']['ws'][api]['spot']['public'], hostname);
-        const requestId = this.requestId ();
-        const request = {
-            'sub': messageHash,
-            'id': requestId,
-        };
-        const subscription = {
-            'id': requestId,
-            'messageHash': messageHash,
-            'symbol': symbol,
-            'timeframe': timeframe,
-            'params': params,
-        };
-        const ohlcv = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
+        const url = this.getUrlByMarketType (market['type'], market['linear']);
+        const ohlcv = await this.subscribePublic (url, symbol, messageHash, undefined, params);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
@@ -308,6 +306,12 @@ module.exports = class huobi extends ccxt.huobi {
     }
 
     async watchOrderBookSnapshot (client, message, subscription) {
+        // quick-fix to avoid getting outdated snapshots
+        const options = this.safeValue (this.options, 'watchOrderBookSnapshot', {});
+        const delay = this.safeInteger (options, 'delay');
+        if (delay !== undefined) {
+            await this.sleep (delay);
+        }
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
         const params = this.safeValue (subscription, 'params');
@@ -406,18 +410,14 @@ module.exports = class huobi extends ccxt.huobi {
         //         "ts":1645023376098
         //      }
         const tick = this.safeValue (message, 'tick', {});
-        const seqNum = this.safeInteger (tick, 'seqNum');
+        const seqNum = this.safeInteger2 (tick, 'seqNum', 'id');
         const prevSeqNum = this.safeInteger (tick, 'prevSeqNum');
-        if (prevSeqNum === undefined || ((prevSeqNum <= orderbook['nonce']) && (seqNum > orderbook['nonce']))) {
+        if ((prevSeqNum === undefined || prevSeqNum <= orderbook['nonce']) && (seqNum > orderbook['nonce'])) {
             const asks = this.safeValue (tick, 'asks', []);
             const bids = this.safeValue (tick, 'bids', []);
             this.handleDeltas (orderbook['asks'], asks);
             this.handleDeltas (orderbook['bids'], bids);
-            if (seqNum !== undefined) {
-                orderbook['nonce'] = seqNum;
-            } else {
-                orderbook['nonce'] = this.safeInteger (tick, 'mrid');
-            }
+            orderbook['nonce'] = seqNum;
             const timestamp = this.safeInteger (message, 'ts');
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601 (timestamp);
@@ -503,6 +503,34 @@ module.exports = class huobi extends ccxt.huobi {
         }
     }
 
+    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        this.checkRequiredCredentials ();
+        let type = undefined;
+        let marketId = '*'; // wildcard
+        if (symbol !== undefined) {
+            await this.loadMarkets ();
+            const market = this.market (symbol);
+            type = market['type'];
+            marketId = market['id'].toLowerCase ();
+        } else {
+            [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', undefined, params);
+        }
+        if (type !== 'spot') {
+            throw new ArgumentsRequired (this.id + ' watchMyTrades supports spot markets only');
+        }
+        let mode = undefined;
+        if (mode === undefined) {
+            mode = this.safeString2 (this.options, 'watchMyTrades', 'mode', 0);
+            mode = this.safeString (params, 'mode', mode);
+        }
+        const messageHash = 'trade.clearing' + '#' + marketId + '#' + mode;
+        const trades = await this.subscribePrivate (messageHash, type, 'linear', params);
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit);
+    }
+
     handleSubscriptionStatus (client, message) {
         //
         //     {
@@ -582,6 +610,16 @@ module.exports = class huobi extends ccxt.huobi {
         //         },
         //         "ts":1645023376098
         //      }
+        // spot private trade
+        //
+        //  {
+        //      "action":"push",
+        //      "ch":"trade.clearing#ltcusdt#1",
+        //      "data":{
+        //         "eventType":"trade",
+        //         "symbol":"ltcusdt",
+        //           (...)
+        //  }
         //
         const ch = this.safeValue (message, 'ch');
         const parts = ch.split ('.');
@@ -603,17 +641,66 @@ module.exports = class huobi extends ccxt.huobi {
                 return method.call (this, client, message);
             }
         }
+        // private subjects
+        const privateParts = ch.split ('#');
+        const privateType = this.safeString (privateParts, 0);
+        if (privateType === 'trade.clearing') {
+            this.handleMyTrade (client, message);
+        }
     }
 
     async pong (client, message) {
         //
         //     { ping: 1583491673714 }
         //
-        await client.send ({ 'pong': this.safeInteger (message, 'ping') });
+        // or
+        //     { action: 'ping', data: { ts: 1645108204665 } }
+        //
+        // or
+        //     { op: 'ping', ts: '1645202800015' }
+        //
+        const ping = this.safeInteger (message, 'ping');
+        if (ping !== undefined) {
+            await client.send ({ 'pong': ping });
+            return;
+        }
+        const action = this.safeString (message, 'action');
+        if (action === 'ping') {
+            const data = this.safeValue (message, 'data');
+            const ping = this.safeInteger (data, 'ts');
+            await client.send ({ 'action': 'pong', 'data': { 'ts': ping }});
+            return;
+        }
+        const op = this.safeString (message, 'op');
+        if (op === 'ping') {
+            const ping = this.safeInteger (message, 'ts');
+            await client.send ({ 'op': 'pong', 'ts': ping });
+        }
     }
 
     handlePing (client, message) {
         this.spawn (this.pong, client, message);
+    }
+
+    handleAuthenticate (client, message) {
+        // spot
+        // {
+        //     "action": "req",
+        //     "code": 200,
+        //     "ch": "auth",
+        //     "data": {}
+        // }
+        // non spot
+        //    {
+        //        op: 'auth',
+        //        type: 'api',
+        //        'err-code': 0,
+        //        ts: 1645200307319,
+        //        data: { 'user-id': '35930539' }
+        //    }
+        //
+        client.resolve (message, 'auth');
+        return message;
     }
 
     handleErrorMessage (client, message) {
@@ -654,15 +741,186 @@ module.exports = class huobi extends ccxt.huobi {
             //
             //     {"id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143}
             //
+            // first ping format
+            //
+            //    {'ping': 1645106821667 }
+            //
+            // second ping format
+            //
+            //    {"action":"ping","data":{"ts":1645106821667}}
+            //
+            // third pong format
+            //
+            //
+            // auth spot
+            //     {
+            //         "action": "req",
+            //         "code": 200,
+            //         "ch": "auth",
+            //         "data": {}
+            //     }
+            // auth non spot
+            //    {
+            //        op: 'auth',
+            //        type: 'api',
+            //        'err-code': 0,
+            //        ts: 1645200307319,
+            //        data: { 'user-id': '35930539' }
+            //    }
+            // trade
+            // {
+            //     "action":"push",
+            //     "ch":"trade.clearing#ltcusdt#1",
+            //     "data":{
+            //        "eventType":"trade",
+            //          (...)
+            //     }
+            //  }
+            //
             if ('id' in message) {
                 this.handleSubscriptionStatus (client, message);
-            } else if ('ch' in message) {
-                // route by channel aka topic aka subject
-                this.handleSubject (client, message);
-            } else if ('ping' in message) {
+                return;
+            }
+            if ('action' in message) {
+                const action = this.safeString (message, 'action');
+                if (action === 'ping') {
+                    this.handlePing (client, message);
+                    return;
+                }
+                if (action === 'sub') {
+                    this.handleSubscriptionStatus (client, message);
+                    return;
+                }
+            }
+            if ('ch' in message) {
+                if (message['ch'] === 'auth') {
+                    this.handleAuthenticate (client, message);
+                    return;
+                } else {
+                    // route by channel aka topic aka subject
+                    this.handleSubject (client, message);
+                    return;
+                }
+            }
+            if ('ping' in message) {
                 this.handlePing (client, message);
             }
         }
+    }
+
+    handleMyTrade (client, message) {
+        //
+        // spot
+        //
+        // {
+        //     "action":"push",
+        //     "ch":"trade.clearing#ltcusdt#1",
+        //     "data":{
+        //        "eventType":"trade",
+        //        "symbol":"ltcusdt",
+        //        "orderId":"478862728954426",
+        //        "orderSide":"buy",
+        //        "orderType":"buy-market",
+        //        "accountId":44234548,
+        //        "source":"spot-web",
+        //        "orderValue":"5.01724137",
+        //        "orderCreateTime":1645124660365,
+        //        "orderStatus":"filled",
+        //        "feeCurrency":"ltc",
+        //        "tradePrice":"118.89",
+        //        "tradeVolume":"0.042200701236437042",
+        //        "aggressor":true,
+        //        "tradeId":101539740584,
+        //        "tradeTime":1645124660368,
+        //        "transactFee":"0.000041778694224073",
+        //        "feeDeduct":"0",
+        //        "feeDeductType":""
+        //     }
+        //  }
+        //
+        if (this.myTrades === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            this.myTrades = new ArrayCacheBySymbolById (limit);
+        }
+        const cachedTrades = this.myTrades;
+        const messageHash = this.safeString (message, 'ch');
+        if (messageHash !== undefined) {
+            const data = this.safeValue (message, 'data');
+            const parsed = this.parseWsTrade (data);
+            const symbol = this.safeString (parsed, 'symbol');
+            if (symbol !== undefined) {
+                cachedTrades.append (parsed);
+            }
+            client.resolve (this.myTrades, messageHash);
+        }
+    }
+
+    parseWsTrade (trade) {
+        // spot private
+        //
+        //   {
+        //        "eventType":"trade",
+        //        "symbol":"ltcusdt",
+        //        "orderId":"478862728954426",
+        //        "orderSide":"buy",
+        //        "orderType":"buy-market",
+        //        "accountId":44234548,
+        //        "source":"spot-web",
+        //        "orderValue":"5.01724137",
+        //        "orderCreateTime":1645124660365,
+        //        "orderStatus":"filled",
+        //        "feeCurrency":"ltc",
+        //        "tradePrice":"118.89",
+        //        "tradeVolume":"0.042200701236437042",
+        //        "aggressor":true,
+        //        "tradeId":101539740584,
+        //        "tradeTime":1645124660368,
+        //        "transactFee":"0.000041778694224073",
+        //        "feeDeduct":"0",
+        //        "feeDeductType":""
+        //  }
+        const symbol = this.safeSymbol (this.safeString (trade, 'symbol'));
+        const side = this.safeString2 (trade, 'side', 'orderSide');
+        const tradeId = this.safeString (trade, 'tradeId');
+        const price = this.safeString (trade, 'tradePrice');
+        const amount = this.safeString (trade, 'tradeVolume');
+        const order = this.safeString (trade, 'orderId');
+        const timestamp = this.safeInteger (trade, 'tradeTime');
+        const market = this.market (symbol);
+        let orderType = this.safeString (trade, 'orderType');
+        const aggressor = this.safeValue (trade, 'aggressor');
+        let takerOrMaker = undefined;
+        if (aggressor !== undefined) {
+            takerOrMaker = aggressor ? 'taker' : 'maker';
+        }
+        let type = undefined;
+        if (orderType !== undefined) {
+            orderType = orderType.split ('-');
+            type = this.safeString (orderType, 1);
+        }
+        let fee = undefined;
+        const feeCurrency = this.safeCurrencyCode (this.safeString (trade, 'feeCurrency'));
+        if (feeCurrency !== undefined) {
+            fee = {
+                'cost': this.safeString (trade, 'transactFee'),
+                'currency': feeCurrency,
+            };
+        }
+        return this.safeTrade ({
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'id': tradeId,
+            'order': order,
+            'type': type,
+            'takerOrMaker': takerOrMaker,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': undefined,
+            'fee': fee,
+        }, market);
     }
 
     getUrlByMarketType (type, isLinear = true, isPrivate = false) {
@@ -701,5 +959,106 @@ module.exports = class huobi extends ccxt.huobi {
             subscription['method'] = method;
         }
         return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
+    }
+
+    async subscribePrivate (messageHash, type, subtype, params = {}) {
+        const requestId = this.nonce ();
+        const subscription = {
+            'id': requestId,
+            'messageHash': messageHash,
+            'params': params,
+        };
+        let request = undefined;
+        if (type === 'spot') {
+            request = {
+                'action': 'sub',
+                'ch': messageHash,
+            };
+        } else {
+            request = {
+                'op': 'sub',
+                'topic': messageHash,
+                'cid': requestId,
+            };
+        }
+        const isLinear = subtype === 'linear';
+        const url = this.getUrlByMarketType (type, isLinear, true);
+        const hostname = (type === 'spot') ? this.urls['hostnames']['spot'] : this.urls['hostnames']['contract'];
+        const authParams = {
+            'type': type,
+            'url': url,
+            'hostname': hostname,
+        };
+        if (type === 'spot') {
+            this.options['ws']['gunzip'] = false;
+        }
+        await this.authenticate (authParams);
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
+    }
+
+    async authenticate (params = {}) {
+        const url = this.safeString (params, 'url');
+        const hostname = this.safeString (params, 'hostname');
+        const type = this.safeString (params, 'type');
+        if (url === undefined || hostname === undefined || type === undefined) {
+            throw new ArgumentsRequired (this.id + ' authenticate requires a url, hostname and type argument');
+        }
+        this.checkRequiredCredentials ();
+        const messageHash = 'auth';
+        const relativePath = url.replace ('wss://' + hostname, '');
+        const client = this.client (url);
+        let future = this.safeValue (client.subscriptions, messageHash);
+        if (future === undefined) {
+            future = client.future (messageHash);
+            const timestamp = this.ymdhms (this.milliseconds (), 'T');
+            let signatureParams = undefined;
+            if (type === 'spot') {
+                signatureParams = {
+                    'accessKey': this.apiKey,
+                    'signatureMethod': 'HmacSHA256',
+                    'signatureVersion': '2.1',
+                    'timestamp': timestamp,
+                };
+            } else {
+                signatureParams = {
+                    'AccessKeyId': this.apiKey,
+                    'SignatureMethod': 'HmacSHA256',
+                    'SignatureVersion': '2',
+                    'Timestamp': timestamp,
+                };
+            }
+            signatureParams = this.keysort (signatureParams);
+            const auth = this.urlencode (signatureParams);
+            const payload = [ 'GET', hostname, relativePath, auth ].join ("\n"); // eslint-disable-line quotes
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
+            let request = undefined;
+            if (type === 'spot') {
+                const params = {
+                    'authType': 'api',
+                    'accessKey': this.apiKey,
+                    'signatureMethod': 'HmacSHA256',
+                    'signatureVersion': '2.1',
+                    'timestamp': timestamp,
+                    'signature': signature,
+                };
+                request = {
+                    'params': params,
+                    'action': 'req',
+                    'ch': messageHash,
+                };
+            } else {
+                request = {
+                    'op': messageHash,
+                    'type': 'api',
+                    'AccessKeyId': this.apiKey,
+                    'SignatureMethod': 'HmacSHA256',
+                    'SignatureVersion': '2',
+                    'Timestamp': timestamp,
+                    'Signature': signature,
+                };
+            }
+            await this.watch (url, messageHash, request, messageHash, future);
+        }
+        return await future;
     }
 };
