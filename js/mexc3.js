@@ -62,10 +62,10 @@ module.exports = class mexc3 extends Exchange {
                 'fetchLedgerEntry': undefined,
                 'fetchLeverageTiers': undefined,
                 'fetchMarketLeverageTiers': undefined,
-                'fetchMarkets': undefined,
+                'fetchMarkets': true,
                 'fetchMarkOHLCV': undefined,
                 'fetchMyTrades': undefined,
-                'fetchOHLCV': 'emulated',
+                'fetchOHLCV': true,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': undefined,
                 'fetchOrder': undefined,
@@ -77,10 +77,10 @@ module.exports = class mexc3 extends Exchange {
                 'fetchPositions': undefined,
                 'fetchPositionsRisk': undefined,
                 'fetchPremiumIndexOHLCV': undefined,
-                'fetchStatus': 'emulated',
+                'fetchStatus': true,
                 'fetchTicker': undefined,
                 'fetchTickers': undefined,
-                'fetchTime': undefined,
+                'fetchTime': true,
                 'fetchTrades': undefined,
                 'fetchTradingFee': undefined,
                 'fetchTradingFees': undefined,
@@ -352,6 +352,52 @@ module.exports = class mexc3 extends Exchange {
             });
         }
         return result;
+    }
+
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        let method = undefined;
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (market['spot']) {
+            method = 'spotPublicGetDepth';
+        } else if (market['swap']) {
+            method = '';
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "lastUpdateId": "744267132",
+        //         "bids": [
+        //             [
+        //                 "40838.50",
+        //                 "0.387864"
+        //             ],
+        //             [
+        //                 "40837.95",
+        //                 "0.008400"
+        //             ],
+        //         ],
+        //         "asks": [
+        //             [
+        //                 "40838.61",
+        //                 "6.544908"
+        //             ],
+        //             [
+        //                 "40838.88",
+        //                 "0.498000"
+        //             ],
+        //         ]
+        //     }
+        //
+        const orderbook = this.parseOrderBook (response, symbol);
+        orderbook['nonce'] = this.safeInteger (response, 'lastUpdateId');
+        return orderbook;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
