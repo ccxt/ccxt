@@ -1316,14 +1316,44 @@ class hitbtc3 extends Exchange {
             'side' => $side,
             'quantity' => $this->amount_to_precision($symbol, $amount),
             'symbol' => $market['id'],
+            // 'client_order_id' => 'r42gdPjNMZN-H_xs8RKl2wljg_dfgdg4', // Optional
+            // 'time_in_force' => 'GTC', // Optional GTC, IOC, FOK, Day, GTD
+            // 'price' => $this->price_to_precision($symbol, $price), // Required if $type is limit, stopLimit, or takeProfitLimit
+            // 'stop_price' => $this->safe_number($params, 'stop_price'), // Required if $type is stopLimit, stopMarket, takeProfitLimit, takeProfitMarket
+            // 'expire_time' => '2021-06-15T17:01:05.092Z', // Required if $timeInForce is GTD
+            // 'strict_validate' => false,
+            // 'post_only' => false, // Optional
+            // 'reduce_only' => false, // Optional
+            // 'display_quantity' => '0', // Optional
+            // 'take_rate' => 0.001, // Optional
+            // 'make_rate' => 0.001, // Optional
         );
-        if (($type === 'limit') || ($type === 'stopLimit')) {
+        $timeInForce = $this->safe_string_2($params, 'timeInForce', 'time_in_force');
+        $expireTime = $this->safe_string($params, 'expire_time');
+        $stopPrice = $this->safe_number_2($params, 'stopPrice', 'stop_price');
+        if (($type === 'limit') || ($type === 'stopLimit') || ($type === 'takeProfitLimit')) {
             if ($price === null) {
-                throw new ExchangeError($this->id . ' limit order requires price');
+                throw new ExchangeError($this->id . ' createOrder() requires a $price argument for limit orders');
             }
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        $response = yield $this->privatePostSpotOrder (array_merge($request, $params));
+        if (($timeInForce === 'GTD')) {
+            if ($expireTime === null) {
+                throw new ExchangeError($this->id . ' createOrder() requires an expire_time parameter for a GTD order');
+            }
+            $request['expire_time'] = $expireTime;
+        }
+        if (($type === 'stopLimit') || ($type === 'stopMarket') || ($type === 'takeProfitLimit') || ($type === 'takeProfitMarket')) {
+            if ($stopPrice === null) {
+                throw new ExchangeError($this->id . ' createOrder() requires a $stopPrice parameter for stop-loss and take-profit orders');
+            }
+            $request['stop_price'] = $this->price_to_precision($symbol, $stopPrice);
+        }
+        $method = $this->get_supported_mapping($market['type'], array(
+            'spot' => 'privatePostSpotOrder',
+            'swap' => 'privatePostFuturesOrder',
+        ));
+        $response = yield $this->$method (array_merge($request, $params));
         return $this->parse_order($response, $market);
     }
 
@@ -1384,6 +1414,25 @@ class hitbtc3 extends Exchange {
         //           "taker" => true
         //         }
         //       )
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "id" => 58418961892,
+        //         "client_order_id" => "r42gdPjNMZN-H_xs8RKl2wljg_dfgdg4",
+        //         "symbol" => "BTCUSDT_PERP",
+        //         "side" => "buy",
+        //         "status" => "new",
+        //         "type" => "limit",
+        //         "time_in_force" => "GTC",
+        //         "quantity" => "0.0005",
+        //         "quantity_cumulative" => "0",
+        //         "price" => "30000.00",
+        //         "post_only" => false,
+        //         "reduce_only" => false,
+        //         "created_at" => "2022-03-16T08:16:53.039Z",
+        //         "updated_at" => "2022-03-16T08:16:53.039Z"
         //     }
         //
         $id = $this->safe_string($order, 'client_order_id');

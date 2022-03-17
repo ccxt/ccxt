@@ -1245,12 +1245,38 @@ class hitbtc3(Exchange):
             'side': side,
             'quantity': self.amount_to_precision(symbol, amount),
             'symbol': market['id'],
+            # 'client_order_id': 'r42gdPjNMZN-H_xs8RKl2wljg_dfgdg4',  # Optional
+            # 'time_in_force': 'GTC',  # Optional GTC, IOC, FOK, Day, GTD
+            # 'price': self.price_to_precision(symbol, price),  # Required if type is limit, stopLimit, or takeProfitLimit
+            # 'stop_price': self.safe_number(params, 'stop_price'),  # Required if type is stopLimit, stopMarket, takeProfitLimit, takeProfitMarket
+            # 'expire_time': '2021-06-15T17:01:05.092Z',  # Required if timeInForce is GTD
+            # 'strict_validate': False,
+            # 'post_only': False,  # Optional
+            # 'reduce_only': False,  # Optional
+            # 'display_quantity': '0',  # Optional
+            # 'take_rate': 0.001,  # Optional
+            # 'make_rate': 0.001,  # Optional
         }
-        if (type == 'limit') or (type == 'stopLimit'):
+        timeInForce = self.safe_string_2(params, 'timeInForce', 'time_in_force')
+        expireTime = self.safe_string(params, 'expire_time')
+        stopPrice = self.safe_number_2(params, 'stopPrice', 'stop_price')
+        if (type == 'limit') or (type == 'stopLimit') or (type == 'takeProfitLimit'):
             if price is None:
-                raise ExchangeError(self.id + ' limit order requires price')
+                raise ExchangeError(self.id + ' createOrder() requires a price argument for limit orders')
             request['price'] = self.price_to_precision(symbol, price)
-        response = self.privatePostSpotOrder(self.extend(request, params))
+        if (timeInForce == 'GTD'):
+            if expireTime is None:
+                raise ExchangeError(self.id + ' createOrder() requires an expire_time parameter for a GTD order')
+            request['expire_time'] = expireTime
+        if (type == 'stopLimit') or (type == 'stopMarket') or (type == 'takeProfitLimit') or (type == 'takeProfitMarket'):
+            if stopPrice is None:
+                raise ExchangeError(self.id + ' createOrder() requires a stopPrice parameter for stop-loss and take-profit orders')
+            request['stop_price'] = self.price_to_precision(symbol, stopPrice)
+        method = self.get_supported_mapping(market['type'], {
+            'spot': 'privatePostSpotOrder',
+            'swap': 'privatePostFuturesOrder',
+        })
+        response = getattr(self, method)(self.extend(request, params))
         return self.parse_order(response, market)
 
     def parse_order_status(self, status):
@@ -1309,6 +1335,25 @@ class hitbtc3(Exchange):
         #           "taker": True
         #         }
         #       ]
+        #     }
+        #
+        # swap
+        #
+        #     {
+        #         "id": 58418961892,
+        #         "client_order_id": "r42gdPjNMZN-H_xs8RKl2wljg_dfgdg4",
+        #         "symbol": "BTCUSDT_PERP",
+        #         "side": "buy",
+        #         "status": "new",
+        #         "type": "limit",
+        #         "time_in_force": "GTC",
+        #         "quantity": "0.0005",
+        #         "quantity_cumulative": "0",
+        #         "price": "30000.00",
+        #         "post_only": False,
+        #         "reduce_only": False,
+        #         "created_at": "2022-03-16T08:16:53.039Z",
+        #         "updated_at": "2022-03-16T08:16:53.039Z"
         #     }
         #
         id = self.safe_string(order, 'client_order_id')
