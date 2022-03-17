@@ -114,38 +114,41 @@ module.exports = class nexus extends Exchange {
         }
     }
 
+    parseMarket (instrument) {
+        const precision = {
+            'amount': this.safeNumber (instrument, 'quantity_decimals'),
+            'price': this.safeNumber (instrument, 'price_decimals'),
+        };
+        return {
+            'id': this.safeString (instrument, 'id'),
+            'symbol': this.safeString (instrument, 'name'),
+            'base': this.safeString (instrument, 'base_product'),
+            'quote': this.safeString (instrument, 'quote_product'),
+            'baseId': this.safeStringLower (instrument, 'base_product'),
+            'quoteId': this.safeStringLower (instrument, 'quote_product'),
+            'active': true,
+            'precision': precision,
+            'limits': {
+                'amount': {
+                    'min': this.safeNumber (instrument, 'min_quantity'),
+                    'max': this.safeNumber (instrument, 'max_quantity'),
+                },
+                'price': {
+                    'min': Math.pow (10, -this.safeNumber (precision, 'price')),
+                    'max': undefined,
+                },
+            },
+            'info': instrument,
+        };
+    }
+
     async fetchMarkets (params = {}) {
         params = this.extend (params, { 'exchange': this.options['exchangeName'] });
         const response = await this.edsGetInstruments (params);
-        const markets = response['instruments'];
+        const instruments = response['instruments'];
         const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
-            const precision = {
-                'amount': this.safeNumber (market, 'quantity_decimals'),
-                'price': this.safeNumber (market, 'price_decimals'),
-            };
-            result.push ({
-                'id': this.safeString (market, 'id'),
-                'symbol': this.safeString (market, 'name'),
-                'base': this.safeString (market, 'base_product'),
-                'quote': this.safeString (market, 'quote_product'),
-                'baseId': this.safeStringLower (market, 'base_product'),
-                'quoteId': this.safeStringLower (market, 'quote_product'),
-                'active': true,
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': this.safeNumber (market, 'min_quantity'),
-                        'max': this.safeNumber (market, 'max_quantity'),
-                    },
-                    'price': {
-                        'min': Math.pow (10, -this.safeNumber (precision, 'price')),
-                        'max': undefined,
-                    },
-                },
-                'info': market,
-            });
+        for (let i = 0; i < instruments.length; i++) {
+            result.push (this.parseMarket (instruments[i]));
         }
         return result;
     }
@@ -175,12 +178,8 @@ module.exports = class nexus extends Exchange {
         return result;
     }
 
-    parseTicker (ticker, market = undefined) {
-        let symbol = undefined;
-        if (market) {
-            symbol = this.safeTicker (market, 'symbol');
-            console.log(symbol)
-        }
+    parseTicker (ticker, market) {
+        const symbol = this.safeSymbol (market['id']);
         return this.safeTicker ({
             'symbol': symbol,
             'datetime': this.iso8601 (ticker['timestamp']),
@@ -324,6 +323,8 @@ module.exports = class nexus extends Exchange {
     }
 
     parseOrder (order) {
+        const marketId = this.safeString (order, 'instrument_id');
+        const symbol = this.safeSymbool (marketId);
         const amount = this.safeNumber (order, 'quantity');
         const filled = this.safeNumber (order, 'executed_quantity');
         let price = 0;
@@ -337,7 +338,7 @@ module.exports = class nexus extends Exchange {
             'id': order['id'],
             'timestamp': this.safeNumber (order, 'open_time'),
             'status': this.safeString (order, 'status'),
-            'symbol': this.safeString (order, 'instrument_id'),
+            'symbol': symbol,
             'type': this.safeString (order, 'type'),
             'timeInForce': this.safeStringUpper (order, 'status'),
             'side': this.safeString (order, 'side'),
