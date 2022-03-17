@@ -457,11 +457,6 @@ module.exports = class mexc extends Exchange {
         return result;
     }
 
-    async fetchMarketsByType (type, params = {}) {
-        const method = 'fetch_' + type + '_markets';
-        return await this[method] (params);
-    }
-
     async fetchMarkets (params = {}) {
         const defaultType = this.safeString2 (this.options, 'fetchMarkets', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
