@@ -606,7 +606,7 @@ module.exports = class okx extends Exchange {
                 'fetchOHLCV': {
                     // 'type': 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
                 },
-                'createOrder': 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder'
+                'createOrder': 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder' or 'privatePostTradeOrderAlgo'
                 'createMarketBuyOrderRequiresPrice': false,
                 'fetchMarkets': [ 'spot', 'futures', 'swap', 'option' ], // spot, futures, swap, option
                 'defaultType': 'spot', // 'funding', 'spot', 'margin', 'futures', 'swap', 'option'
@@ -1783,7 +1783,7 @@ module.exports = class okx extends Exchange {
             //
             'side': side,
             // 'posSide': 'long', // long, short, // required in the long/short mode, and can only be long or short
-            'ordType': type, // market, limit, post_only, fok, ioc
+            'ordType': type, // market, limit, post_only, fok, ioc, (trigger for stop orders)
             //
             //     for SPOT/MARGIN bought and sold at a limit price, sz refers to the amount of trading currency
             //     for SPOT/MARGIN bought at a market price, sz refers to the amount of quoted currency
@@ -1793,6 +1793,9 @@ module.exports = class okx extends Exchange {
             // 'sz': this.amountToPrecision (symbol, amount),
             // 'px': this.priceToPrecision (symbol, price), // limit orders only
             // 'reduceOnly': false, // MARGIN orders only
+            // 'triggerPx': 10, // Stop order trigger price
+            // 'orderPx': 10, // Order price if -1, the order will be executed at the market price.
+            // 'triggerPxType': 'last', // Conditional default is last, mark or index
         };
         const tdMode = this.safeStringLower (params, 'tdMode');
         if (market['spot']) {
@@ -1855,8 +1858,19 @@ module.exports = class okx extends Exchange {
             request['px'] = this.priceToPrecision (symbol, price);
         }
         let extendedRequest = undefined;
-        const defaultMethod = this.safeString (this.options, 'createOrder', 'privatePostTradeBatchOrders'); // or privatePostTradeOrder
-        if (defaultMethod === 'privatePostTradeOrder') {
+        let defaultMethod = this.safeString (this.options, 'createOrder', 'privatePostTradeBatchOrders'); // or privatePostTradeOrder or privatePostTradeOrderAlgo
+        const stopPrice = this.safeNumber2 (params, 'triggerPx', 'stopPrice');
+        params = this.omit (params, [ 'triggerPx', 'stopPrice' ]);
+        if (stopPrice) {
+            defaultMethod = 'privatePostTradeOrderAlgo';
+            request['ordType'] = 'trigger';
+            request['triggerPx'] = this.priceToPrecision (symbol, stopPrice);
+            if (type === 'market') {
+                price = -1;
+            }
+            request['orderPx'] = this.priceToPrecision (symbol, price);
+        }
+        if (defaultMethod === 'privatePostTradeOrder' || defaultMethod === 'privatePostTradeOrderAlgo') {
             extendedRequest = this.extend (request, params);
         } else if (defaultMethod === 'privatePostTradeBatchOrders') {
             // keep the request body the same
@@ -1880,6 +1894,20 @@ module.exports = class okx extends Exchange {
         //                 "sMsg": ""
         //             }
         //         ]
+        //     }
+        //
+        // Trigger Order
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "algoId": "422774258702659590",
+        //                 "sCode": "0",
+        //                 "sMsg": ""
+        //             }
+        //         ],
+        //         "msg": ""
         //     }
         //
         const data = this.safeValue (response, 'data', []);
