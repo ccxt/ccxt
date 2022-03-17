@@ -503,6 +503,7 @@ module.exports = class lbank2 extends Exchange {
         //          "type": 'buy',
         //          "order_type": 'market',
         //          "create_time": 1647456309418,
+        //          "custom_id": "007" // field id only present if custom Id exists
         //          "info": {
         //              "result": true,
         //              "data": {
@@ -524,6 +525,7 @@ module.exports = class lbank2 extends Exchange {
         //          "avg_price":0.113344,
         //          "type":"sell_market",
         //          "order_id":"d4ca1ddd-40d9-42c1-9717-5de435865bec",
+        //          "custom_id": "007" // field id only present if custom Id exists
         //          "deal_amount":18,
         //          "status":2
         //      }
@@ -533,6 +535,7 @@ module.exports = class lbank2 extends Exchange {
         const timestamp = this.safeInteger (order, 'create_time');
         // Limit Order Request Returns: Order Price
         // Market Order Returns: cny amount of market order
+        const clientOrderId = this.safeString2 (order, 'custom_id', 'customer_id');
         const price = this.safeString (order, 'price');
         const amount = this.safeString (order, 'amount');
         const filled = this.safeString (order, 'deal_amount');
@@ -556,7 +559,7 @@ module.exports = class lbank2 extends Exchange {
         }
         return this.safeOrder ({
             'id': id,
-            'clientOrderId': undefined,
+            'clientOrderId': clientOrderId,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
@@ -587,6 +590,7 @@ module.exports = class lbank2 extends Exchange {
             'type': side,
             'amount': amount,
             'price': 1, // required unused number > 0 even for market orders
+            // 'custom_id': ... can be used to cancel order
         };
         if (type === 'market') {
             order['type'] += '_market';
@@ -594,7 +598,6 @@ module.exports = class lbank2 extends Exchange {
             order['price'] = price;
         }
         const response = await this.privatePostCreateOrder (this.extend (order, params));
-        // order = this.omit (order, 'type');
         const result = this.safeValue (response, 'data');
         order['order_id'] = this.safeString (result, 'order_id');
         order['side'] = side;
@@ -605,6 +608,7 @@ module.exports = class lbank2 extends Exchange {
         }
         order['create_time'] = this.safeString (response, 'ts');
         order['info'] = response;
+        order['custom_id'] = this.safeString (params, 'custom_id');
         return this.parseOrder (order, market);
     }
 
@@ -700,6 +704,28 @@ module.exports = class lbank2 extends Exchange {
         const orders = this.safeValue (result, 'orders', []);
         const openOrders = this.parseOrders (orders);
         return this.filterBySymbolSinceLimit (openOrders, market['symbol'], since, limit);
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
+        }
+        const market = this.market (symbol);
+        const clientOrderId = this.safeString2 (params, 'customer_id', 'clientOrderId');
+        params = this.omit (params, [ 'customer_id', 'clientOrderId' ]);
+        const request = {
+            'symbol': market['id'],
+        };
+        let method = undefined;
+        if (clientOrderId !== undefined) {
+            method = 'privatePostCancelClientOrders';
+            request['customer_id'] = clientOrderId;
+        } else {
+            method = 'privatePostCancelOrder';
+            request['order_id'] = id;
+        }
+        const response = await this[method] (this.extend (request, params));
+        return response;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
