@@ -1230,7 +1230,14 @@ class hitbtc3 extends Exchange {
         $request = array(
             'order_id' => $id, // exchange assigned order $id as oppose to the client order $id
         );
-        $response = $this->privateGetSpotHistoryTrade (array_merge($request, $params));
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchOrderTrades', $market, $params);
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'privateGetSpotHistoryTrade',
+            'swap' => 'privateGetFuturesHistoryTrade',
+        ));
+        $response = $this->$method (array_merge($request, $query));
+        //
+        // Spot
         //
         //     array(
         //       {
@@ -1245,6 +1252,26 @@ class hitbtc3 extends Exchange {
         //         "timestamp" => "2021-09-19T05:35:56.601Z",
         //         "taker" => true
         //       }
+        //     )
+        //
+        // Swap
+        //
+        //     array(
+        //         {
+        //             "id" => 4718551,
+        //             "order_id" => 58730748700,
+        //             "client_order_id" => "dcbcd8549e3445ee922665946002ef67",
+        //             "symbol" => "BTCUSDT_PERP",
+        //             "side" => "buy",
+        //             "quantity" => "0.0001",
+        //             "price" => "41095.96",
+        //             "fee" => "0.002054798000",
+        //             "timestamp" => "2022-03-17T05:23:02.217Z",
+        //             "taker" => true,
+        //             "position_id" => 2350122,
+        //             "pnl" => "0",
+        //             "liquidation" => false
+        //         }
         //     )
         //
         return $this->parse_trades($response, $market, $since, $limit);

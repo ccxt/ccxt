@@ -1173,7 +1173,14 @@ class hitbtc3(Exchange):
         request = {
             'order_id': id,  # exchange assigned order id as oppose to the client order id
         }
-        response = await self.privateGetSpotHistoryTrade(self.extend(request, params))
+        marketType, query = self.handle_market_type_and_params('fetchOrderTrades', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateGetSpotHistoryTrade',
+            'swap': 'privateGetFuturesHistoryTrade',
+        })
+        response = await getattr(self, method)(self.extend(request, query))
+        #
+        # Spot
         #
         #     [
         #       {
@@ -1188,6 +1195,26 @@ class hitbtc3(Exchange):
         #         "timestamp": "2021-09-19T05:35:56.601Z",
         #         "taker": True
         #       }
+        #     ]
+        #
+        # Swap
+        #
+        #     [
+        #         {
+        #             "id": 4718551,
+        #             "order_id": 58730748700,
+        #             "client_order_id": "dcbcd8549e3445ee922665946002ef67",
+        #             "symbol": "BTCUSDT_PERP",
+        #             "side": "buy",
+        #             "quantity": "0.0001",
+        #             "price": "41095.96",
+        #             "fee": "0.002054798000",
+        #             "timestamp": "2022-03-17T05:23:02.217Z",
+        #             "taker": True,
+        #             "position_id": 2350122,
+        #             "pnl": "0",
+        #             "liquidation": False
+        #         }
         #     ]
         #
         return self.parse_trades(response, market, since, limit)
