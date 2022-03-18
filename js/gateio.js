@@ -23,6 +23,7 @@ module.exports = class gateio extends Exchange {
                 'www': 'https://gate.io/',
                 'api': {
                     'public': {
+                        'wallet': 'https://api.gateio.ws/api/v4',
                         'futures': 'https://api.gateio.ws/api/v4',
                         'margin': 'https://api.gateio.ws/api/v4',
                         'delivery': 'https://api.gateio.ws/api/v4',
@@ -105,6 +106,11 @@ module.exports = class gateio extends Exchange {
             },
             'api': {
                 'public': {
+                    'wallet': {
+                        'get': {
+                            'wallet/currency_chains': 1,
+                        },
+                    },
                     'spot': {
                         'get': {
                             'currencies': 1,
@@ -186,6 +192,7 @@ module.exports = class gateio extends Exchange {
                             'withdraw_status': 300,
                             'sub_account_balances': 300,
                             'fee': 300,
+                            'total_balance': 300,
                         },
                         'post': {
                             'transfers': 300,
