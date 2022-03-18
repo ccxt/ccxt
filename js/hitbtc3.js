@@ -1316,10 +1316,15 @@ module.exports = class hitbtc3 extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOpenOrder', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'privateGetSpotOrderClientOrderId',
+            'swap': 'privateGetFuturesOrderClientOrderId',
+        });
         const request = {
             'client_order_id': id,
         };
-        const response = await this.privateGetSpotOrderClientOrderId (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
         return this.parseOrder (response, market);
     }
 
