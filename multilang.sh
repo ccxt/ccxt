@@ -7,6 +7,8 @@ function usage() {
   echo "	-s      Remove special characters"
   echo "	-h      Display help"
   echo "	-v      Verbose mode"
+  echo "	-k      Stacked"
+  echo "	-t      Use table"
   exit 1
 }
 
@@ -24,6 +26,8 @@ useLess=false
 verbose=false
 removeSpecial=false
 numLines=0
+stacked=false
+useTable=false
 
 function display {
   # Displays output in a less window or just to stdout
@@ -96,13 +100,15 @@ function padOutput {
 }
 
 # Loop through command line arguments
-while getopts 'hc:slv' flag; do
+while getopts 'hc:slvtk' flag; do
   case "${flag}" in
   h) usage ;;
   c) numLines="${OPTARG}" ;;
   s) removeSpecial=true ;;
   l) useLess=true ;;
   v) verbose=true ;;
+  k) stacked=true ;;
+  t) useTable=true ;;
   *) usage ;;
   esac
 done
@@ -119,12 +125,18 @@ else
   args="$@"
 fi
 
+if ${useTable}; then
+  table=""
+else
+  table="--no-table"
+fi
+
 jsArgs=$(<<< "$args" sed -E -e 's/(null|None)/undefined/g')
 pythonArgs=$(<<< "$args" sed -E -e 's/(undefined|null)/None/g')
 phpArgs=$(<<< "$args" sed -E -e 's/(undefined|None)/null/g')
 
 color=3
-jsOutput=$(writeOutput node $jsCli "--no-table --cache-markets $jsArgs")
+jsOutput=$(writeOutput node $jsCli "${table} $jsArgs")
 checkExitCode
 ((color++))
 
@@ -136,7 +148,7 @@ pythonLength=$(wc -l <<< "$pythonOutput")
 phpOutput=$(writeOutput php $phpCli "$phpArgs")
 checkExitCode
 
-if ${verbose}; then
+if ${stacked}; then
   echo -e "$jsOutput\n$phpOutput\n$pythonOutput" | display
 else
   # use padding here
