@@ -215,6 +215,7 @@ module.exports = class poloniex extends Exchange {
                     'Order not found, or you are not the person who placed it.': OrderNotFound,
                     'Invalid API key/secret pair.': AuthenticationError,
                     'Please do not make more than 8 API calls per second.': DDoSProtection,
+                    'This IP has been temporarily throttled. Please ensure your requests are valid and try again in one minute.': DDoSProtection,
                     'Rate must be greater than zero.': InvalidOrder, // {"error":"Rate must be greater than zero."}
                     'Invalid currency pair.': BadSymbol, // {"error":"Invalid currency pair."}
                     'Invalid currencyPair parameter.': BadSymbol, // {"error":"Invalid currencyPair parameter."}
