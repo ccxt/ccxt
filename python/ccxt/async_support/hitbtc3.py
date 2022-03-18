@@ -1139,10 +1139,15 @@ class hitbtc3(Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
+        marketType, query = self.handle_market_type_and_params('fetchOrder', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateGetSpotHistoryOrder',
+            'swap': 'privateGetFuturesHistoryOrder',
+        })
         request = {
             'client_order_id': id,
         }
-        response = await self.privateGetSpotHistoryOrder(self.extend(request, params))
+        response = await getattr(self, method)(self.extend(request, query))
         #
         #     [
         #       {
