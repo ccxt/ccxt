@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { ExchangeError } = require ('ccxt/js/base/errors');
+const { AuthenticationError } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheByTimestamp } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -14,12 +14,15 @@ module.exports = class ascendex extends ccxt.ascendex {
             'has': {
                 'ws': true,
                 'watchOrderBook': true,
-                'watchTicker': true,
+                'watchOHLCV': true,
                 'watchTrades': true,
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://ascendex.com/0/api/pro/v1/stream',
+                    'ws': {
+                        'public': 'wss://ascendex.com/0/api/pro/v1/stream',
+                        'private': 'wss://ascendex.com:443/{accountGroup}/api/pro/v1/stream',
+                    },
                 },
             },
             'options': {
@@ -31,7 +34,7 @@ module.exports = class ascendex extends ccxt.ascendex {
     }
 
     async watchPublic (channel, messageHash, symbol, method, limit = undefined, params = {}) {
-        const url = this.urls['api']['ws'];
+        const url = this.urls['api']['ws']['public'];
         const id = this.nonce ();
         const request = {
             'id': id.toString (),
@@ -49,6 +52,32 @@ module.exports = class ascendex extends ccxt.ascendex {
         if (limit !== undefined) {
             subscription['limit'] = limit;
         }
+        return await this.watch (url, messageHash, message, messageHash, subscription);
+    }
+
+    async watchPrivate (channel, messageHash, symbol, method, limit = undefined, params = {}) {
+        await this.loadAccounts ();
+        const accountGroup = this.safeString (this.options, 'account-group');
+        let url = this.urls['api']['ws']['private'];
+        url = this.implodeParams (url, { 'accountGroup': accountGroup });
+        const id = this.nonce ();
+        const request = {
+            'id': id.toString (),
+            'op': 'sub',
+            'ch': channel,
+        };
+        const message = this.extend (request, params);
+        const subscription = {
+            'id': id,
+            'symbol': symbol,
+            'channel': channel,
+            'messageHash': messageHash,
+            'method': method,
+        };
+        if (limit !== undefined) {
+            subscription['limit'] = limit;
+        }
+        await this.authenticate (url, params);
         return await this.watch (url, messageHash, message, messageHash, subscription);
     }
 
@@ -205,7 +234,7 @@ module.exports = class ascendex extends ccxt.ascendex {
             'action': action,
             'id': requestId,
             'args': {
-                'symbol': symbol,
+                'symbol': market['id'],
             },
         };
         const snapshotSubscription = {
@@ -334,7 +363,107 @@ module.exports = class ascendex extends ccxt.ascendex {
         return orderbook;
     }
 
+    async watchBalance (params = {}) {
+        await this.loadMarkets ();
+        const messageHash = 'order' + ':' + 'cash';
+        return await this.watchPrivate (messageHash, messageHash, undefined, this.handleBalance, undefined, params);
+    }
+
+    handleBalance (client, message) {
+        //
+        // cash account
+        //
+        // {
+        //     "m": "balance",
+        //     "accountId": "cshQtyfq8XLAA9kcf19h8bXHbAwwoqDo",
+        //     "ac": "CASH",
+        //     "data": {
+        //         "a" : "USDT",
+        //         "sn": 8159798,
+        //         "tb": "600",
+        //         "ab": "600"
+        //     }
+        // }
+        //
+        // margin account
+        //
+        // {
+        //     "m": "balance",
+        //     "accountId": "marOxpKJV83dxTRx0Eyxpa0gxc4Txt0P",
+        //     "ac": "MARGIN",
+        //     "data": {
+        //         "a"  : "USDT",
+        //         "sn" : 8159802,
+        //         "tb" : "400",
+        //         "ab" : "400",
+        //         "brw": "0",
+        //         "int": "0"
+        //     }
+        // }
+        //
+        const table = this.safeString (message, 'table');
+        const parts = table.split ('/');
+        let type = this.safeString (parts, 0);
+        if (type === 'spot') {
+            const part1 = this.safeString (parts, 1);
+            if (part1 === 'margin_account') {
+                type = 'margin';
+            }
+        }
+        const data = this.safeValue (message, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const balance = this.parseBalanceByType (type, data);
+            const oldBalance = this.safeValue (this.balance, type, {});
+            const newBalance = this.deepExtend (oldBalance, balance);
+            this.balance[type] = this.safeBalance (newBalance);
+            client.resolve (this.balance[type], table);
+        }
+    }
+
+    handleErrorMessage (client, message) {
+        //
+        // {
+        //     m: 'disconnected',
+        //     code: 100005,
+        //     reason: 'INVALID_WS_REQUEST_DATA',
+        //     info: 'Session is disconnected due to missing pong message from the client'
+        //   }
+        //
+        const errorCode = this.safeInteger (message, 'code');
+        try {
+            if (errorCode !== undefined) {
+                const feedback = this.id + ' ' + this.json (message);
+                this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+                const messageString = this.safeValue (message, 'message');
+                if (messageString !== undefined) {
+                    this.throwBroadlyMatchedException (this.exceptions['broad'], messageString, feedback);
+                }
+            }
+        } catch (e) {
+            if (e instanceof AuthenticationError) {
+                client.reject (e, 'authenticated');
+                const method = 'auth';
+                if (method in client.subscriptions) {
+                    delete client.subscriptions[method];
+                }
+                return false;
+            }
+        }
+        return message;
+    }
+
+    handleAuthenticate (client, message) {
+        //
+        //     { m: 'auth', id: '1647605234', code: 0 }
+        //
+        client.resolve (message, 'authenticated');
+        return message;
+    }
+
     handleMessage (client, message) {
+        if (!this.handleErrorMessage (client, message)) {
+            return;
+        }
         //
         //     { m: 'ping', hp: 3 }
         //
@@ -343,6 +472,16 @@ module.exports = class ascendex extends ccxt.ascendex {
         //     { m: 'sub', id: '1647515701', ch: 'depth:BTC/USDT', code: 0 }
         //
         //     { m: 'connected', type: 'unauth' }
+        //
+        //     { m: 'auth', id: '1647605234', code: 0 }
+        //
+        // order or balance sub
+        // {
+        //     m: 'sub',
+        //     id: '1647605952',
+        //     ch: 'order:cshF5SlR9ukAXoDOuXbND4dVpBMw9gzH',
+        //     code: 0
+        //   }
         //
         // ohlcv
         //  {
@@ -420,6 +559,10 @@ module.exports = class ascendex extends ccxt.ascendex {
             this.handlePing (client, message);
             return;
         }
+        if (subject === 'auth') {
+            this.handleAuthenticate (client, message);
+            return;
+        }
         if (subject === 'sub') {
             this.handleSubscriptionStatus (client, message);
             return;
@@ -471,5 +614,31 @@ module.exports = class ascendex extends ccxt.ascendex {
 
     handlePing (client, message) {
         this.spawn (this.pong, client, message);
+    }
+
+    async authenticate (url, params = {}) {
+        this.checkRequiredCredentials ();
+        const messageHash = 'auth';
+        const client = this.client (url);
+        let future = this.safeValue (client.subscriptions, messageHash);
+        if (future === undefined) {
+            future = client.future ('authenticated');
+            const timestamp = this.milliseconds ().toString ();
+            const urlParts = url.split ('/');
+            const partsLength = urlParts.length;
+            const path = this.safeString (urlParts, partsLength - 1);
+            const auth = timestamp + '+' + path;
+            const secret = this.base64ToBinary (this.secret);
+            const signature = this.hmac (this.encode (auth), this.encode (secret), 'sha256', 'base64');
+            const request = {
+                'op': messageHash,
+                'id': this.nonce ().toString (),
+                't': timestamp,
+                'key': this.apiKey,
+                'sig': signature,
+            };
+            this.spawn (this.watch, url, messageHash, request, messageHash, future);
+        }
+        return await future;
     }
 };
