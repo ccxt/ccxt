@@ -2244,11 +2244,12 @@ module.exports = class Exchange {
         const timeInForceUpper = timeInForce.toUpperCase ();
         const typeLower = type.toLowerCase ();
         const ioc = timeInForceUpper === 'IOC';
+        const fok = timeInForceUpper === 'FOK';
         const timeInForcePostOnly = timeInForceUpper === 'PO';
         const isMarket = typeLower === 'market';
         postOnly = postOnly || typeLower === 'postonly' || timeInForcePostOnly || exchangeSpecificOption;
         if (postOnly) {
-            if (ioc) {
+            if (ioc || fok) {
                 throw new InvalidOrder (this.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce);
             } else if (isMarket) {
                 throw new InvalidOrder (this.id + ' postOnly orders cannot have type ' + type);
