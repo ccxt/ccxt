@@ -351,6 +351,12 @@ module.exports = class krakenfu extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @param {string} symbol: Unified market symbol
+         * @param {*} limit: Not used by krakenfutures
+         * @param {*} params: exchange specific params
+         * @returns: An order book structure
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -815,6 +821,16 @@ module.exports = class krakenfu extends Exchange {
     }
 
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        /**
+         * @param {string} id: order id
+         * @param {string} symbol: Not used by Krakenfutures
+         * @param {string} type: Not used by Krakenfutures
+         * @param {string} side: Not used by Krakenfutures
+         * @param {float} amount: Order size
+         * @param {float} price: Price to fill order at
+         * @param {dictionary} params: Exchange specific params
+         * @returns: An order structure
+         */
         await this.loadMarkets ();
         const request = {
             'orderId': id,
@@ -834,6 +850,12 @@ module.exports = class krakenfu extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @param {string} id: Order id
+         * @param {string} symbol: Not used by Krakenfutures
+         * @param {dictionary} params: Exchange specific params
+         * @returns: An order structure
+         */
         await this.loadMarkets ();
         const response = await this.privatePostCancelorder (this.extend ({ 'order_id': id }, params));
         const status = this.safeString (this.safeValue (response, 'cancelStatus', {}), 'status');
@@ -865,6 +887,14 @@ module.exports = class krakenfu extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * Gets all open orders, including trigger orders, for an account from the exchange api
+         * @param {string} symbol: Unified market symbol
+         * @param {integer} since: Timestamp (ms) of earliest order. (Not used by kraken api but filtered internally by CCXT)
+         * @param {integer} limit: How many orders to return. (Not used by kraken api but filtered internally by CCXT)
+         * @param {dictionary} params: Exchange specific parameters
+         * @returns: An array of order structures
+         */
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
@@ -1300,48 +1330,54 @@ module.exports = class krakenfu extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetAccounts (params);
-        // {
-        //    "result": "success",
-        //    "serverTime": "2016-02-25T09:45:53.818Z",
-        //    "accounts":{
-        //        "cash":{
-        //            "type": "cashAccount",
-        //            "balances":{
-        //                "xbt":141.31756797,
-        //                "xrp":52465.1254,
-        //            },
-        //        },
-        //        "fi_xbtusd":{
-        //            "type": "marginAccount",
-        //            "currency": "xbt",
-        //            "balances":{
-        //                "fi_xbtusd_171215":50000,
-        //                "fi_xbtusd_180615":-15000,
-        //                ...,
-        //                "xbt":141.31756797,
-        //                "xrp":0,
-        //            },
-        //            "auxiliary":{
-        //                "af":100.73891563,
-        //                "pnl":12.42134766,
-        //                "pv":153.73891563,
-        //            },
-        //            "marginRequirements":{
-        //                "im":52.8,
-        //                "mm":23.76,
-        //                "lt":39.6,
-        //                "tt":15.84,
-        //            },
-        //            "triggerEstimates":{
-        //                "im":3110,
-        //                "mm":3000,
-        //                "lt":2890,
-        //                "tt":2830,
-        //            },
-        //        },
-        //        ...
-        //    },
-        // }
+        //
+        //    {
+        //       "result": "success",
+        //       "serverTime": "2016-02-25T09:45:53.818Z",
+        //       "accounts":{
+        //           "cash":{
+        //               "type": "cashAccount",
+        //               "balances":{
+        //                   "xbt":141.31756797,
+        //                   "xrp":52465.1254,
+        //               },
+        //           },
+        //           "fi_xbtusd":{
+        //               "type": "marginAccount",
+        //               "currency": "xbt",
+        //               "balances":{
+        //                   "fi_xbtusd_171215":50000,
+        //                   "fi_xbtusd_180615":-15000,
+        //                   ...,
+        //                   "xbt":141.31756797,
+        //                   "xrp":0,
+        //               },
+        //               "auxiliary":{
+        //                   "af":100.73891563,
+        //                   "pnl":12.42134766,
+        //                   "pv":153.73891563,
+        //               },
+        //               "marginRequirements":{
+        //                   "im":52.8,
+        //                   "mm":23.76,
+        //                   "lt":39.6,
+        //                   "tt":15.84,
+        //               },
+        //               "triggerEstimates":{
+        //                   "im":3110,
+        //                   "mm":3000,
+        //                   "lt":2890,
+        //                   "tt":2830,
+        //               },
+        //           },
+        //           ...
+        //       },
+        //    }
+        //
+        return this.parseBalance (response);
+    }
+
+    parseBalance (response) {
         const result = { 'info': response };
         const accounts = this.safeValue (response, 'accounts', {});
         const cash = this.safeValue (accounts, 'cash', {});
@@ -1357,7 +1393,7 @@ module.exports = class krakenfu extends Exchange {
             account['total'] = this.safeFloat (cashBalances, currencyId);
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
