@@ -75,6 +75,8 @@ class probit(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': False,
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setMarginMode': False,

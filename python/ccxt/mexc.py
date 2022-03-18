@@ -459,10 +459,6 @@ class mexc(Exchange):
             }
         return result
 
-    def fetch_markets_by_type(self, type, params={}):
-        method = 'fetch_' + type + '_markets'
-        return getattr(self, method)(params)
-
     def fetch_markets(self, params={}):
         defaultType = self.safe_string_2(self.options, 'fetchMarkets', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)

@@ -462,11 +462,6 @@ class mexc extends Exchange {
         return $result;
     }
 
-    public function fetch_markets_by_type($type, $params = array ()) {
-        $method = 'fetch_' . $type . '_markets';
-        return $this->$method ($params);
-    }
-
     public function fetch_markets($params = array ()) {
         $defaultType = $this->safe_string_2($this->options, 'fetchMarkets', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);

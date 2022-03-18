@@ -83,6 +83,8 @@ class zb(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
                 'setLeverage': True,
@@ -500,8 +502,8 @@ class zb(Exchange):
                     'withdraw': {},
                 },
                 'trading': {
-                    'maker': 0.2 / 100,
-                    'taker': 0.2 / 100,
+                    'maker': self.parse_number('0.002'),
+                    'taker': self.parse_number('0.002'),
                 },
             },
             'commonCurrencies': {

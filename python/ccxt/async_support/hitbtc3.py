@@ -725,8 +725,13 @@ class hitbtc3(Exchange):
         if limit is not None:
             request['limit'] = limit
         if since is not None:
-            request['since'] = since
-        response = await self.privateGetSpotHistoryTrade(self.extend(request, params))
+            request['from'] = since
+        marketType, query = self.handle_market_type_and_params('fetchMyTrades', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateGetSpotHistoryTrade',
+            'swap': 'privateGetFuturesHistoryTrade',
+        })
+        response = await getattr(self, method)(self.extend(request, query))
         return self.parse_trades(response, market, since, limit)
 
     def parse_trade(self, trade, market=None):
@@ -753,7 +758,7 @@ class hitbtc3(Exchange):
         #      timestamp: '2020-10-16T12:57:39.846Z'
         #  }
         #
-        # fetchMyTrades
+        # fetchMyTrades spot
         #
         #  {
         #      id: 277210397,
@@ -766,6 +771,24 @@ class hitbtc3(Exchange):
         #      fee: '0.000000147',
         #      timestamp: '2018-04-28T18:39:55.345Z',
         #      taker: True
+        #  }
+        #
+        # fetchMyTrades swap
+        #
+        #  {
+        #      "id": 4718564,
+        #      "order_id": 58730811958,
+        #      "client_order_id": "475c47d97f867f09726186eb22b4c3d4",
+        #      "symbol": "BTCUSDT_PERP",
+        #      "side": "sell",
+        #      "quantity": "0.0001",
+        #      "price": "41118.51",
+        #      "fee": "0.002055925500",
+        #      "timestamp": "2022-03-17T05:23:17.795Z",
+        #      "taker": True,
+        #      "position_id": 2350122,
+        #      "pnl": "0.002255000000",
+        #      "liquidation": False
         #  }
         #
         timestamp = self.parse8601(trade['timestamp'])
@@ -1107,7 +1130,12 @@ class hitbtc3(Exchange):
             request['from'] = self.iso8601(since)
         if limit is not None:
             request['limit'] = limit
-        response = await self.privateGetSpotHistoryOrder(self.extend(request, params))
+        marketType, query = self.handle_market_type_and_params('fetchClosedOrders', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateGetSpotHistoryOrder',
+            'swap': 'privateGetFuturesHistoryOrder',
+        })
+        response = await getattr(self, method)(self.extend(request, query))
         parsed = self.parse_orders(response, market, since, limit)
         return self.filter_by_array(parsed, 'status', ['closed', 'canceled'], False)
 
@@ -1116,10 +1144,15 @@ class hitbtc3(Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
+        marketType, query = self.handle_market_type_and_params('fetchOrder', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateGetSpotHistoryOrder',
+            'swap': 'privateGetFuturesHistoryOrder',
+        })
         request = {
             'client_order_id': id,
         }
-        response = await self.privateGetSpotHistoryOrder(self.extend(request, params))
+        response = await getattr(self, method)(self.extend(request, query))
         #
         #     [
         #       {
@@ -1150,7 +1183,14 @@ class hitbtc3(Exchange):
         request = {
             'order_id': id,  # exchange assigned order id as oppose to the client order id
         }
-        response = await self.privateGetSpotHistoryTrade(self.extend(request, params))
+        marketType, query = self.handle_market_type_and_params('fetchOrderTrades', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateGetSpotHistoryTrade',
+            'swap': 'privateGetFuturesHistoryTrade',
+        })
+        response = await getattr(self, method)(self.extend(request, query))
+        #
+        # Spot
         #
         #     [
         #       {
@@ -1167,6 +1207,26 @@ class hitbtc3(Exchange):
         #       }
         #     ]
         #
+        # Swap
+        #
+        #     [
+        #         {
+        #             "id": 4718551,
+        #             "order_id": 58730748700,
+        #             "client_order_id": "dcbcd8549e3445ee922665946002ef67",
+        #             "symbol": "BTCUSDT_PERP",
+        #             "side": "buy",
+        #             "quantity": "0.0001",
+        #             "price": "41095.96",
+        #             "fee": "0.002054798000",
+        #             "timestamp": "2022-03-17T05:23:02.217Z",
+        #             "taker": True,
+        #             "position_id": 2350122,
+        #             "pnl": "0",
+        #             "liquidation": False
+        #         }
+        #     ]
+        #
         return self.parse_trades(response, market, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -1176,7 +1236,12 @@ class hitbtc3(Exchange):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        response = await self.privateGetSpotOrder(self.extend(request, params))
+        marketType, query = self.handle_market_type_and_params('fetchOpenOrders', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateGetSpotOrder',
+            'swap': 'privateGetFuturesOrder',
+        })
+        response = await getattr(self, method)(self.extend(request, query))
         #
         #     [
         #       {
@@ -1203,10 +1268,15 @@ class hitbtc3(Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
+        marketType, query = self.handle_market_type_and_params('fetchOpenOrder', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateGetSpotOrderClientOrderId',
+            'swap': 'privateGetFuturesOrderClientOrderId',
+        })
         request = {
             'client_order_id': id,
         }
-        response = await self.privateGetSpotOrderClientOrderId(self.extend(request, params))
+        response = await getattr(self, method)(self.extend(request, query))
         return self.parse_order(response, market)
 
     async def cancel_all_orders(self, symbol=None, params={}):
@@ -1216,7 +1286,12 @@ class hitbtc3(Exchange):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        response = await self.privateDeleteSpotOrder(self.extend(request, params))
+        marketType, query = self.handle_market_type_and_params('cancelAllOrders', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateDeleteSpotOrder',
+            'swap': 'privateDeleteFuturesOrder',
+        })
+        response = await getattr(self, method)(self.extend(request, query))
         return self.parse_orders(response, market)
 
     async def cancel_order(self, id, symbol=None, params={}):
@@ -1227,7 +1302,12 @@ class hitbtc3(Exchange):
         }
         if symbol is not None:
             market = self.market(symbol)
-        response = await self.privateDeleteSpotOrderClientOrderId(self.extend(request, params))
+        marketType, query = self.handle_market_type_and_params('cancelOrder', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateDeleteSpotOrderClientOrderId',
+            'swap': 'privateDeleteFuturesOrderClientOrderId',
+        })
+        response = await getattr(self, method)(self.extend(request, query))
         return self.parse_order(response, market)
 
     async def edit_order(self, id, symbol, type, side, amount, price=None, params={}):

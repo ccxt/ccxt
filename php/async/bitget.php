@@ -1602,7 +1602,7 @@ class bitget extends Exchange {
         $marketId = $this->safe_string($order, 'symbol');
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
-        $id = $this->safe_string_2($order, 'orderId');
+        $id = $this->safe_string($order, 'orderId');
         $price = $this->safe_string($order, 'price');
         $amount = $this->safe_string_2($order, 'quantity', 'size');
         $filled = $this->safe_string_2($order, 'fillQuantity', 'filledQty');
