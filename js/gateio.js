@@ -108,7 +108,7 @@ module.exports = class gateio extends Exchange {
                 'public': {
                     'wallet': {
                         'get': {
-                            'wallet/currency_chains': 1,
+                            'wallet/currency_chains': 1.5,
                         },
                     },
                     'spot': {
