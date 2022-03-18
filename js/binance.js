@@ -5442,7 +5442,7 @@ module.exports = class binance extends Exchange {
         //    }
         //
         const timestamp = this.safeNumber (info, 'timestamp');
-        const currency = this.safeString (info, 'asset');
+        currency = this.safeString (info, 'asset');
         return {
             'currency': this.safeCurrencyCode (currency),
             'rate': this.safeNumber (info, 'dailyInterestRate'),
