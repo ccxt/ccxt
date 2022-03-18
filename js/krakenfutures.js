@@ -570,69 +570,101 @@ module.exports = class krakenfu extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @param {string} symbol: Unified CCXT market symbol
+         * @param {integer} since: Timestamp(ms) of earliest trade. Not used by krakenfutures except in combination with params.till
+         * @param {integer} limit: Total number of trades, cannot exceed 100
+         * @param {dict} params: Exchange specific params
+         * @param {integer} params.till: Timestamp(ms) of latest trade
+         * @returns: An array of trade structures
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
         };
-        // Returns the last 100 trades from the specified lastTime value
+        const till = this.safeInteger (params, 'till');
+        if (till !== undefined) {
+            request['lastTime'] = this.iso8601 (till);
+        }
+        //
+        //    {
+        //        "result": "success",
+        //        "history": [
+        //            {
+        //                "time": "2022-03-18T04:55:37.692Z",
+        //                "trade_id": 100,
+        //                "price": 0.7921,
+        //                "size": 1068,
+        //                "side": "sell",
+        //                "type": "fill",
+        //                "uid": "6c5da0b0-f1a8-483f-921f-466eb0388265"
+        //            },
+        //            ...
+        //        ],
+        //        "serverTime": "2022-03-18T06:39:18.056Z"
+        //    }
+        //
         const response = await this.publicGetHistory (this.extend (request, params));
-        return this.parseTrades (response['history'], market, since, limit);
+        const history = this.safeValue (response, 'history');
+        return this.parseTrades (history, market, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
         //
         // fetchTrades (public)
         //
-        // {
-        //    "time": "2019-02-14T09:25:33.920Z",
-        //    "trade_id":100,
-        //    "price":3574,
-        //    "size":100,
-        //    "side": "buy",
-        //    "type": "fill"                                          // fill, liquidation, assignment, termination
-        //    "uid": "11c3d82c-9e70-4fe9-8115-f643f1b162d4"
-        // }
+        //    {
+        //       "time": "2019-02-14T09:25:33.920Z",
+        //       "trade_id":100,
+        //       "price":3574,
+        //       "size":100,
+        //       "side": "buy",
+        //       "type": "fill"                                          // fill, liquidation, assignment, termination
+        //       "uid": "11c3d82c-9e70-4fe9-8115-f643f1b162d4"
+        //    }
         //
         // fetchMyTrades (private)
         //
-        // {
-        //    "fillTime": "2016-02-25T09:47:01.000Z",
-        //    "order_id": "c18f0c17-9971-40e6-8e5b-10df05d422f0",
-        //    "fill_id": "522d4e08-96e7-4b44-9694-bfaea8fe215e",
-        //    "cliOrdId": "d427f920-ec55-4c18-ba95-5fe241513b30",     // OPTIONAL
-        //    "symbol": "fi_xbtusd_180615",
-        //    "side": "buy",
-        //    "size":2000,
-        //    "price":4255,
-        //    "fillType": "maker"                                     // taker, takerAfterEdit, maker, liquidation, assignee
-        // },
+        //    {
+        //       "fillTime": "2016-02-25T09:47:01.000Z",
+        //       "order_id": "c18f0c17-9971-40e6-8e5b-10df05d422f0",
+        //       "fill_id": "522d4e08-96e7-4b44-9694-bfaea8fe215e",
+        //       "cliOrdId": "d427f920-ec55-4c18-ba95-5fe241513b30",     // OPTIONAL
+        //       "symbol": "fi_xbtusd_180615",
+        //       "side": "buy",
+        //       "size":2000,
+        //       "price":4255,
+        //       "fillType": "maker"                                     // taker, takerAfterEdit, maker, liquidation, assignee
+        //    }
         //
         // execution report (createOrder, editOrder)
-        // {
-        //    "executionId": "e1ec9f63-2338-4c44-b40a-43486c6732d7",
-        //    "price":7244.5,
-        //    "amount":10,
-        //    "orderPriorEdit":null,
-        //    "orderPriorExecution":{
-        //       "orderId": "61ca5732-3478-42fe-8362-abbfd9465294",
-        //       "cliOrdId":null,
-        //       "type": "lmt",
-        //       "symbol": "pi_xbtusd",
-        //       "side": "buy",
-        //       "quantity":10,
-        //       "filled":0,
-        //       "limitPrice":7500,
-        //       "reduceOnly":false,
-        //       "timestamp": "2019-12-11T17:17:33.888Z",
-        //       "lastUpdateTimestamp": "2019-12-11T17:17:33.888Z"
-        //    },
-        //    "takerReducedQuantity":null,
-        //    "type": "EXECUTION"
-        // }
+        //
+        //    {
+        //       "executionId": "e1ec9f63-2338-4c44-b40a-43486c6732d7",
+        //       "price":7244.5,
+        //       "amount":10,
+        //       "orderPriorEdit":null,
+        //       "orderPriorExecution":{
+        //          "orderId": "61ca5732-3478-42fe-8362-abbfd9465294",
+        //          "cliOrdId":null,
+        //          "type": "lmt",
+        //          "symbol": "pi_xbtusd",
+        //          "side": "buy",
+        //          "quantity":10,
+        //          "filled":0,
+        //          "limitPrice":7500,
+        //          "reduceOnly":false,
+        //          "timestamp": "2019-12-11T17:17:33.888Z",
+        //          "lastUpdateTimestamp": "2019-12-11T17:17:33.888Z"
+        //       },
+        //       "takerReducedQuantity":null,
+        //       "type": "EXECUTION"
+        //    }
+        //
         const timestamp = this.parse8601 (this.safeString2 (trade, 'time', 'fillTime'));
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat2 (trade, 'size', 'amount', 0.0);
+        const price = this.safeString (trade, 'price');
+        const amount = this.safeString2 (trade, 'size', 'amount', '0.0');
         let id = this.safeString2 (trade, 'uid', 'fill_id');
         if (id === undefined) {
             id = this.safeString (trade, 'executionId');
@@ -659,26 +691,23 @@ module.exports = class krakenfu extends Exchange {
         }
         let symbol = undefined;
         if (symbolId !== undefined) {
-            if (symbolId in this.markets_by_id) {
-                market = this.markets_by_id[symbolId];
-            } else {
-                market = undefined;
+            market = this.safeValue (this.markets_by_id, symbolId);
+            if (market === undefined) {
                 symbol = symbolId;
             }
         }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        symbol = this.safeString (market, 'symbol', symbol);
         let cost = undefined;
         if ((amount !== undefined) && (price !== undefined) && (market !== undefined)) {
-            if (market['linear']) {
-                cost = amount * price; // in quote
+            const linear = this.safeValue (market, 'linear');
+            if (linear) {
+                cost = Precise.stringMul (amount, price); // in quote
             } else {
-                cost = amount / price; // in base
+                cost = Precise.stringDiv (amount, price); // in base
             }
-            cost *= market['lotSize'];
+            const contractSize = this.safeString (market, 'contractSize');
+            cost = Precise.stringMul (cost, contractSize);
         }
-        const fee = undefined;
         let takerOrMaker = undefined;
         const fillType = this.safeString (trade, 'fillType');
         if (fillType !== undefined) {
@@ -689,19 +718,19 @@ module.exports = class krakenfu extends Exchange {
             }
         }
         return {
+            'info': trade,
+            'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': id,
             'order': order,
             'type': type,
-            'takerOrMaker': takerOrMaker,
             'side': side,
-            'price': price,
-            'cost': cost,
-            'amount': amount,
-            'fee': fee,
-            'info': trade,
+            'takerOrMaker': takerOrMaker,
+            'price': this.parseNumber (price),
+            'amount': this.parseNumber (amount),
+            'cost': this.parseNumber (cost),
+            'fee': undefined,
         };
     }
 
