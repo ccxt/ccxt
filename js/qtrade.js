@@ -22,6 +22,7 @@ module.exports = class qtrade extends Exchange {
                 'www': 'https://qtrade.io',
                 'doc': 'https://qtrade-exchange.github.io/qtrade-docs',
                 'referral': 'https://qtrade.io/?ref=BKOQWVFGRH2C',
+                'fees': 'https://qtrade.io/fees',
             },
             'has': {
                 'CORS': undefined,
@@ -69,6 +70,8 @@ module.exports = class qtrade extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchTradingFee': true,
+                'fetchTradingFees': false,
                 'fetchTransactions': undefined,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
@@ -131,8 +134,8 @@ module.exports = class qtrade extends Exchange {
                     'feeSide': 'quote',
                     'tierBased': true,
                     'percentage': true,
-                    'taker': 0.005,
-                    'maker': 0.0,
+                    'taker': this.parseNumber ('0.005'),
+                    'maker': this.parseNumber ('0.0'),
                 },
                 'funding': {
                     'withdraw': {},
@@ -709,6 +712,48 @@ module.exports = class qtrade extends Exchange {
             'cost': cost,
             'fee': fee,
         }, market);
+    }
+
+    async fetchTradingFee (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market_string': market['id'],
+        };
+        const response = await this.publicGetMarketMarketString (this.extend (request, params));
+        //
+        //     {
+        //         data: {
+        //             market: {
+        //                 id: '41',
+        //                 market_currency: 'ETH',
+        //                 base_currency: 'BTC',
+        //                 maker_fee: '0',
+        //                 taker_fee: '0.005',
+        //                 metadata: {},
+        //                 can_trade: true,
+        //                 can_cancel: true,
+        //                 can_view: true,
+        //                 market_string: 'ETH_BTC',
+        //                 minimum_sell_amount: '0.001',
+        //                 minimum_buy_value: '0.0001',
+        //                 market_precision: '18',
+        //                 base_precision: '8'
+        //             },
+        //             recent_trades: []
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const marketData = this.safeValue (data, 'market', {});
+        return {
+            'info': marketData,
+            'symbol': symbol,
+            'maker': this.safeNumber (marketData, 'maker_fee'),
+            'taker': this.safeNumber (marketData, 'taker_fee'),
+            'percentage': true,
+            'tierBased': true,
+        };
     }
 
     parseBalance (response) {
