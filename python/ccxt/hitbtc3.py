@@ -1216,7 +1216,12 @@ class hitbtc3(Exchange):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        response = self.privateDeleteSpotOrder(self.extend(request, params))
+        marketType, query = self.handle_market_type_and_params('cancelAllOrders', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateDeleteSpotOrder',
+            'swap': 'privateDeleteFuturesOrder',
+        })
+        response = getattr(self, method)(self.extend(request, query))
         return self.parse_orders(response, market)
 
     def cancel_order(self, id, symbol=None, params={}):

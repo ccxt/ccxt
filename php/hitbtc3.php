@@ -1279,7 +1279,12 @@ class hitbtc3 extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        $response = $this->privateDeleteSpotOrder (array_merge($request, $params));
+        list($marketType, $query) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'privateDeleteSpotOrder',
+            'swap' => 'privateDeleteFuturesOrder',
+        ));
+        $response = $this->$method (array_merge($request, $query));
         return $this->parse_orders($response, $market);
     }
 
