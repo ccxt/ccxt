@@ -746,9 +746,14 @@ class hitbtc3 extends Exchange {
             $request['limit'] = $limit;
         }
         if ($since !== null) {
-            $request['since'] = $since;
+            $request['from'] = $since;
         }
-        $response = $this->privateGetSpotHistoryTrade (array_merge($request, $params));
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'privateGetSpotHistoryTrade',
+            'swap' => 'privateGetFuturesHistoryTrade',
+        ));
+        $response = $this->$method (array_merge($request, $query));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
@@ -776,7 +781,7 @@ class hitbtc3 extends Exchange {
         //      $timestamp => '2020-10-16T12:57:39.846Z'
         //  }
         //
-        // fetchMyTrades
+        // fetchMyTrades spot
         //
         //  {
         //      $id => 277210397,
@@ -789,6 +794,24 @@ class hitbtc3 extends Exchange {
         //      $fee => '0.000000147',
         //      $timestamp => '2018-04-28T18:39:55.345Z',
         //      $taker => true
+        //  }
+        //
+        // fetchMyTrades swap
+        //
+        //  {
+        //      "id" => 4718564,
+        //      "order_id" => 58730811958,
+        //      "client_order_id" => "475c47d97f867f09726186eb22b4c3d4",
+        //      "symbol" => "BTCUSDT_PERP",
+        //      "side" => "sell",
+        //      "quantity" => "0.0001",
+        //      "price" => "41118.51",
+        //      "fee" => "0.002055925500",
+        //      "timestamp" => "2022-03-17T05:23:17.795Z",
+        //      "taker" => true,
+        //      "position_id" => 2350122,
+        //      "pnl" => "0.002255000000",
+        //      "liquidation" => false
         //  }
         //
         $timestamp = $this->parse8601($trade['timestamp']);
