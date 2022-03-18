@@ -907,7 +907,7 @@ module.exports = class ascendex extends ccxt.ascendex {
             const version = this.safeString (urlParts, partsLength - 2);
             const auth = timestamp + '+' + version + '/' + path;
             const secret = this.base64ToBinary (this.secret);
-            const signature = this.hmac (this.encode (auth), this.encode (secret), 'sha256', 'base64');
+            const signature = this.hmac (this.encode (auth), secret, 'sha256', 'base64');
             const request = {
                 'op': messageHash,
                 'id': this.nonce ().toString (),
