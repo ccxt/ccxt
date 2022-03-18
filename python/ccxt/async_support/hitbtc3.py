@@ -1232,7 +1232,12 @@ class hitbtc3(Exchange):
         }
         if symbol is not None:
             market = self.market(symbol)
-        response = await self.privateDeleteSpotOrderClientOrderId(self.extend(request, params))
+        marketType, query = self.handle_market_type_and_params('cancelOrder', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateDeleteSpotOrderClientOrderId',
+            'swap': 'privateDeleteFuturesOrderClientOrderId',
+        })
+        response = await getattr(self, method)(self.extend(request, query))
         return self.parse_order(response, market)
 
     async def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
