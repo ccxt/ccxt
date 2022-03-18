@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, NotSupported, RequestTimeout, DDoSProtection, InvalidOrder, InvalidAddress, BadRequest, InsufficientFunds, OrderNotFound, AuthenticationError, ExchangeNotAvailable } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -157,6 +157,97 @@ module.exports = class btcex extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    '9999': ExchangeError, // SYSTEM_INNER_ERROR System error, please try again later
+                    '9900': ExchangeNotAvailable, // SERVICE_BUSY Service is busy，please try again later
+                    '401': AuthenticationError, // UNAUTHENTICATION_ERROR UnAuthentication
+                    '403': AuthenticationError, // ACCESS_DENIED_ERROR Access denied
+                    '1000': ExchangeNotAvailable, // NO_SERVICE No service found
+                    '1001': BadRequest, // BAD_REQUEST Bad requested
+                    '2000': AuthenticationError, // NEED_LOGIN Login is required
+                    '2001': AuthenticationError, // ACCOUNT_NOT_MATCH Account information does not match
+                    '2002': AuthenticationError, // ACCOUNT_NEED_ENABLE Account needs to be activated
+                    '2003': AuthenticationError, // ACCOUNT_NOT_AVAILABLE Account not available
+                    '3000': AuthenticationError, // TEST user
+                    '3002': AuthenticationError, // NICKNAME_EXIST Nicknames exist
+                    '3003': AuthenticationError, // ACCOUNT_NOT_EXIST No account
+                    '3004': BadRequest, // PARAM_ERROR Parameter exception
+                    '3005': NotSupported, // LANGUAGE_NONSUPPORT Unsupported languages
+                    '3007': AuthenticationError, // ONLY_SUBACCOUNT_OPE Sub-account operations only
+                    '3008': AuthenticationError, // LOGIN_ENABLE Account not logged
+                    '3009': AuthenticationError, // TFA_EXPIRE_ERROR Google key failed
+                    '3011': AuthenticationError, // PASSWORD_ERROR Password error
+                    '3012': AuthenticationError, // TFA_UUID_ERROR One-time unlock code error
+                    '3013': RequestTimeout, // TIME_OUT time out
+                    '3015': AuthenticationError, // ID_IS_ERROR id_is_error
+                    '3016': AuthenticationError, // WRONG_SUBACCOUNT_NAME already taken
+                    '3018': BadRequest, // USER_NAME_AT_LEAST_5_BYTE The user name must have at least 5 digits
+                    '3019': BadRequest, // PASSWORD_AT_LEAST_8_BYTE 8-32 bits contain at least three of the numbers, capital, lowercase letters and special symbols!
+                    '3020': BadRequest, // TFA_ALREADY_SET GoogleCode Already Set
+                    '3021': BadRequest, // PWD_MATCH_ERROR pwd_match_error
+                    '3022': BadRequest, // ILLEGAL_OPERATION illegal operation
+                    '3023': BadRequest, // REMOVE_SUBACCOUNT_OVER_LIMIT remove subaccount over limit
+                    '3024': BadRequest, // GOOGLE_VERIFICATION_CODE_TURNED_ON Google verification code turned on
+                    '3025': BadRequest, // OPERATION_FAILURE The operation failure
+                    '3026': BadRequest, // ACCOUNT_ACTIVED Account has Actived
+                    '3027': BadRequest, // INVALID_EMAIL_ADDRESS Invalid email address!
+                    '3028': BadRequest, // PASSWORD_FORMAT_ERROR Password format err
+                    '3029': DDoSProtection, // ONE_MINUTE_LIMIT Only one operation per minute and the remaining ${times}s
+                    '3030': DDoSProtection, // ONE_HOUR_LIMIT Do this up to 5 times per hour
+                    '3031': BadRequest, // USER_NAME_UP_12_BYTE Up to 12 characters, only letters and numbers are supported
+                    '3032': BadRequest, // EMAIL_SETTED You need to set email address and password first
+                    '3033': BadRequest, // PASSWORD_SETTED You need to set password first
+                    '3034': AuthenticationError, // SUBACCOUNT_EMAIL_ACTIVATE You need to wait for email confirmation
+                    '3035': BadRequest, // API_NOT_EXIST No api message
+                    '3036': BadRequest, // UNAVAILABLE_IN_SUBACCOUNT Unavailable in subaccount
+                    '3037': BadRequest, // MAX_SUBACCOUNT_NUMBER Limit of subaccounts is reached
+                    '3038': BadRequest, // MAIN_SUBACCOUNT_EMAIL_SAME Provided email address is already used for your other subaccount
+                    '3039': BadRequest, // MAX_API_KEY_NUMBER You cannot have more than 8 API keys
+                    '3040': AuthenticationError, // ALPHA_TEST Non-invited users shall contact BTCEX Team to obtain the internal tests qualification
+                    '3041': BadRequest, // API_NAME_MAX_LENGTH Name of key maximum length - 16 characters
+                    '4000': BadRequest, // WALLET_ERROR Wallet error || RECHARGE_CLOSED Recharge closed
+                    '4001': InvalidAddress, // WRONG_WITHDRAWAL_ADDRESS Wrong withdrawal address
+                    '4002': InvalidAddress, // ADDRESS_DOES_NOT_EXIST Address does not exist
+                    '4003': BadRequest, // WITHDRAWAL_CLOSED Withdrawal closed || TOO_SMALL_WITHDRAWAL_AMOUNT Too small withdrawal amount
+                    '4004': NotSupported, // INTERNAL_TRANSFER_IS_NOT_SUPPORTED_TEMPORARILY Internal transfer is not supported temporarily
+                    '4005': ExchangeError, // WITHDRAW_FAIL Withdrawal failed
+                    '4006': InsufficientFunds, // INSUFFICIENT_ASSET ser asset not enough
+                    '4007': BadRequest, // TRANSFER_ACCOUNT_ERROR Transfer account error
+                    '4008': NotSupported, // AMOUNT_ERROR Amount error
+                    '4009': InvalidAddress, // NO_RECHARGE_ADDRESS No recharge address
+                    '4010': BadRequest, // GET_TRANSFER_SUBACCOUNT_ERROR Get transfer subaccount error
+                    '4011': BadRequest, // TRANSFER_SUBMIT_URL_ERROR Transfer submit url error
+                    '5001': InvalidOrder, // ORDER_PARAM_WRONG Order's param wrong.
+                    '5002': OrderNotFound, // ORDER_DOSE_NOT_EXIST Order does not exist.
+                    '5003': InvalidOrder, // CONTRACT_DOSE_NOT_EXIST Contract does not exist.
+                    '5004': InvalidOrder, // ORDER_STATUS_ERR Order status error.
+                    '5005': InvalidOrder, // ORDER_AMOUNT_MIN_TRANCSACTION_ERR Order amount min transaction error.
+                    '5006': InvalidOrder, // ORDER_PRICE_MIN_TRANCSACTION_ERR Order price min price error.
+                    '5007': InvalidOrder, // ORDER_PRICE_TICK_SIZE_ERR Order price tick size error.
+                    '5008': InvalidOrder, // ORDER_TYPE_ERR Order type error.
+                    '5009': InvalidOrder, // ORDER_OPTION_IS_EXPIRED Order option is expired.
+                    '5010': InvalidOrder, // ORDER_IS_NOT_ACTIVE Order is not active.
+                    '5011': InvalidOrder, // IV_ORDER_ARE_NOT_SUPPORTED Iv orders are not supported.
+                    '5012': InvalidOrder, // ORDER_NO_MARK_PRICE_ERROR No mark price error.
+                    '5013': InvalidOrder, // ORDER_PRICE_RANGE_IS_TOO_HIGH order price range is too high.
+                    '5014': InvalidOrder, // ORDER_PRICE_RANGE_IS_TOO_LOW Order price range is too low.
+                    '5901': InvalidOrder, // TRANSFER_RESULT transfer out success.
+                    '5902': InvalidOrder, // ORDER_SUCCESS place order success.
+                    '5903': InvalidOrder, // ORDER_FAIL place order fail.
+                    '5904': InvalidOrder, // PRICE_TRIGGER_LIQ price trigger liquidation
+                    '5905': InvalidOrder, // LIQ_CANCEL liquidation make order cancel.
+                    '5906': InvalidOrder, // LIQ_ORDER liquidation place a new order
+                    '5907': InsufficientFunds, // ASSET_NOT_ENOUTH asset not enough
+                    '8000': BadRequest, // PARAM_ERROR Request params not valid!
+                    '8001': BadRequest, // DATA_NOT_EXIST The data doesn't exist!
+                    '8100': BadRequest, // CODE_CHECK_FAIL Incorrect verification code
+                    '8101': RequestTimeout, // CODE_NOT_EXIST Verification code time out, please retry later
+                    '8102': DDoSProtection, // CODE_CHECK_FAIL_LIMIT Errors exceed the limit. Please try again after 24H.
+                    '8103': BadRequest, // SMS_CODE_CHECK_FAIL Incorrect SMS verification code
+                    '8104': BadRequest, // MAIL_CODE_CHECK_FAIL Incorrect mail verification code
+                    '8105': BadRequest, // GOOGLE_CODE_CHECK_FAIL 2FA Code error!
+                    '8106': DDoSProtection, // SMS_CODE_LIMIT Your message service is over limit today, please try tomorrow
+                    '8107': ExchangeError, // REQUEST_FAILED Request failed
+                    '11000': BadRequest, // CHANNEL_REGEX_ERROR channel regex not match
                 },
                 'broad': {
                 },
@@ -585,9 +676,10 @@ module.exports = class btcex extends Exchange {
         const error = this.safeValue (response, 'error');
         if (error) {
             const feedback = this.id + ' ' + body;
-            const error = this.safeString (response, 'error');
-            this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
+            const code = this.safeString (error, 'code');
+            const message = this.safeString (error, 'message');
+            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
     }
