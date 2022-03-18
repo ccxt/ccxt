@@ -1263,10 +1263,15 @@ class hitbtc3(Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
+        marketType, query = self.handle_market_type_and_params('fetchOpenOrder', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateGetSpotOrderClientOrderId',
+            'swap': 'privateGetFuturesOrderClientOrderId',
+        })
         request = {
             'client_order_id': id,
         }
-        response = self.privateGetSpotOrderClientOrderId(self.extend(request, params))
+        response = getattr(self, method)(self.extend(request, query))
         return self.parse_order(response, market)
 
     def cancel_all_orders(self, symbol=None, params={}):
