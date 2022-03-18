@@ -4,7 +4,7 @@
 
 const ccxt = require ('ccxt');
 const { AuthenticationError } = require ('ccxt/js/base/errors');
-const { ArrayCache, ArrayCacheByTimestamp } = require ('./base/Cache');
+const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -16,6 +16,7 @@ module.exports = class ascendex extends ccxt.ascendex {
                 'watchOrderBook': true,
                 'watchOHLCV': true,
                 'watchTrades': true,
+                'watchBalance': true,
             },
             'urls': {
                 'api': {
@@ -457,18 +458,140 @@ module.exports = class ascendex extends ccxt.ascendex {
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const accountType = 'cash'; // check this cash or margin
-        const channel = 'order' + ':' + accountType;
-        let messageHash = channel;
-        if (symbol !== undefined) {
-            const market = this.market (symbol);
-            messageHash += ':' + market['id'];
-        }
-        const orders = this.watchPrivate (channel, messageHash, symbol, this.handleBalance, limit, params);
+        const [ type, query ] = this.handleMarketTypeAndParams ('watchOrders', undefined, params);
+        const accountCategories = this.safeValue (this.options, 'accountCategories', {});
+        let accountCategory = this.safeString (accountCategories, type, 'cash'); // cash, margin, swap
+        accountCategory = accountCategory.toUpperCase ();
+        const channel = 'order' + ':' + accountCategory;
+        const orders = await this.watchPrivate (channel, channel, symbol, this.handleOrder, limit, query);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+    }
+
+    handleOrder (client, message, subscription) {
+        //
+        // spot order
+        // {
+        //   m: 'order',
+        //   accountId: 'cshF5SlR9ukAXoDOuXbND4dVpBMw9gzH',
+        //   ac: 'CASH',
+        //   data: {
+        //     sn: 19399016185,
+        //     orderId: 'r17f9d7983faU7223046196CMlrj3bfC',
+        //     s: 'LTC/USDT',
+        //     ot: 'Limit',
+        //     t: 1647614461160,
+        //     p: '50',
+        //     q: '0.1',
+        //     sd: 'Buy',
+        //     st: 'New',
+        //     ap: '0',
+        //     cfq: '0',
+        //     sp: '',
+        //     err: '',
+        //     btb: '0',
+        //     bab: '0',
+        //     qtb: '8',
+        //     qab: '2.995',
+        //     cf: '0',
+        //     fa: 'USDT',
+        //     ei: 'NULL_VAL'
+        //   }
+        // }
+        //
+        const messageHash = this.safeString (subscription, 'messageHash');
+        const data = this.safeValue (message, 'data');
+        const order = this.parseWsOrder (data);
+        if (this.orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById (limit);
+        }
+        const orders = this.orders;
+        orders.append (order);
+        client.resolve (orders, messageHash);
+        const subscriptionSymbol = this.safeString (subscription, 'symbol');
+        if (subscriptionSymbol !== undefined) {
+            const market = this.market (subscriptionSymbol);
+            const symbolMessageHash = messageHash + ':' + market['id'];
+            client.resolve (orders, symbolMessageHash);
+        }
+        client.resolve (orders, messageHash);
+    }
+
+    parseWsOrder (order, market = undefined) {
+        //
+        // spot order
+        //    {
+        //          sn: 19399016185, //sequence number
+        //          orderId: 'r17f9d7983faU7223046196CMlrj3bfC',
+        //          s: 'LTC/USDT',
+        //          ot: 'Limit', // order type
+        //          t: 1647614461160, // last execution timestamp
+        //          p: '50', // price
+        //          q: '0.1', // quantity
+        //          sd: 'Buy', // side
+        //          st: 'New', // status
+        //          ap: '0', // average fill price
+        //          cfq: '0', // cumulated fill quantity
+        //          sp: '', // stop price
+        //          err: '',
+        //          btb: '0', // base asset total balance
+        //          bab: '0', // base asset available balance
+        //          qtb: '8', // quote asset total balance
+        //          qab: '2.995', // quote asset available balance
+        //          cf: '0', // cumulated commission
+        //          fa: 'USDT', // fee asset
+        //          ei: 'NULL_VAL'
+        //        }
+        //
+        //
+        const status = this.parseOrderStatus (this.safeString (order, 'st'));
+        const marketId = this.safeString (order, 's');
+        const symbol = this.safeSymbol (marketId, market, '/');
+        const lastTradeTimestamp = this.safeInteger (order, 't');
+        const price = this.safeString (order, 'p');
+        const amount = this.safeString (order, 'q');
+        const average = this.safeString (order, 'ap');
+        const filled = this.safeString2 (order, 'cfq');
+        const id = this.safeString (order, 'orderId');
+        const type = this.safeStringLower (order, 'ot');
+        const side = this.safeStringLower (order, 'sd');
+        const feeCost = this.safeNumber (order, 'cf');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            const feeCurrencyId = this.safeString (order, 'fa');
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            };
+        }
+        const stopPrice = this.safeNumber (order, 'stopPrice');
+        return this.safeOrder ({
+            'info': order,
+            'id': id,
+            'clientOrderId': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'symbol': symbol,
+            'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': side,
+            'price': price,
+            'stopPrice': stopPrice,
+            'amount': amount,
+            'cost': undefined,
+            'average': average,
+            'filled': filled,
+            'remaining': undefined,
+            'status': status,
+            'fee': fee,
+            'trades': undefined,
+        }, market);
     }
 
     handleErrorMessage (client, message) {
@@ -743,7 +866,7 @@ module.exports = class ascendex extends ccxt.ascendex {
                 'key': this.apiKey,
                 'sig': signature,
             };
-            this.spawn (this.watch, url, messageHash, request, messageHash, future);
+            this.spawn (this.watch, url, messageHash, this.extend (request, params), messageHash, future);
         }
         return await future;
     }
