@@ -15,6 +15,7 @@ module.exports = class ascendex extends ccxt.ascendex {
                 'ws': true,
                 'watchOrderBook': true,
                 'watchOHLCV': true,
+                'watchOrders': true,
                 'watchTrades': true,
                 'watchBalance': true,
             },
@@ -22,7 +23,7 @@ module.exports = class ascendex extends ccxt.ascendex {
                 'api': {
                     'ws': {
                         'public': 'wss://ascendex.com/0/api/pro/v1/stream',
-                        'private': 'wss://ascendex.com:443/{accountGroup}/api/pro/v1/stream',
+                        'private': 'wss://ascendex.com:443/{accountGroup}/api/pro/v2/stream',
                     },
                 },
             },
@@ -135,41 +136,6 @@ module.exports = class ascendex extends ccxt.ascendex {
         stored.append (parsed);
         const messageHash = this.safeString (subscription, 'messageHash');
         client.resolve (stored, messageHash);
-        return message;
-    }
-
-    async watchTicker (symbol, params = {}) {
-        return await this.watchPublic ('ticker', symbol, this.handleTicker, params);
-    }
-
-    handleTicker (client, message, subscription) {
-        //
-        //     {
-        //         date: '1624398991255',
-        //         ticker: {
-        //             high: '33298.38',
-        //             vol: '56375.9469',
-        //             last: '32396.95',
-        //             low: '28808.19',
-        //             buy: '32395.81',
-        //             sell: '32409.3',
-        //             turnover: '1771122527.0000',
-        //             open: '31652.44',
-        //             riseRate: '2.36'
-        //         },
-        //         dataType: 'ticker',
-        //         channel: 'btcusdt_ticker'
-        //     }
-        //
-        const symbol = this.safeString (subscription, 'symbol');
-        const channel = this.safeString (message, 'channel');
-        const market = this.market (symbol);
-        const data = this.safeValue (message, 'ticker');
-        data['date'] = this.safeValue (message, 'date');
-        const ticker = this.parseTicker (data, market);
-        ticker['symbol'] = symbol;
-        this.tickers[symbol] = ticker;
-        client.resolve (ticker, channel);
         return message;
     }
 
@@ -372,11 +338,18 @@ module.exports = class ascendex extends ccxt.ascendex {
     async watchBalance (params = {}) {
         await this.loadMarkets ();
         const [ type, query ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
-        const accountCategories = this.safeValue (this.options, 'accountCategories', {});
-        let accountCategory = this.safeString (accountCategories, type, 'cash'); // cash, margin, swap
-        accountCategory = accountCategory.toUpperCase ();
-        const channel = 'order' + ':' + accountCategory; // order and balance share the same channel
-        const messageHash = 'balance' + ':' + accountCategory;
+        let channel = undefined;
+        let messageHash = undefined;
+        if (type === 'spot') {
+            const accountCategories = this.safeValue (this.options, 'accountCategories', {});
+            let accountCategory = this.safeString (accountCategories, type, 'cash'); // cash, margin,
+            accountCategory = accountCategory.toUpperCase ();
+            channel = 'order' + ':' + accountCategory; // order and balance share the same channel
+            messageHash = 'balance' + ':' + accountCategory;
+        } else {
+            channel = 'futures' + '-' + 'account' + '-' + 'update';
+            messageHash = channel;
+        }
         return await this.watchPrivate (channel, messageHash, undefined, this.handleBalance, undefined, query);
     }
 
@@ -412,15 +385,43 @@ module.exports = class ascendex extends ccxt.ascendex {
         //     }
         // }
         //
-        let accountType = this.safeString (message, 'ac');
+        // futures
+        // {
+        //     "m"     : "futures-account-update",            // message
+        //     "e"     : "ExecutionReport",                   // event type
+        //     "t"     : 1612508562129,                       // server time (UTC time in milliseconds)
+        //     "acc"   : "sample-futures-account-id",         // account ID
+        //     "at"    : "FUTURES",                           // account type
+        //     "sn"    : 23128,                               // sequence number, strictly increasing for each account
+        //     "id"    : "r177710001cbU3813942147C5kbFGOan",  // request ID for this account update
+        //     "col": [
+        //       {
+        //         "a": "USDT",               // asset code
+        //         "b": "1000000",            // balance
+        //         "f": "1"                   // discount factor
+        //       }
+        //     ],
+        //     (...)
+        //
+        let accountType = this.safeString2 (message, 'ac', 'at');
         accountType = accountType.toLowerCase ();
         const categoriesAccounts = this.safeValue (this.options, 'categoriesAccounts');
         const type = this.safeString (categoriesAccounts, accountType, 'spot');
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeValue (message, 'data');
+        let balances = undefined;
+        if (data === undefined) {
+            balances = this.safeValue (message, 'col');
+        } else {
+            balances = [data];
+        }
         const messageHash = this.safeString (subscription, 'messageHash');
-        const balance = this.parseWsBalance (data, data);
-        this.balance[type] = balance;
-        client.resolve (this.balance[type], messageHash);
+        for (let i = 0; i < balances.length; i++) {
+            const balance = this.parseWsBalance (balances[i]);
+            const oldBalance = this.safeValue (this.balance, type, {});
+            const newBalance = this.deepExtend (oldBalance, balance);
+            this.balance[type] = this.safeBalance (newBalance);
+            client.resolve (this.balance[type], messageHash);
+        }
     }
 
     parseWsBalance (balance) {
@@ -443,10 +444,18 @@ module.exports = class ascendex extends ccxt.ascendex {
         //         "ab": "600"
         //  }
         //
+        // future
+        //
+        // {
+        //     "a": "USDT",               // asset code
+        //     "b": "1000000",            // balance
+        //     "f": "1"                   // discount factor
+        // }
+        //
         const code = this.safeCurrencyCode (this.safeString (balance, 'a'));
         const account = this.account ();
         account['free'] = this.safeString (balance, 'ab');
-        account['total'] = this.safeString (balance, 'tb');
+        account['total'] = this.safeString2 (balance, 'tb', 'b');
         const result = {
             'info': balance,
             'timestamp': undefined,
@@ -458,12 +467,21 @@ module.exports = class ascendex extends ccxt.ascendex {
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const [ type, query ] = this.handleMarketTypeAndParams ('watchOrders', undefined, params);
-        const accountCategories = this.safeValue (this.options, 'accountCategories', {});
-        let accountCategory = this.safeString (accountCategories, type, 'cash'); // cash, margin, swap
-        accountCategory = accountCategory.toUpperCase ();
-        const channel = 'order' + ':' + accountCategory;
-        const orders = await this.watchPrivate (channel, channel, symbol, this.handleOrder, limit, query);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const [ type, query ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
+        let messageHash = undefined;
+        if (type !== 'spot') {
+            messageHash = 'futures-order';
+        } else {
+            const accountCategories = this.safeValue (this.options, 'accountCategories', {});
+            let accountCategory = this.safeString (accountCategories, type, 'cash'); // cash, margin
+            accountCategory = accountCategory.toUpperCase ();
+            messageHash = 'order' + ':' + accountCategory;
+        }
+        const orders = await this.watchPrivate (messageHash, messageHash, symbol, this.handleOrder, limit, query);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -501,8 +519,19 @@ module.exports = class ascendex extends ccxt.ascendex {
         //   }
         // }
         //
+        //  futures order
+        // {
+        //     m: 'futures-order',
+        //     sn: 19399927636,
+        //     e: 'ExecutionReport',
+        //     a: 'futF5SlR9ukAXoDOuXbND4dVpBMw9gzH', // account id
+        //     ac: 'FUTURES',
+        //     t: 1647622515434, // last execution time
+        //      (...)
+        // }
+        //
         const messageHash = this.safeString (subscription, 'messageHash');
-        const data = this.safeValue (message, 'data');
+        const data = this.safeValue (message, 'data', message);
         const order = this.parseWsOrder (data);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
@@ -546,6 +575,38 @@ module.exports = class ascendex extends ccxt.ascendex {
         //          ei: 'NULL_VAL'
         //        }
         //
+        //  futures order
+        // {
+        //     m: 'futures-order',
+        //     sn: 19399927636,
+        //     e: 'ExecutionReport',
+        //     a: 'futF5SlR9ukAXoDOuXbND4dVpBMw9gzH', // account id
+        //     ac: 'FUTURES',
+        //     t: 1647622515434, // last execution time
+        //     ct: 1647622515413, // order creation time
+        //     orderId: 'r17f9df469b1U7223046196Okf5Kbmd',
+        //     sd: 'Buy', // side
+        //     ot: 'Limit', // order type
+        //     ei: 'NULL_VAL',
+        //     q: '1', // quantity
+        //     p: '50', //price
+        //     sp: '0', // stopPrice
+        //     spb: '',  // stopTrigger
+        //     s: 'LTC-PERP', // symbol
+        //     st: 'New', // state
+        //     err: '',
+        //     lp: '0', // last filled price
+        //     lq: '0', // last filled quantity (base asset)
+        //     ap: '0',  // average filled price
+        //     cfq: '0', // cummulative filled quantity (base asset)
+        //     f: '0', // commission fee of the current execution
+        //     cf: '0', // cumulative commission fee
+        //     fa: 'USDT', // fee asset
+        //     psl: '0',
+        //     pslt: 'market',
+        //     ptp: '0',
+        //     ptpt: 'market'
+        //   }
         //
         const status = this.parseOrderStatus (this.safeString (order, 'st'));
         const marketId = this.safeString (order, 's');
@@ -653,7 +714,7 @@ module.exports = class ascendex extends ccxt.ascendex {
         // {
         //     m: 'sub',
         //     id: '1647605952',
-        //     ch: 'order:cshF5SlR9ukAXoDOuXbND4dVpBMw9gzH',
+        //     ch: 'order:cshF5SlR9ukAXoDOuXbND4dVpBMw9gzH', or futures-order
         //     code: 0
         //   }
         //
@@ -856,7 +917,8 @@ module.exports = class ascendex extends ccxt.ascendex {
             const urlParts = url.split ('/');
             const partsLength = urlParts.length;
             const path = this.safeString (urlParts, partsLength - 1);
-            const auth = timestamp + '+' + path;
+            const version = this.safeString (urlParts, partsLength - 2);
+            const auth = timestamp + '+' + version + '/' + path;
             const secret = this.base64ToBinary (this.secret);
             const signature = this.hmac (this.encode (auth), this.encode (secret), 'sha256', 'base64');
             const request = {
