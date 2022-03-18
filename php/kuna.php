@@ -51,6 +51,8 @@ class kuna extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => false,
                 'reduceMargin' => false,
                 'setLeverage' => false,
                 'setPositionMode' => false,
@@ -259,8 +261,8 @@ class kuna extends Exchange {
                 'trading' => array(
                     'tierBased' => false,
                     'percentage' => true,
-                    'taker' => 0.25 / 100,
-                    'maker' => 0.25 / 100,
+                    'taker' => $this->parse_number('0.0025'),
+                    'maker' => $this->parse_number('0.0025'),
                 ),
                 'funding' => array(
                     'withdraw' => array(
