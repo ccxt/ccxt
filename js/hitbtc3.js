@@ -1222,7 +1222,14 @@ module.exports = class hitbtc3 extends Exchange {
         const request = {
             'order_id': id, // exchange assigned order id as oppose to the client order id
         };
-        const response = await this.privateGetSpotHistoryTrade (this.extend (request, params));
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrderTrades', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'privateGetSpotHistoryTrade',
+            'swap': 'privateGetFuturesHistoryTrade',
+        });
+        const response = await this[method] (this.extend (request, query));
+        //
+        // Spot
         //
         //     [
         //       {
@@ -1237,6 +1244,26 @@ module.exports = class hitbtc3 extends Exchange {
         //         "timestamp": "2021-09-19T05:35:56.601Z",
         //         "taker": true
         //       }
+        //     ]
+        //
+        // Swap
+        //
+        //     [
+        //         {
+        //             "id": 4718551,
+        //             "order_id": 58730748700,
+        //             "client_order_id": "dcbcd8549e3445ee922665946002ef67",
+        //             "symbol": "BTCUSDT_PERP",
+        //             "side": "buy",
+        //             "quantity": "0.0001",
+        //             "price": "41095.96",
+        //             "fee": "0.002054798000",
+        //             "timestamp": "2022-03-17T05:23:02.217Z",
+        //             "taker": true,
+        //             "position_id": 2350122,
+        //             "pnl": "0",
+        //             "liquidation": false
+        //         }
         //     ]
         //
         return this.parseTrades (response, market, since, limit);
