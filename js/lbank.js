@@ -55,6 +55,8 @@ module.exports = class lbank extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': false,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
@@ -80,7 +82,7 @@ module.exports = class lbank extends Exchange {
                 'api': 'https://api.lbank.info',
                 'www': 'https://www.lbank.info',
                 'doc': 'https://github.com/LBank-exchange/lbank-official-api-docs',
-                'fees': 'https://lbankinfo.zendesk.com/hc/en-gb/articles/360012072873-Trading-Fees',
+                'fees': 'https://www.lbank.info/fees.html',
                 'referral': 'https://www.lbex.io/invite?icode=7QCY',
             },
             'api': {
