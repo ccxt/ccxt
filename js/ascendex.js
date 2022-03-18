@@ -22,7 +22,7 @@ module.exports = class ascendex extends ccxt.ascendex {
             'urls': {
                 'api': {
                     'ws': {
-                        'public': 'wss://ascendex.com/0/api/pro/v1/stream',
+                        'public': 'wss://ascendex.com:443/api/pro/v2/stream',
                         'private': 'wss://ascendex.com:443/{accountGroup}/api/pro/v2/stream',
                     },
                 },
@@ -199,7 +199,7 @@ module.exports = class ascendex extends ccxt.ascendex {
         const params = this.safeValue (subscription, 'params');
         const action = 'depth-snapshot';
         const messageHash = action + ':' + market['id'];
-        const url = this.urls['api']['ws'];
+        const url = this.urls['api']['ws']['public'];
         const requestId = this.nonce ().toString ();
         const request = {
             'op': 'req',
@@ -780,14 +780,10 @@ module.exports = class ascendex extends ccxt.ascendex {
         //         [Array], [Array], [Array], [Array], [Array], [Array], [Array],
         //         [Array], [Array], [Array], [Array], [Array], [Array], [Array],
         //         [Array], [Array], [Array], [Array], [Array], [Array], [Array],
-        //         [Array], [Array], [Array], [Array], [Array], [Array], [Array],
-        //         [Array], [Array], [Array], [Array], [Array], [Array], [Array],
-        //         [Array], [Array], [Array], [Array], [Array], [Array], [Array],
-        //         [Array], [Array], [Array], [Array], [Array], [Array], [Array],
-        //         [Array], [Array], [Array], [Array], [Array], [Array], [Array],
-        //         [Array], [Array], [Array], [Array], [Array], [Array], [Array],
+        //          (...)
         //       ]
         //  }
+        //
         // order update
         //  {
         //      "m": "order",
@@ -802,20 +798,10 @@ module.exports = class ascendex extends ccxt.ascendex {
         //          "btb":     "2006.5974027",
         //          "cf":      "0",
         //          "cfq":     "0",
-        //          "err":     "",
-        //          "fa":      "USDT",
-        //          "orderId": "s16ef210b1a50866943712bfaf1584b",
-        //          "ot":      "Market",
-        //          "p":       "7967.62",
-        //          "q":       "0.0083",
-        //          "qab":     "793.23",
-        //          "qtb":     "860.23",
-        //          "sp":      "",
-        //          "st":      "New",
-        //          "t":        1576019215402,
-        //          "ei":      "NULL_VAL"
+        //          (...)
         //      }
         //  }
+        //
         // balance update cash
         // {
         //     "m": "balance",
@@ -828,6 +814,7 @@ module.exports = class ascendex extends ccxt.ascendex {
         //         "ab": "600"
         //     }
         // }
+        //
         // balance update margin
         // {
         //     "m": "balance",
