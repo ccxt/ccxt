@@ -869,20 +869,17 @@ module.exports = class krakenfu extends Exchange {
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
+        /**
+         * Cancels all orders on the exchange, including trigger orders
+         * @param {string} symbol: Unified market symbol
+         * @param {dictionary} params: Exchange specific params
+         * @returns: Response from exchange api
+         */
         const request = {};
         if (symbol !== undefined) {
             request['symbol'] = this.marketId (symbol);
         }
         const response = await this.privatePostCancelallorders (this.extend (request, params));
-        const cancelStatus = this.safeValue (response, 'cancelStatus', {});
-        const cancelledOrders = this.safeValue (cancelStatus, 'cancelledOrders', []);
-        for (let i = 0; i < cancelledOrders.length; i++) {
-            const id = this.safeString (cancelledOrders[i], 'order_id');
-            if (id in this.orders) {
-                this.orders[id]['status'] = 'canceled';
-                this.orders[id]['remaining'] = 0.0;
-            }
-        }
         return response;
     }
 
