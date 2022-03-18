@@ -29,6 +29,11 @@ module.exports = class ascendex extends ccxt.ascendex {
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'OHLCVLimit': 1000,
+                'categoriesAccount': {
+                    'cash': 'spot',
+                    'futures': 'swap',
+                    'margin': 'margin',
+                },
             },
         });
     }
@@ -365,11 +370,16 @@ module.exports = class ascendex extends ccxt.ascendex {
 
     async watchBalance (params = {}) {
         await this.loadMarkets ();
-        const messageHash = 'order' + ':' + 'cash';
-        return await this.watchPrivate (messageHash, messageHash, undefined, this.handleBalance, undefined, params);
+        const [ type, query ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
+        const accountCategories = this.safeValue (this.options, 'accountCategories', {});
+        let accountCategory = this.safeString (accountCategories, type, 'cash'); // cash, margin, swap
+        accountCategory = accountCategory.toUpperCase ();
+        const channel = 'order' + ':' + accountCategory; // order and balance share the same channel
+        const messageHash = 'balance' + ':' + accountCategory;
+        return await this.watchPrivate (channel, messageHash, undefined, this.handleBalance, undefined, query);
     }
 
-    handleBalance (client, message) {
+    handleBalance (client, message, subscription) {
         //
         // cash account
         //
@@ -394,30 +404,71 @@ module.exports = class ascendex extends ccxt.ascendex {
         //     "data": {
         //         "a"  : "USDT",
         //         "sn" : 8159802,
-        //         "tb" : "400",
-        //         "ab" : "400",
-        //         "brw": "0",
-        //         "int": "0"
+        //         "tb" : "400", // total Balance
+        //         "ab" : "400", // available balance
+        //         "brw": "0", // borrowws
+        //         "int": "0" // interest
         //     }
         // }
         //
-        const table = this.safeString (message, 'table');
-        const parts = table.split ('/');
-        let type = this.safeString (parts, 0);
-        if (type === 'spot') {
-            const part1 = this.safeString (parts, 1);
-            if (part1 === 'margin_account') {
-                type = 'margin';
-            }
+        let accountType = this.safeString (message, 'ac');
+        accountType = accountType.toLowerCase ();
+        const categoriesAccounts = this.safeValue (this.options, 'categoriesAccounts');
+        const type = this.safeString (categoriesAccounts, accountType, 'spot');
+        const data = this.safeValue (message, 'data', {});
+        const messageHash = this.safeString (subscription, 'messageHash');
+        const balance = this.parseWsBalance (data, data);
+        this.balance[type] = balance;
+        client.resolve (this.balance[type], messageHash);
+    }
+
+    parseWsBalance (balance) {
+        //
+        // margin
+        //  {
+        //         "a"  : "USDT",
+        //         "sn" : 8159802,
+        //         "tb" : "400", // total Balance
+        //         "ab" : "400", // available balance
+        //         "brw": "0", // borrowws
+        //         "int": "0" // interest
+        //   }
+        //
+        // cash
+        // {
+        //         "a" : "USDT",
+        //         "sn": 8159798,
+        //         "tb": "600",
+        //         "ab": "600"
+        //  }
+        //
+        const code = this.safeCurrencyCode (this.safeString (balance, 'a'));
+        const account = this.account ();
+        account['free'] = this.safeString (balance, 'ab');
+        account['total'] = this.safeString (balance, 'tb');
+        const result = {
+            'info': balance,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+        result[code] = account;
+        return this.safeBalance (result);
+    }
+
+    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const accountType = 'cash'; // check this cash or margin
+        const channel = 'order' + ':' + accountType;
+        let messageHash = channel;
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            messageHash += ':' + market['id'];
         }
-        const data = this.safeValue (message, 'data', []);
-        for (let i = 0; i < data.length; i++) {
-            const balance = this.parseBalanceByType (type, data);
-            const oldBalance = this.safeValue (this.balance, type, {});
-            const newBalance = this.deepExtend (oldBalance, balance);
-            this.balance[type] = this.safeBalance (newBalance);
-            client.resolve (this.balance[type], table);
+        const orders = this.watchPrivate (channel, messageHash, symbol, this.handleBalance, limit, params);
+        if (this.newUpdates) {
+            limit = orders.getLimit (symbol, limit);
         }
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
     handleErrorMessage (client, message) {
@@ -552,7 +603,61 @@ module.exports = class ascendex extends ccxt.ascendex {
         //         [Array], [Array], [Array], [Array], [Array], [Array], [Array],
         //         [Array], [Array], [Array], [Array], [Array], [Array], [Array],
         //       ]
+        //  }
+        // order update
+        //  {
+        //      "m": "order",
+        //      "accountId": "cshQtyfq8XLAA9kcf19h8bXHbAwwoqDo",
+        //      "ac": "CASH",
+        //      "data": {
+        //          "s":       "BTC/USDT",
+        //          "sn":       8159711,
+        //          "sd":      "Buy",
+        //          "ap":      "0",
+        //          "bab":     "2006.5974027",
+        //          "btb":     "2006.5974027",
+        //          "cf":      "0",
+        //          "cfq":     "0",
+        //          "err":     "",
+        //          "fa":      "USDT",
+        //          "orderId": "s16ef210b1a50866943712bfaf1584b",
+        //          "ot":      "Market",
+        //          "p":       "7967.62",
+        //          "q":       "0.0083",
+        //          "qab":     "793.23",
+        //          "qtb":     "860.23",
+        //          "sp":      "",
+        //          "st":      "New",
+        //          "t":        1576019215402,
+        //          "ei":      "NULL_VAL"
+        //      }
+        //  }
+        // balance update cash
+        // {
+        //     "m": "balance",
+        //     "accountId": "cshQtyfq8XLAA9kcf19h8bXHbAwwoqDo",
+        //     "ac": "CASH",
+        //     "data": {
+        //         "a" : "USDT",
+        //         "sn": 8159798,
+        //         "tb": "600",
+        //         "ab": "600"
         //     }
+        // }
+        // balance update margin
+        // {
+        //     "m": "balance",
+        //     "accountId": "marOxpKJV83dxTRx0Eyxpa0gxc4Txt0P",
+        //     "ac": "MARGIN",
+        //     "data": {
+        //         "a"  : "USDT",
+        //         "sn" : 8159802,
+        //         "tb" : "400",
+        //         "ab" : "400",
+        //         "brw": "0",
+        //         "int": "0"
+        //     }
+        // }
         //
         const subject = this.safeString (message, 'm');
         if (subject === 'ping') {
@@ -567,9 +672,10 @@ module.exports = class ascendex extends ccxt.ascendex {
             this.handleSubscriptionStatus (client, message);
             return;
         }
-        const marketId = this.safeString2 (message, 's', 'symbol');
-        if (marketId !== undefined) {
-            const channel = subject + ':' + marketId;
+        let topic = this.safeString2 (message, 's', 'symbol');
+        topic = this.safeString (message, 'ac', topic);
+        if (topic !== undefined) {
+            const channel = subject + ':' + topic;
             const subscription = this.safeValue (client.subscriptions, channel);
             if (subscription !== undefined) {
                 const method = this.safeValue (subscription, 'method');
