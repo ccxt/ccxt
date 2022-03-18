@@ -30,6 +30,7 @@ class gateio extends Exchange {
                 'www' => 'https://gate.io/',
                 'api' => array(
                     'public' => array(
+                        'wallet' => 'https://api.gateio.ws/api/v4',
                         'futures' => 'https://api.gateio.ws/api/v4',
                         'margin' => 'https://api.gateio.ws/api/v4',
                         'delivery' => 'https://api.gateio.ws/api/v4',
@@ -112,6 +113,11 @@ class gateio extends Exchange {
             ),
             'api' => array(
                 'public' => array(
+                    'wallet' => array(
+                        'get' => array(
+                            'wallet/currency_chains' => 1.5,
+                        ),
+                    ),
                     'spot' => array(
                         'get' => array(
                             'currencies' => 1,
@@ -193,6 +199,7 @@ class gateio extends Exchange {
                             'withdraw_status' => 300,
                             'sub_account_balances' => 300,
                             'fee' => 300,
+                            'total_balance' => 300,
                         ),
                         'post' => array(
                             'transfers' => 300,
