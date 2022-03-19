@@ -715,6 +715,90 @@ module.exports = class mexc3 extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['spot']) {
+            return await this.createSpotOrder (market, type, side, amount, price, params);
+        } else if (market['swap']) {
+            return await this.createSwapOrder (market, type, side, amount, price, params);
+        }
+    }
+
+    async createSpotOrder (market, type, side, amount, price = undefined, params = {}) {
+        const symbol = market['symbol'];
+        let orderSide = undefined;
+        if (side === 'buy') {
+            orderSide = 'BUY';
+        } else if (side === 'sell') {
+            orderSide = 'SELL';
+        }
+        // TODO: needs postOnly handing here, possible with LIMIT_MAKER
+        const request = {
+            'symbol': market['id'],
+            'quantity': this.amountToPrecision (symbol, amount),
+            'side': orderSide,
+            'type': type.toUpperCase (),
+        };
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        const clientOrderId = this.safeString2 (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['newClientOrderId'] = clientOrderId;
+        }
+        params = this.omit (params, [ 'type', 'clientOrderId' ]);
+        const response = await this.spotPrivatePostOrder (this.extend (request, params));
+        //
+        // spot
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "orderId": "123738410679123456",
+        //         "orderListId": -1
+        //     }
+        //
+        return this.parseOrder (response, market);
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrder (order, market = undefined) {
+        //
+        // createOrder
+        //
+        // spot
+        //
+        //     { "symbol": "BTCUSDT", "orderId": "123738410679123456", "orderListId": -1 }
+        //
+        return this.safeOrder ({
+            'id': id,
+            'clientOrderId': clientOrderId,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'status': status,
+            'symbol': symbol,
+            'type': orderType,
+            'timeInForce': undefined,
+            'side': side,
+            'price': price,
+            'stopPrice': undefined,
+            'average': undefined,
+            'amount': amount,
+            'cost': cost,
+            'filled': filled,
+            'remaining': remaining,
+            'fee': undefined,
+            'trades': undefined,
+            'info': order,
+        }, market);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const [ section, access ] = api;
         [ path, params ] = this.resolvePath (path, params);
