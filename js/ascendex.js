@@ -47,26 +47,15 @@ module.exports = class ascendex extends ccxt.ascendex {
         });
     }
 
-    async watchPublic (channel, messageHash, symbol, method, limit = undefined, params = {}) {
+    async watchPublic (messageHash, params = {}) {
         const url = this.urls['api']['ws']['public'];
         const id = this.nonce ();
         const request = {
             'id': id.toString (),
             'op': 'sub',
-            'ch': channel,
         };
         const message = this.extend (request, params);
-        const subscription = {
-            'id': id,
-            'symbol': symbol,
-            'channel': channel,
-            'messageHash': messageHash,
-            'method': method,
-        };
-        if (limit !== undefined) {
-            subscription['limit'] = limit;
-        }
-        return await this.watch (url, messageHash, message, messageHash, subscription);
+        return await this.watch (url, messageHash, message, messageHash);
     }
 
     async watchPrivate (channel, messageHash, symbol, method, limit = undefined, params = {}) {
@@ -103,8 +92,10 @@ module.exports = class ascendex extends ccxt.ascendex {
         }
         const interval = this.timeframes[timeframe];
         const channel = 'bar' + ':' + interval + ':' + market['id'];
-        const messageHash = 'bar' + ':' + market['id'];
-        const ohlcv = await this.watchPublic (channel, messageHash, symbol, this.handleOHLCV, limit, params);
+        params = {
+            'ch': channel,
+        };
+        const ohlcv = await this.watchPublic (channel, params);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
@@ -127,10 +118,13 @@ module.exports = class ascendex extends ccxt.ascendex {
         //     }
         // }
         //
+        const marketId = this.safeString (message, 's');
+        const symbol = this.safeSymbol (marketId);
+        const channel = this.safeString (message, 'm');
         const data = this.safeValue (message, 'data', {});
         const interval = this.safeString (data, 'i');
+        const messageHash = channel + ':' + interval + ':' + marketId;
         const timeframe = this.findTimeframe (interval);
-        const symbol = this.safeString (subscription, 'symbol');
         const market = this.market (symbol);
         const parsed = this.parseOHLCV (message, market);
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
@@ -141,7 +135,6 @@ module.exports = class ascendex extends ccxt.ascendex {
             this.ohlcvs[symbol][timeframe] = stored;
         }
         stored.append (parsed);
-        const messageHash = this.safeString (subscription, 'messageHash');
         client.resolve (stored, messageHash);
         return message;
     }
@@ -150,7 +143,10 @@ module.exports = class ascendex extends ccxt.ascendex {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const channel = 'trades' + ':' + market['id'];
-        const trades = await this.watchPublic (channel, channel, symbol, this.handleTrades, limit, params);
+        params = this.extend (params, {
+            'ch': channel,
+        });
+        const trades = await this.watchPublic (channel, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -173,8 +169,10 @@ module.exports = class ascendex extends ccxt.ascendex {
         //     ]
         // }
         //
-        const symbol = this.safeString (subscription, 'symbol');
-        const messageHash = this.safeString (subscription, 'messageHash');
+        const marketId = this.safeString (message, 'symbol');
+        const symbol = this.safeSymbol (marketId);
+        const channel = this.safeString (message, 'm');
+        const messageHash = channel + ':' + marketId;
         const market = this.market (symbol);
         let rawData = this.safeValue (message, 'data');
         if (rawData === undefined) {
@@ -196,38 +194,27 @@ module.exports = class ascendex extends ccxt.ascendex {
     async watchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const channel = 'depth' + ':' + market['id'];
-        const orderbook = await this.watchPublic (channel, channel, symbol, this.handleOrderBook, limit, params);
+        const channel = 'depth-realtime' + ':' + market['id'];
+        params = this.extend (params, {
+            'ch': channel,
+        });
+        const orderbook = await this.watchPublic (channel, params);
         return orderbook.limit (limit);
     }
 
-    async watchOrderBookSnapshot (client, message, subscription) {
+    async watchOrderBookSnapshot (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const symbol = this.safeString (subscription, 'symbol');
         const market = this.market (symbol);
-        const limit = this.safeInteger (subscription, 'limit');
-        const params = this.safeValue (subscription, 'params');
-        const action = 'depth-snapshot';
-        const messageHash = action + ':' + market['id'];
-        const url = this.urls['api']['ws']['public'];
-        const requestId = this.nonce ().toString ();
-        const request = {
-            'op': 'req',
+        const action = 'depth-snapshot-realtime';
+        const channel = action + ':' + market['id'];
+        params = this.extend (params, {
             'action': action,
-            'id': requestId,
             'args': {
                 'symbol': market['id'],
             },
-        };
-        const snapshotSubscription = {
-            'id': requestId,
-            'messageHash': messageHash,
-            'symbol': symbol,
-            'limit': limit,
-            'params': params,
-            'method': this.handleOrderBookSnapshot,
-        };
-        const orderbook = await this.watch (url, messageHash, request, messageHash, snapshotSubscription);
+            'op': 'req',
+        });
+        const orderbook = await this.watchPublic (channel, params);
         return orderbook.limit (limit);
     }
 
@@ -250,8 +237,10 @@ module.exports = class ascendex extends ccxt.ascendex {
         //     }
         //   }
         //
-        const symbol = this.safeString (subscription, 'symbol');
-        const messageHash = this.safeString (subscription, 'messageHash');
+        const marketId = this.safeString (message, 'symbol');
+        const symbol = this.safeSymbol (marketId);
+        const channel = this.safeString (message, 'm');
+        const messageHash = channel + ':' + symbol;
         const orderbook = this.orderbooks[symbol];
         const data = this.safeValue (message, 'data');
         const snapshot = this.parseOrderBook (data, symbol);
@@ -280,8 +269,10 @@ module.exports = class ascendex extends ccxt.ascendex {
         //       }
         //   }
         //
-        const messageHash = this.safeString (subscription, 'messageHash');
-        const symbol = this.safeString (subscription, 'symbol');
+        const channel = this.safeString (message, 'm');
+        const marketId = this.safeString (message, 'symbol');
+        const symbol = this.safeSymbol (marketId);
+        const messageHash = channel + ':' + marketId;
         let orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
             const limit = this.safeString (subscription, 'limit');
@@ -350,14 +341,14 @@ module.exports = class ascendex extends ccxt.ascendex {
         const [ type, query ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         let channel = undefined;
         let messageHash = undefined;
-        if (type === 'spot') {
+        if ((type === 'spot') || (type === 'margin')) {
             const accountCategories = this.safeValue (this.options, 'accountCategories', {});
             let accountCategory = this.safeString (accountCategories, type, 'cash'); // cash, margin,
             accountCategory = accountCategory.toUpperCase ();
-            channel = 'order' + ':' + accountCategory; // order and balance share the same channel
-            messageHash = 'balance' + ':' + accountCategory;
+            channel = 'order:' + accountCategory; // order and balance share the same channel
+            messageHash = 'balance:' + type;
         } else {
-            channel = 'futures' + '-' + 'account' + '-' + 'update';
+            channel = 'futures-account-update';
             messageHash = channel;
         }
         return await this.watchPrivate (channel, messageHash, undefined, this.handleBalance, undefined, query);
@@ -413,66 +404,51 @@ module.exports = class ascendex extends ccxt.ascendex {
         //     ],
         //     (...)
         //
-        let accountType = this.safeString2 (message, 'ac', 'at');
-        accountType = accountType.toLowerCase ();
-        const categoriesAccounts = this.safeValue (this.options, 'categoriesAccount');
-        const type = this.safeString (categoriesAccounts, accountType, 'spot');
-        const data = this.safeValue (message, 'data');
-        let balances = undefined;
-        if (data === undefined) {
-            balances = this.safeValue (message, 'col');
+        const channel = this.safeString (message, 'm');
+        let result = undefined;
+        let type = undefined;
+        if ((channel === 'order') || (channel === 'futures-order')) {
+            const data = this.safeValue (message, 'data');
+            const marketId = this.safeString (data, 's');
+            const market = this.safeMarket (marketId);
+            const baseAccount = this.account ();
+            baseAccount['free'] = this.safeString (data, 'bab');
+            baseAccount['total'] = this.safeString (data, 'btb');
+            const quoteAccount = this.account ();
+            quoteAccount['free'] = this.safeString (data, 'qab');
+            quoteAccount['total'] = this.safeString (data, 'qtb');
+            if (market['contract']) {
+                type = 'swap';
+                result = this.safeValue (this.balances, type, {});
+            } else {
+                type = market['type'];
+                result = this.safeValue (this.balances, type, {});
+            }
+            result[market['base']] = baseAccount;
+            result[market['quote']] = quoteAccount;
         } else {
-            balances = [data];
+            const accountType = this.safeStringLower2 (message, 'ac', 'at');
+            const categoriesAccounts = this.safeValue (this.options, 'categoriesAccount');
+            type = this.safeString (categoriesAccounts, accountType, 'spot');
+            result = this.safeValue (this.balances, type, {});
+            const data = this.safeValue (message, 'data');
+            let balances = undefined;
+            if (data === undefined) {
+                balances = this.safeValue (message, 'col');
+            } else {
+                balances = [ data ];
+            }
+            for (let i = 0; i < balances.length; i++) {
+                const balance = balances[i];
+                const code = this.safeCurrencyCode (this.safeString (balance, 'a'));
+                const account = this.account ();
+                account['free'] = this.safeString (balance, 'ab');
+                account['total'] = this.safeString2 (balance, 'tb', 'b');
+                result[code] = account;
+            }
         }
-        const messageHash = this.safeString (subscription, 'messageHash');
-        for (let i = 0; i < balances.length; i++) {
-            const balance = this.parseWsBalance (balances[i]);
-            const oldBalance = this.safeValue (this.balance, type, {});
-            const newBalance = this.deepExtend (oldBalance, balance);
-            this.balance[type] = this.safeBalance (newBalance);
-            client.resolve (this.balance[type], messageHash);
-        }
-    }
-
-    parseWsBalance (balance) {
-        //
-        // margin
-        //  {
-        //         "a"  : "USDT",
-        //         "sn" : 8159802,
-        //         "tb" : "400", // total Balance
-        //         "ab" : "400", // available balance
-        //         "brw": "0", // borrowws
-        //         "int": "0" // interest
-        //   }
-        //
-        // cash
-        // {
-        //         "a" : "USDT",
-        //         "sn": 8159798,
-        //         "tb": "600",
-        //         "ab": "600"
-        //  }
-        //
-        // future
-        //
-        // {
-        //     "a": "USDT",               // asset code
-        //     "b": "1000000",            // balance
-        //     "f": "1"                   // discount factor
-        // }
-        //
-        const code = this.safeCurrencyCode (this.safeString (balance, 'a'));
-        const account = this.account ();
-        account['free'] = this.safeString (balance, 'ab');
-        account['total'] = this.safeString2 (balance, 'tb', 'b');
-        const result = {
-            'info': balance,
-            'timestamp': undefined,
-            'datetime': undefined,
-        };
-        result[code] = account;
-        return this.safeBalance (result);
+        const messageHash = 'balance' + ':' + type;
+        client.resolve (this.safeBalance (result), messageHash);
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -486,13 +462,16 @@ module.exports = class ascendex extends ccxt.ascendex {
         let channel = undefined;
         if (type !== 'spot') {
             channel = 'futures-order';
-            messageHash = channel;
+            messageHash = 'order:FUTURES';
         } else {
             const accountCategories = this.safeValue (this.options, 'accountCategories', {});
             let accountCategory = this.safeString (accountCategories, type, 'cash'); // cash, margin
             accountCategory = accountCategory.toUpperCase ();
             messageHash = 'order' + ':' + accountCategory;
             channel = messageHash;
+        }
+        if (symbol !== undefined) {
+            messageHash = messageHash + ':' + symbol;
         }
         const orders = await this.watchPrivate (channel, messageHash, symbol, this.handleOrder, limit, query);
         if (this.newUpdates) {
@@ -543,7 +522,8 @@ module.exports = class ascendex extends ccxt.ascendex {
         //      (...)
         // }
         //
-        const messageHash = this.safeString (subscription, 'messageHash');
+        const accountType = this.safeString (message, 'ac');
+        const messageHash = 'order:' + accountType;
         const data = this.safeValue (message, 'data', message);
         const order = this.parseWsOrder (data);
         if (this.orders === undefined) {
@@ -552,13 +532,8 @@ module.exports = class ascendex extends ccxt.ascendex {
         }
         const orders = this.orders;
         orders.append (order);
-        client.resolve (orders, messageHash);
-        const subscriptionSymbol = this.safeString (subscription, 'symbol');
-        if (subscriptionSymbol !== undefined) {
-            const market = this.market (subscriptionSymbol);
-            const symbolMessageHash = messageHash + ':' + market['id'];
-            client.resolve (orders, symbolMessageHash);
-        }
+        const symbolMessageHash = messageHash + ':' + order['symbol'];
+        client.resolve (orders, symbolMessageHash);
         client.resolve (orders, messageHash);
     }
 
@@ -623,6 +598,7 @@ module.exports = class ascendex extends ccxt.ascendex {
         //
         const status = this.parseOrderStatus (this.safeString (order, 'st'));
         const marketId = this.safeString (order, 's');
+        const timestamp = this.safeInteger (order, 't');
         const symbol = this.safeSymbol (marketId, market, '/');
         const lastTradeTimestamp = this.safeInteger (order, 't');
         const price = this.safeString (order, 'p');
@@ -642,13 +618,13 @@ module.exports = class ascendex extends ccxt.ascendex {
                 'currency': feeCurrencyCode,
             };
         }
-        const stopPrice = this.safeNumber (order, 'sp');
+        const stopPrice = this.parseNumber (this.omitZero (this.safeString (order, 'sp')));
         return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
@@ -695,6 +671,8 @@ module.exports = class ascendex extends ccxt.ascendex {
                     delete client.subscriptions[method];
                 }
                 return false;
+            } else {
+                client.reject (e);
             }
         }
         return message;
@@ -704,7 +682,8 @@ module.exports = class ascendex extends ccxt.ascendex {
         //
         //     { m: 'auth', id: '1647605234', code: 0 }
         //
-        client.resolve (message, 'authenticated');
+        const future = client.futures['authenticated'];
+        future.resolve (1);
         return message;
     }
 
@@ -857,28 +836,31 @@ module.exports = class ascendex extends ccxt.ascendex {
         // }
         //
         const subject = this.safeString (message, 'm');
-        if (subject === 'ping') {
-            this.handlePing (client, message);
-            return;
+        const methods = {
+            'ping': this.handlePing,
+            'auth': this.handleAuthenticate,
+            'sub': this.handleSubscriptionStatus,
+            'depth-realtime': this.handleOrderBook,
+            'depth-snapshot-realtime': this.handleOrderBookSnapshot,
+            'trades': this.handleTrades,
+            'bar': this.handleOHLCV,
+            'balance': this.handleBalance,
+        };
+        const method = this.safeValue (methods, subject);
+        if (method !== undefined) {
+            let topic = this.safeString2 (message, 's', 'symbol');
+            topic = this.safeString (message, 'ac', topic);
+            let channel = subject;
+            channel = (topic === undefined) ? channel : channel + ':' + topic;
+            const subscription = this.safeValue (client.subscriptions, channel);
+            method.call (this, client, message, subscription);
         }
-        if (subject === 'auth') {
-            this.handleAuthenticate (client, message);
-            return;
-        }
-        if (subject === 'sub') {
-            this.handleSubscriptionStatus (client, message);
-            return;
-        }
-        let topic = this.safeString2 (message, 's', 'symbol');
-        topic = this.safeString (message, 'ac', topic);
-        let channel = subject;
-        channel = (topic === undefined) ? channel : channel + ':' + topic;
-        const subscription = this.safeValue (client.subscriptions, channel);
-        if (subscription !== undefined) {
-            const method = this.safeValue (subscription, 'method');
-            if (method !== undefined) {
-                return method.call (this, client, message, subscription);
-            }
+        if ((subject === 'order') || (subject === 'futures-order')) {
+            // this.handleOrder (client, message);
+            // balance updates may be in the order structure
+            // they may also be standalone balance updates related to account transfers
+            this.handleBalance (client, message);
+            this.handleOrder (client, message);
         }
         return message;
     }
@@ -890,21 +872,22 @@ module.exports = class ascendex extends ccxt.ascendex {
         //     { m: 'sub', id: '1647515701', ch: 'depth:BTC/USDT', code: 0 }
         //
         const channel = this.safeString (message, 'ch', '');
-        const subscription = this.safeValue (client.subscriptions, channel);
-        if (channel.indexOf ('depth') !== -1) {
-            this.handleOrderBookSubscription (client, message, subscription);
+        if (channel.startsWith ('depth-realtime')) {
+            this.handleOrderBookSubscription (client, message);
         }
         return message;
     }
 
     handleOrderBookSubscription (client, message, subscription) {
-        const symbol = this.safeString (subscription, 'symbol');
-        const limit = this.safeInteger (subscription, 'limit');
+        const channel = this.safeString (message, 'ch');
+        const parts = channel.split (':');
+        const marketId = parts[1];
+        const symbol = this.safeSymbol (marketId);
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }
-        this.orderbooks[symbol] = this.orderBook ({}, limit);
-        this.spawn (this.watchOrderBookSnapshot, client, message, subscription);
+        this.orderbooks[symbol] = this.orderBook ({});
+        this.spawn (this.watchOrderBookSnapshot, symbol);
     }
 
     async pong (client, message) {
@@ -920,11 +903,11 @@ module.exports = class ascendex extends ccxt.ascendex {
 
     async authenticate (url, params = {}) {
         this.checkRequiredCredentials ();
-        const messageHash = 'auth';
+        const messageHash = 'authenticated';
         const client = this.client (url);
-        let future = this.safeValue (client.subscriptions, messageHash);
+        const future = this.safeValue (client.futures, messageHash);
         if (future === undefined) {
-            future = client.future ('authenticated');
+            client.future (messageHash);
             const timestamp = this.milliseconds ().toString ();
             const urlParts = url.split ('/');
             const partsLength = urlParts.length;
@@ -934,13 +917,13 @@ module.exports = class ascendex extends ccxt.ascendex {
             const secret = this.base64ToBinary (this.secret);
             const signature = this.hmac (this.encode (auth), secret, 'sha256', 'base64');
             const request = {
-                'op': messageHash,
+                'op': 'auth',
                 'id': this.nonce ().toString (),
                 't': timestamp,
                 'key': this.apiKey,
                 'sig': signature,
             };
-            this.spawn (this.watch, url, messageHash, this.extend (request, params), messageHash, future);
+            this.spawn (this.watch, url, messageHash, this.extend (request, params));
         }
         return await future;
     }
