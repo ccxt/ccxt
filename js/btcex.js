@@ -43,24 +43,24 @@ module.exports = class btcex extends Exchange {
                 'margin': true,
                 'swap': true,
                 'future': true,
-                'option': false,
+                'option': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
                 'editOrder': false,
                 'fetchBalance': true,
-                'fetchBorrowRate': true,
-                'fetchBorrowRateHistories': true,
-                'fetchBorrowRateHistory': true,
-                'fetchBorrowRates': true,
-                'fetchClosedOrders': undefined,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': false,
                 'fetchDepositAddress': false,
                 'fetchDeposits': true,
                 'fetchFundingFees': undefined,
-                'fetchFundingHistory': true,
-                'fetchFundingRate': true,
-                'fetchFundingRateHistory': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
                 'fetchMarkets': true,
@@ -72,7 +72,7 @@ module.exports = class btcex extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
-                'fetchPosition': false,
+                'fetchPosition': true,
                 'fetchPositions': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
@@ -84,10 +84,6 @@ module.exports = class btcex extends Exchange {
                 'fetchTradingFees': false,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
-                'reduceMargin': false,
-                'setLeverage': true,
-                'setMarginMode': false,
-                'setPositionMode': false,
                 'signIn': true,
                 'withdraw': true,
             },
@@ -138,7 +134,6 @@ module.exports = class btcex extends Exchange {
                         // wallet
                         'get_deposit_record': 1,
                         'get_withdraw_record': 1,
-                        // 'get_assets_info': 1,
                         // trade
                         'get_position': 1,
                         'get_positions': 1,
@@ -264,6 +259,7 @@ module.exports = class btcex extends Exchange {
                     '5012': InvalidOrder, // ORDER_NO_MARK_PRICE_ERROR No mark price error.
                     '5013': InvalidOrder, // ORDER_PRICE_RANGE_IS_TOO_HIGH order price range is too high.
                     '5014': InvalidOrder, // ORDER_PRICE_RANGE_IS_TOO_LOW Order price range is too low.
+                    '5109': InvalidOrder, // ORDER_PRICE_RANGE_IS_TOO_LOW Order price range is too low.
                     '5901': InvalidOrder, // TRANSFER_RESULT transfer out success.
                     '5902': InvalidOrder, // ORDER_SUCCESS place order success.
                     '5903': InvalidOrder, // ORDER_FAIL place order fail.
@@ -289,9 +285,10 @@ module.exports = class btcex extends Exchange {
             'precisionMode': TICK_SIZE,
             'options': {
                 'networks': {
+                    'BTC': 'BTC',
+                    'ETH': 'ETH',
                     'ERC20': 'ETH',
                     'BEP20': 'BEP20',
-                    'ETH': 'ETH',
                     'BSC': 'BSC',
                 },
             },
@@ -541,13 +538,13 @@ module.exports = class btcex extends Exchange {
     parseOHLCV (ohlcv, market = undefined) {
         //
         //     {
-        //         "close":177.23,
-        //         "high":177.45,
-        //         "low":177.2,
-        //         "open":177.43,
-        //         "startTime":"2019-10-17T13:27:00+00:00",
-        //         "time":1571318820000.0,
-        //         "volume":0.0
+        //         "tick":1647547200,
+        //         "open":"40868.16800000",
+        //         "high":"40877.65600000",
+        //         "low":"40647.00000000",
+        //         "close":"40699.10000000",
+        //         "volume":"100.27789000",
+        //         "cost":"4083185.78337596"
         //     }
         //
         return [
@@ -646,12 +643,7 @@ module.exports = class btcex extends Exchange {
         const side = this.safeString (trade, 'direction');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
-        const liquidity = this.safeString (trade, 'liquidity');
-        let takerOrMaker = undefined;
-        if (liquidity !== undefined) {
-            // M = maker, T = taker, MT = both
-            takerOrMaker = (liquidity === 'M') ? 'maker' : 'taker';
-        }
+        const takerOrMaker = this.safeString (trade, 'role');
         const feeCostString = this.safeString (trade, 'fee');
         let fee = undefined;
         if (feeCostString !== undefined) {
@@ -1054,7 +1046,6 @@ module.exports = class btcex extends Exchange {
             'cancelled': 'canceled',
             'filled': 'closed',
             'rejected': 'rejected',
-            'untriggered': 'open',
         };
         return this.safeString (statuses, status, status);
     }
@@ -1062,6 +1053,7 @@ module.exports = class btcex extends Exchange {
     parseTimeInForce (timeInForce) {
         const timeInForces = {
             'good_til_cancelled': 'GTC',
+            'good_til_date': 'GTD',
             'fill_or_kill': 'FOK',
             'immediate_or_cancel': 'IOC',
         };
@@ -1091,6 +1083,13 @@ module.exports = class btcex extends Exchange {
         //             "reduce_only":false,
         //             "creation_timestamp":1647666666723,
         //             "last_update_timestamp":1647666666725
+        //         }
+        //
+        // createOrder
+        //
+        //         {
+        //             "order_id":"251052889774161920",
+        //             "custom_order_id":"-"
         //         }
         //
         // closeOrder
@@ -1165,6 +1164,7 @@ module.exports = class btcex extends Exchange {
             'order_id': id,
         };
         const response = await this.privateGetGetOrderState (this.extend (request, params));
+        const result = this.safeValue (response, 'result');
         //
         //     {
         //         "jsonrpc":"2.0",
@@ -1195,7 +1195,6 @@ module.exports = class btcex extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'result');
         return this.parseOrder (result);
     }
 
@@ -1204,8 +1203,6 @@ module.exports = class btcex extends Exchange {
         const market = this.market (symbol);
         const request = {
             'instrument_name': market['id'],
-            // for perpetual and futures the amount is in USD
-            // for options it is in corresponding cryptocurrency contracts, e.g., BTC or ETH
             'amount': this.amountToPrecision (symbol, amount),
             'type': type, // limit, market, default is limit
             // 'price': this.priceToPrecision (symbol, 123.45), // The order price for limit order. When adding options order with advanced=iv, the field price should be a value of implied volatility in percentages. For example, price=100, means implied volatility of 100%
@@ -1245,12 +1242,23 @@ module.exports = class btcex extends Exchange {
         }
         const method = 'privatePost' + this.capitalize (side);
         const response = await this[method] (this.extend (request, params));
-        //
-        //
         const result = this.safeValue (response, 'result', {});
+        //
+        //     {
+        //         "id":"1647686073",
+        //         "jsonrpc":"2.0",
+        //         "usIn":1647686073252,
+        //         "usOut":1647686073264,
+        //         "usDiff":12,
+        //         "result":{
+        //             "order":{
+        //                 "order_id":"251052889774161920",
+        //                 "custom_order_id":"-"
+        //             }
+        //         }
+        //     }
+        //
         const order = this.safeValue (result, 'order');
-        const trades = this.safeValue (result, 'trades', []);
-        order['trades'] = trades;
         return this.parseOrder (order, market);
     }
 
@@ -1278,16 +1286,31 @@ module.exports = class btcex extends Exchange {
 
     async cancelAllOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {};
+        const request = {
+            // 'kind': '', // The order kind, eg. margin, spot, option, future, perpetual. only used when call privatePostCancelAllByCurrency
+        };
         let method = undefined;
         if (symbol === undefined) {
-            method = 'privateGetCancelAll';
+            const code = this.codeFromOptions ('cancelAllOrders', params);
+            const currency = this.currency (code);
+            request['currency'] = currency['id'];
+            method = 'privatePostCancelAllByCurrency';
         } else {
-            method = 'privateGetCancelAllByInstrument';
+            method = 'privatePostCancelAllByInstrument';
             const market = this.market (symbol);
             request['instrument_name'] = market['id'];
         }
         const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "id":"1647686580",
+        //         "jsonrpc":"2.0",
+        //         "usIn":1647686581216,
+        //         "usOut":1647686581224,
+        //         "usDiff":8,
+        //         "result":2
+        //     }
+        //
         return response;
     }
 
@@ -1642,7 +1665,7 @@ module.exports = class btcex extends Exchange {
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
-            // "kind" : "future", "option"
+            // 'kind' : '', // option, future, spot, margin,perpetual The order kind
         };
         const response = await this.privateGetGetPositions (this.extend (request, params));
         //
@@ -1678,42 +1701,6 @@ module.exports = class btcex extends Exchange {
         return this.parsePositions (result);
     }
 
-    async fetchHistoricalVolatility (code, params = {}) {
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request = {
-            'currency': currency['id'],
-        };
-        const response = await this.publicGetGetHistoricalVolatility (this.extend (request, params));
-        //
-        //     {
-        //         "jsonrpc": "2.0",
-        //         "result": [
-        //             [1640142000000,63.828320460740585],
-        //             [1640142000000,63.828320460740585],
-        //             [1640145600000,64.03821964123213]
-        //         ],
-        //         "usIn": 1641515379467734,
-        //         "usOut": 1641515379468095,
-        //         "usDiff": 361,
-        //         "testnet": false
-        //     }
-        //
-        const volatilityResult = this.safeValue (response, 'result', {});
-        const result = [];
-        for (let i = 0; i < volatilityResult.length; i++) {
-            const timestamp = this.safeInteger (volatilityResult[i], 0);
-            const volatility = this.safeNumber (volatilityResult[i], 1);
-            result.push ({
-                'info': response,
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-                'volatility': volatility,
-            });
-        }
-        return result;
-    }
-
     parseTransactionStatus (status) {
         const states = {
             'deposit_confirmed': 'ok',
@@ -1732,19 +1719,30 @@ module.exports = class btcex extends Exchange {
     parseTransaction (transaction, currency = undefined) {
         //
         // fetchDeposits
-        //             {
-        //                 "id":"250325458128736256",
-        //                 "amount":"0.04",
-        //                 "state":"deposit_confirmed",
-        //                 "coin_type":"BNB",
-        //                 "token_code":"BNB",
-        //                 "create_time":"1647512640040",
-        //                 "update_time":"1647512640053",
-        //                 "tx_hash":"",
-        //                 "full_name":"Binance Coin"
-        //             }
+        //         {
+        //             "id":"250325458128736256",
+        //             "amount":"0.04",
+        //             "state":"deposit_confirmed",
+        //             "coin_type":"BNB",
+        //             "token_code":"BNB",
+        //             "create_time":"1647512640040",
+        //             "update_time":"1647512640053",
+        //             "tx_hash":"",
+        //             "full_name":"Binance Coin"
+        //         }
         //
-        // fetchWithdrawals || fetchWithdraw || withdraw
+        // fetchWithdrawals || fetchWithdraw
+        //         {
+        //             "id":"251076247882829824",
+        //             "address":"",
+        //             "amount":"0.01",
+        //             "state":"withdraw_auditing",
+        //             "coin_type":"BNB",
+        //             "create_time":"1647691642267",
+        //             "update_time":"1647691650090",
+        //             "full_name":"Binance Coin",
+        //             "token_code":"BNB"
+        //         }
         //
         const currencyId = this.safeString (transaction, 'coin_type');
         const code = this.safeCurrencyCode (currencyId, currency);
@@ -1826,6 +1824,23 @@ module.exports = class btcex extends Exchange {
         const response = await this.privateGetGetWithdrawRecord (this.extend (request, params));
         const result = this.safeValue (response, 'result', []);
         //
+        //     {
+        //         "jsonrpc":"2.0",
+        //         "usIn":1647691750112,
+        //         "usOut":1647691750125,
+        //         "usDiff":13,
+        //         "result":[{
+        //             "id":"251076247882829824",
+        //             "address":"",
+        //             "amount":"0.01",
+        //             "state":"withdraw_auditing",
+        //             "coin_type":"BNB",
+        //             "create_time":"1647691642267",
+        //             "update_time":"1647691650090",
+        //             "full_name":"Binance Coin",
+        //             "token_code":"BNB"
+        //         }]
+        //     }
         //
         return this.parseTransactions (result, currency, since, limit, { 'type': 'withdrawal' });
     }
@@ -1841,10 +1856,29 @@ module.exports = class btcex extends Exchange {
             'withdraw_id': id,
         };
         const response = await this.privateGetGetWithdrawRecord (this.extend (request, params));
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeValue (response, 'result', []);
         //
+        //     {
+        //         "jsonrpc":"2.0",
+        //         "usIn":1647691750112,
+        //         "usOut":1647691750125,
+        //         "usDiff":13,
+        //         "result":[{
+        //             "id":"251076247882829824",
+        //             "address":"",
+        //             "amount":"0.01",
+        //             "state":"withdraw_auditing",
+        //             "coin_type":"BNB",
+        //             "create_time":"1647691642267",
+        //             "update_time":"1647691650090",
+        //             "full_name":"Binance Coin",
+        //             "token_code":"BNB"
+        //         }]
+        //     }
         //
-        return this.parseTransaction (result, currency);
+        const records = this.filterBy (result, 'id', id);
+        const record = this.safeValue (records, 0);
+        return this.parseTransaction (record, currency);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
@@ -1874,6 +1908,7 @@ module.exports = class btcex extends Exchange {
         const response = await this.privatePostAddWithdrawAddress (this.extend (request, params));
         const result = this.safeValue (response, 'data', {});
         //
+        // TODO: didn't work
         //
         return this.parseTransaction (result, currency);
     }
