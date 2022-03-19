@@ -389,11 +389,11 @@ module.exports = class ascendex extends ccxt.ascendex {
         // {
         //     "m"     : "futures-account-update",            // message
         //     "e"     : "ExecutionReport",                   // event type
-        //     "t"     : 1612508562129,                       // server time (UTC time in milliseconds)
-        //     "acc"   : "sample-futures-account-id",         // account ID
+        //     "t"     : 1612508562129,                       // time
+        //     "acc"   : "futures-account-id",         // account ID
         //     "at"    : "FUTURES",                           // account type
-        //     "sn"    : 23128,                               // sequence number, strictly increasing for each account
-        //     "id"    : "r177710001cbU3813942147C5kbFGOan",  // request ID for this account update
+        //     "sn"    : 23128,                               // sequence number,
+        //     "id"    : "r177710001cbU3813942147C5kbFGOan",
         //     "col": [
         //       {
         //         "a": "USDT",               // asset code
@@ -405,7 +405,7 @@ module.exports = class ascendex extends ccxt.ascendex {
         //
         let accountType = this.safeString2 (message, 'ac', 'at');
         accountType = accountType.toLowerCase ();
-        const categoriesAccounts = this.safeValue (this.options, 'categoriesAccounts');
+        const categoriesAccounts = this.safeValue (this.options, 'categoriesAccount');
         const type = this.safeString (categoriesAccounts, accountType, 'spot');
         const data = this.safeValue (message, 'data');
         let balances = undefined;
@@ -476,7 +476,7 @@ module.exports = class ascendex extends ccxt.ascendex {
         let channel = undefined;
         if (type !== 'spot') {
             channel = 'futures-order';
-            messageHash = channel + ':' + 'FUTURES';
+            messageHash = channel;
         } else {
             const accountCategories = this.safeValue (this.options, 'accountCategories', {});
             let accountCategory = this.safeString (accountCategories, type, 'cash'); // cash, margin
@@ -861,17 +861,16 @@ module.exports = class ascendex extends ccxt.ascendex {
         }
         let topic = this.safeString2 (message, 's', 'symbol');
         topic = this.safeString (message, 'ac', topic);
-        if (topic !== undefined) {
-            const channel = subject + ':' + topic;
-            const subscription = this.safeValue (client.subscriptions, channel);
-            if (subscription !== undefined) {
-                const method = this.safeValue (subscription, 'method');
-                if (method !== undefined) {
-                    return method.call (this, client, message, subscription);
-                }
+        let channel = subject;
+        channel = (topic === undefined) ? channel : channel + ':' + topic;
+        const subscription = this.safeValue (client.subscriptions, channel);
+        if (subscription !== undefined) {
+            const method = this.safeValue (subscription, 'method');
+            if (method !== undefined) {
+                return method.call (this, client, message, subscription);
             }
-            return message;
         }
+        return message;
     }
 
     handleSubscriptionStatus (client, message) {
