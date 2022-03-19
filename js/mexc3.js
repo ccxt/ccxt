@@ -719,10 +719,24 @@ module.exports = class mexc3 extends Exchange {
         const [ section, access ] = api;
         [ path, params ] = this.resolvePath (path, params);
         let url = this.urls['api'][section][access] + '/api/' + this.version + '/' + path;
-        if (method === 'GET' || method === 'DELETE') {
-            if (Object.keys (params).length) {
-                url += '?' + this.urlencode (params);
-            }
+        let paramsEncoded = '';
+        if (access === 'private') {
+            params['timestamp'] = Date.now ();
+            params['recvWindow'] = this.safeInteger (this.options, 'recvWindow', 5000);
+        }
+        if (Object.keys (params).length) {
+            paramsEncoded = this.urlencode (params);
+            url += '?' + paramsEncoded;
+        }
+        if (access === 'private') {
+            this.checkRequiredCredentials ();
+            const signature = this.hmac (this.encode (paramsEncoded), this.encode (this.secret), 'sha256');
+            params['signature'] = signature;
+            url += '&signature=' + signature;
+            headers = {
+                'X-MEXC-APIKEY': this.apiKey,
+                'Content-Type': 'application/json',
+            };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
