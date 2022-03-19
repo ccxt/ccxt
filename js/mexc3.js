@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { BadRequest, ExchangeError, ArgumentsRequired } = require ('./base/errors');
+const { BadRequest, ExchangeError, ArgumentsRequired, InsufficientFunds } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -26,7 +26,7 @@ module.exports = class mexc3 extends Exchange {
                 'future': undefined,
                 'option': undefined,
                 'addMargin': undefined,
-                'cancelAllOrders': undefined,
+                'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': undefined,
                 'createDepositAddress': undefined,
@@ -68,8 +68,8 @@ module.exports = class mexc3 extends Exchange {
                 'fetchMyTrades': undefined,
                 'fetchOHLCV': true,
                 'fetchOpenOrder': undefined,
-                'fetchOpenOrders': undefined,
-                'fetchOrder': undefined,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': undefined,
                 'fetchOrders': undefined,
@@ -227,9 +227,14 @@ module.exports = class mexc3 extends Exchange {
             'exceptions': {
                 'exact': {
                     '-1128': BadRequest,
+                    '-2011': BadRequest,
+                    '30004': InsufficientFunds,
+
                 },
                 'broad': {
                     'Combination of optional parameters invalid': BadRequest, // {"msg":"Combination of optional parameters invalid.","code":-1128,"_extend":null}
+                    'Insufficient position': InsufficientFunds,
+                    'Unknown order sent.': BadRequest,
                 },
             },
         });
@@ -389,6 +394,8 @@ module.exports = class mexc3 extends Exchange {
             method = '';
         }
         const response = await this[method] (this.extend (request, params));
+        //
+        // spot
         //
         //     {
         //         "lastUpdateId": "744267132",
@@ -556,6 +563,8 @@ module.exports = class mexc3 extends Exchange {
         }
         const response = await this[method] (this.extend (request, params));
         //
+        // spot
+        //
         //     [
         //       [
         //         1640804880000,
@@ -702,6 +711,8 @@ module.exports = class mexc3 extends Exchange {
         }
         const response = await this[method] (query);
         //
+        // spot
+        //
         //     [
         //       {
         //         "symbol": "AEUSDT",
@@ -756,8 +767,8 @@ module.exports = class mexc3 extends Exchange {
         return this.extend (this.parseOrder (response, market), {
             'side': side,
             'type': type,
-            // 'price': price,
-            // 'amount': amount,
+            'price': price, // TODO: should we do this?
+            'amount': amount,
         });
     }
 
@@ -768,50 +779,253 @@ module.exports = class mexc3 extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market,
+            'symbol': market['id'],
         };
         const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
-            params = this.omit (params, [ 'clientOrderId' ]);
+            params = this.omit (params, 'clientOrderId');
             request['origClientOrderId'] = clientOrderId;
         } else {
             request['orderId'] = id;
         }
         const response = await this.spotPrivateDeleteOrder (this.extend (request, params));
         //
-        //    {"code":200,"data":{"965245851c444078a11a7d771323613b":"success"}}
+        // spot
         //
-        const data = this.safeValue (response, 'data');
-        return this.parseOrder (data, market);
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "orderId": "133734823834447872",
+        //         "price": "30000",
+        //         "origQty": "0.0002",
+        //         "type": "LIMIT",
+        //         "side": "BUY"
+        //     }
+        //
+        return this.parseOrder (response, market);
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.spotPrivateDeleteOpenOrders (this.extend (request, params));
+        //
+        // spot
+        //
+        //     [
+        //         {
+        //             "symbol": "BTCUSDT",
+        //             "orderId": "133926492139692032",
+        //             "price": "30000",
+        //             "origQty": "0.0002",
+        //             "type": "LIMIT",
+        //             "side": "BUY"
+        //         },
+        //         {
+        //             "symbol": "BTCUSDT",
+        //             "orderId": "133926441921286144",
+        //             "price": "30000",
+        //             "origQty": "0.0002",
+        //             "type": "LIMIT",
+        //             "side": "BUY"
+        //         }
+        //     ]
+        //
+        return this.parseOrders (response, market);
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            params = this.omit (params, 'clientOrderId');
+            request['origClientOrderId'] = clientOrderId;
+        } else {
+            request['orderId'] = id;
+        }
+        const response = await this.spotPrivateGetOrder (this.extend (request, params));
+        //
+        // spot
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "orderId": "133734823834147272",
+        //         "orderListId": "-1",
+        //         "clientOrderId": null,
+        //         "price": "30000",
+        //         "origQty": "0.0002",
+        //         "executedQty": "0",
+        //         "cummulativeQuoteQty": "0",
+        //         "status": "CANCELED",
+        //         "timeInForce": null,
+        //         "type": "LIMIT",
+        //         "side": "BUY",
+        //         "stopPrice": null,
+        //         "icebergQty": null,
+        //         "time": "1647667102000",
+        //         "updateTime": "1647708567000",
+        //         "isWorking": true,
+        //         "origQuoteOrderQty": "6"
+        //     }
+        //
+        return this.parseOrder (response, market);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.spotPrivateGetOpenOrders (this.extend (request, params));
+        //
+        // spot
+        //
+        //     [
+        //         {
+        //             "symbol": "BTCUSDT",
+        //             "orderId": "133949373632483328",
+        //             "orderListId": "-1",
+        //             "clientOrderId": "",
+        //             "price": "45000",
+        //             "origQty": "0.0002",
+        //             "executedQty": "0",
+        //             "cummulativeQuoteQty": "0",
+        //             "status": "NEW",
+        //             "timeInForce": null,
+        //             "type": "LIMIT",
+        //             "side": "SELL",
+        //             "stopPrice": null,
+        //             "icebergQty": null,
+        //             "time": "1647718255199",
+        //             "updateTime": null,
+        //             "isWorking": true,
+        //             "origQuoteOrderQty": "9"
+        //         }
+        //     ]
+        //
+        return this.parseOrders (response, market, since, limit);
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.spotPrivateGetAllOrders (this.extend (request, params));
+        //
+        // spot
+        //
+        //     [
+        //         {
+        //             "symbol": "BTCUSDT",
+        //             "orderId": "133949373632483328",
+        //             "orderListId": "-1",
+        //             "clientOrderId": null,
+        //             "price": "45000",
+        //             "origQty": "0.0002",
+        //             "executedQty": "0",
+        //             "cummulativeQuoteQty": "0",
+        //             "status": "NEW",
+        //             "timeInForce": null,
+        //             "type": "LIMIT",
+        //             "side": "SELL",
+        //             "stopPrice": null,
+        //             "icebergQty": null,
+        //             "time": "1647718255000",
+        //             "updateTime": "1647718255000",
+        //             "isWorking": true,
+        //             "origQuoteOrderQty": "9"
+        //         },
+        //     ]
+        //
+        return this.parseOrders (response, market, since, limit);
     }
 
     parseOrder (order, market = undefined) {
         //
-        // createOrder
-        //
-        //     spot
+        // spot: createOrder
         //
         //     { "symbol": "BTCUSDT", "orderId": "123738410679123456", "orderListId": -1 }
         //
+        // spot: cancelOrder, cancelAllOrders
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "orderId": "133926441921286144",
+        //         "price": "30000",
+        //         "origQty": "0.0002",
+        //         "type": "LIMIT",
+        //         "side": "BUY"
+        //     }
+        //
+        // spot: fetchOrder, fetchOpenOrders, fetchOrders
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "orderId": "133734823834147272",
+        //         "orderListId": "-1",
+        //         "clientOrderId": null,
+        //         "price": "30000",
+        //         "origQty": "0.0002",
+        //         "executedQty": "0",
+        //         "cummulativeQuoteQty": "0",
+        //         "status": "CANCELED",
+        //         "timeInForce": null,
+        //         "type": "LIMIT",
+        //         "side": "BUY",
+        //         "stopPrice": null,
+        //         "icebergQty": null,
+        //         "time": "1647667102000",
+        //         "updateTime": "1647708567000",
+        //         "isWorking": true,
+        //         "origQuoteOrderQty": "6"
+        //     }
+        //
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (order, 'time');
         return this.safeOrder ({
             'id': this.safeString (order, 'orderId'),
-            'clientOrderId': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'lastTradeTimestamp': undefined,
-            'status': undefined,
+            'clientOrderId': this.safeString (order, 'clientOrderId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined, // note: this might be 'updateTime' if order-status is filled, otherwise cancellation time. needs to be checked
+            'status': this.parseOrderStatus (this.safeString (order, 'status')),
             'symbol': market['symbol'],
-            'type': undefined,
-            'timeInForce': undefined,
-            'side': undefined,
-            'price': undefined,
-            'stopPrice': undefined,
+            'type': this.parseOrderType (this.safeString (order, 'type')),
+            'timeInForce': this.parseOrderTimeInForce (this.safeString (order, 'timeInForce')),
+            'side': this.parseOrderSide (this.safeString (order, 'side')),
+            'price': this.safeNumber (order, 'price'),
+            'stopPrice': this.safeNumber (order, 'stopPrice'),
             'average': undefined,
-            'amount': undefined,
-            'cost': undefined,
-            'filled': undefined,
+            'amount': this.safeNumber (order, 'origQty'),
+            'cost': this.safeNumber (order, 'origQuoteOrderQty'),  // 'cummulativeQuoteQty' vs 'origQuoteOrderQty' probably refers pre-update state
+            'filled': this.safeNumber (order, 'executedQty'),
             'remaining': undefined,
             'fee': undefined,
             'trades': undefined,
@@ -819,8 +1033,37 @@ module.exports = class mexc3 extends Exchange {
         }, market);
     }
 
+    parseOrderSide (status) {
+        const statuses = {
+            'BUY': 'buy',
+            'SELL': 'sell',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrderType (status) {
+        const statuses = {
+            'MARKET': 'market',
+            'LIMIT': 'limit',
+            'LIMIT_MAKER': 'limit',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseOrderStatus (status) {
         const statuses = {
+            'NEW': 'open',
+            'FILLED': 'closed',
+            'CANCELED': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrderTimeInForce (status) {
+        const statuses = {
+            'GTC': 'GTC',
+            'FOK': 'FOK',
+            'IOC': 'IOC',
         };
         return this.safeString (statuses, status, status);
     }
