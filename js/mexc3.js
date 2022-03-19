@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { BadRequest, ExchangeError, ArgumentsRequired, InsufficientFunds } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
 
@@ -35,8 +36,8 @@ module.exports = class mexc3 extends Exchange {
                 'createOrder': true,
                 'deposit': undefined,
                 'editOrder': undefined,
-                'fetchAccounts': undefined,
-                'fetchBalance': undefined,
+                'fetchAccounts': true,
+                'fetchBalance': true,
                 'fetchBidsAsks': true,
                 'fetchBorrowRate': undefined,
                 'fetchBorrowRateHistory': undefined,
@@ -65,7 +66,7 @@ module.exports = class mexc3 extends Exchange {
                 'fetchMarketLeverageTiers': undefined,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': undefined,
-                'fetchMyTrades': undefined,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': true,
@@ -73,7 +74,7 @@ module.exports = class mexc3 extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrderBooks': undefined,
                 'fetchOrders': undefined,
-                'fetchOrderTrades': undefined,
+                'fetchOrderTrades': true,
                 'fetchPosition': undefined,
                 'fetchPositions': undefined,
                 'fetchPositionsRisk': undefined,
@@ -84,7 +85,7 @@ module.exports = class mexc3 extends Exchange {
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': undefined,
-                'fetchTradingFees': undefined,
+                'fetchTradingFees': true,
                 'fetchTradingLimits': undefined,
                 'fetchTransactions': undefined,
                 'fetchTransfers': undefined,
@@ -481,19 +482,68 @@ module.exports = class mexc3 extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // spot
+        //      fetchTrades (for aggTrades)
+        //
+        //         {
+        //             "a": null,
+        //             "f": null,
+        //             "l": null,
+        //             "p": "40679",
+        //             "q": "0.001309",
+        //             "T": 1647551328000,
+        //             "m": true,
+        //             "M": true
+        //         },
+        //
+        //      fetchMyTrades, fetchOrderTrades
+        //
+        //         {
+        //             "symbol": "BTCUSDT",
+        //             "id": "133948532984922113",
+        //             "orderId": "133948532531949568",
+        //             "orderListId": "-1",
+        //             "price": "41995.51",
+        //             "qty": "0.0002",
+        //             "quoteQty": "8.399102",
+        //             "commission": "0.016798204",
+        //             "commissionAsset": "USDT",
+        //             "time": "1647718055000",
+        //             "isBuyer": true,
+        //             "isMaker": false,
+        //             "isBestMatch": true
+        //         }
         const timestamp = this.safeInteger2 (trade, 'time', 'T');
         market = this.safeMarket (undefined, market);
         const symbol = market['symbol'];
         const priceString = this.safeString2 (trade, 'price', 'p');
         const amountString = this.safeString2 (trade, 'qty', 'q');
         const costString = this.safeString (trade, 'quoteQty');
+        const isBuyer = this.safeValue (trade, 'isBuyer');
+        const isMaker = this.safeValue (trade, 'isMaker');
         const buyerMaker = this.safeString2 (trade, 'isBuyerMaker', 'm');
         const type = undefined;
+        const orderId = this.safeString (trade, 'orderId');
         let side = undefined;
         let takerOrMaker = undefined;
+        if (isMaker !== undefined) {
+            takerOrMaker = isMaker ? 'maker' : 'taker';
+        }
+        if (isBuyer !== undefined) {
+            side = isBuyer ? 'buy' : 'sell';
+        }
         if (buyerMaker !== undefined) {
             side = buyerMaker ? 'sell' : 'buy';
             takerOrMaker = 'taker';
+        }
+        let fee = undefined;
+        const feeAsset = this.safeString (trade, 'commissionAsset');
+        if (feeAsset !== undefined) {
+            fee = {
+                'cost': this.safeString (trade, 'commission'),
+                'currency': this.safeCurrencyCode (feeAsset),
+            };
         }
         let id = this.safeString2 (trade, 'id', 'a');
         if (id === undefined) {
@@ -501,7 +551,7 @@ module.exports = class mexc3 extends Exchange {
         }
         return this.safeTrade ({
             'id': id,
-            'order': undefined,
+            'order': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
@@ -511,7 +561,7 @@ module.exports = class mexc3 extends Exchange {
             'price': priceString,
             'amount': amountString,
             'cost': costString,
-            'fee': undefined,
+            'fee': fee,
             'info': trade,
         }, market);
     }
@@ -1066,6 +1116,146 @@ module.exports = class mexc3 extends Exchange {
             'IOC': 'IOC',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    async fetchAccountHelper (params) {
+        const response = await this.spotPrivateGetAccount (params);
+        //
+        // spot
+        //
+        //     {
+        //         "makerCommission": "20",
+        //         "takerCommission": "20",
+        //         "buyerCommission": "0",
+        //         "sellerCommission": "0",
+        //         "canTrade": true,
+        //         "canWithdraw": true,
+        //         "canDeposit": true,
+        //         "updateTime": null,
+        //         "accountType": "SPOT",
+        //         "balances": [
+        //             {
+        //                 "asset": "BTC",
+        //                 "free": "0.002",
+        //                 "locked": "0"
+        //             },
+        //             {
+        //                 "asset": "USDT",
+        //                 "free": "88.120131350620957006",
+        //                 "locked": "0"
+        //             },
+        //         ],
+        //         "permissions": [
+        //             "SPOT"
+        //         ]
+        //     }
+        //
+        return response;
+    }
+
+    async fetchAccounts (params = {}) {
+        // TODO: is this method suitable for endpoint response?
+        const response = await this.fetchAccountHelper (params);
+        const data = this.safeValue (response, 'balances', []);
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            const account = data[i];
+            const currencyId = this.safeString (account, 'asset');
+            const code = this.safeCurrencyCode (currencyId);
+            result.push ({
+                'id': this.safeString (account, 'id'),
+                'type': this.safeString (account, 'type'),
+                'code': code,
+                'info': account,
+            });
+        }
+        return result;
+    }
+
+    async fetchTradingFees (params = {}) {
+        const response = await this.fetchAccountHelper (params);
+        let makerFee = this.safeString (response, 'makerCommission');
+        let takerFee = this.safeString (response, 'takerCommission');
+        makerFee = Precise.stringDiv (makerFee, '1000');
+        takerFee = Precise.stringDiv (takerFee, '1000');
+        const result = {};
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            result[symbol] = {
+                'symbol': symbol,
+                'maker': this.parseNumber (makerFee),
+                'taker': this.parseNumber (takerFee),
+                'percentage': true,
+                'tierBased': false,
+                'info': response,
+            };
+        }
+        return result;
+    }
+
+    async fetchBalance (params = {}) {
+        const response = await this.fetchAccountHelper (params);
+        const balances = this.safeValue (response, 'balances');
+        const result = {};
+        for (let i = 0; i < balances.length; i++) {
+            const entry = balances[i];
+            const currencyId = this.safeString (entry, 'asset');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (entry, 'free');
+            account['used'] = this.safeString (entry, 'locked');
+            result[code] = account;
+        }
+        result['info'] = response;
+        return this.safeBalance (result);
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (since !== undefined) {
+            request['start_time'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.spotPrivateGetMyTrades (this.extend (request, params));
+        //
+        // spot
+        //
+        //     [
+        //         {
+        //             "symbol": "BTCUSDT",
+        //             "id": "133948532984922113",
+        //             "orderId": "133948532531949568",
+        //             "orderListId": "-1",
+        //             "price": "41995.51",
+        //             "qty": "0.0002",
+        //             "quoteQty": "8.399102",
+        //             "commission": "0.016798204",
+        //             "commissionAsset": "USDT",
+        //             "time": "1647718055000",
+        //             "isBuyer": true,
+        //             "isMaker": false,
+        //             "isBestMatch": true
+        //         }
+        //     ]
+        //
+        return this.parseTrades (response, market, since, limit);
+    }
+
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+        }
+        params['orderId'] = id;
+        return await this.fetchMyTrades (symbol, since, limit, params);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
