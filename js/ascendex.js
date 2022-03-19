@@ -58,7 +58,7 @@ module.exports = class ascendex extends ccxt.ascendex {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    async watchPrivate (channel, messageHash, symbol, method, limit = undefined, params = {}) {
+    async watchPrivate (channel, messageHash, params = {}) {
         await this.loadAccounts ();
         const accountGroup = this.safeString (this.options, 'account-group');
         let url = this.urls['api']['ws']['private'];
@@ -70,18 +70,8 @@ module.exports = class ascendex extends ccxt.ascendex {
             'ch': channel,
         };
         const message = this.extend (request, params);
-        const subscription = {
-            'id': id,
-            'symbol': symbol,
-            'channel': channel,
-            'messageHash': messageHash,
-            'method': method,
-        };
-        if (limit !== undefined) {
-            subscription['limit'] = limit;
-        }
         await this.authenticate (url, params);
-        return await this.watch (url, messageHash, message, messageHash, subscription);
+        return await this.watch (url, messageHash, message, messageHash);
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -102,7 +92,7 @@ module.exports = class ascendex extends ccxt.ascendex {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client, message, subscription) {
+    handleOHLCV (client, message) {
         //
         // {
         //     "m": "bar",
@@ -153,7 +143,7 @@ module.exports = class ascendex extends ccxt.ascendex {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client, message, subscription) {
+    handleTrades (client, message) {
         //
         // {
         //     m: 'trades',
@@ -218,7 +208,7 @@ module.exports = class ascendex extends ccxt.ascendex {
         return orderbook.limit (limit);
     }
 
-    handleOrderBookSnapshot (client, message, subscription) {
+    handleOrderBookSnapshot (client, message) {
         //
         // {
         //     m: 'depth',
@@ -256,7 +246,7 @@ module.exports = class ascendex extends ccxt.ascendex {
         client.resolve (orderbook, messageHash);
     }
 
-    handleOrderBook (client, message, subscription) {
+    handleOrderBook (client, message) {
         //
         //   {
         //       m: 'depth',
@@ -275,8 +265,7 @@ module.exports = class ascendex extends ccxt.ascendex {
         const messageHash = channel + ':' + marketId;
         let orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
-            const limit = this.safeString (subscription, 'limit');
-            orderbook = this.orderBook ({}, limit);
+            orderbook = this.orderBook ({});
         }
         if (orderbook['nonce'] === undefined) {
             orderbook.cache.push (message);
@@ -349,12 +338,12 @@ module.exports = class ascendex extends ccxt.ascendex {
             messageHash = 'balance:' + type;
         } else {
             channel = 'futures-account-update';
-            messageHash = channel;
+            messageHash = 'balance:swap';
         }
-        return await this.watchPrivate (channel, messageHash, undefined, this.handleBalance, undefined, query);
+        return await this.watchPrivate (channel, messageHash, query);
     }
 
-    handleBalance (client, message, subscription) {
+    handleBalance (client, message) {
         //
         // cash account
         //
@@ -473,14 +462,14 @@ module.exports = class ascendex extends ccxt.ascendex {
         if (symbol !== undefined) {
             messageHash = messageHash + ':' + symbol;
         }
-        const orders = await this.watchPrivate (channel, messageHash, symbol, this.handleOrder, limit, query);
+        const orders = await this.watchPrivate (channel, messageHash, query);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrder (client, message, subscription) {
+    handleOrder (client, message) {
         //
         // spot order
         // {
@@ -845,22 +834,20 @@ module.exports = class ascendex extends ccxt.ascendex {
             'trades': this.handleTrades,
             'bar': this.handleOHLCV,
             'balance': this.handleBalance,
+            'futures-account-update': this.handleBalance,
         };
         const method = this.safeValue (methods, subject);
         if (method !== undefined) {
-            let topic = this.safeString2 (message, 's', 'symbol');
-            topic = this.safeString (message, 'ac', topic);
-            let channel = subject;
-            channel = (topic === undefined) ? channel : channel + ':' + topic;
-            const subscription = this.safeValue (client.subscriptions, channel);
-            method.call (this, client, message, subscription);
+            method.call (this, client, message);
         }
         if ((subject === 'order') || (subject === 'futures-order')) {
             // this.handleOrder (client, message);
             // balance updates may be in the order structure
             // they may also be standalone balance updates related to account transfers
-            this.handleBalance (client, message);
             this.handleOrder (client, message);
+            if (subject === 'order') {
+                this.handleBalance (client, message);
+            }
         }
         return message;
     }
@@ -878,7 +865,7 @@ module.exports = class ascendex extends ccxt.ascendex {
         return message;
     }
 
-    handleOrderBookSubscription (client, message, subscription) {
+    handleOrderBookSubscription (client, message) {
         const channel = this.safeString (message, 'ch');
         const parts = channel.split (':');
         const marketId = parts[1];
