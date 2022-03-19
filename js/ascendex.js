@@ -27,6 +27,12 @@ module.exports = class ascendex extends ccxt.ascendex {
                         'private': 'wss://ascendex.com:443/{accountGroup}/api/pro/v2/stream',
                     },
                 },
+                'test': {
+                    'ws': {
+                        'public': 'wss://api-test.ascendex-sandbox.com:443/api/pro/v2/stream',
+                        'private': 'wss://api-test.ascendex-sandbox.com:443/{accountGroup}/api/pro/v2/stream',
+                    },
+                },
             },
             'options': {
                 'tradesLimit': 1000,
