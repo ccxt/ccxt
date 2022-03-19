@@ -1533,28 +1533,31 @@ module.exports = class btcex extends Exchange {
     parsePosition (position, market = undefined) {
         //
         //     {
-        //         "jsonrpc": "2.0",
-        //         "id": 404,
-        //         "result": {
-        //             "average_price": 0,
-        //             "delta": 0,
-        //             "direction": "buy",
-        //             "estimated_liquidation_price": 0,
-        //             "floating_profit_loss": 0,
-        //             "index_price": 3555.86,
-        //             "initial_margin": 0,
-        //             "instrument_name": "BTC-PERPETUAL",
-        //             "leverage": 100,
-        //             "kind": "future",
-        //             "maintenance_margin": 0,
-        //             "mark_price": 3556.62,
-        //             "open_orders_margin": 0.000165889,
-        //             "realized_profit_loss": 0,
-        //             "settlement_price": 3555.44,
-        //             "size": 0,
-        //             "size_currency": 0,
-        //             "total_profit_loss": 0
-        //         }
+        //         "currency":"PERPETUAL",
+        //         "kind":"perpetual",
+        //         "size":"-0.08",
+        //         "direction":"sell",
+        //         "leverage":"3",
+        //         "margin":"10.7724",
+        //         "version":"553",
+        //         "roe":"-0.000483",
+        //         "traceType":0,
+        //         "pos_id":"0",
+        //         "instrument_name":"BNB-USDT-PERPETUAL",
+        //         "average_price":"403.9",
+        //         "mark_price":"403.965",
+        //         "initial_margin":"10.77066668",
+        //         "maintenance_margin":"0.2100618",
+        //         "floating_profit_loss":"-0.0052",
+        //         "liquid_price":"549.15437158",
+        //         "margin_type":"cross",
+        //         "risk_level":"0.017651",
+        //         "available_withdraw_funds":"1.13004332",
+        //         "order_id":"251085320510201856",
+        //         "stop_loss_price":"0",
+        //         "stop_loss_type":1,
+        //         "take_profit_price":"0",
+        //         "take_profit_type":1
         //     }
         //
         const contract = this.safeString (position, 'instrument_name');
@@ -1568,12 +1571,11 @@ module.exports = class btcex extends Exchange {
         const unrealisedPnl = this.safeString (position, 'floating_profit_loss');
         const initialMarginString = this.safeString (position, 'initial_margin');
         const percentage = Precise.stringMul (Precise.stringDiv (unrealisedPnl, initialMarginString), '100');
-        const currentTime = this.milliseconds ();
         return {
             'info': position,
             'symbol': this.safeString (market, 'symbol'),
-            'timestamp': currentTime,
-            'datetime': this.iso8601 (currentTime),
+            'timestamp': undefined,
+            'datetime': undefined,
             'initialMargin': this.parseNumber (initialMarginString),
             'initialMarginPercentage': this.parseNumber (Precise.stringDiv (initialMarginString, notionalString)),
             'maintenanceMargin': this.parseNumber (Precise.stringMul (maintenanceRate, notionalString)),
@@ -1601,33 +1603,42 @@ module.exports = class btcex extends Exchange {
             'instrument_name': market['id'],
         };
         const response = await this.privateGetGetPosition (this.extend (request, params));
+        const result = this.safeValue (response, 'result');
         //
         //     {
-        //         "jsonrpc": "2.0",
-        //         "id": 404,
-        //         "result": {
-        //             "average_price": 0,
-        //             "delta": 0,
-        //             "direction": "buy",
-        //             "estimated_liquidation_price": 0,
-        //             "floating_profit_loss": 0,
-        //             "index_price": 3555.86,
-        //             "initial_margin": 0,
-        //             "instrument_name": "BTC-PERPETUAL",
-        //             "leverage": 100,
-        //             "kind": "future",
-        //             "maintenance_margin": 0,
-        //             "mark_price": 3556.62,
-        //             "open_orders_margin": 0.000165889,
-        //             "realized_profit_loss": 0,
-        //             "settlement_price": 3555.44,
-        //             "size": 0,
-        //             "size_currency": 0,
-        //             "total_profit_loss": 0
+        //         "jsonrpc":"2.0",
+        //         "usIn":1647693832273,
+        //         "usOut":1647693832282,
+        //         "usDiff":9,
+        //         "result":{
+        //             "currency":"PERPETUAL",
+        //             "kind":"perpetual",
+        //             "size":"-0.08",
+        //             "direction":"sell",
+        //             "leverage":"3",
+        //             "margin":"10.7724",
+        //             "version":"553",
+        //             "roe":"-0.000483",
+        //             "traceType":0,
+        //             "pos_id":"0",
+        //             "instrument_name":"BNB-USDT-PERPETUAL",
+        //             "average_price":"403.9",
+        //             "mark_price":"403.965",
+        //             "initial_margin":"10.77066668",
+        //             "maintenance_margin":"0.2100618",
+        //             "floating_profit_loss":"-0.0052",
+        //             "liquid_price":"549.15437158",
+        //             "margin_type":"cross",
+        //             "risk_level":"0.017651",
+        //             "available_withdraw_funds":"1.13004332",
+        //             "order_id":"251085320510201856",
+        //             "stop_loss_price":"0",
+        //             "stop_loss_type":1,
+        //             "take_profit_price":"0",
+        //             "take_profit_type":1
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'result');
         return this.parsePosition (result);
     }
 
@@ -1662,36 +1673,42 @@ module.exports = class btcex extends Exchange {
             // 'kind' : '', // option, future, spot, margin,perpetual The order kind
         };
         const response = await this.privateGetGetPositions (this.extend (request, params));
+        const result = this.safeValue (response, 'result');
         //
         //     {
-        //         "jsonrpc": "2.0",
-        //         "id": 2236,
-        //         "result": [
-        //             {
-        //                 "average_price": 7440.18,
-        //                 "delta": 0.006687487,
-        //                 "direction": "buy",
-        //                 "estimated_liquidation_price": 1.74,
-        //                 "floating_profit_loss": 0,
-        //                 "index_price": 7466.79,
-        //                 "initial_margin": 0.000197283,
-        //                 "instrument_name": "BTC-PERPETUAL",
-        //                 "kind": "future",
-        //                 "leverage": 34,
-        //                 "maintenance_margin": 0.000143783,
-        //                 "mark_price": 7476.65,
-        //                 "open_orders_margin": 0.000197288,
-        //                 "realized_funding": -1e-8,
-        //                 "realized_profit_loss": -9e-9,
-        //                 "settlement_price": 7476.65,
-        //                 "size": 50,
-        //                 "size_currency": 0.006687487,
-        //                 "total_profit_loss": 0.000032781
-        //             },
-        //         ]
+        //         "jsonrpc":"2.0",
+        //         "usIn":1647694531356,
+        //         "usOut":1647694531364,
+        //         "usDiff":8,
+        //         "result":[{
+        //             "currency":"PERPETUAL",
+        //             "kind":"perpetual",
+        //             "size":"-0.08",
+        //             "direction":"sell",
+        //             "leverage":"3",
+        //             "margin":"10.7836",
+        //             "version":"1251",
+        //             "roe":"-0.003602",
+        //             "traceType":0,
+        //             "pos_id":"0",
+        //             "instrument_name":"BNB-USDT-PERPETUAL",
+        //             "average_price":"403.9",
+        //             "mark_price":"404.385",
+        //             "initial_margin":"10.77066668",
+        //             "maintenance_margin":"0.2102802",
+        //             "floating_profit_loss":"-0.0388",
+        //             "liquid_price":"549.15437158",
+        //             "margin_type":"cross",
+        //             "risk_level":"0.01772",
+        //             "available_withdraw_funds":"1.09644332",
+        //             "order_id":"251085320510201856",
+        //             "stop_loss_price":"0",
+        //             "stop_loss_type":1,
+        //             "take_profit_price":"0",
+        //             "take_profit_type":1
+        //         }]
         //     }
         //
-        const result = this.safeValue (response, 'result');
         return this.parsePositions (result);
     }
 
