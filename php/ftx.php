@@ -390,6 +390,7 @@ class ftx extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                'AMC' => 'AMC Entertainment Holdings',
                 'STARS' => 'StarLaunch',
             ),
         ));
