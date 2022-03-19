@@ -362,86 +362,55 @@ module.exports = class currencycom extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetV2ExchangeInfo (params);
-        // Note, each object's properties are different in regular (spot) instruments compared to 'LEVERAGE' instruments (comments are included along those properties)
         //
-        // {
-        //     timezone: "UTC",
-        //     serverTime: "1645186287261",
-        //     rateLimits: [
-        //       {
-        //         rateLimitType: "REQUEST_WEIGHT",
-        //         interval: "MINUTE",
-        //         intervalNum: "1",
-        //         limit: "1200",
-        //       },
-        //       {
-        //         rateLimitType: "ORDERS",
-        //         interval: "SECOND",
-        //         intervalNum: "1",
-        //         limit: "10",
-        //       },
-        //       {
-        //         rateLimitType: "ORDERS",
-        //         interval: "DAY",
-        //         intervalNum: "1",
-        //         limit: "864000",
-        //       },
-        //     ],
-        //     exchangeFilters: [
-        //     ],
-        //     symbols: [
-        //      {
-        //          symbol: "BTC/USDT",         // for LEVERAGED pairs: "BTC/USDT_LEVERAGE"
-        //          name: "Bitcoin / Tether",
-        //          status: "TRADING",          // can be: "TRADING", "BREAK", "HALT"
-        //          baseAsset: "BTC",
-        //          baseAssetPrecision: "4",
-        //          quoteAsset: "USDT",
-        //          quoteAssetId: "USDT",       // for LEVERAGED pairs: "USDT_LEVERAGE"
-        //          quotePrecision: "4",
-        //          orderTypes: [
-        //            "LIMIT",
-        //            "MARKET",
-        //            // for LEVERAGED pairs here might be "STOP" too
-        //          ],
-        //          filters: [
-        //            {
-        //              filterType: "LOT_SIZE",
-        //              minQty: "0.0001",
-        //              maxQty: "100",
-        //              stepSize: "0.0001",
-        //            },
-        //            {
-        //              filterType: "MIN_NOTIONAL",
-        //              minNotional: "5",
-        //            },
-        //          ],
-        //          marketModes: [
-        //            "REGULAR",              // can be: CLOSE_ONLY, LONG_ONLY, REGULAR
-        //          ],
-        //          marketType: "SPOT",       // for LEVERAGED pairs: "LEVERAGE"
-        //          longRate: -0.0684932,     // present in LEVERAGE pairs
-        //          shortRate: -0.0684932,    // present in LEVERAGE pairs
-        //          swapChargeInterval: 1440, // present in LEVERAGE pairs
-        //          country: "",
-        //          sector: "",
-        //          industry: "",
-        //          tradingHours: "UTC; Mon - 22:00, 22:05 -; Tue - 22:00, 22:05 -; Wed - 22:00, 22:05 -; Thu - 22:00, 22:05 -; Fri - 22:00, 23:01 -; Sat - 22:00, 22:05 -; Sun - 21:00, 22:05 -",
-        //          tickSize: "0.01",
-        //          tickValue: "403.4405",    // not present in several 'LEVERAGE' pairs (i.e. not in BTC/USDT_LEVERAGE, but in BTC/USD_LEVERAGE)
-        //          exchangeFee: "0.2",       // not present in 'LEVERAGE' pairs
-        //          tradingFee: 0.075,        // present in 'LEVERAGE' pairs
-        //          makerFee: -0.025,         // only present in a very few & major 'LEVERAGE' pairs
-        //          takerFee: 0.06,           // only present in a very few & major 'LEVERAGE' pairs
-        //          maxSLGap: 50,             // present in 'LEVERAGE' pairs
-        //          minSLGap: 1,              // present in 'LEVERAGE' pairs
-        //          maxTPGap: 50,             // present in 'LEVERAGE' pairs
-        //          minTPGap: 0.5,            // present in 'LEVERAGE' pairs
-        //          assetType: "CRYPTOCURRENCY",
-        //        },
-        //       ...
-        //   ]
-        // }
+        //     {
+        //         timezone: "UTC",
+        //         serverTime: "1645186287261",
+        //         rateLimits: [
+        //             { rateLimitType: "REQUEST_WEIGHT", interval: "MINUTE", intervalNum: "1", limit: "1200" },
+        //             { rateLimitType: "ORDERS", interval: "SECOND", intervalNum: "1", limit: "10" },
+        //             { rateLimitType: "ORDERS", interval: "DAY", intervalNum: "1", limit: "864000" },
+        //         ],
+        //         exchangeFilters: [],
+        //         symbols: [
+        //             {
+        //                 symbol: "BTC/USDT", // BTC/USDT, BTC/USDT_LEVERAGE
+        //                 name: "Bitcoin / Tether",
+        //                 status: "TRADING", // TRADING, BREAK, HALT
+        //                 baseAsset: "BTC",
+        //                 baseAssetPrecision: "4",
+        //                 quoteAsset: "USDT",
+        //                 quoteAssetId: "USDT", // USDT, USDT_LEVERAGE
+        //                 quotePrecision: "4",
+        //                 orderTypes: [ "LIMIT", "MARKET" ], // LIMIT, MARKET, STOP
+        //                 filters: [
+        //                     { filterType: "LOT_SIZE", minQty: "0.0001", maxQty: "100", stepSize: "0.0001", },
+        //                     { filterType: "MIN_NOTIONAL", minNotional: "5", },
+        //                 ],
+        //                 marketModes: [ "REGULAR" ], // CLOSE_ONLY, LONG_ONLY, REGULAR 
+        //                 marketType: "SPOT", // SPOT, LEVERAGE
+        //                 longRate: -0.0684932, // LEVERAGE only
+        //                 shortRate: -0.0684932, // LEVERAGE only
+        //                 swapChargeInterval: 1440, // LEVERAGE only
+        //                 country: "",
+        //                 sector: "",
+        //                 industry: "",
+        //                 tradingHours: "UTC; Mon - 22:00, 22:05 -; Tue - 22:00, 22:05 -; Wed - 22:00, 22:05 -; Thu - 22:00, 22:05 -; Fri - 22:00, 23:01 -; Sat - 22:00, 22:05 -; Sun - 21:00, 22:05 -",
+        //                 tickSize: "0.01",
+        //                 tickValue: "403.4405", // not available in BTC/USDT_LEVERAGE, but available in BTC/USD_LEVERAGE
+        //                 exchangeFee: "0.2", // SPOT only
+        //                 tradingFee: 0.075, // LEVERAGE only
+        //                 makerFee: -0.025, // LEVERAGE only
+        //                 takerFee: 0.06, // LEVERAGE only
+        //                 maxSLGap: 50, // LEVERAGE only
+        //                 minSLGap: 1, // LEVERAGE only
+        //                 maxTPGap: 50, // LEVERAGE only
+        //                 minTPGap: 0.5, // LEVERAGE only
+        //                 assetType: "CRYPTOCURRENCY",
+        //             },
+        //         ]
+        //     }
+        //
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }
@@ -536,8 +505,8 @@ module.exports = class currencycom extends Exchange {
                 'option': false,
                 'active': active,
                 'contract': isContract,
-                'linear': isContract ? true : undefined, // TO_DO
-                'inverse': undefined, // TO_DO
+                'linear': isContract ? true : undefined,
+                'inverse': undefined,
                 'taker': this.parseNumber (takerFee),
                 'maker': this.parseNumber (makerFee),
                 'contractSize': undefined,
