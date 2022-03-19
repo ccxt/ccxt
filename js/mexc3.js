@@ -34,10 +34,10 @@ module.exports = class mexc3 extends Exchange {
                 'createMarketOrder': undefined,
                 'createOrder': undefined,
                 'deposit': undefined,
-                'editOrder': 'emulated',
+                'editOrder': undefined,
                 'fetchAccounts': undefined,
                 'fetchBalance': undefined,
-                'fetchBidsAsks': undefined,
+                'fetchBidsAsks': true,
                 'fetchBorrowRate': undefined,
                 'fetchBorrowRateHistory': undefined,
                 'fetchBorrowRatesPerSymbol': undefined,
@@ -45,7 +45,7 @@ module.exports = class mexc3 extends Exchange {
                 'fetchCanceledOrders': undefined,
                 'fetchClosedOrder': undefined,
                 'fetchClosedOrders': undefined,
-                'fetchCurrencies': 'emulated',
+                'fetchCurrencies': undefined,
                 'fetchDeposit': undefined,
                 'fetchDepositAddress': undefined,
                 'fetchDepositAddresses': undefined,
@@ -70,7 +70,7 @@ module.exports = class mexc3 extends Exchange {
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': undefined,
                 'fetchOrder': undefined,
-                'fetchOrderBook': undefined,
+                'fetchOrderBook': true,
                 'fetchOrderBooks': undefined,
                 'fetchOrders': undefined,
                 'fetchOrderTrades': undefined,
@@ -79,10 +79,10 @@ module.exports = class mexc3 extends Exchange {
                 'fetchPositionsRisk': undefined,
                 'fetchPremiumIndexOHLCV': undefined,
                 'fetchStatus': true,
-                'fetchTicker': undefined,
-                'fetchTickers': undefined,
+                'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTime': true,
-                'fetchTrades': undefined,
+                'fetchTrades': true,
                 'fetchTradingFee': undefined,
                 'fetchTradingFees': undefined,
                 'fetchTradingLimits': undefined,
@@ -134,16 +134,16 @@ module.exports = class mexc3 extends Exchange {
                             'ticker/24hr': 1,
                             'ticker/price': 1,
                             'ticker/bookTicker': 1,
-                            'order': 1,
-                            'openOrders': 1,
-                            'allOrders': 1,
-                            'account': 1,
-                            'myTrades': 1,
                             'etf/info': 1,
                         },
                     },
                     'private': {
                         'get': {
+                            'order': 1,
+                            'openOrders': 1,
+                            'allOrders': 1,
+                            'account': 1,
+                            'myTrades': 1,
                         },
                         'post': {
                             'order': 1,
@@ -180,6 +180,21 @@ module.exports = class mexc3 extends Exchange {
                 },
                 'timeframes': {
                     'spot': {
+                        '1m': '1m',
+                        '3m': '3m',
+                        '5m': '5m',
+                        '15m': '15m',
+                        '30m': '30m',
+                        '1h': '1h',
+                        '2h': '2h',
+                        '4h': '4h',
+                        '6h': '6h',
+                        '8h': '8h',
+                        '12h': '12h',
+                        '1d': '1d',
+                        '3d': '3d',
+                        '1w': '1w',
+                        '1M': '1M',
                     },
                 },
                 'defaultType': 'spot', // spot, swap
@@ -190,6 +205,7 @@ module.exports = class mexc3 extends Exchange {
                     'ERC20': 'ERC-20',
                     'BEP20': 'BEP20(BSC)',
                 },
+                'recvWindow': 5 * 1000, // 5 sec, default
             },
             'commonCurrencies': {
                 'BEYONDPROTOCOL': 'BEYOND',
@@ -515,6 +531,188 @@ module.exports = class mexc3 extends Exchange {
             }
         }
         return id;
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const options = this.safeValue (this.options, 'timeframes', {});
+        const timeframes = this.safeValue (options, market['type'], {});
+        const request = {
+            'symbol': market['id'],
+            'interval': timeframes[timeframe],
+        };
+        let method = undefined;
+        if (market['spot']) {
+            method = 'spotPublicGetKlines';
+            if (since !== undefined) {
+                request['startTime'] = since;
+            }
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+        } else if (market['swap']) {
+            method = '';
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     [
+        //       [
+        //         1640804880000,
+        //         "47482.36",
+        //         "47482.36",
+        //         "47416.57",
+        //         "47436.1",
+        //         "3.550717",
+        //         1640804940000,
+        //         "168387.3"
+        //       ],
+        //     ]
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market = undefined) {
+        return [
+            this.safeInteger (ohlcv, 0),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 5),
+        ];
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        if (symbols !== undefined) {
+            request['symbol'] = symbols.join (',');
+        }
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'spotPublicGetTicker24hr',
+            'swap': '',
+        });
+        const response = await this[method] (this.extend (request, query));
+        //
+        // spot  (Note: for single symbol, only one object is returned, instead of array)
+        //
+        //     [
+        //       {
+        //         "symbol": "BTCUSDT",
+        //         "priceChange": "184.34",
+        //         "priceChangePercent": "0.00400048",
+        //         "prevClosePrice": "46079.37",
+        //         "lastPrice": "46263.71",
+        //         "lastQty": "",
+        //         "bidPrice": "46260.38",
+        //         "bidQty": "",
+        //         "askPrice": "46260.41",
+        //         "askQty": "",
+        //         "openPrice": "46079.37",
+        //         "highPrice": "47550.01",
+        //         "lowPrice": "45555.5",
+        //         "volume": "1732.461487",
+        //         "quoteVolume": null,
+        //         "openTime": 1641349500000,
+        //         "closeTime": 1641349582808,
+        //         "count": null
+        //       }
+        //     ]
+        //
+        return this.parseTickers (response, symbols);
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'spotPublicGetTicker24hr',
+            'swap': '',
+        });
+        const response = await this[method] (this.extend (request, query));
+        return this.parseTicker (response, market);
+    }
+
+    parseTicker (ticker, market = undefined) {
+        //
+        // spot
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "priceChange": "184.34",
+        //         "priceChangePercent": "0.00400048",
+        //         "prevClosePrice": "46079.37",
+        //         "lastPrice": "46263.71",
+        //         "lastQty": "",
+        //         "bidPrice": "46260.38",
+        //         "bidQty": "",
+        //         "askPrice": "46260.41",
+        //         "askQty": "",
+        //         "openPrice": "46079.37",
+        //         "highPrice": "47550.01",
+        //         "lowPrice": "45555.5",
+        //         "volume": "1732.461487",
+        //         "quoteVolume": null,
+        //         "openTime": 1641349500000,
+        //         "closeTime": 1641349582808,
+        //         "count": null
+        //     }
+        //
+        const marketId = this.safeString (ticker, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        const timestamp = this.safeInteger (ticker, 'closeTime');
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'open': this.safeString (ticker, 'openPrice'),
+            'high': this.safeString (ticker, 'highPrice'),
+            'low': this.safeString (ticker, 'lowPrice'),
+            'close': this.safeString (ticker, 'lastPrice'),
+            'bid': this.safeString (ticker, 'bidPrice'),
+            'bidVolume': this.safeString (ticker, 'bidQty'),
+            'ask': this.safeString (ticker, 'askPrice'),
+            'askVolume': this.safeString (ticker, 'askQty'),
+            'vwap': undefined,
+            'previousClose': this.safeString (ticker, 'prevClosePrice'),
+            'change': this.safeString (ticker, 'priceChange'),
+            'percentage': this.safeString (ticker, 'priceChangePercent'),
+            'average': undefined,
+            'baseVolume': this.safeString (ticker, 'volume'),
+            'quoteVolume': this.safeString (ticker, 'quoteVolume'),
+            'info': ticker,
+        }, market, false);
+    }
+
+    async fetchBidsAsks (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const defaultType = this.safeString2 (this.options, 'fetchBidsAsks', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        const query = this.omit (params, 'type');
+        let method = undefined;
+        if (type === 'spot') {
+            method = 'spotPublicGetTickerBookTicker';
+        } else {
+            method = '';
+        }
+        const response = await this[method] (query);
+        //
+        //     [
+        //       {
+        //         "symbol": "AEUSDT",
+        //         "bidPrice": "0.11001",
+        //         "bidQty": "115.59",
+        //         "askPrice": "0.11127",
+        //         "askQty": "215.48"
+        //       },
+        //     ]
+        //
+        return this.parseTickers (response, symbols);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
