@@ -267,6 +267,7 @@ class currencycom extends Exchange {
             ),
             'commonCurrencies' => array(
                 'ACN' => 'Accenture',
+                'AMC' => 'AMC Entertainment Holdings',
                 'BNS' => 'Bank of Nova Scotia',
                 'CAR' => 'Avis Budget Group Inc',
                 'CLR' => 'Continental Resources',
