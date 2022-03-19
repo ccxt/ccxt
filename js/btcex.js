@@ -4,7 +4,8 @@
 
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
-const { ExchangeError, NotSupported, RequestTimeout, DDoSProtection, InvalidOrder, InvalidAddress, BadRequest, InsufficientFunds, OrderNotFound, AuthenticationError, ExchangeNotAvailable } = require ('./base/errors');
+const { ExchangeError, NotSupported, RequestTimeout, DDoSProtection, InvalidOrder, InvalidAddress, BadRequest, InsufficientFunds, OrderNotFound, AuthenticationError, ExchangeNotAvailable, ArgumentsRequired } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -22,6 +23,10 @@ module.exports = class btcex extends Exchange {
             'rateLimit': 33.34,
             'certified': false,
             'pro': false,
+            'requiredCredentials': {
+                'apiKey': true,
+                'secret': true,
+            },
             'urls': {
                 'logo': '',
                 'www': 'https://www.btcex.com/',
@@ -42,7 +47,6 @@ module.exports = class btcex extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
-                'createReduceOnlyOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': true,
@@ -51,7 +55,7 @@ module.exports = class btcex extends Exchange {
                 'fetchBorrowRates': true,
                 'fetchClosedOrders': undefined,
                 'fetchCurrencies': false,
-                'fetchDepositAddress': true,
+                'fetchDepositAddress': false,
                 'fetchDeposits': true,
                 'fetchFundingFees': undefined,
                 'fetchFundingHistory': true,
@@ -77,12 +81,14 @@ module.exports = class btcex extends Exchange {
                 'fetchTime': false,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
-                'fetchTradingFees': true,
+                'fetchTradingFees': false,
+                'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'setLeverage': true,
-                'setMarginMode': false, // FTX only supports cross margin
+                'setMarginMode': false,
                 'setPositionMode': false,
+                'signIn': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -124,12 +130,40 @@ module.exports = class btcex extends Exchange {
                         'coin_gecko_contract_orderbook': 1,
                     },
                     'post': {
+                        'auth': 1,
                     },
                 },
                 'private': {
                     'get': {
+                        // wallet
+                        'get_deposit_record': 1,
+                        'get_withdraw_record': 1,
+                        // 'get_assets_info': 1,
+                        // trade
+                        'get_position': 1,
+                        'get_positions': 1,
+                        'get_open_orders_by_currency': 1,
+                        'get_open_orders_by_instrument': 1,
+                        'get_order_history_by_currency': 1,
+                        'get_order_history_by_instrument': 1,
+                        'get_order_state': 1,
+                        'get_user_trades_by_currency': 1,
+                        'get_user_trades_by_instrument': 1,
+                        'get_user_trades_by_order': 1,
                     },
                     'post': {
+                        // auth
+                        'logout': 1,
+                        // wallet
+                        'get_assets_info': 1,
+                        'add_withdraw_address': 1,
+                        // trade
+                        'buy': 1,
+                        'sell': 1,
+                        'cancel': 1,
+                        'cancel_all_by_currency': 1,
+                        'cancel_all_by_instrument': 1,
+                        'close_position': 1,
                     },
                     'delete': {
                     },
@@ -254,6 +288,12 @@ module.exports = class btcex extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'networks': {
+                    'ERC20': 'ETH',
+                    'BEP20': 'BEP20',
+                    'ETH': 'ETH',
+                    'BSC': 'BSC',
+                },
             },
             'commonCurrencies': {
             },
@@ -580,6 +620,25 @@ module.exports = class btcex extends Exchange {
         //         "trade_id":57499240
         //     }
         //
+        // fetchOrderTrades || fetchMyTrades
+        //
+        //     {
+        //         "direction":"sell",
+        //         "amount":"0.03",
+        //         "price":"397.8",
+        //         "fee":"0.011934",
+        //         "timestamp":1647668570759,
+        //         "role":"taker",
+        //         "trade_id":"58319385",
+        //         "order_id":"250979478947823616",
+        //         "instrument_name":"BNB-USDT-SPOT",
+        //         "order_type":"market",
+        //         "fee_use_coupon":false,
+        //         "fee_coin_type":"USDT",
+        //         "index_price":"",
+        //         "self_trade":false
+        //     }
+        //
         const id = this.safeString (trade, 'trade_id');
         const marketId = this.safeString (trade, 'instrument_name');
         const symbol = this.safeSymbol (marketId, market);
@@ -658,12 +717,977 @@ module.exports = class btcex extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
+    codeFromOptions (methodName, params = {}) {
+        const defaultCode = this.safeValue (this.options, 'code', 'BTC');
+        const options = this.safeValue (this.options, methodName, {});
+        const code = this.safeValue (options, 'code', defaultCode);
+        return this.safeValue (params, 'code', code);
+    }
+
+    async signIn (params = {}) {
+        this.checkRequiredCredentials ();
+        const request = {
+            'grant_type': 'client_credentials', // client_signature || refresh_token
+            'client_id': this.apiKey,
+            'client_secret': this.secret,
+            // 'refresh_token': '', // Required for grant type refresh_token
+            // 'signature': '', // Required for grant type client_signature
+        };
+        const response = await this.publicPostAuth (this.extend (request, params));
+        const result = this.safeString (response, 'result');
+        //
+        //     {
+        //         jsonrpc: '2.0',
+        //         usIn: '1647601525586',
+        //         usOut: '1647601525597',
+        //         usDiff: '11',
+        //         result: {
+        //         access_token: '',
+        //         token_type: 'bearer',
+        //         refresh_token: '',
+        //         expires_in: '604799',
+        //         scope: 'account:read_write block_trade:read_write trade:read_write wallet:read_write'
+        //         }
+        //     }
+        //
+        const sessionToken = this.safeString (result, 'access_token');
+        if (sessionToken !== undefined) {
+            this.options['sessionToken'] = sessionToken;
+            return result;
+        }
+        return response;
+    }
+
+    parseBalance (response) {
+        //
+        //     [
+        //         {
+        //             "assetId":"2a34d6a6-5839-40e5-836f-c1178fa09b89",
+        //             "available":0.1,
+        //             "reserved":0.0,
+        //             "timestamp":1644146723620
+        //         }
+        //     ]
+        //
+        const result = { 'info': response };
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
+            const currencyId = this.safeString (balance, 'assetId');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            const free = this.safeString (balance, 'available');
+            const used = this.safeString (balance, 'reserved');
+            account['free'] = free;
+            account['used'] = used;
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        let assetType = this.safeValue (params, 'asset_type');
+        if (assetType === undefined) {
+            assetType = [ 'ALL' ];
+        }
+        const request = {
+            'asset_type': assetType,
+            // 'coin_type': 'BNB',
+            // 'coin_type': ['SPOT'],
+        };
+        const response = await this.privatePostGetAssetsInfo (this.extend (request, params));
+        // const response = await this.privateGetGetAssetsInfo (this.extend (request, params));
+        const payload = this.safeValue (response, 'payload', []);
+        //
+        //     {
+        //         "payload":[
+        //             {
+        //                 "assetId":"2a34d6a6-5839-40e5-836f-c1178fa09b89",
+        //                 "available":0.1,
+        //                 "reserved":0.0,
+        //                 "timestamp":1644146723620
+        //             }
+        //         ],
+        //         "error":null
+        //     }
+        //
+        return this.parseBalance (payload);
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'open': 'open',
+            'cancelled': 'canceled',
+            'filled': 'closed',
+            'rejected': 'rejected',
+            'untriggered': 'open',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTimeInForce (timeInForce) {
+        const timeInForces = {
+            'good_til_cancelled': 'GTC',
+            'fill_or_kill': 'FOK',
+            'immediate_or_cancel': 'IOC',
+        };
+        return this.safeString (timeInForces, timeInForce, timeInForce);
+    }
+
+    parseOrder (order, market = undefined) {
+        //
+        // fetchOrder || fetchOpenOrders || fetchClosedOrders
+        //         {
+        //             "kind":"spot",
+        //             "direction":"sell",
+        //             "amount":"0.02",
+        //             "price":"900",
+        //             "advanced":"usdt",
+        //             "source":"api",
+        //             "mmp":false,
+        //             "version":1,
+        //             "order_id":"250971492850401280",
+        //             "order_state":"open",
+        //             "instrument_name":"BNB-USDT-SPOT",
+        //             "filled_amount":"0",
+        //             "average_price":"0",
+        //             "order_type":"limit",
+        //             "time_in_force":"GTC",
+        //             "post_only":false,
+        //             "reduce_only":false,
+        //             "creation_timestamp":1647666666723,
+        //             "last_update_timestamp":1647666666725
+        //         }
+        //
+        const timestamp = this.safeInteger (order, 'creation_timestamp');
+        const lastUpdate = this.safeInteger (order, 'last_update_timestamp');
+        const id = this.safeString (order, 'order_id');
+        const priceString = this.safeString (order, 'price');
+        const averageString = this.safeString (order, 'average_price');
+        const amountString = this.safeString (order, 'amount');
+        const filledString = this.safeString (order, 'filled_amount');
+        let lastTradeTimestamp = undefined;
+        if (filledString !== undefined) {
+            const isFilledPositive = Precise.stringGt (filledString, '0');
+            if (isFilledPositive) {
+                lastTradeTimestamp = lastUpdate;
+            }
+        }
+        const status = this.parseOrderStatus (this.safeString (order, 'order_state'));
+        const marketId = this.safeString (order, 'instrument_name');
+        market = this.safeMarket (marketId, market);
+        const side = this.safeStringLower (order, 'direction');
+        let feeCostString = this.safeString (order, 'commission');
+        let fee = undefined;
+        if (feeCostString !== undefined) {
+            feeCostString = Precise.stringAbs (feeCostString);
+            fee = {
+                'cost': feeCostString,
+                'currency': market['base'],
+            };
+        }
+        const type = this.safeString (order, 'order_type');
+        // injected in createOrder
+        let trades = this.safeValue (order, 'trades');
+        if (trades !== undefined) {
+            trades = this.parseTrades (trades, market);
+        }
+        const timeInForce = this.parseTimeInForce (this.safeString (order, 'time_in_force'));
+        const stopPrice = this.safeValue (order, 'trigger_price');
+        const postOnly = this.safeValue (order, 'post_only');
+        return this.safeOrder ({
+            'info': order,
+            'id': id,
+            'clientOrderId': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'symbol': market['symbol'],
+            'type': type,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
+            'side': side,
+            'price': priceString,
+            'stopPrice': stopPrice,
+            'amount': amountString,
+            'cost': undefined,
+            'average': averageString,
+            'filled': filledString,
+            'remaining': undefined,
+            'status': status,
+            'fee': fee,
+            'trades': trades,
+        }, market);
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'order_id': id,
+        };
+        const response = await this.privateGetGetOrderState (this.extend (request, params));
+        //
+        //     {
+        //         "jsonrpc":"2.0",
+        //         "usIn":1647672034018,
+        //         "usOut":1647672034033,
+        //         "usDiff":15,
+        //         "result":{
+        //             "currency":"SPOT",
+        //             "kind":"spot",
+        //             "direction":"sell",
+        //             "amount":"0.03",
+        //             "price":"-1",
+        //             "advanced":"usdt",
+        //             "source":"api",
+        //             "mmp":false,
+        //             "version":1,
+        //             "order_id":"250979478947823616",
+        //             "order_state":"filled",
+        //             "instrument_name":"BNB-USDT-SPOT",
+        //             "filled_amount":"0.03",
+        //             "average_price":"397.8",
+        //             "order_type":"market",
+        //             "time_in_force":"GTC",
+        //             "post_only":false,
+        //             "reduce_only":false,
+        //             "creation_timestamp":1647668570759,
+        //             "last_update_timestamp":1647668570761
+        //         }
+        //     }
+        //
+        const result = this.safeValue (response, 'result');
+        return this.parseOrder (result);
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'instrument_name': market['id'],
+            // for perpetual and futures the amount is in USD
+            // for options it is in corresponding cryptocurrency contracts, e.g., BTC or ETH
+            'amount': this.amountToPrecision (symbol, amount),
+            'type': type, // limit, market, default is limit
+            // 'price': this.priceToPrecision (symbol, 123.45), // The order price for limit order. When adding options order with advanced=iv, the field price should be a value of implied volatility in percentages. For example, price=100, means implied volatility of 100%
+            // 'time_in_force' : 'good_til_cancelled', // good_til_cancelled, good_til_date, fill_or_kill, immediate_or_cancel Specifies how long the order remains in effect, default: good_til_cancelled
+            // 'post_only': false, // If true, the order is considered post-only, default: false
+            // 'reduce_only': false, // If true, the order is considered reduce-only which is intended to only reduce a current position. default: false
+            // 'condition_type': '', // NORMAL, STOP, TRAILING, IF_TOUCHED, Condition sheet policy, the default is NORMAL. Available when kind is future
+            // 'trigger_price': 'index_price', // trigger price. Available when condition_type is STOP or IF_TOUCHED
+            // 'trail_price': false, // trail price, Tracking price change Delta. Available when condition_type is TRAILING
+            // 'advanced': 'usd', // Advanced option order type, (Only for options), default: usdt. If set to iv，then the price field means iv value
+        };
+        const conditionType = this.safeStringLower (params, 'condition_type');
+        if (type === 'limit') {
+            if (price !== undefined) {
+                request['price'] = this.priceToPrecision (symbol, price);
+            } else {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a ' + type + ' order');
+            }
+        }
+        if (conditionType === 'stop' || conditionType === 'if_touched') {
+            const triggerPrice = this.safeNumber (params, 'trigger_price');
+            if (triggerPrice === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a trigger_price param for a ' + conditionType + ' order');
+            } else {
+                request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
+            }
+            params = this.omit (params, [ 'trigger_price', 'triggerPrice' ]);
+        }
+        if (conditionType === 'trailing') {
+            const trailPrice = this.safeNumber (params, 'trail_price');
+            if (trailPrice === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a trail_price param for a ' + conditionType + ' order');
+            } else {
+                request['trail_price'] = this.priceToPrecision (symbol, trailPrice);
+            }
+            params = this.omit (params, [ 'trail_price', 'trailPrice' ]);
+        }
+        const method = 'privatePost' + this.capitalize (side);
+        const response = await this[method] (this.extend (request, params));
+        //
+        //
+        const result = this.safeValue (response, 'result', {});
+        const order = this.safeValue (result, 'order');
+        const trades = this.safeValue (result, 'trades', []);
+        order['trades'] = trades;
+        return this.parseOrder (order, market);
+    }
+
+    async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        if (amount === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder() requires an amount argument');
+        }
+        if (price === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder() requires a price argument');
+        }
+        await this.loadMarkets ();
+        const request = {
+            'order_id': id,
+            // for perpetual and futures the amount is in USD
+            // for options it is in corresponding cryptocurrency contracts, e.g., BTC or ETH
+            'amount': this.amountToPrecision (symbol, amount),
+            'price': this.priceToPrecision (symbol, price), // required
+            // 'post_only': false, // if the new price would cause the order to be filled immediately (as taker), the price will be changed to be just below the spread.
+            // 'reject_post_only': false, // if true the order is put to order book unmodified or request is rejected
+            // 'reduce_only': false, // if true, the order is intended to only reduce a current position
+            // 'stop_price': false, // stop price, required for stop_limit orders
+            // 'advanced': 'usd', // 'implv', advanced option order type, options only
+        };
+        const response = await this.privateGetEdit (this.extend (request, params));
+        const result = this.safeValue (response, 'result', {});
+        const order = this.safeValue (result, 'order');
+        const trades = this.safeValue (result, 'trades', []);
+        order['trades'] = trades;
+        return this.parseOrder (order);
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'order_id': id,
+        };
+        const response = await this.privateGetCancel (this.extend (request, params));
+        const result = this.safeValue (response, 'result', {});
+        return this.parseOrder (result);
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let method = undefined;
+        if (symbol === undefined) {
+            method = 'privateGetCancelAll';
+        } else {
+            method = 'privateGetCancelAllByInstrument';
+            const market = this.market (symbol);
+            request['instrument_name'] = market['id'];
+        }
+        const response = await this[method] (this.extend (request, params));
+        return response;
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // 'kind': '', // The order kind, eg. margin, spot, option, future, perpetual. only used when call privateGetGetOpenOrdersByCurrency
+            // 'type': '', // limit, market The order type
+        };
+        let market = undefined;
+        let method = undefined;
+        if (symbol === undefined) {
+            const code = this.codeFromOptions ('fetchOpenOrders', params);
+            const currency = this.currency (code);
+            request['currency'] = currency['id'];
+            method = 'privateGetGetOpenOrdersByCurrency';
+        } else {
+            market = this.market (symbol);
+            request['instrument_name'] = market['id'];
+            method = 'privateGetGetOpenOrdersByInstrument';
+        }
+        const response = await this[method] (this.extend (request, params));
+        const result = this.safeValue (response, 'result', []);
+        //
+        //     {
+        //         "jsonrpc":"2.0",
+        //         "usIn":1647667026285,
+        //         "usOut":1647667026291,
+        //         "usDiff":6,
+        //         "result":[{
+        //             "kind":"spot",
+        //             "direction":"sell",
+        //             "amount":"0.02",
+        //             "price":"900",
+        //             "advanced":"usdt",
+        //             "source":"api",
+        //             "mmp":false,
+        //             "version":1,
+        //             "order_id":"250971492850401280",
+        //             "order_state":"open",
+        //             "instrument_name":"BNB-USDT-SPOT",
+        //             "filled_amount":"0",
+        //             "average_price":"0",
+        //             "order_type":"limit",
+        //             "time_in_force":"GTC",
+        //             "post_only":false,
+        //             "reduce_only":false,
+        //             "creation_timestamp":1647666666723,
+        //             "last_update_timestamp":1647666666725
+        //         }]
+        //     }
+        //
+        return this.parseOrders (result, market, since, limit);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // 'kind': '', // The order kind, eg. margin, spot, option, future, perpetual. only used when call privateGetGetOrderHistoryByCurrency
+            // 'offset': 0, // The default is 0. For example, if you query the second page and the quantity is 100, set offset = 100 and count = 100
+        };
+        let market = undefined;
+        let method = undefined;
+        if (symbol === undefined) {
+            const code = this.codeFromOptions ('fetchClosedOrders', params);
+            const currency = this.currency (code);
+            request['currency'] = currency['id'];
+            method = 'privateGetGetOrderHistoryByCurrency';
+        } else {
+            market = this.market (symbol);
+            request['instrument_name'] = market['id'];
+            method = 'privateGetGetOrderHistoryByInstrument';
+        }
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
+        const response = await this[method] (this.extend (request, params));
+        const result = this.safeValue (response, 'result', []);
+        //
+        //     {
+        //         "jsonrpc":"2.0",
+        //         "usIn":1647671721716,
+        //         "usOut":1647671721730,
+        //         "usDiff":14,
+        //         "result":[{
+        //             "currency":"SPOT",
+        //             "kind":"spot",
+        //             "direction":"sell",
+        //             "amount":"0.03",
+        //             "price":"-1",
+        //             "advanced":"usdt",
+        //             "source":"api",
+        //             "mmp":false,
+        //             "version":1,
+        //             "order_id":"250979478947823616",
+        //             "order_state":"filled",
+        //             "instrument_name":"BNB-USDT-SPOT",
+        //             "filled_amount":"0.03",
+        //             "average_price":"397.8",
+        //             "order_type":"market",
+        //             "time_in_force":"GTC",
+        //             "post_only":false,
+        //             "reduce_only":false,
+        //             "creation_timestamp":1647668570759,
+        //             "last_update_timestamp":1647668570761
+        //         }]
+        //     }
+        //
+        return this.parseOrders (result, market, since, limit);
+    }
+
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (id === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrderTrades() requires a id argument');
+        }
+        await this.loadMarkets ();
+        const request = {
+            'order_id': id,
+            // 'start_id': 0, // The ID number of the first trade to be returned
+            // 'end_id': 0, // The ID number of the last trade to be returned
+            // 'sorting': '', // Direction of results sorting,default: desc
+        };
+        if (limit !== undefined) {
+            request['count'] = limit; // default 20
+        }
+        const response = await this.privateGetGetUserTradesByOrder (this.extend (request, params));
+        const result = this.safeValue (response, 'result', {});
+        //
+        //     {
+        //         "jsonrpc":"2.0",
+        //         "usIn":1647671425457,
+        //         "usOut":1647671425470,
+        //         "usDiff":13,
+        //         "result":{
+        //             "count":1,
+        //             "trades":[{
+        //                 "direction":"sell",
+        //                 "amount":"0.03",
+        //                 "price":"397.8",
+        //                 "fee":"0.011934",
+        //                 "timestamp":1647668570759,
+        //                 "role":"taker",
+        //                 "trade_id":"58319385",
+        //                 "order_id":"250979478947823616",
+        //                 "instrument_name":"BNB-USDT-SPOT",
+        //                 "order_type":"market",
+        //                 "fee_use_coupon":false,
+        //                 "fee_coin_type":"USDT",
+        //                 "index_price":"",
+        //                 "self_trade":false
+        //             }],
+        //             "has_more":false
+        //         }
+        //     }
+        //
+        const trades = this.safeValue (result, 'trades', []);
+        return this.parseTrades (trades, undefined, since, limit);
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // 'kind': '', // The order kind, eg. margin, spot, option, future, perpetual. only used when call privateGetGetUserTradesByCurrency
+            // 'start_id': 0, // The ID number of the first trade to be returned
+            // 'end_id': 0, // The ID number of the last trade to be returned
+            // 'sorting': '', // Direction of results sorting,default: desc
+            // 'self_trade': false, // If not set, query all
+        };
+        let market = undefined;
+        let method = undefined;
+        if (symbol === undefined) {
+            const code = this.codeFromOptions ('fetchMyTrades', params);
+            const currency = this.currency (code);
+            request['currency'] = currency['id'];
+            if (since === undefined) {
+                method = 'privateGetGetUserTradesByCurrency';
+            } else {
+                method = 'privateGetGetUserTradesByCurrencyAndTime';
+            }
+        } else {
+            market = this.market (symbol);
+            request['instrument_name'] = market['id'];
+            if (since === undefined) {
+                method = 'privateGetGetUserTradesByInstrument';
+            } else {
+                method = 'privateGetGetUserTradesByInstrumentAndTime';
+            }
+        }
+        if (limit !== undefined) {
+            request['count'] = limit; // default 20
+        }
+        const response = await this[method] (this.extend (request, params));
+        const result = this.safeValue (response, 'result', {});
+        //
+        //     {
+        //         "jsonrpc":"2.0",
+        //         "usIn":1647668582167,
+        //         "usOut":1647668582187,
+        //         "usDiff":20,
+        //         "result":{
+        //             "count":1,
+        //             "trades":[{
+        //                 "direction":"sell",
+        //                 "amount":"0.03",
+        //                 "price":"397.8",
+        //                 "fee":"0.011934",
+        //                 "timestamp":1647668570759,
+        //                 "role":"taker",
+        //                 "trade_id":"58319385",
+        //                 "order_id":"250979478947823616",
+        //                 "instrument_name":"BNB-USDT-SPOT",
+        //                 "order_type":"market",
+        //                 "fee_use_coupon":false,
+        //                 "fee_coin_type":"USDT",
+        //                 "index_price":"",
+        //                 "self_trade":false
+        //             }],
+        //             "has_more":false
+        //         }
+        //     }
+        //
+        const trades = this.safeValue (result, 'trades', []);
+        return this.parseTrades (trades, market, since, limit);
+    }
+
+    parsePosition (position, market = undefined) {
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 404,
+        //         "result": {
+        //             "average_price": 0,
+        //             "delta": 0,
+        //             "direction": "buy",
+        //             "estimated_liquidation_price": 0,
+        //             "floating_profit_loss": 0,
+        //             "index_price": 3555.86,
+        //             "initial_margin": 0,
+        //             "instrument_name": "BTC-PERPETUAL",
+        //             "leverage": 100,
+        //             "kind": "future",
+        //             "maintenance_margin": 0,
+        //             "mark_price": 3556.62,
+        //             "open_orders_margin": 0.000165889,
+        //             "realized_profit_loss": 0,
+        //             "settlement_price": 3555.44,
+        //             "size": 0,
+        //             "size_currency": 0,
+        //             "total_profit_loss": 0
+        //         }
+        //     }
+        //
+        const contract = this.safeString (position, 'instrument_name');
+        market = this.safeMarket (contract, market);
+        const size = this.safeString (position, 'size');
+        let side = this.safeString (position, 'direction');
+        side = (side === 'buy') ? 'long' : 'short';
+        const maintenanceRate = this.safeString (position, 'maintenance_margin');
+        const markPrice = this.safeString (position, 'mark_price');
+        const notionalString = Precise.stringMul (markPrice, size);
+        const unrealisedPnl = this.safeString (position, 'floating_profit_loss');
+        const initialMarginString = this.safeString (position, 'initial_margin');
+        const percentage = Precise.stringMul (Precise.stringDiv (unrealisedPnl, initialMarginString), '100');
+        const currentTime = this.milliseconds ();
+        return {
+            'info': position,
+            'symbol': this.safeString (market, 'symbol'),
+            'timestamp': currentTime,
+            'datetime': this.iso8601 (currentTime),
+            'initialMargin': this.parseNumber (initialMarginString),
+            'initialMarginPercentage': this.parseNumber (Precise.stringDiv (initialMarginString, notionalString)),
+            'maintenanceMargin': this.parseNumber (Precise.stringMul (maintenanceRate, notionalString)),
+            'maintenanceMarginPercentage': this.parseNumber (maintenanceRate),
+            'entryPrice': this.safeString (position, 'average_price'),
+            'notional': this.parseNumber (notionalString),
+            'leverage': this.safeNumber (position, 'leverage'),
+            'unrealizedPnl': this.parseNumber (unrealisedPnl),
+            'contracts': this.parseNumber (size),  // in USD for perpetuals on deribit
+            'contractSize': this.safeValue (market, 'contractSize'),
+            'marginRatio': undefined,
+            'liquidationPrice': this.safeNumber (position, 'estimated_liquidation_price'),
+            'markPrice': markPrice,
+            'collateral': undefined,
+            'marginType': undefined,
+            'side': side,
+            'percentage': this.parseNumber (percentage),
+        };
+    }
+
+    async fetchPosition (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'instrument_name': market['id'],
+        };
+        const response = await this.privateGetGetPosition (this.extend (request, params));
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 404,
+        //         "result": {
+        //             "average_price": 0,
+        //             "delta": 0,
+        //             "direction": "buy",
+        //             "estimated_liquidation_price": 0,
+        //             "floating_profit_loss": 0,
+        //             "index_price": 3555.86,
+        //             "initial_margin": 0,
+        //             "instrument_name": "BTC-PERPETUAL",
+        //             "leverage": 100,
+        //             "kind": "future",
+        //             "maintenance_margin": 0,
+        //             "mark_price": 3556.62,
+        //             "open_orders_margin": 0.000165889,
+        //             "realized_profit_loss": 0,
+        //             "settlement_price": 3555.44,
+        //             "size": 0,
+        //             "size_currency": 0,
+        //             "total_profit_loss": 0
+        //         }
+        //     }
+        //
+        const result = this.safeValue (response, 'result');
+        return this.parsePosition (result);
+    }
+
+    parsePositions (positions) {
+        const result = [];
+        for (let i = 0; i < positions.length; i++) {
+            result.push (this.parsePosition (positions[i]));
+        }
+        return result;
+    }
+
+    async fetchPositions (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        let code = undefined;
+        if (symbols === undefined) {
+            code = this.codeFromOptions ('fetchPositions', params);
+        } else if (typeof symbols === 'string') {
+            code = symbols;
+        } else {
+            if (Array.isArray (symbols)) {
+                const length = symbols.length;
+                if (length !== 1) {
+                    throw new BadRequest (this.id + ' fetchPositions symbols argument cannot contain more than 1 symbol');
+                }
+                const market = this.market (symbols[0]);
+                code = market['base'];
+            }
+        }
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+            // "kind" : "future", "option"
+        };
+        const response = await this.privateGetGetPositions (this.extend (request, params));
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 2236,
+        //         "result": [
+        //             {
+        //                 "average_price": 7440.18,
+        //                 "delta": 0.006687487,
+        //                 "direction": "buy",
+        //                 "estimated_liquidation_price": 1.74,
+        //                 "floating_profit_loss": 0,
+        //                 "index_price": 7466.79,
+        //                 "initial_margin": 0.000197283,
+        //                 "instrument_name": "BTC-PERPETUAL",
+        //                 "kind": "future",
+        //                 "leverage": 34,
+        //                 "maintenance_margin": 0.000143783,
+        //                 "mark_price": 7476.65,
+        //                 "open_orders_margin": 0.000197288,
+        //                 "realized_funding": -1e-8,
+        //                 "realized_profit_loss": -9e-9,
+        //                 "settlement_price": 7476.65,
+        //                 "size": 50,
+        //                 "size_currency": 0.006687487,
+        //                 "total_profit_loss": 0.000032781
+        //             },
+        //         ]
+        //     }
+        //
+        const result = this.safeValue (response, 'result');
+        return this.parsePositions (result);
+    }
+
+    async fetchHistoricalVolatility (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.publicGetGetHistoricalVolatility (this.extend (request, params));
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "result": [
+        //             [1640142000000,63.828320460740585],
+        //             [1640142000000,63.828320460740585],
+        //             [1640145600000,64.03821964123213]
+        //         ],
+        //         "usIn": 1641515379467734,
+        //         "usOut": 1641515379468095,
+        //         "usDiff": 361,
+        //         "testnet": false
+        //     }
+        //
+        const volatilityResult = this.safeValue (response, 'result', {});
+        const result = [];
+        for (let i = 0; i < volatilityResult.length; i++) {
+            const timestamp = this.safeInteger (volatilityResult[i], 0);
+            const volatility = this.safeNumber (volatilityResult[i], 1);
+            result.push ({
+                'info': response,
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'volatility': volatility,
+            });
+        }
+        return result;
+    }
+
+    parseTransactionStatus (status) {
+        const states = {
+            'deposit_confirmed': 'ok',
+            'deposit_waiting_confirm': 'pending',
+            'withdraw_init': 'pending',
+            'withdraw_noticed_block_chain': 'pending',
+            'withdraw_waiting_confirm': 'pending',
+            'withdraw_confirmed': 'ok',
+            'withdraw_faild': 'failed',
+            'withdraw_auditing': 'pending',
+            'withdraw_audit_reject': 'failed',
+        };
+        return this.safeString (states, status, status);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // fetchDeposits
+        //             {
+        //                 "id":"250325458128736256",
+        //                 "amount":"0.04",
+        //                 "state":"deposit_confirmed",
+        //                 "coin_type":"BNB",
+        //                 "token_code":"BNB",
+        //                 "create_time":"1647512640040",
+        //                 "update_time":"1647512640053",
+        //                 "tx_hash":"",
+        //                 "full_name":"Binance Coin"
+        //             }
+        //
+        // fetchWithdrawals || fetchWithdraw || withdraw
+        //
+        const currencyId = this.safeString (transaction, 'coin_type');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const id = this.safeString (transaction, 'id');
+        const txId = this.safeString (transaction, 'tx_hash');
+        const timestamp = this.safeInteger (transaction, 'create_time');
+        const amount = this.safeNumber (transaction, 'amount');
+        const status = this.safeString (transaction, 'state');
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': txId,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'network': undefined,
+            'addressFrom': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'type': undefined,
+            'amount': amount,
+            'currency': code,
+            'status': this.parseTransactionStatus (status),
+            'updated': undefined,
+            'fee': {
+                'currency': code,
+                'cost': undefined,
+                'rate': undefined,
+            },
+        };
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires the code argument');
+        }
+        await this.loadMarkets ();
+        const currency = this.safeCurrency (code);
+        const request = {
+            'coin_type': currency['id'],
+        };
+        const response = await this.privateGetGetDepositRecord (this.extend (request, params));
+        const result = this.safeValue (response, 'result', []);
+        //
+        //     {
+        //         "jsonrpc":"2.0",
+        //         "usIn":1647606752447,
+        //         "usOut":1647606752457,
+        //         "usDiff":10,
+        //         "result":[{
+        //             "id":"250325458128736256",
+        //             "amount":"0.04",
+        //             "state":"deposit_confirmed",
+        //             "coin_type":"BNB",
+        //             "token_code":"BNB",
+        //             "create_time":"1647512640040",
+        //             "update_time":"1647512640053",
+        //             "tx_hash":"",
+        //             "full_name":"Binance Coin"
+        //         }]
+        //     }
+        //     }
+        //
+        return this.parseTransactions (result, currency, since, limit, { 'type': 'deposit' });
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires the code argument');
+        }
+        await this.loadMarkets ();
+        const currency = this.safeCurrency (code);
+        const request = {
+            'coin_type': currency['id'],
+            // 'withdraw_id': 0,
+        };
+        const response = await this.privateGetGetWithdrawRecord (this.extend (request, params));
+        const result = this.safeValue (response, 'result', []);
+        //
+        //
+        return this.parseTransactions (result, currency, since, limit, { 'type': 'withdrawal' });
+    }
+
+    async fetchWithdrawal (id, code = undefined, params = {}) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchWithdrawal() requires the code argument');
+        }
+        await this.loadMarkets ();
+        const currency = this.safeCurrency (code);
+        const request = {
+            'coin_type': currency['id'],
+            'withdraw_id': id,
+        };
+        const response = await this.privateGetGetWithdrawRecord (this.extend (request, params));
+        const result = this.safeValue (response, 'result', {});
+        //
+        //
+        return this.parseTransaction (result, currency);
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        await this.loadMarkets ();
+        this.checkAddress (address);
+        const currency = this.currency (code);
+        const request = {
+            'coin_type': currency['id'],
+            'amount': this.numberToString (amount),
+            'address': address,
+            // 'tfa': 0, // 2FA code
+        };
+        if ('network' in params) {
+            const networks = this.safeValue (this.options, 'networks', {});
+            const requestedNetwork = this.safeStringUpper (params, 'network');
+            params = this.omit (params, [ 'network' ]);
+            const networkId = this.safeString (networks, requestedNetwork);
+            if (networkId === undefined) {
+                throw new ExchangeError (this.id + ' invalid network ' + requestedNetwork);
+            }
+            request['main_chain'] = networkId;
+        }
+        if (tag !== undefined) {
+            request['memo'] = tag;
+        }
+        const response = await this.privatePostAddWithdrawAddress (this.extend (request, params));
+        const result = this.safeValue (response, 'data', {});
+        //
+        //
+        return this.parseTransaction (result, currency);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + 'api/' + this.version + '/' + api + '/' + path;
         if (api === 'public') {
             if (Object.keys (params).length) {
                 request += '?' + this.urlencode (params);
             }
+        }
+        if (api === 'private') {
+            this.checkRequiredCredentials ();
+            if (method === 'GET') {
+                if (Object.keys (params).length) {
+                    request += '?' + this.urlencode (params);
+                }
+            }
+            const sessionToken = this.safeString (this.options, 'sessionToken');
+            if (sessionToken === undefined) {
+                throw new AuthenticationError (this.id + ' sign() requires session token');
+            }
+            // headers['Authorization'] = 'Bearer ' + this.apiKey;
+            if (method === 'POST') {
+                if (Object.keys (params).length) {
+                    const rpcPayload = {
+                        'jsonrpc': '2.0',
+                        'id': this.nonce (),
+                        'method': '/' + api + '/' + path,
+                        'params': params,
+                    };
+                    body = this.json (rpcPayload);
+                }
+            }
+            headers = {
+                'Authorization': 'bearer ' + sessionToken,
+            };
         }
         const url = this.urls['api'] + request;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
