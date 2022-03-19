@@ -13,11 +13,12 @@ module.exports = class ascendex extends ccxt.ascendex {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                'watchOrderBook': true,
-                'watchOHLCV': true,
-                'watchOrders': true,
-                'watchTrades': true,
                 'watchBalance': true,
+                'watchOHLCV': true,
+                'watchOrderBook': true,
+                'watchOrders': true,
+                'watchTicker': false,
+                'watchTrades': true,
             },
             'urls': {
                 'api': {
@@ -169,8 +170,11 @@ module.exports = class ascendex extends ccxt.ascendex {
         const symbol = this.safeString (subscription, 'symbol');
         const messageHash = this.safeString (subscription, 'messageHash');
         const market = this.market (symbol);
-        const data = this.safeValue (message, 'data', []);
-        const trades = this.parseTrades (data, market);
+        let rawData = this.safeValue (message, 'data');
+        if (rawData === undefined) {
+            rawData = [];
+        }
+        const trades = this.parseTrades (rawData, market);
         let array = this.safeValue (this.trades, symbol);
         if (array === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
