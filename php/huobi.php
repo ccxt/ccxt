@@ -56,8 +56,30 @@ class huobi extends \ccxt\async\huobi {
                         ),
                         // these settings work faster for clients hosted on AWS
                         'api-aws' => array(
-                            'public' => 'wss://api-aws.huobi.pro/ws',
-                            'private' => 'wss://api-aws.huobi.pro/ws/v2',
+                            'spot' => array(
+                                'public' => 'wss://api-aws.huobi.pro/ws',
+                                'private' => 'wss://api-aws.huobi.pro/ws/v2',
+                            ),
+                            'future' => array(
+                                'linear' => array(
+                                    'public' => 'wss://api.hbdm.vn/linear-swap-ws',
+                                    'private' => 'wss://api.hbdm.vn/linear-swap-notification',
+                                ),
+                                'inverse' => array(
+                                    'public' => 'wss://api.hbdm.vn/ws',
+                                    'private' => 'wss://api.hbdm.vn/notification',
+                                ),
+                            ),
+                            'swap' => array(
+                                'inverse' => array(
+                                    'public' => 'wss://api.hbdm.vn/swap-ws',
+                                    'private' => 'wss://api.hbdm.vn/swap-notification',
+                                ),
+                                'linear' => array(
+                                    'public' => 'wss://api.hbdm.vn/linear-swap-ws',
+                                    'private' => 'wss://api.hbdm.vn/linear-swap-notification',
+                                ),
+                            ),
                         ),
                     ),
                 ),
