@@ -101,6 +101,21 @@ module.exports = class mexc3 extends Exchange {
                 'withdraw': undefined,
             },
             'timeframes': {
+                '1m': '1m',
+                '3m': '3m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '2h': '2h',
+                '4h': '4h',
+                '6h': '6h',
+                '8h': '8h',
+                '12h': '12h',
+                '1d': '1d',
+                '3d': '3d',
+                '1w': '1w',
+                '1M': '1M',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/137283979-8b2a818d-8633-461b-bfca-de89e8c446b2.jpg',
@@ -435,9 +450,9 @@ module.exports = class mexc3 extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        if (since !== undefined) {
-            // request['startTime'] = since; bug in api, waiting for fix
-        }
+        // if (since !== undefined) {
+        //     request['startTime'] = since; bug in api, waiting for fix
+        // }
         let method = undefined;
         if (market['spot']) {
             method = this.safeString (params, 'method', 'spotPublicGetAggTrades'); // AggTrades, HistoricalTrades, Trades
@@ -1073,7 +1088,7 @@ module.exports = class mexc3 extends Exchange {
             'stopPrice': this.safeNumber (order, 'stopPrice'),
             'average': undefined,
             'amount': this.safeNumber (order, 'origQty'),
-            'cost': this.safeNumber (order, 'origQuoteOrderQty'),  // 'cummulativeQuoteQty' vs 'origQuoteOrderQty' probably refers pre-update state
+            'cost': this.safeNumber (order, 'cummulativeQuoteQty'),  // 'cummulativeQuoteQty' vs 'origQuoteOrderQty'
             'filled': this.safeNumber (order, 'executedQty'),
             'remaining': undefined,
             'fee': undefined,
