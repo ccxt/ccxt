@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { BadRequest, ExchangeError } = require ('./base/errors');
+const { BadRequest, ExchangeError, ArgumentsRequired } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -27,12 +27,12 @@ module.exports = class mexc3 extends Exchange {
                 'option': undefined,
                 'addMargin': undefined,
                 'cancelAllOrders': undefined,
-                'cancelOrder': undefined,
+                'cancelOrder': true,
                 'cancelOrders': undefined,
                 'createDepositAddress': undefined,
                 'createLimitOrder': undefined,
                 'createMarketOrder': undefined,
-                'createOrder': undefined,
+                'createOrder': true,
                 'deposit': undefined,
                 'editOrder': undefined,
                 'fetchAccounts': undefined,
@@ -727,12 +727,7 @@ module.exports = class mexc3 extends Exchange {
 
     async createSpotOrder (market, type, side, amount, price = undefined, params = {}) {
         const symbol = market['symbol'];
-        let orderSide = undefined;
-        if (side === 'buy') {
-            orderSide = 'BUY';
-        } else if (side === 'sell') {
-            orderSide = 'SELL';
-        }
+        const orderSide = (side === 'buy') ? 'BUY' : 'SELL';
         // TODO: needs postOnly handing here, possible with LIMIT_MAKER
         const request = {
             'symbol': market['id'],
@@ -743,11 +738,11 @@ module.exports = class mexc3 extends Exchange {
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const clientOrderId = this.safeString2 (params, 'clientOrderId');
+        const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['newClientOrderId'] = clientOrderId;
+            params = this.omit (params, [ 'type', 'clientOrderId' ]);
         }
-        params = this.omit (params, [ 'type', 'clientOrderId' ]);
         const response = await this.spotPrivatePostOrder (this.extend (request, params));
         //
         // spot
@@ -764,6 +759,30 @@ module.exports = class mexc3 extends Exchange {
             // 'price': price,
             // 'amount': amount,
         });
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market,
+        };
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            params = this.omit (params, [ 'clientOrderId' ]);
+            request['origClientOrderId'] = clientOrderId;
+        } else {
+            request['orderId'] = id;
+        }
+        const response = await this.spotPrivateDeleteOrder (this.extend (request, params));
+        //
+        //    {"code":200,"data":{"965245851c444078a11a7d771323613b":"success"}}
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseOrder (data, market);
     }
 
     parseOrder (order, market = undefined) {
