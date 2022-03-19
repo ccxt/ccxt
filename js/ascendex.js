@@ -473,15 +473,18 @@ module.exports = class ascendex extends ccxt.ascendex {
         }
         const [ type, query ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         let messageHash = undefined;
+        let channel = undefined;
         if (type !== 'spot') {
-            messageHash = 'futures-order';
+            channel = 'futures-order';
+            messageHash = channel + ':' + 'FUTURES';
         } else {
             const accountCategories = this.safeValue (this.options, 'accountCategories', {});
             let accountCategory = this.safeString (accountCategories, type, 'cash'); // cash, margin
             accountCategory = accountCategory.toUpperCase ();
             messageHash = 'order' + ':' + accountCategory;
+            channel = messageHash;
         }
-        const orders = await this.watchPrivate (messageHash, messageHash, symbol, this.handleOrder, limit, query);
+        const orders = await this.watchPrivate (channel, messageHash, symbol, this.handleOrder, limit, query);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -629,7 +632,7 @@ module.exports = class ascendex extends ccxt.ascendex {
                 'currency': feeCurrencyCode,
             };
         }
-        const stopPrice = this.safeNumber (order, 'stopPrice');
+        const stopPrice = this.safeNumber (order, 'sp');
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -784,7 +787,7 @@ module.exports = class ascendex extends ccxt.ascendex {
         //       ]
         //  }
         //
-        // order update
+        // spot order update
         //  {
         //      "m": "order",
         //      "accountId": "cshQtyfq8XLAA9kcf19h8bXHbAwwoqDo",
@@ -801,6 +804,19 @@ module.exports = class ascendex extends ccxt.ascendex {
         //          (...)
         //      }
         //  }
+        // future order update
+        // {
+        //     m: 'futures-order',
+        //     sn: 19404258063,
+        //     e: 'ExecutionReport',
+        //     a: 'futF5SlR9ukAXoDOuXbND4dVpBMw9gzH',
+        //     ac: 'FUTURES',
+        //     t: 1647681792543,
+        //     ct: 1647622515413,
+        //     orderId: 'r17f9df469b1U7223046196Okf5KbmdL',
+        //         (...)
+        //     ptpt: 'None'
+        //   }
         //
         // balance update cash
         // {
