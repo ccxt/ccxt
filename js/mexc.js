@@ -194,13 +194,13 @@ module.exports = class mexc extends Exchange {
                             'asset/internal/transfer/record': 10,
                             'account/balance': 10,
                             'asset/internal/transfer/info': 10,
+                            'market/api_symbols': 2,
                         },
                         'post': {
                             'order/place': 1,
                             'order/place_batch': 1,
                             'asset/withdraw': 2,
                             'asset/internal/transfer': 10,
-                            'market/api_symbols': 2,
                         },
                         'delete': {
                             'order/cancel': 1,
