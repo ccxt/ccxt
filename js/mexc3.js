@@ -721,7 +721,7 @@ module.exports = class mexc3 extends Exchange {
         if (market['spot']) {
             return await this.createSpotOrder (market, type, side, amount, price, params);
         } else if (market['swap']) {
-            return await this.createSwapOrder (market, type, side, amount, price, params);
+            return {};
         }
     }
 
@@ -758,45 +758,52 @@ module.exports = class mexc3 extends Exchange {
         //         "orderListId": -1
         //     }
         //
-        return this.parseOrder (response, market);
-    }
-
-    parseOrderStatus (status) {
-        const statuses = {
-        };
-        return this.safeString (statuses, status, status);
+        return this.extend (this.parseOrder (response, market), {
+            'side': side,
+            'type': type,
+            // 'price': price,
+            // 'amount': amount,
+        });
     }
 
     parseOrder (order, market = undefined) {
         //
         // createOrder
         //
-        // spot
+        //     spot
         //
         //     { "symbol": "BTCUSDT", "orderId": "123738410679123456", "orderListId": -1 }
         //
+        const marketId = this.safeString (order, 'symbol');
+        market = this.safeMarket (marketId, market);
         return this.safeOrder ({
-            'id': id,
-            'clientOrderId': clientOrderId,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'id': this.safeString (order, 'orderId'),
+            'clientOrderId': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
             'lastTradeTimestamp': undefined,
-            'status': status,
-            'symbol': symbol,
-            'type': orderType,
+            'status': undefined,
+            'symbol': market['symbol'],
+            'type': undefined,
             'timeInForce': undefined,
-            'side': side,
-            'price': price,
+            'side': undefined,
+            'price': undefined,
             'stopPrice': undefined,
             'average': undefined,
-            'amount': amount,
-            'cost': cost,
-            'filled': filled,
-            'remaining': remaining,
+            'amount': undefined,
+            'cost': undefined,
+            'filled': undefined,
+            'remaining': undefined,
             'fee': undefined,
             'trades': undefined,
             'info': order,
         }, market);
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+        };
+        return this.safeString (statuses, status, status);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
