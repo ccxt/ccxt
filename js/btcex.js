@@ -16,11 +16,6 @@ module.exports = class btcex extends Exchange {
             'name': 'BTCEX',
             'countries': [ 'CA' ], // Canada
             'version': 'v1',
-            // hard limit of 6 requests per 200ms => 30 requests per 1000ms => 1000ms / 30 = 33.3333 ms between requests
-            // 10 withdrawal requests per 30 seconds = (1000ms / rateLimit) / (1/3) = 90.1
-            // cancels do not count towards rateLimit
-            // only 'order-making' requests count towards ratelimit
-            'rateLimit': 33.34,
             'certified': false,
             'pro': false,
             'requiredCredentials': {
@@ -102,66 +97,65 @@ module.exports = class btcex extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': {
+                    'get': [
                         // Market data
-                        'get_last_trades_by_currency': 1,
-                        'get_last_trades_by_instrument': 1,
-                        'get_order_book': 1,
-                        'tickers': 1,
-                        'get_instruments': 1,
-                        'get_tradingview_chart_data': 1,
+                        'get_last_trades_by_currency',
+                        'get_last_trades_by_instrument',
+                        'get_order_book',
+                        'tickers',
+                        'get_instruments',
+                        'get_tradingview_chart_data',
                         // CMC
-                        'cmc_spot_summary': 1,
-                        'cmc_spot_ticker': 1,
-                        'cmc_spot_orderbook': 1,
-                        'cmc_market_trades': 1,
-                        'cmc_contracts': 1,
-                        'cmc_contract_orderbook': 1,
+                        'cmc_spot_summary',
+                        'cmc_spot_ticker',
+                        'cmc_spot_orderbook',
+                        'cmc_market_trades',
+                        'cmc_contracts',
+                        'cmc_contract_orderbook',
                         // CoinGecko
-                        'coin_gecko_spot_pairs': 1,
-                        'coin_gecko_spot_ticker': 1,
-                        'coin_gecko_spot_orderbook': 1,
-                        'coin_gecko_market_trades': 1,
-                        'coin_gecko_contracts': 1,
-                        'coin_gecko_contract_orderbook': 1,
-                    },
-                    'post': {
-                        'auth': 1,
-                    },
+                        'coin_gecko_spot_pairs',
+                        'coin_gecko_spot_ticker',
+                        'coin_gecko_spot_orderbook',
+                        'coin_gecko_market_trades',
+                        'coin_gecko_contracts',
+                        'coin_gecko_contract_orderbook',
+                    ],
+                    'post': [
+                        'auth',
+                    ],
                 },
                 'private': {
-                    'get': {
+                    'get': [
                         // wallet
-                        'get_deposit_record': 1,
-                        'get_withdraw_record': 1,
+                        'get_deposit_record',
+                        'get_withdraw_record',
                         // trade
-                        'get_position': 1,
-                        'get_positions': 1,
-                        'get_open_orders_by_currency': 1,
-                        'get_open_orders_by_instrument': 1,
-                        'get_order_history_by_currency': 1,
-                        'get_order_history_by_instrument': 1,
-                        'get_order_state': 1,
-                        'get_user_trades_by_currency': 1,
-                        'get_user_trades_by_instrument': 1,
-                        'get_user_trades_by_order': 1,
-                    },
-                    'post': {
+                        'get_position',
+                        'get_positions',
+                        'get_open_orders_by_currency',
+                        'get_open_orders_by_instrument',
+                        'get_order_history_by_currency',
+                        'get_order_history_by_instrument',
+                        'get_order_state',
+                        'get_user_trades_by_currency',
+                        'get_user_trades_by_instrument',
+                        'get_user_trades_by_order',
+                    ],
+                    'post': [
                         // auth
-                        'logout': 1,
+                        'logout',
                         // wallet
-                        'get_assets_info': 1,
-                        'add_withdraw_address': 1,
+                        'get_assets_info',
+                        'add_withdraw_address',
                         // trade
-                        'buy': 1,
-                        'sell': 1,
-                        'cancel': 1,
-                        'cancel_all_by_currency': 1,
-                        'cancel_all_by_instrument': 1,
-                        'close_position': 1,
-                    },
-                    'delete': {
-                    },
+                        'buy',
+                        'sell',
+                        'cancel',
+                        'cancel_all_by_currency',
+                        'cancel_all_by_instrument',
+                        'close_position',
+                    ],
+                    'delete': [],
                 },
             },
             'fees': {
