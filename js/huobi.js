@@ -62,9 +62,7 @@ module.exports = class huobi extends ccxt.huobi {
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
                 'api': 'api', // or api-aws for clients hosted on AWS
-                'watchOrderBookSnapshot': {
-                    'maxAttempts': 3,
-                },
+                'maxOrderBookSyncAttempts': 3,
                 'ws': {
                     'gunzip': true,
                 },
@@ -279,8 +277,7 @@ module.exports = class huobi extends ccxt.huobi {
             const nonce = this.safeInteger (data, 'seqNum');
             snapshot['nonce'] = nonce;
             if ((sequence !== undefined) && (nonce < sequence)) {
-                const options = this.safeValue (this.options, 'watchOrderBookSnapshot', {});
-                const maxAttempts = this.safeInteger (options, 'maxAttempts', 3);
+                const maxAttempts = this.safeInteger (this.options, 'maxOrderBookSyncAttempts', 3);
                 let numAttempts = this.safeInteger (subscription, 'numAttempts', 0);
                 // retry to syncrhonize if we haven't reached maxAttempts yet
                 if (numAttempts < maxAttempts) {
@@ -354,8 +351,7 @@ module.exports = class huobi extends ccxt.huobi {
             // then we cannot align it with the cached deltas and we need to
             // retry synchronizing in maxAttempts
             if ((sequence !== undefined) && (nonce < sequence)) {
-                const options = this.safeValue (this.options, 'watchOrderBookSnapshot', {});
-                const maxAttempts = this.safeInteger (options, 'maxAttempts', 3);
+                const maxAttempts = this.safeInteger (this.options, 'maxOrderBookSyncAttempts', 3);
                 let numAttempts = this.safeInteger (subscription, 'numAttempts', 0);
                 // retry to syncrhonize if we haven't reached maxAttempts yet
                 if (numAttempts < maxAttempts) {
