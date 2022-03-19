@@ -47,7 +47,7 @@ module.exports = class btcex extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
-                'editOrder': true,
+                'editOrder': false,
                 'fetchBalance': true,
                 'fetchBorrowRate': true,
                 'fetchBorrowRateHistories': true,
@@ -760,26 +760,153 @@ module.exports = class btcex extends Exchange {
 
     parseBalance (response) {
         //
-        //     [
-        //         {
-        //             "assetId":"2a34d6a6-5839-40e5-836f-c1178fa09b89",
-        //             "available":0.1,
-        //             "reserved":0.0,
-        //             "timestamp":1644146723620
+        //     {
+        //         "WALLET":{
+        //             "total":"0",
+        //             "coupon":"0",
+        //             "details":[{
+        //                 "available":"0",
+        //                 "freeze":"0",
+        //                 "coin_type":"1INCH",
+        //                 "current_mark_price":"1.657"
+        //             }]
+        //         },
+        //         "MARGIN":{
+        //             "total":"0",
+        //             "net":"0",
+        //             "available":"0",
+        //             "borrowed":"0",
+        //             "details":[],
+        //             "maintenance_margin":"0",
+        //             "interest_owed":"0"
+        //         },
+        //         "SPOT":{
+        //             "total":"3.965",
+        //             "available":"15.887066",
+        //             "details":[{
+        //                 "available":"0",
+        //                 "freeze":"0",
+        //                 "total":"0",
+        //                 "coin_type":"1INCH",
+        //                 "current_mark_price":"1.657"
+        //             }]
+        //         },
+        //         "BTC":{
+        //             "currency":"BTC",
+        //             "balance":"0",
+        //             "freeze":"0",
+        //             "equity":"0",
+        //             "base_currency":"USDT",
+        //             "available_funds":"0",
+        //             "available_withdrawal_funds":"0",
+        //             "initial_margin":"0",
+        //             "maintenance_margin":"0",
+        //             "margin_balance":"0",
+        //             "session_funding":"0",
+        //             "session_rpl":"0",
+        //             "session_upl":"0",
+        //             "futures_pl":"0",
+        //             "futures_session_rpl":"0",
+        //             "futures_session_upl":"0",
+        //             "options_value":"0",
+        //             "options_pl":"0",
+        //             "options_session_rpl":"0",
+        //             "options_session_upl":"0",
+        //             "total_pl":"0",
+        //             "options_delta":"0",
+        //             "options_gamma":"0",
+        //             "options_theta":"0",
+        //             "options_vega":"0",
+        //             "delta_total":"0"
+        //         },
+        //         "ETH":{
+        //             "currency":"ETH",
+        //             "balance":"0",
+        //             "freeze":"0",
+        //             "equity":"0",
+        //             "base_currency":"USDT",
+        //             "available_funds":"0",
+        //             "available_withdrawal_funds":"0",
+        //             "initial_margin":"0",
+        //             "maintenance_margin":"0",
+        //             "margin_balance":"0",
+        //             "session_funding":"0",
+        //             "session_rpl":"0",
+        //             "session_upl":"0",
+        //             "futures_pl":"0",
+        //             "futures_session_rpl":"0",
+        //             "futures_session_upl":"0",
+        //             "options_value":"0",
+        //             "options_pl":"0",
+        //             "options_session_rpl":"0",
+        //             "options_session_upl":"0",
+        //             "total_pl":"0",
+        //             "options_delta":"0",
+        //             "options_gamma":"0",
+        //             "options_theta":"0",
+        //             "options_vega":"0",
+        //             "delta_total":"0"
+        //         },
+        //         "PERPETUAL":{
+        //             "bonus":"0",
+        //             "global_state":0,
+        //             "available_funds":"0",
+        //             "wallet_balance":"0",
+        //             "available_withdraw_funds":"0",
+        //             "total_pl":"0",
+        //             "total_upl":"0",
+        //             "position_rpl":"0",
+        //             "total_upl_isolated":"0",
+        //             "total_upl_cross":"0",
+        //             "total_initial_margin_cross":"0",
+        //             "total_initial_margin_isolated":"0",
+        //             "total_margin_balance_isolated":"0",
+        //             "total_margin_balance":"0",
+        //             "total_margin_balance_cross":"0",
+        //             "total_maintenance_margin_cross":"0",
+        //             "total_wallet_balance_isolated":"0",
+        //             "order_frozen":"0",
+        //             "order_cross_frozen":"0",
+        //             "order_isolated_frozen":"0",
+        //             "risk_level":"0",
+        //             "bonus_max":"0"
         //         }
-        //     ]
+        //     }
         //
         const result = { 'info': response };
-        for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
-            const currencyId = this.safeString (balance, 'assetId');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            const free = this.safeString (balance, 'available');
-            const used = this.safeString (balance, 'reserved');
-            account['free'] = free;
-            account['used'] = used;
-            result[code] = account;
+        const assetsType = Object.keys (response);
+        for (let i = 0; i < assetsType.length; i++) {
+            const assetType = assetsType[i];
+            const currency = this.safeValue (response, assetType);
+            const currencyId = this.safeString (currency, 'currency');
+            if (currencyId !== undefined) {
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.safeValue (result, code, this.account ());
+                const free = this.safeString (currency, 'available_funds');
+                const used = this.safeString (currency, 'maintenance_margin');
+                const total = this.safeString (currency, 'equity');
+                account['free'] = Precise.stringAdd (account['free'], free);
+                account['used'] = Precise.stringAdd (account['used'], used);
+                account['total'] = Precise.stringAdd (account['total'], total);
+                result[code] = account;
+            } else {
+                const details = this.safeValue (currency, 'details');
+                if (details !== undefined) {
+                    for (let i = 0; i < details.length; i++) {
+                        const detail = details[i];
+                        const coinType = this.safeString (detail, 'coin_type');
+                        const code = this.safeCurrencyCode (coinType);
+                        const account = this.safeValue (result, code, this.account ());
+                        const free = this.safeString (detail, 'available');
+                        const used = this.safeString (detail, 'freeze');
+                        const total = this.safeString (detail, 'total');
+                        account['free'] = Precise.stringAdd (account['free'], free);
+                        account['used'] = Precise.stringAdd (account['used'], used);
+                        account['total'] = Precise.stringAdd (account['total'], total);
+                        result[code] = account;
+                    }
+                }
+            }
         }
         return this.safeBalance (result);
     }
@@ -796,22 +923,129 @@ module.exports = class btcex extends Exchange {
             // 'coin_type': ['SPOT'],
         };
         const response = await this.privatePostGetAssetsInfo (this.extend (request, params));
-        // const response = await this.privateGetGetAssetsInfo (this.extend (request, params));
-        const payload = this.safeValue (response, 'payload', []);
+        const result = this.safeValue (response, 'result', []);
         //
         //     {
-        //         "payload":[
-        //             {
-        //                 "assetId":"2a34d6a6-5839-40e5-836f-c1178fa09b89",
-        //                 "available":0.1,
-        //                 "reserved":0.0,
-        //                 "timestamp":1644146723620
+        //         "id":"1647675393",
+        //         "jsonrpc":"2.0",
+        //         "usIn":1647675394091,
+        //         "usOut":1647675394104,
+        //         "usDiff":13,
+        //         "result":{
+        //             "WALLET":{
+        //                 "total":"0",
+        //                 "coupon":"0",
+        //                 "details":[{
+        //                     "available":"0",
+        //                     "freeze":"0",
+        //                     "coin_type":"1INCH",
+        //                     "current_mark_price":"1.657"
+        //                 }]
+        //             },
+        //             "MARGIN":{
+        //                 "total":"0",
+        //                 "net":"0",
+        //                 "available":"0",
+        //                 "borrowed":"0",
+        //                 "details":[],
+        //                 "maintenance_margin":"0",
+        //                 "interest_owed":"0"
+        //             },
+        //             "SPOT":{
+        //                 "total":"3.965",
+        //                 "available":"15.887066",
+        //                 "details":[{
+        //                     "available":"0",
+        //                     "freeze":"0",
+        //                     "total":"0",
+        //                     "coin_type":"1INCH",
+        //                     "current_mark_price":"1.657"
+        //                 }]
+        //             },
+        //             "BTC":{
+        //                 "currency":"BTC",
+        //                 "balance":"0",
+        //                 "freeze":"0",
+        //                 "equity":"0",
+        //                 "base_currency":"USDT",
+        //                 "available_funds":"0",
+        //                 "available_withdrawal_funds":"0",
+        //                 "initial_margin":"0",
+        //                 "maintenance_margin":"0",
+        //                 "margin_balance":"0",
+        //                 "session_funding":"0",
+        //                 "session_rpl":"0",
+        //                 "session_upl":"0",
+        //                 "futures_pl":"0",
+        //                 "futures_session_rpl":"0",
+        //                 "futures_session_upl":"0",
+        //                 "options_value":"0",
+        //                 "options_pl":"0",
+        //                 "options_session_rpl":"0",
+        //                 "options_session_upl":"0",
+        //                 "total_pl":"0",
+        //                 "options_delta":"0",
+        //                 "options_gamma":"0",
+        //                 "options_theta":"0",
+        //                 "options_vega":"0",
+        //                 "delta_total":"0"
+        //             },
+        //             "ETH":{
+        //                 "currency":"ETH",
+        //                 "balance":"0",
+        //                 "freeze":"0",
+        //                 "equity":"0",
+        //                 "base_currency":"USDT",
+        //                 "available_funds":"0",
+        //                 "available_withdrawal_funds":"0",
+        //                 "initial_margin":"0",
+        //                 "maintenance_margin":"0",
+        //                 "margin_balance":"0",
+        //                 "session_funding":"0",
+        //                 "session_rpl":"0",
+        //                 "session_upl":"0",
+        //                 "futures_pl":"0",
+        //                 "futures_session_rpl":"0",
+        //                 "futures_session_upl":"0",
+        //                 "options_value":"0",
+        //                 "options_pl":"0",
+        //                 "options_session_rpl":"0",
+        //                 "options_session_upl":"0",
+        //                 "total_pl":"0",
+        //                 "options_delta":"0",
+        //                 "options_gamma":"0",
+        //                 "options_theta":"0",
+        //                 "options_vega":"0",
+        //                 "delta_total":"0"
+        //             },
+        //             "PERPETUAL":{
+        //                 "bonus":"0",
+        //                 "global_state":0,
+        //                 "available_funds":"0",
+        //                 "wallet_balance":"0",
+        //                 "available_withdraw_funds":"0",
+        //                 "total_pl":"0",
+        //                 "total_upl":"0",
+        //                 "position_rpl":"0",
+        //                 "total_upl_isolated":"0",
+        //                 "total_upl_cross":"0",
+        //                 "total_initial_margin_cross":"0",
+        //                 "total_initial_margin_isolated":"0",
+        //                 "total_margin_balance_isolated":"0",
+        //                 "total_margin_balance":"0",
+        //                 "total_margin_balance_cross":"0",
+        //                 "total_maintenance_margin_cross":"0",
+        //                 "total_wallet_balance_isolated":"0",
+        //                 "order_frozen":"0",
+        //                 "order_cross_frozen":"0",
+        //                 "order_isolated_frozen":"0",
+        //                 "risk_level":"0",
+        //                 "bonus_max":"0"
         //             }
-        //         ],
-        //         "error":null
+        //         }
         //     }
         //
-        return this.parseBalance (payload);
+        return this.parseBalance (result);
     }
 
     parseOrderStatus (status) {
@@ -857,6 +1091,11 @@ module.exports = class btcex extends Exchange {
         //             "reduce_only":false,
         //             "creation_timestamp":1647666666723,
         //             "last_update_timestamp":1647666666725
+        //         }
+        //
+        // closeOrder
+        //         {
+        //             "order_id":"250979354159153152"
         //         }
         //
         const timestamp = this.safeInteger (order, 'creation_timestamp');
@@ -1015,41 +1254,25 @@ module.exports = class btcex extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        if (amount === undefined) {
-            throw new ArgumentsRequired (this.id + ' editOrder() requires an amount argument');
-        }
-        if (price === undefined) {
-            throw new ArgumentsRequired (this.id + ' editOrder() requires a price argument');
-        }
-        await this.loadMarkets ();
-        const request = {
-            'order_id': id,
-            // for perpetual and futures the amount is in USD
-            // for options it is in corresponding cryptocurrency contracts, e.g., BTC or ETH
-            'amount': this.amountToPrecision (symbol, amount),
-            'price': this.priceToPrecision (symbol, price), // required
-            // 'post_only': false, // if the new price would cause the order to be filled immediately (as taker), the price will be changed to be just below the spread.
-            // 'reject_post_only': false, // if true the order is put to order book unmodified or request is rejected
-            // 'reduce_only': false, // if true, the order is intended to only reduce a current position
-            // 'stop_price': false, // stop price, required for stop_limit orders
-            // 'advanced': 'usd', // 'implv', advanced option order type, options only
-        };
-        const response = await this.privateGetEdit (this.extend (request, params));
-        const result = this.safeValue (response, 'result', {});
-        const order = this.safeValue (result, 'order');
-        const trades = this.safeValue (result, 'trades', []);
-        order['trades'] = trades;
-        return this.parseOrder (order);
-    }
-
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             'order_id': id,
         };
-        const response = await this.privateGetCancel (this.extend (request, params));
+        const response = await this.privatePostCancel (this.extend (request, params));
         const result = this.safeValue (response, 'result', {});
+        //
+        //     {
+        //         "id":"1647675007",
+        //         "jsonrpc":"2.0",
+        //         "usIn":1647675007485,
+        //         "usOut":1647675007494,
+        //         "usDiff":9,
+        //         "result":{
+        //             "order_id":"250979354159153152"
+        //         }
+        //     }
+        //
         return this.parseOrder (result);
     }
 
@@ -1673,8 +1896,11 @@ module.exports = class btcex extends Exchange {
             if (sessionToken === undefined) {
                 throw new AuthenticationError (this.id + ' sign() requires session token');
             }
-            // headers['Authorization'] = 'Bearer ' + this.apiKey;
+            headers = {
+                'Authorization': 'bearer ' + sessionToken,
+            };
             if (method === 'POST') {
+                headers['Content-Type'] = 'application/json';
                 if (Object.keys (params).length) {
                     const rpcPayload = {
                         'jsonrpc': '2.0',
@@ -1685,9 +1911,6 @@ module.exports = class btcex extends Exchange {
                     body = this.json (rpcPayload);
                 }
             }
-            headers = {
-                'Authorization': 'bearer ' + sessionToken,
-            };
         }
         const url = this.urls['api'] + request;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
