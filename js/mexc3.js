@@ -18,8 +18,6 @@ module.exports = class mexc3 extends Exchange {
             'version': 'v3',
             'certified': true,
             'has': {
-                'publicAPI': true,
-                'privateAPI': true,
                 'CORS': undefined,
                 'spot': undefined,
                 'margin': undefined,
@@ -41,8 +39,8 @@ module.exports = class mexc3 extends Exchange {
                 'fetchBidsAsks': true,
                 'fetchBorrowRate': undefined,
                 'fetchBorrowRateHistory': undefined,
-                'fetchBorrowRatesPerSymbol': undefined,
                 'fetchBorrowRates': undefined,
+                'fetchBorrowRatesPerSymbol': undefined,
                 'fetchCanceledOrders': undefined,
                 'fetchClosedOrder': undefined,
                 'fetchClosedOrders': undefined,
@@ -92,6 +90,8 @@ module.exports = class mexc3 extends Exchange {
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': undefined,
                 'loadMarkets': undefined,
+                'privateAPI': true,
+                'publicAPI': true,
                 'reduceMargin': undefined,
                 'setLeverage': undefined,
                 'setMarginMode': undefined,
@@ -230,7 +230,6 @@ module.exports = class mexc3 extends Exchange {
                     '-1128': BadRequest,
                     '-2011': BadRequest,
                     '30004': InsufficientFunds,
-
                 },
                 'broad': {
                     'Combination of optional parameters invalid': BadRequest, // {"msg":"Combination of optional parameters invalid.","code":-1128,"_extend":null}
