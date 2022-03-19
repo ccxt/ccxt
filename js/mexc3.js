@@ -10,7 +10,7 @@ const { BadRequest, ExchangeError } = require ('./base/errors');
 module.exports = class mexc3 extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'mexc',
+            'id': 'mexc3',
             'name': 'MEXC Global',
             'countries': [ 'SC' ], // Seychelles
             'rateLimit': 50, // default rate limit is 20 times per second
