@@ -94,7 +94,6 @@ class bitopro(Exchange):
                     'https://github.com/bitoex/bitopro-offical-api-docs/blob/master/v3-1/rest-1/rest.md',
                 ],
                 'fees': 'https://www.bitopro.com/fees',
-                'referral': '',
             },
             'requiredCredentials': {
                 'apiKey': True,
