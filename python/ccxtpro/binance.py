@@ -6,13 +6,6 @@
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
 from ccxtpro.base.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 from ccxt.base.errors import ExchangeError
 from ccxt.base.precise import Precise
 
@@ -886,7 +879,7 @@ class binance(Exchange, ccxt.binance):
             delta = self.safe_string(message, 'd')
             if code in self.balance[accountType]:
                 previousValue = self.balance[accountType][code]['free']
-                if not isinstance(previousValue, basestring):
+                if not isinstance(previousValue, str):
                     previousValue = self.number_to_string(previousValue)
                 account['free'] = Precise.string_add(previousValue, delta)
             else:
