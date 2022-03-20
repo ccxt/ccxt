@@ -245,6 +245,8 @@ class currencycom(Exchange):
                     'limit': 'RESULT',  # we change it from 'ACK' by default to 'RESULT'
                     'stop': 'RESULT',
                 },
+                'leverage_markets_suffix': '_LEVERAGE',
+                'collateralCurrencies': ['USD', 'EUR', 'USDT'],
             },
             'exceptions': {
                 'broad': {
@@ -370,64 +372,49 @@ class currencycom(Exchange):
         response = self.publicGetV2ExchangeInfo(params)
         #
         #     {
-        #         "timezone":"UTC",
-        #         "serverTime":1603252990096,
-        #         "rateLimits":[
-        #             {"rateLimitType":"REQUEST_WEIGHT","interval":"MINUTE","intervalNum":1,"limit":1200},
-        #             {"rateLimitType":"ORDERS","interval":"SECOND","intervalNum":1,"limit":10},
-        #             {"rateLimitType":"ORDERS","interval":"DAY","intervalNum":1,"limit":864000},
+        #         timezone: "UTC",
+        #         serverTime: "1645186287261",
+        #         rateLimits: [
+        #             {rateLimitType: "REQUEST_WEIGHT", interval: "MINUTE", intervalNum: "1", limit: "1200"},
+        #             {rateLimitType: "ORDERS", interval: "SECOND", intervalNum: "1", limit: "10"},
+        #             {rateLimitType: "ORDERS", interval: "DAY", intervalNum: "1", limit: "864000"},
         #         ],
-        #         "exchangeFilters":[],
-        #         "symbols":[
+        #         exchangeFilters: [],
+        #         symbols: [
         #             {
-        #                 "symbol":"EVK",
-        #                 "name":"Evonik",
-        #                 "status":"BREAK",
-        #                 "baseAsset":"EVK",
-        #                 "baseAssetPrecision":3,
-        #                 "quoteAsset":"EUR",
-        #                 "quoteAssetId":"EUR",
-        #                 "quotePrecision":3,
-        #                 "orderTypes":["LIMIT","MARKET"],
-        #                 "filters":[
-        #                     {"filterType":"LOT_SIZE","minQty":"1","maxQty":"27000","stepSize":"1"},
-        #                     {"filterType":"MIN_NOTIONAL","minNotional":"23"}
+        #                 symbol: "BTC/USDT",  # BTC/USDT, BTC/USDT_LEVERAGE
+        #                 name: "Bitcoin / Tether",
+        #                 status: "TRADING",  # TRADING, BREAK, HALT
+        #                 baseAsset: "BTC",
+        #                 baseAssetPrecision: "4",
+        #                 quoteAsset: "USDT",
+        #                 quoteAssetId: "USDT",  # USDT, USDT_LEVERAGE
+        #                 quotePrecision: "4",
+        #                 orderTypes: ["LIMIT", "MARKET"],  # LIMIT, MARKET, STOP
+        #                 filters: [
+        #                     {filterType: "LOT_SIZE", minQty: "0.0001", maxQty: "100", stepSize: "0.0001",},
+        #                     {filterType: "MIN_NOTIONAL", minNotional: "5",},
         #                 ],
-        #                 "marketType":"SPOT",
-        #                 "country":"DE",
-        #                 "sector":"Basic Materials",
-        #                 "industry":"Diversified Chemicals",
-        #                 "tradingHours":"UTC; Mon 07:02 - 15:30; Tue 07:02 - 15:30; Wed 07:02 - 15:30; Thu 07:02 - 15:30; Fri 07:02 - 15:30",
-        #                 "tickSize":0.005,
-        #                 "tickValue":0.11125,
-        #                 "exchangeFee":0.05
-        #             },
-        #             {
-        #                 "symbol":"BTC/USD_LEVERAGE",
-        #                 "name":"Bitcoin / USD",
-        #                 "status":"TRADING",
-        #                 "baseAsset":"BTC",
-        #                 "baseAssetPrecision":3,
-        #                 "quoteAsset":"USD",
-        #                 "quoteAssetId":"USD_LEVERAGE",
-        #                 "quotePrecision":3,
-        #                 "orderTypes":["LIMIT","MARKET","STOP"],
-        #                 "filters":[
-        #                     {"filterType":"LOT_SIZE","minQty":"0.001","maxQty":"100","stepSize":"0.001"},
-        #                     {"filterType":"MIN_NOTIONAL","minNotional":"13"}
-        #                 ],
-        #                 "marketType":"LEVERAGE",
-        #                 "longRate":-0.01,
-        #                 "shortRate":0.01,
-        #                 "swapChargeInterval":480,
-        #                 "country":"",
-        #                 "sector":"",
-        #                 "industry":"",
-        #                 "tradingHours":"UTC; Mon - 21:00, 21:05 -; Tue - 21:00, 21:05 -; Wed - 21:00, 21:05 -; Thu - 21:00, 21:05 -; Fri - 21:00, 22:01 -; Sat - 21:00, 21:05 -; Sun - 20:00, 21:05 -",
-        #                 "tickSize":0.05,
-        #                 "tickValue":610.20875,
-        #                 "makerFee":-0.025,
-        #                 "takerFee":0.075
+        #                 marketModes: ["REGULAR"],  # CLOSE_ONLY, LONG_ONLY, REGULAR
+        #                 marketType: "SPOT",  # SPOT, LEVERAGE
+        #                 longRate: -0.0684932,  # LEVERAGE only
+        #                 shortRate: -0.0684932,  # LEVERAGE only
+        #                 swapChargeInterval: 1440,  # LEVERAGE only
+        #                 country: "",
+        #                 sector: "",
+        #                 industry: "",
+        #                 tradingHours: "UTC; Mon - 22:00, 22:05 -; Tue - 22:00, 22:05 -; Wed - 22:00, 22:05 -; Thu - 22:00, 22:05 -; Fri - 22:00, 23:01 -; Sat - 22:00, 22:05 -; Sun - 21:00, 22:05 -",
+        #                 tickSize: "0.01",
+        #                 tickValue: "403.4405",  # not available in BTC/USDT_LEVERAGE, but available in BTC/USD_LEVERAGE
+        #                 exchangeFee: "0.2",  # SPOT only
+        #                 tradingFee: 0.075,  # LEVERAGE only
+        #                 makerFee: -0.025,  # LEVERAGE only
+        #                 takerFee: 0.06,  # LEVERAGE only
+        #                 maxSLGap: 50,  # LEVERAGE only
+        #                 minSLGap: 1,  # LEVERAGE only
+        #                 maxTPGap: 50,  # LEVERAGE only
+        #                 minTPGap: 0.5,  # LEVERAGE only
+        #                 assetType: "CRYPTOCURRENCY",
         #             },
         #         ]
         #     }
@@ -444,20 +431,23 @@ class currencycom(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
-            if id.find('/') >= 0:
-                symbol = id
+            type = self.safe_string(market, 'marketType')
+            spot = (type == 'SPOT')
+            futures = False
+            swap = (type == 'LEVERAGE')
+            margin = swap  # as we decided to set
+            if swap:
+                symbol = symbol.replace(self.options['leverage_markets_suffix'], '')
+                symbol += ':' + quote
+            active = self.safe_string(market, 'status') == 'TRADING'
+            # to set taker & maker fees, we use one from the below data - pairs either have 'exchangeFee' or 'tradingFee', if none of them(rare cases), then they should have 'takerFee & makerFee'
+            exchangeFee = self.safe_string_2(market, 'exchangeFee', 'tradingFee')
+            makerFee = self.safe_string(market, 'makerFee', exchangeFee)
+            takerFee = self.safe_string(market, 'takerFee', exchangeFee)
+            makerFee = Precise.string_div(makerFee, '100')
+            takerFee = Precise.string_div(takerFee, '100')
             filters = self.safe_value(market, 'filters', [])
             filtersByType = self.index_by(filters, 'filterType')
-            status = self.safe_string(market, 'status')
-            active = (status == 'TRADING')
-            type = self.safe_string_lower(market, 'marketType')
-            if type == 'leverage':
-                type = 'margin'
-            spot = (type == 'spot')
-            margin = (type == 'margin')
-            exchangeFee = self.safe_string_2(market, 'exchangeFee', 'tradingFee')
-            maker = Precise.string_div(self.safe_string(market, 'makerFee', exchangeFee), '100')
-            taker = Precise.string_div(self.safe_string(market, 'takerFee', exchangeFee), '100')
             limitPriceMin = None
             limitPriceMax = None
             precisionPrice = self.safe_number(market, 'tickSize')
@@ -498,6 +488,7 @@ class currencycom(Exchange):
             if 'MIN_NOTIONAL' in filtersByType:
                 filter = self.safe_value(filtersByType, 'MIN_NOTIONAL', {})
                 costMin = self.safe_number(filter, 'minNotional')
+            isContract = swap or futures
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -510,15 +501,15 @@ class currencycom(Exchange):
                 'type': type,
                 'spot': spot,
                 'margin': margin,
-                'swap': False,
-                'future': False,
+                'swap': swap,
+                'future': futures,
                 'option': False,
                 'active': active,
-                'contract': False,
-                'linear': None,
+                'contract': isContract,
+                'linear': True if isContract else None,
                 'inverse': None,
-                'taker': self.parse_number(taker),
-                'maker': self.parse_number(maker),
+                'taker': self.parse_number(takerFee),
+                'maker': self.parse_number(makerFee),
                 'contractSize': None,
                 'expiry': None,
                 'expiryDatetime': None,
