@@ -7,7 +7,7 @@ const { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, DDoSProte
 const Precise = require ('./base/Precise');
 //  ---------------------------------------------------------------------------
 
-module.exports = class krakenfu extends Exchange {
+module.exports = class krakenfutures extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'krakenfutures',
