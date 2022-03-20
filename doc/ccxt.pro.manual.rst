@@ -164,7 +164,7 @@ The CCXT Pro library currently supports the following 37 cryptocurrency exchange
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
-   * - .. image:: https://user-images.githubusercontent.com/1294454/97296144-514fa300-1861-11eb-952b-3d55d492200b.jpg
+   * - .. image:: https://user-images.githubusercontent.com/1294454/159177712-b685b40c-5269-4cea-ac83-f7894c49525d.jpg
           :target: https://fmfw.io/referral/da948b21d6c92d69
           :alt: bitcoincom
      
@@ -338,7 +338,7 @@ The CCXT Pro library currently supports the following 37 cryptocurrency exchange
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
-   * - .. image:: https://user-images.githubusercontent.com/1294454/97296144-514fa300-1861-11eb-952b-3d55d492200b.jpg
+   * - .. image:: https://user-images.githubusercontent.com/1294454/159177712-b685b40c-5269-4cea-ac83-f7894c49525d.jpg
           :target: https://fmfw.io/referral/da948b21d6c92d69
           :alt: fmfwio
      
