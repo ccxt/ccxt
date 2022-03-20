@@ -40,6 +40,7 @@ class gateio(Exchange):
                 'www': 'https://gate.io/',
                 'api': {
                     'public': {
+                        'wallet': 'https://api.gateio.ws/api/v4',
                         'futures': 'https://api.gateio.ws/api/v4',
                         'margin': 'https://api.gateio.ws/api/v4',
                         'delivery': 'https://api.gateio.ws/api/v4',
@@ -122,6 +123,11 @@ class gateio(Exchange):
             },
             'api': {
                 'public': {
+                    'wallet': {
+                        'get': {
+                            'wallet/currency_chains': 1.5,
+                        },
+                    },
                     'spot': {
                         'get': {
                             'currencies': 1,
@@ -203,6 +209,7 @@ class gateio(Exchange):
                             'withdraw_status': 300,
                             'sub_account_balances': 300,
                             'fee': 300,
+                            'total_balance': 300,
                         },
                         'post': {
                             'transfers': 300,

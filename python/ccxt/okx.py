@@ -313,7 +313,7 @@ class okx(Exchange):
                     'taker': self.parse_number('0.0015'),
                     'maker': self.parse_number('0.0010'),
                 },
-                'futures': {
+                'future': {
                     'taker': self.parse_number('0.0005'),
                     'maker': self.parse_number('0.0002'),
                 },
@@ -630,8 +630,8 @@ class okx(Exchange):
                 },
                 'createOrder': 'privatePostTradeBatchOrders',  # or 'privatePostTradeOrder' or 'privatePostTradeOrderAlgo'
                 'createMarketBuyOrderRequiresPrice': False,
-                'fetchMarkets': ['spot', 'futures', 'swap', 'option'],  # spot, futures, swap, option
-                'defaultType': 'spot',  # 'funding', 'spot', 'margin', 'futures', 'swap', 'option'
+                'fetchMarkets': ['spot', 'future', 'swap', 'option'],  # spot, future, swap, option
+                'defaultType': 'spot',  # 'funding', 'spot', 'margin', 'future', 'swap', 'option'
                 # 'fetchBalance': {
                 #     'type': 'spot',  # 'funding', 'trading', 'spot'
                 # },
@@ -652,12 +652,25 @@ class okx(Exchange):
                 },
                 'typesByAccount': {
                     '1': 'spot',
-                    '3': 'futures',
+                    '3': 'future',
                     '5': 'margin',
                     '6': 'funding',
                     '9': 'swap',
                     '12': 'option',
                     '18': 'trading',  # unified trading account
+                },
+                'exchangeType': {
+                    'spot': 'SPOT',
+                    'margin': 'MARGIN',
+                    'swap': 'SWAP',
+                    'future': 'FUTURES',
+                    'futures': 'FUTURES',  # deprecated
+                    'option': 'OPTION',
+                    'SPOT': 'SPOT',
+                    'MARGIN': 'MARGIN',
+                    'SWAP': 'SWAP',
+                    'FUTURES': 'FUTURES',
+                    'OPTION': 'OPTION',
                 },
                 'brokerId': 'e847386590ce4dBC',
             },
@@ -674,6 +687,18 @@ class okx(Exchange):
                 'WIN': 'WinToken',  # https://github.com/ccxt/ccxt/issues/5701
             },
         })
+
+    def handle_market_type_and_params(self, methodName, market=None, params={}):
+        instType = self.safe_string(params, 'instType')
+        params = self.omit(params, 'instType')
+        type = self.safe_string(params, 'type')
+        if (type is None) and (instType is not None):
+            params['type'] = instType
+        return super(okx, self).handle_market_type_and_params(methodName, market, params)
+
+    def convert_to_instrument_type(self, type):
+        exchangeTypes = self.safe_value(self.options, 'exchangeType', {})
+        return self.safe_string(exchangeTypes, type, type)
 
     def fetch_status(self, params={}):
         response = self.publicGetSystemStatus(params)
@@ -828,11 +853,13 @@ class okx(Exchange):
         #
         id = self.safe_string(market, 'instId')
         type = self.safe_string_lower(market, 'instType')
+        if type == 'futures':
+            type = 'future'
         spot = (type == 'spot')
-        futures = (type == 'futures')
+        future = (type == 'future')
         swap = (type == 'swap')
         option = (type == 'option')
-        contract = swap or futures or option
+        contract = swap or future or option
         baseId = self.safe_string(market, 'baseCcy')
         quoteId = self.safe_string(market, 'quoteCcy')
         settleId = self.safe_string(market, 'settleCcy')
@@ -851,7 +878,7 @@ class okx(Exchange):
         if contract:
             symbol = symbol + ':' + settle
             expiry = self.safe_integer(market, 'expTime')
-            if futures:
+            if future:
                 ymd = self.yymmdd(expiry)
                 symbol = symbol + '-' + ymd
             elif option:
@@ -881,8 +908,7 @@ class okx(Exchange):
             'spot': spot,
             'margin': spot and (Precise.string_gt(maxLeverage, '1')),
             'swap': swap,
-            'future': futures,
-            'futures': futures,  # deprecated
+            'future': future,
             'option': option,
             'active': True,
             'contract': contract,
@@ -919,11 +945,10 @@ class okx(Exchange):
         })
 
     def fetch_markets_by_type(self, type, params={}):
-        uppercaseType = type.upper()
         request = {
-            'instType': uppercaseType,
+            'instType': self.convert_to_instrument_type(type),
         }
-        if uppercaseType == 'OPTION':
+        if type == 'option':
             defaultUnderlying = self.safe_value(self.options, 'defaultUnderlying', 'BTC-USD')
             currencyId = self.safe_string_2(params, 'uly', 'marketId', defaultUnderlying)
             if currencyId is None:
@@ -932,7 +957,7 @@ class okx(Exchange):
                 request['uly'] = currencyId
         response = self.publicGetPublicInstruments(self.extend(request, params))
         #
-        # spot, futures, swaps, options
+        # spot, future, swap, option
         #
         #     {
         #         "code":"0",
@@ -1212,11 +1237,10 @@ class okx(Exchange):
 
     def fetch_tickers_by_type(self, type, symbols=None, params={}):
         self.load_markets()
-        uppercaseType = type.upper()
         request = {
-            'instType': type.upper(),
+            'instType': self.convert_to_instrument_type(type),
         }
-        if uppercaseType == 'OPTION':
+        if type == 'option':
             defaultUnderlying = self.safe_value(self.options, 'defaultUnderlying', 'BTC-USD')
             currencyId = self.safe_string_2(params, 'uly', 'marketId', defaultUnderlying)
             if currencyId is None:
@@ -1254,9 +1278,8 @@ class okx(Exchange):
         return self.parse_tickers(tickers, symbols)
 
     def fetch_tickers(self, symbols=None, params={}):
-        defaultType = self.safe_string_2(self.options, 'fetchTickers', 'defaultType')
-        type = self.safe_string(params, 'type', defaultType)
-        return self.fetch_tickers_by_type(type, symbols, self.omit(params, 'type'))
+        type, query = self.handle_market_type_and_params('fetchTickers', None, params)
+        return self.fetch_tickers_by_type(type, symbols, query)
 
     def parse_trade(self, trade, market=None):
         #
@@ -1554,17 +1577,17 @@ class okx(Exchange):
         self.load_markets()
         market = self.market(symbol)
         request = {
-            'instType': market['type'].upper(),  # SPOT, MARGIN, SWAP, FUTURES, OPTION
+            'instType': self.convert_to_instrument_type(market['type']),  # SPOT, MARGIN, SWAP, FUTURES, OPTION
             # 'instId': market['id'],  # only applicable to SPOT/MARGIN
             # 'uly': market['id'],  # only applicable to FUTURES/SWAP/OPTION
             # 'category': '1',  # 1 = Class A, 2 = Class B, 3 = Class C, 4 = Class D
         }
         if market['spot']:
             request['instId'] = market['id']
-        elif market['swap'] or market['futures'] or market['option']:
+        elif market['swap'] or market['future'] or market['option']:
             request['uly'] = market['baseId'] + '-' + market['quoteId']
         else:
-            raise NotSupported(self.id + ' fetchTradingFee supports spot, swap, futures or option markets only')
+            raise NotSupported(self.id + ' fetchTradingFee supports spot, swap, future or option markets only')
         response = self.privateGetAccountTradeFee(self.extend(request, params))
         #
         #     {
@@ -2193,11 +2216,6 @@ class okx(Exchange):
 
     def fetch_canceled_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
-        defaultType = self.safe_string(self.options, 'defaultType')
-        options = self.safe_value(self.options, 'fetchCanceledOrders', {})
-        type = self.safe_string(options, 'type', defaultType)
-        type = self.safe_string(params, 'type', type)
-        params = self.omit(params, 'type')
         request = {
             # 'instType': type.upper(),  # SPOT, MARGIN, SWAP, FUTURES, OPTION
             # 'uly': currency['id'],
@@ -2211,15 +2229,14 @@ class okx(Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-            if market['futures'] or market['swap']:
-                type = market['type']
             request['instId'] = market['id']
-        request['instType'] = type.upper()
+        type, query = self.handle_market_type_and_params('fetchCanceledOrders', market, params)
+        request['instType'] = self.convert_to_instrument_type(type)
         if limit is not None:
             request['limit'] = limit  # default 100, max 100
         request['state'] = 'canceled'
-        method = self.safe_string(options, 'method', 'privateGetTradeOrdersHistory')
-        response = getattr(self, method)(self.extend(request, params))
+        method = self.safe_string(self.options, 'method', 'privateGetTradeOrdersHistory')
+        response = getattr(self, method)(self.extend(request, query))
         #
         #     {
         #         "code": "0",
@@ -2271,11 +2288,6 @@ class okx(Exchange):
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
-        defaultType = self.safe_string(self.options, 'defaultType')
-        options = self.safe_value(self.options, 'fetchClosedOrders', {})
-        type = self.safe_string(options, 'type', defaultType)
-        type = self.safe_string(params, 'type', type)
-        params = self.omit(params, 'type')
         request = {
             # 'instType': type.upper(),  # SPOT, MARGIN, SWAP, FUTURES, OPTION
             # 'uly': currency['id'],
@@ -2289,15 +2301,14 @@ class okx(Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-            if market['futures'] or market['swap']:
-                type = market['type']
             request['instId'] = market['id']
-        request['instType'] = type.upper()
+        type, query = self.handle_market_type_and_params('fetchClosedOrders', market, params)
+        request['instType'] = self.convert_to_instrument_type(type)
         if limit is not None:
             request['limit'] = limit  # default 100, max 100
         request['state'] = 'filled'
-        method = self.safe_string(options, 'method', 'privateGetTradeOrdersHistory')
-        response = getattr(self, method)(self.extend(request, params))
+        method = self.safe_string(self.options, 'method', 'privateGetTradeOrdersHistory')
+        response = getattr(self, method)(self.extend(request, query))
         #
         #     {
         #         "code":"0",
@@ -2344,10 +2355,6 @@ class okx(Exchange):
         return self.parse_orders(data, market, since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
-        defaultType = self.safe_string(self.options, 'defaultType')
-        options = self.safe_value(self.options, 'fetchMyTrades', {})
-        type = self.safe_string(options, 'type', defaultType)
-        params = self.omit(params, 'type')
         self.load_markets()
         request = {
             # 'instType': 'SPOT',  # SPOT, MARGIN, SWAP, FUTURES, OPTION
@@ -2362,11 +2369,11 @@ class okx(Exchange):
         if symbol is not None:
             market = self.market(symbol)
             request['instId'] = market['id']
-            type = market['type']
-        request['instType'] = type.upper()
+        type, query = self.handle_market_type_and_params('fetchMyTrades', market, params)
+        request['instType'] = self.convert_to_instrument_type(type)
         if limit is not None:
             request['limit'] = limit  # default 100, max 100
-        response = self.privateGetTradeFillsHistory(self.extend(request, params))
+        response = self.privateGetTradeFillsHistory(self.extend(request, query))
         #
         #     {
         #         "code":"0",
@@ -2393,7 +2400,7 @@ class okx(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        return self.parse_trades(data, market, since, limit, params)
+        return self.parse_trades(data, market, since, limit, query)
 
     def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         request = {
@@ -2472,13 +2479,16 @@ class okx(Exchange):
             # 'before': 'id',  # return records newer than the requested bill id
             # 'limit': 100,  # default 100, max 100
         }
+        type, query = self.handle_market_type_and_params('fetchLedger', None, params)
+        if type is not None:
+            request['instType'] = self.convert_to_instrument_type(type)
         if limit is not None:
             request['limit'] = limit
         currency = None
         if code is not None:
             currency = self.currency(code)
             request['ccy'] = currency['id']
-        response = getattr(self, method)(self.extend(request, params))
+        response = getattr(self, method)(self.extend(request, query))
         #
         # privateGetAccountBills, privateGetAccountBillsArchive
         #
@@ -3088,17 +3098,15 @@ class okx(Exchange):
     def fetch_position(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        type = self.safe_string(params, 'type')
-        params = self.omit(params, 'type')
+        type, query = self.handle_market_type_and_params('fetchPosition', market, params)
         request = {
             # instType String No Instrument type, MARGIN, SWAP, FUTURES, OPTION
             'instId': market['id'],
             # posId String No Single position ID or multiple position IDs(no more than 20) separated with comma
         }
         if type is not None:
-            request['instType'] = type.upper()
-        params = self.omit(params, 'type')
-        response = self.privateGetAccountPositions(params)
+            request['instType'] = self.convert_to_instrument_type(type)
+        response = self.privateGetAccountPositions(query)
         #
         #     {
         #         "code": "0",
@@ -3155,17 +3163,15 @@ class okx(Exchange):
         self.load_markets()
         # defaultType = self.safe_string_2(self.options, 'fetchPositions', 'defaultType')
         # type = self.safe_string(params, 'type', defaultType)
-        type = self.safe_string(params, 'type')
-        params = self.omit(params, 'type')
         request = {
             # instType String No Instrument type, MARGIN, SWAP, FUTURES, OPTION, instId will be checked against instType when both parameters are passed, and the position information of the instId will be returned.
             # instId String No Instrument ID, e.g. BTC-USD-190927-5000-C
             # posId String No Single position ID or multiple position IDs(no more than 20) separated with comma
         }
+        type, query = self.handle_market_type_and_params('fetchPosition', None, params)
         if type is not None:
-            request['instType'] = type.upper()
-        params = self.omit(params, 'type')
-        response = self.privateGetAccountPositions(self.extend(request, params))
+            request['instType'] = self.convert_to_instrument_type(type)
+        response = self.privateGetAccountPositions(self.extend(request, query))
         #
         #     {
         #         "code": "0",
@@ -3217,7 +3223,7 @@ class okx(Exchange):
         for i in range(0, len(positions)):
             entry = positions[i]
             instrument = self.safe_string(entry, 'instType')
-            if (instrument == 'FUTURES') or instrument == ('SWAP'):
+            if (instrument == 'FUTURES') or (instrument == 'SWAP'):
                 result.append(self.parse_position(positions[i]))
         return result
 
@@ -3647,10 +3653,14 @@ class okx(Exchange):
         }
         if limit is not None:
             request['limit'] = str(limit)  # default 100, max 100
+        market = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
-        response = self.privateGetAccountBills(self.extend(request, params))
+        type, query = self.handle_market_type_and_params('fetchPosition', None, params)
+        if type is not None:
+            request['instType'] = self.convert_to_instrument_type(type)
+        response = self.privateGetAccountBills(self.extend(request, query))
         #
         #     {
         #       "bal": "0.0242946200998573",
@@ -3958,7 +3968,7 @@ class okx(Exchange):
     def fetch_market_leverage_tiers(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        type = 'MARGIN' if market['spot'] else market['type'].upper()
+        type = 'MARGIN' if market['spot'] else self.convert_to_instrument_type(market['type'])
         uly = self.safe_string(market['info'], 'uly')
         if not uly:
             raise BadRequest(self.id + ' fetchLeverageTiers() cannot fetch leverage tiers for ' + symbol)

@@ -386,6 +386,7 @@ module.exports = class ftx extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'AMC': 'AMC Entertainment Holdings',
                 'STARS': 'StarLaunch',
             },
         });

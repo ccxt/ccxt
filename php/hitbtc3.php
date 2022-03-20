@@ -9,6 +9,7 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
+use \ccxt\InvalidOrder;
 
 class hitbtc3 extends Exchange {
 
@@ -33,6 +34,7 @@ class hitbtc3 extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
@@ -1392,13 +1394,23 @@ class hitbtc3 extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $response = $this->privatePatchSpotOrderClientOrderId (array_merge($request, $params));
+        $method = $this->get_supported_mapping($market['type'], array(
+            'spot' => 'privatePatchSpotOrderClientOrderId',
+            'swap' => 'privatePatchFuturesOrderClientOrderId',
+        ));
+        $response = $this->$method (array_merge($request, $params));
         return $this->parse_order($response, $market);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
+        $reduceOnly = $this->safe_value_2($params, 'reduce_only', 'reduceOnly');
+        if ($reduceOnly !== null) {
+            if (($market['type'] !== 'swap') && ($market['type'] !== 'margin')) {
+                throw new InvalidOrder($this->id . ' createOrder() does not support reduce_only for ' . $market['type'] . ' orders, reduce_only orders are supported for swap and margin markets only');
+            }
+        }
         $request = array(
             'type' => $type,
             'side' => $side,
@@ -1443,6 +1455,13 @@ class hitbtc3 extends Exchange {
         ));
         $response = $this->$method (array_merge($request, $params));
         return $this->parse_order($response, $market);
+    }
+
+    public function create_reduce_only_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $request = array(
+            'reduce_only' => true,
+        );
+        return $this->create_order($symbol, $type, $side, $amount, $price, array_merge($request, $params));
     }
 
     public function parse_order_status($status) {

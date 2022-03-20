@@ -327,6 +327,7 @@ class bitstamp extends Exchange {
                     'Invalid signature' => '\\ccxt\\AuthenticationError',
                     'Authentication failed' => '\\ccxt\\AuthenticationError',
                     'Missing key, signature and nonce parameters' => '\\ccxt\\AuthenticationError',
+                    'Wrong API key format' => '\\ccxt\\AuthenticationError',
                     'Your account is frozen' => '\\ccxt\\PermissionDenied',
                     'Please update your profile with your FATCA information, before using API.' => '\\ccxt\\PermissionDenied',
                     'Order not found' => '\\ccxt\\OrderNotFound',

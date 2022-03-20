@@ -25,6 +25,7 @@ module.exports = class hitbtc3 extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
@@ -1384,13 +1385,23 @@ module.exports = class hitbtc3 extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const response = await this.privatePatchSpotOrderClientOrderId (this.extend (request, params));
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'privatePatchSpotOrderClientOrderId',
+            'swap': 'privatePatchFuturesOrderClientOrderId',
+        });
+        const response = await this[method] (this.extend (request, params));
         return this.parseOrder (response, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const reduceOnly = this.safeValue2 (params, 'reduce_only', 'reduceOnly');
+        if (reduceOnly !== undefined) {
+            if ((market['type'] !== 'swap') && (market['type'] !== 'margin')) {
+                throw new InvalidOrder (this.id + ' createOrder() does not support reduce_only for ' + market['type'] + ' orders, reduce_only orders are supported for swap and margin markets only');
+            }
+        }
         const request = {
             'type': type,
             'side': side,
@@ -1435,6 +1446,13 @@ module.exports = class hitbtc3 extends Exchange {
         });
         const response = await this[method] (this.extend (request, params));
         return this.parseOrder (response, market);
+    }
+
+    async createReduceOnlyOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        const request = {
+            'reduce_only': true,
+        };
+        return await this.createOrder (symbol, type, side, amount, price, this.extend (request, params));
     }
 
     parseOrderStatus (status) {

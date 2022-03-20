@@ -336,6 +336,7 @@ class bitstamp(Exchange):
                     'Invalid signature': AuthenticationError,
                     'Authentication failed': AuthenticationError,
                     'Missing key, signature and nonce parameters': AuthenticationError,
+                    'Wrong API key format': AuthenticationError,
                     'Your account is frozen': PermissionDenied,
                     'Please update your profile with your FATCA information, before using API.': PermissionDenied,
                     'Order not found': OrderNotFound,

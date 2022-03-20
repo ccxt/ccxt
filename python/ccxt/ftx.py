@@ -401,6 +401,7 @@ class ftx(Exchange):
                 },
             },
             'commonCurrencies': {
+                'AMC': 'AMC Entertainment Holdings',
                 'STARS': 'StarLaunch',
             },
         })

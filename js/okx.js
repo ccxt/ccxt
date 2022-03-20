@@ -291,7 +291,7 @@ module.exports = class okx extends Exchange {
                     'taker': this.parseNumber ('0.0015'),
                     'maker': this.parseNumber ('0.0010'),
                 },
-                'futures': {
+                'future': {
                     'taker': this.parseNumber ('0.0005'),
                     'maker': this.parseNumber ('0.0002'),
                 },
@@ -608,8 +608,8 @@ module.exports = class okx extends Exchange {
                 },
                 'createOrder': 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder' or 'privatePostTradeOrderAlgo'
                 'createMarketBuyOrderRequiresPrice': false,
-                'fetchMarkets': [ 'spot', 'futures', 'swap', 'option' ], // spot, futures, swap, option
-                'defaultType': 'spot', // 'funding', 'spot', 'margin', 'futures', 'swap', 'option'
+                'fetchMarkets': [ 'spot', 'future', 'swap', 'option' ], // spot, future, swap, option
+                'defaultType': 'spot', // 'funding', 'spot', 'margin', 'future', 'swap', 'option'
                 // 'fetchBalance': {
                 //     'type': 'spot', // 'funding', 'trading', 'spot'
                 // },
@@ -630,12 +630,25 @@ module.exports = class okx extends Exchange {
                 },
                 'typesByAccount': {
                     '1': 'spot',
-                    '3': 'futures',
+                    '3': 'future',
                     '5': 'margin',
                     '6': 'funding',
                     '9': 'swap',
                     '12': 'option',
                     '18': 'trading', // unified trading account
+                },
+                'exchangeType': {
+                    'spot': 'SPOT',
+                    'margin': 'MARGIN',
+                    'swap': 'SWAP',
+                    'future': 'FUTURES',
+                    'futures': 'FUTURES', // deprecated
+                    'option': 'OPTION',
+                    'SPOT': 'SPOT',
+                    'MARGIN': 'MARGIN',
+                    'SWAP': 'SWAP',
+                    'FUTURES': 'FUTURES',
+                    'OPTION': 'OPTION',
                 },
                 'brokerId': 'e847386590ce4dBC',
             },
@@ -652,6 +665,21 @@ module.exports = class okx extends Exchange {
                 'WIN': 'WinToken', // https://github.com/ccxt/ccxt/issues/5701
             },
         });
+    }
+
+    handleMarketTypeAndParams (methodName, market = undefined, params = {}) {
+        const instType = this.safeString (params, 'instType');
+        params = this.omit (params, 'instType');
+        const type = this.safeString (params, 'type');
+        if ((type === undefined) && (instType !== undefined)) {
+            params['type'] = instType;
+        }
+        return super.handleMarketTypeAndParams (methodName, market, params);
+    }
+
+    convertToInstrumentType (type) {
+        const exchangeTypes = this.safeValue (this.options, 'exchangeType', {});
+        return this.safeString (exchangeTypes, type, type);
     }
 
     async fetchStatus (params = {}) {
@@ -816,12 +844,15 @@ module.exports = class okx extends Exchange {
         //     }
         //
         const id = this.safeString (market, 'instId');
-        const type = this.safeStringLower (market, 'instType');
+        let type = this.safeStringLower (market, 'instType');
+        if (type === 'futures') {
+            type = 'future';
+        }
         const spot = (type === 'spot');
-        const futures = (type === 'futures');
+        const future = (type === 'future');
         const swap = (type === 'swap');
         const option = (type === 'option');
-        const contract = swap || futures || option;
+        const contract = swap || future || option;
         let baseId = this.safeString (market, 'baseCcy');
         let quoteId = this.safeString (market, 'quoteCcy');
         const settleId = this.safeString (market, 'settleCcy');
@@ -841,7 +872,7 @@ module.exports = class okx extends Exchange {
         if (contract) {
             symbol = symbol + ':' + settle;
             expiry = this.safeInteger (market, 'expTime');
-            if (futures) {
+            if (future) {
                 const ymd = this.yymmdd (expiry);
                 symbol = symbol + '-' + ymd;
             } else if (option) {
@@ -874,8 +905,7 @@ module.exports = class okx extends Exchange {
             'spot': spot,
             'margin': spot && (Precise.stringGt (maxLeverage, '1')),
             'swap': swap,
-            'future': futures,
-            'futures': futures, // deprecated
+            'future': future,
             'option': option,
             'active': true,
             'contract': contract,
@@ -913,11 +943,10 @@ module.exports = class okx extends Exchange {
     }
 
     async fetchMarketsByType (type, params = {}) {
-        const uppercaseType = type.toUpperCase ();
         const request = {
-            'instType': uppercaseType,
+            'instType': this.convertToInstrumentType (type),
         };
-        if (uppercaseType === 'OPTION') {
+        if (type === 'option') {
             const defaultUnderlying = this.safeValue (this.options, 'defaultUnderlying', 'BTC-USD');
             const currencyId = this.safeString2 (params, 'uly', 'marketId', defaultUnderlying);
             if (currencyId === undefined) {
@@ -928,7 +957,7 @@ module.exports = class okx extends Exchange {
         }
         const response = await this.publicGetPublicInstruments (this.extend (request, params));
         //
-        // spot, futures, swaps, options
+        // spot, future, swap, option
         //
         //     {
         //         "code":"0",
@@ -1222,11 +1251,10 @@ module.exports = class okx extends Exchange {
 
     async fetchTickersByType (type, symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const uppercaseType = type.toUpperCase ();
         const request = {
-            'instType': type.toUpperCase (),
+            'instType': this.convertToInstrumentType (type),
         };
-        if (uppercaseType === 'OPTION') {
+        if (type === 'option') {
             const defaultUnderlying = this.safeValue (this.options, 'defaultUnderlying', 'BTC-USD');
             const currencyId = this.safeString2 (params, 'uly', 'marketId', defaultUnderlying);
             if (currencyId === undefined) {
@@ -1267,9 +1295,8 @@ module.exports = class okx extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
-        const defaultType = this.safeString2 (this.options, 'fetchTickers', 'defaultType');
-        const type = this.safeString (params, 'type', defaultType);
-        return await this.fetchTickersByType (type, symbols, this.omit (params, 'type'));
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
+        return await this.fetchTickersByType (type, symbols, query);
     }
 
     parseTrade (trade, market = undefined) {
@@ -1594,17 +1621,17 @@ module.exports = class okx extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'instType': market['type'].toUpperCase (), // SPOT, MARGIN, SWAP, FUTURES, OPTION
+            'instType': this.convertToInstrumentType (market['type']), // SPOT, MARGIN, SWAP, FUTURES, OPTION
             // 'instId': market['id'], // only applicable to SPOT/MARGIN
             // 'uly': market['id'], // only applicable to FUTURES/SWAP/OPTION
             // 'category': '1', // 1 = Class A, 2 = Class B, 3 = Class C, 4 = Class D
         };
         if (market['spot']) {
             request['instId'] = market['id'];
-        } else if (market['swap'] || market['futures'] || market['option']) {
+        } else if (market['swap'] || market['future'] || market['option']) {
             request['uly'] = market['baseId'] + '-' + market['quoteId'];
         } else {
-            throw new NotSupported (this.id + ' fetchTradingFee supports spot, swap, futures or option markets only');
+            throw new NotSupported (this.id + ' fetchTradingFee supports spot, swap, future or option markets only');
         }
         const response = await this.privateGetAccountTradeFee (this.extend (request, params));
         //
@@ -2274,11 +2301,6 @@ module.exports = class okx extends Exchange {
 
     async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const defaultType = this.safeString (this.options, 'defaultType');
-        const options = this.safeValue (this.options, 'fetchCanceledOrders', {});
-        let type = this.safeString (options, 'type', defaultType);
-        type = this.safeString (params, 'type', type);
-        params = this.omit (params, 'type');
         const request = {
             // 'instType': type.toUpperCase (), // SPOT, MARGIN, SWAP, FUTURES, OPTION
             // 'uly': currency['id'],
@@ -2292,18 +2314,16 @@ module.exports = class okx extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            if (market['futures'] || market['swap']) {
-                type = market['type'];
-            }
             request['instId'] = market['id'];
         }
-        request['instType'] = type.toUpperCase ();
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchCanceledOrders', market, params);
+        request['instType'] = this.convertToInstrumentType (type);
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
         }
         request['state'] = 'canceled';
-        const method = this.safeString (options, 'method', 'privateGetTradeOrdersHistory');
-        const response = await this[method] (this.extend (request, params));
+        const method = this.safeString (this.options, 'method', 'privateGetTradeOrdersHistory');
+        const response = await this[method] (this.extend (request, query));
         //
         //     {
         //         "code": "0",
@@ -2356,11 +2376,6 @@ module.exports = class okx extends Exchange {
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const defaultType = this.safeString (this.options, 'defaultType');
-        const options = this.safeValue (this.options, 'fetchClosedOrders', {});
-        let type = this.safeString (options, 'type', defaultType);
-        type = this.safeString (params, 'type', type);
-        params = this.omit (params, 'type');
         const request = {
             // 'instType': type.toUpperCase (), // SPOT, MARGIN, SWAP, FUTURES, OPTION
             // 'uly': currency['id'],
@@ -2374,18 +2389,16 @@ module.exports = class okx extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            if (market['futures'] || market['swap']) {
-                type = market['type'];
-            }
             request['instId'] = market['id'];
         }
-        request['instType'] = type.toUpperCase ();
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
+        request['instType'] = this.convertToInstrumentType (type);
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
         }
         request['state'] = 'filled';
-        const method = this.safeString (options, 'method', 'privateGetTradeOrdersHistory');
-        const response = await this[method] (this.extend (request, params));
+        const method = this.safeString (this.options, 'method', 'privateGetTradeOrdersHistory');
+        const response = await this[method] (this.extend (request, query));
         //
         //     {
         //         "code":"0",
@@ -2433,10 +2446,6 @@ module.exports = class okx extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const defaultType = this.safeString (this.options, 'defaultType');
-        const options = this.safeValue (this.options, 'fetchMyTrades', {});
-        let type = this.safeString (options, 'type', defaultType);
-        params = this.omit (params, 'type');
         await this.loadMarkets ();
         const request = {
             // 'instType': 'SPOT', // SPOT, MARGIN, SWAP, FUTURES, OPTION
@@ -2451,13 +2460,13 @@ module.exports = class okx extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['instId'] = market['id'];
-            type = market['type'];
         }
-        request['instType'] = type.toUpperCase ();
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        request['instType'] = this.convertToInstrumentType (type);
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
         }
-        const response = await this.privateGetTradeFillsHistory (this.extend (request, params));
+        const response = await this.privateGetTradeFillsHistory (this.extend (request, query));
         //
         //     {
         //         "code":"0",
@@ -2484,7 +2493,7 @@ module.exports = class okx extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parseTrades (data, market, since, limit, params);
+        return this.parseTrades (data, market, since, limit, query);
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2565,6 +2574,10 @@ module.exports = class okx extends Exchange {
             // 'before': 'id', // return records newer than the requested bill id
             // 'limit': 100, // default 100, max 100
         };
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchLedger', undefined, params);
+        if (type !== undefined) {
+            request['instType'] = this.convertToInstrumentType (type);
+        }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
@@ -2573,7 +2586,7 @@ module.exports = class okx extends Exchange {
             currency = this.currency (code);
             request['ccy'] = currency['id'];
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
         //
         // privateGetAccountBills, privateGetAccountBillsArchive
         //
@@ -3218,18 +3231,16 @@ module.exports = class okx extends Exchange {
     async fetchPosition (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const type = this.safeString (params, 'type');
-        params = this.omit (params, 'type');
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchPosition', market, params);
         const request = {
             // instType String No Instrument type, MARGIN, SWAP, FUTURES, OPTION
             'instId': market['id'],
             // posId String No Single position ID or multiple position IDs (no more than 20) separated with comma
         };
         if (type !== undefined) {
-            request['instType'] = type.toUpperCase ();
+            request['instType'] = this.convertToInstrumentType (type);
         }
-        params = this.omit (params, 'type');
-        const response = await this.privateGetAccountPositions (params);
+        const response = await this.privateGetAccountPositions (query);
         //
         //     {
         //         "code": "0",
@@ -3288,18 +3299,16 @@ module.exports = class okx extends Exchange {
         await this.loadMarkets ();
         // const defaultType = this.safeString2 (this.options, 'fetchPositions', 'defaultType');
         // const type = this.safeString (params, 'type', defaultType);
-        const type = this.safeString (params, 'type');
-        params = this.omit (params, 'type');
         const request = {
             // instType String No Instrument type, MARGIN, SWAP, FUTURES, OPTION, instId will be checked against instType when both parameters are passed, and the position information of the instId will be returned.
             // instId String No Instrument ID, e.g. BTC-USD-190927-5000-C
             // posId String No Single position ID or multiple position IDs (no more than 20) separated with comma
         };
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchPosition', undefined, params);
         if (type !== undefined) {
-            request['instType'] = type.toUpperCase ();
+            request['instType'] = this.convertToInstrumentType (type);
         }
-        params = this.omit (params, 'type');
-        const response = await this.privateGetAccountPositions (this.extend (request, params));
+        const response = await this.privateGetAccountPositions (this.extend (request, query));
         //
         //     {
         //         "code": "0",
@@ -3351,7 +3360,7 @@ module.exports = class okx extends Exchange {
         for (let i = 0; i < positions.length; i++) {
             const entry = positions[i];
             const instrument = this.safeString (entry, 'instType');
-            if ((instrument === 'FUTURES') || instrument === ('SWAP')) {
+            if ((instrument === 'FUTURES') || (instrument === 'SWAP')) {
                 result.push (this.parsePosition (positions[i]));
             }
         }
@@ -3807,11 +3816,16 @@ module.exports = class okx extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit.toString (); // default 100, max 100
         }
+        let market = undefined;
         if (symbol !== undefined) {
-            const market = this.market (symbol);
+            market = this.market (symbol);
             symbol = market['symbol'];
         }
-        const response = await this.privateGetAccountBills (this.extend (request, params));
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchPosition', undefined, params);
+        if (type !== undefined) {
+            request['instType'] = this.convertToInstrumentType (type);
+        }
+        const response = await this.privateGetAccountBills (this.extend (request, query));
         //
         //     {
         //       "bal": "0.0242946200998573",
@@ -4145,7 +4159,7 @@ module.exports = class okx extends Exchange {
     async fetchMarketLeverageTiers (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const type = market['spot'] ? 'MARGIN' : market['type'].toUpperCase ();
+        const type = market['spot'] ? 'MARGIN' : this.convertToInstrumentType (market['type']);
         const uly = this.safeString (market['info'], 'uly');
         if (!uly) {
             throw new BadRequest (this.id + ' fetchLeverageTiers() cannot fetch leverage tiers for ' + symbol);
