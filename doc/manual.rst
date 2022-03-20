@@ -51,7 +51,7 @@ Exchanges
 
 
 
-The CCXT library currently supports the following 115 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 114 cryptocurrency exchange markets and trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -833,18 +833,6 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - eqonex
      - `EQONEX <https://eqonex.com?referredByCode=zpa8kij4ouvBFup3>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://developer.eqonex.com
-          :alt: API Version *
-     
-     - 
-     - 
-   * - .. image:: https://user-images.githubusercontent.com/1294454/107758499-05edd180-6d38-11eb-9e09-0b69602a7a15.jpg
-          :target: https://eqonex.com?referredByCode=zpa8kij4ouvBFup3
-          :alt: equos
-     
-     - equos
-     - `EQUOS <https://eqonex.com?referredByCode=zpa8kij4ouvBFup3>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://developer.eqonex.com
           :alt: API Version *
