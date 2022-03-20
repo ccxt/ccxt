@@ -387,7 +387,7 @@ module.exports = class currencycom extends Exchange {
         //                     { filterType: "LOT_SIZE", minQty: "0.0001", maxQty: "100", stepSize: "0.0001", },
         //                     { filterType: "MIN_NOTIONAL", minNotional: "5", },
         //                 ],
-        //                 marketModes: [ "REGULAR" ], // CLOSE_ONLY, LONG_ONLY, REGULAR 
+        //                 marketModes: [ "REGULAR" ], // CLOSE_ONLY, LONG_ONLY, REGULAR
         //                 marketType: "SPOT", // SPOT, LEVERAGE
         //                 longRate: -0.0684932, // LEVERAGE only
         //                 shortRate: -0.0684932, // LEVERAGE only
