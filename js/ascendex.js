@@ -859,7 +859,7 @@ module.exports = class ascendex extends ccxt.ascendex {
         //     { m: 'sub', id: '1647515701', ch: 'depth:BTC/USDT', code: 0 }
         //
         const channel = this.safeString (message, 'ch', '');
-        if (channel.startsWith ('depth-realtime')) {
+        if (channel.indexOf ('depth-realtime') > -1) {
             this.handleOrderBookSubscription (client, message);
         }
         return message;
