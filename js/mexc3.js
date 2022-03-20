@@ -245,11 +245,13 @@ module.exports = class mexc3 extends Exchange {
                     '-1128': BadRequest,
                     '-2011': BadRequest,
                     '30004': InsufficientFunds,
+                    '30019': BadRequest,
                 },
                 'broad': {
                     'Combination of optional parameters invalid': BadRequest, // {"msg":"Combination of optional parameters invalid.","code":-1128,"_extend":null}
                     'Insufficient position': InsufficientFunds,
-                    'Unknown order sent.': BadRequest,
+                    'Unknown order sent': BadRequest,
+                    'api market order is disabled': BadRequest,
                 },
             },
         });
