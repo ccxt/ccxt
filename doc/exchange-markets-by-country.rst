@@ -1069,17 +1069,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version *
      
    * - Singapore
-     - .. image:: https://user-images.githubusercontent.com/1294454/107758499-05edd180-6d38-11eb-9e09-0b69602a7a15.jpg
-          :target: https://eqonex.com?referredByCode=zpa8kij4ouvBFup3
-          :alt: equos
-     
-     - equos
-     - `EQUOS <https://eqonex.com?referredByCode=zpa8kij4ouvBFup3>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://developer.eqonex.com
-          :alt: API Version *
-     
-   * - Singapore
      - .. image:: https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg
           :target: https://www.luno.com/invite/44893A
           :alt: luno
@@ -1471,17 +1460,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
      
      - eqonex
      - `EQONEX <https://eqonex.com?referredByCode=zpa8kij4ouvBFup3>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://developer.eqonex.com
-          :alt: API Version *
-     
-   * - US
-     - .. image:: https://user-images.githubusercontent.com/1294454/107758499-05edd180-6d38-11eb-9e09-0b69602a7a15.jpg
-          :target: https://eqonex.com?referredByCode=zpa8kij4ouvBFup3
-          :alt: equos
-     
-     - equos
-     - `EQUOS <https://eqonex.com?referredByCode=zpa8kij4ouvBFup3>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://developer.eqonex.com
           :alt: API Version *
