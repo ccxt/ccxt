@@ -906,7 +906,6 @@ module.exports = class okx extends Exchange {
             'margin': spot && (Precise.stringGt (maxLeverage, '1')),
             'swap': swap,
             'future': future,
-            'futures': future, // deprecated
             'option': option,
             'active': true,
             'contract': contract,
@@ -1297,7 +1296,7 @@ module.exports = class okx extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
-        return await this.fetchTickersByType (type, symbols, this.omit (query, 'type'));
+        return await this.fetchTickersByType (type, symbols, query);
     }
 
     parseTrade (trade, market = undefined) {
