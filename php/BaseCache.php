@@ -16,15 +16,15 @@ class BaseCache implements \JsonSerializable, \ArrayAccess, \IteratorAggregate, 
         $this->deque = new Deque();
     }
 
-    public function getIterator() {
+    public function getIterator() : \Traversable {
         return $this->deque;
     }
 
-    public function JsonSerialize () {
+    public function JsonSerialize() : Deque {
         return $this->deque;
     }
 
-    public function count() {
+    public function count() : int {
         return $this->deque->count();
     }
 
@@ -32,19 +32,19 @@ class BaseCache implements \JsonSerializable, \ArrayAccess, \IteratorAggregate, 
         $this->deque->clear();
     }
 
-    public function offsetGet($index) {
+    public function offsetGet($index) : mixed {
         return $this->deque[$index];
     }
 
-    public function offsetSet($index, $newval) {
+    public function offsetSet($index, $newval) : void {
         $this->deque[$index] = $newval;
     }
 
-    public function offsetExists($index) {
+    public function offsetExists($index) : bool {
         return $index < $this->count();
     }
 
-    public function offsetUnset($index) {
+    public function offsetUnset($index) : void {
         unset($this->deque[$index]);
     }
 
