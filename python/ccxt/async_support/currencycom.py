@@ -583,7 +583,7 @@ class currencycom(Exchange):
                 'id': accountId,
                 'type': None,
                 'currency': currencyCode,
-                'info': response,
+                'info': account,
             })
         return result
 

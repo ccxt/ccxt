@@ -590,7 +590,7 @@ class currencycom extends Exchange {
                 'id' => $accountId,
                 'type' => null,
                 'currency' => $currencyCode,
-                'info' => $response,
+                'info' => $account,
             );
         }
         return $result;
