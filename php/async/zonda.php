@@ -80,7 +80,7 @@ class zonda extends Exchange {
             'hostname' => 'zonda.exchange',
             'urls' => array(
                 'referral' => 'https://auth.zondaglobal.com/ref/jHlbB4mIkdS1',
-                'logo' => 'https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/1294454/159202310-a0e38007-5e7c-4ba9-a32f-c8263a0291fe.jpg',
                 'www' => 'https://zondaglobal.com',
                 'api' => array(
                     'public' => 'https://{hostname}/API/Public',

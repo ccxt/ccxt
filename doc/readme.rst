@@ -1942,7 +1942,7 @@ The CCXT library currently supports the following 114 cryptocurrency exchange ma
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
-   * - .. image:: https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg
+   * - .. image:: https://user-images.githubusercontent.com/1294454/159202310-a0e38007-5e7c-4ba9-a32f-c8263a0291fe.jpg
           :target: https://auth.zondaglobal.com/ref/jHlbB4mIkdS1
           :alt: zonda
      
@@ -2011,14 +2011,14 @@ JavaScript (for use with the ``<script>`` tag):
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
 
- * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.76.65/dist/ccxt.browser.js
- * unpkg: https://unpkg.com/ccxt@1.76.65/dist/ccxt.browser.js
+ * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.76.66/dist/ccxt.browser.js
+ * unpkg: https://unpkg.com/ccxt@1.76.66/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code-block:: HTML
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.76.65/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.76.66/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
