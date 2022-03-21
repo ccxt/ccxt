@@ -34,6 +34,7 @@ module.exports = class lbank2 extends Exchange {
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': false,
+                'fetchFundingFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -91,9 +92,9 @@ module.exports = class lbank2 extends Exchange {
                         'currencyPairs': 2.5, // returns available trading pairs (market ids)
                         'accuracy': 2.5, // basic information of trading pairs (price, quantity accuraccy etc)
                         'usdToCny': 2.5,
-                        'withdrawConfigs': 2.5, // fetchWithdrawalFees (symbol)
+                        'withdrawConfigs': 2.5, // returns withdrawal information for specified currencies
                         'timestamp': 2.5,
-                        'ticker/24h': 2.5, // TODO (down)
+                        'ticker/24h': 2.5, // down
                         'ticker': 2.5, // fetchTicker
                         'depth': 2.5,
                         'incrDepth': 2.5, // fetchOrderBook
@@ -142,6 +143,17 @@ module.exports = class lbank2 extends Exchange {
             },
             'options': {
                 'cacheSecretAsPem': true,
+                'networks': {
+                    'ERC20': 'erc20',
+                    'ETH': 'erc20',
+                    'TRC20': 'trc20',
+                    'TRX': 'trc20',
+                    'OMNI': 'omni',
+                    'ASA': 'asa',
+                    'BEP20': 'bep20(bsc)',
+                    'BSC': 'bep20(bsc)',
+                    'HT': 'heco',
+                },
             },
         });
     }
@@ -724,6 +736,39 @@ module.exports = class lbank2 extends Exchange {
         }
         const response = await this[method] (this.extend (request, params));
         return response;
+    }
+
+    async fetchFundingFees (params = {}) {
+        const code = this.safeString2 (params, 'coin', 'currency', this.safeString (params, 'assetCode'));
+        params = this.omit (params, [ 'coin', 'currency', 'assetCode' ]);
+        if (code === undefined) {
+            throw new Error (this.id + 'fetchFundingFees() requires a coin or currency argument in params');
+        }
+        let currencyId = this.currencies[code]['id'];
+        if (currencyId === undefined) {
+            currencyId = code;
+        }
+        const request = {
+            'assetCode': currencyId,
+        };
+        const response = await this.publicGetWithdrawConfigs (this.extend (request, params));
+        const result = this.safeValue (response, 'data', {});
+        const withdrawalFees = {};
+        withdrawalFees[code] = {};
+        for (let i = 0; i < result.length; i++) {
+            const data = result[i];
+            const canWithdraw = this.safeString (data, 'canWithdraw');
+            if (canWithdraw) {
+                const fee = this.safeString (data, 'fee');
+                const networkId = this.safeString (fee, 'chain');
+                console.log (networkId);
+            }
+        }
+        return {
+            'info': result,
+            'withdraw': withdrawalFees,
+            'deposit': {},
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
