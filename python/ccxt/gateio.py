@@ -3205,7 +3205,7 @@ class gateio(Exchange):
             'future': 'privateDeliveryPostSettlePositionsContractLeverage',
         })
         request = self.prepare_request(market)
-        defaultMarginType = self.safe_string(self.options, 'marginType', 'defaultMarginType')
+        defaultMarginType = self.safe_string_2(self.options, 'marginType', 'defaultMarginType')
         crossLeverageLimit = self.safe_string(params, 'cross_leverage_limit')
         marginType = self.safe_string(params, 'marginType', defaultMarginType)
         if crossLeverageLimit is not None:

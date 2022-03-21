@@ -3348,7 +3348,7 @@ class gateio extends Exchange {
             'future' => 'privateDeliveryPostSettlePositionsContractLeverage',
         ));
         $request = $this->prepare_request($market);
-        $defaultMarginType = $this->safe_string($this->options, 'marginType', 'defaultMarginType');
+        $defaultMarginType = $this->safe_string_2($this->options, 'marginType', 'defaultMarginType');
         $crossLeverageLimit = $this->safe_string($params, 'cross_leverage_limit');
         $marginType = $this->safe_string($params, 'marginType', $defaultMarginType);
         if ($crossLeverageLimit !== null) {
