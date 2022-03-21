@@ -2337,8 +2337,8 @@ module.exports = class bitmart extends Exchange {
         url += '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         let queryString = '';
-        const isPlain = (method === 'GET') || (method === 'DELETE');
-        if (isPlain) {
+        const getOrDelete = (method === 'GET') || (method === 'DELETE');
+        if (getOrDelete) {
             if (Object.keys (query).length) {
                 queryString = this.urlencode (query);
                 url += '?' + queryString;
@@ -2352,7 +2352,7 @@ module.exports = class bitmart extends Exchange {
                 'X-BM-TIMESTAMP': timestamp,
                 'Content-Type': 'application/json',
             };
-            if (!isPlain) {
+            if (!getOrDelete) {
                 body = this.json (query);
                 queryString = body;
             }
