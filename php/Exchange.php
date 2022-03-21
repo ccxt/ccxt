@@ -2905,7 +2905,7 @@ class Exchange {
                 throw new BaseError('x must be a string number or a number');
             }
             
-            $newNumPrecisionDigits = gmp_cmp($numPrecisionDigitsP->decimals, 0) > 0 ? $numPrecisionDigitsP->decimals : 0;
+            $newNumPrecisionDigits = $numPrecisionDigitsP->decimals > 0 ? $numPrecisionDigitsP->decimals : 0;
             $remainderP = $xP->mod($numPrecisionDigitsP);
             if (gmp_cmp($remainderP->integer, 0) != 0) {
                 if ($roundingMode === ROUND) {
