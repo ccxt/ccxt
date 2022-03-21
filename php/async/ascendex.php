@@ -22,6 +22,7 @@ class ascendex extends Exchange {
             'countries' => array( 'SG' ), // Singapore
             'rateLimit' => 500,
             'certified' => true,
+            'pro' => true,
             // new metainfo interface
             'has' => array(
                 'CORS' => null,

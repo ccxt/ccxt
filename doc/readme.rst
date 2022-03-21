@@ -126,7 +126,10 @@ Certified Cryptocurrency Exchanges
           :target: https://github.com/ccxt/ccxt/wiki/Certification
           :alt: CCXT Certified
      
-     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
      - .. image:: https://img.shields.io/static/v1?label=Fee&message=%2d25%25&color=orange
           :target: https://ascendex.com/en-us/register?inviteCode=EL6BXBQM
           :alt: Sign up with AscendEX using CCXT's referral link for a 25% discount!
@@ -459,7 +462,10 @@ The CCXT library currently supports the following 114 cryptocurrency exchange ma
           :target: https://github.com/ccxt/ccxt/wiki/Certification
           :alt: CCXT Certified
      
-     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
    * - .. image:: https://user-images.githubusercontent.com/1294454/55248342-a75dfe00-525a-11e9-8aa2-05e9dca943c6.jpg
           :target: https://bequant.io
           :alt: bequant
@@ -2011,14 +2017,14 @@ JavaScript (for use with the ``<script>`` tag):
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
 
- * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.76.71/dist/ccxt.browser.js
- * unpkg: https://unpkg.com/ccxt@1.76.71/dist/ccxt.browser.js
+ * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.76.72/dist/ccxt.browser.js
+ * unpkg: https://unpkg.com/ccxt@1.76.72/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code-block:: HTML
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.76.71/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.76.72/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 

@@ -26,6 +26,7 @@ class ascendex(Exchange):
             'countries': ['SG'],  # Singapore
             'rateLimit': 500,
             'certified': True,
+            'pro': True,
             # new metainfo interface
             'has': {
                 'CORS': None,
