@@ -100,7 +100,6 @@ from ccxt.async_support.delta import delta                                # noqa
 from ccxt.async_support.deribit import deribit                            # noqa: F401
 from ccxt.async_support.digifinex import digifinex                        # noqa: F401
 from ccxt.async_support.eqonex import eqonex                              # noqa: F401
-from ccxt.async_support.equos import equos                                # noqa: F401
 from ccxt.async_support.exmo import exmo                                  # noqa: F401
 from ccxt.async_support.flowbtc import flowbtc                            # noqa: F401
 from ccxt.async_support.fmfwio import fmfwio                              # noqa: F401
