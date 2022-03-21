@@ -587,7 +587,7 @@ module.exports = class currencycom extends Exchange {
                 'id': accountId,
                 'type': undefined,
                 'currency': currencyCode,
-                'info': response,
+                'info': account,
             });
         }
         return result;
