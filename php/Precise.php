@@ -199,16 +199,39 @@ class Precise {
     }
 
     public function __toString() {
-        $this->reduce();
-        $sign = gmp_sign($this->integer) === -1 ? '-' : '';
-        $integerStr = str_pad(gmp_abs($this->integer), $this->decimals, '0', STR_PAD_LEFT);
-        $index = strlen($integerStr) - $this->decimals;
+        $integerStr = strval($this->integer);
+        $start = strlen($integerStr) - 1;
+        $decimals = $this->decimals;
+        if ($start === 0) {
+            if ($integerStr === '0') {
+                $decimals = 0;
+            }
+        } else {
+            for ($i = $start; $i >= 0; $i--) {
+                if ($integerStr[$i] !== '0') {
+                    break;
+                }
+            }
+            $difference = $start - $i;
+            if ($difference !== 0) {
+                $decimals -= $difference;
+                $integerStr = substr($integerStr, 0, $i + 1);
+            }
+        }
+        if ($integerStr[0] === '-') {
+            $sign = '-';
+            $integerStr = substr($integerStr,1);
+        } else {
+            $sign = '';
+        }
+        $integerStr = str_pad($integerStr, $decimals, '0', STR_PAD_LEFT);
+        $index = strlen($integerStr) - $decimals;
         if ($index === 0) {
             // if we are adding to the front
             $item = '0.';
-        } else if ($this->decimals < 0) {
-            $item = str_repeat('0', -$this->decimals);
-        } else if ($this->decimals === 0) {
+        } else if ($decimals < 0) {
+            $item = str_repeat('0', -$decimals);
+        } else if ($decimals === 0) {
             $item = '';
         } else {
             $item = '.';
