@@ -6,6 +6,8 @@ class Precise {
     public $integer;
     public $decimals;
     public static $base;
+    public static $one;
+    public static $half;
 
     public function __construct($number, $decimals = null) {
         if ($decimals === null) {
@@ -127,17 +129,17 @@ class Precise {
     }
 
     public function round() {
-        $fractional = $this->mod(new Precise(1, 0));
+        $fractional = $this->mod(static::$one);
         $whole = $this->sub($fractional);
         if (gmp_cmp($this->integer, 0) > 0) {
-            if ($fractional->ge(new Precise(5, 1))) {
-                return $whole->add(new Precise(1, 0));
+            if ($fractional->ge(static::$half)) {
+                return $whole->add(static::$one);
             } else {
                 return $whole;
             }
         } else {
-            if ($fractional->gt(new Precise(5, 1))) {
-                return $whole->add(new Precise(1, 0));
+            if ($fractional->gt(static::$half)) {
+                return $whole->add(static::$one);
             } else {
                 return $whole;
             }
@@ -145,16 +147,16 @@ class Precise {
     }
 
     public function floor() {
-        $fractional = $this->mod(new Precise(1, 0));
+        $fractional = $this->mod(static::$one);
         $whole = $this->sub($fractional);
         return $whole;
     }
 
     public function ceil() {
-        $fractional = $this->mod(new Precise(1, 0));
+        $fractional = $this->mod(static::$one);
         $whole = $this->sub($fractional);
         if ($fractional->integer > 0) {
-            return $whole->add(new Precise(1, 0));
+            return $whole->add(static::$one);
         } else {
             return $whole;
         }
@@ -394,3 +396,6 @@ class Precise {
 }
 
 Precise::$base = \gmp_init(10);
+
+Precise::$one = new Precise(1, 0);
+Precise::$half = new Precise(5, 1);
