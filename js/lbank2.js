@@ -153,6 +153,48 @@ module.exports = class lbank2 extends Exchange {
                     'BEP20': 'bep20(bsc)',
                     'BSC': 'bep20(bsc)',
                     'HT': 'heco',
+                    'BNB': 'bep2',
+                    'BTC': 'btc',
+                    'DOGE': 'dogecoin',
+                    'MATIC': 'matic',
+                    'POLYGON': 'matic',
+                    'OEC': 'oec',
+                    'BTCTRON': 'btctron',
+                    'XRP': 'xrp',
+                    // other unusual chains with number of listed currencies supported
+                    //     'avax c-chain': 1,
+                    //     klay: 12,
+                    //     bta: 1,
+                    //     fantom: 1,
+                    //     celo: 1,
+                    //     sol: 2,
+                    //     zenith: 1,
+                    //     ftm: 5,
+                    //     bep20: 1, (single token with mis-named chain) SSS
+                    //     bitci: 1,
+                    //     sgb: 1,
+                    //     moonbeam: 1,
+                    //     ekta: 1,
+                    //     etl: 1,
+                    //     arbitrum: 1,
+                    //     tpc: 1,
+                    //     ptx: 1
+                    // }
+                },
+                'inverse-networks': {
+                    'erc20': 'ERC20',
+                    'trc20': 'TRC20',
+                    'omni': 'OMNI',
+                    'asa': 'ASA',
+                    'bep20(bsc)': 'BSC',
+                    'heco': 'HT',
+                    'bep2': 'BNB',
+                    'btc': 'BTC',
+                    'dogecoin': 'DOGE',
+                    'matic': 'MATIC',
+                    'oec': 'OEC',
+                    'btctron': 'BTCTRON',
+                    'xrp': 'XRP',
                 },
             },
         });
@@ -688,6 +730,7 @@ module.exports = class lbank2 extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         const market = this.market (symbol);
         const orders = await this.fetchOrders (market['symbol'], since, limit, params);
         const closed = this.filterBy (orders, 'status', 'closed');
@@ -697,6 +740,7 @@ module.exports = class lbank2 extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }
@@ -717,6 +761,7 @@ module.exports = class lbank2 extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }
@@ -739,37 +784,42 @@ module.exports = class lbank2 extends Exchange {
     }
 
     async fetchFundingFees (params = {}) {
-        const code = this.safeString2 (params, 'coin', 'currency', this.safeString (params, 'assetCode'));
-        params = this.omit (params, [ 'coin', 'currency', 'assetCode' ]);
-        if (code === undefined) {
-            throw new Error (this.id + 'fetchFundingFees() requires a coin or currency argument in params');
+        await this.loadMarkets ();
+        const code = this.safeString2 (params, 'coin', 'assetCode');
+        params = this.omit (params, [ 'coin', 'assetCode' ]);
+        const request = {};
+        if (code !== undefined) {
+            const currency = this.currency (code);
+            request['assetCode'] = currency['id'];
         }
-        let currencyId = this.currencies[code]['id'];
-        if (currencyId === undefined) {
-            currencyId = code;
-        }
-        const request = {
-            'assetCode': currencyId,
-        };
         const response = await this.publicGetWithdrawConfigs (this.extend (request, params));
-        const result = this.safeValue (response, 'data', {});
-        const withdrawalFees = {};
-        withdrawalFees[code] = {};
+        const result = this.safeValue (response, 'data', []);
+        const withdrawFees = {};
         for (let i = 0; i < result.length; i++) {
-            const data = result[i];
-            const canWithdraw = this.safeString (data, 'canWithdraw');
-            if (canWithdraw) {
-                const fee = this.safeString (data, 'fee');
-                const networkId = this.safeString (fee, 'chain');
-                console.log (networkId);
+            const item = result[i];
+            const canWithdraw = this.safeString (item, 'canWithDraw');
+            if (canWithdraw === 'true') {
+                const chain = this.safeString (item, 'chain');
+                if (chain !== undefined) {
+                    const network = this.safeString (this.options['inverse-networks'], chain, chain);
+                    const currencyId = this.safeString (item, 'assetCode');
+                    const code = this.safeCurrencyCode (currencyId);
+                    const fee = this.safeString (item, 'fee');
+                    if (withdrawFees[code] === undefined) {
+                        withdrawFees[code] = {};
+                    }
+                    withdrawFees[code][network] = fee;
+                }
             }
         }
         return {
-            'info': result,
-            'withdraw': withdrawalFees,
+            'withdraw': withdrawFees,
             'deposit': {},
+            'info': response,
         };
     }
+
+    
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = this.omit (params, this.extractParams (path));
