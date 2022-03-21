@@ -231,6 +231,7 @@ module.exports = class ftx extends Exchange {
                         // account
                         'account/leverage': 1,
                         // wallet
+                        'wallet/deposit_address/list': 1,
                         'wallet/withdrawals': 90,
                         'wallet/saved_addresses': 1,
                         // orders
