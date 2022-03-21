@@ -3342,7 +3342,7 @@ module.exports = class gateio extends Exchange {
             'future': 'privateDeliveryPostSettlePositionsContractLeverage',
         });
         const request = this.prepareRequest (market);
-        const defaultMarginType = this.safeString (this.options, 'marginType', 'defaultMarginType');
+        const defaultMarginType = this.safeString2 (this.options, 'marginType', 'defaultMarginType');
         const crossLeverageLimit = this.safeString (params, 'cross_leverage_limit');
         let marginType = this.safeString (params, 'marginType', defaultMarginType);
         if (crossLeverageLimit !== undefined) {
