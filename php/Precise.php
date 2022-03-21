@@ -88,9 +88,9 @@ class Precise {
         } else {
             $numerator = $this->integer;
         }
-        $denominatorRationizer = max(-$other->decimals + $this->decimals, 0);
-        if ($denominatorRationizer > 0) {
-            $exponent = gmp_pow(static::$base, $denominatorRationizer);
+        $rationizerDenominator = max(-$other->decimals + $this->decimals, 0);
+        if ($rationizerDenominator > 0) {
+            $exponent = gmp_pow(static::$base, $rationizerDenominator);
             $denominator = gmp_mul($other->integer, $exponent);
         } else {
             $denominator = $other->integer;
@@ -99,7 +99,7 @@ class Precise {
         if (gmp_cmp($result, 0) < 0) {
             $result = gmp_add($result, $denominator);
         }
-        return new Precise($result, $denominatorRationizer + $other->decimals);
+        return new Precise($result, $rationizerDenominator + $other->decimals);
     }
 
     public function pow10() {
