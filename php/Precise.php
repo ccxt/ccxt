@@ -82,9 +82,19 @@ class Precise {
 
     public function mod($other) {
         $rationizerNumerator = max(-$this->decimals + $other->decimals, 0);
-        $numerator = gmp_mul($this->integer, gmp_pow(static::$base, $rationizerNumerator));
+        if ($rationizerNumerator > 0) {
+            $exponent = gmp_pow(static::$base, $rationizerNumerator);
+            $numerator = gmp_mul($this->integer, $exponent);
+        } else {
+            $numerator = $this->integer;
+        }
         $denominatorRationizer = max(-$other->decimals + $this->decimals, 0);
-        $denominator = gmp_mul($other->integer, gmp_pow(static::$base, $denominatorRationizer));
+        if ($denominatorRationizer > 0) {
+            $exponent = gmp_pow(static::$base, $denominatorRationizer);
+            $denominator = gmp_mul($other->integer, $exponent);
+        } else {
+            $denominator = $other->integer;
+        }
         $result = gmp_mod($numerator, $denominator);
         if (gmp_cmp($result, 0) < 0) {
             $result = gmp_add($result, $denominator);
