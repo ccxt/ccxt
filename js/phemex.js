@@ -98,6 +98,7 @@ module.exports = class phemex extends Exchange {
                 'public': {
                     'get': [
                         'cfg/v2/products', // spot + contracts
+                        'cfg/fundingRates', 
                         'products', // contracts only
                         'nomics/trades', // ?market=<symbol>&since=<since>
                         'md/kline', // ?from=1589811875&resolution=1800&symbol=sBTCUSDT&to=1592457935
