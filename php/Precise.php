@@ -17,8 +17,13 @@ class Precise {
                 $modifier = intval($modifier);
             }
             $decimalIndex = strpos($number, '.');
-            $this->decimals = ($decimalIndex > -1) ? strlen($number) - $decimalIndex - 1 : 0;
-            $integerString = str_replace('.', '', $number);
+            if ($decimalIndex > -1) {
+                $this->decimals = strlen($number) - $decimalIndex - 1;
+                $integerString = str_replace('.', '', $number);
+            } else {
+                $this->decimals = 0;
+                $integerString = $number;
+            }
             $this->integer = gmp_init($integerString, 10);
             $this->decimals = $this->decimals - $modifier;
         } else {
