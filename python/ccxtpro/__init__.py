@@ -8,7 +8,7 @@ import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.0.28'
+__version__ = '1.0.32'
 
 # -----------------------------------------------------------------------------
 
@@ -58,7 +58,6 @@ from ccxt import OrderNotFillable                   # noqa: F401
 
 # CCXT exchanges
 
-from ccxt.async_support.ascendex import ascendex                          # noqa: F401
 from ccxt.async_support.bibox import bibox                                # noqa: F401
 from ccxt.async_support.bigone import bigone                              # noqa: F401
 from ccxt.async_support.bit2c import bit2c                                # noqa: F401
@@ -70,10 +69,12 @@ from ccxt.async_support.bitflyer import bitflyer                          # noqa
 from ccxt.async_support.bitforex import bitforex                          # noqa: F401
 from ccxt.async_support.bitget import bitget                              # noqa: F401
 from ccxt.async_support.bithumb import bithumb                            # noqa: F401
+from ccxt.async_support.bitopro import bitopro                            # noqa: F401
 from ccxt.async_support.bitpanda import bitpanda                          # noqa: F401
 from ccxt.async_support.bitrue import bitrue                              # noqa: F401
 from ccxt.async_support.bitso import bitso                                # noqa: F401
 from ccxt.async_support.bitstamp1 import bitstamp1                        # noqa: F401
+from ccxt.async_support.bkex import bkex                                  # noqa: F401
 from ccxt.async_support.bl3p import bl3p                                  # noqa: F401
 from ccxt.async_support.blockchaincom import blockchaincom                # noqa: F401
 from ccxt.async_support.btcalpha import btcalpha                          # noqa: F401
@@ -142,6 +143,7 @@ from ccxt.async_support.zonda import zonda                                # noqa
 # CCXT Pro exchanges
 
 from ccxtpro.aax import aax                                               # noqa: F401
+from ccxtpro.ascendex import ascendex                                     # noqa: F401
 from ccxtpro.bequant import bequant                                       # noqa: F401
 from ccxtpro.binance import binance                                       # noqa: F401
 from ccxtpro.binancecoinm import binancecoinm                             # noqa: F401
