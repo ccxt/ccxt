@@ -2906,17 +2906,47 @@ class Exchange {
             }
             
             $newNumPrecisionDigits = $numPrecisionDigitsP->decimals > 0 ? $numPrecisionDigitsP->decimals : 0;
-            $remainderP = $xP->mod($numPrecisionDigitsP);
-            if (gmp_cmp($remainderP->integer, 0) != 0) {
+            
+            $rationizerNumerator = max(-$xP->decimals + $numPrecisionDigitsP->decimals, 0)+1;
+            if ($rationizerNumerator > 0) {
+                $exponent = gmp_pow(Precise::$base, $rationizerNumerator);
+                $numerator = gmp_mul($xP->integer, $exponent);
+            } else {
+                $numerator = $xP->integer;
+            }
+            $rationizerDenominator = max(-$numPrecisionDigitsP->decimals + $xP->decimals, 0)+1;
+            if ($rationizerDenominator > 0) {
+                $exponent = gmp_pow(Precise::$base, $rationizerDenominator);
+                $denominator = gmp_mul($numPrecisionDigitsP->integer, $exponent);
+            } else {
+                $denominator = $numPrecisionDigitsP->integer;
+            }
+            $result = gmp_div_qr($numerator, $denominator, GMP_ROUND_MINUSINF);
+            $quotientInteger = $result[0];
+            $remainderInteger = $result[1];
+            $remainderDecimals = $rationizerDenominator + $numPrecisionDigitsP->decimals;
+            
+            if (gmp_cmp($remainderInteger, 0) != 0) {
                 if ($roundingMode === ROUND) {
-                    $xP = $xP->div($numPrecisionDigitsP)->round()->mul($numPrecisionDigitsP);
-                } elseif ($roundingMode === TRUNCATE) {
-                    if ($xP->integer >= 0) {
-                        $xP = $xP->div($numPrecisionDigitsP)->floor()->mul($numPrecisionDigitsP);
+                    $halfDenominator = gmp_div($denominator, 2);
+                    if (gmp_cmp($quotientInteger,0)>0) {
+                        if (gmp_cmp($remainderInteger,$halfDenominator) >= 0) {
+                            $quotientInteger = gmp_add($quotientInteger,1);
+                        }
                     } else {
-                        $xP = $xP->div($numPrecisionDigitsP)->ceil()->mul($numPrecisionDigitsP);
+                        if (gmp_cmp($remainderInteger,$halfDenominator) > 0) {
+                            $quotientInteger = gmp_add($quotientInteger,1);
+                        }
+                    }
+                } elseif ($roundingMode === TRUNCATE) {
+                    if (gmp_cmp($quotientInteger,0)<0) {
+                        if (gmp_cmp($remainderInteger,0)>0) {
+                            $quotientInteger = gmp_add($quotientInteger,1);
+                        }
                     }
                 }
+                $resultInteger = gmp_mul($quotientInteger,$denominator);
+                $xP = new Precise($resultInteger,$remainderDecimals);
             }
             $x = strval($xP);
             $roundingMode = ROUND;
