@@ -302,6 +302,7 @@ class bitmart(Exchange):
                     '40032': InvalidOrder,  # 400, The plan order's life cycle is too long.
                     '40033': InvalidOrder,  # 400, The plan order's life cycle is too short.
                     '40034': BadSymbol,  # 400, This contract is not found
+                    '53002': PermissionDenied,  # 403, Your account has not yet completed the kyc advanced certification, please complete first
                 },
                 'broad': {},
             },
@@ -2227,30 +2228,23 @@ class bitmart(Exchange):
             url += '/' + self.version
         url += '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        if type == 'system':
+        queryString = ''
+        getOrDelete = (method == 'GET') or (method == 'DELETE')
+        if getOrDelete:
             if query:
-                # print(query)
-                url += '?' + self.urlencode(query)
-        elif access == 'public':
-            if query:
-                # print(query)
-                url += '?' + self.urlencode(query)
-        elif access == 'private':
+                queryString = self.urlencode(query)
+                url += '?' + queryString
+        if access == 'private':
             self.check_required_credentials()
             timestamp = str(self.milliseconds())
-            queryString = ''
             headers = {
                 'X-BM-KEY': self.apiKey,
                 'X-BM-TIMESTAMP': timestamp,
+                'Content-Type': 'application/json',
             }
-            if (method == 'POST') or (method == 'PUT'):
-                headers['Content-Type'] = 'application/json'
+            if not getOrDelete:
                 body = self.json(query)
                 queryString = body
-            else:
-                if query:
-                    queryString = self.urlencode(query)
-                    url += '?' + queryString
             auth = timestamp + '#' + self.uid + '#' + queryString
             signature = self.hmac(self.encode(auth), self.encode(self.secret))
             headers['X-BM-SIGN'] = signature
