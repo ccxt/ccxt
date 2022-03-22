@@ -3306,7 +3306,9 @@ module.exports = class okx extends Exchange {
         };
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchPosition', undefined, params);
         if (type !== undefined) {
-            request['instType'] = this.convertToInstrumentType (type);
+            if ((type === 'swap') || (type === 'future')) {
+                request['instType'] = this.convertToInstrumentType (type);
+            }
         }
         const response = await this.privateGetAccountPositions (this.extend (request, query));
         //
