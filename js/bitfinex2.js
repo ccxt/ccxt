@@ -326,7 +326,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 },
                 'swap': {
                     'fetchMarkets': {
-                        'settlementCurrencies': [ 'BTC', 'USDT' ],
+                        'settlementCurrencies': [ 'BTC', 'USDT', 'EURT' ],
                     },
                 },
             },
@@ -461,20 +461,27 @@ module.exports = class bitfinex2 extends bitfinex {
             }
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
+            let symbol = base + '/' + quote;
             baseId = this.getCurrencyId (baseId);
             quoteId = this.getCurrencyId (quoteId);
+            let settleId = undefined;
+            let settle = undefined;
+            if (swap) {
+                settleId = quoteId;
+                settle = this.safeCurrencyCode (settleId);
+                symbol = symbol + ':' + settle;
+            }
             const minOrderSizeString = this.safeString (market, 'minimum_order_size');
             const maxOrderSizeString = this.safeString (market, 'maximum_order_size');
-            const parsedMarket = {
+            result.push ({
                 'id': 't' + id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'settle': undefined,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': undefined,
+                'settleId': settleId,
                 'type': spot ? 'spot' : 'swap',
                 'spot': spot,
                 'margin': this.safeValue (market, 'margin', false),
@@ -483,9 +490,9 @@ module.exports = class bitfinex2 extends bitfinex {
                 'option': false,
                 'active': true,
                 'contract': swap,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
+                'linear': swap ? true : undefined,
+                'inverse': swap ? false : undefined,
+                'contractSize': swap ? this.parseNumber ('1') : undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
@@ -513,21 +520,7 @@ module.exports = class bitfinex2 extends bitfinex {
                     },
                 },
                 'info': market,
-            };
-            if (swap) {
-                const settlementCurrencies = [ 'USDT' ]; // this.options['swap']['fetchMarkets']['settlementCurrencies'];
-                for (let j = 0; j < settlementCurrencies.length; j++) {
-                    const settle = settlementCurrencies[j];
-                    parsedMarket['settle'] = settle;
-                    parsedMarket['symbol'] = symbol + ':' + settle;
-                    parsedMarket['linear'] = quote === settle;
-                    parsedMarket['inverse'] = base === settle;
-                    parsedMarket['contractSize'] = this.parseNumber ('1');
-                    result.push (parsedMarket);
-                }
-            } else {
-                result.push (parsedMarket);
-            }
+            });
         }
         return result;
     }
