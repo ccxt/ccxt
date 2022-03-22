@@ -2941,7 +2941,7 @@ module.exports = class gateio extends Exchange {
         const status = this.parseOrderStatus (rawStatus);
         return this.safeOrder ({
             'id': this.safeString (order, 'id'),
-            'clientOrderId': this.safeString (order, 'text'),
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': this.safeTimestamp2 (order, 'update_time', 'finish_time'),
@@ -3264,13 +3264,56 @@ module.exports = class gateio extends Exchange {
 
     async cancelAllOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {};
+        let request = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['symbol'] = market['id'];
+            request = this.prepareRequest (market);
         }
-        return await this.privateSpotDeleteOrders (this.extend (request, params));
+        const [ type, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
+        const swap = type === 'swap';
+        const future = type === 'future';
+        if (symbol === undefined && (swap || future)) {
+            const defaultSettle = swap ? 'usdt' : 'btc';
+            const settle = this.safeStringLower (params, 'settle', defaultSettle);
+            request['settle'] = settle;
+        }
+        const method = this.getSupportedMapping (type, {
+            'spot': 'privateSpotDeleteOrders',
+            'margin': 'privateSpotDeleteOrders',
+            'swap': 'privateFuturesDeleteSettleOrders',
+            'future': 'privateDeliveryDeleteSettleOrders',
+        });
+        const response = await this[method] (this.extend (request, query));
+        //
+        //    [
+        //        {
+        //            "id":139797004085,
+        //            "contract":"ADA_USDT",
+        //            "mkfr":"0",
+        //            "tkfr":"0.0005",
+        //            "tif":"gtc",
+        //            "is_reduce_only":false,
+        //            "create_time":1647911169.343,
+        //            "finish_time":1647911226.849,
+        //            "price":"0.8",
+        //            "size":1,
+        //            "refr":"0.3",
+        //            "left":1,
+        //            "text":"api",
+        //            "fill_price":"0",
+        //            "user":6693577,
+        //            "finish_as":"cancelled",
+        //            "status":"finished",
+        //            "is_liq":false,
+        //            "refu":2436035,
+        //            "is_close":false,
+        //            "iceberg":0
+        //        }
+        //        ...
+        //    ]
+        //
+        return this.parseOrders (response, market);
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
