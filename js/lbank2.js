@@ -56,7 +56,7 @@ module.exports = class lbank2 extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': false,
-                'fetchTrades': false,
+                'fetchTrades': true,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
@@ -538,23 +538,21 @@ module.exports = class lbank2 extends Exchange {
     }
 
     parseBalance (response) {
+        const timestamp = this.safeInteger (response, 'ts');
         const result = {
             'info': response,
-            'timestamp': this.safeInteger (response, 'ts'),
-            'datetime': this.iso8601 (this.safeInteger (response, 'ts')),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
         };
-        const data = this.safeValue (response, 'data', {});
-        const free = this.safeValue (data, 'free', {});
-        const used = this.safeValue (data, 'freeze', {});
-        const total = this.safeValue (data, 'asset', {});
-        const currencyIds = Object.keys (free);
-        for (let i = 0; i < currencyIds.length; i++) {
-            const currencyId = currencyIds[i];
+        const data = this.safeValue (response, 'data');
+        const balances = this.safeValue (data, 'balances');
+        for (let i = 0; i < balances.length; i++) {
+            const item = balances[i];
+            const currencyId = this.safeString (item, 'asset');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeString (free, currencyId);
-            account['used'] = this.safeString (used, currencyId);
-            account['total'] = this.safeString (total, currencyId);
+            account['free'] = this.safeString (item, 'free');
+            account['used'] = this.safeString (item, 'locked');
             result[code] = account;
         }
         return this.safeBalance (result);
@@ -562,7 +560,7 @@ module.exports = class lbank2 extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privatePostUserInfo ();
+        const response = await this.privatePostSupplementUserInfoAccount ();
         return this.parseBalance (response);
     }
 
