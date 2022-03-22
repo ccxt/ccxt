@@ -1837,11 +1837,9 @@ module.exports = class hitbtc3 extends Exchange {
         }
         const currencies = this.safeValue (position, 'currencies', []);
         let collateral = undefined;
-        if (marginType === 'isolated') {
-            for (let i = 0; i < currencies.length; i++) {
-                const entry = currencies[i];
-                collateral = this.safeNumber (entry, 'margin_balance');
-            }
+        for (let i = 0; i < currencies.length; i++) {
+            const entry = currencies[i];
+            collateral = this.safeNumber (entry, 'margin_balance');
         }
         const marketId = this.safeString (position, 'symbol');
         market = this.safeMarket (marketId, market);
