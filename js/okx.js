@@ -3820,12 +3820,22 @@ module.exports = class okx extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
+            if (market['contract']) {
+                if (market['linear']) {
+                    request['ctType'] = 'linear';
+                    request['ccy'] = market['quoteId'];
+                } else {
+                    request['ctType'] = 'inverse';
+                    request['ccy'] = market['baseId'];
+                }
+            }
         }
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchPosition', undefined, params);
-        if (type !== undefined) {
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchPosition', market, params);
+        if (type === 'swap') {
             request['instType'] = this.convertToInstrumentType (type);
         }
-        const response = await this.privateGetAccountBills (this.extend (request, query));
+        // AccountBillsArchive has the same cost as AccountBills but supports three months of data
+        const response = await this.privateGetAccountBillsArchive (this.extend (request, query));
         //
         //     {
         //       "bal": "0.0242946200998573",
@@ -3857,10 +3867,12 @@ module.exports = class okx extends Exchange {
             const timestamp = this.safeInteger (entry, 'ts');
             const instId = this.safeString (entry, 'instId');
             const market = this.safeMarket (instId);
+            const currencyId = this.safeString (entry, 'ccy');
+            const code = this.safeCurrencyCode (currencyId);
             result.push ({
                 'info': entry,
                 'symbol': market['symbol'],
-                'code': market['inverse'] ? market['base'] : market['quote'],
+                'code': code,
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
                 'id': this.safeString (entry, 'billId'),
