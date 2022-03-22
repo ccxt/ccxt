@@ -89,10 +89,10 @@ module.exports = class lbank2 extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'currencyPairs': 2.5, // returns available trading pairs (market ids)
-                        'accuracy': 2.5, // basic information of trading pairs (price, quantity accuraccy etc)
+                        'currencyPairs': 2.5,
+                        'accuracy': 2.5, // fetchMarkets
                         'usdToCny': 2.5,
-                        'withdrawConfigs': 2.5, // returns withdrawal information for specified currencies
+                        'withdrawConfigs': 2.5, // fetchFundingFees
                         'timestamp': 2.5,
                         'ticker/24h': 2.5, // down
                         'ticker': 2.5, // fetchTicker
@@ -100,6 +100,15 @@ module.exports = class lbank2 extends Exchange {
                         'incrDepth': 2.5, // fetchOrderBook
                         'trades': 2.5, // fetchTrades
                         'kline': 2.5, // fetchOHLCV
+                        // TODO new quote endpoints
+                        'supplement/system_ping': 2.5,
+                        'supplement/incrDepth': 2.5, // TODO fetchOrderBook
+                        'supplement/trades': 2.5, // TODO fetchTrades
+                        'supplement/ticker/price': 2.5,
+                        'supplement/ticker/bookTicker': 2.5,
+                    },
+                    'post': {
+                        'supplement/system_status': 2.5,
                     },
                 },
                 'private': {
@@ -116,15 +125,36 @@ module.exports = class lbank2 extends Exchange {
                         'batch_create_order': 1,
                         'cancel_order': 1, // cancelOrder
                         'cancel_clientOrders': 1, // cancelOrder (By clOId)
-                        'orders_info': 2.5, // fetchOrder ***
-                        'orders_info_history': 2.5, // fetchOrders (only the last two days available) ***
+                        'orders_info': 2.5, // fetchOrder
+                        'orders_info_history': 2.5, // fetchOrders (only the last two days available)
                         'order_transaction_detail': 2.5, // fetchOrder but somewhat slightly different data ***
                         'transaction_history': 2.5, // fetchMyTrades ***
-                        'orders_info_no_deal': 2.5,
+                        'orders_info_no_deal': 2.5, // fetchOpenOrders
                         // withdraw
                         'withdraw': 2.5, // withdraw
                         'withdrawCancel': 2.5,
                         'withdraws': 2.5, // fetchWithdrawals
+                        // TODO new wallet endpoints
+                        'supplement/user_info': 2.5, // TODO fetchBalance *** (more complete info)
+                        'supplement/withdraw': 2.5, // TODO Withdraw
+                        'supplement/deposit_history': 2.5, // TODO fetchDeposits
+                        'supplement/withdraws': 2.5, // TODO fetchWithdrawals
+                        'supplement/get_deposit_addresses': 2.5, // TODO fetchDepositAddressByNetwork
+                        'supplement/asset_detail': 2.5, // TODO fetchFundingFees
+                        'supplement/customer_trade_fee': 2.5, // TODO fetchTradingFee,
+                        'supplement/api_Restrictions': 2.5,
+                        // new quote endpoints
+                        'supplement/system_ping': 2.5,
+                        // new order endpoints
+                        'supplement/create_order_test': 1,
+                        'supplement/create_order': 1, // TODO createOrder
+                        'supplement/cancel_order': 1, // TODO cancelOrder
+                        'supplement/cancel_order_by_symbol': 1, // TODO cancelAllOrders
+                        'supplement/orders_info': 2.5, // TODO fetchOrder
+                        'supplement/orders_info_no_deal': 2.5, // TODO fetchOpenOrders
+                        'supplement/orders_info_history': 2.5, // TODO fetchOrders (investigate)
+                        'supplement/user_info_account': 2.5,
+                        'supplement/transaction_history': 2.5, // TODO fetchTransactions
                     },
                 },
             },
@@ -651,17 +681,19 @@ module.exports = class lbank2 extends Exchange {
         }
         const response = await this.privatePostCreateOrder (this.extend (order, params));
         const result = this.safeValue (response, 'data');
-        order['order_id'] = this.safeString (result, 'order_id');
-        order['side'] = side;
-        if (type === 'limit') {
-            order['type'] = side;
-        } else if (type === 'market') {
-            order = this.omit (order, 'price');
+        return {
+            'id': this.safeString (result, 'order_id'),
+            'info': result,
+        };
+    }
+
+    async fetchOrder2 (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder () requires a symbol argument');
         }
-        order['create_time'] = this.safeString (response, 'ts');
-        order['info'] = response;
-        order['custom_id'] = this.safeString (params, 'custom_id');
-        return this.parseOrder (order, market);
+        const market = this.market (symbol);
+
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -818,8 +850,6 @@ module.exports = class lbank2 extends Exchange {
             'info': response,
         };
     }
-
-    
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = this.omit (params, this.extractParams (path));
