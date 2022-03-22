@@ -3312,7 +3312,9 @@ class okx extends Exchange {
         );
         list($type, $query) = $this->handle_market_type_and_params('fetchPosition', null, $params);
         if ($type !== null) {
-            $request['instType'] = $this->convert_to_instrument_type($type);
+            if (($type === 'swap') || ($type === 'future')) {
+                $request['instType'] = $this->convert_to_instrument_type($type);
+            }
         }
         $response = yield $this->privateGetAccountPositions (array_merge($request, $query));
         //
