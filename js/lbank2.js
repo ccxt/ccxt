@@ -564,6 +564,44 @@ module.exports = class lbank2 extends Exchange {
         return this.parseBalance (response);
     }
 
+    parseTradingFee (fee, market = undefined) {
+        //
+        //      {
+        //          "symbol":"skt_usdt",
+        //          "makerCommission":"0.10",
+        //          "takerCommission":"0.10"
+        //      }
+        //
+        const marketId = this.safeString (fee, 'symbol');
+        const symbol = this.safeSymbol (marketId);
+        return {
+            'info': fee,
+            'symbol': symbol,
+            'maker': this.safeNumber (fee, 'makerCommission'),
+            'taker': this.safeNumber (fee, 'takerCommission'),
+        };
+    }
+
+    async fetchTradingFee (symbol, params = {}) {
+        const market = this.market (symbol);
+        const result = await this.fetchTradingFees (this.extend (params, { 'category': market['id'] }));
+        return result;
+    }
+
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        const response = await this.privatePostSupplementCustomerTradeFee (this.extend (request, params));
+        const fees = this.safeValue (response, 'data', []);
+        const result = {};
+        for (let i = 0; i < fees.length; i++) {
+            const fee = this.parseTradingFee (fees[i]);
+            const symbol = fee['symbol'];
+            result[symbol] = fee;
+        }
+        return result;
+    }
+
     parseOrderStatus (status) {
         const statuses = {
             '-1': 'cancelled', // cancelled
