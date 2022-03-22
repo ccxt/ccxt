@@ -400,10 +400,13 @@ module.exports = class lbank2 extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.publicGetIncrDepth (this.extend (request, params));
-        const result = this.safeValue (response, 'data', {});
-        const timestamp = result['timestamp'];
-        return this.parseOrderBook (result, symbol, timestamp);
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetSupplementIncrDepth (this.extend (request, params));
+        const orderbook = response['data'];
+        const timestamp = this.milliseconds ();
+        return this.parseOrderBook (orderbook, symbol, timestamp);
     }
 
     parseTrade (trade, market = undefined) {
