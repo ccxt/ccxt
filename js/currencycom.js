@@ -1213,6 +1213,7 @@ module.exports = class currencycom extends Exchange {
                 request['price'] = this.priceToPrecision (symbol, price);
             } else if (type === 'market') {
                 const stopPrice = this.safeNumber (params, 'stopPrice');
+                params = this.omit (params, 'stopPrice');
                 if (stopPrice !== undefined) {
                     request['type'] = 'STOP';
                     request['price'] = this.priceToPrecision (symbol, stopPrice);
