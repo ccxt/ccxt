@@ -3170,7 +3170,8 @@ class okx(Exchange):
         }
         type, query = self.handle_market_type_and_params('fetchPosition', None, params)
         if type is not None:
-            request['instType'] = self.convert_to_instrument_type(type)
+            if (type == 'swap') or (type == 'future'):
+                request['instType'] = self.convert_to_instrument_type(type)
         response = await self.privateGetAccountPositions(self.extend(request, query))
         #
         #     {
