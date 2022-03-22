@@ -279,7 +279,7 @@ class hitbtc3(Exchange):
                     '20042': ExchangeError,
                     '20043': ExchangeError,
                     '20044': PermissionDenied,
-                    '20045': ExchangeError,
+                    '20045': InvalidOrder,
                     '20080': ExchangeError,
                     '21001': ExchangeError,
                     '21003': AccountSuspended,

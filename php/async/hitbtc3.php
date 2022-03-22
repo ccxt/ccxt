@@ -269,7 +269,7 @@ class hitbtc3 extends Exchange {
                     '20042' => '\\ccxt\\ExchangeError',
                     '20043' => '\\ccxt\\ExchangeError',
                     '20044' => '\\ccxt\\PermissionDenied',
-                    '20045' => '\\ccxt\\ExchangeError',
+                    '20045' => '\\ccxt\\InvalidOrder',
                     '20080' => '\\ccxt\\ExchangeError',
                     '21001' => '\\ccxt\\ExchangeError',
                     '21003' => '\\ccxt\\AccountSuspended',
