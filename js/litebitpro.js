@@ -66,7 +66,7 @@ module.exports = class litebitpro extends Exchange {
                 'public': {
                     'get': {
                         'time': 1,
-                        'currencies': 1,
+                        'assets': 1,
                         'markets': 1,
                         'ticker': 1,
                         'tickers': 1,
@@ -158,8 +158,8 @@ module.exports = class litebitpro extends Exchange {
         //       "step_size":"0.00000001",
         //       "tick_size":"0.01",
         //       "minimum_amount_quote":"5.00",
-        //       "base_currency":"BTC",
-        //       "quote_currency":"EUR"
+        //       "base_asset":"BTC",
+        //       "quote_asset":"EUR"
         //    }
         // ]
         //
@@ -167,8 +167,8 @@ module.exports = class litebitpro extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
             const id = this.safeString (market, 'market');
-            const baseId = this.safeString (market, 'base_currency');
-            const quoteId = this.safeString (market, 'quote_currency');
+            const baseId = this.safeString (market, 'base_asset');
+            const quoteId = this.safeString (market, 'quote_asset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
@@ -217,7 +217,7 @@ module.exports = class litebitpro extends Exchange {
         const expires = this.safeInteger (options, 'expires', 1000);
         const now = this.milliseconds ();
         if ((timestamp === undefined) || ((now - timestamp) > expires)) {
-            const response = await this.publicGetCurrencies (params);
+            const response = await this.publicGetAssets (params);
             this.options['fetchCurrencies'] = this.extend (options, {
                 'response': response,
                 'timestamp': now,
@@ -574,7 +574,7 @@ module.exports = class litebitpro extends Exchange {
         //       "available":"7716.93507952",
         //       "reserved":"2155.37500000",
         //       "total":"9872.31007952",
-        //       "currency":"EUR"
+        //       "asset":"EUR"
         //    }
         // ]
         //
@@ -585,7 +585,7 @@ module.exports = class litebitpro extends Exchange {
         };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
-            const currencyId = this.safeString (balance, 'currency');
+            const currencyId = this.safeString (balance, 'asset');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['free'] = this.safeString (balance, 'available');
