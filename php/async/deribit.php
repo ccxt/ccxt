@@ -488,7 +488,7 @@ class deribit extends Exchange {
                 $swap = ($settlementPeriod === 'perpetual');
                 $future = !$swap && ($kind === 'future');
                 $option = ($kind === 'option');
-                $symbol = $quote . '/' . $base . ':' . $settle;
+                $symbol = $base . '/' . $quote . ':' . $settle;
                 $expiry = $this->safe_integer($market, 'expiration_timestamp');
                 $strike = null;
                 $optionType = null;
