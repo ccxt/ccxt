@@ -83,9 +83,9 @@ def print_usage():
     print('Usage:\n')
     print('python ' + sys.argv[0] + ' exchange_id method "param1" param2 "param3" param4 ...\n')
     print('Examples:\n')
-    print('python ' + sys.argv[0] + ' okcoin fetch_ohlcv BTC/USD 15m')
-    print('python ' + sys.argv[0] + ' bitfinex fetch_balance')
-    print('python ' + sys.argv[0] + ' kraken fetch_order_book ETH/BTC\n')
+    print('python ' + sys.argv[0] + ' okcoin watch_ohlcv BTC/USD 15m')
+    print('python ' + sys.argv[0] + ' bitfinex watch_balance')
+    print('python ' + sys.argv[0] + ' kraken watch_order_book ETH/BTC\n')
     print_supported_exchanges()
 
 
