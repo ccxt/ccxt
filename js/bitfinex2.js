@@ -465,9 +465,11 @@ module.exports = class bitfinex2 extends bitfinex {
             let symbol = base + '/' + quote;
             baseId = this.getCurrencyId (baseId);
             quoteId = this.getCurrencyId (quoteId);
-            const settleId = !spot ? quoteId : undefined;
-            const settle = this.safeCurrencyCode (settleId);
+            let settleId = undefined;
+            let settle = undefined;
             if (swap) {
+                settleId = quoteId;
+                settle = this.safeCurrencyCode (settleId);
                 symbol = symbol + ':' + settle;
             }
             const minOrderSizeString = this.safeString (market, 'minimum_order_size');
