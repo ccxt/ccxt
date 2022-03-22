@@ -892,8 +892,9 @@ module.exports = class ascendex extends ccxt.ascendex {
         this.checkRequiredCredentials ();
         const messageHash = 'authenticated';
         const client = this.client (url);
-        const future = this.safeValue (client.futures, messageHash);
+        let future = this.safeValue (client.futures, messageHash);
         if (future === undefined) {
+            future = client.future ('authenticated');
             client.future (messageHash);
             const timestamp = this.milliseconds ().toString ();
             const urlParts = url.split ('/');
