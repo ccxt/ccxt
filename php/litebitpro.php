@@ -54,8 +54,8 @@ class litebitpro extends Exchange {
                 // TODO
                 'logo' => 'TODO',
                 'api' => array(
-                    'public' => 'https://api.pro.liteaccept.nl',
-                    'private' => 'https://api.pro.liteaccept.nl',
+                    'public' => 'https://api.exchange.acc.litebit.cloud',
+                    'private' => 'https://api.exchange.acc.litebit.cloud',
                 ),
                 'www' => 'https://pro.litebit.com/',
                 'doc' => 'https://docs.pro.litebit.com/',
@@ -68,7 +68,7 @@ class litebitpro extends Exchange {
                 'public' => array(
                     'get' => array(
                         'time' => 1,
-                        'currencies' => 1,
+                        'assets' => 1,
                         'markets' => 1,
                         'ticker' => 1,
                         'tickers' => 1,
@@ -160,8 +160,8 @@ class litebitpro extends Exchange {
         //       "step_size":"0.00000001",
         //       "tick_size":"0.01",
         //       "minimum_amount_quote":"5.00",
-        //       "base_currency":"BTC",
-        //       "quote_currency":"EUR"
+        //       "base_asset":"BTC",
+        //       "quote_asset":"EUR"
         //    }
         // )
         //
@@ -169,8 +169,8 @@ class litebitpro extends Exchange {
         for ($i = 0; $i < count($response); $i++) {
             $market = $response[$i];
             $id = $this->safe_string($market, 'market');
-            $baseId = $this->safe_string($market, 'base_currency');
-            $quoteId = $this->safe_string($market, 'quote_currency');
+            $baseId = $this->safe_string($market, 'base_asset');
+            $quoteId = $this->safe_string($market, 'quote_asset');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
@@ -194,11 +194,11 @@ class litebitpro extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => null,
+                        'min' => $this->safe_number($market, 'step_size'),
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => null,
+                        'min' => $this->safe_number($market, 'tick_size'),
                         'max' => null,
                     ),
                     'cost' => array(
@@ -219,7 +219,7 @@ class litebitpro extends Exchange {
         $expires = $this->safe_integer($options, 'expires', 1000);
         $now = $this->milliseconds();
         if (($timestamp === null) || (($now - $timestamp) > $expires)) {
-            $response = $this->publicGetCurrencies ($params);
+            $response = $this->publicGetAssets ($params);
             $this->options['fetchCurrencies'] = array_merge($options, array(
                 'response' => $response,
                 'timestamp' => $now,
@@ -576,7 +576,7 @@ class litebitpro extends Exchange {
         //       "available":"7716.93507952",
         //       "reserved":"2155.37500000",
         //       "total":"9872.31007952",
-        //       "currency":"EUR"
+        //       "asset":"EUR"
         //    }
         // )
         //
@@ -587,7 +587,7 @@ class litebitpro extends Exchange {
         );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
-            $currencyId = $this->safe_string($balance, 'currency');
+            $currencyId = $this->safe_string($balance, 'asset');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
             $account['free'] = $this->safe_string($balance, 'available');

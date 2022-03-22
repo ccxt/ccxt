@@ -67,8 +67,8 @@ class litebitpro(Exchange):
                 # TODO
                 'logo': 'TODO',
                 'api': {
-                    'public': 'https://api.pro.liteaccept.nl',
-                    'private': 'https://api.pro.liteaccept.nl',
+                    'public': 'https://api.exchange.acc.litebit.cloud',
+                    'private': 'https://api.exchange.acc.litebit.cloud',
                 },
                 'www': 'https://pro.litebit.com/',
                 'doc': 'https://docs.pro.litebit.com/',
@@ -81,7 +81,7 @@ class litebitpro(Exchange):
                 'public': {
                     'get': {
                         'time': 1,
-                        'currencies': 1,
+                        'assets': 1,
                         'markets': 1,
                         'ticker': 1,
                         'tickers': 1,
@@ -171,8 +171,8 @@ class litebitpro(Exchange):
         #       "step_size":"0.00000001",
         #       "tick_size":"0.01",
         #       "minimum_amount_quote":"5.00",
-        #       "base_currency":"BTC",
-        #       "quote_currency":"EUR"
+        #       "base_asset":"BTC",
+        #       "quote_asset":"EUR"
         #    }
         # ]
         #
@@ -180,8 +180,8 @@ class litebitpro(Exchange):
         for i in range(0, len(response)):
             market = response[i]
             id = self.safe_string(market, 'market')
-            baseId = self.safe_string(market, 'base_currency')
-            quoteId = self.safe_string(market, 'quote_currency')
+            baseId = self.safe_string(market, 'base_asset')
+            quoteId = self.safe_string(market, 'quote_asset')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
@@ -205,11 +205,11 @@ class litebitpro(Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': None,
+                        'min': self.safe_number(market, 'step_size'),
                         'max': None,
                     },
                     'price': {
-                        'min': None,
+                        'min': self.safe_number(market, 'tick_size'),
                         'max': None,
                     },
                     'cost': {
@@ -228,7 +228,7 @@ class litebitpro(Exchange):
         expires = self.safe_integer(options, 'expires', 1000)
         now = self.milliseconds()
         if (timestamp is None) or ((now - timestamp) > expires):
-            response = self.publicGetCurrencies(params)
+            response = self.publicGetAssets(params)
             self.options['fetchCurrencies'] = self.extend(options, {
                 'response': response,
                 'timestamp': now,
@@ -561,7 +561,7 @@ class litebitpro(Exchange):
         #       "available":"7716.93507952",
         #       "reserved":"2155.37500000",
         #       "total":"9872.31007952",
-        #       "currency":"EUR"
+        #       "asset":"EUR"
         #    }
         # ]
         #
@@ -572,7 +572,7 @@ class litebitpro(Exchange):
         }
         for i in range(0, len(response)):
             balance = response[i]
-            currencyId = self.safe_string(balance, 'currency')
+            currencyId = self.safe_string(balance, 'asset')
             code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_string(balance, 'available')
