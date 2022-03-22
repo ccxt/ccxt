@@ -647,6 +647,7 @@ module.exports = class okx extends Exchange {
                     'SPOT': 'SPOT',
                     'MARGIN': 'MARGIN',
                     'SWAP': 'SWAP',
+                    'FUTURE': 'FUTURES',
                     'FUTURES': 'FUTURES',
                     'OPTION': 'OPTION',
                 },
@@ -3304,11 +3305,12 @@ module.exports = class okx extends Exchange {
             // instId String No Instrument ID, e.g. BTC-USD-190927-5000-C
             // posId String No Single position ID or multiple position IDs (no more than 20) separated with comma
         };
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchPosition', undefined, params);
+        const type = this.safeString (params, 'type');
+        params = this.omit (params, 'type');
         if (type !== undefined) {
             request['instType'] = this.convertToInstrumentType (type);
         }
-        const response = await this.privateGetAccountPositions (this.extend (request, query));
+        const response = await this.privateGetAccountPositions (this.extend (request, params));
         //
         //     {
         //         "code": "0",
