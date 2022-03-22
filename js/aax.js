@@ -102,7 +102,7 @@ module.exports = class aax extends Exchange {
                 'setMarginMode': false,
                 'setPositionMode': undefined,
                 'signIn': undefined,
-                'transfer': undefined,
+                'transfer': true,
                 'withdraw': undefined,
             },
             'timeframes': {
@@ -2390,6 +2390,60 @@ module.exports = class aax extends Exchange {
             floor = cap;
         }
         return tiers;
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const accountTypes = this.safeValue (this.options, 'types', {});
+        const fromId = this.safeString (accountTypes, fromAccount);
+        const toId = this.safeString (accountTypes, toAccount);
+        if (fromId === undefined) {
+            const keys = Object.keys (accountTypes);
+            throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', '));
+        }
+        if (toId === undefined) {
+            const keys = Object.keys (accountTypes);
+            throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', '));
+        }
+        const request = {
+            'currency': currency['id'],
+            'fromPurse': fromId,
+            'toPurse': toId,
+            'quantity': amount,
+        };
+        const response = await this.privatePostAccountTransfer (this.extend (request, params));
+        //
+        //     {
+        //         "code": 1,
+        //         "data": {
+        //             "transferID": 888561,
+        //             "transferTime": "2022-03-22T15:29:05.197Z"
+        //         },
+        //         "message": "success",
+        //         "ts": 1647962945151
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const id = this.safeString (data, 'transferID');
+        const dateTime = this.safeString (data, 'transferTime');
+        const timestamp = this.safeNumber (response, 'ts');
+        const responseCode = this.safeString (response, 'code');
+        let status = 'canceled';
+        if (responseCode === '1') {
+            status = 'ok';
+        }
+        return {
+            'info': response,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': dateTime,
+            'currency': code,
+            'amount': amount,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': status,
+        };
     }
 
     nonce () {
