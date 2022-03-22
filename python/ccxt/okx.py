@@ -3168,7 +3168,7 @@ class okx(Exchange):
             # instId String No Instrument ID, e.g. BTC-USD-190927-5000-C
             # posId String No Single position ID or multiple position IDs(no more than 20) separated with comma
         }
-        type, query = self.handle_market_type_and_params('fetchPosition', None, params)
+        type, query = self.handle_market_type_and_params('fetchPositions', None, params)
         if type is not None:
             if (type == 'swap') or (type == 'future'):
                 request['instType'] = self.convert_to_instrument_type(type)
@@ -3658,10 +3658,18 @@ class okx(Exchange):
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
-        type, query = self.handle_market_type_and_params('fetchPosition', None, params)
-        if type is not None:
+            if market['contract']:
+                if market['linear']:
+                    request['ctType'] = 'linear'
+                    request['ccy'] = market['quoteId']
+                else:
+                    request['ctType'] = 'inverse'
+                    request['ccy'] = market['baseId']
+        type, query = self.handle_market_type_and_params('fetchFundingHistory', market, params)
+        if type == 'swap':
             request['instType'] = self.convert_to_instrument_type(type)
-        response = self.privateGetAccountBills(self.extend(request, query))
+        # AccountBillsArchive has the same cost as AccountBills but supports three months of data
+        response = self.privateGetAccountBillsArchive(self.extend(request, query))
         #
         #     {
         #       "bal": "0.0242946200998573",
@@ -3693,10 +3701,12 @@ class okx(Exchange):
             timestamp = self.safe_integer(entry, 'ts')
             instId = self.safe_string(entry, 'instId')
             market = self.safe_market(instId)
+            currencyId = self.safe_string(entry, 'ccy')
+            code = self.safe_currency_code(currencyId)
             result.append({
                 'info': entry,
                 'symbol': market['symbol'],
-                'code': market['base'] if market['inverse'] else market['quote'],
+                'code': code,
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
                 'id': self.safe_string(entry, 'billId'),
