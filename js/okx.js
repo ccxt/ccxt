@@ -3738,7 +3738,7 @@ module.exports = class okx extends Exchange {
     async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
-            // 'instType': 'SPOT', // SPOT, MARGIN, SWAP, FUTURES, OPTION
+            'instType': 'SWAP', // SPOT, MARGIN, SWAP, FUTURES, OPTION
             // 'ccy': currency['id'],
             // 'mgnMode': 'isolated', // isolated, cross
             // 'ctType': 'linear', // linear, inverse, only applicable to FUTURES/SWAP
@@ -3821,11 +3821,7 @@ module.exports = class okx extends Exchange {
             market = this.market (symbol);
             symbol = market['symbol'];
         }
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchPosition', undefined, params);
-        if (type !== undefined) {
-            request['instType'] = this.convertToInstrumentType (type);
-        }
-        const response = await this.privateGetAccountBills (this.extend (request, query));
+        const response = await this.privateGetAccountBills (this.extend (request, params));
         //
         //     {
         //       "bal": "0.0242946200998573",
