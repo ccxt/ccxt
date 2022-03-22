@@ -3304,7 +3304,7 @@ module.exports = class okx extends Exchange {
             // instId String No Instrument ID, e.g. BTC-USD-190927-5000-C
             // posId String No Single position ID or multiple position IDs (no more than 20) separated with comma
         };
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchPosition', undefined, params);
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchPositions', undefined, params);
         if (type !== undefined) {
             request['instType'] = this.convertToInstrumentType (type);
         }
@@ -3830,7 +3830,7 @@ module.exports = class okx extends Exchange {
                 }
             }
         }
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchPosition', market, params);
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchFundingHistory', market, params);
         if (type === 'swap') {
             request['instType'] = this.convertToInstrumentType (type);
         }
