@@ -93,17 +93,17 @@ module.exports = class lbank2 extends Exchange {
                         'currencyPairs': 2.5,
                         'accuracy': 2.5, // fetchMarkets
                         'usdToCny': 2.5,
-                        'withdrawConfigs': 2.5, // fetchFundingFees
+                        'withdrawConfigs': 2.5,
                         'timestamp': 2.5,
                         'ticker/24h': 2.5, // down
-                        'ticker': 2.5, // fetchTicker
+                        'ticker': 2.5,
                         'depth': 2.5,
-                        'incrDepth': 2.5, // fetchOrderBook
+                        'incrDepth': 2.5,
                         'trades': 2.5, // fetchTrades
                         'kline': 2.5, // fetchOHLCV
                         // TODO new quote endpoints
                         'supplement/system_ping': 2.5,
-                        'supplement/incrDepth': 2.5, // TODO fetchOrderBook
+                        'supplement/incrDepth': 2.5,
                         'supplement/trades': 2.5, // TODO fetchTrades
                         'supplement/ticker/price': 2.5,
                         'supplement/ticker/bookTicker': 2.5,
@@ -142,7 +142,7 @@ module.exports = class lbank2 extends Exchange {
                         'supplement/withdraws': 2.5, // TODO fetchWithdrawals
                         'supplement/get_deposit_addresses': 2.5, // TODO fetchDepositAddressByNetwork
                         'supplement/asset_detail': 2.5,
-                        'supplement/customer_trade_fee': 2.5, // TODO fetchTradingFee add error handling (no fetchPublicTradingFee)
+                        'supplement/customer_trade_fee': 2.5, // TODO fetchTradingFee
                         'supplement/api_Restrictions': 2.5,
                         // new quote endpoints
                         'supplement/system_ping': 2.5,
@@ -174,6 +174,9 @@ module.exports = class lbank2 extends Exchange {
             },
             'options': {
                 'cacheSecretAsPem': true,
+                'fetchTrades': {
+                    'method': 'publicGetTrades', // or 'publicGetSupplementTrades'
+                },
                 'networks': {
                     'ERC20': 'erc20',
                     'ETH': 'erc20',
@@ -413,7 +416,7 @@ module.exports = class lbank2 extends Exchange {
 
     parseTrade (trade, market = undefined) {
         //
-        // fetchTrades (public)
+        // fetchTrades (old) publicGetTrades
         //
         //      {
         //          "date_ms":1647021989789,
@@ -423,11 +426,24 @@ module.exports = class lbank2 extends Exchange {
         //          "tid":"52d5616ee35c43019edddebe59b3e094"
         //      }
         //
-        const timestamp = this.safeInteger (trade, 'date_ms');
-        const amountString = this.safeString (trade, 'amount');
+        //
+        // fetchTrades (new) publicGetSupplementTrades
+        //
+        //      {
+        //          "quoteQty":1675.048485,
+        //          "price":0.127545,
+        //          "qty":13133,
+        //          "id":"3589541dc22e4357b227283650f714e2",
+        //          "time":1648058297110,
+        //          "isBuyerMaker":false
+        //      }
+        //
+        const timestamp = this.safeInteger2 (trade, 'date_ms', 'time');
+        const amountString = this.safeString2 (trade, 'amount', 'qty');
         const priceString = this.safeString (trade, 'price');
+        const costString = this.safeString (trade, 'quoteQty');
         const side = this.safeString (trade, 'type');
-        const id = this.safeString (trade, 'tid');
+        const id = this.safeString2 (trade, 'tid', 'id');
         const symbol = this.safeSymbol (undefined, market);
         return this.safeTrade ({
             'timestamp': timestamp,
@@ -440,7 +456,7 @@ module.exports = class lbank2 extends Exchange {
             'side': side,
             'price': priceString,
             'amount': amountString,
-            'cost': undefined,
+            'cost': costString,
             'fee': undefined,
             'info': trade,
         }, market);
@@ -448,15 +464,24 @@ module.exports = class lbank2 extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        if (limit === undefined) {
+            throw new ArgumentsRequired (this.id + 'fetchTrades () requires a limit argument');
+        }
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'size': 600, // max
+            'size': limit, // max
         };
-        if (limit !== undefined) {
-            request['size'] = limit;
+        if (since !== undefined) {
+            request['time'] = since;
         }
-        const response = await this.publicGetTrades (this.extend (request, params));
+        let method = this.safeString (params, 'method');
+        params = this.omit (params, 'method');
+        if (method === undefined) {
+            const options = this.safeValue (this.options, 'fetchTrades', {});
+            method = this.safeString (options, 'method', 'publicGetTrades');
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         //      {
         //          "result":"true",
