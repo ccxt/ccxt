@@ -823,9 +823,11 @@ module.exports = class kucoin extends ccxt.kucoin {
         account['free'] = this.safeString (data, 'available');
         account['used'] = this.safeString (data, 'hold');
         account['total'] = this.safeString (data, 'total');
-        this.balance[selectedType][code] = account;
-        this.balance[selectedType] = this.safeBalance (this.balance[selectedType]);
-        client.resolve (this.balance[selectedType], messageHash);
+        this.balance[uniformType][code] = account;
+        this.balance[uniformType] = this.safeBalance (this.balance[selectedType]);
+        if (uniformType === selectedType) {
+            client.resolve (this.balance[uniformType], messageHash);
+        }
     }
 
     handleBalanceSubscription (client, message, subscription) {
