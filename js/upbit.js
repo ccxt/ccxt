@@ -53,6 +53,8 @@ module.exports = class upbit extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchTradingFee': true,
+                'fetchTradingFees': false,
                 'fetchTransactions': undefined,
                 'fetchWithdrawals': true,
                 'withdraw': true,
@@ -289,30 +291,49 @@ module.exports = class upbit extends Exchange {
         };
         const response = await this.privateGetOrdersChance (this.extend (request, params));
         //
-        //     {     bid_fee:   "0.0005",
-        //           ask_fee:   "0.0005",
-        //            market: {          id:   "KRW-BTC",
-        //                             name:   "BTC/KRW",
-        //                      order_types: ["limit"],
-        //                      order_sides: ["ask", "bid"],
-        //                              bid: {   currency: "KRW",
-        //                                     price_unit:  null,
-        //                                      min_total:  1000  },
-        //                              ask: {   currency: "BTC",
-        //                                     price_unit:  null,
-        //                                      min_total:  1000  },
-        //                        max_total:   "1000000000.0",
-        //                            state:   "active"              },
-        //       bid_account: {          currency: "KRW",
-        //                                balance: "0.0",
-        //                                 locked: "0.0",
-        //                      avg_krw_buy_price: "0",
-        //                               modified:  false },
-        //       ask_account: {          currency: "BTC",
-        //                                balance: "0.00780836",
-        //                                 locked: "0.0",
-        //                      avg_krw_buy_price: "6465564.67",
-        //                               modified:  false        }      }
+        //     {
+        //         "bid_fee": "0.0015",
+        //         "ask_fee": "0.0015",
+        //         "market": {
+        //             "id": "KRW-BTC",
+        //             "name": "BTC/KRW",
+        //             "order_types": [
+        //                 "limit"
+        //             ],
+        //             "order_sides": [
+        //                 "ask",
+        //                 "bid"
+        //             ],
+        //             "bid": {
+        //                 "currency": "KRW",
+        //                 "price_unit": null,
+        //                 "min_total": 1000
+        //             },
+        //             "ask": {
+        //                 "currency": "BTC",
+        //                 "price_unit": null,
+        //                 "min_total": 1000
+        //             },
+        //             "max_total": "100000000.0",
+        //             "state": "active",
+        //         },
+        //         "bid_account": {
+        //             "currency": "KRW",
+        //             "balance": "0.0",
+        //             "locked": "0.0",
+        //             "avg_buy_price": "0",
+        //             "avg_buy_price_modified": false,
+        //             "unit_currency": "KRW",
+        //         },
+        //         "ask_account": {
+        //             "currency": "BTC",
+        //             "balance": "10.0",
+        //             "locked": "0.0",
+        //             "avg_buy_price": "8042000",
+        //             "avg_buy_price_modified": false,
+        //             "unit_currency": "KRW",
+        //         }
+        //     }
         //
         const marketInfo = this.safeValue (response, 'market');
         const bid = this.safeValue (marketInfo, 'bid');
@@ -779,6 +800,68 @@ module.exports = class upbit extends Exchange {
         //              sequential_id:  15428917910540000 }  ]
         //
         return this.parseTrades (response, market, since, limit);
+    }
+
+    async fetchTradingFee (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+        };
+        const response = await this.privateGetOrdersChance (this.extend (request, params));
+        //
+        //     {
+        //         "bid_fee": "0.0015",
+        //         "ask_fee": "0.0015",
+        //         "market": {
+        //             "id": "KRW-BTC",
+        //             "name": "BTC/KRW",
+        //             "order_types": [
+        //                 "limit"
+        //             ],
+        //             "order_sides": [
+        //                 "ask",
+        //                 "bid"
+        //             ],
+        //             "bid": {
+        //                 "currency": "KRW",
+        //                 "price_unit": null,
+        //                 "min_total": 1000
+        //             },
+        //             "ask": {
+        //                 "currency": "BTC",
+        //                 "price_unit": null,
+        //                 "min_total": 1000
+        //             },
+        //             "max_total": "100000000.0",
+        //             "state": "active",
+        //         },
+        //         "bid_account": {
+        //             "currency": "KRW",
+        //             "balance": "0.0",
+        //             "locked": "0.0",
+        //             "avg_buy_price": "0",
+        //             "avg_buy_price_modified": false,
+        //             "unit_currency": "KRW",
+        //         },
+        //         "ask_account": {
+        //             "currency": "BTC",
+        //             "balance": "10.0",
+        //             "locked": "0.0",
+        //             "avg_buy_price": "8042000",
+        //             "avg_buy_price_modified": false,
+        //             "unit_currency": "KRW",
+        //         }
+        //     }
+        //
+        return {
+            'info': response,
+            'symbol': symbol,
+            'maker': this.safeNumber (response, 'ask_fee'),
+            'taker': this.safeNumber (response, 'bid_fee'),
+            'percentage': true,
+            'tierBased': false,
+        };
     }
 
     parseOHLCV (ohlcv, market = undefined) {
