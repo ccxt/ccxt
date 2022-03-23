@@ -65,7 +65,7 @@ module.exports = class novadax extends Exchange {
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
-                'fetchTradingFees': true,
+                'fetchTradingFees': false,
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
