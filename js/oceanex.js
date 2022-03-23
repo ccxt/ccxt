@@ -53,7 +53,7 @@ module.exports = class oceanex extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTradingFee': undefined,
+                'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTradingLimits': undefined,
             },
@@ -107,8 +107,8 @@ module.exports = class oceanex extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': 0.1 / 100,
-                    'taker': 0.1 / 100,
+                    'maker': this.parseNumber ('0.001'),
+                    'taker': this.parseNumber ('0.001'),
                 },
             },
             'commonCurrencies': {
@@ -476,6 +476,7 @@ module.exports = class oceanex extends Exchange {
                 'symbol': symbol,
                 'maker': this.safeNumber (maker, 'value'),
                 'taker': this.safeNumber (taker, 'value'),
+                'percentage': true,
             };
         }
         return result;
