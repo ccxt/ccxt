@@ -564,7 +564,7 @@ module.exports = class bitfinex extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': this.safeNumber (market, 'minimum_margin'),
+                        'min': undefined,
                         'max': undefined,
                     },
                 },
