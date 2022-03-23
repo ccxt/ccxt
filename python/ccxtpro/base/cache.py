@@ -53,10 +53,10 @@ class ArrayCache(BaseCache):
         super(ArrayCache, self).__init__(max_size)
         self._new_updates_by_symbol = {}
         self._clear_updates_by_symbol = {}
-        self._all_new_updates = 1
+        self._all_new_updates = 0
         self._clear_all_updates = False
 
-    def getLimit(self, symbol, limit):
+    def getLimit(self, symbol, limit=None):
         new_updates_value = None
         if symbol is None:
             new_updates_value = self._all_new_updates
@@ -92,7 +92,7 @@ class ArrayCacheByTimestamp(BaseCache):
         self._new_updates = 0
         self._clear_updates = False
 
-    def getLimit(self, symbol, limit):
+    def getLimit(self, symbol, limit=None):
         self._clear_updates = True
         if limit is None:
             return self._new_updates
