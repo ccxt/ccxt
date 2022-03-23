@@ -2941,7 +2941,7 @@ module.exports = class gateio extends Exchange {
         const status = this.parseOrderStatus (rawStatus);
         return this.safeOrder ({
             'id': this.safeString (order, 'id'),
-            'clientOrderId': undefined,
+            'clientOrderId': this.safeString (order, 'text'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': this.safeTimestamp2 (order, 'update_time', 'finish_time'),
