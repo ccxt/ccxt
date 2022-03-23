@@ -72,6 +72,7 @@ class hitbtc3(Exchange):
                 'fetchOrders': False,
                 'fetchOrderTrades': True,
                 'fetchPosition': False,
+                'fetchPositions': True,
                 'fetchPremiumIndexOHLCV': None,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -1666,6 +1667,123 @@ class hitbtc3(Exchange):
                 })
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+
+    def fetch_positions(self, symbols=None, params={}):
+        self.load_markets()
+        request = {}
+        response = self.privateGetFuturesAccount(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "symbol": "ETHUSDT_PERP",
+        #             "type": "isolated",
+        #             "leverage": "10.00",
+        #             "created_at": "2022-03-19T07:54:35.24Z",
+        #             "updated_at": "2022-03-19T07:54:58.922Z",
+        #             currencies": [
+        #                 {
+        #                     "code": "USDT",
+        #                     "margin_balance": "7.478100643043",
+        #                     "reserved_orders": "0",
+        #                     "reserved_positions": "0.303530761300"
+        #                 }
+        #             ],
+        #             "positions": [
+        #                 {
+        #                     "id": 2470568,
+        #                     "symbol": "ETHUSDT_PERP",
+        #                     "quantity": "0.001",
+        #                     "price_entry": "2927.509",
+        #                     "price_margin_call": "0",
+        #                     "price_liquidation": "0",
+        #                     "pnl": "0",
+        #                     "created_at": "2022-03-19T07:54:35.24Z",
+        #                     "updated_at": "2022-03-19T07:54:58.922Z"
+        #                 }
+        #             ]
+        #         },
+        #     ]
+        #
+        result = []
+        for i in range(0, len(response)):
+            result.append(self.parse_position(response[i]))
+        return result
+
+    def parse_position(self, position, market=None):
+        #
+        #     [
+        #         {
+        #             "symbol": "ETHUSDT_PERP",
+        #             "type": "isolated",
+        #             "leverage": "10.00",
+        #             "created_at": "2022-03-19T07:54:35.24Z",
+        #             "updated_at": "2022-03-19T07:54:58.922Z",
+        #             currencies": [
+        #                 {
+        #                     "code": "USDT",
+        #                     "margin_balance": "7.478100643043",
+        #                     "reserved_orders": "0",
+        #                     "reserved_positions": "0.303530761300"
+        #                 }
+        #             ],
+        #             "positions": [
+        #                 {
+        #                     "id": 2470568,
+        #                     "symbol": "ETHUSDT_PERP",
+        #                     "quantity": "0.001",
+        #                     "price_entry": "2927.509",
+        #                     "price_margin_call": "0",
+        #                     "price_liquidation": "0",
+        #                     "pnl": "0",
+        #                     "created_at": "2022-03-19T07:54:35.24Z",
+        #                     "updated_at": "2022-03-19T07:54:58.922Z"
+        #                 }
+        #             ]
+        #         },
+        #     ]
+        #
+        marginType = self.safe_string(position, 'type')
+        leverage = self.safe_number(position, 'leverage')
+        datetime = self.safe_string(position, 'updated_at')
+        positions = self.safe_value(position, 'positions', [])
+        liquidationPrice = None
+        entryPrice = None
+        for i in range(0, len(positions)):
+            entry = positions[i]
+            liquidationPrice = self.safe_number(entry, 'price_liquidation')
+            entryPrice = self.safe_number(entry, 'price_entry')
+        currencies = self.safe_value(position, 'currencies', [])
+        collateral = None
+        for i in range(0, len(currencies)):
+            entry = currencies[i]
+            collateral = self.safe_number(entry, 'margin_balance')
+        marketId = self.safe_string(position, 'symbol')
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
+        return {
+            'info': position,
+            'symbol': symbol,
+            'notional': None,
+            'marginType': marginType,
+            'liquidationPrice': liquidationPrice,
+            'entryPrice': entryPrice,
+            'unrealizedPnl': None,
+            'percentage': None,
+            'contracts': None,
+            'contractSize': None,
+            'markPrice': None,
+            'side': None,
+            'hedged': None,
+            'timestamp': self.parse8601(datetime),
+            'datetime': datetime,
+            'maintenanceMargin': None,
+            'maintenanceMarginPercentage': None,
+            'collateral': collateral,
+            'initialMargin': None,
+            'initialMarginPercentage': None,
+            'leverage': leverage,
+            'marginRatio': None,
+        }
 
     def fetch_funding_rate(self, symbol, params={}):
         self.load_markets()
