@@ -837,6 +837,7 @@ class ascendex(Exchange, ccxt.ascendex):
         client = self.client(url)
         future = self.safe_value(client.futures, messageHash)
         if future is None:
+            future = client.future('authenticated')
             client.future(messageHash)
             timestamp = str(self.milliseconds())
             urlParts = url.split('/')
