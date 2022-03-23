@@ -1777,7 +1777,7 @@ module.exports = class hitbtc3 extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, market['id']);
+        const data = this.safeValue (response, market['id'], {});
         return this.parseFundingRate (data, market);
     }
 
@@ -1801,7 +1801,7 @@ module.exports = class hitbtc3 extends Exchange {
         const datetime = this.safeString (contract, 'timestamp');
         return {
             'info': contract,
-            'symbol': this.safeSymbol (market['id'], market),
+            'symbol': this.safeSymbol (undefined, market),
             'markPrice': this.safeNumber (contract, 'mark_price'),
             'indexPrice': this.safeNumber (contract, 'index_price'),
             'interestRate': this.safeNumber (contract, 'interest_rate'),
