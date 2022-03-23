@@ -34,7 +34,7 @@ class ArrayCache extends BaseCache {
         })
         Object.defineProperty (this, 'allNewUpdates', {
             __proto__: null, // make it invisible
-            value: 1,
+            value: 0,
             writable: true,
         })
         Object.defineProperty (this, 'clearAllUpdates', {
