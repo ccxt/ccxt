@@ -140,7 +140,7 @@ module.exports = class lbank2 extends Exchange {
                         'supplement/withdraw': 2.5, // TODO Withdraw
                         'supplement/deposit_history': 2.5, // TODO fetchDeposits
                         'supplement/withdraws': 2.5, // TODO fetchWithdrawals
-                        'supplement/get_deposit_addresses': 2.5, // TODO fetchDepositAddressByNetwork
+                        'supplement/get_deposit_address': 2.5, // TODO fetchDepositAddressByNetwork
                         'supplement/asset_detail': 2.5,
                         'supplement/customer_trade_fee': 2.5, // TODO fetchTradingFee
                         'supplement/api_Restrictions': 2.5,
@@ -175,10 +175,13 @@ module.exports = class lbank2 extends Exchange {
             'options': {
                 'cacheSecretAsPem': true,
                 'fetchTrades': {
-                    'method': 'publicGetTrades', // or 'publicGetSupplementTrades'
+                    'method': 'publicGetTrades', // or 'publicGetTradesSupplement'
                 },
                 'fetchFundingFees': {
                     'method': 'fetchPrivateFundingFees', // or 'fetchPublicFundingFees'
+                },
+                'fetchDepositAddress': {
+                    'method': 'fetchDepositAddressDefault', // or fetchDepositAddressSupplement
                 },
                 'networks': {
                     'ERC20': 'erc20',
@@ -219,8 +222,8 @@ module.exports = class lbank2 extends Exchange {
                     // }
                 },
                 'inverse-networks': {
-                    'erc20': 'ETH',
-                    'trc20': 'TRX',
+                    'erc20': 'ERC20',
+                    'trc20': 'TRC20',
                     'omni': 'OMNI',
                     'asa': 'ASA',
                     'bep20(bsc)': 'BSC',
@@ -430,7 +433,7 @@ module.exports = class lbank2 extends Exchange {
         //      }
         //
         //
-        // fetchTrades (new) publicGetSupplementTrades
+        // fetchTrades (new) publicGetTradesSupplement
         //
         //      {
         //          "quoteQty":1675.048485,
@@ -589,6 +592,7 @@ module.exports = class lbank2 extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        // TODO add support for default method
         await this.loadMarkets ();
         const response = await this.privatePostSupplementUserInfoAccount ();
         return this.parseBalance (response);
@@ -873,6 +877,100 @@ module.exports = class lbank2 extends Exchange {
         }
         const response = await this[method] (this.extend (request, params));
         return response;
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        let method = this.safeString (params, 'method');
+        params = this.omit (params, 'method');
+        if (method === undefined) {
+            const options = this.safeValue (this.options, 'fetchDepositAddress', {});
+            method = this.safeString (options, 'method', 'fetchPrivateTradingFees');
+        }
+        return await this[method] (code, params);
+    }
+
+    async fetchDepositAddressDefault (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'assetCode': currency['id'],
+        };
+        const networks = this.safeValue (this.options, 'networks');
+        let network = this.safeStringUpper (params, 'network');
+        network = this.safeString (networks, network, network);
+        if (network !== undefined) {
+            request['netWork'] = network; // ... yes, really lol
+            params = this.omit (params, 'network');
+        }
+        const response = await this.privatePostGetDepositAddress (this.extend (request, params));
+        //
+        //      {
+        //          "result":true,
+        //          "data":{
+        //              "assetCode":"usdt",
+        //              "address":"0xc85689d37ca650bf2f2161364cdedee21eb6ca53",
+        //              "memo":null,
+        //              "netWork":"bep20(bsc)"
+        //              },
+        //          "error_code":0,
+        //          "ts":1648075865103
+        //      }
+        //
+        const result = this.safeValue (response, 'data');
+        const address = this.safeString (result, 'address');
+        const tag = this.safeString (result, 'memo');
+        const networkId = this.safeString (result, 'netWork');
+        const inverseNetworks = this.safeValue (this.options, 'inverse-networks', {});
+        const networkCode = this.safeStringUpper (inverseNetworks, networkId, networkId);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'network': networkCode,
+            'info': response,
+        };
+    }
+
+    async fetchDepositAddressSupplement (code, params = {}) {
+        // returns the address for whatever the default network is...
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'coin': currency['id'],
+        };
+        const networks = this.safeValue (this.options, 'networks');
+        let network = this.safeStringUpper (params, 'network');
+        network = this.safeString (networks, network, network);
+        if (network !== undefined) {
+            request['networkName'] = network;
+            params = this.omit (params, 'network');
+        }
+        const response = await this.privatePostSupplementGetDepositAddress (this.extend (request, params));
+        //
+        //      {
+        //          "result":true,
+        //          "data":{
+        //              "address":"TDxtabCC8iQwaxUUrPcE4WL2jArGAfvQ5A",
+        //              "memo":null,
+        //              "coin":"usdt"
+        //              },
+        //          "error_code":0,
+        //          "ts":1648073818880
+        //     }
+        //
+        const result = this.safeValue (response, 'data');
+        const address = this.safeString (result, 'address');
+        const tag = this.safeString (result, 'memo');
+        const inverseNetworks = this.safeValue (this.options, 'inverse-networks', {});
+        const networkCode = this.safeStringUpper (inverseNetworks, network, network);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'network': networkCode, // will be undefined if not specified in request
+            'info': response,
+        };
     }
 
     async fetchFundingFees (params = {}) {
