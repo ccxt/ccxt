@@ -18,10 +18,11 @@ module.exports = class hitbtc3 extends Exchange {
             'has': {
                 'CORS': false,
                 'spot': true,
-                'margin': undefined, // has but not fully unimplemented
-                'swap': undefined, // has but not fully unimplemented
-                'future': undefined, // has but not fully unimplemented
+                'margin': undefined, // has but not fully implemented
+                'swap': true,
+                'future': false,
                 'option': undefined,
+                'addMargin': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
@@ -32,10 +33,15 @@ module.exports = class hitbtc3 extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchFundingHistory': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
+                'fetchIndexOHLCV': undefined,
+                'fetchLeverageTiers': undefined,
+                'fetchMarketLeverageTiers': undefined,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': undefined,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrder': true,
@@ -45,6 +51,8 @@ module.exports = class hitbtc3 extends Exchange {
                 'fetchOrderBooks': true,
                 'fetchOrders': false,
                 'fetchOrderTrades': true,
+                'fetchPosition': false,
+                'fetchPremiumIndexOHLCV': undefined,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
@@ -52,6 +60,10 @@ module.exports = class hitbtc3 extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
+                'reduceMargin': undefined,
+                'setLeverage': undefined,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -714,7 +726,7 @@ module.exports = class hitbtc3 extends Exchange {
             request['limit'] = limit;
         }
         if (since !== undefined) {
-            request['since'] = since;
+            request['from'] = since;
         }
         const response = await this.publicGetPublicTrades (this.extend (request, params));
         const marketIds = Object.keys (response);
