@@ -177,6 +177,9 @@ module.exports = class lbank2 extends Exchange {
                 'fetchTrades': {
                     'method': 'publicGetTrades', // or 'publicGetSupplementTrades'
                 },
+                'fetchFundingFees': {
+                    'method': 'fetchPrivateFundingFees', // or 'fetchPublicFundingFees'
+                },
                 'networks': {
                     'ERC20': 'erc20',
                     'ETH': 'erc20',
@@ -873,14 +876,20 @@ module.exports = class lbank2 extends Exchange {
     }
 
     async fetchFundingFees (params = {}) {
-        // only returns information for currencies with non-zero balance
+        // private only returns information for currencies with non-zero balance
         await this.loadMarkets ();
         const isAuthorized = this.checkRequiredCredentials (false);
         let result = undefined;
         if (isAuthorized === true) {
-            result = await this.fetchPrivateFundingFees (); // takes no args
+            let method = this.safeString (params, 'method');
+            params = this.omit (params, 'method');
+            if (method === undefined) {
+                const options = this.safeValue (this.options, 'fetchFundingFees', {});
+                method = this.safeString (options, 'method', 'fetchPrivateFundingFees');
+            }
+            result = await this[method] (params);
         } else {
-            result = await this.fetchPublicFundingFees (params); // can take coin specific arg
+            result = await this.fetchPublicFundingFees (params);
         }
         return result;
     }
