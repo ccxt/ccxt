@@ -92,7 +92,7 @@ module.exports = class huobi extends Exchange {
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
-                'fetchTradingFees': undefined,
+                'fetchTradingFees': false,
                 'fetchTradingLimits': true,
                 'fetchTransactions': undefined,
                 'fetchTransfers': undefined,

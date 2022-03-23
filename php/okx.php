@@ -3309,9 +3309,11 @@ class okx extends Exchange {
             // instId String No Instrument ID, e.g. BTC-USD-190927-5000-C
             // posId String No Single position ID or multiple position IDs (no more than 20) separated with comma
         );
-        list($type, $query) = $this->handle_market_type_and_params('fetchPosition', null, $params);
+        list($type, $query) = $this->handle_market_type_and_params('fetchPositions', null, $params);
         if ($type !== null) {
-            $request['instType'] = $this->convert_to_instrument_type($type);
+            if (($type === 'swap') || ($type === 'future')) {
+                $request['instType'] = $this->convert_to_instrument_type($type);
+            }
         }
         $response = $this->privateGetAccountPositions (array_merge($request, $query));
         //
@@ -3825,12 +3827,22 @@ class okx extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
+            if ($market['contract']) {
+                if ($market['linear']) {
+                    $request['ctType'] = 'linear';
+                    $request['ccy'] = $market['quoteId'];
+                } else {
+                    $request['ctType'] = 'inverse';
+                    $request['ccy'] = $market['baseId'];
+                }
+            }
         }
-        list($type, $query) = $this->handle_market_type_and_params('fetchPosition', null, $params);
-        if ($type !== null) {
+        list($type, $query) = $this->handle_market_type_and_params('fetchFundingHistory', $market, $params);
+        if ($type === 'swap') {
             $request['instType'] = $this->convert_to_instrument_type($type);
         }
-        $response = $this->privateGetAccountBills (array_merge($request, $query));
+        // AccountBillsArchive has the same cost as AccountBills but supports three months of $data
+        $response = $this->privateGetAccountBillsArchive (array_merge($request, $query));
         //
         //     {
         //       "bal" => "0.0242946200998573",
@@ -3862,10 +3874,12 @@ class okx extends Exchange {
             $timestamp = $this->safe_integer($entry, 'ts');
             $instId = $this->safe_string($entry, 'instId');
             $market = $this->safe_market($instId);
+            $currencyId = $this->safe_string($entry, 'ccy');
+            $code = $this->safe_currency_code($currencyId);
             $result[] = array(
                 'info' => $entry,
                 'symbol' => $market['symbol'],
-                'code' => $market['inverse'] ? $market['base'] : $market['quote'],
+                'code' => $code,
                 'timestamp' => $timestamp,
                 'datetime' => $this->iso8601($timestamp),
                 'id' => $this->safe_string($entry, 'billId'),

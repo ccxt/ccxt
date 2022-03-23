@@ -65,6 +65,7 @@ class bitopro(Exchange):
                 'fetchTickers': True,
                 'fetchTime': False,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchTransactions': False,
                 'fetchWithdrawal': True,

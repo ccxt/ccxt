@@ -111,7 +111,7 @@ class huobi(Exchange):
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFee': True,
-                'fetchTradingFees': None,
+                'fetchTradingFees': False,
                 'fetchTradingLimits': True,
                 'fetchTransactions': None,
                 'fetchTransfers': None,

@@ -59,6 +59,8 @@ class bibox(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': False,
                 'fetchWithdrawals': True,
                 'withdraw': True,
             },
@@ -117,8 +119,8 @@ class bibox(Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'taker': self.parse_number('0.001'),
-                    'maker': self.parse_number('0.0008'),
+                    'taker': self.parse_number('0.002'),
+                    'maker': self.parse_number('0.001'),
                 },
                 'funding': {
                     'tierBased': False,

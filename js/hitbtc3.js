@@ -32,7 +32,9 @@ module.exports = class hitbtc3 extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
+                'fetchFundingRates': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -261,7 +263,7 @@ module.exports = class hitbtc3 extends Exchange {
                     '20042': ExchangeError,
                     '20043': ExchangeError,
                     '20044': PermissionDenied,
-                    '20045': ExchangeError,
+                    '20045': InvalidOrder,
                     '20080': ExchangeError,
                     '21001': ExchangeError,
                     '21003': AccountSuspended,
@@ -1867,6 +1869,78 @@ module.exports = class hitbtc3 extends Exchange {
             'initialMarginPercentage': undefined,
             'leverage': leverage,
             'marginRatio': undefined,
+        };
+    }
+
+    async fetchFundingRate (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadSymbol (this.id + ' fetchFundingRate() supports swap contracts only');
+        }
+        const request = {};
+        if (symbol !== undefined) {
+            symbol = market['symbol'];
+            request['symbols'] = market['id'];
+        }
+        const response = await this.publicGetPublicFuturesInfo (this.extend (request, params));
+        //
+        //     {
+        //         "BTCUSDT_PERP": {
+        //             "contract_type": "perpetual",
+        //             "mark_price": "42307.43",
+        //             "index_price": "42303.27",
+        //             "funding_rate": "0.0001",
+        //             "open_interest": "30.9826",
+        //             "next_funding_time": "2022-03-22T16:00:00.000Z",
+        //             "indicative_funding_rate": "0.0001",
+        //             "premium_index": "0",
+        //             "avg_premium_index": "0.000029587712038098",
+        //             "interest_rate": "0.0001",
+        //             "timestamp": "2022-03-22T08:08:26.687Z"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, market['id'], {});
+        return this.parseFundingRate (data, market);
+    }
+
+    parseFundingRate (contract, market = undefined) {
+        //
+        //     {
+        //         "contract_type": "perpetual",
+        //         "mark_price": "42307.43",
+        //         "index_price": "42303.27",
+        //         "funding_rate": "0.0001",
+        //         "open_interest": "30.9826",
+        //         "next_funding_time": "2022-03-22T16:00:00.000Z",
+        //         "indicative_funding_rate": "0.0001",
+        //         "premium_index": "0",
+        //         "avg_premium_index": "0.000029587712038098",
+        //         "interest_rate": "0.0001",
+        //         "timestamp": "2022-03-22T08:08:26.687Z"
+        //     }
+        //
+        const nextFundingDatetime = this.safeString (contract, 'next_funding_time');
+        const datetime = this.safeString (contract, 'timestamp');
+        return {
+            'info': contract,
+            'symbol': this.safeSymbol (undefined, market),
+            'markPrice': this.safeNumber (contract, 'mark_price'),
+            'indexPrice': this.safeNumber (contract, 'index_price'),
+            'interestRate': this.safeNumber (contract, 'interest_rate'),
+            'estimatedSettlePrice': undefined,
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime,
+            'fundingRate': this.safeNumber (contract, 'funding_rate'),
+            'fundingTimestamp': undefined,
+            'fundingDatetime': undefined,
+            'nextFundingRate': this.safeNumber (contract, 'indicative_funding_rate'),
+            'nextFundingTimestamp': this.parse8601 (nextFundingDatetime),
+            'nextFundingDatetime': nextFundingDatetime,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
         };
     }
 

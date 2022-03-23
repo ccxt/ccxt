@@ -61,7 +61,7 @@ class oceanex(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
-                'fetchTradingFee': None,
+                'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchTradingLimits': None,
             },
@@ -115,8 +115,8 @@ class oceanex(Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.1 / 100,
-                    'taker': 0.1 / 100,
+                    'maker': self.parse_number('0.001'),
+                    'taker': self.parse_number('0.001'),
                 },
             },
             'commonCurrencies': {
@@ -464,6 +464,7 @@ class oceanex(Exchange):
                 'symbol': symbol,
                 'maker': self.safe_number(maker, 'value'),
                 'taker': self.safe_number(taker, 'value'),
+                'percentage': True,
             }
         return result
 

@@ -100,7 +100,7 @@ class huobi extends Exchange {
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
-                'fetchTradingFees' => null,
+                'fetchTradingFees' => false,
                 'fetchTradingLimits' => true,
                 'fetchTransactions' => null,
                 'fetchTransfers' => null,

@@ -495,7 +495,7 @@ class deribit(Exchange):
                 swap = (settlementPeriod == 'perpetual')
                 future = not swap and (kind == 'future')
                 option = (kind == 'option')
-                symbol = quote + '/' + base + ':' + settle
+                symbol = base + '/' + quote + ':' + settle
                 expiry = self.safe_integer(market, 'expiration_timestamp')
                 strike = None
                 optionType = None
