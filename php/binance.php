@@ -1403,6 +1403,7 @@ class binance extends Exchange {
         //                 "icebergAllowed":true,
         //                 "ocoAllowed":true,
         //                 "quoteOrderQtyMarketAllowed":true,
+        //                 "allowTrailingStop":false,
         //                 "isSpotTradingAllowed":true,
         //                 "isMarginTradingAllowed":true,
         //                 "filters":array(
@@ -1412,8 +1413,10 @@ class binance extends Exchange {
         //                     array("filterType":"MIN_NOTIONAL","minNotional":"0.00010000","applyToMarket":true,"avgPriceMins":5),
         //                     array("filterType":"ICEBERG_PARTS","limit":10),
         //                     array("filterType":"MARKET_LOT_SIZE","minQty":"0.00000000","maxQty":"63100.00000000","stepSize":"0.00000000"),
+        //                     array("filterType":"MAX_NUM_ORDERS","maxNumOrders":200),
         //                     array("filterType":"MAX_NUM_ALGO_ORDERS","maxNumAlgoOrders":5)
-        //                 )
+        //                 ),
+        //                 "permissions":["SPOT","MARGIN"]}
         //             ),
         //         ],
         //     }
@@ -1561,6 +1564,16 @@ class binance extends Exchange {
                 $contractSize = $this->safe_number($market, 'contractSize', $this->parse_number('1'));
                 $fees = $this->fees[$type];
             }
+            $active = ($status === 'TRADING');
+            if ($spot) {
+                $permissions = $this->safe_value($market, 'permissions', array());
+                for ($j = 0; $j < count($permissions); $j++) {
+                    if ($permissions[$j] === 'TRD_GRP_003') {
+                        $active = false;
+                        break;
+                    }
+                }
+            }
             $isMarginTradingAllowed = $this->safe_value($market, 'isMarginTradingAllowed', false);
             $entry = array(
                 'id' => $id,
@@ -1579,7 +1592,7 @@ class binance extends Exchange {
                 'future' => $future,
                 'delivery' => $delivery,
                 'option' => false,
-                'active' => ($status === 'TRADING'),
+                'active' => $active,
                 'contract' => $contract,
                 'linear' => $contract ? $future : null,
                 'inverse' => $contract ? $delivery : null,

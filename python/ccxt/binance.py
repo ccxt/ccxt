@@ -1402,6 +1402,7 @@ class binance(Exchange):
         #                 "icebergAllowed":true,
         #                 "ocoAllowed":true,
         #                 "quoteOrderQtyMarketAllowed":true,
+        #                 "allowTrailingStop":false,
         #                 "isSpotTradingAllowed":true,
         #                 "isMarginTradingAllowed":true,
         #                 "filters":[
@@ -1411,8 +1412,10 @@ class binance(Exchange):
         #                     {"filterType":"MIN_NOTIONAL","minNotional":"0.00010000","applyToMarket":true,"avgPriceMins":5},
         #                     {"filterType":"ICEBERG_PARTS","limit":10},
         #                     {"filterType":"MARKET_LOT_SIZE","minQty":"0.00000000","maxQty":"63100.00000000","stepSize":"0.00000000"},
+        #                     {"filterType":"MAX_NUM_ORDERS","maxNumOrders":200},
         #                     {"filterType":"MAX_NUM_ALGO_ORDERS","maxNumAlgoOrders":5}
-        #                 ]
+        #                 ],
+        #                 "permissions":["SPOT","MARGIN"]}
         #             },
         #         ],
         #     }
@@ -1557,6 +1560,13 @@ class binance(Exchange):
             if contract:
                 contractSize = self.safe_number(market, 'contractSize', self.parse_number('1'))
                 fees = self.fees[type]
+            active = (status == 'TRADING')
+            if spot:
+                permissions = self.safe_value(market, 'permissions', [])
+                for j in range(0, len(permissions)):
+                    if permissions[j] == 'TRD_GRP_003':
+                        active = False
+                        break
             isMarginTradingAllowed = self.safe_value(market, 'isMarginTradingAllowed', False)
             entry = {
                 'id': id,
@@ -1575,7 +1585,7 @@ class binance(Exchange):
                 'future': future,
                 'delivery': delivery,
                 'option': False,
-                'active': (status == 'TRADING'),
+                'active': active,
                 'contract': contract,
                 'linear': future if contract else None,
                 'inverse': delivery if contract else None,
