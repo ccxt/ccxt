@@ -1721,9 +1721,22 @@ class mexc(Exchange):
             'openType': openType,  # 1 isolated, 2 cross
             # 'positionId': 1394650,  # long, filling in self parameter when closing a position is recommended
             # 'externalOid': clientOrderId,
-            # 'stopLossPrice': self.price_to_precision(symbol, stopLossPrice),
-            # 'takeProfitPrice': self.price_to_precision(symbol, takeProfitPrice),
+            # 'triggerPrice': 10.0,  # Required for trigger order
+            # 'triggerType': 1,  # Required for trigger order 1: more than or equal, 2: less than or equal
+            # 'executeCycle': 1,  # Required for trigger order 1: 24 hours,2: 7 days
+            # 'trend': 1,  # Required for trigger order 1: latest price, 2: fair price, 3: index price
+            # 'orderType': 1,  # Required for trigger order 1: limit order,2:Post Only Maker,3: close or cancel instantly ,4: close or cancel completely,5: Market order
         }
+        method = 'contractPrivatePostOrderSubmit'
+        stopPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
+        params = self.omit(params, ['stopPrice', 'triggerPrice'])
+        if stopPrice:
+            method = 'contractPrivatePostPlanorderPlace'
+            request['triggerPrice'] = self.price_to_precision(symbol, stopPrice)
+            request['triggerType'] = self.safe_integer(params, 'triggerType', 1)
+            request['executeCycle'] = self.safe_integer(params, 'executeCycle', 1)
+            request['trend'] = self.safe_integer(params, 'trend', 1)
+            request['orderType'] = self.safe_integer(params, 'orderType', 1)
         if (type != 5) and (type != 6) and (type != 'market'):
             request['price'] = float(self.price_to_precision(symbol, price))
         if openType == 1:
@@ -1734,9 +1747,13 @@ class mexc(Exchange):
         if clientOrderId is not None:
             request['externalOid'] = clientOrderId
         params = self.omit(params, ['clientOrderId', 'externalOid', 'postOnly'])
-        response = self.contractPrivatePostOrderSubmit(self.extend(request, params))
+        response = getattr(self, method)(self.extend(request, params))
         #
+        # Swap
         #     {"code":200,"data":"2ff3163e8617443cb9c6fc19d42b1ca4"}
+        #
+        # Trigger
+        #     {"success":true,"code":0,"data":259208506303929856}
         #
         return self.parse_order(response, market)
 
