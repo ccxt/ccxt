@@ -2,23 +2,32 @@
 
 namespace ccxtpro;
 
-use \Ds\Map;
+use Iterator;
 
-const LIMIT_BY_KEY = 0;
-const LIMIT_BY_VALUE_PRICE_KEY = 1;
-const LIMIT_BY_VALUE_INDEX_KEY = 2;
+function bisectLeft($arr, $x) {
+    $low = 0;
+    $high = count($arr) - 1;
+    while ($low <= $high) {
+        $mid = intdiv(($low + $high), 2);
+        if ($arr[$mid][0] - $x < 0) $low = $mid + 1;
+        else $high = $mid - 1;
+    }
+    return $low;
+}
+
+const SIZE = 1024;
+const tmp = array();
 
 class OrderBookSide extends \ArrayObject implements \JsonSerializable {
-    public $index;
+    private $index;
     public $depth;
-    public $limit_type;
-    public static $side = null;
+    public $n;
 
-    public function __construct($deltas = array(), $depth = PHP_INT_MAX, $limit_type = LIMIT_BY_KEY) {
+    public function __construct($deltas = array(), $depth = null) {
         parent::__construct();
-        $this->index = new Map();  // support for floating point keys
         $this->depth = $depth ? $depth : PHP_INT_MAX;
-        $this->limit_type = $limit_type;
+        $this->n = PHP_INT_MAX;
+
         foreach ($deltas as $delta) {
             $this->storeArray($delta);
         }
@@ -27,64 +36,40 @@ class OrderBookSide extends \ArrayObject implements \JsonSerializable {
     public function storeArray($delta) {
         $price = $delta[0];
         $size = $delta[1];
+        $index = bisectLeft($this, $price);
+        if (static::side) {
+            $index++;
+        }
         if ($size) {
-            $this->index->put($price, $size);
+            if ($this->offsetExists($index)) {
+                $tmp = $this->exchangeArray(tmp);
+                array_splice($tmp, $index, 0, array($delta));
+                $this->exchangeArray($tmp);
+            } else {
+                $this[$index] = $delta;
+            }
         } else {
-            $this->index->remove($price, null);
+            $tmp = $this->exchangeArray(tmp);
+            array_splice($tmp, $index, 1);
+            $this->exchangeArray($tmp);
         }
     }
 
     public function store($price, $size, $id = null) {
-        if ($size) {
-            $this->index->put($price, $size);
-        } else {
-            $this->index->remove($price, null);
-        }
+        $this->storeArray(array($price, $size));
     }
 
     public function limit($n = null) {
-        $n = $n ? $n : PHP_INT_MAX;
-        if ($this->limit_type) {
-            $this->index->sort();
-        } else {
-            $this->index->ksort();
+        $this->n = $n ? $n : PHP_INT_MAX;
+        $difference = count($this) - $this->depth;
+        if ($difference) {
+            $tmp = $this->exchangeArray(tmp);
+            array_splice($tmp, -$difference);
+            $this->exchangeArray($tmp);
         }
-        if (static::$side) {
-            $this->index->reverse();
-        }
-        if ($this->limit_type) {
-            $array = $this->index->values()->toArray();
-        } else {
-            $array = [];
-            foreach ($this->index as $key => $value) {
-                $array[] = array($key, $value);
-            }
-        }
-        $threshold = min($this->depth, count($array));
-        $this->exchangeArray(array());
-        $this->index->clear();
-        for ($i = 0; $i < $threshold; $i++) {
-            $current = $array[$i];
-            $price = $current[0];
-            if ($this->limit_type) {
-                $last = $current[2];
-                if ($this->limit_type === LIMIT_BY_VALUE_PRICE_KEY) {
-                    $this->index->put($price, $current);
-                } else {
-                    $this->index->put($last, $current);
-                }
-            } else {
-                $size = $current[1];
-                $this->index->put($price, $size);
-            }
-            if ($i < $n) {
-                $this->append($current);
-            }
-        }
-        return $this;
     }
 
-    public function JsonSerialize () {
+    public function JsonSerialize () : array {
         return $this->getArrayCopy();
     }
 }
