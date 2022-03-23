@@ -257,6 +257,10 @@ class gateio(Exchange):
                             'cross/loans/{loan_id}': 1.5,
                             'cross/loans/repayments': 1.5,
                             'cross/transferable': 1.5,
+                            'loan_records/{loan_record_id}': 1.5,
+                            'borrowable': 1.5,
+                            'cross/repayments': 1.5,
+                            'cross/borrowable': 1.5,
                         },
                         'post': {
                             'loans': 1.5,
@@ -265,6 +269,7 @@ class gateio(Exchange):
                             'auto_repay': 1.5,
                             'cross/loans': 1.5,
                             'cross/loans/repayments': 1.5,
+                            'cross/repayments': 1.5,
                         },
                         'patch': {
                             'loans/{loan_id}': 1.5,
@@ -287,6 +292,7 @@ class gateio(Exchange):
                             '{settle}/liquidates': 1.5,
                             '{settle}/price_orders': 1.5,
                             '{settle}/price_orders/{order_id}': 1.5,
+                            '{settle}/dual_comp/positions/{contract}': 1.5,
                         },
                         'post': {
                             '{settle}/positions/{contract}/margin': 1.5,
@@ -320,6 +326,7 @@ class gateio(Exchange):
                             '{settle}/liquidates': 1.5,
                             '{settle}/price_orders': 1.5,
                             '{settle}/price_orders/{order_id}': 1.5,
+                            '{settle}/settlements': 1.5,
                         },
                         'post': {
                             '{settle}/positions/{contract}/margin': 1.5,
