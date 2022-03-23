@@ -184,4 +184,88 @@ assert (equals (cache, [
     { 'symbol': 'BTC/USDT', 'id': '32', 'i': 42 },
     { 'symbol': 'BTC/USDT', 'id': '8', 'i': 38 },
     { 'symbol': 'BTC/USDT', 'id': '30', 'i': 50 },
-]));
+]))
+
+// ----------------------------------------------------------------------------
+
+function testLimitArrayCacheBySymbolById (symbol) {
+    cache = new ArrayCacheBySymbolById ()
+    const initialLength = 5
+    for (let i = 0; i < initialLength; i++) {
+        cache.append ({
+            'symbol': symbol,
+            'id': i.toString (),
+            'i': i,
+        })
+    }
+
+    let limited = cache.getLimit (symbol)
+
+    assert (equals (initialLength, limited))
+
+    const appendItemsLength = 3
+    for (let i = initialLength; i < (initialLength + appendItemsLength); i++) {
+        cache.append ({
+            'symbol': symbol,
+            'id': i.toString (),
+            'i': i,
+        })
+    }
+    let outsideLimit = 5
+    limited = cache.getLimit (symbol, outsideLimit)
+
+    assert (equals (appendItemsLength, limited))
+
+    outsideLimit = 2 // if limit < newsUpdate that should be returned
+    limited = cache.getLimit (symbol, outsideLimit)
+
+    assert (equals (outsideLimit, limited))
+}
+
+testLimitArrayCacheBySymbolById ("BTC/USDT")
+testLimitArrayCacheBySymbolById (undefined)
+
+// ----------------------------------------------------------------------------
+
+function getRandomNumber () {
+    return Math.floor (Math.random () * 100)
+}
+
+function testLimitArrayCacheByTimestamp () {
+    cache = new ArrayCacheByTimestamp ()
+
+    const initialLength = 5
+    for (let i = 0; i < initialLength; i++) {
+        cache.append ([
+            getRandomNumber (),
+            getRandomNumber (),
+            getRandomNumber (),
+            getRandomNumber ()
+        ])
+    }
+
+    let limited = cache.getLimit ()
+
+    assert (equals (initialLength, limited))
+
+    const appendItemsLength = 3
+    for (let i = initialLength; i < (initialLength + appendItemsLength); i++) {
+        cache.append ([
+            getRandomNumber (),
+            getRandomNumber (),
+            getRandomNumber (),
+            getRandomNumber ()
+        ])
+    }
+    let outsideLimit = 5
+    limited = cache.getLimit (undefined, outsideLimit)
+
+    assert (equals (appendItemsLength, limited))
+
+    outsideLimit = 2 // if limit < newsUpdate that should be returned
+    limited = cache.getLimit (undefined, outsideLimit)
+
+    assert (equals (outsideLimit, limited))
+}
+
+testLimitArrayCacheByTimestamp ()

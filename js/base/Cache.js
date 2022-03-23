@@ -55,7 +55,9 @@ class ArrayCache extends BaseCache {
             this.clearUpdatesBySymbol[symbol] = true
         }
 
-        if (limit !== undefined) {
+        if (newUpdatesValue === undefined) {
+            return limit
+        } else if (limit !== undefined) {
             return Math.min (newUpdatesValue, limit)
         } else {
             return newUpdatesValue;
