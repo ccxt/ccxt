@@ -942,17 +942,18 @@ module.exports = class lbank2 extends Exchange {
             const item = result[i];
             const canWithdraw = this.safeString (item, 'canWithDraw');
             if (canWithdraw === 'true') {
+                const currencyId = this.safeString (item, 'assetCode');
+                const code = this.safeCurrencyCode (currencyId);
                 const chain = this.safeString (item, 'chain');
-                if (chain !== undefined) {
-                    const network = this.safeString (this.options['inverse-networks'], chain, chain);
-                    const currencyId = this.safeString (item, 'assetCode');
-                    const code = this.safeCurrencyCode (currencyId);
-                    const fee = this.safeString (item, 'fee');
-                    if (withdrawFees[code] === undefined) {
-                        withdrawFees[code] = {};
-                    }
-                    withdrawFees[code][network] = fee;
+                let network = this.safeString (this.options['inverse-networks'], chain, chain);
+                if (network === undefined) {
+                    network = code;
                 }
+                const fee = this.safeString (item, 'fee');
+                if (withdrawFees[code] === undefined) {
+                    withdrawFees[code] = {};
+                }
+                withdrawFees[code][network] = fee;
             }
         }
         return {
