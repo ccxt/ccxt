@@ -200,7 +200,7 @@ for (let i = 0; i < initialLength; i++) {
     });
 }
 
-let limited = cache.getLimit (symbol);
+let limited = cache.getLimit (symbol, undefined);
 
 assert (initialLength === limited);
 
@@ -236,7 +236,7 @@ for (let i = 0; i < initialLength; i++) {
     });
 }
 
-limited = cache.getLimit (symbol);
+limited = cache.getLimit (symbol, undefined);
 
 assert (initialLength === limited);
 
@@ -273,7 +273,7 @@ for (let i = 0; i < initialLength; i++) {
     ]);
 }
 
-limited = cache.getLimit ();
+limited = cache.getLimit (undefined, undefined);
 
 assert (initialLength === limited);
 
