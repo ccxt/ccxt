@@ -91,7 +91,7 @@ module.exports = class lbank2 extends Exchange {
                 'public': {
                     'get': {
                         'currencyPairs': 2.5,
-                        'accuracy': 2.5, // fetchMarkets
+                        'accuracy': 2.5,
                         'usdToCny': 2.5,
                         'withdrawConfigs': 2.5,
                         'timestamp': 2.5,
@@ -99,12 +99,12 @@ module.exports = class lbank2 extends Exchange {
                         'ticker': 2.5,
                         'depth': 2.5,
                         'incrDepth': 2.5,
-                        'trades': 2.5, // fetchTrades
-                        'kline': 2.5, // fetchOHLCV
+                        'trades': 2.5,
+                        'kline': 2.5,
                         // TODO new quote endpoints
                         'supplement/system_ping': 2.5,
                         'supplement/incrDepth': 2.5,
-                        'supplement/trades': 2.5, // TODO fetchTrades
+                        'supplement/trades': 2.5,
                         'supplement/ticker/price': 2.5,
                         'supplement/ticker/bookTicker': 2.5,
                     },
@@ -137,25 +137,25 @@ module.exports = class lbank2 extends Exchange {
                         'withdraws': 2.5,
                         // TODO new wallet endpoints
                         'supplement/user_info': 2.5,
-                        'supplement/withdraw': 2.5, // TODO Withdraw
+                        'supplement/withdraw': 2.5, // TODO Withdraw (last)
                         'supplement/deposit_history': 2.5, // TODO fetchDeposits
                         'supplement/withdraws': 2.5, // TODO fetchWithdrawals
-                        'supplement/get_deposit_address': 2.5, // TODO fetchDepositAddressByNetwork
+                        'supplement/get_deposit_address': 2.5,
                         'supplement/asset_detail': 2.5,
-                        'supplement/customer_trade_fee': 2.5, // TODO fetchTradingFee
+                        'supplement/customer_trade_fee': 2.5,
                         'supplement/api_Restrictions': 2.5,
                         // new quote endpoints
                         'supplement/system_ping': 2.5,
                         // new order endpoints
                         'supplement/create_order_test': 1,
-                        'supplement/create_order': 1, // TODO createOrder
-                        'supplement/cancel_order': 1, // TODO cancelOrder
-                        'supplement/cancel_order_by_symbol': 1, // TODO cancelAllOrders
-                        'supplement/orders_info': 2.5, // TODO fetchOrder
-                        'supplement/orders_info_no_deal': 2.5, // TODO fetchOpenOrders
+                        'supplement/create_order': 1, // TODO createOrder (redo update)
+                        'supplement/cancel_order': 1, // TODO cancelOrder (redo update)
+                        'supplement/cancel_order_by_symbol': 1, // TODO cancelAllOrders (redo update)
+                        'supplement/orders_info': 2.5, // TODO fetchOrder (redo update)
+                        'supplement/orders_info_no_deal': 2.5, // TODO fetchOpenOrders (redo update)
                         'supplement/orders_info_history': 2.5, // TODO fetchOrders (investigate)
                         'supplement/user_info_account': 2.5,
-                        'supplement/transaction_history': 2.5, // TODO fetchTransactions
+                        'supplement/transaction_history': 2.5, // TODO fetchMyTrades (investigate)
                     },
                 },
             },
