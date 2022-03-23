@@ -11,11 +11,6 @@ class BaseCache extends Array {
             value: maxSize,
             writable: true,
         })
-        Object.defineProperty (this, 'newUpdates', {
-            __proto__: null, // make it invisible
-            value: 1,
-            writable: true,
-        })
     }
 
     clear () {
@@ -37,6 +32,16 @@ class ArrayCache extends BaseCache {
             value: {},
             writable: true,
         })
+        Object.defineProperty (this, 'allNewUpdates', {
+            __proto__: null, // make it invisible
+            value: 1,
+            writable: true,
+        })
+        Object.defineProperty (this, 'clearAllUpdates', {
+            __proto__: null, // make it invisible
+            value: false,
+            writable: true,
+        })
     }
 
     getLimit (symbol, limit) {
@@ -50,12 +55,10 @@ class ArrayCache extends BaseCache {
             this.clearUpdatesBySymbol[symbol] = true
         }
 
-        if (limit === undefined) {
-            return newUpdatesValue;
-        } else if (newUpdatesValue === undefined) {
-            return limit
+        if (limit !== undefined) {
+            return Math.min (newUpdatesValue, limit)
         } else {
-            return Math.min (this.newUpdates, limit)
+            return newUpdatesValue;
         }
     }
 
