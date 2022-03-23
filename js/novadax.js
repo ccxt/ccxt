@@ -64,6 +64,8 @@ module.exports = class novadax extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
@@ -133,7 +135,7 @@ module.exports = class novadax extends Exchange {
                     'tierBased': false,
                     'percentage': true,
                     'taker': this.parseNumber ('0.005'),
-                    'maker': this.parseNumber ('0.003'),
+                    'maker': this.parseNumber ('0.0025'),
                 },
             },
             'requiredCredentials': {
