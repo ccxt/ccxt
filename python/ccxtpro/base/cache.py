@@ -53,28 +53,35 @@ class ArrayCache(BaseCache):
         super(ArrayCache, self).__init__(max_size)
         self._new_updates_by_symbol = {}
         self._clear_updates_by_symbol = {}
+        self._all_new_updates = 1
+        self._clear_all_updates = False
 
     def getLimit(self, symbol, limit):
+        new_updates_value = None
         if symbol is None:
-            symbol = 'all'
-        self._clear_updates_by_symbol[symbol] = True
-        if limit is None:
-            return self._new_updates_by_symbol.get(symbol)
-        elif self._new_updates_by_symbol.get(symbol) is None:
-            return limit
+            new_updates_value = self._all_new_updates
+            self._clear_all_updates = True
         else:
-            return min(self._new_updates_by_symbol[symbol], limit)
+            new_updates_value = self._new_updates_by_symbol.get(symbol)
+            self._clear_updates_by_symbol[symbol] = True
+
+        if new_updates_value is None:
+            return limit
+        elif limit is not None:
+            return min(new_updates_value, limit)
+        else:
+            return new_updates_value
 
     def append(self, item):
         self._deque.append(item)
         if self._clear_updates_by_symbol.get(item['symbol']):
             self._clear_updates_by_symbol[item['symbol']] = False
             self._new_updates_by_symbol[item['symbol']] = 0
-        if self._clear_updates_by_symbol.get('all'):
-            self._clear_updates_by_symbol['all'] = False
-            self._new_updates_by_symbol['all'] = 0
+        if self._clear_all_updates:
+            self._clear_all_updates = False
+            self._all_new_updates = 0
         self._new_updates_by_symbol[item['symbol']] = self._new_updates_by_symbol.get(item['symbol'], 0) + 1
-        self._new_updates_by_symbol['all'] = self._new_updates_by_symbol.get('all', 0) + 1
+        self._all_new_updates = (self._all_new_updates or 0) + 1
 
 
 class ArrayCacheByTimestamp(BaseCache):
@@ -136,8 +143,8 @@ class ArrayCacheBySymbolById(ArrayCache):
         if self._clear_updates_by_symbol.get(item['symbol']):
             self._clear_updates_by_symbol[item['symbol']] = False
             self._new_updates_by_symbol[item['symbol']] = 0
-        if self._clear_updates_by_symbol.get('all'):
-            self._clear_updates_by_symbol['all'] = False
-            self._new_updates_by_symbol['all'] = 0
+        if self._clear_all_updates:
+            self._clear_all_updates = False
+            self._all_new_updates = 0
         self._new_updates_by_symbol[item['symbol']] = self._new_updates_by_symbol.get(item['symbol'], 0) + 1
-        self._new_updates_by_symbol['all'] = self._new_updates_by_symbol.get('all', 0) + 1
+        self._all_new_updates = (self._all_new_updates or 0) + 1
