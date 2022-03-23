@@ -572,7 +572,7 @@ class bitfinex(Exchange):
                         'max': None,
                     },
                     'cost': {
-                        'min': self.safe_number(market, 'minimum_margin'),
+                        'min': None,
                         'max': None,
                     },
                 },

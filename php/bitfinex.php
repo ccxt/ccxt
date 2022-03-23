@@ -566,7 +566,7 @@ class bitfinex extends Exchange {
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => $this->safe_number($market, 'minimum_margin'),
+                        'min' => null,
                         'max' => null,
                     ),
                 ),
