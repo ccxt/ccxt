@@ -47,6 +47,7 @@ class eqonex extends Exchange {
                 'fetchOrders' => true,
                 'fetchTicker' => null,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
                 'fetchTradingLimits' => true,
                 'fetchWithdrawals' => true,
@@ -1268,24 +1269,78 @@ class eqonex extends Exchange {
     }
 
     public function fetch_trading_fees($params = array ()) {
-        // getExchangeInfo
+        yield $this->load_markets();
         $response = yield $this->publicGetGetExchangeInfo ($params);
-        $tradingFees = $this->safe_value($response, 'spotFees', array());
-        $taker = array();
-        $maker = array();
-        for ($i = 0; $i < count($tradingFees); $i++) {
-            $tradingFee = $tradingFees[$i];
-            if ($this->safe_string($tradingFee, 'tier') !== null) {
-                $taker[$tradingFee['tier']] = $this->safe_number($tradingFee, 'taker');
-                $maker[$tradingFee['tier']] = $this->safe_number($tradingFee, 'maker');
-            }
+        //
+        //     {
+        //         tradingLimits => array(),
+        //         withdrawLimits => [array( All => '0.0', Type => 'percent' )],
+        //         futuresFees => array(
+        //             array( tier => '0', maker => '0.000300', taker => '0.000500' ),
+        //             array( tier => '1', maker => '0.000200', taker => '0.000400' ),
+        //             array( tier => '2', maker => '0.000180', taker => '0.000400' ),
+        //         ),
+        //         $spotFees => array(
+        //             array( tier => '0', maker => '0.000900', taker => '0.001500', $volume => '0' ),
+        //             array( tier => '1', maker => '0.000600', taker => '0.001250', $volume => '200000' ),
+        //             array( tier => '2', maker => '0.000540', taker => '0.001200', $volume => '2500000' ),
+        //         ),
+        //         referrals => array( earning => '0.30', discount => '0.05', duration => '180' )
+        //     }
+        //
+        $spotFees = $this->safe_value($response, 'spotFees', array());
+        $firstSpotFee = $this->safe_value($spotFees, 0, array());
+        $spotMakerFee = $this->safe_number($firstSpotFee, 'maker');
+        $spotTakerFee = $this->safe_number($firstSpotFee, 'taker');
+        $futureFees = $this->safe_value($response, 'futuresFees', array());
+        $firstFutureFee = $this->safe_value($futureFees, 0, array());
+        $futureMakerFee = $this->safe_number($firstFutureFee, 'maker');
+        $futureTakerFee = $this->safe_number($firstFutureFee, 'taker');
+        $spotTakerTiers = array();
+        $spotMakerTiers = array();
+        $result = array();
+        for ($i = 0; $i < count($spotFees); $i++) {
+            $spotFee = $spotFees[$i];
+            $volume = $this->safe_number($spotFee, 'volume');
+            $spotTakerTiers[] = array( $volume, $this->safe_number($spotFee, 'taker') );
+            $spotMakerTiers[] = array( $volume, $this->safe_number($spotFee, 'maker') );
         }
-        return array(
-            'info' => $tradingFees,
-            'tierBased' => true,
-            'maker' => $maker,
-            'taker' => $taker,
+        $spotTiers = array(
+            'taker' => $spotTakerTiers,
+            'maker' => $spotMakerTiers,
         );
+        $futureTakerTiers = array();
+        $futureMakerTiers = array();
+        for ($i = 0; $i < count($futureFees); $i++) {
+            $futureFee = $futureFees[$i];
+            $futureTakerTiers[] = array( null, $this->safe_number($futureFee, 'taker') );
+            $futureMakerTiers[] = array( null, $this->safe_number($futureFee, 'maker') );
+        }
+        $futureTiers = array(
+            'taker' => $futureTakerTiers,
+            'maker' => $futureMakerTiers,
+        );
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
+            $market = $this->market($symbol);
+            $fee = array(
+                'info' => $response,
+                'symbol' => $symbol,
+                'percentage' => true,
+                'tierBased' => true,
+            );
+            if ($this->safe_value($market, 'spot')) {
+                $fee['maker'] = $spotMakerFee;
+                $fee['taker'] = $spotTakerFee;
+                $fee['tiers'] = $spotTiers;
+            } else if ($this->safe_value($market, 'contract')) {
+                $fee['maker'] = $futureMakerFee;
+                $fee['taker'] = $futureTakerFee;
+                $fee['tiers'] = $futureTiers;
+            }
+            $result[$symbol] = $fee;
+        }
+        return $result;
     }
 
     public function fetch_trading_limits($symbols = null, $params = array ()) {

@@ -48,6 +48,7 @@ class eqonex(Exchange):
                 'fetchOrders': True,
                 'fetchTicker': None,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchTradingLimits': True,
                 'fetchWithdrawals': True,
@@ -1208,22 +1209,74 @@ class eqonex(Exchange):
         return self.parse_transaction(response, currency)
 
     def fetch_trading_fees(self, params={}):
-        # getExchangeInfo
+        self.load_markets()
         response = self.publicGetGetExchangeInfo(params)
-        tradingFees = self.safe_value(response, 'spotFees', [])
-        taker = {}
-        maker = {}
-        for i in range(0, len(tradingFees)):
-            tradingFee = tradingFees[i]
-            if self.safe_string(tradingFee, 'tier') is not None:
-                taker[tradingFee['tier']] = self.safe_number(tradingFee, 'taker')
-                maker[tradingFee['tier']] = self.safe_number(tradingFee, 'maker')
-        return {
-            'info': tradingFees,
-            'tierBased': True,
-            'maker': maker,
-            'taker': taker,
+        #
+        #     {
+        #         tradingLimits: [],
+        #         withdrawLimits: [{All: '0.0', Type: 'percent'}],
+        #         futuresFees: [
+        #             {tier: '0', maker: '0.000300', taker: '0.000500'},
+        #             {tier: '1', maker: '0.000200', taker: '0.000400'},
+        #             {tier: '2', maker: '0.000180', taker: '0.000400'},
+        #         ],
+        #         spotFees: [
+        #             {tier: '0', maker: '0.000900', taker: '0.001500', volume: '0'},
+        #             {tier: '1', maker: '0.000600', taker: '0.001250', volume: '200000'},
+        #             {tier: '2', maker: '0.000540', taker: '0.001200', volume: '2500000'},
+        #         ],
+        #         referrals: {earning: '0.30', discount: '0.05', duration: '180'}
+        #     }
+        #
+        spotFees = self.safe_value(response, 'spotFees', [])
+        firstSpotFee = self.safe_value(spotFees, 0, {})
+        spotMakerFee = self.safe_number(firstSpotFee, 'maker')
+        spotTakerFee = self.safe_number(firstSpotFee, 'taker')
+        futureFees = self.safe_value(response, 'futuresFees', [])
+        firstFutureFee = self.safe_value(futureFees, 0, {})
+        futureMakerFee = self.safe_number(firstFutureFee, 'maker')
+        futureTakerFee = self.safe_number(firstFutureFee, 'taker')
+        spotTakerTiers = []
+        spotMakerTiers = []
+        result = {}
+        for i in range(0, len(spotFees)):
+            spotFee = spotFees[i]
+            volume = self.safe_number(spotFee, 'volume')
+            spotTakerTiers.append([volume, self.safe_number(spotFee, 'taker')])
+            spotMakerTiers.append([volume, self.safe_number(spotFee, 'maker')])
+        spotTiers = {
+            'taker': spotTakerTiers,
+            'maker': spotMakerTiers,
         }
+        futureTakerTiers = []
+        futureMakerTiers = []
+        for i in range(0, len(futureFees)):
+            futureFee = futureFees[i]
+            futureTakerTiers.append([None, self.safe_number(futureFee, 'taker')])
+            futureMakerTiers.append([None, self.safe_number(futureFee, 'maker')])
+        futureTiers = {
+            'taker': futureTakerTiers,
+            'maker': futureMakerTiers,
+        }
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            market = self.market(symbol)
+            fee = {
+                'info': response,
+                'symbol': symbol,
+                'percentage': True,
+                'tierBased': True,
+            }
+            if self.safe_value(market, 'spot'):
+                fee['maker'] = spotMakerFee
+                fee['taker'] = spotTakerFee
+                fee['tiers'] = spotTiers
+            elif self.safe_value(market, 'contract'):
+                fee['maker'] = futureMakerFee
+                fee['taker'] = futureTakerFee
+                fee['tiers'] = futureTiers
+            result[symbol] = fee
+        return result
 
     def fetch_trading_limits(self, symbols=None, params={}):
         self.load_markets()
