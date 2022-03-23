@@ -57,6 +57,7 @@ module.exports = class lbank2 extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': false,
                 'fetchTrades': true,
+                'fetchTradingFees': true,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
@@ -114,34 +115,34 @@ module.exports = class lbank2 extends Exchange {
                 'private': {
                     'post': {
                         // account
-                        'user_info': 2.5, // fetchBalance
+                        'user_info': 2.5,
                         'subscribe/get_key': 2.5,
                         'subscribe/refresh_key': 2.5,
                         'subscribe/destroy_key': 2.5,
-                        'get_deposit_address': 2.5, // fetchDepositAddress
-                        'deposit_history': 2.5, // fetchDeposits
+                        'get_deposit_address': 2.5,
+                        'deposit_history': 2.5,
                         // order
-                        'create_order': 1, // createOrder
+                        'create_order': 1,
                         'batch_create_order': 1,
-                        'cancel_order': 1, // cancelOrder
-                        'cancel_clientOrders': 1, // cancelOrder (By clOId)
-                        'orders_info': 2.5, // fetchOrder
-                        'orders_info_history': 2.5, // fetchOrders (only the last two days available)
-                        'order_transaction_detail': 2.5, // fetchOrder but somewhat slightly different data ***
-                        'transaction_history': 2.5, // fetchMyTrades ***
-                        'orders_info_no_deal': 2.5, // fetchOpenOrders
+                        'cancel_order': 1,
+                        'cancel_clientOrders': 1,
+                        'orders_info': 2.5,
+                        'orders_info_history': 2.5,
+                        'order_transaction_detail': 2.5,
+                        'transaction_history': 2.5,
+                        'orders_info_no_deal': 2.5,
                         // withdraw
-                        'withdraw': 2.5, // withdraw
+                        'withdraw': 2.5,
                         'withdrawCancel': 2.5,
-                        'withdraws': 2.5, // fetchWithdrawals
+                        'withdraws': 2.5,
                         // TODO new wallet endpoints
-                        'supplement/user_info': 2.5, // TODO fetchBalance *** (more complete info)
+                        'supplement/user_info': 2.5,
                         'supplement/withdraw': 2.5, // TODO Withdraw
                         'supplement/deposit_history': 2.5, // TODO fetchDeposits
                         'supplement/withdraws': 2.5, // TODO fetchWithdrawals
                         'supplement/get_deposit_addresses': 2.5, // TODO fetchDepositAddressByNetwork
-                        'supplement/asset_detail': 2.5, // TODO fetchFundingFees
-                        'supplement/customer_trade_fee': 2.5, // TODO fetchTradingFee,
+                        'supplement/asset_detail': 2.5,
+                        'supplement/customer_trade_fee': 2.5, // TODO fetchTradingFee add error handling (no fetchPublicTradingFee)
                         'supplement/api_Restrictions': 2.5,
                         // new quote endpoints
                         'supplement/system_ping': 2.5,
