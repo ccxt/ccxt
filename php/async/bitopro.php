@@ -61,6 +61,7 @@ class bitopro extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => false,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
                 'fetchTransactions' => false,
                 'fetchWithdrawal' => true,
