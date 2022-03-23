@@ -56,7 +56,6 @@ __all__ = [
 
 # -----------------------------------------------------------------------------
 
-# Python 2 & 3
 import types
 import logging
 import base64
@@ -86,25 +85,7 @@ import zlib
 from decimal import Decimal
 from time import mktime
 from wsgiref.handlers import format_date_time
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # basestring was removed in Python 3
-except NameError:
-    basestring = str
-
-try:
-    long  # long integer was removed in Python 3
-except NameError:
-    long = int
-
-# -----------------------------------------------------------------------------
-
-try:
-    import urllib.parse as _urlencode    # Python 3
-except ImportError:
-    import urllib as _urlencode          # Python 2
+import urllib.parse as _urlencode
 
 # -----------------------------------------------------------------------------
 
@@ -787,7 +768,7 @@ class Exchange(object):
         value = dictionary[key]
         if isinstance(value, Number):
             return int(value * factor)
-        elif isinstance(value, basestring):
+        elif isinstance(value, str):
             try:
                 return int(float(value) * factor)
             except ValueError:
@@ -1109,7 +1090,7 @@ class Exchange(object):
     def iso8601(timestamp=None):
         if timestamp is None:
             return timestamp
-        if not isinstance(timestamp, (int, long)):
+        if not isinstance(timestamp, int):
             return None
         if int(timestamp) < 0:
             return None
@@ -1348,7 +1329,7 @@ class Exchange(object):
 
     @staticmethod
     def is_json_encoded_object(input):
-        return (isinstance(input, basestring) and
+        return (isinstance(input, str) and
                 (len(input) >= 2) and
                 ((input[0] == '{') or (input[0] == '[')))
 
@@ -2159,14 +2140,14 @@ class Exchange(object):
     def currency(self, code):
         if not self.currencies:
             raise ExchangeError('Currencies not loaded')
-        if isinstance(code, basestring) and (code in self.currencies):
+        if isinstance(code, str) and (code in self.currencies):
             return self.currencies[code]
         raise ExchangeError('Does not have currency code ' + str(code))
 
     def market(self, symbol):
         if not self.markets:
             raise ExchangeError('Markets not loaded')
-        if isinstance(symbol, basestring):
+        if isinstance(symbol, str):
             if symbol in self.markets:
                 return self.markets[symbol]
             elif symbol in self.markets_by_id:
