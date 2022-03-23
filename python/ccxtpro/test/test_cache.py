@@ -1,7 +1,5 @@
 import os
-from symtable import Symbol
 import sys
-import random
 
 root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(root)
@@ -183,77 +181,3 @@ assert(equals(cache, [
     {'symbol': 'BTC/USDT', 'id': '8', 'i': 38},
     {'symbol': 'BTC/USDT', 'id': '30', 'i': 50},
 ]))
-
-# ----------------------------------------------------------------------------
-
-def test_limit_array_cache_by_symbol(symbol = None):
-    cache = ArrayCacheBySymbolById()
-    initial_length = 5
-    for i in range(initial_length):
-        cache.append({
-            'symbol': symbol,
-            'id': str(i),
-            'i': i + 10,
-        })
-
-    limited = cache.getLimit(symbol)
-
-    assert(equals(limited, initial_length))
-
-    append_items_length = 3
-    for i in range(append_items_length):
-        cache.append({
-            'symbol': symbol,
-            'id': str(i),
-            'i': i + 10,
-        })
-    
-    outside_limit = 5
-    limited = cache.getLimit(symbol, outside_limit)
-
-    assert (equals (append_items_length, limited))
-
-    outside_limit = 2 # if limit < newsUpdate that should be returned
-    limited = cache.getLimit(symbol, outside_limit)
-    assert (equals (outside_limit, limited))
-
-
-test_limit_array_cache_by_symbol("BTC/USDT")
-test_limit_array_cache_by_symbol()
-
-# ----------------------------------------------------------------------------
-
-def test_limit_array_cache_timestamp():
-    cache =  ArrayCacheByTimestamp()
-    initial_length = 5
-    for i in range(initial_length):
-        cache.append([
-            random.randint(0, 90),
-            random.randint(0, 90),
-            random.randint(0, 90),
-            random.randint(0, 90),
-        ])
-
-    limited = cache.getLimit(None)
-
-    assert(equals(limited, initial_length))
-
-    append_items_length = 3
-    for i in range(append_items_length):
-        cache.append([
-            random.randint(0, 90),
-            random.randint(0, 90),
-            random.randint(0, 90),
-            random.randint(0, 90),
-        ])
-
-    outside_limit = 5
-    limited = cache.getLimit(None, outside_limit)
-
-    assert (equals (append_items_length, limited))
-
-    outside_limit = 2 # if limit < newsUpdate that should be returned
-    limited = cache.getLimit(None, outside_limit)
-    assert (equals (outside_limit, limited))
-
-test_limit_array_cache_timestamp()

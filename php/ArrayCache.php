@@ -10,7 +10,7 @@ class ArrayCache extends BaseCache {
         parent::__construct($max_size);
         $this->new_updates_by_symbol = array();
         $this->clear_updates_by_symbol = array();
-        $this->all_new_updates = 1;
+        $this->all_new_updates = 0;
         $this->clear_all_updates = false;
     }
 
