@@ -14,7 +14,7 @@ class ArrayCache extends BaseCache {
         $this->clear_all_updates = false;
     }
 
-    public function getLimit($symbol, $limit) {
+    public function getLimit($symbol = null, $limit = null) {
         $new_updates_value = null;
 
         if ($symbol === null) {

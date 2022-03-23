@@ -18,7 +18,7 @@ class ArrayCacheByTimestamp extends BaseCache {
         $this->clear_updates = false;
     }
 
-    public function getLimit($symbol, $limit) {
+    public function getLimit($symbol = null, $limit = null) {
         $this->clear_updates = true;
         if ($limit === null) {
             return $this->new_updates;
