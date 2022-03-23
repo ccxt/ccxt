@@ -897,6 +897,7 @@ class ascendex extends \ccxt\async\ascendex {
         $client = $this->client($url);
         $future = $this->safe_value($client->futures, $messageHash);
         if ($future === null) {
+            $future = $client->future ('authenticated');
             $client->future ($messageHash);
             $timestamp = (string) $this->milliseconds();
             $urlParts = explode('/', $url);
