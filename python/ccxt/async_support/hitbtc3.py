@@ -38,10 +38,11 @@ class hitbtc3(Exchange):
             'has': {
                 'CORS': False,
                 'spot': True,
-                'margin': None,  # has but not fully unimplemented
-                'swap': None,  # has but not fully unimplemented
-                'future': None,  # has but not fully unimplemented
+                'margin': None,  # has but not fully implemented
+                'swap': True,
+                'future': False,
                 'option': None,
+                'addMargin': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
@@ -52,10 +53,15 @@ class hitbtc3(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchFundingHistory': False,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
+                'fetchIndexOHLCV': None,
+                'fetchLeverageTiers': None,
+                'fetchMarketLeverageTiers': None,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': None,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrder': True,
@@ -65,6 +71,8 @@ class hitbtc3(Exchange):
                 'fetchOrderBooks': True,
                 'fetchOrders': False,
                 'fetchOrderTrades': True,
+                'fetchPosition': False,
+                'fetchPremiumIndexOHLCV': None,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
@@ -72,6 +80,10 @@ class hitbtc3(Exchange):
                 'fetchTradingFees': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
+                'reduceMargin': None,
+                'setLeverage': None,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'transfer': True,
                 'withdraw': True,
             },
@@ -706,7 +718,7 @@ class hitbtc3(Exchange):
         if limit is not None:
             request['limit'] = limit
         if since is not None:
-            request['since'] = since
+            request['from'] = since
         response = await self.publicGetPublicTrades(self.extend(request, params))
         marketIds = list(response.keys())
         trades = []

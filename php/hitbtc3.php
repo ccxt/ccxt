@@ -28,10 +28,11 @@ class hitbtc3 extends Exchange {
             'has' => array(
                 'CORS' => false,
                 'spot' => true,
-                'margin' => null, // has but not fully unimplemented
-                'swap' => null, // has but not fully unimplemented
-                'future' => null, // has but not fully unimplemented
+                'margin' => null, // has but not fully implemented
+                'swap' => true,
+                'future' => false,
                 'option' => null,
+                'addMargin' => null,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
@@ -42,10 +43,15 @@ class hitbtc3 extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchFundingHistory' => false,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => null,
+                'fetchLeverageTiers' => null,
+                'fetchMarketLeverageTiers' => null,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => null,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrder' => true,
@@ -55,6 +61,8 @@ class hitbtc3 extends Exchange {
                 'fetchOrderBooks' => true,
                 'fetchOrders' => false,
                 'fetchOrderTrades' => true,
+                'fetchPosition' => false,
+                'fetchPremiumIndexOHLCV' => null,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
@@ -62,6 +70,10 @@ class hitbtc3 extends Exchange {
                 'fetchTradingFees' => true,
                 'fetchTransactions' => true,
                 'fetchWithdrawals' => true,
+                'reduceMargin' => null,
+                'setLeverage' => null,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
                 'transfer' => true,
                 'withdraw' => true,
             ),
@@ -724,7 +736,7 @@ class hitbtc3 extends Exchange {
             $request['limit'] = $limit;
         }
         if ($since !== null) {
-            $request['since'] = $since;
+            $request['from'] = $since;
         }
         $response = $this->publicGetPublicTrades (array_merge($request, $params));
         $marketIds = is_array($response) ? array_keys($response) : array();
