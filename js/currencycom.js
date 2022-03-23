@@ -561,7 +561,7 @@ module.exports = class currencycom extends Exchange {
         //                 "accountId": "120702016179403605",
         //                 "collateralCurrency": false,
         //                 "asset": "CAKE",
-        //                 "free": "1.784",
+        //                 "free": "3.1",
         //                 "locked": "0.0",
         //                 "default": false,
         //             },
@@ -569,7 +569,7 @@ module.exports = class currencycom extends Exchange {
         //                 "accountId": "109698017713125316",
         //                 "collateralCurrency": true,
         //                 "asset": "USD",
-        //                 "free": "7.58632",
+        //                 "free": "17.58632",
         //                 "locked": "0.0",
         //                 "default": true,
         //             }
@@ -1175,9 +1175,10 @@ module.exports = class currencycom extends Exchange {
         const market = this.market (symbol);
         let accountId = undefined;
         if (market['margin']) {
-            accountId = this.safeInteger (params, 'accountId');
+            accountId = this.safeString (this.options, 'accountId');
+            accountId = this.safeString (params, 'accountId', accountId);
             if (accountId === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires an accountId parameter for ' + market['type'] + ' market ' + symbol);
+                throw new ArgumentsRequired (this.id + " createOrder() requires an accountId parameter or an exchange.options['accountId'] option for " + market['type'] + ' markets');
             }
         }
         const newOrderRespType = this.safeValue (this.options['newOrderRespType'], type, 'RESULT');
@@ -1196,8 +1197,18 @@ module.exports = class currencycom extends Exchange {
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
             request['timeInForce'] = this.options['defaultTimeInForce'];
-        } else if (type === 'stop') {
-            request['price'] = this.priceToPrecision (symbol, price);
+        } else {
+            if (type === 'stop') {
+                request['type'] = 'STOP';
+                request['price'] = this.priceToPrecision (symbol, price);
+            } else if (type === 'market') {
+                const stopPrice = this.safeNumber (params, 'stopPrice');
+                params = this.omit (params, 'stopPrice');
+                if (stopPrice !== undefined) {
+                    request['type'] = 'STOP';
+                    request['price'] = this.priceToPrecision (symbol, stopPrice);
+                }
+            }
         }
         const response = await this.privatePostV2Order (this.extend (request, params));
         //

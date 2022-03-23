@@ -1800,9 +1800,23 @@ module.exports = class mexc extends Exchange {
             'openType': openType, // 1 isolated, 2 cross
             // 'positionId': 1394650, // long, filling in this parameter when closing a position is recommended
             // 'externalOid': clientOrderId,
-            // 'stopLossPrice': this.priceToPrecision (symbol, stopLossPrice),
-            // 'takeProfitPrice': this.priceToPrecision (symbol, takeProfitPrice),
+            // 'triggerPrice': 10.0, // Required for trigger order
+            // 'triggerType': 1, // Required for trigger order 1: more than or equal, 2: less than or equal
+            // 'executeCycle': 1, // Required for trigger order 1: 24 hours,2: 7 days
+            // 'trend': 1, // Required for trigger order 1: latest price, 2: fair price, 3: index price
+            // 'orderType': 1, // Required for trigger order 1: limit order,2:Post Only Maker,3: close or cancel instantly ,4: close or cancel completely,5: Market order
         };
+        let method = 'contractPrivatePostOrderSubmit';
+        const stopPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
+        params = this.omit (params, [ 'stopPrice', 'triggerPrice' ]);
+        if (stopPrice) {
+            method = 'contractPrivatePostPlanorderPlace';
+            request['triggerPrice'] = this.priceToPrecision (symbol, stopPrice);
+            request['triggerType'] = this.safeInteger (params, 'triggerType', 1);
+            request['executeCycle'] = this.safeInteger (params, 'executeCycle', 1);
+            request['trend'] = this.safeInteger (params, 'trend', 1);
+            request['orderType'] = this.safeInteger (params, 'orderType', 1);
+        }
         if ((type !== 5) && (type !== 6) && (type !== 'market')) {
             request['price'] = parseFloat (this.priceToPrecision (symbol, price));
         }
@@ -1817,9 +1831,13 @@ module.exports = class mexc extends Exchange {
             request['externalOid'] = clientOrderId;
         }
         params = this.omit (params, [ 'clientOrderId', 'externalOid', 'postOnly' ]);
-        const response = await this.contractPrivatePostOrderSubmit (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
+        // Swap
         //     {"code":200,"data":"2ff3163e8617443cb9c6fc19d42b1ca4"}
+        //
+        // Trigger
+        //     {"success":true,"code":0,"data":259208506303929856}
         //
         return this.parseOrder (response, market);
     }

@@ -557,7 +557,7 @@ class currencycom(Exchange):
         #                 "accountId": "120702016179403605",
         #                 "collateralCurrency": False,
         #                 "asset": "CAKE",
-        #                 "free": "1.784",
+        #                 "free": "3.1",
         #                 "locked": "0.0",
         #                 "default": False,
         #             },
@@ -565,7 +565,7 @@ class currencycom(Exchange):
         #                 "accountId": "109698017713125316",
         #                 "collateralCurrency": True,
         #                 "asset": "USD",
-        #                 "free": "7.58632",
+        #                 "free": "17.58632",
         #                 "locked": "0.0",
         #                 "default": True,
         #             }
@@ -1144,9 +1144,10 @@ class currencycom(Exchange):
         market = self.market(symbol)
         accountId = None
         if market['margin']:
-            accountId = self.safe_integer(params, 'accountId')
+            accountId = self.safe_string(self.options, 'accountId')
+            accountId = self.safe_string(params, 'accountId', accountId)
             if accountId is None:
-                raise ArgumentsRequired(self.id + ' createOrder() requires an accountId parameter for ' + market['type'] + ' market ' + symbol)
+                raise ArgumentsRequired(self.id + " createOrder() requires an accountId parameter or an exchange.options['accountId'] option for " + market['type'] + ' markets')
         newOrderRespType = self.safe_value(self.options['newOrderRespType'], type, 'RESULT')
         request = {
             'symbol': market['id'],
@@ -1163,8 +1164,16 @@ class currencycom(Exchange):
         if type == 'limit':
             request['price'] = self.price_to_precision(symbol, price)
             request['timeInForce'] = self.options['defaultTimeInForce']
-        elif type == 'stop':
-            request['price'] = self.price_to_precision(symbol, price)
+        else:
+            if type == 'stop':
+                request['type'] = 'STOP'
+                request['price'] = self.price_to_precision(symbol, price)
+            elif type == 'market':
+                stopPrice = self.safe_number(params, 'stopPrice')
+                params = self.omit(params, 'stopPrice')
+                if stopPrice is not None:
+                    request['type'] = 'STOP'
+                    request['price'] = self.price_to_precision(symbol, stopPrice)
         response = self.privatePostV2Order(self.extend(request, params))
         #
         # limit

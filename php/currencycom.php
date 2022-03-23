@@ -564,7 +564,7 @@ class currencycom extends Exchange {
         //                 "accountId" => "120702016179403605",
         //                 "collateralCurrency" => false,
         //                 "asset" => "CAKE",
-        //                 "free" => "1.784",
+        //                 "free" => "3.1",
         //                 "locked" => "0.0",
         //                 "default" => false,
         //             ),
@@ -572,7 +572,7 @@ class currencycom extends Exchange {
         //                 "accountId" => "109698017713125316",
         //                 "collateralCurrency" => true,
         //                 "asset" => "USD",
-        //                 "free" => "7.58632",
+        //                 "free" => "17.58632",
         //                 "locked" => "0.0",
         //                 "default" => true,
         //             }
@@ -1178,9 +1178,10 @@ class currencycom extends Exchange {
         $market = $this->market($symbol);
         $accountId = null;
         if ($market['margin']) {
-            $accountId = $this->safe_integer($params, 'accountId');
+            $accountId = $this->safe_string($this->options, 'accountId');
+            $accountId = $this->safe_string($params, 'accountId', $accountId);
             if ($accountId === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires an $accountId parameter for ' . $market['type'] . ' $market ' . $symbol);
+                throw new ArgumentsRequired($this->id . " createOrder() requires an $accountId parameter or an exchange.options['accountId'] option for " . $market['type'] . ' markets');
             }
         }
         $newOrderRespType = $this->safe_value($this->options['newOrderRespType'], $type, 'RESULT');
@@ -1199,8 +1200,18 @@ class currencycom extends Exchange {
         if ($type === 'limit') {
             $request['price'] = $this->price_to_precision($symbol, $price);
             $request['timeInForce'] = $this->options['defaultTimeInForce'];
-        } else if ($type === 'stop') {
-            $request['price'] = $this->price_to_precision($symbol, $price);
+        } else {
+            if ($type === 'stop') {
+                $request['type'] = 'STOP';
+                $request['price'] = $this->price_to_precision($symbol, $price);
+            } else if ($type === 'market') {
+                $stopPrice = $this->safe_number($params, 'stopPrice');
+                $params = $this->omit($params, 'stopPrice');
+                if ($stopPrice !== null) {
+                    $request['type'] = 'STOP';
+                    $request['price'] = $this->price_to_precision($symbol, $stopPrice);
+                }
+            }
         }
         $response = $this->privatePostV2Order (array_merge($request, $params));
         //

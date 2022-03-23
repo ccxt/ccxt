@@ -3281,9 +3281,52 @@ class gateio extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
+            $request = $this->prepare_request($market);
         }
-        return $this->privateSpotDeleteOrders (array_merge($request, $params));
+        list($type, $query) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
+        $swap = $type === 'swap';
+        $future = $type === 'future';
+        if ($symbol === null && ($swap || $future)) {
+            $defaultSettle = $swap ? 'usdt' : 'btc';
+            $settle = $this->safe_string_lower($params, 'settle', $defaultSettle);
+            $request['settle'] = $settle;
+        }
+        $method = $this->get_supported_mapping($type, array(
+            'spot' => 'privateSpotDeleteOrders',
+            'margin' => 'privateSpotDeleteOrders',
+            'swap' => 'privateFuturesDeleteSettleOrders',
+            'future' => 'privateDeliveryDeleteSettleOrders',
+        ));
+        $response = $this->$method (array_merge($request, $query));
+        //
+        //    array(
+        //        {
+        //            "id":139797004085,
+        //            "contract":"ADA_USDT",
+        //            "mkfr":"0",
+        //            "tkfr":"0.0005",
+        //            "tif":"gtc",
+        //            "is_reduce_only":false,
+        //            "create_time":1647911169.343,
+        //            "finish_time":1647911226.849,
+        //            "price":"0.8",
+        //            "size":1,
+        //            "refr":"0.3",
+        //            "left":1,
+        //            "text":"api",
+        //            "fill_price":"0",
+        //            "user":6693577,
+        //            "finish_as":"cancelled",
+        //            "status":"finished",
+        //            "is_liq":false,
+        //            "refu":2436035,
+        //            "is_close":false,
+        //            "iceberg":0
+        //        }
+        //        ...
+        //    )
+        //
+        return $this->parse_orders($response, $market);
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {

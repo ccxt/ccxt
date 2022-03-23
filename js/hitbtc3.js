@@ -18,10 +18,11 @@ module.exports = class hitbtc3 extends Exchange {
             'has': {
                 'CORS': false,
                 'spot': true,
-                'margin': undefined, // has but not fully unimplemented
-                'swap': undefined, // has but not fully unimplemented
-                'future': undefined, // has but not fully unimplemented
+                'margin': undefined, // has but not fully implemented
+                'swap': true,
+                'future': false,
                 'option': undefined,
+                'addMargin': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
@@ -32,10 +33,15 @@ module.exports = class hitbtc3 extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchFundingHistory': false,
                 'fetchFundingRate': true,
-                'fetchFundingRates': false,
                 'fetchFundingRateHistory': true,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': undefined,
+                'fetchLeverageTiers': undefined,
+                'fetchMarketLeverageTiers': undefined,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': undefined,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrder': true,
@@ -45,6 +51,9 @@ module.exports = class hitbtc3 extends Exchange {
                 'fetchOrderBooks': true,
                 'fetchOrders': false,
                 'fetchOrderTrades': true,
+                'fetchPosition': false,
+                'fetchPositions': true,
+                'fetchPremiumIndexOHLCV': undefined,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
@@ -52,6 +61,10 @@ module.exports = class hitbtc3 extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
+                'reduceMargin': undefined,
+                'setLeverage': undefined,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -714,7 +727,7 @@ module.exports = class hitbtc3 extends Exchange {
             request['limit'] = limit;
         }
         if (since !== undefined) {
-            request['since'] = since;
+            request['from'] = since;
         }
         const response = await this.publicGetPublicTrades (this.extend (request, params));
         const marketIds = Object.keys (response);
@@ -1746,6 +1759,128 @@ module.exports = class hitbtc3 extends Exchange {
         }
         const sorted = this.sortBy (rates, 'timestamp');
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+    }
+
+    async fetchPositions (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        const response = await this.privateGetFuturesAccount (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "symbol": "ETHUSDT_PERP",
+        //             "type": "isolated",
+        //             "leverage": "10.00",
+        //             "created_at": "2022-03-19T07:54:35.24Z",
+        //             "updated_at": "2022-03-19T07:54:58.922Z",
+        //             currencies": [
+        //                 {
+        //                     "code": "USDT",
+        //                     "margin_balance": "7.478100643043",
+        //                     "reserved_orders": "0",
+        //                     "reserved_positions": "0.303530761300"
+        //                 }
+        //             ],
+        //             "positions": [
+        //                 {
+        //                     "id": 2470568,
+        //                     "symbol": "ETHUSDT_PERP",
+        //                     "quantity": "0.001",
+        //                     "price_entry": "2927.509",
+        //                     "price_margin_call": "0",
+        //                     "price_liquidation": "0",
+        //                     "pnl": "0",
+        //                     "created_at": "2022-03-19T07:54:35.24Z",
+        //                     "updated_at": "2022-03-19T07:54:58.922Z"
+        //                 }
+        //             ]
+        //         },
+        //     ]
+        //
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            result.push (this.parsePosition (response[i]));
+        }
+        return result;
+    }
+
+    parsePosition (position, market = undefined) {
+        //
+        //     [
+        //         {
+        //             "symbol": "ETHUSDT_PERP",
+        //             "type": "isolated",
+        //             "leverage": "10.00",
+        //             "created_at": "2022-03-19T07:54:35.24Z",
+        //             "updated_at": "2022-03-19T07:54:58.922Z",
+        //             currencies": [
+        //                 {
+        //                     "code": "USDT",
+        //                     "margin_balance": "7.478100643043",
+        //                     "reserved_orders": "0",
+        //                     "reserved_positions": "0.303530761300"
+        //                 }
+        //             ],
+        //             "positions": [
+        //                 {
+        //                     "id": 2470568,
+        //                     "symbol": "ETHUSDT_PERP",
+        //                     "quantity": "0.001",
+        //                     "price_entry": "2927.509",
+        //                     "price_margin_call": "0",
+        //                     "price_liquidation": "0",
+        //                     "pnl": "0",
+        //                     "created_at": "2022-03-19T07:54:35.24Z",
+        //                     "updated_at": "2022-03-19T07:54:58.922Z"
+        //                 }
+        //             ]
+        //         },
+        //     ]
+        //
+        const marginType = this.safeString (position, 'type');
+        const leverage = this.safeNumber (position, 'leverage');
+        const datetime = this.safeString (position, 'updated_at');
+        const positions = this.safeValue (position, 'positions', []);
+        let liquidationPrice = undefined;
+        let entryPrice = undefined;
+        for (let i = 0; i < positions.length; i++) {
+            const entry = positions[i];
+            liquidationPrice = this.safeNumber (entry, 'price_liquidation');
+            entryPrice = this.safeNumber (entry, 'price_entry');
+        }
+        const currencies = this.safeValue (position, 'currencies', []);
+        let collateral = undefined;
+        for (let i = 0; i < currencies.length; i++) {
+            const entry = currencies[i];
+            collateral = this.safeNumber (entry, 'margin_balance');
+        }
+        const marketId = this.safeString (position, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        return {
+            'info': position,
+            'symbol': symbol,
+            'notional': undefined,
+            'marginType': marginType,
+            'liquidationPrice': liquidationPrice,
+            'entryPrice': entryPrice,
+            'unrealizedPnl': undefined,
+            'percentage': undefined,
+            'contracts': undefined,
+            'contractSize': undefined,
+            'markPrice': undefined,
+            'side': undefined,
+            'hedged': undefined,
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'collateral': collateral,
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'leverage': leverage,
+            'marginRatio': undefined,
+        };
     }
 
     async fetchFundingRate (symbol, params = {}) {

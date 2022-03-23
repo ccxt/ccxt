@@ -38,10 +38,11 @@ class hitbtc3(Exchange):
             'has': {
                 'CORS': False,
                 'spot': True,
-                'margin': None,  # has but not fully unimplemented
-                'swap': None,  # has but not fully unimplemented
-                'future': None,  # has but not fully unimplemented
+                'margin': None,  # has but not fully implemented
+                'swap': True,
+                'future': False,
                 'option': None,
+                'addMargin': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
@@ -52,8 +53,15 @@ class hitbtc3(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': None,
+                'fetchLeverageTiers': None,
+                'fetchMarketLeverageTiers': None,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': None,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrder': True,
@@ -63,6 +71,9 @@ class hitbtc3(Exchange):
                 'fetchOrderBooks': True,
                 'fetchOrders': False,
                 'fetchOrderTrades': True,
+                'fetchPosition': False,
+                'fetchPositions': True,
+                'fetchPremiumIndexOHLCV': None,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
@@ -70,6 +81,10 @@ class hitbtc3(Exchange):
                 'fetchTradingFees': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
+                'reduceMargin': None,
+                'setLeverage': None,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'transfer': True,
                 'withdraw': True,
             },
@@ -704,7 +719,7 @@ class hitbtc3(Exchange):
         if limit is not None:
             request['limit'] = limit
         if since is not None:
-            request['since'] = since
+            request['from'] = since
         response = self.publicGetPublicTrades(self.extend(request, params))
         marketIds = list(response.keys())
         trades = []
@@ -1652,6 +1667,191 @@ class hitbtc3(Exchange):
                 })
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+
+    def fetch_positions(self, symbols=None, params={}):
+        self.load_markets()
+        request = {}
+        response = self.privateGetFuturesAccount(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "symbol": "ETHUSDT_PERP",
+        #             "type": "isolated",
+        #             "leverage": "10.00",
+        #             "created_at": "2022-03-19T07:54:35.24Z",
+        #             "updated_at": "2022-03-19T07:54:58.922Z",
+        #             currencies": [
+        #                 {
+        #                     "code": "USDT",
+        #                     "margin_balance": "7.478100643043",
+        #                     "reserved_orders": "0",
+        #                     "reserved_positions": "0.303530761300"
+        #                 }
+        #             ],
+        #             "positions": [
+        #                 {
+        #                     "id": 2470568,
+        #                     "symbol": "ETHUSDT_PERP",
+        #                     "quantity": "0.001",
+        #                     "price_entry": "2927.509",
+        #                     "price_margin_call": "0",
+        #                     "price_liquidation": "0",
+        #                     "pnl": "0",
+        #                     "created_at": "2022-03-19T07:54:35.24Z",
+        #                     "updated_at": "2022-03-19T07:54:58.922Z"
+        #                 }
+        #             ]
+        #         },
+        #     ]
+        #
+        result = []
+        for i in range(0, len(response)):
+            result.append(self.parse_position(response[i]))
+        return result
+
+    def parse_position(self, position, market=None):
+        #
+        #     [
+        #         {
+        #             "symbol": "ETHUSDT_PERP",
+        #             "type": "isolated",
+        #             "leverage": "10.00",
+        #             "created_at": "2022-03-19T07:54:35.24Z",
+        #             "updated_at": "2022-03-19T07:54:58.922Z",
+        #             currencies": [
+        #                 {
+        #                     "code": "USDT",
+        #                     "margin_balance": "7.478100643043",
+        #                     "reserved_orders": "0",
+        #                     "reserved_positions": "0.303530761300"
+        #                 }
+        #             ],
+        #             "positions": [
+        #                 {
+        #                     "id": 2470568,
+        #                     "symbol": "ETHUSDT_PERP",
+        #                     "quantity": "0.001",
+        #                     "price_entry": "2927.509",
+        #                     "price_margin_call": "0",
+        #                     "price_liquidation": "0",
+        #                     "pnl": "0",
+        #                     "created_at": "2022-03-19T07:54:35.24Z",
+        #                     "updated_at": "2022-03-19T07:54:58.922Z"
+        #                 }
+        #             ]
+        #         },
+        #     ]
+        #
+        marginType = self.safe_string(position, 'type')
+        leverage = self.safe_number(position, 'leverage')
+        datetime = self.safe_string(position, 'updated_at')
+        positions = self.safe_value(position, 'positions', [])
+        liquidationPrice = None
+        entryPrice = None
+        for i in range(0, len(positions)):
+            entry = positions[i]
+            liquidationPrice = self.safe_number(entry, 'price_liquidation')
+            entryPrice = self.safe_number(entry, 'price_entry')
+        currencies = self.safe_value(position, 'currencies', [])
+        collateral = None
+        for i in range(0, len(currencies)):
+            entry = currencies[i]
+            collateral = self.safe_number(entry, 'margin_balance')
+        marketId = self.safe_string(position, 'symbol')
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
+        return {
+            'info': position,
+            'symbol': symbol,
+            'notional': None,
+            'marginType': marginType,
+            'liquidationPrice': liquidationPrice,
+            'entryPrice': entryPrice,
+            'unrealizedPnl': None,
+            'percentage': None,
+            'contracts': None,
+            'contractSize': None,
+            'markPrice': None,
+            'side': None,
+            'hedged': None,
+            'timestamp': self.parse8601(datetime),
+            'datetime': datetime,
+            'maintenanceMargin': None,
+            'maintenanceMarginPercentage': None,
+            'collateral': collateral,
+            'initialMargin': None,
+            'initialMarginPercentage': None,
+            'leverage': leverage,
+            'marginRatio': None,
+        }
+
+    def fetch_funding_rate(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise BadSymbol(self.id + ' fetchFundingRate() supports swap contracts only')
+        request = {}
+        if symbol is not None:
+            symbol = market['symbol']
+            request['symbols'] = market['id']
+        response = self.publicGetPublicFuturesInfo(self.extend(request, params))
+        #
+        #     {
+        #         "BTCUSDT_PERP": {
+        #             "contract_type": "perpetual",
+        #             "mark_price": "42307.43",
+        #             "index_price": "42303.27",
+        #             "funding_rate": "0.0001",
+        #             "open_interest": "30.9826",
+        #             "next_funding_time": "2022-03-22T16:00:00.000Z",
+        #             "indicative_funding_rate": "0.0001",
+        #             "premium_index": "0",
+        #             "avg_premium_index": "0.000029587712038098",
+        #             "interest_rate": "0.0001",
+        #             "timestamp": "2022-03-22T08:08:26.687Z"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, market['id'], {})
+        return self.parse_funding_rate(data, market)
+
+    def parse_funding_rate(self, contract, market=None):
+        #
+        #     {
+        #         "contract_type": "perpetual",
+        #         "mark_price": "42307.43",
+        #         "index_price": "42303.27",
+        #         "funding_rate": "0.0001",
+        #         "open_interest": "30.9826",
+        #         "next_funding_time": "2022-03-22T16:00:00.000Z",
+        #         "indicative_funding_rate": "0.0001",
+        #         "premium_index": "0",
+        #         "avg_premium_index": "0.000029587712038098",
+        #         "interest_rate": "0.0001",
+        #         "timestamp": "2022-03-22T08:08:26.687Z"
+        #     }
+        #
+        nextFundingDatetime = self.safe_string(contract, 'next_funding_time')
+        datetime = self.safe_string(contract, 'timestamp')
+        return {
+            'info': contract,
+            'symbol': self.safe_symbol(None, market),
+            'markPrice': self.safe_number(contract, 'mark_price'),
+            'indexPrice': self.safe_number(contract, 'index_price'),
+            'interestRate': self.safe_number(contract, 'interest_rate'),
+            'estimatedSettlePrice': None,
+            'timestamp': self.parse8601(datetime),
+            'datetime': datetime,
+            'fundingRate': self.safe_number(contract, 'funding_rate'),
+            'fundingTimestamp': None,
+            'fundingDatetime': None,
+            'nextFundingRate': self.safe_number(contract, 'indicative_funding_rate'),
+            'nextFundingTimestamp': self.parse8601(nextFundingDatetime),
+            'nextFundingDatetime': nextFundingDatetime,
+            'previousFundingRate': None,
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
+        }
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         #

@@ -1806,9 +1806,23 @@ class mexc extends Exchange {
             'openType' => $openType, // 1 isolated, 2 cross
             // 'positionId' => 1394650, // long, filling in this parameter when closing a position is recommended
             // 'externalOid' => $clientOrderId,
-            // 'stopLossPrice' => $this->price_to_precision($symbol, stopLossPrice),
-            // 'takeProfitPrice' => $this->price_to_precision($symbol, takeProfitPrice),
+            // 'triggerPrice' => 10.0, // Required for trigger order
+            // 'triggerType' => 1, // Required for trigger order 1 => more than or equal, 2 => less than or equal
+            // 'executeCycle' => 1, // Required for trigger order 1 => 24 hours,2 => 7 days
+            // 'trend' => 1, // Required for trigger order 1 => latest $price, 2 => fair $price, 3 => index $price
+            // 'orderType' => 1, // Required for trigger order 1 => limit order,2:Post Only Maker,3 => close or cancel instantly ,4 => close or cancel completely,5 => Market order
         );
+        $method = 'contractPrivatePostOrderSubmit';
+        $stopPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
+        $params = $this->omit($params, array( 'stopPrice', 'triggerPrice' ));
+        if ($stopPrice) {
+            $method = 'contractPrivatePostPlanorderPlace';
+            $request['triggerPrice'] = $this->price_to_precision($symbol, $stopPrice);
+            $request['triggerType'] = $this->safe_integer($params, 'triggerType', 1);
+            $request['executeCycle'] = $this->safe_integer($params, 'executeCycle', 1);
+            $request['trend'] = $this->safe_integer($params, 'trend', 1);
+            $request['orderType'] = $this->safe_integer($params, 'orderType', 1);
+        }
         if (($type !== 5) && ($type !== 6) && ($type !== 'market')) {
             $request['price'] = floatval($this->price_to_precision($symbol, $price));
         }
@@ -1823,9 +1837,13 @@ class mexc extends Exchange {
             $request['externalOid'] = $clientOrderId;
         }
         $params = $this->omit($params, array( 'clientOrderId', 'externalOid', 'postOnly' ));
-        $response = yield $this->contractPrivatePostOrderSubmit (array_merge($request, $params));
+        $response = yield $this->$method (array_merge($request, $params));
         //
+        // Swap
         //     array("code":200,"data":"2ff3163e8617443cb9c6fc19d42b1ca4")
+        //
+        // Trigger
+        //     array("success":true,"code":0,"data":259208506303929856)
         //
         return $this->parse_order($response, $market);
     }

@@ -9,6 +9,7 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
+use \ccxt\BadSymbol;
 use \ccxt\InvalidOrder;
 
 class hitbtc3 extends Exchange {
@@ -27,10 +28,11 @@ class hitbtc3 extends Exchange {
             'has' => array(
                 'CORS' => false,
                 'spot' => true,
-                'margin' => null, // has but not fully unimplemented
-                'swap' => null, // has but not fully unimplemented
-                'future' => null, // has but not fully unimplemented
+                'margin' => null, // has but not fully implemented
+                'swap' => true,
+                'future' => false,
                 'option' => null,
+                'addMargin' => null,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
@@ -41,8 +43,15 @@ class hitbtc3 extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => null,
+                'fetchLeverageTiers' => null,
+                'fetchMarketLeverageTiers' => null,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => null,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrder' => true,
@@ -52,6 +61,9 @@ class hitbtc3 extends Exchange {
                 'fetchOrderBooks' => true,
                 'fetchOrders' => false,
                 'fetchOrderTrades' => true,
+                'fetchPosition' => false,
+                'fetchPositions' => true,
+                'fetchPremiumIndexOHLCV' => null,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
@@ -59,6 +71,10 @@ class hitbtc3 extends Exchange {
                 'fetchTradingFees' => true,
                 'fetchTransactions' => true,
                 'fetchWithdrawals' => true,
+                'reduceMargin' => null,
+                'setLeverage' => null,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
                 'transfer' => true,
                 'withdraw' => true,
             ),
@@ -721,7 +737,7 @@ class hitbtc3 extends Exchange {
             $request['limit'] = $limit;
         }
         if ($since !== null) {
-            $request['since'] = $since;
+            $request['from'] = $since;
         }
         $response = $this->publicGetPublicTrades (array_merge($request, $params));
         $marketIds = is_array($response) ? array_keys($response) : array();
@@ -1753,6 +1769,200 @@ class hitbtc3 extends Exchange {
         }
         $sorted = $this->sort_by($rates, 'timestamp');
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+    }
+
+    public function fetch_positions($symbols = null, $params = array ()) {
+        $this->load_markets();
+        $request = array();
+        $response = $this->privateGetFuturesAccount (array_merge($request, $params));
+        //
+        //     array(
+        //         {
+        //             "symbol" => "ETHUSDT_PERP",
+        //             "type" => "isolated",
+        //             "leverage" => "10.00",
+        //             "created_at" => "2022-03-19T07:54:35.24Z",
+        //             "updated_at" => "2022-03-19T07:54:58.922Z",
+        //             currencies" => array(
+        //                 {
+        //                     "code" => "USDT",
+        //                     "margin_balance" => "7.478100643043",
+        //                     "reserved_orders" => "0",
+        //                     "reserved_positions" => "0.303530761300"
+        //                 }
+        //             ),
+        //             "positions" => array(
+        //                 array(
+        //                     "id" => 2470568,
+        //                     "symbol" => "ETHUSDT_PERP",
+        //                     "quantity" => "0.001",
+        //                     "price_entry" => "2927.509",
+        //                     "price_margin_call" => "0",
+        //                     "price_liquidation" => "0",
+        //                     "pnl" => "0",
+        //                     "created_at" => "2022-03-19T07:54:35.24Z",
+        //                     "updated_at" => "2022-03-19T07:54:58.922Z"
+        //                 }
+        //             )
+        //         ),
+        //     )
+        //
+        $result = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $result[] = $this->parse_position($response[$i]);
+        }
+        return $result;
+    }
+
+    public function parse_position($position, $market = null) {
+        //
+        //     array(
+        //         {
+        //             "symbol" => "ETHUSDT_PERP",
+        //             "type" => "isolated",
+        //             "leverage" => "10.00",
+        //             "created_at" => "2022-03-19T07:54:35.24Z",
+        //             "updated_at" => "2022-03-19T07:54:58.922Z",
+        //             $currencies" => array(
+        //                 {
+        //                     "code" => "USDT",
+        //                     "margin_balance" => "7.478100643043",
+        //                     "reserved_orders" => "0",
+        //                     "reserved_positions" => "0.303530761300"
+        //                 }
+        //             ),
+        //             "positions" => array(
+        //                 array(
+        //                     "id" => 2470568,
+        //                     "symbol" => "ETHUSDT_PERP",
+        //                     "quantity" => "0.001",
+        //                     "price_entry" => "2927.509",
+        //                     "price_margin_call" => "0",
+        //                     "price_liquidation" => "0",
+        //                     "pnl" => "0",
+        //                     "created_at" => "2022-03-19T07:54:35.24Z",
+        //                     "updated_at" => "2022-03-19T07:54:58.922Z"
+        //                 }
+        //             )
+        //         ),
+        //     )
+        //
+        $marginType = $this->safe_string($position, 'type');
+        $leverage = $this->safe_number($position, 'leverage');
+        $datetime = $this->safe_string($position, 'updated_at');
+        $positions = $this->safe_value($position, 'positions', array());
+        $liquidationPrice = null;
+        $entryPrice = null;
+        for ($i = 0; $i < count($positions); $i++) {
+            $entry = $positions[$i];
+            $liquidationPrice = $this->safe_number($entry, 'price_liquidation');
+            $entryPrice = $this->safe_number($entry, 'price_entry');
+        }
+        $currencies = $this->safe_value($position, 'currencies', array());
+        $collateral = null;
+        for ($i = 0; $i < count($currencies); $i++) {
+            $entry = $currencies[$i];
+            $collateral = $this->safe_number($entry, 'margin_balance');
+        }
+        $marketId = $this->safe_string($position, 'symbol');
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
+        return array(
+            'info' => $position,
+            'symbol' => $symbol,
+            'notional' => null,
+            'marginType' => $marginType,
+            'liquidationPrice' => $liquidationPrice,
+            'entryPrice' => $entryPrice,
+            'unrealizedPnl' => null,
+            'percentage' => null,
+            'contracts' => null,
+            'contractSize' => null,
+            'markPrice' => null,
+            'side' => null,
+            'hedged' => null,
+            'timestamp' => $this->parse8601($datetime),
+            'datetime' => $datetime,
+            'maintenanceMargin' => null,
+            'maintenanceMarginPercentage' => null,
+            'collateral' => $collateral,
+            'initialMargin' => null,
+            'initialMarginPercentage' => null,
+            'leverage' => $leverage,
+            'marginRatio' => null,
+        );
+    }
+
+    public function fetch_funding_rate($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['swap']) {
+            throw new BadSymbol($this->id . ' fetchFundingRate() supports swap contracts only');
+        }
+        $request = array();
+        if ($symbol !== null) {
+            $symbol = $market['symbol'];
+            $request['symbols'] = $market['id'];
+        }
+        $response = $this->publicGetPublicFuturesInfo (array_merge($request, $params));
+        //
+        //     {
+        //         "BTCUSDT_PERP" => {
+        //             "contract_type" => "perpetual",
+        //             "mark_price" => "42307.43",
+        //             "index_price" => "42303.27",
+        //             "funding_rate" => "0.0001",
+        //             "open_interest" => "30.9826",
+        //             "next_funding_time" => "2022-03-22T16:00:00.000Z",
+        //             "indicative_funding_rate" => "0.0001",
+        //             "premium_index" => "0",
+        //             "avg_premium_index" => "0.000029587712038098",
+        //             "interest_rate" => "0.0001",
+        //             "timestamp" => "2022-03-22T08:08:26.687Z"
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, $market['id'], array());
+        return $this->parse_funding_rate($data, $market);
+    }
+
+    public function parse_funding_rate($contract, $market = null) {
+        //
+        //     {
+        //         "contract_type" => "perpetual",
+        //         "mark_price" => "42307.43",
+        //         "index_price" => "42303.27",
+        //         "funding_rate" => "0.0001",
+        //         "open_interest" => "30.9826",
+        //         "next_funding_time" => "2022-03-22T16:00:00.000Z",
+        //         "indicative_funding_rate" => "0.0001",
+        //         "premium_index" => "0",
+        //         "avg_premium_index" => "0.000029587712038098",
+        //         "interest_rate" => "0.0001",
+        //         "timestamp" => "2022-03-22T08:08:26.687Z"
+        //     }
+        //
+        $nextFundingDatetime = $this->safe_string($contract, 'next_funding_time');
+        $datetime = $this->safe_string($contract, 'timestamp');
+        return array(
+            'info' => $contract,
+            'symbol' => $this->safe_symbol(null, $market),
+            'markPrice' => $this->safe_number($contract, 'mark_price'),
+            'indexPrice' => $this->safe_number($contract, 'index_price'),
+            'interestRate' => $this->safe_number($contract, 'interest_rate'),
+            'estimatedSettlePrice' => null,
+            'timestamp' => $this->parse8601($datetime),
+            'datetime' => $datetime,
+            'fundingRate' => $this->safe_number($contract, 'funding_rate'),
+            'fundingTimestamp' => null,
+            'fundingDatetime' => null,
+            'nextFundingRate' => $this->safe_number($contract, 'indicative_funding_rate'),
+            'nextFundingTimestamp' => $this->parse8601($nextFundingDatetime),
+            'nextFundingDatetime' => $nextFundingDatetime,
+            'previousFundingRate' => null,
+            'previousFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
+        );
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

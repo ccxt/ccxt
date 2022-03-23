@@ -3146,8 +3146,50 @@ class gateio(Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-            request['symbol'] = market['id']
-        return self.privateSpotDeleteOrders(self.extend(request, params))
+            request = self.prepare_request(market)
+        type, query = self.handle_market_type_and_params('cancelAllOrders', market, params)
+        swap = type == 'swap'
+        future = type == 'future'
+        if symbol is None and (swap or future):
+            defaultSettle = 'usdt' if swap else 'btc'
+            settle = self.safe_string_lower(params, 'settle', defaultSettle)
+            request['settle'] = settle
+        method = self.get_supported_mapping(type, {
+            'spot': 'privateSpotDeleteOrders',
+            'margin': 'privateSpotDeleteOrders',
+            'swap': 'privateFuturesDeleteSettleOrders',
+            'future': 'privateDeliveryDeleteSettleOrders',
+        })
+        response = getattr(self, method)(self.extend(request, query))
+        #
+        #    [
+        #        {
+        #            "id":139797004085,
+        #            "contract":"ADA_USDT",
+        #            "mkfr":"0",
+        #            "tkfr":"0.0005",
+        #            "tif":"gtc",
+        #            "is_reduce_only":false,
+        #            "create_time":1647911169.343,
+        #            "finish_time":1647911226.849,
+        #            "price":"0.8",
+        #            "size":1,
+        #            "refr":"0.3",
+        #            "left":1,
+        #            "text":"api",
+        #            "fill_price":"0",
+        #            "user":6693577,
+        #            "finish_as":"cancelled",
+        #            "status":"finished",
+        #            "is_liq":false,
+        #            "refu":2436035,
+        #            "is_close":false,
+        #            "iceberg":0
+        #        }
+        #        ...
+        #    ]
+        #
+        return self.parse_orders(response, market)
 
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
         self.load_markets()
