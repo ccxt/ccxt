@@ -1188,7 +1188,7 @@ module.exports = class currencycom extends Exchange {
             accountId = this.safeString (this.options, 'accountId');
             accountId = this.safeString (params, 'accountId', accountId);
             if (accountId === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires an accountId parameter for ' + market['type'] + ' market ' + symbol + '. You can obtain accountId from fetchAccounts() method. Alternatively, instead of passing it through params, you can also set exchange.options["accountId"] once.');
+                throw new ArgumentsRequired (this.id + " createOrder() requires an accountId parameter or an exchange.options['accountId'] option for " + market['type'] + ' markets');
             }
         }
         const newOrderRespType = this.safeValue (this.options['newOrderRespType'], type, 'RESULT');
