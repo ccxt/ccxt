@@ -1396,6 +1396,7 @@ module.exports = class binance extends Exchange {
         //                 "icebergAllowed":true,
         //                 "ocoAllowed":true,
         //                 "quoteOrderQtyMarketAllowed":true,
+        //                 "allowTrailingStop":false,
         //                 "isSpotTradingAllowed":true,
         //                 "isMarginTradingAllowed":true,
         //                 "filters":[
@@ -1405,8 +1406,10 @@ module.exports = class binance extends Exchange {
         //                     {"filterType":"MIN_NOTIONAL","minNotional":"0.00010000","applyToMarket":true,"avgPriceMins":5},
         //                     {"filterType":"ICEBERG_PARTS","limit":10},
         //                     {"filterType":"MARKET_LOT_SIZE","minQty":"0.00000000","maxQty":"63100.00000000","stepSize":"0.00000000"},
+        //                     {"filterType":"MAX_NUM_ORDERS","maxNumOrders":200},
         //                     {"filterType":"MAX_NUM_ALGO_ORDERS","maxNumAlgoOrders":5}
-        //                 ]
+        //                 ],
+        //                 "permissions":["SPOT","MARGIN"]}
         //             },
         //         ],
         //     }
@@ -1554,6 +1557,16 @@ module.exports = class binance extends Exchange {
                 contractSize = this.safeNumber (market, 'contractSize', this.parseNumber ('1'));
                 fees = this.fees[type];
             }
+            let active = (status === 'TRADING');
+            if (spot) {
+                const permissions = this.safeValue (market, 'permissions', []);
+                for (let j = 0; j < permissions.length; j++) {
+                    if (permissions[j] === 'TRD_GRP_003') {
+                        active = false;
+                        break;
+                    }
+                }
+            }
             const isMarginTradingAllowed = this.safeValue (market, 'isMarginTradingAllowed', false);
             const entry = {
                 'id': id,
@@ -1572,7 +1585,7 @@ module.exports = class binance extends Exchange {
                 'future': future,
                 'delivery': delivery,
                 'option': false,
-                'active': (status === 'TRADING'),
+                'active': active,
                 'contract': contract,
                 'linear': contract ? future : undefined,
                 'inverse': contract ? delivery : undefined,
