@@ -48,6 +48,8 @@ class bibox extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => false,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
             ),
@@ -106,8 +108,8 @@ class bibox extends Exchange {
                 'trading' => array(
                     'tierBased' => false,
                     'percentage' => true,
-                    'taker' => $this->parse_number('0.001'),
-                    'maker' => $this->parse_number('0.0008'),
+                    'taker' => $this->parse_number('0.002'),
+                    'maker' => $this->parse_number('0.001'),
                 ),
                 'funding' => array(
                     'tierBased' => false,
