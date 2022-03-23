@@ -212,11 +212,12 @@ module.exports = class lbank2 extends Exchange {
                     // }
                 },
                 'inverse-networks': {
-                    'erc20': 'ERC20',
-                    'trc20': 'TRC20',
+                    'erc20': 'ETH',
+                    'trc20': 'TRX',
                     'omni': 'OMNI',
                     'asa': 'ASA',
                     'bep20(bsc)': 'BSC',
+                    'bep20': 'BSC',
                     'heco': 'HT',
                     'bep2': 'BNB',
                     'btc': 'BTC',
@@ -706,7 +707,7 @@ module.exports = class lbank2 extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let order = {
+        const order = {
             'symbol': market['id'],
             'type': side,
             'amount': amount,
@@ -724,15 +725,6 @@ module.exports = class lbank2 extends Exchange {
             'id': this.safeString (result, 'order_id'),
             'info': result,
         };
-    }
-
-    async fetchOrder2 (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder () requires a symbol argument');
-        }
-        const market = this.market (symbol);
-
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -855,6 +847,51 @@ module.exports = class lbank2 extends Exchange {
     }
 
     async fetchFundingFees (params = {}) {
+        // only returns information for currencies with non-zero balance
+        await this.loadMarkets ();
+        const isAuthorized = this.checkRequiredCredentials (false);
+        let result = undefined;
+        if (isAuthorized === true) {
+            result = await this.fetchPrivateFundingFees (); // takes no args
+        } else {
+            result = await this.fetchPublicFundingFees (params); // can take coin specific arg
+        }
+        return result;
+    }
+
+    async fetchPrivateFundingFees (params = {}) {
+        // complete response
+        // incl. for coins which undefined in public method
+        await this.loadMarkets ();
+        const response = await this.privatePostSupplementUserInfo ();
+        const result = this.safeValue (response, 'data', []);
+        const withdrawFees = {};
+        for (let i = 0; i < result.length; i++) {
+            const entry = result[i];
+            const currencyId = this.safeString (entry, 'coin');
+            const code = this.safeCurrencyCode (currencyId);
+            const networkList = this.safeValue (entry, 'networkList', []);
+            withdrawFees[code] = {};
+            for (let j = 0; j < networkList.length; j++) {
+                const networkEntry = networkList[j];
+                const networkId = this.safeString (networkEntry, 'name');
+                const networkCode = this.safeString (this.options['inverse-networks'], networkId, networkId);
+                const fee = this.safeNumber (networkEntry, 'withdrawFee');
+                if (fee !== undefined) {
+                    withdrawFees[code][networkCode] = fee;
+                }
+            }
+        }
+        return {
+            'withdraw': withdrawFees,
+            'deposit': {},
+            'info': response,
+        };
+    }
+
+    async fetchPublicFundingFees (params = {}) {
+        // extremely incomplete response
+        // vast majority fees undefined
         await this.loadMarkets ();
         const code = this.safeString2 (params, 'coin', 'assetCode');
         params = this.omit (params, [ 'coin', 'assetCode' ]);
