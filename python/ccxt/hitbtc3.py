@@ -1204,6 +1204,7 @@ class hitbtc3(Exchange):
         method = self.get_supported_mapping(marketType, {
             'spot': 'privateGetSpotHistoryTrade',
             'swap': 'privateGetFuturesHistoryTrade',
+            'margin': 'privateGetMarginHistoryTrade',
         })
         response = getattr(self, method)(self.extend(request, query))
         #
@@ -1224,7 +1225,7 @@ class hitbtc3(Exchange):
         #       }
         #     ]
         #
-        # Swap
+        # Swap and Margin
         #
         #     [
         #         {
