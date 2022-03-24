@@ -746,6 +746,7 @@ class hitbtc3(Exchange):
         method = self.get_supported_mapping(marketType, {
             'spot': 'privateGetSpotHistoryTrade',
             'swap': 'privateGetFuturesHistoryTrade',
+            'margin': 'privateGetMarginHistoryTrade',
         })
         response = await getattr(self, method)(self.extend(request, query))
         return self.parse_trades(response, market, since, limit)
@@ -789,7 +790,7 @@ class hitbtc3(Exchange):
         #      taker: True
         #  }
         #
-        # fetchMyTrades swap
+        # fetchMyTrades swap and margin
         #
         #  {
         #      "id": 4718564,

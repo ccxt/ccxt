@@ -770,6 +770,7 @@ class hitbtc3 extends Exchange {
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'privateGetSpotHistoryTrade',
             'swap' => 'privateGetFuturesHistoryTrade',
+            'margin' => 'privateGetMarginHistoryTrade',
         ));
         $response = $this->$method (array_merge($request, $query));
         return $this->parse_trades($response, $market, $since, $limit);
@@ -814,7 +815,7 @@ class hitbtc3 extends Exchange {
         //      $taker => true
         //  }
         //
-        // fetchMyTrades swap
+        // fetchMyTrades swap and margin
         //
         //  {
         //      "id" => 4718564,
