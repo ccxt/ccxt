@@ -1744,7 +1744,7 @@ module.exports = class binance extends Exchange {
         }
         if (symbols === undefined) {
             return symbols;
-        } else {
+        } else if (Array.isArray (symbols)) {
             const newSymbols = [];
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
@@ -1755,6 +1755,12 @@ module.exports = class binance extends Exchange {
                 }
             }
             return newSymbols;
+        } else {
+            let newSymbol = symbols;
+            if (symbols in this.oldSymbolMappings) {
+                newSymbol = this.oldSymbolMappings[symbols];
+            }
+            return [ newSymbol ];
         }
     }
 
