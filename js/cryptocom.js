@@ -270,6 +270,22 @@ module.exports = class cryptocom extends ccxt.cryptocom {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
+    async watchPrivate (messageHash, params = {}) {
+        await this.authenticate ();
+        this.sleep (1);
+        const url = this.urls['api']['ws']['private'];
+        const id = this.nonce ();
+        const request = {
+            'method': 'subscribe',
+            'params': {
+                'channels': [messageHash],
+            },
+            'nonce': id,
+        };
+        const message = this.extend (request, params);
+        return await this.watch (url, messageHash, message, messageHash);
+    }
+
     handleErrorMessage (client, message) {
         // {
         //     id: 0,
@@ -309,6 +325,8 @@ module.exports = class cryptocom extends ccxt.cryptocom {
         //     "method": "public/heartbeat",
         //     "code": 0
         // }
+        // auth
+        //  { id: 1648132625434, method: 'public/auth', code: 0 }
         // ohlcv
         // {
         //     code: 0,
@@ -338,6 +356,10 @@ module.exports = class cryptocom extends ccxt.cryptocom {
             this.pong (client, message);
             return;
         }
+        if (subject === 'public/auth') {
+            this.handleAuthenticate (client, message);
+            return;
+        }
         const methods = {
             'candlestick': this.handleOHLCV,
             'ticker': this.handleTicker,
@@ -350,5 +372,38 @@ module.exports = class cryptocom extends ccxt.cryptocom {
         if (method !== undefined) {
             method.call (this, client, result);
         }
+    }
+
+    async authenticate (params = {}) {
+        const url = this.urls['api']['ws']['private'];
+        this.checkRequiredCredentials ();
+        const messageHash = 'authenticated';
+        const method = 'public/auth';
+        const client = this.client (url);
+        let future = this.safeValue (client.futures, messageHash);
+        if (future === undefined) {
+            future = client.future ('authenticated');
+            client.future (messageHash);
+            const nonce = this.nonce ().toString ();
+            const auth = method + nonce + this.apiKey + nonce;
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
+            const request = {
+                'id': nonce,
+                'nonce': nonce,
+                'method': method,
+                'api_key': this.apiKey,
+                'sig': signature,
+            };
+            this.spawn (this.watch, url, messageHash, this.extend (request, params));
+        }
+        return await future;
+    }
+
+    handleAuthenticate (client, message) {
+        //
+        //  { id: 1648132625434, method: 'public/auth', code: 0 }}
+        //
+        client.resolve (message, 'authenticated');
+        return message;
     }
 };
