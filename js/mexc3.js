@@ -263,6 +263,18 @@ module.exports = class mexc3 extends Exchange {
                         '1w': '1w',
                         '1M': '1M',
                     },
+                    'contract': {
+                        '1m': 'Min1',
+                        '5m': 'Min5',
+                        '15m': 'Min15',
+                        '30m': 'Min30',
+                        '1h': 'Min60',
+                        '4h': 'Hour4',
+                        '8h': 'Hour8',
+                        '1d': 'Day1',
+                        '1w': 'Week1',
+                        '1M': 'Month1',
+                    },
                 },
                 'defaultType': 'spot', // spot, swap
                 'networks': {
@@ -310,16 +322,22 @@ module.exports = class mexc3 extends Exchange {
 
     async fetchStatus (params = {}) {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchStatus', undefined, params);
-        const method = this.getSupportedMapping (marketType, {
-            'spot': 'spotPublicGetPing',
-            'swap': '',
-        });
-        const response = await this[method] (this.extend (query));
-        //
-        // {}
-        //
-        const length = Object.keys (response).length;
-        const status = length === 0 ? 'ok' : 'maintenance';
+        let response = undefined;
+        let status = undefined;
+        if (marketType === 'swap') {
+            response = await this.contractPublicGetPing (query);
+            //
+            //     {}
+            //
+            const length = Object.keys (response).length;
+            status = (length === 0 || this.safeValue (response, 'success')) ? 'ok' : 'maintenance';
+        } else {
+            response = await this.spotPublicGetPing (query);
+            //
+            //     {"success":true,"code":"0","data":"1648124374985"}
+            //
+            status = this.safeValue (response, 'success') ? 'ok' : 'maintenance';
+        }
         this.status = this.extend (this.status, {
             'status': status,
             'updated': this.milliseconds (),
