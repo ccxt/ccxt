@@ -1303,16 +1303,26 @@ module.exports = class mexc3 extends Exchange {
         if (response === undefined) {
             return;
         }
+        // spot
+        //     {"code":-1128,"msg":"Combination of optional parameters invalid.","_extend":null}
         //
-        //     {"msg":"Combination of optional parameters invalid.","code":-1128,"_extend":null}
+        // contract
         //
-        const errorCode = this.safeValue (response, 'code');
-        if (errorCode !== undefined) {
+        //     {"code":10232,"msg":"The currency not exist"}
+        //     {"code":10216,"msg":"No available deposit address"}
+        //     {"success":true, "code":0, "data":1634095541710}
+        //
+        const success = this.safeValue (response, 'success', false); // v1
+        if (success === true) {
+            return;
+        }
+        const responseCode = this.safeString (response, 'code', undefined);
+        if ((responseCode !== undefined) && (responseCode !== '200') && (responseCode !== '0')) {
             const msg = this.safeString (response, 'msg');
             const feedback = this.id + ' ' + body;
             this.throwBroadlyMatchedException (this.exceptions['broad'], msg, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
-            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], responseCode, feedback);
             throw new ExchangeError (feedback);
         }
     }
