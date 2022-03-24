@@ -2007,9 +2007,9 @@ module.exports = class binance extends Exchange {
             request['limit'] = limit; // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
         }
         let method = 'publicGetDepth';
-        if (market['swap']) {
+        if (market['linear']) {
             method = 'fapiPublicGetDepth';
-        } else if (market['delivery']) {
+        } else if (market['inverse']) {
             method = 'dapiPublicGetDepth';
         }
         const response = await this[method] (this.extend (request, params));
@@ -2142,9 +2142,9 @@ module.exports = class binance extends Exchange {
             'symbol': market['id'],
         };
         let method = 'publicGetTicker24hr';
-        if (market['swap']) {
+        if (market['linear']) {
             method = 'fapiPublicGetTicker24hr';
-        } else if (market['delivery']) {
+        } else if (market['inverse']) {
             method = 'dapiPublicGetTicker24hr';
         }
         const response = await this[method] (this.extend (request, params));
@@ -2274,20 +2274,20 @@ module.exports = class binance extends Exchange {
         }
         let method = 'publicGetKlines';
         if (price === 'mark') {
-            if (market['delivery']) {
+            if (market['inverse']) {
                 method = 'dapiPublicGetMarkPriceKlines';
             } else {
                 method = 'fapiPublicGetMarkPriceKlines';
             }
         } else if (price === 'index') {
-            if (market['delivery']) {
+            if (market['inverse']) {
                 method = 'dapiPublicGetIndexPriceKlines';
             } else {
                 method = 'fapiPublicGetIndexPriceKlines';
             }
-        } else if (market['swap']) {
+        } else if (market['linear']) {
             method = 'fapiPublicGetKlines';
-        } else if (market['delivery']) {
+        } else if (market['inverse']) {
             method = 'dapiPublicGetKlines';
         }
         const response = await this[method] (this.extend (request, params));
@@ -4291,9 +4291,9 @@ module.exports = class binance extends Exchange {
             'symbol': market['id'],
         };
         let method = undefined;
-        if (market['swap']) {
+        if (market['linear']) {
             method = 'fapiPublicGetPremiumIndex';
-        } else if (market['delivery']) {
+        } else if (market['inverse']) {
             method = 'dapiPublicGetPremiumIndex';
         } else {
             throw new NotSupported (this.id + ' fetchFundingRate() supports swap and future contracts only');
@@ -4343,9 +4343,9 @@ module.exports = class binance extends Exchange {
             const market = this.market (symbol);
             symbol = market['symbol'];
             request['symbol'] = market['id'];
-            if (market['swap']) {
+            if (market['linear']) {
                 method = 'fapiPublicGetFundingRate';
-            } else if (market['delivery']) {
+            } else if (market['inverse']) {
                 method = 'dapiPublicGetFundingRate';
             }
         }
@@ -5132,9 +5132,9 @@ module.exports = class binance extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let method = undefined;
-        if (market['swap']) {
+        if (market['linear']) {
             method = 'fapiPrivatePostLeverage';
-        } else if (market['delivery']) {
+        } else if (market['inverse']) {
             method = 'dapiPrivatePostLeverage';
         } else {
             throw new NotSupported (this.id + ' setLeverage() supports swap and future contracts only');
@@ -5167,9 +5167,9 @@ module.exports = class binance extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let method = undefined;
-        if (market['swap']) {
+        if (market['linear']) {
             method = 'fapiPrivatePostMarginType';
-        } else if (market['delivery']) {
+        } else if (market['inverse']) {
             method = 'dapiPrivatePostMarginType';
         } else {
             throw new NotSupported (this.id + ' setMarginMode() supports swap and future contracts only');
