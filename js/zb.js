@@ -1450,6 +1450,7 @@ module.exports = class zb extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const swap = market['swap'];
+        const spot = market['spot'];
         const options = this.safeValue (this.options, 'timeframes', {});
         const timeframes = this.safeValue (options, market['type'], {});
         const timeframeValue = this.safeString (timeframes, timeframe);
@@ -1477,13 +1478,13 @@ module.exports = class zb extends Exchange {
             'spot': 'spotV1PublicGetKline',
             'swap': 'contractV1PublicGetKline',
         });
-        if (market['swap']) {
+        if (swap) {
             if (price === 'mark') {
                 method = 'contractV1PublicGetMarkKline';
             } else if (price === 'index') {
                 method = 'contractV1PublicGetIndexKline';
             }
-        } else if (market['spot']) {
+        } else if (spot) {
             if (since !== undefined) {
                 request['since'] = since;
             }
