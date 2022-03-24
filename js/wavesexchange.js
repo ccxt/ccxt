@@ -14,7 +14,6 @@ module.exports = class wavesexchange extends Exchange {
             'id': 'wavesexchange',
             'name': 'Waves.Exchange',
             'countries': [ 'CH' ], // Switzerland
-            'rateLimit': 500,
             'certified': true,
             'pro': false,
             'has': {
@@ -882,17 +881,17 @@ module.exports = class wavesexchange extends Exchange {
         return result;
     }
 
-    filterFutureCandles (result) {
-        const filtered_result = [];
+    filterFutureCandles (ohlcvs) {
+        const result = [];
         const timestamp = this.milliseconds ();
-        for (let i = 0; i < result.length; i++) {
-            if (result[i][0] > timestamp) {
-                // Stop when getting data from the future
+        for (let i = 0; i < ohlcvs.length; i++) {
+            if (ohlcvs[i][0] > timestamp) {
+                // stop when getting data from the future
                 break;
             }
-            filtered_result.push (result[i]);
+            result.push (ohlcvs[i]);
         }
-        return filtered_result;
+        return result;
     }
 
     parseOHLCV (ohlcv, market = undefined) {
