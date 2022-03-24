@@ -4,7 +4,7 @@
 
 const ccxt = require ('ccxt');
 const { AuthenticationError, NotSupported, ExchangeError } = require ('ccxt/js/base/errors');
-const { ArrayCache, ArrayCacheByTimestamp } = require ('./base/Cache');
+const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -18,6 +18,7 @@ module.exports = class cryptocom extends ccxt.cryptocom {
                 'watchTickers': false, // for now
                 'watchTrades': true,
                 'watchOrderBook': true,
+                'watchOrders': true,
                 'watchOHLCV': true,
             },
             'urls': {
@@ -256,7 +257,83 @@ module.exports = class cryptocom extends ccxt.cryptocom {
         client.resolve (stored, messageHash);
     }
 
+    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        let market = undefined;
+        if (symbol !== undefined) {
+            await this.loadMarkets ();
+            market = this.market (symbol);
+            if (!market['spot']) {
+                throw new NotSupported (this.id + ' watchOrders() supports spot markets only');
+            }
+        }
+        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
+        let messageHash = (defaultType === 'margin') ? 'user.margin.order' : 'user.order';
+        messageHash = (market !== undefined) ? (messageHash + '.' + market['id']) : messageHash;
+        const orders = await this.watchPrivate (messageHash, params);
+        if (this.newUpdates) {
+            limit = orders.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+    }
+
+    handleOrders (client, message, subscription = undefined) {
+        //
+        // {
+        //     "method": "subscribe",
+        //     "result": {
+        //       "instrument_name": "ETH_CRO",
+        //       "subscription": "user.order.ETH_CRO",
+        //       "channel": "user.order",
+        //       "data": [
+        //         {
+        //           "status": "ACTIVE",
+        //           "side": "BUY",
+        //           "price": 1,
+        //           "quantity": 1,
+        //           "order_id": "366455245775097673",
+        //           "client_oid": "my_order_0002",
+        //           "create_time": 1588758017375,
+        //           "update_time": 1588758017411,
+        //           "type": "LIMIT",
+        //           "instrument_name": "ETH_CRO",
+        //           "cumulative_quantity": 0,
+        //           "cumulative_value": 0,
+        //           "avg_price": 0,
+        //           "fee_currency": "CRO",
+        //           "time_in_force":"GOOD_TILL_CANCEL"
+        //         }
+        //       ],
+        //       "channel": "user.order.ETH_CRO"
+        //     }
+        //
+        const channel = this.safeValue (message, 'channel');
+        const orders = this.safeValue (message, 'data', []);
+        const ordersLength = orders.length;
+        if (ordersLength > 0) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            if (this.orders === undefined) {
+                this.orders = new ArrayCacheBySymbolById (limit);
+            }
+            const stored = this.orders;
+            const marketIds = {};
+            const parsed = this.parseOrders (orders);
+            for (let i = 0; i < parsed.length; i++) {
+                const order = parsed[i];
+                stored.append (order);
+                const symbol = order['symbol'];
+                const market = this.market (symbol);
+                marketIds[market['id']] = true;
+            }
+            const keys = Object.keys (marketIds);
+            for (let i = 0; i < keys.length; i++) {
+                const messageHash = channel + '.' + keys[i];
+                client.resolve (this.orders, messageHash);
+            }
+        }
+    }
+
     async watchPublic (messageHash, params = {}) {
+        console.log ('Watch PUBLIC!!!!!');
         const url = this.urls['api']['ws']['public'];
         const id = this.nonce ();
         const request = {
@@ -272,7 +349,7 @@ module.exports = class cryptocom extends ccxt.cryptocom {
 
     async watchPrivate (messageHash, params = {}) {
         await this.authenticate ();
-        this.sleep (1);
+        await this.sleep (1); // documentation suggest to do this to avoid rate limit problems
         const url = this.urls['api']['ws']['private'];
         const id = this.nonce ();
         const request = {
@@ -365,6 +442,8 @@ module.exports = class cryptocom extends ccxt.cryptocom {
             'ticker': this.handleTicker,
             'trade': this.handleTrades,
             'book': this.handleOrderBookSnapshot,
+            'user.order': this.handleOrders,
+            'user.margin.order': this.handleOrders,
         };
         const result = this.safeValue2 (message, 'result', 'info');
         const channel = this.safeString (result, 'channel');
@@ -377,24 +456,22 @@ module.exports = class cryptocom extends ccxt.cryptocom {
     async authenticate (params = {}) {
         const url = this.urls['api']['ws']['private'];
         this.checkRequiredCredentials ();
-        const messageHash = 'authenticated';
-        const method = 'public/auth';
         const client = this.client (url);
-        let future = this.safeValue (client.futures, messageHash);
-        if (future === undefined) {
-            future = client.future ('authenticated');
-            client.future (messageHash);
+        const future = client.future ('authenticated');
+        const messageHash = 'public/auth';
+        const authenticated = this.safeValue (client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             const nonce = this.nonce ().toString ();
-            const auth = method + nonce + this.apiKey + nonce;
+            const auth = messageHash + nonce + this.apiKey + nonce;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
             const request = {
                 'id': nonce,
                 'nonce': nonce,
-                'method': method,
+                'method': messageHash,
                 'api_key': this.apiKey,
                 'sig': signature,
             };
-            this.spawn (this.watch, url, messageHash, this.extend (request, params));
+            this.spawn (this.watch, url, messageHash, this.extend (request, params), messageHash);
         }
         return await future;
     }
@@ -403,7 +480,8 @@ module.exports = class cryptocom extends ccxt.cryptocom {
         //
         //  { id: 1648132625434, method: 'public/auth', code: 0 }}
         //
-        client.resolve (message, 'authenticated');
+        const future = client.futures['authenticated'];
+        future.resolve (1);
         return message;
     }
 };
