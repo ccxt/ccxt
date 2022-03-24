@@ -758,9 +758,10 @@ class kucoin(Exchange, ccxt.kucoin):
         account['free'] = self.safe_string(data, 'available')
         account['used'] = self.safe_string(data, 'hold')
         account['total'] = self.safe_string(data, 'total')
-        self.balance[selectedType][code] = account
-        self.balance[selectedType] = self.safe_balance(self.balance[selectedType])
-        client.resolve(self.balance[selectedType], messageHash)
+        self.balance[uniformType][code] = account
+        self.balance[uniformType] = self.safe_balance(self.balance[uniformType])
+        if uniformType == selectedType:
+            client.resolve(self.balance[uniformType], messageHash)
 
     def handle_balance_subscription(self, client, message, subscription):
         self.spawn(self.fetch_balance_snapshot, client, message)
