@@ -2392,6 +2392,30 @@ module.exports = class aax extends Exchange {
         return tiers;
     }
 
+    parseTransfer (transfer, currency = undefined, fromAccount = undefined, toAccount = undefined, amount = undefined) {
+        const data = this.safeValue (transfer, 'data', {});
+        const id = this.safeString (data, 'transferID');
+        const dateTime = this.safeString (data, 'transferTime');
+        const timestamp = this.safeNumber (transfer, 'ts');
+        const currencyCode = this.safeString (currency, 'code');
+        const responseCode = this.safeString (transfer, 'code');
+        let status = 'canceled';
+        if (responseCode === '1') {
+            status = 'ok';
+        }
+        return {
+            'info': transfer,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': dateTime,
+            'currency': currencyCode,
+            'amount': amount,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': status,
+        };
+    }
+
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -2424,26 +2448,7 @@ module.exports = class aax extends Exchange {
         //         "ts": 1647962945151
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
-        const id = this.safeString (data, 'transferID');
-        const dateTime = this.safeString (data, 'transferTime');
-        const timestamp = this.safeNumber (response, 'ts');
-        const responseCode = this.safeString (response, 'code');
-        let status = 'canceled';
-        if (responseCode === '1') {
-            status = 'ok';
-        }
-        return {
-            'info': response,
-            'id': id,
-            'timestamp': timestamp,
-            'datetime': dateTime,
-            'currency': code,
-            'amount': amount,
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
-            'status': status,
-        };
+        return this.parseTransfer (response, currency, fromAccount, toAccount, amount);
     }
 
     nonce () {
