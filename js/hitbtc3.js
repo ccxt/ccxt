@@ -760,6 +760,7 @@ module.exports = class hitbtc3 extends Exchange {
         const method = this.getSupportedMapping (marketType, {
             'spot': 'privateGetSpotHistoryTrade',
             'swap': 'privateGetFuturesHistoryTrade',
+            'margin': 'privateGetMarginHistoryTrade',
         });
         const response = await this[method] (this.extend (request, query));
         return this.parseTrades (response, market, since, limit);
@@ -804,7 +805,7 @@ module.exports = class hitbtc3 extends Exchange {
         //      taker: true
         //  }
         //
-        // fetchMyTrades swap
+        // fetchMyTrades swap and margin
         //
         //  {
         //      "id": 4718564,
