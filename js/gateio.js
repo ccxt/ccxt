@@ -549,13 +549,13 @@ module.exports = class gateio extends ccxt.gateio {
         const method = type + '.orders';
         let messageHash = method;
         messageHash = method + ':' + market['id'];
-        const isSettleBTC = market['settleId'] === 'btc';
-        const isBtcContract = (market['contract'] && isSettleBTC) ? true : false;
+        const isSettleBtc = market['settleId'] === 'btc';
+        const isBtcContract = (market['contract'] && isSettleBtc) ? true : false;
         const url = this.getUrlByMarketType (market['type'], isBtcContract);
         const payload = [market['id']];
         // uid required for non spot markets
-        const requiresUID = (type !== 'spot');
-        const orders = await this.subscribePrivate (url, method, messageHash, payload, requiresUID);
+        const requiresUid = (type !== 'spot');
+        const orders = await this.subscribePrivate (url, method, messageHash, payload, requiresUid);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -771,10 +771,10 @@ module.exports = class gateio extends ccxt.gateio {
         }
     }
 
-    async subscribePrivate (url, channel, messageHash, payload, requiresUID = false) {
+    async subscribePrivate (url, channel, messageHash, payload, requiresUid = false) {
         this.checkRequiredCredentials ();
         // uid is required for some subscriptions only so it's not a part of required credentials
-        if (requiresUID) {
+        if (requiresUid) {
             if (this.uid === undefined || this.uid.length === 0) {
                 throw new ArgumentsRequired (this.id + ' requires uid to subscribe');
             }
