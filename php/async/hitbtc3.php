@@ -1319,6 +1319,7 @@ class hitbtc3 extends Exchange {
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'privateGetSpotOrder',
             'swap' => 'privateGetFuturesOrder',
+            'margin' => 'privateGetMarginOrder',
         ));
         $response = yield $this->$method (array_merge($request, $query));
         //
@@ -1541,7 +1542,7 @@ class hitbtc3 extends Exchange {
         //       )
         //     }
         //
-        // swap
+        // swap and margin
         //
         //     {
         //         "id" => 58418961892,
