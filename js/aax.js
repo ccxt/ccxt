@@ -319,6 +319,10 @@ module.exports = class aax extends Exchange {
                     'TRX': 'TRC20',
                     'SOL': 'SPL',
                 },
+                'transfer': {
+                    'fillFromAccountToAccount': true,
+                    'fillAmount': true,
+                },
             },
         });
     }
@@ -2392,7 +2396,7 @@ module.exports = class aax extends Exchange {
         return tiers;
     }
 
-    parseTransfer (transfer, currency = undefined, fromAccount = undefined, toAccount = undefined, amount = undefined) {
+    parseTransfer (transfer, currency = undefined) {
         const data = this.safeValue (transfer, 'data', {});
         const id = this.safeString (data, 'transferID');
         const dateTime = this.safeString (data, 'transferTime');
@@ -2409,9 +2413,9 @@ module.exports = class aax extends Exchange {
             'timestamp': timestamp,
             'datetime': dateTime,
             'currency': currencyCode,
-            'amount': amount,
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
             'status': status,
         };
     }
@@ -2448,7 +2452,18 @@ module.exports = class aax extends Exchange {
         //         "ts": 1647962945151
         //     }
         //
-        return this.parseTransfer (response, currency, fromAccount, toAccount, amount);
+        const transfer = this.parseTransfer (response, currency);
+        const transferOptions = this.safeValue (this.options, 'transfer', {});
+        const fillFromAccountToAccount = this.safeValue (transferOptions, 'fillFromAccountToAccount', true);
+        const fillAmount = this.safeValue (transferOptions, 'fillAmount', true);
+        if (fillFromAccountToAccount) {
+            transfer['fromAccount'] = fromAccount;
+            transfer['toAccount'] = toAccount;
+        }
+        if (fillAmount) {
+            transfer['amount'] = amount;
+        }
+        return transfer;
     }
 
     nonce () {
