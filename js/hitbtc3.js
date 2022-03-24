@@ -1308,6 +1308,7 @@ module.exports = class hitbtc3 extends Exchange {
         const method = this.getSupportedMapping (marketType, {
             'spot': 'privateGetSpotOrder',
             'swap': 'privateGetFuturesOrder',
+            'margin': 'privateGetMarginOrder',
         });
         const response = await this[method] (this.extend (request, query));
         //
@@ -1530,7 +1531,7 @@ module.exports = class hitbtc3 extends Exchange {
         //       ]
         //     }
         //
-        // swap
+        // swap and margin
         //
         //     {
         //         "id": 58418961892,
