@@ -763,6 +763,7 @@ class huobi extends Exchange {
                 ),
                 'exact' => array(
                     // err-code
+                    '1010' => '\\ccxt\\AccountNotEnabled', // array("status":"error","err_code":1010,"err_msg":"Account doesnt exist.","ts":1648137970490)
                     '1017' => '\\ccxt\\OrderNotFound', // array("status":"error","err_code":1017,"err_msg":"Order doesnt exist.","ts":1640550859242)
                     '1034' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1034,"err_msg":"Incorrect field of order price type.","ts":1643802870182)
                     '1036' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1036,"err_msg":"Incorrect field of open long form.","ts":1643802518986)
