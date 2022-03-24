@@ -3,6 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
+const { AuthenticationError } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheByTimestamp } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -45,6 +46,58 @@ module.exports = class cryptocom extends ccxt.cryptocom {
         //     "code": 0
         // }
         await client.send ({ 'id': this.safeInteger (message, 'id'), 'method': 'public/respond-heartbeat' });
+    }
+
+    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const messageHash = 'trade' + '.' + market['id'];
+        const trades = await this.watchPublic (messageHash, params);
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    handleTrades (client, message) {
+        //
+        // {
+        //     code: 0,
+        //     method: 'subscribe',
+        //     result: {
+        //       instrument_name: 'BTC_USDT',
+        //       subscription: 'trade.BTC_USDT',
+        //       channel: 'trade',
+        //       data: [
+        //             {
+        //                 "dataTime":1648122434405,
+        //                 "d":"2358394540212355488",
+        //                 "s":"SELL",
+        //                 "p":42980.85,
+        //                 "q":0.002325,
+        //                 "t":1648122434404,
+        //                 "i":"BTC_USDT"
+        //              }
+        //              (...)
+        //       ]
+        // }
+        //
+        const messageHash = this.safeString (message, 'subscription');
+        const marketId = this.safeString (message, 'instrument_name');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        let stored = this.safeValue (this.trades, symbol);
+        if (stored === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            stored = new ArrayCache (limit);
+            this.trades[symbol] = stored;
+        }
+        const data = this.safeValue (message, 'data', []);
+        const parsedTrades = this.parseTrades (data, market);
+        for (let j = 0; j < parsedTrades.length; j++) {
+            stored.append (parsedTrades[j]);
+        }
+        client.resolve (stored, messageHash);
     }
 
     async watchTicker (symbol, params = {}) {
@@ -150,7 +203,35 @@ module.exports = class cryptocom extends ccxt.cryptocom {
     }
 
     handleErrorMessage (client, message) {
-        return true;
+        // {
+        //     id: 0,
+        //     code: 10004,
+        //     method: 'subscribe',
+        //     message: 'invalid channel {"channels":["trade.BTCUSD-PERP"]}'
+        // }
+        const errorCode = this.safeInteger (message, 'code');
+        try {
+            if (errorCode !== undefined && errorCode !== 0) {
+                const feedback = this.id + ' ' + this.json (message);
+                this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+                const messageString = this.safeValue (message, 'message');
+                if (messageString !== undefined) {
+                    this.throwBroadlyMatchedException (this.exceptions['broad'], messageString, feedback);
+                }
+            }
+        } catch (e) {
+            if (e instanceof AuthenticationError) {
+                client.reject (e, 'authenticated');
+                const method = 'auth';
+                if (method in client.subscriptions) {
+                    delete client.subscriptions[method];
+                }
+                return false;
+            } else {
+                client.reject (e);
+            }
+        }
+        return message;
     }
 
     handleMessage (client, message) {
@@ -192,6 +273,7 @@ module.exports = class cryptocom extends ccxt.cryptocom {
         const methods = {
             'candlestick': this.handleOHLCV,
             'ticker': this.handleTicker,
+            'trade': this.handleTrades,
         };
         const result = this.safeValue2 (message, 'result', 'info');
         const channel = this.safeString (result, 'channel');
