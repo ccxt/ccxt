@@ -1762,10 +1762,6 @@ module.exports = class binance extends Exchange {
         return super.market (this.getCorrectSymbol (symbol));
     }
 
-    async loadTradingLimits (symbols = undefined, reload = false, params = {}) {
-        return super.loadTradingLimits (this.getCorrectSymbols (symbols), reload, params);
-    }
-
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         symbol = this.getCorrectSymbol (symbol);
         return super.calculateFee (symbol, type, side, amount, price, takerOrMaker, params);
