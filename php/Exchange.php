@@ -2757,7 +2757,7 @@ class Exchange {
         if (gettype($symbol) === 'string') {
             if (isset($this->markets[$symbol])) {
                 return $this->markets[$symbol];
-            } elseif (isset($this->markets_by_id)) {
+            } elseif (isset($this->markets_by_id[$symbol])) {
                 return $this->markets_by_id[$symbol];
             }
         }
