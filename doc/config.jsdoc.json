@@ -1,0 +1,13 @@
+{
+    "opts": {
+        "recurse": true,
+        "destination": "wiki/exchange-specific-docs"
+    },
+    "source": {
+        "include": ["./js"],
+        "exclude": [],
+        "includePattern": ".+\\.js(doc|x)?$",
+        "excludePattern": "(^|\\/|\\\\)_"
+    }
+}
+

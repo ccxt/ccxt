@@ -16,6 +16,7 @@
   },
   "readme": "README.md",
   "scripts": {
+    "doc": "jsdoc --configure doc/config.jsdoc.json ccxt.js",
     "docker": "docker-compose run --rm ccxt",
     "build": "npm run pre-transpile && npm run transpile && npm run post-transpile && npm run update-badges",
     "force-build": "npm run pre-transpile && npm run force-transpile && npm run post-transpile && npm run update-badges",
