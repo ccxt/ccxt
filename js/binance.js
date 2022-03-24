@@ -2144,7 +2144,7 @@ module.exports = class binance extends Exchange {
         let method = 'publicGetTicker24hr';
         if (market['swap']) {
             method = 'fapiPublicGetTicker24hr';
-        } else if (market['future']) {
+        } else if (market['delivery']) {
             method = 'dapiPublicGetTicker24hr';
         }
         const response = await this[method] (this.extend (request, params));
@@ -2274,13 +2274,13 @@ module.exports = class binance extends Exchange {
         }
         let method = 'publicGetKlines';
         if (price === 'mark') {
-            if (market['future']) {
+            if (market['delivery']) {
                 method = 'dapiPublicGetMarkPriceKlines';
             } else {
                 method = 'fapiPublicGetMarkPriceKlines';
             }
         } else if (price === 'index') {
-            if (market['future']) {
+            if (market['delivery']) {
                 method = 'dapiPublicGetIndexPriceKlines';
             } else {
                 method = 'fapiPublicGetIndexPriceKlines';
@@ -2848,7 +2848,7 @@ module.exports = class binance extends Exchange {
         } else if ((uppercaseType === 'STOP_LOSS') || (uppercaseType === 'TAKE_PROFIT')) {
             stopPriceIsRequired = true;
             quantityIsRequired = true;
-            if (market['swap'] || market['future']) {
+            if (market['swap'] || market['delivery']) {
                 priceIsRequired = true;
             }
         } else if ((uppercaseType === 'STOP_LOSS_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
@@ -4345,7 +4345,7 @@ module.exports = class binance extends Exchange {
             request['symbol'] = market['id'];
             if (market['swap']) {
                 method = 'fapiPublicGetFundingRate';
-            } else if (market['future']) {
+            } else if (market['delivery']) {
                 method = 'dapiPublicGetFundingRate';
             }
         }
@@ -5093,7 +5093,7 @@ module.exports = class binance extends Exchange {
             request['symbol'] = market['id'];
             if (market['swap']) {
                 defaultType = 'swap';
-            } else if (market['future']) {
+            } else if (market['delivery']) {
                 defaultType = 'future';
             } else {
                 throw NotSupported (this.id + ' fetchFundingHistory() supports swap and future contracts only');
