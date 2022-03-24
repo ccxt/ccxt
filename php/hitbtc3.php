@@ -1354,6 +1354,7 @@ class hitbtc3 extends Exchange {
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'privateGetSpotOrderClientOrderId',
             'swap' => 'privateGetFuturesOrderClientOrderId',
+            'margin' => 'privateGetMarginOrderClientOrderId',
         ));
         $request = array(
             'client_order_id' => $id,

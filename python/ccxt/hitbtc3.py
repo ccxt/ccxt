@@ -1291,6 +1291,7 @@ class hitbtc3(Exchange):
         method = self.get_supported_mapping(marketType, {
             'spot': 'privateGetSpotOrderClientOrderId',
             'swap': 'privateGetFuturesOrderClientOrderId',
+            'margin': 'privateGetMarginOrderClientOrderId',
         })
         request = {
             'client_order_id': id,
