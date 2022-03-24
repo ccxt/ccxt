@@ -1277,24 +1277,58 @@ module.exports = class mexc3 extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const [ section, access ] = api;
         [ path, params ] = this.resolvePath (path, params);
-        let url = this.urls['api'][section][access] + '/api/' + this.version + '/' + path;
-        let paramsEncoded = '';
-        if (access === 'private') {
-            params['timestamp'] = Date.now ();
-            params['recvWindow'] = this.safeInteger (this.options, 'recvWindow', 5000);
-        }
-        if (Object.keys (params).length) {
-            paramsEncoded = this.urlencode (params);
-            url += '?' + paramsEncoded;
-        }
-        if (access === 'private') {
-            this.checkRequiredCredentials ();
-            const signature = this.hmac (this.encode (paramsEncoded), this.encode (this.secret), 'sha256');
-            url += '&signature=' + signature;
-            headers = {
-                'X-MEXC-APIKEY': this.apiKey,
-                'Content-Type': 'application/json',
-            };
+        let url = undefined;
+        if (section === 'spot') {
+            url = this.urls['api'][section][access] + '/api/' + this.version + '/' + path;
+            let paramsEncoded = '';
+            if (access === 'private') {
+                params['timestamp'] = Date.now ();
+                params['recvWindow'] = this.safeInteger (this.options, 'recvWindow', 5000);
+            }
+            if (Object.keys (params).length) {
+                paramsEncoded = this.urlencode (params);
+                url += '?' + paramsEncoded;
+            }
+            if (access === 'private') {
+                this.checkRequiredCredentials ();
+                const signature = this.hmac (this.encode (paramsEncoded), this.encode (this.secret), 'sha256');
+                url += '&signature=' + signature;
+                headers = {
+                    'X-MEXC-APIKEY': this.apiKey,
+                };
+            }
+            if (method === 'POST') {
+                headers['Content-Type'] = 'application/json';
+            }
+        } else if (section === 'contract') {
+            url = this.urls['api'][section][access] + '/api/v1/contract/' + path;
+            if (access === 'public') {
+                if (Object.keys (params).length) {
+                    url += '?' + this.urlencode (params);
+                }
+            } else {
+                this.checkRequiredCredentials ();
+                const timestamp = this.milliseconds ().toString ();
+                let auth = '';
+                headers = {
+                    'ApiKey': this.apiKey,
+                    'Request-Time': timestamp,
+                    'Content-Type': 'application/json',
+                };
+                if (method === 'POST') {
+                    auth = this.json (params);
+                    body = auth;
+                } else {
+                    params = this.keysort (params);
+                    if (Object.keys (params).length) {
+                        auth += this.urlencode (params);
+                        url += '?' + auth;
+                    }
+                }
+                auth = this.apiKey + timestamp + auth;
+                const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
+                headers['Signature'] = signature;
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
