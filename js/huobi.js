@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { ExchangeError, ArgumentsRequired } = require ('ccxt/js/base/errors');
+const { ExchangeError, InvalidNonce, ArgumentsRequired } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -84,9 +84,7 @@ module.exports = class huobi extends ccxt.huobi {
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
                 'api': 'api', // or api-aws for clients hosted on AWS
-                'watchOrderBookSnapshot': {
-                    'delay': 1000,
-                },
+                'maxOrderBookSyncAttempts': 3,
                 'ws': {
                     'gunzip': true,
                 },
@@ -290,31 +288,52 @@ module.exports = class huobi extends ccxt.huobi {
         //
         const symbol = this.safeString (subscription, 'symbol');
         const messageHash = this.safeString (subscription, 'messageHash');
-        const orderbook = this.orderbooks[symbol];
-        const data = this.safeValue (message, 'data');
-        const snapshot = this.parseOrderBook (data, symbol);
-        snapshot['nonce'] = this.safeInteger (data, 'seqNum');
-        orderbook.reset (snapshot);
-        // unroll the accumulated deltas
-        const messages = orderbook.cache;
-        for (let i = 0; i < messages.length; i++) {
-            const message = messages[i];
-            this.handleOrderBookMessage (client, message, orderbook);
+        try {
+            const orderbook = this.orderbooks[symbol];
+            const data = this.safeValue (message, 'data');
+            const messages = orderbook.cache;
+            const firstMessage = this.safeValue (messages, 0, {});
+            const snapshot = this.parseOrderBook (data, symbol);
+            const tick = this.safeValue (firstMessage, 'tick');
+            const sequence = this.safeInteger (tick, 'seqNum');
+            const nonce = this.safeInteger (data, 'seqNum');
+            snapshot['nonce'] = nonce;
+            if ((sequence !== undefined) && (nonce < sequence)) {
+                const maxAttempts = this.safeInteger (this.options, 'maxOrderBookSyncAttempts', 3);
+                let numAttempts = this.safeInteger (subscription, 'numAttempts', 0);
+                // retry to synchronize if we have not reached maxAttempts yet
+                if (numAttempts < maxAttempts) {
+                    // safety guard
+                    if (messageHash in client.subscriptions) {
+                        numAttempts = this.sum (numAttempts, 1);
+                        subscription['numAttempts'] = numAttempts;
+                        client.subscriptions[messageHash] = subscription;
+                        this.spawn (this.watchOrderBookSnapshot, client, message, subscription);
+                    }
+                } else {
+                    // throw upon failing to synchronize in maxAttempts
+                    throw new InvalidNonce (this.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + ' in ' + maxAttempts.toString () + ' attempts');
+                }
+            } else {
+                orderbook.reset (snapshot);
+                // unroll the accumulated deltas
+                for (let i = 0; i < messages.length; i++) {
+                    const message = messages[i];
+                    this.handleOrderBookMessage (client, message, orderbook);
+                }
+                this.orderbooks[symbol] = orderbook;
+                client.resolve (orderbook, messageHash);
+            }
+        } catch (e) {
+            client.reject (e, messageHash);
         }
-        this.orderbooks[symbol] = orderbook;
-        client.resolve (orderbook, messageHash);
     }
 
     async watchOrderBookSnapshot (client, message, subscription) {
-        // quick-fix to avoid getting outdated snapshots
-        const options = this.safeValue (this.options, 'watchOrderBookSnapshot', {});
-        const delay = this.safeInteger (options, 'delay');
-        if (delay !== undefined) {
-            await this.sleep (delay);
-        }
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
         const params = this.safeValue (subscription, 'params');
+        const attempts = this.safeInteger (subscription, 'numAttempts', 0);
         const messageHash = this.safeString (subscription, 'messageHash');
         const market = this.market (symbol);
         const url = this.getUrlByMarketType (market['type'], market['linear']);
@@ -331,6 +350,7 @@ module.exports = class huobi extends ccxt.huobi {
             'symbol': symbol,
             'limit': limit,
             'params': params,
+            'numAttempts': attempts,
             'method': this.handleOrderBookSnapshot,
         };
         const orderbook = await this.watch (url, requestId, request, requestId, snapshotSubscription);
@@ -340,20 +360,46 @@ module.exports = class huobi extends ccxt.huobi {
     async fetchOrderBookSnapshot (client, message, subscription) {
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
-        const params = this.safeValue (subscription, 'params');
         const messageHash = this.safeString (subscription, 'messageHash');
-        const snapshot = await this.fetchOrderBook (symbol, limit, params);
-        const orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook !== undefined) {
-            orderbook.reset (snapshot);
-            // unroll the accumulated deltas
+        try {
+            const snapshot = await this.fetchOrderBook (symbol, limit);
+            const orderbook = this.orderbooks[symbol];
             const messages = orderbook.cache;
-            for (let i = 0; i < messages.length; i++) {
-                const message = messages[i];
-                this.handleOrderBookMessage (client, message, orderbook);
+            const firstMessage = this.safeValue (messages, 0, {});
+            const tick = this.safeValue (firstMessage, 'tick');
+            const sequence = this.safeInteger (tick, 'seqNum');
+            const nonce = this.safeInteger (snapshot, 'nonce');
+            // if the received snapshot is earlier than the first cached delta
+            // then we cannot align it with the cached deltas and we need to
+            // retry synchronizing in maxAttempts
+            if ((sequence !== undefined) && (nonce < sequence)) {
+                const maxAttempts = this.safeInteger (this.options, 'maxOrderBookSyncAttempts', 3);
+                let numAttempts = this.safeInteger (subscription, 'numAttempts', 0);
+                // retry to syncrhonize if we haven't reached maxAttempts yet
+                if (numAttempts < maxAttempts) {
+                    // safety guard
+                    if (messageHash in client.subscriptions) {
+                        numAttempts = this.sum (numAttempts, 1);
+                        subscription['numAttempts'] = numAttempts;
+                        client.subscriptions[messageHash] = subscription;
+                        this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+                    }
+                } else {
+                    // throw upon failing to synchronize in maxAttempts
+                    throw new InvalidNonce (this.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + ' in ' + maxAttempts.toString () + ' attempts');
+                }
+            } else {
+                orderbook.reset (snapshot);
+                // unroll the accumulated deltas
+                for (let i = 0; i < messages.length; i++) {
+                    const message = messages[i];
+                    this.handleOrderBookMessage (client, message, orderbook);
+                }
+                this.orderbooks[symbol] = orderbook;
+                client.resolve (orderbook, messageHash);
             }
-            this.orderbooks[symbol] = orderbook;
-            client.resolve (orderbook, messageHash);
+        } catch (e) {
+            client.reject (e, messageHash);
         }
     }
 
