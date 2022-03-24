@@ -181,3 +181,110 @@ assert(equals(cache, [
     {'symbol': 'BTC/USDT', 'id': '8', 'i': 38},
     {'symbol': 'BTC/USDT', 'id': '30', 'i': 50},
 ]))
+
+# ----------------------------------------------------------------------------
+
+# test ArrayCacheBySymbolById limit with symbol set
+symbol = 'BTC/USDT'
+cache = ArrayCacheBySymbolById()
+initialLength = 5
+for i in range(0, initialLength):
+    cache.append({
+        'symbol': symbol,
+        'id': str(i),
+        'i': i,
+    })
+
+limited = cache.getLimit(symbol, None)
+
+assert initialLength == limited
+
+appendItemsLength = 3
+for i in range(0, appendItemsLength):
+    cache.append({
+        'symbol': symbol,
+        'id': str(i),
+        'i': i,
+    })
+
+outsideLimit = 5
+limited = cache.getLimit(symbol, outsideLimit)
+
+assert appendItemsLength == limited
+
+outsideLimit = 2  # if limit < newsUpdate that should be returned
+limited = cache.getLimit(symbol, outsideLimit)
+
+assert outsideLimit == limited
+
+# ----------------------------------------------------------------------------
+
+# test ArrayCacheBySymbolById limit with symbol None
+symbol = None
+cache = ArrayCacheBySymbolById()
+initialLength = 5
+for i in range(0, initialLength):
+    cache.append({
+        'symbol': symbol,
+        'id': str(i),
+        'i': i,
+    })
+
+limited = cache.getLimit(symbol, None)
+
+assert initialLength == limited
+
+appendItemsLength = 3
+for i in range(0, appendItemsLength):
+    cache.append({
+        'symbol': symbol,
+        'id': str(i),
+        'i': i,
+    })
+
+outsideLimit = 5
+limited = cache.getLimit(symbol, outsideLimit)
+
+assert appendItemsLength == limited
+
+outsideLimit = 2  # if limit < newsUpdate that should be returned
+limited = cache.getLimit(symbol, outsideLimit)
+
+assert outsideLimit == limited
+
+# ----------------------------------------------------------------------------
+# test testLimitArrayCacheByTimestamp limit
+
+cache = ArrayCacheByTimestamp()
+
+initialLength = 5
+for i in range(0, initialLength):
+    cache.append([
+        i * 10,
+        i * 10,
+        i * 10,
+        i * 10
+    ])
+
+limited = cache.getLimit(None, None)
+
+assert initialLength == limited
+
+appendItemsLength = 3
+for i in range(0, appendItemsLength):
+    cache.append([
+        i * 4,
+        i * 4,
+        i * 4,
+        i * 4
+    ])
+
+outsideLimit = 5
+limited = cache.getLimit(None, outsideLimit)
+
+assert appendItemsLength == limited
+
+outsideLimit = 2  # if limit < newsUpdate that should be returned
+limited = cache.getLimit(None, outsideLimit)
+
+assert outsideLimit == limited
