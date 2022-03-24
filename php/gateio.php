@@ -644,33 +644,36 @@ class gateio extends Exchange {
         $marginMarkets = $this->index_by($marginResponse, 'id');
         //
         //  Spot
-        //      array(
-        //           {
-        //             "id" => "DEGO_USDT",
-        //             "base" => "DEGO",
-        //             "quote" => "USDT",
-        //             "fee" => "0.2",
-        //             "min_quote_amount" => "1",
-        //             "amount_precision" => "4",
-        //             "precision" => "4",
-        //             "trade_status" => "tradable",
-        //             "sell_start" => "0",
-        //             "buy_start" => "0"
-        //           }
-        //      )
+        //
+        //     array(
+        //         {
+        //             "id":"QTUM_ETH",
+        //             "base":"QTUM",
+        //             "quote":"ETH",
+        //             "fee":"0.2",
+        //             "min_base_amount":"0.01",
+        //             "min_quote_amount":"0.001",
+        //             "amount_precision":3,
+        //             "precision":6,
+        //             "trade_status":"tradable",
+        //             "sell_start":0,
+        //             "buy_start":0
+        //         }
+        //     )
         //
         //  Margin
-        //      array(
+        //
+        //     array(
         //         {
-        //           "id" => "ETH_USDT",
-        //           "base" => "ETH",
-        //           "quote" => "USDT",
-        //           "leverage" => 3,
-        //           "min_base_amount" => "0.01",
-        //           "min_quote_amount" => "100",
-        //           "max_quote_amount" => "1000000"
+        //             "id" => "ETH_USDT",
+        //             "base" => "ETH",
+        //             "quote" => "USDT",
+        //             "leverage" => 3,
+        //             "min_base_amount" => "0.01",
+        //             "min_quote_amount" => "100",
+        //             "max_quote_amount" => "1000000"
         //         }
-        //       )
+        //     )
         //
         $result = array();
         for ($i = 0; $i < count($spotMarketsResponse); $i++) {
@@ -725,7 +728,7 @@ class gateio extends Exchange {
                         'max' => $this->safe_number($market, 'leverage', 1),
                     ),
                     'amount' => array(
-                        'min' => null,
+                        'min' => $this->safe_number($market, 'min_base_amount'),
                         'max' => null,
                     ),
                     'price' => array(

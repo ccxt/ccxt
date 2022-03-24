@@ -649,33 +649,36 @@ class gateio(Exchange):
         marginMarkets = self.index_by(marginResponse, 'id')
         #
         #  Spot
-        #      [
-        #           {
-        #             "id": "DEGO_USDT",
-        #             "base": "DEGO",
-        #             "quote": "USDT",
-        #             "fee": "0.2",
-        #             "min_quote_amount": "1",
-        #             "amount_precision": "4",
-        #             "precision": "4",
-        #             "trade_status": "tradable",
-        #             "sell_start": "0",
-        #             "buy_start": "0"
-        #           }
-        #      ]
+        #
+        #     [
+        #         {
+        #             "id":"QTUM_ETH",
+        #             "base":"QTUM",
+        #             "quote":"ETH",
+        #             "fee":"0.2",
+        #             "min_base_amount":"0.01",
+        #             "min_quote_amount":"0.001",
+        #             "amount_precision":3,
+        #             "precision":6,
+        #             "trade_status":"tradable",
+        #             "sell_start":0,
+        #             "buy_start":0
+        #         }
+        #     ]
         #
         #  Margin
-        #      [
+        #
+        #     [
         #         {
-        #           "id": "ETH_USDT",
-        #           "base": "ETH",
-        #           "quote": "USDT",
-        #           "leverage": 3,
-        #           "min_base_amount": "0.01",
-        #           "min_quote_amount": "100",
-        #           "max_quote_amount": "1000000"
+        #             "id": "ETH_USDT",
+        #             "base": "ETH",
+        #             "quote": "USDT",
+        #             "leverage": 3,
+        #             "min_base_amount": "0.01",
+        #             "min_quote_amount": "100",
+        #             "max_quote_amount": "1000000"
         #         }
-        #       ]
+        #     ]
         #
         result = []
         for i in range(0, len(spotMarketsResponse)):
@@ -730,7 +733,7 @@ class gateio(Exchange):
                         'max': self.safe_number(market, 'leverage', 1),
                     },
                     'amount': {
-                        'min': None,
+                        'min': self.safe_number(market, 'min_base_amount'),
                         'max': None,
                     },
                     'price': {
