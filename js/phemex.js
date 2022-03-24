@@ -366,13 +366,6 @@ module.exports = class phemex extends Exchange {
                     'Missing required parameter': BadRequest, // {"msg":"Missing required parameter","code":10500}
                     'API Signature verification failed': AuthenticationError, // {"msg":"API Signature verification failed.","code":10500}
                 },
-                'transferStatus': {
-                    '3': 'rejected',
-                    '6': 'Got error and wait for recovery',
-                    '10': 'Success',
-                    '11': 'Failed',
-                    'others': 'Under procesing',
-                },
             },
             'options': {
                 'x-phemex-request-expiry': 60, // in seconds
@@ -2860,11 +2853,22 @@ module.exports = class phemex extends Exchange {
     }
 
     parseTransfer (transfer, currency = undefined) {
+        //
+        //     {
+        //         linkKey: '8564eba4-c9ec-49d6-9b8c-2ec5001a0fb9',
+        //         userId: '4018340',
+        //         currency: 'USD',
+        //         amountEv: '10',
+        //         side: '2',
+        //         status: '10'
+        //     }
+        //
         const id = this.safeString (transfer, 'linkKey');
         const status = this.safeString (transfer, 'status');
         const amountEv = this.safeString (transfer, 'amountEv');
         const amountTransfered = this.fromEv (amountEv, currency);
-        const code = this.safeCurrencyCode (undefined, currency);
+        const currencyId = this.safeString (transfer, 'currency');
+        const code = this.safeCurrencyCode (currencyId, currency);
         const side = this.safeInteger (transfer, 'side');
         let fromId = undefined;
         let toId = undefined;
@@ -2890,10 +2894,10 @@ module.exports = class phemex extends Exchange {
 
     parseTransferStatus (status) {
         const statuses = {
-            '3': 'canceled',  // 'Rejected',
-            '6': 'canceled',  // 'Got error and wait for recovery',
-            '10': 'ok',       // 'Success',
-            '11': 'canceled', // 'Failed',
+            '3': 'rejected', // 'Rejected',
+            '6': 'canceled', // 'Got error and wait for recovery',
+            '10': 'ok', // 'Success',
+            '11': 'failed', // 'Failed',
         };
         return this.safeString (statuses, status, 'pending');
     }
