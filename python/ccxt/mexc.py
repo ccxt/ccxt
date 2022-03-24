@@ -1731,7 +1731,7 @@ class mexc(Exchange):
         method = 'contractPrivatePostOrderSubmit'
         stopPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
         params = self.omit(params, ['stopPrice', 'triggerPrice'])
-        if stopPrice:
+        if stopPrice is not None:
             method = 'contractPrivatePostPlanorderPlace'
             request['triggerPrice'] = self.price_to_precision(symbol, stopPrice)
             request['triggerType'] = self.safe_integer(params, 'triggerType', 1)

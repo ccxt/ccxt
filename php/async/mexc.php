@@ -1816,7 +1816,7 @@ class mexc extends Exchange {
         $method = 'contractPrivatePostOrderSubmit';
         $stopPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
         $params = $this->omit($params, array( 'stopPrice', 'triggerPrice' ));
-        if ($stopPrice) {
+        if ($stopPrice !== null) {
             $method = 'contractPrivatePostPlanorderPlace';
             $request['triggerPrice'] = $this->price_to_precision($symbol, $stopPrice);
             $request['triggerType'] = $this->safe_integer($params, 'triggerType', 1);
