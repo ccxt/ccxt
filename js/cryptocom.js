@@ -16,6 +16,7 @@ module.exports = class cryptocom extends ccxt.cryptocom {
                 'watchBalance': true,
                 'watchTicker': true,
                 'watchTickers': false, // for now
+                'watchMyTrades': true,
                 'watchTrades': true,
                 'watchOrderBook': true,
                 'watchOrders': true,
@@ -161,6 +162,25 @@ module.exports = class cryptocom extends ccxt.cryptocom {
             stored.append (parsedTrades[j]);
         }
         client.resolve (stored, messageHash);
+    }
+
+    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        let market = undefined;
+        if (symbol !== undefined) {
+            await this.loadMarkets ();
+            market = this.market (symbol);
+            if (!market['spot']) {
+                throw new NotSupported (this.id + ' watchMyTrades() supports spot markets only');
+            }
+        }
+        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
+        let messageHash = (defaultType === 'margin') ? 'user.margin.trade' : 'user.trade';
+        messageHash = (market !== undefined) ? (messageHash + '.' + market['id']) : messageHash;
+        const trades = await this.watchPrivate (messageHash, params);
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
     async watchTicker (symbol, params = {}) {
@@ -333,7 +353,6 @@ module.exports = class cryptocom extends ccxt.cryptocom {
     }
 
     async watchPublic (messageHash, params = {}) {
-        console.log ('Watch PUBLIC!!!!!');
         const url = this.urls['api']['ws']['public'];
         const id = this.nonce ();
         const request = {
@@ -444,6 +463,8 @@ module.exports = class cryptocom extends ccxt.cryptocom {
             'book': this.handleOrderBookSnapshot,
             'user.order': this.handleOrders,
             'user.margin.order': this.handleOrders,
+            'user.trade': this.handleTrades,
+            'user.margin.trade': this.handleTrades,
         };
         const result = this.safeValue2 (message, 'result', 'info');
         const channel = this.safeString (result, 'channel');
