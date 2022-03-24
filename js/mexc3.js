@@ -808,39 +808,73 @@ module.exports = class mexc3 extends Exchange {
         const market = this.market (symbol);
         const options = this.safeValue (this.options, 'timeframes', {});
         const timeframes = this.safeValue (options, market['type'], {});
+        const timeframeValue = this.safeString (timeframes, timeframe);
         const request = {
             'symbol': market['id'],
-            'interval': timeframes[timeframe],
+            'interval': timeframeValue,
         };
-        let method = undefined;
+        let candles = undefined;
         if (market['spot']) {
-            method = 'spotPublicGetKlines';
             if (since !== undefined) {
                 request['startTime'] = since;
             }
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
+            const response = await this.spotPublicGetKlines (this.extend (request, params));
+            //
+            //     [
+            //       [
+            //         1640804880000,
+            //         "47482.36",
+            //         "47482.36",
+            //         "47416.57",
+            //         "47436.1",
+            //         "3.550717",
+            //         1640804940000,
+            //         "168387.3"
+            //       ],
+            //     ]
+            //
+            candles = response;
         } else if (market['swap']) {
-            method = '';
+            if (since !== undefined) {
+                request['start'] = parseInt (since / 1000);
+            }
+            const priceType = this.safeString (params, 'price', 'default');
+            params = this.omit (params, 'price');
+            const method = this.getSupportedMapping (priceType, {
+                'default': 'contractPublicGetKlineSymbol',
+                'index': 'contractPublicGetKlineIndexPriceSymbol',
+                'mark': 'contractPublicGetKlineFairPriceSymbol',
+            });
+            const response = await this[method] (this.extend (request, params));
+            //
+            //     {
+            //         "success":true,
+            //         "code":0,
+            //         "data":{
+            //             "time":[1634052300,1634052360,1634052420],
+            //             "open":[3492.2,3491.3,3495.65],
+            //             "close":[3491.3,3495.65,3495.2],
+            //             "high":[3495.85,3496.55,3499.4],
+            //             "low":[3491.15,3490.9,3494.2],
+            //             "vol":[1740.0,351.0,314.0],
+            //             "amount":[60793.623,12260.4885,10983.1375],
+            //         }
+            //     }
+            //
+            candles = this.safeValue (response, 'data');
         }
-        const response = await this[method] (this.extend (request, params));
-        //
-        // spot
-        //
-        //     [
-        //       [
-        //         1640804880000,
-        //         "47482.36",
-        //         "47482.36",
-        //         "47416.57",
-        //         "47436.1",
-        //         "3.550717",
-        //         1640804940000,
-        //         "168387.3"
-        //       ],
-        //     ]
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        return this.parseOHLCVs (candles, market, timeframe, since, limit);
+    }
+
+    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend ({ 'price': 'index' }, params));
+    }
+
+    async fetchMarkOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend ({ 'price': 'mark' }, params));
     }
 
     parseOHLCV (ohlcv, market = undefined) {
