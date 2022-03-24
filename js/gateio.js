@@ -638,33 +638,36 @@ module.exports = class gateio extends Exchange {
         const marginMarkets = this.indexBy (marginResponse, 'id');
         //
         //  Spot
-        //      [
-        //           {
-        //             "id": "DEGO_USDT",
-        //             "base": "DEGO",
-        //             "quote": "USDT",
-        //             "fee": "0.2",
-        //             "min_quote_amount": "1",
-        //             "amount_precision": "4",
-        //             "precision": "4",
-        //             "trade_status": "tradable",
-        //             "sell_start": "0",
-        //             "buy_start": "0"
-        //           }
-        //      ]
+        //
+        //     [
+        //         {
+        //             "id":"QTUM_ETH",
+        //             "base":"QTUM",
+        //             "quote":"ETH",
+        //             "fee":"0.2",
+        //             "min_base_amount":"0.01",
+        //             "min_quote_amount":"0.001",
+        //             "amount_precision":3,
+        //             "precision":6,
+        //             "trade_status":"tradable",
+        //             "sell_start":0,
+        //             "buy_start":0
+        //         }
+        //     ]
         //
         //  Margin
-        //      [
+        //
+        //     [
         //         {
-        //           "id": "ETH_USDT",
-        //           "base": "ETH",
-        //           "quote": "USDT",
-        //           "leverage": 3,
-        //           "min_base_amount": "0.01",
-        //           "min_quote_amount": "100",
-        //           "max_quote_amount": "1000000"
+        //             "id": "ETH_USDT",
+        //             "base": "ETH",
+        //             "quote": "USDT",
+        //             "leverage": 3,
+        //             "min_base_amount": "0.01",
+        //             "min_quote_amount": "100",
+        //             "max_quote_amount": "1000000"
         //         }
-        //       ]
+        //     ]
         //
         const result = [];
         for (let i = 0; i < spotMarketsResponse.length; i++) {
@@ -719,7 +722,7 @@ module.exports = class gateio extends Exchange {
                         'max': this.safeNumber (market, 'leverage', 1),
                     },
                     'amount': {
-                        'min': undefined,
+                        'min': this.safeNumber (market, 'min_base_amount'),
                         'max': undefined,
                     },
                     'price': {
