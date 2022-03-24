@@ -301,7 +301,7 @@ module.exports = class huobi extends ccxt.huobi {
             if ((sequence !== undefined) && (nonce < sequence)) {
                 const maxAttempts = this.safeInteger (this.options, 'maxOrderBookSyncAttempts', 3);
                 let numAttempts = this.safeInteger (subscription, 'numAttempts', 0);
-                // retry to syncrhonize if we haven't reached maxAttempts yet
+                // retry to synchronize if we have not reached maxAttempts yet
                 if (numAttempts < maxAttempts) {
                     // safety guard
                     if (messageHash in client.subscriptions) {
