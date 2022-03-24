@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { AuthenticationError } = require ('ccxt/js/base/errors');
+const { AuthenticationError, NotSupported, ExchangeError } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheByTimestamp } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -48,9 +48,71 @@ module.exports = class cryptocom extends ccxt.cryptocom {
         await client.send ({ 'id': this.safeInteger (message, 'id'), 'method': 'public/respond-heartbeat' });
     }
 
+    async watchOrderBook (symbol, limit = undefined, params = {}) {
+        if (limit !== undefined) {
+            if ((limit !== 10) && (limit !== 150)) {
+                throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 10 or 150');
+            }
+        } else {
+            limit = 150; // default value
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['spot']) {
+            throw new NotSupported (this.id + ' watchOrderBook() supports spot markets only');
+        }
+        const messageHash = 'book' + '.' + market['id'] + '.' + limit;
+        const orderbook = await this.watchPublic (messageHash, params);
+        return orderbook.limit (limit);
+    }
+
+    handleOrderBookSnapshot (client, message) {
+        // full snapshot
+        //
+        // {
+        //     "instrument_name":"LTC_USDT",
+        //     "subscription":"book.LTC_USDT.150",
+        //     "channel":"book",
+        //     "depth":150,
+        //     "data": [
+        //          {
+        //              'bids': [
+        //                  [122.21, 0.74041, 4]
+        //              ],
+        //              'asks': [
+        //                  [122.29, 0.00002, 1]
+        //              ]
+        //              't': 1648123943803,
+        //              's':754560122
+        //          }
+        //      ]
+        // }
+        //
+        const messageHash = this.safeString (message, 'subscription');
+        const marketId = this.safeString (message, 'instrument_name');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        let data = this.safeValue (message, 'data');
+        data = this.safeValue (data, 0);
+        const timestamp = this.safeInteger (data, 't');
+        const snapshot = this.parseOrderBook (data, symbol, timestamp);
+        snapshot['nonce'] = this.safeInteger (data, 's');
+        let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            const limit = this.safeString (message, 'depth');
+            orderbook = this.orderBook ({}, limit);
+        }
+        orderbook.reset (snapshot);
+        this.orderbooks[symbol] = orderbook;
+        client.resolve (orderbook, messageHash);
+    }
+
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (!market['spot']) {
+            throw new NotSupported (this.id + ' watchTrades() supports spot markets only');
+        }
         const messageHash = 'trade' + '.' + market['id'];
         const trades = await this.watchPublic (messageHash, params);
         if (this.newUpdates) {
@@ -103,6 +165,9 @@ module.exports = class cryptocom extends ccxt.cryptocom {
     async watchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (!market['spot']) {
+            throw new NotSupported (this.id + ' watchTicker() supports spot markets only');
+        }
         const messageHash = 'ticker' + '.' + market['id'];
         return await this.watchPublic (messageHash, params);
     }
@@ -146,6 +211,9 @@ module.exports = class cryptocom extends ccxt.cryptocom {
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (!market['spot']) {
+            throw new NotSupported (this.id + ' watchOHLCV() supports spot markets only');
+        }
         const interval = this.timeframes[timeframe];
         const messageHash = 'candlestick' + '.' + interval + '.' + market['id'];
         const ohlcv = await this.watchPublic (messageHash, params);
@@ -274,6 +342,7 @@ module.exports = class cryptocom extends ccxt.cryptocom {
             'candlestick': this.handleOHLCV,
             'ticker': this.handleTicker,
             'trade': this.handleTrades,
+            'book': this.handleOrderBookSnapshot,
         };
         const result = this.safeValue2 (message, 'result', 'info');
         const channel = this.safeString (result, 'channel');
