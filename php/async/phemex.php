@@ -63,6 +63,8 @@ class phemex extends Exchange {
                 'fetchTradingFees' => false,
                 'fetchWithdrawals' => true,
                 'setLeverage' => true,
+                'transfer' => true,
+                'withdraw' => null,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg',
@@ -380,6 +382,10 @@ class phemex extends Exchange {
                     'USDT' => 'ETH',
                 ),
                 'defaultSubType' => 'linear',
+                'accountsByType' => array(
+                    'spot' => 'spot',
+                    'future' => 'future',
+                ),
             ),
         ));
     }
@@ -2799,6 +2805,105 @@ class phemex extends Exchange {
             'leverage' => $leverage,
         );
         return yield $this->privatePutPositionsLeverage (array_merge($request, $params));
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        yield $this->load_markets();
+        $currency = $this->currency($code);
+        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $fromId = $this->safe_string($accountsByType, $fromAccount);
+        $toId = $this->safe_string($accountsByType, $toAccount);
+        $direction = null;
+        if ($fromId === null) {
+            $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
+            throw new ExchangeError($this->id . ' $fromAccount must be one of ' . implode(', ', $keys));
+        }
+        if ($toId === null) {
+            $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
+            throw new ExchangeError($this->id . ' $toAccount must be one of ' . implode(', ', $keys));
+        }
+        if ($fromId === 'spot' && $toId === 'future') {
+            $direction = 2;
+        }
+        if ($fromId === 'future' && $toId === 'spot') {
+            $direction = 1;
+        }
+        if ($direction === null) {
+            throw new ExchangeError($this->id . ' transfer can only be down from future to spot or from spot to future');
+        }
+        $scaledAmmount = $this->to_ev($amount, $currency);
+        $request = array(
+            'currency' => $currency['id'],
+            'moveOp' => $direction,
+            'amountEv' => $scaledAmmount,
+        );
+        $response = yield $this->privatePostAssetsTransfer (array_merge($request, $params));
+        //
+        //     {
+        //         $code => '0',
+        //         msg => 'OK',
+        //         $data => {
+        //             linkKey => '8564eba4-c9ec-49d6-9b8c-2ec5001a0fb9',
+        //             userId => '4018340',
+        //             $currency => 'USD',
+        //             amountEv => '10',
+        //             side => '2',
+        //             status => '10'
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_transfer($data, $currency);
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        //     {
+        //         linkKey => '8564eba4-c9ec-49d6-9b8c-2ec5001a0fb9',
+        //         userId => '4018340',
+        //         $currency => 'USD',
+        //         $amountEv => '10',
+        //         $side => '2',
+        //         $status => '10'
+        //     }
+        //
+        $id = $this->safe_string($transfer, 'linkKey');
+        $status = $this->safe_string($transfer, 'status');
+        $amountEv = $this->safe_string($transfer, 'amountEv');
+        $amountTransfered = $this->from_ev($amountEv, $currency);
+        $currencyId = $this->safe_string($transfer, 'currency');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $side = $this->safe_integer($transfer, 'side');
+        $fromId = null;
+        $toId = null;
+        if ($side === 1) {
+            $fromId = 'future';
+            $toId = 'spot';
+        } else if ($side === 2) {
+            $fromId = 'spot';
+            $toId = 'future';
+        }
+        return array(
+            'info' => $transfer,
+            'id' => $id,
+            'timestamp' => null,
+            'datetime' => null,
+            'currency' => $code,
+            'amount' => $amountTransfered,
+            'fromAccount' => $fromId,
+            'toAccount' => $toId,
+            'status' => $this->parse_transfer_status($status),
+        );
+    }
+
+    public function parse_transfer_status($status) {
+        $statuses = array(
+            '3' => 'rejected', // 'Rejected',
+            '6' => 'canceled', // 'Got error and wait for recovery',
+            '10' => 'ok', // 'Success',
+            '11' => 'failed', // 'Failed',
+        );
+        return $this->safe_string($statuses, $status, 'pending');
     }
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
