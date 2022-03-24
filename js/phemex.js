@@ -2861,7 +2861,10 @@ module.exports = class phemex extends Exchange {
         const status = this.safeString (transfer, 'status');
         const amountEv = this.safeString (transfer, 'amountEv');
         const amountTransfered = this.fromEv (amountEv, currency);
-        const code = this.safeString (currency, 'code');
+        let code = undefined;
+        if (currency !== undefined) {
+            code = this.safeCurrencyCode (undefined, currency);
+        }
         const side = this.safeNumber (transfer, 'side');
         let fromId = undefined;
         let toId = undefined;
