@@ -592,45 +592,51 @@ module.exports = class mexc3 extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        let method = undefined;
         if (limit !== undefined) {
             request['limit'] = limit;
         }
+        let orderbook = undefined;
         if (market['spot']) {
-            method = 'spotPublicGetDepth';
+            const response = await this.spotPublicGetDepth (this.extend (request, params));
+            //
+            //     {
+            //         "lastUpdateId": "744267132",
+            //         "bids": [
+            //             ["40838.50","0.387864"],
+            //             ["40837.95","0.008400"],
+            //         ],
+            //         "asks": [
+            //             ["40838.61","6.544908"],
+            //             ["40838.88","0.498000"],
+            //         ]
+            //     }
+            //
+            orderbook = this.parseOrderBook (response, symbol);
+            orderbook['nonce'] = this.safeInteger (response, 'lastUpdateId');
         } else if (market['swap']) {
-            method = '';
+            const response = await this.contractPublicGetDepthSymbol (this.extend (request, params));
+            //
+            //     {
+            //         "success":true,
+            //         "code":0,
+            //         "data":{
+            //             "asks":[
+            //                 [3445.72,48379,1],
+            //                 [3445.75,34994,1],
+            //             ],
+            //             "bids":[
+            //                 [3445.55,44081,1],
+            //                 [3445.51,24857,1],
+            //             ],
+            //             "version":2827730444,
+            //             "timestamp":1634117846232
+            //         }
+            //     }
+            //
+            const data = this.safeValue (response, 'data');
+            orderbook = this.parseOrderBook (data, symbol);
+            orderbook['nonce'] = this.safeInteger (data, 'version');
         }
-        const response = await this[method] (this.extend (request, params));
-        //
-        // spot
-        //
-        //     {
-        //         "lastUpdateId": "744267132",
-        //         "bids": [
-        //             [
-        //                 "40838.50",
-        //                 "0.387864"
-        //             ],
-        //             [
-        //                 "40837.95",
-        //                 "0.008400"
-        //             ],
-        //         ],
-        //         "asks": [
-        //             [
-        //                 "40838.61",
-        //                 "6.544908"
-        //             ],
-        //             [
-        //                 "40838.88",
-        //                 "0.498000"
-        //             ],
-        //         ]
-        //     }
-        //
-        const orderbook = this.parseOrderBook (response, symbol);
-        orderbook['nonce'] = this.safeInteger (response, 'lastUpdateId');
         return orderbook;
     }
 
