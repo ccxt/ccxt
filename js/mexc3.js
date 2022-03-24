@@ -364,6 +364,15 @@ module.exports = class mexc3 extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
+        if (marketType === 'spot') {
+            return await this.fetchSpotMarkets (query);
+        } else {
+            return await this.fetchSwapMarkets (query);
+        }
+    }
+
+    async fetchSpotMarkets (params = {}) {
         const response = await this.spotPublicGetExchangeInfo (params);
         //
         //     {
@@ -449,6 +458,118 @@ module.exports = class mexc3 extends Exchange {
                     'amount': {
                         'min': undefined,
                         'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'info': market,
+            });
+        }
+        return result;
+    }
+
+    async fetchSwapMarkets (params = {}) {
+        const response = await this.contractPublicGetDetail (params);
+        //
+        //     {
+        //         "success":true,
+        //         "code":0,
+        //         "data":[
+        //             {
+        //                 "symbol":"BTC_USDT",
+        //                 "displayName":"BTC_USDT永续",
+        //                 "displayNameEn":"BTC_USDT SWAP",
+        //                 "positionOpenType":3,
+        //                 "baseCoin":"BTC",
+        //                 "quoteCoin":"USDT",
+        //                 "settleCoin":"USDT",
+        //                 "contractSize":0.0001,
+        //                 "minLeverage":1,
+        //                 "maxLeverage":125,
+        //                 "priceScale":2,
+        //                 "volScale":0,
+        //                 "amountScale":4,
+        //                 "priceUnit":0.5,
+        //                 "volUnit":1,
+        //                 "minVol":1,
+        //                 "maxVol":1000000,
+        //                 "bidLimitPriceRate":0.1,
+        //                 "askLimitPriceRate":0.1,
+        //                 "takerFeeRate":0.0006,
+        //                 "makerFeeRate":0.0002,
+        //                 "maintenanceMarginRate":0.004,
+        //                 "initialMarginRate":0.008,
+        //                 "riskBaseVol":10000,
+        //                 "riskIncrVol":200000,
+        //                 "riskIncrMmr":0.004,
+        //                 "riskIncrImr":0.004,
+        //                 "riskLevelLimit":5,
+        //                 "priceCoefficientVariation":0.1,
+        //                 "indexOrigin":["BINANCE","GATEIO","HUOBI","MXC"],
+        //                 "state":0, // 0 enabled, 1 delivery, 2 completed, 3 offline, 4 pause
+        //                 "isNew":false,
+        //                 "isHot":true,
+        //                 "isHidden":false
+        //             },
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            const market = data[i];
+            const id = this.safeString (market, 'symbol');
+            const baseId = this.safeString (market, 'baseCoin');
+            const quoteId = this.safeString (market, 'quoteCoin');
+            const settleId = this.safeString (market, 'settleCoin');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const settle = this.safeCurrencyCode (settleId);
+            const state = this.safeString (market, 'state');
+            result.push ({
+                'id': id,
+                'symbol': base + '/' + quote + ':' + settle,
+                'base': base,
+                'quote': quote,
+                'settle': settle,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': settleId,
+                'type': 'swap',
+                'spot': false,
+                'margin': false,
+                'swap': true,
+                'future': false,
+                'option': false,
+                'active': (state === '0'),
+                'contract': true,
+                'linear': true,
+                'inverse': false,
+                'taker': this.safeNumber (market, 'takerFeeRate'),
+                'maker': this.safeNumber (market, 'makerFeeRate'),
+                'contractSize': this.safeNumber (market, 'contractSize'),
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeNumber (market, 'volUnit'),
+                    'price': this.safeNumber (market, 'priceUnit'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': this.safeNumber (market, 'minLeverage'),
+                        'max': this.safeNumber (market, 'maxLeverage'),
+                    },
+                    'amount': {
+                        'min': this.safeNumber (market, 'minVol'),
+                        'max': this.safeNumber (market, 'maxVol'),
                     },
                     'price': {
                         'min': undefined,
