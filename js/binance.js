@@ -1572,8 +1572,14 @@ module.exports = class binance extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const spot = (type === 'spot');
-            const swap = (type === 'swap');
-            const future = (type === 'future');
+            const contractType = this.safeString (market, 'contractType');
+            let expiry = this.safeInteger (market, 'deliveryDate');
+            if (expiry === 4133404800000) {
+                expiry = undefined;
+            }
+            const swap = (contractType === 'PERPETUAL');
+            const future = (expiry !== undefined);
+            let marketType = type;
             const contract = swap || future;
             const id = this.safeString (market, 'symbol');
             const lowercaseId = this.safeStringLower (market, 'symbol');
@@ -1583,22 +1589,22 @@ module.exports = class binance extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const settle = this.safeCurrencyCode (settleId);
-            const contractType = this.safeString (market, 'contractType');
-            const idSymbol = contract && (contractType !== 'PERPETUAL');
             const useSpotSymbols = this.options['useSpotSymbols'];
             let symbol = undefined;
-            let expiry = undefined;
-            if (idSymbol) {
-                expiry = this.safeInteger (market, 'deliveryDate');
+            if (future) {
+                marketType = 'future';
                 symbol = base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry, '');
                 if (useSpotSymbols) {
                     symbol = id;
                 }
-            } else if (contract && !useSpotSymbols) { // Already known that it's not future
+            } else if (contract) { // Already known that it's not future
+                marketType = 'swap';
                 symbol = base + '/' + quote + ':' + settle;
+                if (useSpotSymbols) {
+                    symbol = base + '/' + quote;
+                }
             } else {
                 symbol = base + '/' + quote;
-                this.oldSymbolMappings[base + '/' + quote] = symbol;
             }
             const filters = this.safeValue (market, 'filters', []);
             const filtersByType = this.indexBy (filters, 'filterType');
@@ -1630,7 +1636,7 @@ module.exports = class binance extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
-                'type': type,
+                'type': marketType,
                 'spot': spot,
                 'margin': spot && isMarginTradingAllowed,
                 'swap': swap,
@@ -1710,10 +1716,10 @@ module.exports = class binance extends Exchange {
             }
             if (this.typeGen === 'old') {
                 entry['future'] = swap;
-                if (type === 'future') {
-                    type = 'delivery';
-                } else if (type === 'swap') {
-                    type = 'future';
+                if (entry['type'] === 'future') {
+                    entry['type'] = 'delivery';
+                } else if (entry['type'] === 'swap') {
+                    entry['type'] = 'future';
                 }
             }
             result.push (entry);
