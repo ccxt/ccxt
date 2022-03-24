@@ -55,6 +55,8 @@ module.exports = class phemex extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': false,
                 'fetchWithdrawals': true,
                 'setLeverage': true,
                 'transfer': true,
@@ -100,6 +102,7 @@ module.exports = class phemex extends Exchange {
                 'public': {
                     'get': [
                         'cfg/v2/products', // spot + contracts
+                        'cfg/fundingRates',
                         'products', // contracts only
                         'nomics/trades', // ?market=<symbol>&since=<since>
                         'md/kline', // ?from=1589811875&resolution=1800&symbol=sBTCUSDT&to=1592457935
@@ -2823,10 +2826,10 @@ module.exports = class phemex extends Exchange {
             throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', '));
         }
         if (fromId === 'spot' && toId === 'future') {
-            direction = '2';
+            direction = 2;
         }
         if (fromId === 'future' && toId === 'spot') {
-            direction = '1';
+            direction = 1;
         }
         if (direction === undefined) {
             throw new ExchangeError (this.id + ' transfer can only be down from future to spot or from spot to future');
@@ -2862,7 +2865,7 @@ module.exports = class phemex extends Exchange {
         const amountEv = this.safeString (transfer, 'amountEv');
         const amountTransfered = this.fromEv (amountEv, currency);
         const code = this.safeCurrencyCode (undefined, currency);
-        const side = this.safeNumber (transfer, 'side');
+        const side = this.safeInteger (transfer, 'side');
         let fromId = undefined;
         let toId = undefined;
         if (side === 1) {
