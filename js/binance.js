@@ -1738,20 +1738,24 @@ module.exports = class binance extends Exchange {
         }
     }
 
-    getCorrectSymbols (symbols) {
+    getCorrectSymbols (symbols = undefined) {
         if (this.markets === undefined) {
             throw new ExchangeError (this.id + ' markets not loaded');
         }
-        const newSymbols = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
-            if (symbol in this.oldSymbolMappings) {
-                newSymbols.push (this.oldSymbolMappings[symbol]);
-            } else {
-                newSymbols.push (symbol);
+        if (symbols === undefined) {
+            return symbols;
+        } else {
+            const newSymbols = [];
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                if (symbol in this.oldSymbolMappings) {
+                    newSymbols.push (this.oldSymbolMappings[symbol]);
+                } else {
+                    newSymbols.push (symbol);
+                }
             }
+            return newSymbols;
         }
-        return newSymbols;
     }
 
     market (symbol) {
