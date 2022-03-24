@@ -1646,10 +1646,11 @@ class mexc(Exchange):
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        if market['spot']:
-            return await self.create_spot_order(symbol, type, side, amount, price, params)
-        elif market['swap']:
-            return await self.create_swap_order(symbol, type, side, amount, price, params)
+        marketType, query = self.handle_market_type_and_params('createOrder', market, params)
+        if marketType == 'spot':
+            return await self.create_spot_order(symbol, type, side, amount, price, query)
+        elif marketType == 'swap':
+            return await self.create_swap_order(symbol, type, side, amount, price, query)
 
     async def create_spot_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()

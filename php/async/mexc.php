@@ -1721,10 +1721,11 @@ class mexc extends Exchange {
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
-        if ($market['spot']) {
-            return yield $this->create_spot_order($symbol, $type, $side, $amount, $price, $params);
-        } else if ($market['swap']) {
-            return yield $this->create_swap_order($symbol, $type, $side, $amount, $price, $params);
+        list($marketType, $query) = $this->handle_market_type_and_params('createOrder', $market, $params);
+        if ($marketType === 'spot') {
+            return yield $this->create_spot_order($symbol, $type, $side, $amount, $price, $query);
+        } else if ($marketType === 'swap') {
+            return yield $this->create_swap_order($symbol, $type, $side, $amount, $price, $query);
         }
     }
 
