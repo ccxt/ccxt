@@ -298,23 +298,10 @@ module.exports = class upbit extends Exchange {
         //         "market": {
         //             "id": "KRW-BTC",
         //             "name": "BTC/KRW",
-        //             "order_types": [
-        //                 "limit"
-        //             ],
-        //             "order_sides": [
-        //                 "ask",
-        //                 "bid"
-        //             ],
-        //             "bid": {
-        //                 "currency": "KRW",
-        //                 "price_unit": null,
-        //                 "min_total": 1000
-        //             },
-        //             "ask": {
-        //                 "currency": "BTC",
-        //                 "price_unit": null,
-        //                 "min_total": 1000
-        //             },
+        //             "order_types": [ "limit" ],
+        //             "order_sides": [ "ask", "bid" ],
+        //             "bid": { "currency": "KRW", "price_unit": null, "min_total": 1000 },
+        //             "ask": { "currency": "BTC", "price_unit": null, "min_total": 1000 },
         //             "max_total": "100000000.0",
         //             "state": "active",
         //         },
@@ -819,23 +806,10 @@ module.exports = class upbit extends Exchange {
         //         "market": {
         //             "id": "KRW-BTC",
         //             "name": "BTC/KRW",
-        //             "order_types": [
-        //                 "limit"
-        //             ],
-        //             "order_sides": [
-        //                 "ask",
-        //                 "bid"
-        //             ],
-        //             "bid": {
-        //                 "currency": "KRW",
-        //                 "price_unit": null,
-        //                 "min_total": 5000
-        //             },
-        //             "ask": {
-        //                 "currency": "BTC",
-        //                 "price_unit": null,
-        //                 "min_total": 5000
-        //             },
+        //             "order_types": [ "limit" ],
+        //             "order_sides": [ "ask", "bid" ],
+        //             "bid": { "currency": "KRW", "price_unit": null, "min_total": 5000 },
+        //             "ask": { "currency": "BTC", "price_unit": null, "min_total": 5000 },
         //             "max_total": "1000000000.0",
         //             "state": "active"
         //         },
