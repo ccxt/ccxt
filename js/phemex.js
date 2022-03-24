@@ -2853,12 +2853,27 @@ module.exports = class phemex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const id = this.safeString (data, 'linkKey');
-        const status = this.safeString (data, 'status');
-        const amountEv = this.safeString (data, 'amountEv');
+        return this.parseTransfer (data, currency);
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        const id = this.safeString (transfer, 'linkKey');
+        const status = this.safeString (transfer, 'status');
+        const amountEv = this.safeString (transfer, 'amountEv');
         const amountTransfered = this.fromEv (amountEv, currency);
+        const code = this.safeString (currency, 'code');
+        const side = this.safeNumber (transfer, 'side');
+        let fromId = undefined;
+        let toId = undefined;
+        if (side === 1) {
+            fromId = 'future';
+            toId = 'spot';
+        } else if (side === 2) {
+            fromId = 'spot';
+            toId = 'future';
+        }
         return {
-            'info': response,
+            'info': transfer,
             'id': id,
             'timestamp': undefined,
             'datetime': undefined,
