@@ -180,8 +180,8 @@ class coinbasepro(Exchange):
                 'trading': {
                     'tierBased': True,  # complicated tier system per coin
                     'percentage': True,
-                    'maker': 0.5 / 100,  # highest fee of all tiers
-                    'taker': 0.5 / 100,  # highest fee of all tiers
+                    'maker': 0.4 / 100,  # highest fee of all tiers
+                    'taker': 0.6 / 100,  # highest fee of all tiers
                 },
                 'funding': {
                     'tierBased': False,
