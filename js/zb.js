@@ -536,7 +536,14 @@ module.exports = class zb extends Exchange {
         //         },
         //     }
         //
-        const contracts = await this.contractV2PublicGetConfigMarketList (params);
+        let contracts = undefined;
+        try {
+            // https://github.com/ZBFuture/docs_en/blob/main/API%20V2%20_en.md#7-public-markethttp
+            // https://fapi.zb.com/Server/api/v2/config/marketList 502 Bad Gateway
+            contracts = await this.contractV2PublicGetConfigMarketList (params);
+        } catch (e) {
+            contracts = {};
+        }
         //
         //     {
         //         BTC_USDT: {
