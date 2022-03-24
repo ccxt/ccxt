@@ -187,7 +187,7 @@ module.exports = class lbank2 extends Exchange {
                     'method': 'privatePostSupplementCreateOrder', // or privatePostCreateOrder
                 },
                 'fetchOrder': {
-                    'method': 'fetchOrderDefault', //
+                    'method': 'fetchOrderSupplement', // or fetchOrderDefault
                 },
                 'networks': {
                     'ERC20': 'erc20',
@@ -654,96 +654,6 @@ module.exports = class lbank2 extends Exchange {
         return this.safeString (statuses, status);
     }
 
-    parseOrder (order, market = undefined) {
-        //
-        //
-        //      {
-        //          "symbol": 'doge_usdt',
-        //          "amount": 100,
-        //          "price": 1,
-        //          "order_id": undefined,
-        //          "type": 'buy',
-        //          "order_type": 'market',
-        //          "create_time": 1647456309418,
-        //          "custom_id": "007" // field id only present if custom Id exists
-        //          "info": {
-        //              "result": true,
-        //              "data": {
-        //                  "order_id": 'ecef0330-601b-4b0e-a573-13668ead396c'
-        //                   },
-        //          "error_code": '0',
-        //          "ts": '1647456309193'
-        //              }
-        //      }
-        //
-        //
-        // fetchOrder (private)
-        //
-        //      {
-        //          "symbol":"doge_usdt",
-        //          "amount":18,
-        //          "create_time":1647455223186,
-        //          "price":0,
-        //          "avg_price":0.113344,
-        //          "type":"sell_market",
-        //          "order_id":"d4ca1ddd-40d9-42c1-9717-5de435865bec",
-        //          "custom_id": "007" // field id only present if custom Id exists
-        //          "deal_amount":18,
-        //          "status":2
-        //      }
-        //
-        const marketId = this.safeString (order, 'symbol');
-        const symbol = this.safeSymbol (marketId, market, '_');
-        const timestamp = this.safeInteger (order, 'create_time');
-        // Limit Order Request Returns: Order Price
-        // Market Order Returns: cny amount of market order
-        const clientOrderId = this.safeString2 (order, 'custom_id', 'customer_id');
-        const price = this.safeString (order, 'price');
-        const amount = this.safeString (order, 'amount');
-        const filled = this.safeString (order, 'deal_amount');
-        const average = this.safeString (order, 'avg_price');
-        const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const id = this.safeString (order, 'order_id');
-        const typeId = this.safeString (order, 'type');
-        const orderTypeParts = typeId.split ('_');
-        const side = orderTypeParts[0];
-        const secondPart = orderTypeParts[1];
-        let timeInForce = undefined;
-        let type = undefined;
-        if (secondPart === undefined) {
-            type = 'limit';
-        } else if (secondPart === 'market') {
-            type = 'market';
-        } else if (secondPart === 'ioc') {
-            timeInForce = 'IOC';
-        } else if (secondPart === 'fok') {
-            timeInForce = 'FOK';
-        }
-        return this.safeOrder ({
-            'id': id,
-            'clientOrderId': clientOrderId,
-            'datetime': this.iso8601 (timestamp),
-            'timestamp': timestamp,
-            'lastTradeTimestamp': undefined,
-            'status': status,
-            'symbol': symbol,
-            'type': type,
-            'timeInForce': timeInForce,
-            'postOnly': undefined,
-            'side': side,
-            'price': price,
-            'stopPrice': undefined,
-            'cost': undefined,
-            'amount': amount,
-            'filled': filled,
-            'remaining': undefined,
-            'trades': undefined,
-            'fee': undefined,
-            'info': this.safeValue (order, 'info', order),
-            'average': average,
-        }, market);
-    }
-
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -823,7 +733,114 @@ module.exports = class lbank2 extends Exchange {
         };
     }
 
+    parseOrder (order, market = undefined) {
+        //
+        // fetchOrderSupplement (private)
+        //
+        //      {
+        //          "cummulativeQuoteQty":0,
+        //          "symbol":"doge_usdt",
+        //          "executedQty":0,
+        //          "orderId":"53d2d53e-70fb-4398-b722-f48571a5f61e",
+        //          "origQty":1E+2,
+        //          "price":0.05,
+        //          "clientOrderId":null,
+        //          "origQuoteOrderQty":5,
+        //          "updateTime":1648163406000,
+        //          "time":1648163139387,
+        //          "type":"buy_maker",
+        //          "status":-1
+        //      }
+        //
+        //
+        // fetchOrderDefault (private)
+        //
+        //      {
+        //          "symbol":"doge_usdt",
+        //          "amount":18,
+        //          "create_time":1647455223186,
+        //          "price":0,
+        //          "avg_price":0.113344,
+        //          "type":"sell_market",
+        //          "order_id":"d4ca1ddd-40d9-42c1-9717-5de435865bec",
+        //          "custom_id": "007" // field id only present if custom Id exists
+        //          "deal_amount":18,
+        //          "status":2
+        //      }
+        //
+        return this.safeOrder ({
+            'id': undefined,
+            'clientOrderId': undefined,
+            'datetime': undefined,
+            'timestamp': undefined,
+            'lastTradeTimestamp': undefined,
+            'status': undefined,
+            'symbol': undefined,
+            'type': undefined,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': undefined,
+            'price': undefined,
+            'stopPrice': undefined,
+            'cost': undefined,
+            'amount': undefined,
+            'filled': undefined,
+            'remaining': undefined,
+            'trades': undefined,
+            'fee': undefined,
+            'info': order,
+            'average': undefined,
+        }, market);
+    }
+
     async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let method = this.safeString (params, 'method');
+        if (method === undefined) {
+            const options = this.safeValue (this.options, 'fetchOrder', {});
+            method = this.safeString (options, 'method', 'fetchOrderSupplement');
+        }
+        const result = await this[method] (id, symbol, params);
+        return result;
+    }
+
+    async fetchOrderSupplement (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder () requires a symbol argument');
+        }
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'orderId': id,
+        };
+        const response = await this.privatePostSupplementOrdersInfo (this.extend (request, params));
+        //
+        //      {
+        //          "result":true,
+        //          "data":{
+        //              "cummulativeQuoteQty":0,
+        //              "symbol":"doge_usdt",
+        //              "executedQty":0,
+        //              "orderId":"53d2d53e-70fb-4398-b722-f48571a5f61e",
+        //              "origQty":1E+2,
+        //              "price":0.05,
+        //              "clientOrderId":null,
+        //              "origQuoteOrderQty":5,
+        //              "updateTime":1648163406000,
+        //              "time":1648163139387,
+        //              "type":"buy_maker",
+        //              "status":-1
+        //              },
+        //          "error_code":0,
+        //          "ts":1648164471827
+        //      }
+        //
+        const result = this.safeValue (response, 'data', {});
+        return this.parseOrder (result);
+    }
+
+    async fetchOrderDefault (id, symbol = undefined, params = {}) {
         // Id can be a list of ids delimited by a comma
         await this.loadMarkets ();
         if (symbol === undefined) {
@@ -858,9 +875,14 @@ module.exports = class lbank2 extends Exchange {
         const result = this.safeValue (response, 'data', []);
         const numOrders = result.length;
         if (numOrders === 1) {
-            return result[0];
+            return this.parseOrder (result[0]);
         } else {
-            return result;
+            const parsedOrders = [];
+            for (let i = 0; i < numOrders; i++) {
+                const parsedOrder = this.parseOrder (result[i]);
+                parsedOrders.push (parsedOrder);
+            }
+            return parsedOrders;
         }
     }
 
