@@ -542,7 +542,7 @@ module.exports = class btcex extends Exchange {
         //     }
         //
         return [
-            this.safeInteger (ohlcv, 'time'),
+            this.safeInteger (ohlcv, 'tick'),
             this.safeNumber (ohlcv, 'open'),
             this.safeNumber (ohlcv, 'high'),
             this.safeNumber (ohlcv, 'low'),
