@@ -1465,15 +1465,12 @@ module.exports = class zb extends Exchange {
             // 'type': timeframeValue, // spot only
             // 'period': timeframeValue, // swap only
             // 'since': since, // spot only
-            // 'limit': limit, // spot only
-            // 'size': limit, // swap only
+            // 'size': limit, // spot and swap
         };
         const marketIdField = swap ? 'symbol' : 'market';
         request[marketIdField] = market['id'];
         const periodField = swap ? 'period' : 'type';
         request[periodField] = timeframeValue;
-        const sizeField = swap ? 'size' : 'limit';
-        request[sizeField] = limit;
         const price = this.safeString (params, 'price');
         params = this.omit (params, 'price');
         let method = this.getSupportedMapping (market['type'], {
@@ -1486,9 +1483,13 @@ module.exports = class zb extends Exchange {
             } else if (price === 'index') {
                 method = 'contractV1PublicGetIndexKline';
             }
+        } else if (market['spot']) {
+            if (since !== undefined) {
+                request['since'] = since;
+            }
         }
-        if (since !== undefined) {
-            request['since'] = since;
+        if (limit !== undefined) {
+            request['size'] = limit;
         }
         const response = await this[method] (this.extend (request, params));
         //
