@@ -44,7 +44,50 @@ module.exports = class cryptocom extends ccxt.cryptocom {
         //     "method": "public/heartbeat",
         //     "code": 0
         // }
-        await client.send ({ 'id': this.safeInteger (message, 'id'), 'method': 'public/response-heartbeat' });
+        await client.send ({ 'id': this.safeInteger (message, 'id'), 'method': 'public/respond-heartbeat' });
+    }
+
+    async watchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const messageHash = 'ticker' + '.' + market['id'];
+        return await this.watchPublic (messageHash, params);
+    }
+
+    handleTicker (client, message) {
+        //
+        // {
+        //     "info":{
+        //        "instrument_name":"BTC_USDT",
+        //        "subscription":"ticker.BTC_USDT",
+        //        "channel":"ticker",
+        //        "data":[
+        //           {
+        //              "i":"BTC_USDT",
+        //              "b":43063.19,
+        //              "k":43063.2,
+        //              "a":43063.19,
+        //              "t":1648121165658,
+        //              "v":43573.912409,
+        //              "h":43498.51,
+        //              "l":41876.58,
+        //              "c":1087.43
+        //           }
+        //        ]
+        //     }
+        //  }
+        //
+        const messageHash = this.safeString (message, 'subscription');
+        const marketId = this.safeString (message, 'instrument_name');
+        const market = this.safeMarket (marketId);
+        const data = this.safeValue (message, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const ticker = data[i];
+            const parsed = this.parseTicker (ticker, market);
+            const symbol = parsed['symbol'];
+            this.tickers[symbol] = parsed;
+            client.resolve (parsed, messageHash);
+        }
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -130,6 +173,14 @@ module.exports = class cryptocom extends ccxt.cryptocom {
         //       data: [ [Object] ]
         //     }
         //   }
+        // ticker
+        // {
+        //     "info":{
+        //        "instrument_name":"BTC_USDT",
+        //        "subscription":"ticker.BTC_USDT",
+        //        "channel":"ticker",
+        //        "data":[ { } ]
+        //
         if (!this.handleErrorMessage (client, message)) {
             return;
         }
@@ -140,8 +191,9 @@ module.exports = class cryptocom extends ccxt.cryptocom {
         }
         const methods = {
             'candlestick': this.handleOHLCV,
+            'ticker': this.handleTicker,
         };
-        const result = this.safeValue (message, 'result', {});
+        const result = this.safeValue2 (message, 'result', 'info');
         const channel = this.safeString (result, 'channel');
         const method = this.safeValue (methods, channel);
         if (method !== undefined) {
