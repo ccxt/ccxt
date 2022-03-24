@@ -59,6 +59,8 @@ module.exports = class phemex extends Exchange {
                 'fetchTradingFees': false,
                 'fetchWithdrawals': true,
                 'setLeverage': true,
+                'transfer': true,
+                'withdraw': undefined,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg',
@@ -376,6 +378,10 @@ module.exports = class phemex extends Exchange {
                     'USDT': 'ETH',
                 },
                 'defaultSubType': 'linear',
+                'accountsByType': {
+                    'spot': 'spot',
+                    'future': 'future',
+                },
             },
         });
     }
@@ -2795,6 +2801,105 @@ module.exports = class phemex extends Exchange {
             'leverage': leverage,
         };
         return await this.privatePutPositionsLeverage (this.extend (request, params));
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const fromId = this.safeString (accountsByType, fromAccount);
+        const toId = this.safeString (accountsByType, toAccount);
+        let direction = undefined;
+        if (fromId === undefined) {
+            const keys = Object.keys (accountsByType);
+            throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', '));
+        }
+        if (toId === undefined) {
+            const keys = Object.keys (accountsByType);
+            throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', '));
+        }
+        if (fromId === 'spot' && toId === 'future') {
+            direction = 2;
+        }
+        if (fromId === 'future' && toId === 'spot') {
+            direction = 1;
+        }
+        if (direction === undefined) {
+            throw new ExchangeError (this.id + ' transfer can only be down from future to spot or from spot to future');
+        }
+        const scaledAmmount = this.toEv (amount, currency);
+        const request = {
+            'currency': currency['id'],
+            'moveOp': direction,
+            'amountEv': scaledAmmount,
+        };
+        const response = await this.privatePostAssetsTransfer (this.extend (request, params));
+        //
+        //     {
+        //         code: '0',
+        //         msg: 'OK',
+        //         data: {
+        //             linkKey: '8564eba4-c9ec-49d6-9b8c-2ec5001a0fb9',
+        //             userId: '4018340',
+        //             currency: 'USD',
+        //             amountEv: '10',
+        //             side: '2',
+        //             status: '10'
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseTransfer (data, currency);
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        //     {
+        //         linkKey: '8564eba4-c9ec-49d6-9b8c-2ec5001a0fb9',
+        //         userId: '4018340',
+        //         currency: 'USD',
+        //         amountEv: '10',
+        //         side: '2',
+        //         status: '10'
+        //     }
+        //
+        const id = this.safeString (transfer, 'linkKey');
+        const status = this.safeString (transfer, 'status');
+        const amountEv = this.safeString (transfer, 'amountEv');
+        const amountTransfered = this.fromEv (amountEv, currency);
+        const currencyId = this.safeString (transfer, 'currency');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const side = this.safeInteger (transfer, 'side');
+        let fromId = undefined;
+        let toId = undefined;
+        if (side === 1) {
+            fromId = 'future';
+            toId = 'spot';
+        } else if (side === 2) {
+            fromId = 'spot';
+            toId = 'future';
+        }
+        return {
+            'info': transfer,
+            'id': id,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': code,
+            'amount': amountTransfered,
+            'fromAccount': fromId,
+            'toAccount': toId,
+            'status': this.parseTransferStatus (status),
+        };
+    }
+
+    parseTransferStatus (status) {
+        const statuses = {
+            '3': 'rejected', // 'Rejected',
+            '6': 'canceled', // 'Got error and wait for recovery',
+            '10': 'ok', // 'Success',
+            '11': 'failed', // 'Failed',
+        };
+        return this.safeString (statuses, status, 'pending');
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
