@@ -2147,6 +2147,8 @@ class Exchange(object):
     def market(self, symbol):
         if not self.markets:
             raise ExchangeError('Markets not loaded')
+        if not self.markets_by_id:
+            raise ExchangeError('Markets not loaded')
         if isinstance(symbol, str):
             if symbol in self.markets:
                 return self.markets[symbol]

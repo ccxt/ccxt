@@ -2754,6 +2754,9 @@ class Exchange {
         if (!isset($this->markets)) {
             throw new ExchangeError($this->id . ' markets not loaded');
         }
+        if (!isset($this->markets_by_id)) {
+            throw new ExchangeError($this->id . ' markets not loaded');
+        }
         if (gettype($symbol) === 'string') {
             if (isset($this->markets[$symbol])) {
                 return $this->markets[$symbol];
