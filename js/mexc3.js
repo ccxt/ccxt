@@ -347,19 +347,20 @@ module.exports = class mexc3 extends Exchange {
 
     async fetchTime (params = {}) {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
-        const method = this.getSupportedMapping (marketType, {
-            'spot': 'spotPublicGetTime',
-            'swap': '',
-        });
-        const response = await this[method] (this.extend (query));
-        //
-        // spot
-        //
-        //     {
-        //         "serverTime": "1647519277579"
-        //     }
-        //
-        return this.safeInteger (response, 'serverTime');
+        let response = undefined;
+        if (marketType === 'swap') {
+            response = await this.contractPublicGetPing (query);
+            //
+            //     {"success":true,"code":"0","data":"1648124374985"}
+            //
+            return this.safeInteger (response, 'data');
+        } else {
+            response = await this.spotPublicGetTime (query);
+            //
+            //     {"serverTime": "1647519277579"}
+            //
+            return this.safeInteger (response, 'serverTime');
+        }
     }
 
     async fetchMarkets (params = {}) {
