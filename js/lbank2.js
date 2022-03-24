@@ -183,6 +183,12 @@ module.exports = class lbank2 extends Exchange {
                 'fetchDepositAddress': {
                     'method': 'fetchDepositAddressDefault', // or fetchDepositAddressSupplement
                 },
+                'createOrder': {
+                    'method': 'privatePostSupplementCreateOrder', // or privatePostCreateOrder
+                },
+                'fetchOrder': {
+                    'method': 'fetchOrderDefault', //
+                },
                 'networks': {
                     'ERC20': 'erc20',
                     'ETH': 'erc20',
@@ -642,6 +648,7 @@ module.exports = class lbank2 extends Exchange {
             '0': 'open', // not traded
             '1': 'open', // partial deal
             '2': 'closed', // complete deal
+            '3': 'closed', // filled partially and cancelled
             '4': 'closed', // disposal processing
         };
         return this.safeString (statuses, status);
@@ -740,20 +747,76 @@ module.exports = class lbank2 extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const order = {
-            'symbol': market['id'],
-            'type': side,
-            'amount': amount,
-            'price': 1, // required unused number > 0 even for market orders
-            // 'custom_id': ... can be used to cancel order
-        };
-        if (type === 'market') {
-            order['type'] += '_market';
-        } else {
-            order['price'] = price;
+        const clientOrderId = this.safeString2 (params, 'custom_id', 'clientOrderId');
+        const postOnly = this.safeString (params, 'postOnly', false);
+        const timeInForce = this.safeStringUpper (params, 'timeInForce');
+        params = this.omit (params, [ 'custom_id', 'clientOrderId', 'timeInForce', 'postOnly' ]);
+        if (type === 'limit') {
+            type = side;
+            if (side === 'sell') {
+                if (timeInForce === 'FOK') {
+                    type = 'sell_fok';
+                }
+                if (timeInForce === 'IOC') {
+                    type = 'sell_ioc';
+                }
+                if (postOnly || (timeInForce === 'PO')) {
+                    type = 'sell_maker';
+                }
+            }
+            if (side === 'buy') {
+                if (timeInForce === 'FOK') {
+                    type = 'buy_fok';
+                }
+                if (timeInForce === 'IOC') {
+                    type = 'buy_ioc';
+                }
+                if (postOnly || (timeInForce === 'PO')) {
+                    type = 'buy_maker';
+                }
+            }
         }
-        const response = await this.privatePostCreateOrder (this.extend (order, params));
-        const result = this.safeValue (response, 'data');
+        if (type === 'market') {
+            if (side === 'sell') {
+                type = 'sell_market';
+            }
+            if (side === 'buy') {
+                type = 'buy_market';
+            }
+        }
+        const request = {
+            'symbol': market['id'],
+            'amount': this.amountToPrecision (symbol, amount),
+            'type': type,
+        };
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        } else {
+            request['price'] = 1; // required unused number > 0 even for market orders
+        }
+        if (clientOrderId !== undefined) {
+            request['custom_id'] = clientOrderId;
+        }
+        let method = undefined;
+        method = this.safeString (params, 'method');
+        params = this.omit (params, 'method');
+        if (method === undefined) {
+            const options = this.safeValue (this.options, 'createOrder', {});
+            method = this.safeString (options, 'method', 'privatePostSupplementCreateOrder');
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        //      {
+        //          "result":true,
+        //          "data":{
+        //              "symbol":"doge_usdt",
+        //              "order_id":"0cf8a3de-4597-4296-af45-be7abaa06b07"
+        //              },
+        //          "error_code":0,
+        //          "ts":1648162321043
+        //      }
+        //
+        const result = this.safeValue (response, 'data', {});
         return {
             'id': this.safeString (result, 'order_id'),
             'info': result,
@@ -792,14 +855,12 @@ module.exports = class lbank2 extends Exchange {
         //          "ts":1647455270776
         //      }
         //
-        const result = this.safeValue (response, 'data', [])[0];
-        const orders = this.parseOrder (result, market);
-        // if comma separated list of orders is provided;
-        const numOrders = orders.length;
+        const result = this.safeValue (response, 'data', []);
+        const numOrders = result.length;
         if (numOrders === 1) {
-            return orders[0];
+            return result[0];
         } else {
-            return orders;
+            return result;
         }
     }
 
