@@ -962,6 +962,7 @@ module.exports = class binance extends Exchange {
                     'JPY': true,
                     'NZD': true,
                 },
+                'useSpotSymbols': false,  // Temporary to not break past code, please switch to use the new symbol format
             },
             // https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
             'exceptions': {
@@ -1536,13 +1537,14 @@ module.exports = class binance extends Exchange {
             const settle = this.safeCurrencyCode (settleId);
             const contractType = this.safeString (market, 'contractType');
             const idSymbol = contract && (contractType !== 'PERPETUAL');
+            const useSpotSymbols = this.options['useSpotSymbols'];
             let symbol = undefined;
             let expiry = undefined;
-            if (idSymbol) {
+            if (idSymbol && !useSpotSymbols) {
                 expiry = this.safeInteger (market, 'deliveryDate');
                 symbol = base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry, '');
                 this.oldSymbolMappings[id] = symbol;
-            } else if (contract) { // Already known that it's not delivery
+            } else if (contract && !useSpotSymbols) { // Already known that it's not delivery
                 symbol = base + '/' + quote + ':' + settle;
                 this.oldSymbolMappings[base + '/' + quote] = symbol;
             } else {
