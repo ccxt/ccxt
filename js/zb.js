@@ -1486,10 +1486,9 @@ module.exports = class zb extends Exchange {
             } else if (price === 'index') {
                 method = 'contractV1PublicGetIndexKline';
             }
-        } else if (market['spot']) {
-            if (since !== undefined) {
-                request['since'] = since;
-            }
+        }
+        if (since !== undefined) {
+            request['since'] = since;
         }
         const response = await this[method] (this.extend (request, params));
         //
