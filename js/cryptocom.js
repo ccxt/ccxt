@@ -490,7 +490,7 @@ module.exports = class cryptocom extends ccxt.cryptocom {
         }
         const subject = this.safeString (message, 'method');
         if (subject === 'public/heartbeat') {
-            this.pong (client, message);
+            this.handlePing (client, message);
             return;
         }
         if (subject === 'public/auth') {
@@ -538,6 +538,10 @@ module.exports = class cryptocom extends ccxt.cryptocom {
             this.spawn (this.watch, url, messageHash, this.extend (request, params), messageHash);
         }
         return await future;
+    }
+
+    handlePing (client, message) {
+        this.spawn (this.pong, client, message);
     }
 
     handleAuthenticate (client, message) {
