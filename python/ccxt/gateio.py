@@ -1416,14 +1416,7 @@ class gateio(Exchange):
         #       "futures_maker_fee": "0"
         #     }
         #
-        taker = self.safe_number(response, 'taker_fee')
-        maker = self.safe_number(response, 'maker_fee')
-        return {
-            'info': response,
-            'symbol': symbol,
-            'maker': maker,
-            'taker': taker,
-        }
+        return self.parse_trading_fee(response, market)
 
     def fetch_trading_fees(self, params={}):
         self.load_markets()
@@ -1442,18 +1435,40 @@ class gateio(Exchange):
         #       "futures_maker_fee": "0"
         #     }
         #
+        return self.parse_trading_fees(response)
+
+    def parse_trading_fees(self, response):
         result = {}
-        taker = self.safe_number(response, 'taker_fee')
-        maker = self.safe_number(response, 'maker_fee')
         for i in range(0, len(self.symbols)):
             symbol = self.symbols[i]
-            result[symbol] = {
-                'maker': maker,
-                'taker': taker,
-                'info': response,
-                'symbol': symbol,
-            }
+            market = self.market(symbol)
+            result[symbol] = self.parse_trading_fee(response, market)
         return result
+
+    def parse_trading_fee(self, info, market=None):
+        #
+        #     {
+        #       "user_id": 1486602,
+        #       "taker_fee": "0.002",
+        #       "maker_fee": "0.002",
+        #       "gt_discount": True,
+        #       "gt_taker_fee": "0.0015",
+        #       "gt_maker_fee": "0.0015",
+        #       "loan_fee": "0.18",
+        #       "point_type": "0",
+        #       "futures_taker_fee": "0.0005",
+        #       "futures_maker_fee": "0"
+        #     }
+        #
+        contract = self.safe_value(market, 'contract')
+        takerKey = 'futures_taker_fee' if contract else 'taker_fee'
+        makerKey = 'futures_maker_fee' if contract else 'maker_fee'
+        return {
+            'info': info,
+            'symbol': self.safe_string(market, 'symbol'),
+            'maker': self.safe_number(info, makerKey),
+            'taker': self.safe_number(info, takerKey),
+        }
 
     def fetch_funding_fees(self, params={}):
         self.load_markets()

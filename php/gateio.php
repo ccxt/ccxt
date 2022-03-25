@@ -1442,14 +1442,7 @@ class gateio extends Exchange {
         //       "futures_maker_fee" => "0"
         //     }
         //
-        $taker = $this->safe_number($response, 'taker_fee');
-        $maker = $this->safe_number($response, 'maker_fee');
-        return array(
-            'info' => $response,
-            'symbol' => $symbol,
-            'maker' => $maker,
-            'taker' => $taker,
-        );
+        return $this->parse_trading_fee($response, $market);
     }
 
     public function fetch_trading_fees($params = array ()) {
@@ -1469,19 +1462,43 @@ class gateio extends Exchange {
         //       "futures_maker_fee" => "0"
         //     }
         //
+        return $this->parse_trading_fees($response);
+    }
+
+    public function parse_trading_fees($response) {
         $result = array();
-        $taker = $this->safe_number($response, 'taker_fee');
-        $maker = $this->safe_number($response, 'maker_fee');
         for ($i = 0; $i < count($this->symbols); $i++) {
             $symbol = $this->symbols[$i];
-            $result[$symbol] = array(
-                'maker' => $maker,
-                'taker' => $taker,
-                'info' => $response,
-                'symbol' => $symbol,
-            );
+            $market = $this->market($symbol);
+            $result[$symbol] = $this->parse_trading_fee($response, $market);
         }
         return $result;
+    }
+
+    public function parse_trading_fee($info, $market = null) {
+        //
+        //     {
+        //       "user_id" => 1486602,
+        //       "taker_fee" => "0.002",
+        //       "maker_fee" => "0.002",
+        //       "gt_discount" => true,
+        //       "gt_taker_fee" => "0.0015",
+        //       "gt_maker_fee" => "0.0015",
+        //       "loan_fee" => "0.18",
+        //       "point_type" => "0",
+        //       "futures_taker_fee" => "0.0005",
+        //       "futures_maker_fee" => "0"
+        //     }
+        //
+        $contract = $this->safe_value($market, 'contract');
+        $takerKey = $contract ? 'futures_taker_fee' : 'taker_fee';
+        $makerKey = $contract ? 'futures_maker_fee' : 'maker_fee';
+        return array(
+            'info' => $info,
+            'symbol' => $this->safe_string($market, 'symbol'),
+            'maker' => $this->safe_number($info, $makerKey),
+            'taker' => $this->safe_number($info, $takerKey),
+        );
     }
 
     public function fetch_funding_fees($params = array ()) {
