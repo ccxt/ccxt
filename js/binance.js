@@ -5620,7 +5620,7 @@ module.exports = class binance extends Exchange {
             'symbol': this.safeSymbol (id),
             'volume': this.safeNumber (interest, 'sumOpenInterest'),
             'value': this.safeNumber (interest, 'sumOpenInterestValue'),
-            'currency': market['quote'],
+            'valueCurrency': market['quote'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,

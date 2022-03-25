@@ -4590,7 +4590,7 @@ module.exports = class okx extends Exchange {
             'symbol': undefined,
             'volume': undefined,
             'value': openInterest,
-            'currency': 'USD',
+            'valueCurrency': 'USD',
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,

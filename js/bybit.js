@@ -3036,7 +3036,7 @@ module.exports = class bybit extends Exchange {
             'symbol': this.safeSymbol (id),
             'volume': this.parseNumber (numContracts),
             'value': Precise.stringMul (numContracts, contractSize),
-            'currency': market['base'],
+            'valueCurrency': market['base'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,
