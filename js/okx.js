@@ -4588,9 +4588,9 @@ module.exports = class okx extends Exchange {
         const openInterest = this.safeNumber (interest, 1);
         return {
             'symbol': undefined,
-            'numContracts': undefined,
-            'totalValue': openInterest,
-            'valueCurrency': 'USD',
+            'volume': undefined,
+            'value': openInterest,
+            'currency': 'USD',
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,

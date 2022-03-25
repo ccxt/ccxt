@@ -5826,8 +5826,8 @@ module.exports = class huobi extends Exchange {
         return {
             'symbol': this.safeString (market, 'symbol'),
             'volume': this.safeNumber (interest, 'volume'),
-            'totalValue': this.safeValue (interest, 'value'),
-            'valueCurrency': this.safeString (market, 'quote'),
+            'value': this.safeValue (interest, 'value'),
+            'currency': this.safeString (market, 'quote'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,

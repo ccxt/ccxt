@@ -5618,9 +5618,9 @@ module.exports = class binance extends Exchange {
         market = this.safeMarket (id, market);
         return {
             'symbol': this.safeSymbol (id),
-            'numContracts': this.safeNumber (interest, 'sumOpenInterest'),
-            'totalValue': this.safeNumber (interest, 'sumOpenInterestValue'),
-            'valueCurrency': market['quote'],
+            'volume': this.safeNumber (interest, 'sumOpenInterest'),
+            'value': this.safeNumber (interest, 'sumOpenInterestValue'),
+            'currency': market['quote'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,
