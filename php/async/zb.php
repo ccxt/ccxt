@@ -1426,7 +1426,7 @@ class zb extends Exchange {
             $ohlcvLength = is_array($ohlcv) ? count($ohlcv) : 0;
             if ($ohlcvLength > 5) {
                 return array(
-                    $this->safe_integer($ohlcv, 5),
+                    $this->safe_timestamp($ohlcv, 5),
                     $this->safe_number($ohlcv, 0),
                     $this->safe_number($ohlcv, 1),
                     $this->safe_number($ohlcv, 2),
@@ -1435,7 +1435,7 @@ class zb extends Exchange {
                 );
             } else {
                 return array(
-                    $this->safe_integer($ohlcv, 4),
+                    $this->safe_timestamp($ohlcv, 4),
                     $this->safe_number($ohlcv, 0),
                     $this->safe_number($ohlcv, 1),
                     $this->safe_number($ohlcv, 2),
@@ -1459,6 +1459,7 @@ class zb extends Exchange {
         yield $this->load_markets();
         $market = $this->market($symbol);
         $swap = $market['swap'];
+        $spot = $market['spot'];
         $options = $this->safe_value($this->options, 'timeframes', array());
         $timeframes = $this->safe_value($options, $market['type'], array());
         $timeframeValue = $this->safe_string($timeframes, $timeframe);
@@ -1469,26 +1470,33 @@ class zb extends Exchange {
             $limit = 1000;
         }
         $request = array(
-            // 'market' => $market['id'], // spot only
+            // 'market' => $market['id'], // $spot only
             // 'symbol' => $market['id'], // $swap only
-            // 'type' => $timeframeValue, // spot only
+            // 'type' => $timeframeValue, // $spot only
             // 'period' => $timeframeValue, // $swap only
-            // 'since' => $since, // spot only
-            // 'limit' => $limit, // spot only
-            // 'size' => $limit, // $swap only
+            // 'since' => $since, // $spot only
+            // 'size' => $limit, // $spot and $swap
         );
         $marketIdField = $swap ? 'symbol' : 'market';
         $request[$marketIdField] = $market['id'];
         $periodField = $swap ? 'period' : 'type';
         $request[$periodField] = $timeframeValue;
-        $sizeField = $swap ? 'size' : 'limit';
-        $request[$sizeField] = $limit;
+        $price = $this->safe_string($params, 'price');
+        $params = $this->omit($params, 'price');
         $method = $this->get_supported_mapping($market['type'], array(
             'spot' => 'spotV1PublicGetKline',
             'swap' => 'contractV1PublicGetKline',
         ));
-        if ($since !== null) {
-            $request['since'] = $since;
+        if ($swap) {
+            if ($price === 'mark') {
+                $method = 'contractV1PublicGetMarkKline';
+            } else if ($price === 'index') {
+                $method = 'contractV1PublicGetIndexKline';
+            }
+        } else if ($spot) {
+            if ($since !== null) {
+                $request['since'] = $since;
+            }
         }
         if ($limit !== null) {
             $request['size'] = $limit;
@@ -1519,34 +1527,7 @@ class zb extends Exchange {
         //         ]
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
-        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
-    }
-
-    public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $options = $this->safe_value($this->options, 'timeframes', array());
-        $timeframes = $this->safe_value($options, $market['type'], array());
-        $timeframeValue = $this->safe_string($timeframes, $timeframe);
-        if ($timeframeValue === null) {
-            throw new NotSupported($this->id . ' fetchMarkOHLCV() does not support ' . $timeframe . ' $timeframe for ' . $market['type'] . ' markets');
-        }
-        if ($limit === null) {
-            $limit = 1000;
-        }
-        $request = array(
-            'symbol' => $market['id'],
-            'period' => $timeframeValue,
-            'size' => $limit,
-        );
-        if ($since !== null) {
-            $request['since'] = $since;
-        }
-        if ($limit !== null) {
-            $request['size'] = $limit;
-        }
-        $response = yield $this->contractV1PublicGetMarkKline (array_merge($request, $params));
+        // Mark
         //
         //     {
         //         "code" => 10000,
@@ -1558,34 +1539,7 @@ class zb extends Exchange {
         //         ]
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
-        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
-    }
-
-    public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $options = $this->safe_value($this->options, 'timeframes', array());
-        $timeframes = $this->safe_value($options, $market['type'], array());
-        $timeframeValue = $this->safe_string($timeframes, $timeframe);
-        if ($timeframeValue === null) {
-            throw new NotSupported($this->id . ' fetchIndexOHLCV() does not support ' . $timeframe . ' $timeframe for ' . $market['type'] . ' markets');
-        }
-        if ($limit === null) {
-            $limit = 1000;
-        }
-        $request = array(
-            'symbol' => $market['id'],
-            'period' => $timeframeValue,
-            'size' => $limit,
-        );
-        if ($since !== null) {
-            $request['since'] = $since;
-        }
-        if ($limit !== null) {
-            $request['size'] = $limit;
-        }
-        $response = yield $this->contractV1PublicGetIndexKline (array_merge($request, $params));
+        // Index
         //
         //     {
         //         "code" => 10000,
@@ -1599,6 +1553,20 @@ class zb extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
+    }
+
+    public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'price' => 'mark',
+        );
+        return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
+    }
+
+    public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'price' => 'index',
+        );
+        return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
     }
 
     public function parse_trade($trade, $market = null) {
