@@ -189,6 +189,9 @@ module.exports = class lbank2 extends Exchange {
                 'fetchOrder': {
                     'method': 'fetchOrderSupplement', // or fetchOrderDefault
                 },
+                'fetchBalance': {
+                    'method': 'privatePostSupplementUserInfo', // or privatePostSupplementUserInfoAccount or privatePostUserInfo
+                },
                 'networks': {
                     'ERC20': 'erc20',
                     'ETH': 'erc20',
@@ -577,6 +580,83 @@ module.exports = class lbank2 extends Exchange {
     }
 
     parseBalance (response) {
+        //
+        // privatePostUserInfo
+        //
+        //      {
+        //          "toBtc": {
+        //              "egc:": "0",
+        //              "iog": "0",
+        //              "ksm": "0",
+        //              },
+        //          "freeze": {
+        //              "egc": "0",
+        //              "iog": "0",
+        //              "ksm": "0" ,
+        //              },
+        //          "asset": {
+        //              "egc": "0",
+        //              "iog": "0",
+        //              "ksm": "0",
+        //              },
+        //          "free": {
+        //              "egc": "0",
+        //              "iog": "0",
+        //              "ksm": "0",
+        //              }
+        //      }
+        //
+        // privatePostSupplementUserInfoAccount
+        //
+        //      {
+        //          "balances":[
+        //              {
+        //                  "asset":"lbk",
+        //                  "free":"0",
+        //                  "locked":"0"
+        //              }, ...
+        //          ]
+        //      }
+        //
+        // privatePostSupplementUserInfo
+        //
+        //      [
+        //          {
+        //              "usableAmt":"31.45130723",
+        //              "assetAmt":"31.45130723",
+        //              "networkList":[
+        //                  {
+        //                      "isDefault":true,
+        //                      "withdrawFeeRate":"",
+        //                      "name":"bep20(bsc)",
+        //                      "withdrawMin":30,
+        //                      "minLimit":0.0001,
+        //                      "minDeposit":0.0001,
+        //                      "feeAssetCode":"doge",
+        //                      "withdrawFee":"30",
+        //                      "type":1,
+        //                      "coin":"doge",
+        //                      "network":"bsc"
+        //                  },
+        //                  {
+        //                      "isDefault":false,
+        //                      "withdrawFeeRate":"",
+        //                      "name":"dogecoin",
+        //                      "withdrawMin":10,
+        //                      "minLimit":0.0001,
+        //                      "minDeposit":10,
+        //                      "feeAssetCode":"doge",
+        //                      "withdrawFee":"10",
+        //                      "type":1,
+        //                      "coin":"doge",
+        //                      "network":"dogecoin"
+        //                  }
+        //              ],
+        //              "freezeAmt":"0",
+        //              "coin":"doge"
+        //          }, ...
+        //      ]
+        //
         const timestamp = this.safeInteger (response, 'ts');
         const result = {
             'info': response,
@@ -584,23 +664,61 @@ module.exports = class lbank2 extends Exchange {
             'datetime': this.iso8601 (timestamp),
         };
         const data = this.safeValue (response, 'data');
-        const balances = this.safeValue (data, 'balances');
-        for (let i = 0; i < balances.length; i++) {
-            const item = balances[i];
-            const currencyId = this.safeString (item, 'asset');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeString (item, 'free');
-            account['used'] = this.safeString (item, 'locked');
-            result[code] = account;
+        // from privatePostUserInfo
+        const toBtc = this.safeValue (data, 'toBtc');
+        if (toBtc !== undefined) {
+            const used = this.safeValue (data, 'freeze', {});
+            const free = this.safeValue (data, 'free', {});
+            const currencies = Object.keys (free);
+            for (let i = 0; i < currencies.length; i++) {
+                const currencyId = currencies[i];
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['used'] = this.safeString (used, currencyId);
+                account['free'] = this.safeString (free, currencyId);
+                result[code] = account;
+            }
+            return this.safeBalance (result);
         }
-        return this.safeBalance (result);
+        // from privatePostSupplementUserInfoAccount
+        const balances = this.safeValue (data, 'balances');
+        if (balances !== undefined) {
+            for (let i = 0; i < balances.length; i++) {
+                const item = balances[i];
+                const currencyId = this.safeString (item, 'asset');
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['free'] = this.safeString (item, 'free');
+                account['used'] = this.safeString (item, 'locked');
+                result[code] = account;
+            }
+            return this.safeBalance (result);
+        }
+        // from privatePostSupplementUserInfo
+        const isArray = Array.isArray (data);
+        if (isArray === true) {
+            for (let i = 0; i < data.length; i++) {
+                const item = data[i];
+                const currencyId = this.safeString (item, 'coin');
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['free'] = this.safeString (item, 'usableAmt');
+                account['used'] = this.safeString (item, 'freezeAmt');
+                result[code] = account;
+            }
+            return this.safeBalance (result);
+        }
     }
 
     async fetchBalance (params = {}) {
         // TODO add support for default method
         await this.loadMarkets ();
-        const response = await this.privatePostSupplementUserInfoAccount ();
+        let method = this.safeString (params, 'method');
+        if (method === undefined) {
+            const options = this.safeValue (this.options, 'fetchBalance', {});
+            method = this.safeString (options, 'method', 'privatePostSupplementUserInfo');
+        }
+        const response = await this[method] ();
         return this.parseBalance (response);
     }
 
