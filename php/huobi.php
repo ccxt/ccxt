@@ -8,6 +8,7 @@ namespace ccxtpro;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\InvalidNonce;
 
 class huobi extends \ccxt\async\huobi {
 
@@ -88,9 +89,7 @@ class huobi extends \ccxt\async\huobi {
                 'tradesLimit' => 1000,
                 'OHLCVLimit' => 1000,
                 'api' => 'api', // or api-aws for clients hosted on AWS
-                'watchOrderBookSnapshot' => array(
-                    'delay' => 1000,
-                ),
+                'maxOrderBookSyncAttempts' => 3,
                 'ws' => array(
                     'gunzip' => true,
                 ),
@@ -294,31 +293,52 @@ class huobi extends \ccxt\async\huobi {
         //
         $symbol = $this->safe_string($subscription, 'symbol');
         $messageHash = $this->safe_string($subscription, 'messageHash');
-        $orderbook = $this->orderbooks[$symbol];
-        $data = $this->safe_value($message, 'data');
-        $snapshot = $this->parse_order_book($data, $symbol);
-        $snapshot['nonce'] = $this->safe_integer($data, 'seqNum');
-        $orderbook->reset ($snapshot);
-        // unroll the accumulated deltas
-        $messages = $orderbook->cache;
-        for ($i = 0; $i < count($messages); $i++) {
-            $message = $messages[$i];
-            $this->handle_order_book_message($client, $message, $orderbook);
+        try {
+            $orderbook = $this->orderbooks[$symbol];
+            $data = $this->safe_value($message, 'data');
+            $messages = $orderbook->cache;
+            $firstMessage = $this->safe_value($messages, 0, array());
+            $snapshot = $this->parse_order_book($data, $symbol);
+            $tick = $this->safe_value($firstMessage, 'tick');
+            $sequence = $this->safe_integer($tick, 'seqNum');
+            $nonce = $this->safe_integer($data, 'seqNum');
+            $snapshot['nonce'] = $nonce;
+            if (($sequence !== null) && ($nonce < $sequence)) {
+                $maxAttempts = $this->safe_integer($this->options, 'maxOrderBookSyncAttempts', 3);
+                $numAttempts = $this->safe_integer($subscription, 'numAttempts', 0);
+                // retry to synchronize if we have not reached $maxAttempts yet
+                if ($numAttempts < $maxAttempts) {
+                    // safety guard
+                    if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                        $numAttempts = $this->sum($numAttempts, 1);
+                        $subscription['numAttempts'] = $numAttempts;
+                        $client->subscriptions[$messageHash] = $subscription;
+                        $this->spawn(array($this, 'watch_order_book_snapshot'), $client, $message, $subscription);
+                    }
+                } else {
+                    // throw upon failing to synchronize in $maxAttempts
+                    throw new InvalidNonce($this->id . ' failed to synchronize WebSocket feed with the $snapshot for $symbol ' . $symbol . ' in ' . (string) $maxAttempts . ' attempts');
+                }
+            } else {
+                $orderbook->reset ($snapshot);
+                // unroll the accumulated deltas
+                for ($i = 0; $i < count($messages); $i++) {
+                    $message = $messages[$i];
+                    $this->handle_order_book_message($client, $message, $orderbook);
+                }
+                $this->orderbooks[$symbol] = $orderbook;
+                $client->resolve ($orderbook, $messageHash);
+            }
+        } catch (Exception $e) {
+            $client->reject ($e, $messageHash);
         }
-        $this->orderbooks[$symbol] = $orderbook;
-        $client->resolve ($orderbook, $messageHash);
     }
 
     public function watch_order_book_snapshot($client, $message, $subscription) {
-        // quick-fix to avoid getting outdated snapshots
-        $options = $this->safe_value($this->options, 'watchOrderBookSnapshot', array());
-        $delay = $this->safe_integer($options, 'delay');
-        if ($delay !== null) {
-            yield $this->sleep($delay);
-        }
         $symbol = $this->safe_string($subscription, 'symbol');
         $limit = $this->safe_integer($subscription, 'limit');
         $params = $this->safe_value($subscription, 'params');
+        $attempts = $this->safe_integer($subscription, 'numAttempts', 0);
         $messageHash = $this->safe_string($subscription, 'messageHash');
         $market = $this->market($symbol);
         $url = $this->get_url_by_market_type($market['type'], $market['linear']);
@@ -335,6 +355,7 @@ class huobi extends \ccxt\async\huobi {
             'symbol' => $symbol,
             'limit' => $limit,
             'params' => $params,
+            'numAttempts' => $attempts,
             'method' => array($this, 'handle_order_book_snapshot'),
         );
         $orderbook = yield $this->watch($url, $requestId, $request, $requestId, $snapshotSubscription);
@@ -344,20 +365,46 @@ class huobi extends \ccxt\async\huobi {
     public function fetch_order_book_snapshot($client, $message, $subscription) {
         $symbol = $this->safe_string($subscription, 'symbol');
         $limit = $this->safe_integer($subscription, 'limit');
-        $params = $this->safe_value($subscription, 'params');
         $messageHash = $this->safe_string($subscription, 'messageHash');
-        $snapshot = yield $this->fetch_order_book($symbol, $limit, $params);
-        $orderbook = $this->safe_value($this->orderbooks, $symbol);
-        if ($orderbook !== null) {
-            $orderbook->reset ($snapshot);
-            // unroll the accumulated deltas
+        try {
+            $snapshot = yield $this->fetch_order_book($symbol, $limit);
+            $orderbook = $this->orderbooks[$symbol];
             $messages = $orderbook->cache;
-            for ($i = 0; $i < count($messages); $i++) {
-                $message = $messages[$i];
-                $this->handle_order_book_message($client, $message, $orderbook);
+            $firstMessage = $this->safe_value($messages, 0, array());
+            $tick = $this->safe_value($firstMessage, 'tick');
+            $sequence = $this->safe_integer($tick, 'seqNum');
+            $nonce = $this->safe_integer($snapshot, 'nonce');
+            // if the received $snapshot is earlier than the first cached delta
+            // then we cannot align it with the cached deltas and we need to
+            // retry synchronizing in $maxAttempts
+            if (($sequence !== null) && ($nonce < $sequence)) {
+                $maxAttempts = $this->safe_integer($this->options, 'maxOrderBookSyncAttempts', 3);
+                $numAttempts = $this->safe_integer($subscription, 'numAttempts', 0);
+                // retry to syncrhonize if we haven't reached $maxAttempts yet
+                if ($numAttempts < $maxAttempts) {
+                    // safety guard
+                    if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                        $numAttempts = $this->sum($numAttempts, 1);
+                        $subscription['numAttempts'] = $numAttempts;
+                        $client->subscriptions[$messageHash] = $subscription;
+                        $this->spawn(array($this, 'fetch_order_book_snapshot'), $client, $message, $subscription);
+                    }
+                } else {
+                    // throw upon failing to synchronize in $maxAttempts
+                    throw new InvalidNonce($this->id . ' failed to synchronize WebSocket feed with the $snapshot for $symbol ' . $symbol . ' in ' . (string) $maxAttempts . ' attempts');
+                }
+            } else {
+                $orderbook->reset ($snapshot);
+                // unroll the accumulated deltas
+                for ($i = 0; $i < count($messages); $i++) {
+                    $message = $messages[$i];
+                    $this->handle_order_book_message($client, $message, $orderbook);
+                }
+                $this->orderbooks[$symbol] = $orderbook;
+                $client->resolve ($orderbook, $messageHash);
             }
-            $this->orderbooks[$symbol] = $orderbook;
-            $client->resolve ($orderbook, $messageHash);
+        } catch (Exception $e) {
+            $client->reject ($e, $messageHash);
         }
     }
 
