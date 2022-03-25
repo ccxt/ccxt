@@ -19,7 +19,7 @@ module.exports = class btcex extends Exchange {
             'certified': false,
             'pro': false,
             'requiredCredentials': {
-                'apiKey': true,
+                'clientId': true,
                 'secret': true,
             },
             'urls': {
@@ -714,7 +714,7 @@ module.exports = class btcex extends Exchange {
         this.checkRequiredCredentials ();
         const request = {
             'grant_type': 'client_credentials', // client_signature || refresh_token
-            'client_id': this.apiKey,
+            'client_id': this.clientId,
             'client_secret': this.secret,
             // 'refresh_token': '', // Required for grant type refresh_token
             // 'signature': '', // Required for grant type client_signature
