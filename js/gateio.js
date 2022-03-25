@@ -2921,7 +2921,14 @@ module.exports = class gateio extends Exchange {
         } else {
             rawStatus = this.safeString (order, 'status');
         }
-        const timestamp = this.safeTimestamp2 (order, 'create_time', 'ctime');
+        let timestamp = this.safeInteger (order, 'create_time_ms');
+        if (timestamp === undefined) {
+            timestamp = this.safeTimestamp2 (order, 'create_time', 'ctime');
+        }
+        let lastTradeTimestamp = this.safeInteger (order, 'update_time_ms');
+        if (lastTradeTimestamp === undefined) {
+            lastTradeTimestamp = this.safeTimestamp2 (order, 'update_time', 'finish_time');
+        }
         const exchangeSymbol = this.safeString2 (order, 'currency_pair', 'market', contract);
         // Everything below this(above return) is related to fees
         const fees = [];
@@ -2954,7 +2961,7 @@ module.exports = class gateio extends Exchange {
             'clientOrderId': this.safeString (order, 'text'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': this.safeTimestamp2 (order, 'update_time', 'finish_time'),
+            'lastTradeTimestamp': lastTradeTimestamp,
             'status': status,
             'symbol': this.safeSymbol (exchangeSymbol),
             'type': type,
