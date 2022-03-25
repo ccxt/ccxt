@@ -1326,6 +1326,7 @@ class hitbtc3(Exchange):
         method = self.get_supported_mapping(marketType, {
             'spot': 'privateDeleteSpotOrderClientOrderId',
             'swap': 'privateDeleteFuturesOrderClientOrderId',
+            'margin': 'privateDeleteMarginOrderClientOrderId',
         })
         response = getattr(self, method)(self.extend(request, query))
         return self.parse_order(response, market)
