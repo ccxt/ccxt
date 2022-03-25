@@ -2813,7 +2813,12 @@ class gateio(Exchange):
             average = self.safe_number(order, 'fill_price')
         else:
             rawStatus = self.safe_string(order, 'status')
-        timestamp = self.safe_timestamp_2(order, 'create_time', 'ctime')
+        timestamp = self.safe_integer(order, 'create_time_ms')
+        if timestamp is None:
+            timestamp = self.safe_timestamp_2(order, 'create_time', 'ctime')
+        lastTradeTimestamp = self.safe_integer(order, 'update_time_ms')
+        if lastTradeTimestamp is None:
+            lastTradeTimestamp = self.safe_timestamp_2(order, 'update_time', 'finish_time')
         exchangeSymbol = self.safe_string_2(order, 'currency_pair', 'market', contract)
         # Everything below self(above return) is related to fees
         fees = []
@@ -2843,7 +2848,7 @@ class gateio(Exchange):
             'clientOrderId': self.safe_string(order, 'text'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': self.safe_timestamp_2(order, 'update_time', 'finish_time'),
+            'lastTradeTimestamp': lastTradeTimestamp,
             'status': status,
             'symbol': self.safe_symbol(exchangeSymbol),
             'type': type,

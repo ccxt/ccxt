@@ -2928,7 +2928,14 @@ class gateio extends Exchange {
         } else {
             $rawStatus = $this->safe_string($order, 'status');
         }
-        $timestamp = $this->safe_timestamp_2($order, 'create_time', 'ctime');
+        $timestamp = $this->safe_integer($order, 'create_time_ms');
+        if ($timestamp === null) {
+            $timestamp = $this->safe_timestamp_2($order, 'create_time', 'ctime');
+        }
+        $lastTradeTimestamp = $this->safe_integer($order, 'update_time_ms');
+        if ($lastTradeTimestamp === null) {
+            $lastTradeTimestamp = $this->safe_timestamp_2($order, 'update_time', 'finish_time');
+        }
         $exchangeSymbol = $this->safe_string_2($order, 'currency_pair', 'market', $contract);
         // Everything below this(above return) is related to $fees
         $fees = array();
@@ -2961,7 +2968,7 @@ class gateio extends Exchange {
             'clientOrderId' => $this->safe_string($order, 'text'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => $this->safe_timestamp_2($order, 'update_time', 'finish_time'),
+            'lastTradeTimestamp' => $lastTradeTimestamp,
             'status' => $status,
             'symbol' => $this->safe_symbol($exchangeSymbol),
             'type' => $type,
