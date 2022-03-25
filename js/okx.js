@@ -70,6 +70,7 @@ module.exports = class okx extends Exchange {
                 'fetchMySells': undefined,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterestHistory': true,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -4853,6 +4854,75 @@ module.exports = class okx extends Exchange {
             'timestamp': timestamp,  // Interest accrued time
             'datetime': this.iso8601 (timestamp),
             'info': info,
+        };
+    }
+
+    async fetchOpenInterestHistory (code, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchOpenInterestHistory
+         * @description Retrieves the open interest history of a currency
+         * @param {str} code Unified CCXT currency code
+         * @param {str} timeframe "5m", "1h", or "1d"
+         * @param {int} since The time in ms of the earliest record to retrieve as a unix timestamp
+         * @param {int} limit Not used by okx
+         * @param {dict} params Exchange specific parameters
+         * @param {int} params.till The time in ms of the latest record to retrieve as a unix timestamp
+         * @returns An array of open interest structures
+         */
+        if (timeframe !== '5m' && timeframe !== '1h' && timeframe !== '1d') {
+            throw new BadRequest (this.id + ' fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe');
+        }
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'ccy': currency['id'],
+            'period': timeframe,
+        };
+        if (since !== undefined) {
+            request['begin'] = since;
+        }
+        const till = this.safeInteger2 (params, 'till', 'end');
+        if (till !== undefined) {
+            request['end'] = till;
+        }
+        const response = await this.publicGetRubikStatContractsOpenInterestVolume (this.extend (request, params));
+        //
+        //    {
+        //        code: '0',
+        //        data: [
+        //            [
+        //                '1648221300000',  // timestamp
+        //                '2183354317.945',  // open interest (USD)
+        //                '74285877.617',  // volume (USD)
+        //            ],
+        //            ...
+        //        ],
+        //        msg: ''
+        //    }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseOpenInterests (data);
+    }
+
+    parseOpenInterest (interest, market = undefined) {
+        //
+        //    [
+        //        '1648221300000',  // timestamp
+        //        '2183354317.945',  // open interest (USD)
+        //        '74285877.617',  // volume (USD)
+        //    ]
+        //
+        const timestamp = this.safeNumber (interest, 0);
+        const openInterest = this.safeNumber (interest, 1);
+        return {
+            'symbol': undefined,
+            'volume': undefined,
+            'value': openInterest,
+            'valueCurrency': 'USD',
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': interest,
         };
     }
 
