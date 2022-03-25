@@ -352,6 +352,47 @@ module.exports = class cryptocom extends ccxt.cryptocom {
         }
     }
 
+    async watchBalance (params = {}) {
+        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
+        const messageHash = (defaultType === 'margin') ? 'user.margin.balance' : 'user.balance';
+        return await this.watchPrivate (messageHash, params);
+    }
+
+    handleBalance (client, message) {
+        //
+        // {
+        //     "method": "subscribe",
+        //     "result": {
+        //       "subscription": "user.balance",
+        //       "channel": "user.balance",
+        //       "data": [
+        //         {
+        //           "currency": "CRO",
+        //           "balance": 99999999947.99626,
+        //           "available": 99999988201.50826,
+        //           "order": 11746.488,
+        //           "stake": 0
+        //         }
+        //       ],
+        //       "channel": "user.balance"
+        //     }
+        // }
+        //
+        const messageHash = this.safeString (message, 'subscription');
+        const data = this.safeValue (message, 'data');
+        for (let i = 0; i < data.length; i++) {
+            const balance = data[i];
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'available');
+            account['total'] = this.safeString (balance, 'balance');
+            this.balance[code] = account;
+            this.balance = this.safeBalance (this.balance);
+        }
+        client.resolve (this.balance, messageHash);
+    }
+
     async watchPublic (messageHash, params = {}) {
         const url = this.urls['api']['ws']['public'];
         const id = this.nonce ();
@@ -465,6 +506,8 @@ module.exports = class cryptocom extends ccxt.cryptocom {
             'user.margin.order': this.handleOrders,
             'user.trade': this.handleTrades,
             'user.margin.trade': this.handleTrades,
+            'user.balance': this.handleBalance,
+            'user.margin.balance': this.handleBalance,
         };
         const result = this.safeValue2 (message, 'result', 'info');
         const channel = this.safeString (result, 'channel');
