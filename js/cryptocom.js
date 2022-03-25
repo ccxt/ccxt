@@ -63,7 +63,7 @@ module.exports = class cryptocom extends ccxt.cryptocom {
         if (!market['spot']) {
             throw new NotSupported (this.id + ' watchOrderBook() supports spot markets only');
         }
-        const messageHash = 'book' + '.' + market['id'] + '.' + limit;
+        const messageHash = 'book' + '.' + market['id'] + '.' + limit.toString ();
         const orderbook = await this.watchPublic (messageHash, params);
         return orderbook.limit (limit);
     }
@@ -101,7 +101,7 @@ module.exports = class cryptocom extends ccxt.cryptocom {
         snapshot['nonce'] = this.safeInteger (data, 's');
         let orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
-            const limit = this.safeString (message, 'depth');
+            const limit = this.safeInteger (message, 'depth');
             orderbook = this.orderBook ({}, limit);
         }
         orderbook.reset (snapshot);
