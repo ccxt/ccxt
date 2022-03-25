@@ -53,7 +53,7 @@ const exchange = new ccxt.huobi ({
         offset = 'close'
         reduce_only = 1 // 1 : yes, 0: no
         clientOrderId = 9
-        price = 1.10 // adjust this accordingly
+        price = 1.147 // adjust this accordingly
         params = {'offset': offset, 'reduce_only': reduce_only, 'client_order_id': clientOrderId}
         const opositeOrder = await exchange.createOrder (symbol, type, side, amount, price, params)
         console.log (opositeOrder)
