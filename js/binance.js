@@ -1016,6 +1016,7 @@ module.exports = class binance extends Exchange {
                         'margin': 'margin',
                         'swap': 'swap',
                         'future': 'future',
+                        'delivery': 'future',
                     },
                 },
             },
