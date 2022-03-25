@@ -5691,4 +5691,146 @@ module.exports = class huobi extends Exchange {
         }
         return result;
     }
+
+    async fetchOpenInterestHistory (symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name huobi#fetchOpenInterestHistory
+         * @description Retrieves the open intestest history of a currency
+         * @param {str} symbol Unified CCXT market symbol
+         * @param {str} timeframe '1h', '4h', '12h', or '1d'
+         * @param {integer} since Not used by huobi api, but respone parsed by CCXT
+         * @param {integer} limit Default：48，Data Range [1,200]
+         * @param {dictionary} params Exchange specific parameters
+         * @param {integer} params.amount_type Open interest unit. 1:-cont，2:-cryptocurrenty
+         * @param {integer} params.contract_type (Required for future markets) this_week, next_week, quarter, or next_quarter
+         * @param {integer} params.pair e.g. BTC-USDT (Absent in coin-m swaps and coin-m futures)
+         * @returns An array of open interest structures
+         */
+        if (timeframe !== '1h' && timeframe !== '4h' && timeframe !== '12h' && timeframe !== '1d') {
+            throw new BadRequest (this.id + ' fetchOpenInterestHistory cannot only use the 1h, 4h, 12h and 1d timeframe');
+        }
+        await this.loadMarkets ();
+        const timeframes = {
+            '1h': '60min',
+            '4h': '4hour',
+            '12h': '12hour',
+            '1d': '1day',
+        };
+        const market = this.market (symbol);
+        const amountType = this.safeNumber2 (params, 'amount_type', 'amountType');
+        if (amountType === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenInterestHistory requires parameter params.amountType');
+        }
+        const request = {
+            'period': timeframes[timeframe],
+            'amount_type': amountType,
+        };
+        let method = undefined;
+        if (market['future']) {
+            const contractType = this.safeString2 (params, 'contract_type', 'contractType');
+            if (contractType === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchOpenInterestHistory requires parameter params.contractType for future markets');
+            }
+            request['contract_type'] = contractType;
+            request['symbol'] = market['baseId'];  // currency code on coin-m futures
+            method = 'contractPublicGetApiV1ContractHisOpenInterest'; // coin-m futures
+        } else if (market['linear']) {
+            request['contract_type'] = 'swap';
+            request['contract_code'] = market['id'];
+            request['contract_code'] = market['id'];
+            method = 'contractPublicGetLinearSwapApiV1SwapHisOpenInterest'; // USDT-M
+        } else {
+            request['contract_code'] = market['id'];
+            method = 'contractPublicGetSwapApiV1SwapHisOpenInterest'; // coin-m swaps
+        }
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        //  contractPublicGetlinearSwapApiV1SwapHisOpenInterest
+        //    {
+        //        status: 'ok',
+        //        data: {
+        //            symbol: 'BTC',
+        //            tick: [
+        //                {
+        //                    volume: '4385.4350000000000000',
+        //                    amount_type: '2',
+        //                    ts: '1648220400000',
+        //                    value: '194059884.1850000000000000'
+        //                },
+        //                ...
+        //            ],
+        //            contract_code: 'BTC-USDT',
+        //            business_type: 'swap',
+        //            pair: 'BTC-USDT',
+        //            contract_type: 'swap',
+        //            trade_partition: 'USDT'
+        //        },
+        //        ts: '1648223733007'
+        //    }
+        //
+        //  contractPublicGetSwapApiV1SwapHisOpenInterest
+        //    {
+        //        "status": "ok",
+        //        "data": {
+        //            "symbol": "CRV",
+        //            "tick": [
+        //                {
+        //                    "volume": 19174.0000000000000000,
+        //                    "amount_type": 1,
+        //                    "ts": 1648224000000
+        //                },
+        //                ...
+        //            ],
+        //            "contract_code": "CRV-USD"
+        //        },
+        //        "ts": 1648226554260
+        //    }
+        //
+        //  contractPublicGetApiV1ContractHisOpenInterest
+        //    {
+        //         "status": "ok",
+        //         "data": {
+        //             "symbol": "BTC",
+        //             "contract_type": "this_week",
+        //             "tick": [
+        //                {
+        //                     "volume": "48419.0000000000000000",
+        //                     "amount_type": 1,
+        //                     "ts": 1648224000000
+        //                },
+        //                ...
+        //            ]
+        //        },
+        //        "ts": 1648227062944
+        //    }
+        //
+        const data = this.safeValue (response, 'data');
+        const tick = this.safeValue (data, 'tick');
+        return this.parseOpenInterests (tick, undefined, since, limit);
+    }
+
+    parseOpenInterest (interest, market = undefined) {
+        //
+        //    {
+        //        volume: '4385.4350000000000000',
+        //        amount_type: '2',
+        //        ts: '1648220400000',
+        //        value: '194059884.1850000000000000'
+        //    }
+        //
+        const timestamp = this.safeNumber (interest, 'ts');
+        return {
+            'symbol': this.safeString (market, 'symbol'),
+            'volume': this.safeNumber (interest, 'volume'),
+            'totalValue': this.safeValue (interest, 'value'),
+            'valueCurrency': this.safeString (market, 'quote'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': interest,
+        };
+    }
 };
