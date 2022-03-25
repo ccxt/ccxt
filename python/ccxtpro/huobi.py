@@ -9,6 +9,7 @@ from ccxtpro.base.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByT
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import InvalidNonce
 
 
 class huobi(Exchange, ccxt.huobi):
@@ -88,9 +89,7 @@ class huobi(Exchange, ccxt.huobi):
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
                 'api': 'api',  # or api-aws for clients hosted on AWS
-                'watchOrderBookSnapshot': {
-                    'delay': 1000,
-                },
+                'maxOrderBookSyncAttempts': 3,
                 'ws': {
                     'gunzip': True,
                 },
@@ -277,28 +276,46 @@ class huobi(Exchange, ccxt.huobi):
         #
         symbol = self.safe_string(subscription, 'symbol')
         messageHash = self.safe_string(subscription, 'messageHash')
-        orderbook = self.orderbooks[symbol]
-        data = self.safe_value(message, 'data')
-        snapshot = self.parse_order_book(data, symbol)
-        snapshot['nonce'] = self.safe_integer(data, 'seqNum')
-        orderbook.reset(snapshot)
-        # unroll the accumulated deltas
-        messages = orderbook.cache
-        for i in range(0, len(messages)):
-            message = messages[i]
-            self.handle_order_book_message(client, message, orderbook)
-        self.orderbooks[symbol] = orderbook
-        client.resolve(orderbook, messageHash)
+        try:
+            orderbook = self.orderbooks[symbol]
+            data = self.safe_value(message, 'data')
+            messages = orderbook.cache
+            firstMessage = self.safe_value(messages, 0, {})
+            snapshot = self.parse_order_book(data, symbol)
+            tick = self.safe_value(firstMessage, 'tick')
+            sequence = self.safe_integer(tick, 'seqNum')
+            nonce = self.safe_integer(data, 'seqNum')
+            snapshot['nonce'] = nonce
+            if (sequence is not None) and (nonce < sequence):
+                maxAttempts = self.safe_integer(self.options, 'maxOrderBookSyncAttempts', 3)
+                numAttempts = self.safe_integer(subscription, 'numAttempts', 0)
+                # retry to synchronize if we have not reached maxAttempts yet
+                if numAttempts < maxAttempts:
+                    # safety guard
+                    if messageHash in client.subscriptions:
+                        numAttempts = self.sum(numAttempts, 1)
+                        subscription['numAttempts'] = numAttempts
+                        client.subscriptions[messageHash] = subscription
+                        self.spawn(self.watch_order_book_snapshot, client, message, subscription)
+                else:
+                    # raise upon failing to synchronize in maxAttempts
+                    raise InvalidNonce(self.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + ' in ' + str(maxAttempts) + ' attempts')
+            else:
+                orderbook.reset(snapshot)
+                # unroll the accumulated deltas
+                for i in range(0, len(messages)):
+                    message = messages[i]
+                    self.handle_order_book_message(client, message, orderbook)
+                self.orderbooks[symbol] = orderbook
+                client.resolve(orderbook, messageHash)
+        except Exception as e:
+            client.reject(e, messageHash)
 
     async def watch_order_book_snapshot(self, client, message, subscription):
-        # quick-fix to avoid getting outdated snapshots
-        options = self.safe_value(self.options, 'watchOrderBookSnapshot', {})
-        delay = self.safe_integer(options, 'delay')
-        if delay is not None:
-            await self.sleep(delay)
         symbol = self.safe_string(subscription, 'symbol')
         limit = self.safe_integer(subscription, 'limit')
         params = self.safe_value(subscription, 'params')
+        attempts = self.safe_integer(subscription, 'numAttempts', 0)
         messageHash = self.safe_string(subscription, 'messageHash')
         market = self.market(symbol)
         url = self.get_url_by_market_type(market['type'], market['linear'])
@@ -315,6 +332,7 @@ class huobi(Exchange, ccxt.huobi):
             'symbol': symbol,
             'limit': limit,
             'params': params,
+            'numAttempts': attempts,
             'method': self.handle_order_book_snapshot,
         }
         orderbook = await self.watch(url, requestId, request, requestId, snapshotSubscription)
@@ -323,19 +341,42 @@ class huobi(Exchange, ccxt.huobi):
     async def fetch_order_book_snapshot(self, client, message, subscription):
         symbol = self.safe_string(subscription, 'symbol')
         limit = self.safe_integer(subscription, 'limit')
-        params = self.safe_value(subscription, 'params')
         messageHash = self.safe_string(subscription, 'messageHash')
-        snapshot = await self.fetch_order_book(symbol, limit, params)
-        orderbook = self.safe_value(self.orderbooks, symbol)
-        if orderbook is not None:
-            orderbook.reset(snapshot)
-            # unroll the accumulated deltas
+        try:
+            snapshot = await self.fetch_order_book(symbol, limit)
+            orderbook = self.orderbooks[symbol]
             messages = orderbook.cache
-            for i in range(0, len(messages)):
-                message = messages[i]
-                self.handle_order_book_message(client, message, orderbook)
-            self.orderbooks[symbol] = orderbook
-            client.resolve(orderbook, messageHash)
+            firstMessage = self.safe_value(messages, 0, {})
+            tick = self.safe_value(firstMessage, 'tick')
+            sequence = self.safe_integer(tick, 'seqNum')
+            nonce = self.safe_integer(snapshot, 'nonce')
+            # if the received snapshot is earlier than the first cached delta
+            # then we cannot align it with the cached deltas and we need to
+            # retry synchronizing in maxAttempts
+            if (sequence is not None) and (nonce < sequence):
+                maxAttempts = self.safe_integer(self.options, 'maxOrderBookSyncAttempts', 3)
+                numAttempts = self.safe_integer(subscription, 'numAttempts', 0)
+                # retry to syncrhonize if we haven't reached maxAttempts yet
+                if numAttempts < maxAttempts:
+                    # safety guard
+                    if messageHash in client.subscriptions:
+                        numAttempts = self.sum(numAttempts, 1)
+                        subscription['numAttempts'] = numAttempts
+                        client.subscriptions[messageHash] = subscription
+                        self.spawn(self.fetch_order_book_snapshot, client, message, subscription)
+                else:
+                    # raise upon failing to synchronize in maxAttempts
+                    raise InvalidNonce(self.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + ' in ' + str(maxAttempts) + ' attempts')
+            else:
+                orderbook.reset(snapshot)
+                # unroll the accumulated deltas
+                for i in range(0, len(messages)):
+                    message = messages[i]
+                    self.handle_order_book_message(client, message, orderbook)
+                self.orderbooks[symbol] = orderbook
+                client.resolve(orderbook, messageHash)
+        except Exception as e:
+            client.reject(e, messageHash)
 
     def handle_delta(self, bookside, delta):
         price = self.safe_float(delta, 0)
