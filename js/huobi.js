@@ -74,6 +74,7 @@ module.exports = class huobi extends Exchange {
                 'fetchMySells': undefined,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterestHistory': true,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -5699,12 +5700,11 @@ module.exports = class huobi extends Exchange {
          * @description Retrieves the open intestest history of a currency
          * @param {str} symbol Unified CCXT market symbol
          * @param {str} timeframe '1h', '4h', '12h', or '1d'
-         * @param {integer} since Not used by huobi api, but respone parsed by CCXT
-         * @param {integer} limit Default：48，Data Range [1,200]
-         * @param {dictionary} params Exchange specific parameters
-         * @param {integer} params.amount_type Open interest unit. 1:-cont，2:-cryptocurrenty
-         * @param {integer} params.contract_type (Required for future markets) this_week, next_week, quarter, or next_quarter
-         * @param {integer} params.pair e.g. BTC-USDT (Absent in coin-m swaps and coin-m futures)
+         * @param {int} since Not used by huobi api, but response parsed by CCXT
+         * @param {int} limit Default：48，Data Range [1,200]
+         * @param {dict} params Exchange specific parameters
+         * @param {int} params.amount_type *required* Open interest unit. 1-cont，2-cryptocurrenty
+         * @param {int} params.pair eg BTC-USDT *Only for USDT-M*
          * @returns An array of open interest structures
          */
         if (timeframe !== '1h' && timeframe !== '4h' && timeframe !== '12h' && timeframe !== '1d') {
@@ -5720,7 +5720,7 @@ module.exports = class huobi extends Exchange {
         const market = this.market (symbol);
         const amountType = this.safeNumber2 (params, 'amount_type', 'amountType');
         if (amountType === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenInterestHistory requires parameter params.amountType');
+            throw new ArgumentsRequired (this.id + ' fetchOpenInterestHistory requires parameter params.amountType to be either 1 (cont), or 2 (cryptocurrenty)');
         }
         const request = {
             'period': timeframes[timeframe],
@@ -5728,11 +5728,7 @@ module.exports = class huobi extends Exchange {
         };
         let method = undefined;
         if (market['future']) {
-            const contractType = this.safeString2 (params, 'contract_type', 'contractType');
-            if (contractType === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOpenInterestHistory requires parameter params.contractType for future markets');
-            }
-            request['contract_type'] = contractType;
+            request['contract_type'] = this.safeString (market['info'], 'contract_type');
             request['symbol'] = market['baseId'];  // currency code on coin-m futures
             method = 'contractPublicGetApiV1ContractHisOpenInterest'; // coin-m futures
         } else if (market['linear']) {
