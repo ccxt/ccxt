@@ -1010,12 +1010,60 @@ module.exports = class mexc3 extends Exchange {
             'symbol': market['id'],
         };
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        const method = this.getSupportedMapping (marketType, {
-            'spot': 'spotPublicGetTicker24hr',
-            'swap': '',
-        });
-        const response = await this[method] (this.extend (request, query));
-        return this.parseTicker (response, market);
+        let ticker = undefined;
+        if (marketType === 'spot') {
+            ticker = await this.spotPublicGetTicker24hr (this.extend (request, query));
+            //
+            //     {
+            //         "symbol": "BTCUSDT",
+            //         "priceChange": "184.34",
+            //         "priceChangePercent": "0.00400048",
+            //         "prevClosePrice": "46079.37",
+            //         "lastPrice": "46263.71",
+            //         "lastQty": "",
+            //         "bidPrice": "46260.38",
+            //         "bidQty": "",
+            //         "askPrice": "46260.41",
+            //         "askQty": "",
+            //         "openPrice": "46079.37",
+            //         "highPrice": "47550.01",
+            //         "lowPrice": "45555.5",
+            //         "volume": "1732.461487",
+            //         "quoteVolume": null,
+            //         "openTime": 1641349500000,
+            //         "closeTime": 1641349582808,
+            //         "count": null
+            //     }
+            //
+        } else {
+            const response = await this.contractPublicGetTicker (this.extend (request, query));
+            //     {
+            //         "success":true,
+            //         "code":0,
+            //         "data":{
+            //             "symbol":"ETH_USDT",
+            //             "lastPrice":3581.3,
+            //             "bid1":3581.25,
+            //             "ask1":3581.5,
+            //             "volume24":4045530,
+            //             "amount24":141331823.5755,
+            //             "holdVol":5832946,
+            //             "lower24Price":3413.4,
+            //             "high24Price":3588.7,
+            //             "riseFallRate":0.0275,
+            //             "riseFallValue":95.95,
+            //             "indexPrice":3580.7852,
+            //             "fairPrice":3581.08,
+            //             "fundingRate":0.000063,
+            //             "maxBidPrice":3938.85,
+            //             "minAskPrice":3222.7,
+            //             "timestamp":1634162885016
+            //         }
+            //     }
+            //
+            ticker = this.safeValue (response, 'data', {});
+        }
+        return this.parseTicker (ticker, market);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -1060,12 +1108,13 @@ module.exports = class mexc3 extends Exchange {
             timestamp = this.safeInteger (ticker, 'timestamp');
             bid = this.safeNumber (ticker, 'bid1');
             ask = this.safeNumber (ticker, 'ask1');
-            baseVolume = this.safeNumber (ticker, 'volume24');
-            quoteVolume = this.safeNumber (ticker, 'amount24');
+            baseVolume = this.safeString (ticker, 'volume24');
+            quoteVolume = this.safeString (ticker, 'amount24');
             high = this.safeNumber (ticker, 'high24Price');
             low = this.safeNumber (ticker, 'lower24Price');
-            changePcnt = this.safeNumber (ticker, 'riseFallRate');
-            changeValue = this.safeNumber (ticker, 'riseFallValue');
+            changeValue = this.safeString (ticker, 'riseFallValue');
+            changePcnt = this.safeString (ticker, 'riseFallRate');
+            changePcnt = this.parseNumber (Precise.stringMul (changePcnt, '100'));
         } else {
             //
             //     {
@@ -1094,14 +1143,15 @@ module.exports = class mexc3 extends Exchange {
             ask = this.safeNumber (ticker, 'askPrice');
             bidVolume = this.safeNumber (ticker, 'bidQty');
             askVolume = this.safeNumber (ticker, 'askQty');
-            baseVolume = this.safeNumber (ticker, 'volume');
-            quoteVolume = this.safeNumber (ticker, 'quoteVolume');
+            baseVolume = this.safeString (ticker, 'volume');
+            quoteVolume = this.safeString (ticker, 'quoteVolume');
             open = this.safeString (ticker, 'openPrice');
             high = this.safeNumber (ticker, 'highPrice');
             low = this.safeNumber (ticker, 'lowPrice');
-            changePcnt = this.safeNumber (ticker, 'priceChangePercent');
-            changeValue = this.safeNumber (ticker, 'priceChange');
             prevClose = this.safeString (ticker, 'prevClosePrice');
+            changeValue = this.safeString (ticker, 'priceChange');
+            changePcnt = this.safeString (ticker, 'priceChangePercent');
+            changePcnt = this.parseNumber (Precise.stringMul (changePcnt, '100'));
         }
         return this.safeTicker ({
             'symbol': market['symbol'],
