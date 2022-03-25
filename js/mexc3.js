@@ -652,11 +652,12 @@ module.exports = class mexc3 extends Exchange {
         // if (since !== undefined) {
         //     request['startTime'] = since; bug in api, waiting for fix
         // }
+        let trades = undefined;
         let method = undefined;
         if (market['spot']) {
             method = this.safeString (this.options, 'fetchTradesMethod', 'spotPublicGetAggTrades');
             method = this.safeString (params, 'method', method); // AggTrades, HistoricalTrades, Trades
-            const response = await this[method] (this.extend (request, params));
+            trades = await this[method] (this.extend (request, params));
             //
             //     /trades, /historicalTrades
             //
@@ -687,7 +688,6 @@ module.exports = class mexc3 extends Exchange {
             //         },
             //     ]
             //
-            return this.parseTrades (response, market, since, limit);
         } else if (market['swap']) {
             method = 'contractPublicGetDealsSymbol';
             const response = await this[method] (this.extend (request, params));
@@ -707,8 +707,9 @@ module.exports = class mexc3 extends Exchange {
             //         ]
             //     }
             //
-            return this.parseTrades (response, market, since, limit);
+            trades = this.safeValue (response, 'data');
         }
+        return this.parseTrades (trades, market, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
@@ -959,38 +960,64 @@ module.exports = class mexc3 extends Exchange {
             request['symbol'] = symbols.join (',');
         }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
-        const method = this.getSupportedMapping (marketType, {
-            'spot': 'spotPublicGetTicker24hr',
-            'swap': '',
-        });
-        const response = await this[method] (this.extend (request, query));
-        //
-        // spot  (Note: for single symbol, only one object is returned, instead of array)
-        //
-        //     [
-        //       {
-        //         "symbol": "BTCUSDT",
-        //         "priceChange": "184.34",
-        //         "priceChangePercent": "0.00400048",
-        //         "prevClosePrice": "46079.37",
-        //         "lastPrice": "46263.71",
-        //         "lastQty": "",
-        //         "bidPrice": "46260.38",
-        //         "bidQty": "",
-        //         "askPrice": "46260.41",
-        //         "askQty": "",
-        //         "openPrice": "46079.37",
-        //         "highPrice": "47550.01",
-        //         "lowPrice": "45555.5",
-        //         "volume": "1732.461487",
-        //         "quoteVolume": null,
-        //         "openTime": 1641349500000,
-        //         "closeTime": 1641349582808,
-        //         "count": null
-        //       }
-        //     ]
-        //
-        return this.parseTickers (response, symbols);
+        let tickers = undefined;
+        if (marketType === 'spot') {
+            tickers = await this.spotPublicGetTicker24hr (this.extend (request, query));
+            //
+            // (Note: for single symbol, only one object is returned, instead of array)
+            //
+            //     [
+            //       {
+            //         "symbol": "BTCUSDT",
+            //         "priceChange": "184.34",
+            //         "priceChangePercent": "0.00400048",
+            //         "prevClosePrice": "46079.37",
+            //         "lastPrice": "46263.71",
+            //         "lastQty": "",
+            //         "bidPrice": "46260.38",
+            //         "bidQty": "",
+            //         "askPrice": "46260.41",
+            //         "askQty": "",
+            //         "openPrice": "46079.37",
+            //         "highPrice": "47550.01",
+            //         "lowPrice": "45555.5",
+            //         "volume": "1732.461487",
+            //         "quoteVolume": null,
+            //         "openTime": 1641349500000,
+            //         "closeTime": 1641349582808,
+            //         "count": null
+            //       }
+            //     ]
+            //
+        } else {
+            const response = await this.contractPublicGetTicker (this.extend (request, query));
+            //     {
+            //         "success":true,
+            //         "code":0,
+            //         "data":{
+            //             "symbol":"ETH_USDT",
+            //             "lastPrice":3581.3,
+            //             "bid1":3581.25,
+            //             "ask1":3581.5,
+            //             "volume24":4045530,
+            //             "amount24":141331823.5755,
+            //             "holdVol":5832946,
+            //             "lower24Price":3413.4,
+            //             "high24Price":3588.7,
+            //             "riseFallRate":0.0275,
+            //             "riseFallValue":95.95,
+            //             "indexPrice":3580.7852,
+            //             "fairPrice":3581.08,
+            //             "fundingRate":0.000063,
+            //             "maxBidPrice":3938.85,
+            //             "minAskPrice":3222.7,
+            //             "timestamp":1634162885016
+            //         }
+            //     }
+            //
+            tickers = this.safeValue (response, 'data', []);
+        }
+        return this.parseTickers (tickers, symbols);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -999,7 +1026,7 @@ module.exports = class mexc3 extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'spotPublicGetTicker24hr',
             'swap': '',
@@ -1009,52 +1036,109 @@ module.exports = class mexc3 extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        //
-        // spot
-        //
-        //     {
-        //         "symbol": "BTCUSDT",
-        //         "priceChange": "184.34",
-        //         "priceChangePercent": "0.00400048",
-        //         "prevClosePrice": "46079.37",
-        //         "lastPrice": "46263.71",
-        //         "lastQty": "",
-        //         "bidPrice": "46260.38",
-        //         "bidQty": "",
-        //         "askPrice": "46260.41",
-        //         "askQty": "",
-        //         "openPrice": "46079.37",
-        //         "highPrice": "47550.01",
-        //         "lowPrice": "45555.5",
-        //         "volume": "1732.461487",
-        //         "quoteVolume": null,
-        //         "openTime": 1641349500000,
-        //         "closeTime": 1641349582808,
-        //         "count": null
-        //     }
-        //
         const marketId = this.safeString (ticker, 'symbol');
-        const symbol = this.safeSymbol (marketId, market);
-        const timestamp = this.safeInteger (ticker, 'closeTime');
+        market = this.safeMarket (marketId, market);
+        let timestamp = undefined;
+        let bid = undefined;
+        let ask = undefined;
+        let bidVolume = undefined;
+        let askVolume = undefined;
+        let baseVolume = undefined;
+        let quoteVolume = undefined;
+        let open = undefined;
+        let high = undefined;
+        let low = undefined;
+        let changePcnt = undefined;
+        let changeValue = undefined;
+        let prevClose = undefined;
+        // if swap
+        if ('timestamp' in ticker) {
+            //
+            //     {
+            //         "symbol":"ETH_USDT",
+            //         "lastPrice":3581.3,
+            //         "bid1":3581.25,
+            //         "ask1":3581.5,
+            //         "volume24":4045530,
+            //         "amount24":141331823.5755,
+            //         "holdVol":5832946,
+            //         "lower24Price":3413.4,
+            //         "high24Price":3588.7,
+            //         "riseFallRate":0.0275,
+            //         "riseFallValue":95.95,
+            //         "indexPrice":3580.7852,
+            //         "fairPrice":3581.08,
+            //         "fundingRate":0.000063,
+            //         "maxBidPrice":3938.85,
+            //         "minAskPrice":3222.7,
+            //         "timestamp":1634162885016
+            //     }
+            //
+            timestamp = this.safeInteger (ticker, 'timestamp');
+            bid = this.safeNumber (ticker, 'bid1');
+            ask = this.safeNumber (ticker, 'ask1');
+            baseVolume = this.safeNumber (ticker, 'volume24');
+            quoteVolume = this.safeNumber (ticker, 'amount24');
+            high = this.safeNumber (ticker, 'high24Price');
+            low = this.safeNumber (ticker, 'lower24Price');
+            changePcnt = this.safeNumber (ticker, 'riseFallRate');
+            changeValue = this.safeNumber (ticker, 'riseFallValue');
+        } else {
+            //
+            //     {
+            //         "symbol": "BTCUSDT",
+            //         "priceChange": "184.34",
+            //         "priceChangePercent": "0.00400048",
+            //         "prevClosePrice": "46079.37",
+            //         "lastPrice": "46263.71",
+            //         "lastQty": "",
+            //         "bidPrice": "46260.38",
+            //         "bidQty": "",
+            //         "askPrice": "46260.41",
+            //         "askQty": "",
+            //         "openPrice": "46079.37",
+            //         "highPrice": "47550.01",
+            //         "lowPrice": "45555.5",
+            //         "volume": "1732.461487",
+            //         "quoteVolume": null,
+            //         "openTime": 1641349500000,
+            //         "closeTime": 1641349582808,
+            //         "count": null
+            //     }
+            //
+            timestamp = this.safeInteger (ticker, 'closeTime');
+            bid = this.safeNumber (ticker, 'bidPrice');
+            ask = this.safeNumber (ticker, 'askPrice');
+            bidVolume = this.safeNumber (ticker, 'bidQty');
+            askVolume = this.safeNumber (ticker, 'askQty');
+            baseVolume = this.safeNumber (ticker, 'volume');
+            quoteVolume = this.safeNumber (ticker, 'quoteVolume');
+            open = this.safeString (ticker, 'openPrice');
+            high = this.safeNumber (ticker, 'highPrice');
+            low = this.safeNumber (ticker, 'lowPrice');
+            changePcnt = this.safeNumber (ticker, 'priceChangePercent');
+            changeValue = this.safeNumber (ticker, 'priceChange');
+            prevClose = this.safeString (ticker, 'prevClosePrice');
+        }
         return this.safeTicker ({
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'open': this.safeString (ticker, 'openPrice'),
-            'high': this.safeString (ticker, 'highPrice'),
-            'low': this.safeString (ticker, 'lowPrice'),
+            'open': open,
+            'high': high,
+            'low': low,
             'close': this.safeString (ticker, 'lastPrice'),
-            'bid': this.safeString (ticker, 'bidPrice'),
-            'bidVolume': this.safeString (ticker, 'bidQty'),
-            'ask': this.safeString (ticker, 'askPrice'),
-            'askVolume': this.safeString (ticker, 'askQty'),
+            'bid': bid,
+            'bidVolume': bidVolume,
+            'ask': ask,
+            'askVolume': askVolume,
             'vwap': undefined,
-            'previousClose': this.safeString (ticker, 'prevClosePrice'),
-            'change': this.safeString (ticker, 'priceChange'),
-            'percentage': this.safeString (ticker, 'priceChangePercent'),
+            'previousClose': prevClose,
+            'change': changeValue,
+            'percentage': changePcnt,
             'average': undefined,
-            'baseVolume': this.safeString (ticker, 'volume'),
-            'quoteVolume': this.safeString (ticker, 'quoteVolume'),
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         }, market, false);
     }
