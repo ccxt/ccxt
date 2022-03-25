@@ -713,74 +713,100 @@ module.exports = class mexc3 extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        return (('v' in trade) ? this.parseSwapTrade (trade, market) : this.parseSpotTrade (trade, market));
-    }
-
-    parseSpotTrade (trade, market = undefined) {
-        //
-        // fetchTrades (for aggTrades)
-        //
-        //         {
-        //             "a": null,
-        //             "f": null,
-        //             "l": null,
-        //             "p": "40679",
-        //             "q": "0.001309",
-        //             "T": 1647551328000,
-        //             "m": true,
-        //             "M": true
-        //         }
-        //
-        // fetchMyTrades, fetchOrderTrades
-        //
-        //         {
-        //             "symbol": "BTCUSDT",
-        //             "id": "133948532984922113",
-        //             "orderId": "133948532531949568",
-        //             "orderListId": "-1",
-        //             "price": "41995.51",
-        //             "qty": "0.0002",
-        //             "quoteQty": "8.399102",
-        //             "commission": "0.016798204",
-        //             "commissionAsset": "USDT",
-        //             "time": "1647718055000",
-        //             "isBuyer": true,
-        //             "isMaker": false,
-        //             "isBestMatch": true
-        //         }
-        //
-        const timestamp = this.safeInteger2 (trade, 'time', 'T');
-        market = this.safeMarket (undefined, market);
-        const symbol = market['symbol'];
-        const priceString = this.safeString2 (trade, 'price', 'p');
-        const amountString = this.safeString2 (trade, 'qty', 'q');
-        const costString = this.safeString (trade, 'quoteQty');
-        const isBuyer = this.safeValue (trade, 'isBuyer');
-        const isMaker = this.safeValue (trade, 'isMaker');
-        const buyerMaker = this.safeString2 (trade, 'isBuyerMaker', 'm');
+        let id = undefined;
+        let timestamp = undefined;
+        let orderId = undefined;
+        let symbol = undefined;
+        let fee = undefined;
         const type = undefined;
-        const orderId = this.safeString (trade, 'orderId');
         let side = undefined;
         let takerOrMaker = undefined;
-        if (isMaker !== undefined) {
-            takerOrMaker = isMaker ? 'maker' : 'taker';
-        }
-        if (isBuyer !== undefined) {
-            side = isBuyer ? 'buy' : 'sell';
-        }
-        if (buyerMaker !== undefined) {
-            side = buyerMaker ? 'sell' : 'buy';
+        let priceString = undefined;
+        let amountString = undefined;
+        let costString = undefined;
+        // if swap
+        if ('v' in trade) {
+            //
+            // fetchTrades
+            //
+            //     {
+            //         "p": 31199,
+            //         "v": 18,
+            //         "T": 1,
+            //         "O": 3,
+            //         "M": 2,
+            //         "t": 1609831235985
+            //     }
+            //
+            timestamp = this.safeInteger (trade, 't');
+            market = this.safeMarket (undefined, market);
+            symbol = market['symbol'];
+            priceString = this.safeString (trade, 'p');
+            amountString = this.safeString (trade, 'v');
+            side = this.parseOrderSide (this.safeString (trade, 'T'));
             takerOrMaker = 'taker';
+        } else {
+            //
+            // fetchTrades (for aggTrades)
+            //
+            //         {
+            //             "a": null,
+            //             "f": null,
+            //             "l": null,
+            //             "p": "40679",
+            //             "q": "0.001309",
+            //             "T": 1647551328000,
+            //             "m": true,
+            //             "M": true
+            //         }
+            //
+            // fetchMyTrades, fetchOrderTrades
+            //
+            //         {
+            //             "symbol": "BTCUSDT",
+            //             "id": "133948532984922113",
+            //             "orderId": "133948532531949568",
+            //             "orderListId": "-1",
+            //             "price": "41995.51",
+            //             "qty": "0.0002",
+            //             "quoteQty": "8.399102",
+            //             "commission": "0.016798204",
+            //             "commissionAsset": "USDT",
+            //             "time": "1647718055000",
+            //             "isBuyer": true,
+            //             "isMaker": false,
+            //             "isBestMatch": true
+            //         }
+            //
+            timestamp = this.safeInteger2 (trade, 'time', 'T');
+            market = this.safeMarket (undefined, market);
+            symbol = market['symbol'];
+            priceString = this.safeString2 (trade, 'price', 'p');
+            amountString = this.safeString2 (trade, 'qty', 'q');
+            costString = this.safeString (trade, 'quoteQty');
+            const isBuyer = this.safeValue (trade, 'isBuyer');
+            const isMaker = this.safeValue (trade, 'isMaker');
+            const buyerMaker = this.safeString2 (trade, 'isBuyerMaker', 'm');
+            orderId = this.safeString (trade, 'orderId');
+            if (isMaker !== undefined) {
+                takerOrMaker = isMaker ? 'maker' : 'taker';
+            }
+            if (isBuyer !== undefined) {
+                side = isBuyer ? 'buy' : 'sell';
+            }
+            if (buyerMaker !== undefined) {
+                side = buyerMaker ? 'sell' : 'buy';
+                takerOrMaker = 'taker';
+            }
+            const feeAsset = this.safeString (trade, 'commissionAsset');
+            if (feeAsset !== undefined) {
+                fee = {
+                    'cost': this.safeString (trade, 'commission'),
+                    'currency': this.safeCurrencyCode (feeAsset),
+                };
+            }
+            id = this.safeString2 (trade, 'id', 'a');
         }
-        let fee = undefined;
-        const feeAsset = this.safeString (trade, 'commissionAsset');
-        if (feeAsset !== undefined) {
-            fee = {
-                'cost': this.safeString (trade, 'commission'),
-                'currency': this.safeCurrencyCode (feeAsset),
-            };
-        }
-        let id = this.safeString2 (trade, 'id', 'a');
         if (id === undefined) {
             id = this.syntheticTradeId (market, timestamp, side, amountString, priceString, type, takerOrMaker);
         }
@@ -797,49 +823,6 @@ module.exports = class mexc3 extends Exchange {
             'amount': amountString,
             'cost': costString,
             'fee': fee,
-            'info': trade,
-        }, market);
-    }
-
-    parseSwapTrade (trade, market = undefined) {
-        //
-        // fetchTrades
-        //
-        //     {
-        //         "p": 31199,
-        //         "v": 18,
-        //         "T": 1,
-        //         "O": 3,
-        //         "M": 2,
-        //         "t": 1609831235985
-        //     }
-        //
-        const timestamp = this.safeInteger (trade, 't');
-        market = this.safeMarket (undefined, market);
-        const symbol = market['symbol'];
-        const priceString = this.safeString (trade, 'p');
-        const amountString = this.safeString (trade, 'v');
-        const costString = this.safeString (trade, 'quoteQty');
-        const side = this.parseOrderSide (this.safeString (trade, 'T'));
-        const takerOrMaker = 'taker';
-        const type = undefined;
-        let id = this.safeString2 (trade, 'id', 'a');
-        if (id === undefined) {
-            id = this.syntheticTradeId (market, timestamp, side, amountString, priceString, type, takerOrMaker);
-        }
-        return this.safeTrade ({
-            'id': id,
-            'order': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'takerOrMaker': takerOrMaker,
-            'price': priceString,
-            'amount': amountString,
-            'cost': costString,
-            'fee': undefined,
             'info': trade,
         }, market);
     }
