@@ -1417,7 +1417,7 @@ module.exports = class zb extends Exchange {
             const ohlcvLength = ohlcv.length;
             if (ohlcvLength > 5) {
                 return [
-                    this.safeInteger (ohlcv, 5),
+                    this.safeTimestamp (ohlcv, 5),
                     this.safeNumber (ohlcv, 0),
                     this.safeNumber (ohlcv, 1),
                     this.safeNumber (ohlcv, 2),
@@ -1426,7 +1426,7 @@ module.exports = class zb extends Exchange {
                 ];
             } else {
                 return [
-                    this.safeInteger (ohlcv, 4),
+                    this.safeTimestamp (ohlcv, 4),
                     this.safeNumber (ohlcv, 0),
                     this.safeNumber (ohlcv, 1),
                     this.safeNumber (ohlcv, 2),
@@ -1450,6 +1450,7 @@ module.exports = class zb extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const swap = market['swap'];
+        const spot = market['spot'];
         const options = this.safeValue (this.options, 'timeframes', {});
         const timeframes = this.safeValue (options, market['type'], {});
         const timeframeValue = this.safeString (timeframes, timeframe);
@@ -1465,21 +1466,28 @@ module.exports = class zb extends Exchange {
             // 'type': timeframeValue, // spot only
             // 'period': timeframeValue, // swap only
             // 'since': since, // spot only
-            // 'limit': limit, // spot only
-            // 'size': limit, // swap only
+            // 'size': limit, // spot and swap
         };
         const marketIdField = swap ? 'symbol' : 'market';
         request[marketIdField] = market['id'];
         const periodField = swap ? 'period' : 'type';
         request[periodField] = timeframeValue;
-        const sizeField = swap ? 'size' : 'limit';
-        request[sizeField] = limit;
-        const method = this.getSupportedMapping (market['type'], {
+        const price = this.safeString (params, 'price');
+        params = this.omit (params, 'price');
+        let method = this.getSupportedMapping (market['type'], {
             'spot': 'spotV1PublicGetKline',
             'swap': 'contractV1PublicGetKline',
         });
-        if (since !== undefined) {
-            request['since'] = since;
+        if (swap) {
+            if (price === 'mark') {
+                method = 'contractV1PublicGetMarkKline';
+            } else if (price === 'index') {
+                method = 'contractV1PublicGetIndexKline';
+            }
+        } else if (spot) {
+            if (since !== undefined) {
+                request['since'] = since;
+            }
         }
         if (limit !== undefined) {
             request['size'] = limit;
@@ -1510,34 +1518,7 @@ module.exports = class zb extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
-        return this.parseOHLCVs (data, market, timeframe, since, limit);
-    }
-
-    async fetchMarkOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const options = this.safeValue (this.options, 'timeframes', {});
-        const timeframes = this.safeValue (options, market['type'], {});
-        const timeframeValue = this.safeString (timeframes, timeframe);
-        if (timeframeValue === undefined) {
-            throw new NotSupported (this.id + ' fetchMarkOHLCV() does not support ' + timeframe + ' timeframe for ' + market['type'] + ' markets');
-        }
-        if (limit === undefined) {
-            limit = 1000;
-        }
-        const request = {
-            'symbol': market['id'],
-            'period': timeframeValue,
-            'size': limit,
-        };
-        if (since !== undefined) {
-            request['since'] = since;
-        }
-        if (limit !== undefined) {
-            request['size'] = limit;
-        }
-        const response = await this.contractV1PublicGetMarkKline (this.extend (request, params));
+        // Mark
         //
         //     {
         //         "code": 10000,
@@ -1549,34 +1530,7 @@ module.exports = class zb extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
-        return this.parseOHLCVs (data, market, timeframe, since, limit);
-    }
-
-    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const options = this.safeValue (this.options, 'timeframes', {});
-        const timeframes = this.safeValue (options, market['type'], {});
-        const timeframeValue = this.safeString (timeframes, timeframe);
-        if (timeframeValue === undefined) {
-            throw new NotSupported (this.id + ' fetchIndexOHLCV() does not support ' + timeframe + ' timeframe for ' + market['type'] + ' markets');
-        }
-        if (limit === undefined) {
-            limit = 1000;
-        }
-        const request = {
-            'symbol': market['id'],
-            'period': timeframeValue,
-            'size': limit,
-        };
-        if (since !== undefined) {
-            request['since'] = since;
-        }
-        if (limit !== undefined) {
-            request['size'] = limit;
-        }
-        const response = await this.contractV1PublicGetIndexKline (this.extend (request, params));
+        // Index
         //
         //     {
         //         "code": 10000,
@@ -1590,6 +1544,20 @@ module.exports = class zb extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
+    }
+
+    async fetchMarkOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'price': 'mark',
+        };
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
+    }
+
+    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'price': 'index',
+        };
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
     }
 
     parseTrade (trade, market = undefined) {
