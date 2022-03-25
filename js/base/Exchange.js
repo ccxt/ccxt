@@ -1260,8 +1260,8 @@ module.exports = class Exchange {
                 symbol = this.safeSymbol (undefined, market);
             }
             const timestamp = this.safeInteger (ticker, 'timestamp');
-            const baseVolume = this.safeValue (ticker, 'baseVolume');
-            const quoteVolume = this.safeValue (ticker, 'quoteVolume');
+            let baseVolume = this.safeValue (ticker, 'baseVolume');
+            let quoteVolume = this.safeValue (ticker, 'quoteVolume');
             let vwap = this.safeValue (ticker, 'vwap');
             if (vwap === undefined) {
                 vwap = this.vwap (baseVolume, quoteVolume);
