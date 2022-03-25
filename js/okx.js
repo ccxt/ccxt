@@ -4576,7 +4576,7 @@ module.exports = class okx extends Exchange {
         return this.parseOpenInterests (data);
     }
 
-    parseOpenInterest (interest) {
+    parseOpenInterest (interest, market = undefined) {
         //
         //    [
         //        '1648221300000',  // timestamp

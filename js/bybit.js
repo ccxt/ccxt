@@ -3026,9 +3026,9 @@ module.exports = class bybit extends Exchange {
         return this.parseOpenInterests (result);
     }
 
-    parseOpenInterest (interest) {
+    parseOpenInterest (interest, market = undefined) {
         const id = this.safeString (interest, 'symbol');
-        const market = this.market (id);
+        market = this.safeMarket (id, market);
         const timestamp = this.safeTimestamp (interest, 'timestamp');
         const numContracts = this.safeString (interest, 'open_interest');
         const contractSize = market['contractSize'];

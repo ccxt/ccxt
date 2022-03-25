@@ -5612,10 +5612,10 @@ module.exports = class binance extends Exchange {
         return this.parseOpenInterests (response, symbol, since, limit);
     }
 
-    parseOpenInterest (interest) {
+    parseOpenInterest (interest, market = undefined) {
         const timestamp = this.safeInteger (interest, 'timestamp');
         const id = this.safeString (interest, 'symbol');
-        const market = this.market (id);
+        market = this.safeMarket (id, market);
         return {
             'symbol': this.safeSymbol (id),
             'numContracts': this.safeNumber (interest, 'sumOpenInterest'),
