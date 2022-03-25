@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, ExchangeError, InvalidNonce, AuthenticationError, PermissionDenied } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -49,6 +50,8 @@ module.exports = class bit2c extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': true,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
@@ -267,6 +270,48 @@ module.exports = class bit2c extends Exchange {
             throw new ExchangeError (response);
         }
         return this.parseTrades (response, market, since, limit);
+    }
+
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetAccountBalance (params);
+        //
+        //     {
+        //         "AVAILABLE_NIS": 0.0,
+        //         "NIS": 0.0,
+        //         "LOCKED_NIS": 0.0,
+        //         "AVAILABLE_BTC": 0.0,
+        //         "BTC": 0.0,
+        //         "LOCKED_BTC": 0.0,
+        //         ...
+        //         "Fees": {
+        //             "BtcNis": { "FeeMaker": 1.0, "FeeTaker": 1.0 },
+        //             "EthNis": { "FeeMaker": 1.0, "FeeTaker": 1.0 },
+        //             ...
+        //         }
+        //     }
+        //
+        const fees = this.safeValue (response, 'Fees', {});
+        const keys = Object.keys (fees);
+        const result = {};
+        for (let i = 0; i < keys.length; i++) {
+            const marketId = keys[i];
+            const symbol = this.safeSymbol (marketId);
+            const fee = this.safeValue (fees, marketId);
+            const makerString = this.safeString (fee, 'FeeMaker');
+            const takerString = this.safeString (fee, 'FeeTaker');
+            const maker = this.parseNumber (Precise.stringDiv (makerString, '100'));
+            const taker = this.parseNumber (Precise.stringDiv (takerString, '100'));
+            result[symbol] = {
+                'info': fee,
+                'symbol': symbol,
+                'taker': taker,
+                'maker': maker,
+                'percentage': true,
+                'tierBased': false,
+            };
+        }
+        return result;
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
