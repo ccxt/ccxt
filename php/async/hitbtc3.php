@@ -1207,6 +1207,7 @@ class hitbtc3 extends Exchange {
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'privateGetSpotHistoryOrder',
             'swap' => 'privateGetFuturesHistoryOrder',
+            'margin' => 'privateGetMarginHistoryOrder',
         ));
         $response = yield $this->$method (array_merge($request, $query));
         $parsed = $this->parse_orders($response, $market, $since, $limit);
