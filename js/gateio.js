@@ -2921,13 +2921,13 @@ module.exports = class gateio extends Exchange {
         price = this.safeString (order, 'price', price);
         let remaining = this.safeString (order, 'left');
         let filled = Precise.stringSub (amount, remaining);
-        let cost = this.safeNumber (order, 'filled_total');
+        let cost = this.safeString (order, 'filled_total');
         let rawStatus = undefined;
         let average = undefined;
         if (put) {
             remaining = amount;
             filled = '0';
-            cost = this.parseNumber ('0');
+            cost = '0';
         }
         if (contract) {
             const isMarketOrder = Precise.stringEquals (price, '0') && (timeInForce === 'IOC');
@@ -2989,8 +2989,8 @@ module.exports = class gateio extends Exchange {
             'stopPrice': this.safeNumber (trigger, 'price'),
             'average': average,
             'amount': this.parseNumber (Precise.stringAbs (amount)),
-            'cost': cost,
-            'filled': this.parseNumber (filled),
+            'cost': Precise.stringAbs (cost),
+            'filled': this.parseNumber (Precise.stringAbs (filled)),
             'remaining': this.parseNumber (Precise.stringAbs (remaining)),
             'fee': multipleFeeCurrencies ? undefined : this.safeValue (fees, 0),
             'fees': multipleFeeCurrencies ? fees : [],
