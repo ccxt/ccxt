@@ -1367,6 +1367,7 @@ module.exports = class hitbtc3 extends Exchange {
         const method = this.getSupportedMapping (marketType, {
             'spot': 'privateDeleteSpotOrder',
             'swap': 'privateDeleteFuturesOrder',
+            'margin': 'privateDeleteMarginOrder',
         });
         const response = await this[method] (this.extend (request, query));
         return this.parseOrders (response, market);
