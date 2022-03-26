@@ -3416,16 +3416,13 @@ class huobi(Exchange):
         if type == 'limit' or type == 'ioc' or type == 'fok' or type == 'post_only':
             request['price'] = self.price_to_precision(symbol, price)
         request['order_price_type'] = type
-        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')  # must be 64 chars max and unique within 24 hours
-        if clientOrderId is None:
-            broker = self.safe_value(self.options, 'broker', {})
-            brokerId = self.safe_string(broker, 'id')
-            request['client_order_id'] = brokerId + self.uuid()
-        else:
-            request['client_order_id'] = clientOrderId
+        broker = self.safe_value(self.options, 'broker', {})
+        brokerId = self.safe_string(broker, 'id')
+        request['channel_code'] = brokerId
+        clientOrderId = self.safe_string_2(params, 'client_order_id', 'clientOrderId')
         if clientOrderId is not None:
             request['client_order_id'] = clientOrderId
-            params = self.omit(params, ['clientOrderId', 'client_order_id'])
+            params = self.omit(params, ['client_order_id', 'clientOrderId'])
         method = None
         if market['linear']:
             defaultMargin = 'cross' if market['future'] else 'isolated'
