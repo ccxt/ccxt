@@ -1395,11 +1395,13 @@ class hitbtc3(Exchange):
             if stopPrice is None:
                 raise ExchangeError(self.id + ' createOrder() requires a stopPrice parameter for stop-loss and take-profit orders')
             request['stop_price'] = self.price_to_precision(symbol, stopPrice)
-        method = self.get_supported_mapping(market['type'], {
+        marketType, query = self.handle_market_type_and_params('createOrder', market, params)
+        method = self.get_supported_mapping(marketType, {
             'spot': 'privatePostSpotOrder',
             'swap': 'privatePostFuturesOrder',
+            'margin': 'privatePostMarginOrder',
         })
-        response = getattr(self, method)(self.extend(request, params))
+        response = getattr(self, method)(self.extend(request, query))
         return self.parse_order(response, market)
 
     def create_reduce_only_order(self, symbol, type, side, amount, price=None, params={}):
