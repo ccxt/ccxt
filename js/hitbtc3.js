@@ -1361,7 +1361,7 @@ module.exports = class hitbtc3 extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', undefined, params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'privateDeleteSpotOrder',
             'swap': 'privateDeleteFuturesOrder',
