@@ -2353,10 +2353,11 @@ module.exports = class binance extends Exchange {
         id = this.safeString2 (trade, 'id', 'tradeId', id);
         let side = undefined;
         const orderId = this.safeString (trade, 'orderId');
-        if ('m' in trade) {
-            side = trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally
-        } else if ('isBuyerMaker' in trade) {
-            side = trade['isBuyerMaker'] ? 'sell' : 'buy';
+        const buyerMaker = this.safeValue (trade, 'm', 'isBuyerMaker');
+        let takerOrMaker = undefined;
+        if (buyerMaker !== undefined) {
+            side = buyerMaker ? 'sell' : 'buy'; // this is reversed intentionally
+            takerOrMaker = 'taker';
         } else if ('side' in trade) {
             side = this.safeStringLower (trade, 'side');
         } else {
@@ -2371,7 +2372,6 @@ module.exports = class binance extends Exchange {
                 'currency': this.safeCurrencyCode (this.safeString (trade, 'commissionAsset')),
             };
         }
-        let takerOrMaker = undefined;
         if ('isMaker' in trade) {
             takerOrMaker = trade['isMaker'] ? 'maker' : 'taker';
         }
