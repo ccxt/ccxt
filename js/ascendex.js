@@ -2438,12 +2438,14 @@ module.exports = class ascendex extends Exchange {
         const transferOptions = this.safeValue (this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeValue (transferOptions, 'fillResponseFromRequest', true);
         const transfer = {
+            'info': response,
             'status': this.parseTransferStatus (status),
         };
         if (fillResponseFromRequest) {
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
             transfer['amount'] = amount;
+            transfer['currency'] = code;
         }
         return transfer;
     }
