@@ -1346,11 +1346,13 @@ class hitbtc3(Exchange):
             request['price'] = self.price_to_precision(symbol, price)
         if symbol is not None:
             market = self.market(symbol)
-        method = self.get_supported_mapping(market['type'], {
+        marketType, query = self.handle_market_type_and_params('editOrder', market, params)
+        method = self.get_supported_mapping(marketType, {
             'spot': 'privatePatchSpotOrderClientOrderId',
             'swap': 'privatePatchFuturesOrderClientOrderId',
+            'margin': 'privatePatchMarginOrderClientOrderId',
         })
-        response = await getattr(self, method)(self.extend(request, params))
+        response = await getattr(self, method)(self.extend(request, query))
         return self.parse_order(response, market)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
