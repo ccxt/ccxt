@@ -254,15 +254,15 @@ module.exports = class mexc extends Exchange {
                     'ERC20': 'ERC-20',
                     'BEP20': 'BEP20(BSC)',
                 },
-                'accounts': {
-                    'spot': 'MAIN',
-                    'swap': 'CONTRACT',
-                },
-                'accountsById': {
-                    'MAIN': 'spot',
-                    'CONTRACT': 'swap',
-                },
                 'transfer': {
+                    'accounts': {
+                        'spot': 'MAIN',
+                        'swap': 'CONTRACT',
+                    },
+                    'accountsById': {
+                        'MAIN': 'spot',
+                        'CONTRACT': 'swap',
+                    },
                     'status': {
                         'SUCCESS': 'ok',
                         'FAILED': 'failed',
@@ -2329,7 +2329,8 @@ module.exports = class mexc extends Exchange {
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const accounts = this.safeValue (this.options, 'accounts', {});
+        const transferOptions = this.safeValue (this.options, 'transfer', {});
+        const accounts = this.safeValue (transferOptions, 'accounts', {});
         const fromId = this.safeString (accounts, fromAccount);
         const toId = this.safeString (accounts, toAccount);
         if (fromId === undefined) {
@@ -2381,7 +2382,7 @@ module.exports = class mexc extends Exchange {
         const id = this.safeString (transfer, 'transact_id');
         const fromId = this.safeString (transfer, 'from');
         const toId = this.safeString (transfer, 'to');
-        const accountsById = this.safeValue (this.options, 'accountsById', {});
+        const accountsById = this.safeValue (transferOptions, 'accountsById', {});
         const fromAccount = this.safeString (accountsById, fromId);
         const toAccount = this.safeString (accountsById, toId);
         const statusId = this.safeString (transfer, 'transact_state');
