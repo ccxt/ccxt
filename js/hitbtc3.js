@@ -1465,11 +1465,13 @@ module.exports = class hitbtc3 extends Exchange {
             }
             request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
         }
-        const method = this.getSupportedMapping (market['type'], {
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('createOrder', market, params);
+        const method = this.getSupportedMapping (marketType, {
             'spot': 'privatePostSpotOrder',
             'swap': 'privatePostFuturesOrder',
+            'margin': 'privatePostMarginOrder',
         });
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
         return this.parseOrder (response, market);
     }
 
