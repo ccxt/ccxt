@@ -2703,6 +2703,7 @@ Returns
 ```
 
 ## Funding Rate History
+
 *contract only*
 
 ```Javascript
@@ -2720,6 +2721,7 @@ Returns
 
 - An array of [funding rate history structures](#funding-rate-history-structure)
 ### Funding Rate History Structure
+
 ```Javascript
 {
     info: { ... },
@@ -2857,7 +2859,6 @@ Returns
     percentage: 78
 }
 ```
-
 
 # Private API
 
@@ -3046,7 +3047,6 @@ Parameters
 Returns
 
 - response from the exchange
-
 
 ### Overriding The Nonce
 
