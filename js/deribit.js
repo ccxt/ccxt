@@ -61,7 +61,7 @@ module.exports = class deribit extends Exchange {
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
-                'fetchTradingFees': false,
+                'fetchTradingFees': true,
                 'fetchTransactions': undefined,
                 'fetchWithdrawals': true,
                 'withdraw': true,
@@ -1032,6 +1032,61 @@ module.exports = class deribit extends Exchange {
         const result = this.safeValue (response, 'result', {});
         const trades = this.safeValue (result, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
+    }
+
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const code = this.codeFromOptions ('fetchBalance', params);
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+            'extended': true,
+        };
+        const response = await this.privateGetGetAccountSummary (this.extend (request, params));
+        const result = this.safeValue (response, 'result', {});
+        const fees = this.safeValue (result, 'fees', []);
+        let perpetualFee = {};
+        let futureFee = {};
+        let optionFee = {};
+        for (let i = 0; i < fees.length; i++) {
+            const fee = fees[i];
+            const instrumentType = this.safeString (fee, 'instrument_type');
+            if (instrumentType === 'future') {
+                futureFee = {
+                    'info': fee,
+                    'maker': this.safeNumber (fee, 'maker_fee'),
+                    'taker': this.safeNumber (fee, 'taker_fee'),
+                };
+            } else if (instrumentType === 'perpetual') {
+                perpetualFee = {
+                    'info': fee,
+                    'maker': this.safeNumber (fee, 'maker_fee'),
+                    'taker': this.safeNumber (fee, 'taker_fee'),
+                };
+            } else if (instrumentType === 'option') {
+                optionFee = {
+                    'info': fee,
+                    'maker': this.safeNumber (fee, 'maker_fee'),
+                    'taker': this.safeNumber (fee, 'taker_fee'),
+                };
+            }
+        }
+        const parsedFees = {};
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            const market = this.market (symbol);
+            if (market['swap']) {
+                parsedFees[symbol] = perpetualFee;
+            } else if (market['future']) {
+                parsedFees[symbol] = futureFee;
+            } else if (market['option']) {
+                parsedFees[symbol] = optionFee;
+            }
+            parsedFees[symbol]['symbol'] = symbol;
+            parsedFees[symbol]['percentage'] = true;
+            parsedFees[symbol]['tierBased'] = true;
+        }
+        return parsedFees;
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
