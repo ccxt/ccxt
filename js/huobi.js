@@ -3587,6 +3587,11 @@ module.exports = class huobi extends Exchange {
         const broker = this.safeValue (this.options, 'broker', {});
         const brokerId = this.safeString (broker, 'id');
         request['channel_code'] = brokerId;
+        const clientOrderId = this.safeString2 (params, 'client_order_id', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['client_order_id'] = clientOrderId;
+            params = this.omit (params, [ 'client_order_id', 'clientOrderId' ]);
+        }
         let method = undefined;
         if (market['linear']) {
             const defaultMargin = market['future'] ? 'cross' : 'isolated';
