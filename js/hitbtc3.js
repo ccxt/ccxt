@@ -1405,7 +1405,7 @@ module.exports = class hitbtc3 extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('editOrder', undefined, params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('editOrder', market, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'privatePatchSpotOrderClientOrderId',
             'swap': 'privatePatchFuturesOrderClientOrderId',
