@@ -235,6 +235,9 @@ module.exports = class ascendex extends Exchange {
                     'swap': 'futures',
                     'margin': 'margin',
                 },
+                'transfer': {
+                    'fillResponseFromRequest': true,
+                },
             },
             'exceptions': {
                 'exact': {
@@ -2428,7 +2431,28 @@ module.exports = class ascendex extends Exchange {
             'toAccount': toId,
         };
         const response = await this.v1PrivateAccountGroupPostTransfer (this.extend (request, params));
-        return response;
+        //
+        //    { code: '0' }
+        //
+        const status = this.safeInteger (response, 'code');
+        const transferOptions = this.safeValue (this.options, 'transfer', {});
+        const fillResponseFromRequest = this.safeValue (transferOptions, 'fillResponseFromRequest', true);
+        const transfer = {
+            'status': this.parseTransferStatus (status),
+        };
+        if (fillResponseFromRequest) {
+            transfer['fromAccount'] = fromAccount;
+            transfer['toAccount'] = toAccount;
+            transfer['amount'] = amount;
+        }
+        return transfer;
+    }
+
+    parseTransferStatus (status) {
+        if (status === 0) {
+            return 'ok';
+        }
+        return 'failed';
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
