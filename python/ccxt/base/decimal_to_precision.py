@@ -26,7 +26,7 @@ ROUND_DOWN = 8
 
 # digits counting mode
 DECIMAL_PLACES = 16
-SIGNIFICANT_DIGITS = 32
+SIGNIFICANT_DIGITS = 32      # positive counts right from first digit, negative counts left from decimal point
 TICK_SIZE = 64
 
 # padding mode
@@ -115,8 +115,7 @@ def decimal_to_precision(x, rounding_mode=ROUND, num_precision_digits=None, coun
         else:
             raise ValueError('num_precision_digits must be a string integer or a integer')
     if counting_mode == SIGNIFICANT_DIGITS:
-        if num_precision_digits_num < 0:
-            raise ValueError('SIGNIFICANT_DIGITS cant be used with negative num_precision_digits')
+        # Negative SIGNIFICANT_DIGITS are counted from the decimal point to the left.
         if num_precision_digits_num == 0:
             return '0'
     point_index = x.find('.')
@@ -130,9 +129,12 @@ def decimal_to_precision(x, rounding_mode=ROUND, num_precision_digits=None, coun
         if last_digit_pos < point_index:
             last_digit_pos -= 1
     elif counting_mode == SIGNIFICANT_DIGITS:
-        last_digit_pos = first_digit_pos + num_precision_digits_num
-        if (first_digit_pos < point_index and last_digit_pos < point_index) or first_digit_pos > point_index:
-            last_digit_pos -= 1
+        if num_precision_digits_num > 0:
+            last_digit_pos = first_digit_pos + num_precision_digits_num
+            if (first_digit_pos < point_index and last_digit_pos < point_index) or first_digit_pos > point_index:
+                last_digit_pos -= 1
+        else:
+            last_digit_pos = point_index + num_precision_digits_num - 1
     else:
         assert False
     char_array = list(x)
@@ -183,8 +185,9 @@ def decimal_to_precision(x, rounding_mode=ROUND, num_precision_digits=None, coun
     elif rounding_mode == TRUNCATE:
         if last_digit_pos < 0 or (last_digit_pos < len(char_array) and char_array[last_digit_pos] == '-'):
             return '0'
-        for p in range(last_digit_pos + 1, point_index):
-            char_array[p] = '0'
+        for p in range(last_digit_pos + 1, len(char_array)):
+            if p != point_index:
+                char_array[p] = '0'
     else:
         assert False
     result = ''.join(char_array[0:max(point_index, last_digit_pos + 1)])
