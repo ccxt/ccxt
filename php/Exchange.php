@@ -2907,14 +2907,14 @@ class Exchange {
             
             $newNumPrecisionDigits = $numPrecisionDigitsP->decimals > 0 ? $numPrecisionDigitsP->decimals : 0;
             
-            $rationizerNumerator = max(-$xP->decimals + $numPrecisionDigitsP->decimals, 0)+1;
+            $rationizerNumerator = max(-$xP->decimals + $numPrecisionDigitsP->decimals, 0);
             if ($rationizerNumerator > 0) {
                 $exponent = gmp_pow(Precise::$base, $rationizerNumerator);
                 $numerator = gmp_mul($xP->integer, $exponent);
             } else {
                 $numerator = $xP->integer;
             }
-            $rationizerDenominator = max(-$numPrecisionDigitsP->decimals + $xP->decimals, 0)+1;
+            $rationizerDenominator = max(-$numPrecisionDigitsP->decimals + $xP->decimals, 0);
             if ($rationizerDenominator > 0) {
                 $exponent = gmp_pow(Precise::$base, $rationizerDenominator);
                 $denominator = gmp_mul($numPrecisionDigitsP->integer, $exponent);
@@ -2928,13 +2928,13 @@ class Exchange {
             if (gmp_cmp($remainderInteger, 0) != 0) {
                 $remainderDecimals = $rationizerDenominator + $numPrecisionDigitsP->decimals;
                 if ($roundingMode === ROUND) {
-                    $halfDenominator = gmp_div($denominator, 2);
+                    $doubleRemainderInteger = gmp_mul($remainderInteger, 2);
                     if (gmp_cmp($quotientInteger,0)>0) {
-                        if (gmp_cmp($remainderInteger,$halfDenominator) >= 0) {
+                        if (gmp_cmp($doubleRemainderInteger,$denominator) >= 0) {
                             $quotientInteger = gmp_add($quotientInteger,1);
                         }
                     } else {
-                        if (gmp_cmp($remainderInteger,$halfDenominator) > 0) {
+                        if (gmp_cmp($doubleRemainderInteger,$denominator) > 0) {
                             $quotientInteger = gmp_add($quotientInteger,1);
                         }
                     }
