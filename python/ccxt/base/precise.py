@@ -14,7 +14,7 @@
 class Precise:
     def __init__(self, number, decimals=None):
         if decimals is None:
-            #assert(isinstance(number, str))
+            # assert(isinstance(number, str))
             modifier = 0
             number = number.lower()
             if 'e' in number:
@@ -29,8 +29,8 @@ class Precise:
                 self.integer = int(number)
             self.decimals = self.decimals - modifier
         else:
-            #assert(isinstance(number, int))
-            #assert(isinstance(decimals, int))
+            # assert(isinstance(number, int))
+            # assert(isinstance(decimals, int))
             self.integer = number
             self.decimals = decimals
         self.base = 10
