@@ -380,16 +380,10 @@ function testDecimaltoPrecisionNegativeDecimalPlaces () {
 }
 
 function testDecimaltoPrecisionNegativeSignificantDigits () {
-	// Actually negative significant digits doesn't make any sense
-	if (false) {
-		decimalToPrecisionTest ('60', '69.3', TRUNCATE, -1, SIGNIFICANT_DIGITS);
-		decimalToPrecisionTest ('-60', '-69.3', TRUNCATE, -1, SIGNIFICANT_DIGITS);
-		decimalToPrecisionTest ('0', '69.3', TRUNCATE, -2, SIGNIFICANT_DIGITS);
-	} else {
-		decimalToPrecisionTest ('60', '69.3', TRUNCATE, 1, SIGNIFICANT_DIGITS);
-		decimalToPrecisionTest ('-60', '-69.3', TRUNCATE, 1, SIGNIFICANT_DIGITS);
-		decimalToPrecisionTest ('0', '69.3', TRUNCATE, 0, SIGNIFICANT_DIGITS);
-	}
+	// positive counts right from first digit, negative counts left from decimal point
+	decimalToPrecisionTest ('60', '69.3', TRUNCATE, -1, SIGNIFICANT_DIGITS);
+	decimalToPrecisionTest ('-60', '-69.3', TRUNCATE, -1, SIGNIFICANT_DIGITS);
+	decimalToPrecisionTest ('0', '69.3', TRUNCATE, -2, SIGNIFICANT_DIGITS);
 	decimalToPrecisionTest ('1600000000000000000000', '1602000000000000000000', TRUNCATE, 3, SIGNIFICANT_DIGITS);
 }
 
