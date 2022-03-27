@@ -327,8 +327,8 @@ module.exports = class cryptocom extends ccxt.cryptocom {
         const orders = this.safeValue (message, 'data', []);
         const ordersLength = orders.length;
         if (ordersLength > 0) {
-            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             if (this.orders === undefined) {
+                const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
                 this.orders = new ArrayCacheBySymbolById (limit);
             }
             const stored = this.orders;
@@ -432,6 +432,9 @@ module.exports = class cryptocom extends ccxt.cryptocom {
         } catch (e) {
             if (e instanceof AuthenticationError) {
                 client.reject (e, 'authenticated');
+                if ('public/auth' in client.subscriptions) {
+                    delete client.subscriptions['public/auth'];
+                }
                 return false;
             } else {
                 client.reject (e);
@@ -535,6 +538,7 @@ module.exports = class cryptocom extends ccxt.cryptocom {
         //
         const future = client.futures['authenticated'];
         future.resolve (1);
+        client.resolve (1, 'public/auth');
         return message;
     }
 };
