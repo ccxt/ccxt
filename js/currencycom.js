@@ -60,7 +60,7 @@ module.exports = class currencycom extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
-                'fetchL2OrderBook': true,
+                'fetchL2OrderBook': false,
                 'fetchLedger': true,
                 'fetchLedgerEntry': false,
                 'fetchLeverage': true,
