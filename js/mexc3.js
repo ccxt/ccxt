@@ -372,15 +372,15 @@ module.exports = class mexc3 extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchStatus', undefined, params);
         let response = undefined;
         let status = undefined;
-        if (marketType === 'swap') {
-            response = await this.contractPublicGetPing (query);
+        if (marketType === 'spot') {
+            response = await this.spotPublicGetPing (query);
             //
             //     {}
             //
             const length = Object.keys (response).length;
-            status = (length === 0 || this.safeValue (response, 'success')) ? 'ok' : 'maintenance';
+            status = length === 0 ? 'ok' : 'maintenance';
         } else {
-            response = await this.spotPublicGetPing (query);
+            response = await this.contractPublicGetPing (query);
             //
             //     {"success":true,"code":"0","data":"1648124374985"}
             //
