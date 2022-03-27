@@ -2173,8 +2173,7 @@ module.exports = class Exchange {
     }
 
     handleMarketTypeAndParams (methodName, market = undefined, params = {}) {
-        const placeHolderType = 'spot';
-        const defaultType = this.safeString2 (this.options, 'defaultType', 'type', placeHolderType);
+        const defaultType = this.safeString2 (this.options, 'defaultType', 'type', 'spot');
         const methodOptions = this.safeValue (this.options, methodName);
         let methodType = defaultType;
         if (methodOptions !== undefined) {
