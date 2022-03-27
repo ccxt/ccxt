@@ -167,7 +167,7 @@ module.exports = class poloniex extends ccxt.poloniex {
         }
         const orders = await this.subscribePrivate (messageHash, {});
         if (this.newUpdates) {
-            limit = orders.getLimit ();
+            limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
@@ -182,7 +182,7 @@ module.exports = class poloniex extends ccxt.poloniex {
         }
         const trades = await this.subscribePrivate (messageHash, {});
         if (this.newUpdates) {
-            limit = trades.getLimit ();
+            limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
     }
