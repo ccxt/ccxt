@@ -69,13 +69,13 @@ def decimal_to_precision(x, rounding_mode=ROUND, num_precision_digits=None, coun
         else:
             raise ValueError('x must be a string number or a number')
         new_num_precision_digits = precision_p.decimals if precision_p.decimals > 0 else 0
-        
-        #remainder_p = x_p.mod(precision_p)
+
+        # remainder_p = x_p.mod(precision_p)
         rationizerNumerator = max(-x_p.decimals + precision_p.decimals, 0)
         numerator = x_p.integer * (x_p.base ** rationizerNumerator)
         rationizerDenominator = max(-precision_p.decimals + x_p.decimals, 0)
         denominator = precision_p.integer * (x_p.base ** rationizerDenominator)
-        quotient_integer, rem = divmod(numerator,denominator)
+        quotient_integer, rem = divmod(numerator, denominator)
 
         if rem != 0:
             if rounding_mode == ROUND:
