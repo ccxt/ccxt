@@ -277,16 +277,23 @@ const decimalToPrecision = (x, roundingMode
 			}
 		}
 	} else if (roundingMode === TRUNCATE) {
-		if ((lastDigitPos < 0) || ((lastDigitPos < charArray.length) && (charArray[lastDigitPos] === '-'))) {
-			return '0'
-		}
-		for (var p=lastDigitPos+1; p<charArray.length; ++p) {
-			if (p != pointIndex) {
-				charArray[p] = '0'
-			}
-		}
 	} else {
 		assert(false)
+	}
+	if ((lastDigitPos < 0) || ((lastDigitPos < charArray.length) && (charArray[lastDigitPos] === '-'))) {
+		return '0'
+	}
+	if (lastDigitPos > pointIndex) {
+		for (var p=lastDigitPos+1; p<charArray.length; ++p) {
+			charArray[p] = '0'
+		}
+	} else {
+		for (var p=lastDigitPos+1; p<pointIndex; ++p) {
+			charArray[p] = '0'
+		}
+		for (var p=pointIndex+1; p<charArray.length; ++p) {
+			charArray[p] = '0'
+		}
 	}
 	result = charArray.splice (0, Math.max (pointIndex, lastDigitPos+1)).join ('')
 	hasDot = result.includes('.')
