@@ -57,7 +57,10 @@ class bitmart extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
+                'fetchTransfer' => false,
+                'fetchTransfers' => false,
                 'fetchWithdrawals' => true,
+                'transfer' => false,
                 'withdraw' => true,
             ),
             'hostname' => 'bitmart.com', // bitmart.info, bitmart.news for Hong Kong users
