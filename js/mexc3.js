@@ -65,7 +65,7 @@ module.exports = class mexc3 extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
-                'fetchOHLCV': true,
+                'fetchOHLCV': false,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -107,7 +107,7 @@ module.exports = class mexc3 extends Exchange {
                         'public': 'https://api.mexc.com',
                         'private': 'https://api.mexc.com',
                     },
-                    'spotv2': {
+                    'spot2': {
                         'public': 'https://www.mexc.com/open/api/v2',
                         'private': 'https://www.mexc.com/open/api/v2',
                     },
@@ -221,6 +221,50 @@ module.exports = class mexc3 extends Exchange {
                             'stoporder/cancel_all': 2,
                             'stoporder/change_price': 2,
                             'stoporder/change_plan_price': 2,
+                        },
+                    },
+                },
+                'spot2': {
+                    'public': {
+                        'get': {
+                            'market/symbols': 1,
+                            'market/coin/list': 2,
+                            'common/timestamp': 1,
+                            'common/ping': 1,
+                            'market/ticker': 1,
+                            'market/depth': 1,
+                            'market/deals': 1,
+                            'market/kline': 1,
+                            'market/api_default_symbols': 2,
+                        },
+                    },
+                    'private': {
+                        'get': {
+                            'account/info': 1,
+                            'order/open_orders': 1,
+                            'order/list': 1,
+                            'order/query': 1,
+                            'order/deals': 1,
+                            'order/deal_detail': 1,
+                            'asset/deposit/address/list': 2,
+                            'asset/deposit/list': 2,
+                            'asset/address/list': 2,
+                            'asset/withdraw/list': 2,
+                            'asset/internal/transfer/record': 10,
+                            'account/balance': 10,
+                            'asset/internal/transfer/info': 10,
+                            'market/api_symbols': 2,
+                        },
+                        'post': {
+                            'order/place': 1,
+                            'order/place_batch': 1,
+                            'asset/withdraw': 2,
+                            'asset/internal/transfer': 10,
+                        },
+                        'delete': {
+                            'order/cancel': 1,
+                            'order/cancel_by_symbol': 1,
+                            'asset/withdraw': 2,
                         },
                     },
                 },
@@ -368,7 +412,7 @@ module.exports = class mexc3 extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        const response = await this.spotv2PublicGetMarketCoinList (params);
+        const response = await this.spot2PublicGetMarketCoinList (params);
         //
         //     {
         //         "code":200,
@@ -1051,7 +1095,8 @@ module.exports = class mexc3 extends Exchange {
             //         }
             //     }
             //
-            candles = this.safeValue (response, 'data');
+            const data = this.safeValue (response, 'data');
+            candles = this.convertTradingViewToOHLCV (data, 'time', 'open', 'high', 'low', 'close', 'vol');
         }
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
@@ -1686,7 +1731,7 @@ module.exports = class mexc3 extends Exchange {
         if (since !== undefined) {
             request['start_time'] = since;
         }
-        const response = await this.spotv2PrivateGetOrderList (this.extend (request, params));
+        const response = await this.spot2PrivateGetOrderList (this.extend (request, params));
         const data = this.safeValue (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
@@ -2361,7 +2406,7 @@ module.exports = class mexc3 extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await this.spotv2PrivateGetAssetDepositAddressList (this.extend (request, params));
+        const response = await this.spot2PrivateGetAssetDepositAddressList (this.extend (request, params));
         //
         //     {
         //         "code":200,
@@ -2442,7 +2487,7 @@ module.exports = class mexc3 extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.spotv2PrivateGetAssetDepositList (this.extend (request, params));
+        const response = await this.spot2PrivateGetAssetDepositList (this.extend (request, params));
         //
         //     {
         //         "code":200,
@@ -2495,7 +2540,7 @@ module.exports = class mexc3 extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.spotv2PrivateGetAssetWithdrawList (this.extend (request, params));
+        const response = await this.spot2PrivateGetAssetWithdrawList (this.extend (request, params));
         //
         //     {
         //         "code":200,
@@ -2751,7 +2796,7 @@ module.exports = class mexc3 extends Exchange {
             request['chain'] = network;
             params = this.omit (params, [ 'network', 'chain' ]);
         }
-        const response = await this.spotv2PrivatePostAssetWithdraw (this.extend (request, params));
+        const response = await this.spot2PrivatePostAssetWithdraw (this.extend (request, params));
         //
         //     {
         //         "code":200,
@@ -2793,7 +2838,7 @@ module.exports = class mexc3 extends Exchange {
             if (method === 'POST') {
                 headers['Content-Type'] = 'application/json';
             }
-        } else if (section === 'contract' || section === 'spotv2') {
+        } else if (section === 'contract' || section === 'spot2') {
             url = this.urls['api'][section][access] + '/' + this.implodeParams (path, params);
             params = this.omit (params, this.extractParams (path));
             if (access === 'public') {
