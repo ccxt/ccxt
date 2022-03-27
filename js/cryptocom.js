@@ -146,8 +146,9 @@ module.exports = class cryptocom extends ccxt.cryptocom {
         //       ]
         // }
         //
-        const messageHash = this.safeString (message, 'subscription');
+        const channel = this.safeString (message, 'channel');
         const marketId = this.safeString (message, 'instrument_name');
+        const symbolSpecificMessageHash = this.safeString (message, 'subscription');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         let stored = this.safeValue (this.trades, symbol);
@@ -161,17 +162,15 @@ module.exports = class cryptocom extends ccxt.cryptocom {
         for (let j = 0; j < parsedTrades.length; j++) {
             stored.append (parsedTrades[j]);
         }
-        client.resolve (stored, messageHash);
+        client.resolve (stored, symbolSpecificMessageHash);
+        client.resolve (stored, channel);
     }
 
     async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
-            await this.loadMarkets ();
             market = this.market (symbol);
-            if (!market['spot']) {
-                throw new NotSupported (this.id + ' watchMyTrades() supports spot markets only');
-            }
         }
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
         let messageHash = (defaultType === 'margin') ? 'user.margin.trade' : 'user.trade';
@@ -278,13 +277,10 @@ module.exports = class cryptocom extends ccxt.cryptocom {
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
-            await this.loadMarkets ();
             market = this.market (symbol);
-            if (!market['spot']) {
-                throw new NotSupported (this.id + ' watchOrders() supports spot markets only');
-            }
         }
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
         let messageHash = (defaultType === 'margin') ? 'user.margin.order' : 'user.order';
@@ -326,7 +322,8 @@ module.exports = class cryptocom extends ccxt.cryptocom {
         //       "channel": "user.order.ETH_CRO"
         //     }
         //
-        const channel = this.safeValue (message, 'channel');
+        const channel = this.safeString (message, 'channel');
+        const symbolSpecificMessageHash = this.safeString (message, 'subscription');
         const orders = this.safeValue (message, 'data', []);
         const ordersLength = orders.length;
         if (ordersLength > 0) {
@@ -335,20 +332,13 @@ module.exports = class cryptocom extends ccxt.cryptocom {
                 this.orders = new ArrayCacheBySymbolById (limit);
             }
             const stored = this.orders;
-            const marketIds = {};
             const parsed = this.parseOrders (orders);
             for (let i = 0; i < parsed.length; i++) {
-                const order = parsed[i];
-                stored.append (order);
-                const symbol = order['symbol'];
-                const market = this.market (symbol);
-                marketIds[market['id']] = true;
+                stored.append (parsed[i]);
             }
-            const keys = Object.keys (marketIds);
-            for (let i = 0; i < keys.length; i++) {
-                const messageHash = channel + '.' + keys[i];
-                client.resolve (this.orders, messageHash);
-            }
+            client.resolve (stored, symbolSpecificMessageHash);
+            // non-symbol specific
+            client.resolve (stored, channel);
         }
     }
 
@@ -399,7 +389,7 @@ module.exports = class cryptocom extends ccxt.cryptocom {
         const request = {
             'method': 'subscribe',
             'params': {
-                'channels': [messageHash],
+                'channels': [ messageHash ],
             },
             'nonce': id,
         };
@@ -409,13 +399,12 @@ module.exports = class cryptocom extends ccxt.cryptocom {
 
     async watchPrivate (messageHash, params = {}) {
         await this.authenticate ();
-        await this.sleep (1); // documentation suggest to do this to avoid rate limit problems
         const url = this.urls['api']['ws']['private'];
         const id = this.nonce ();
         const request = {
             'method': 'subscribe',
             'params': {
-                'channels': [messageHash],
+                'channels': [ messageHash ],
             },
             'nonce': id,
         };
@@ -443,10 +432,6 @@ module.exports = class cryptocom extends ccxt.cryptocom {
         } catch (e) {
             if (e instanceof AuthenticationError) {
                 client.reject (e, 'authenticated');
-                const method = 'auth';
-                if (method in client.subscriptions) {
-                    delete client.subscriptions[method];
-                }
                 return false;
             } else {
                 client.reject (e);
