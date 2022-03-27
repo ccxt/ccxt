@@ -20,7 +20,7 @@ const ROUND      = 1                // rounding mode
     , ROUND_DOWN = 8
 
 const DECIMAL_PLACES     = 16        // digits counting mode
-    , SIGNIFICANT_DIGITS = 32
+    , SIGNIFICANT_DIGITS = 32        // positive counts right from first digit, negative counts left from decimal point
     , TICK_SIZE = 64
 
 const NO_PADDING    = 128             // zero-padding mode
@@ -185,9 +185,7 @@ const decimalToPrecision = (x, roundingMode
         throw new Error ('numPrecisionDigits must be an integer for DECIMAL_PLACES and SIGNIFICANT_DIGITS')
 	}
     if (countingMode === SIGNIFICANT_DIGITS) {
-        if (numPrecisionDigitsNum < 0) {
-            throw new Error ('SIGNIFICANT_DIGITS cant be used with negative numPrecisionDigits')
-        }
+		// positive counts right from first digit, negative counts left from decimal point
 		if (numPrecisionDigitsNum === 0) {
 			return '0'
 		}
@@ -208,9 +206,13 @@ const decimalToPrecision = (x, roundingMode
 			lastDigitPos--
 		}
 	} else if (countingMode === SIGNIFICANT_DIGITS) {
-		lastDigitPos = firstDigitPos + numPrecisionDigitsNum
-		if (((firstDigitPos < pointIndex) && (lastDigitPos < pointIndex)) || (firstDigitPos > pointIndex)) {
-			lastDigitPos--
+		if (numPrecisionDigits > 0) {
+			lastDigitPos = firstDigitPos + numPrecisionDigitsNum
+			if (((firstDigitPos < pointIndex) && (lastDigitPos < pointIndex)) || (firstDigitPos > pointIndex)) {
+				lastDigitPos--
+			}
+		} else {
+			lastDigitPos = pointIndex + numPrecisionDigitsNum - 1;
 		}
 	} else {
 		assert(false)
@@ -269,7 +271,7 @@ const decimalToPrecision = (x, roundingMode
 		if ((lastDigitPos < 0) || ((lastDigitPos < charArray.length) && (charArray[lastDigitPos] === '-'))) {
 			return '0'
 		}
-		for (p = charArray.length-1; p > lastDigitPos; --p) {
+		for (p=lastDigitPos+1; p<charArray.length; ++p) {
 			if (p != pointIndex) {
 				charArray[p] = '0'
 			}
@@ -278,8 +280,10 @@ const decimalToPrecision = (x, roundingMode
 		if ((lastDigitPos < 0) || ((lastDigitPos < charArray.length) && (charArray[lastDigitPos] === '-'))) {
 			return '0'
 		}
-		for (var p=lastDigitPos+1; p<pointIndex; ++p) {
-			charArray[p] = '0'
+		for (var p=lastDigitPos+1; p<charArray.length; ++p) {
+			if (p != pointIndex) {
+				charArray[p] = '0'
+			}
 		}
 	} else {
 		assert(false)
