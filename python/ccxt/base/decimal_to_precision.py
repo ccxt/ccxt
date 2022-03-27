@@ -69,15 +69,28 @@ def decimal_to_precision(x, rounding_mode=ROUND, num_precision_digits=None, coun
         else:
             raise ValueError('x must be a string number or a number')
         new_num_precision_digits = precision_p.decimals if precision_p.decimals > 0 else 0
-        remainder_p = x_p.mod(precision_p)
-        if remainder_p.integer != 0:
+        
+        #remainder_p = x_p.mod(precision_p)
+        rationizerNumerator = max(-x_p.decimals + precision_p.decimals, 0)
+        numerator = x_p.integer * (x_p.base ** rationizerNumerator)
+        rationizerDenominator = max(-precision_p.decimals + x_p.decimals, 0)
+        denominator = precision_p.integer * (x_p.base ** rationizerDenominator)
+        quotient_integer, rem = divmod(numerator,denominator)
+
+        if rem != 0:
             if rounding_mode == ROUND:
-                x_p = x_p.div(precision_p).round().mul(precision_p)
-            elif rounding_mode == TRUNCATE:
-                if x_p.integer >= 0:
-                    x_p = x_p.div(precision_p).floor().mul(precision_p)
+                one_integer = x_p.base ** rationizerDenominator
+                if quotient_integer > 0:
+                    if rem * 2 >= precision_p.integer * one_integer:
+                        quotient_integer += 1
                 else:
-                    x_p = x_p.div(precision_p).ceil().mul(precision_p)
+                    if rem * 2 > precision_p.integer * one_integer:
+                        quotient_integer += 1
+            elif rounding_mode == TRUNCATE:
+                if quotient_integer < 0:
+                    quotient_integer += 1
+            quotient_p = Precise(quotient_integer, 0)
+            x_p = quotient_p.mul(precision_p)
         x = str(x_p)
         rounding_mode = ROUND
         num_precision_digits_num = new_num_precision_digits
