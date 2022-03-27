@@ -270,7 +270,6 @@ module.exports = class mexc3 extends Exchange {
                 },
             },
             'timeframes': {
-
                 '1m': '1m', // spot, swap
                 '3m': '3m', // spot
                 '5m': '5m', // spot, swap
