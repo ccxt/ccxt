@@ -3015,9 +3015,6 @@ class Exchange {
             }
             $carry = 0;
             while ((($p >= 0) and ($p < $xlen) and ($x[$p] != '-')) or ($p2 >= 0)) {
-                if ($p >= $xlen) {
-                    break;
-                }
                 if (($p2 >= $xlen) or (ord($x[$p2]) - ord('0') + 10 * $carry < 5 )) {
                     break;
                 }
