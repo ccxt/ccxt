@@ -3524,7 +3524,7 @@ In order to get current best price (query market price) and calculate bidask spr
 .. code-block:: JavaScript
 
    // JavaScript
-   let orderbook = exchange.fetchOrderBook (exchange.symbols[0])
+   let orderbook = await exchange.fetchOrderBook (exchange.symbols[0])
    let bid = orderbook.bids.length ? orderbook.bids[0][0] : undefined
    let ask = orderbook.asks.length ? orderbook.asks[0][0] : undefined
    let spread = (bid && ask) ? ask - bid : undefined
