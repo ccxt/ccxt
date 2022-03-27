@@ -377,8 +377,7 @@ module.exports = class mexc3 extends Exchange {
             //
             //     {}
             //
-            const length = Object.keys (response).length;
-            status = length === 0 ? 'ok' : 'maintenance';
+            status = Object.keys (response).length ? 'ok' : 'maintenance';
         } else {
             response = await this.contractPublicGetPing (query);
             //
