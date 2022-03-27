@@ -46,7 +46,7 @@ const ROUND_DOWN = 8;
 
 // digits counting mode
 const DECIMAL_PLACES = 16;
-const SIGNIFICANT_DIGITS = 32;
+const SIGNIFICANT_DIGITS = 32; // positive counts right from first digit, negative counts left from decimal point
 const TICK_SIZE = 64;
 
 // padding mode
@@ -2976,9 +2976,7 @@ class Exchange {
         }
         
         if ($countingMode === SIGNIFICANT_DIGITS) {
-            if ($numPrecisionDigitsNum < 0) {
-                throw new BaseError('SIGNIFICANT_DIGITS cant be used with negative numPrecisionDigits');
-            }
+            // Negative SIGNIFICANT_DIGITS are counted from the decimal point to the left.
             if ($numPrecisionDigitsNum == 0) {
                 return '0';
             }
@@ -2999,9 +2997,13 @@ class Exchange {
                 $lastDigitPos--;
             }
         } elseif ($countingMode === SIGNIFICANT_DIGITS) {
-            $lastDigitPos = $firstDigitPos + $numPrecisionDigitsNum;
-            if ((($firstDigitPos < $pointIndex) and ($lastDigitPos < $pointIndex)) or ($firstDigitPos > $pointIndex)) {
-                $lastDigitPos--;
+            if ( $numPrecisionDigitsNum > 0 ) {
+                $lastDigitPos = $firstDigitPos + $numPrecisionDigitsNum;
+                if ((($firstDigitPos < $pointIndex) and ($lastDigitPos < $pointIndex)) or ($firstDigitPos > $pointIndex)) {
+                    $lastDigitPos--;
+                }
+            } else {
+                $lastDigitPos = $pointIndex + $numPrecisionDigitsNum - 1;
             }
         } else {
             assert(false);
@@ -3070,8 +3072,12 @@ class Exchange {
             if (($lastDigitPos < 0) or (($lastDigitPos < $xlen) and ($x[$lastDigitPos] === '-'))) {
                 return '0';
             }
+            if (($pointIndex !== $xlen) and ($lastDigitPos+1<$xlen)) {
+                $lastDigitPos1 = max($pointIndex,$lastDigitPos)+1;
+                $x = substr($x,0,$lastDigitPos1) . str_repeat('0',$xlen-$lastDigitPos1);
+            }
             if ($lastDigitPos+1<$pointIndex) {
-                $x = substr($x,0,$lastDigitPos+1) . str_repeat('0',$pointIndex-$lastDigitPos) . substr($x,$pointIndex);
+                $x = substr($x,0,$lastDigitPos+1) . str_repeat('0',$pointIndex-$lastDigitPos-1) . substr($x,$pointIndex);
             }
         } else {
             assert(false);
