@@ -134,8 +134,8 @@ class Precise:
         return Precise(-self.integer, self.decimals)
 
     def mod(self, other):
-        rationizerNumberator = max(-self.decimals + other.decimals, 0)
-        numerator = self.integer * (self.base ** rationizerNumberator)
+        rationizerNumerator = max(-self.decimals + other.decimals, 0)
+        numerator = self.integer * (self.base ** rationizerNumerator)
         rationizerDenominator = max(-other.decimals + self.decimals, 0)
         denominator = other.integer * (self.base ** rationizerDenominator)
         result = numerator % denominator
