@@ -20,8 +20,14 @@ module.exports = async (exchange, symbol) => {
     }
 
     if (exchange.has.fetchOHLCV) {
-
-        const timeframe = Object.keys (exchange.timeframes || { '1d': '1d' })[0]
+        
+        let timeframes = undefined
+        if (exchange.defaultType in exchange.options) {
+            timeframes = exchange.options[exchange.defaultType]
+        } else {
+            timeframes = exchange.timeframes || { '1d': '1d' }
+        }
+        const timeframe = Object.keys (timeframes)[0]
         const limit = 10
         const duration = exchange.parseTimeframe (timeframe)
         const since = exchange.milliseconds () - duration * limit * 1000 - 1000
