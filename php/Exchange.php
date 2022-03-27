@@ -3686,7 +3686,7 @@ class Exchange {
             if (is_string($method_options)) {
                 $method_type = $method_options;
             } else {
-                $method_type = $this->safe_string_2($method_options, 'defaultType', 'type');
+                $method_type = $this->safe_string_2($method_options, 'defaultType', 'type', $method_type);
             }
         }
         $market_type = isset($market) ? $market['type'] : $method_type;
