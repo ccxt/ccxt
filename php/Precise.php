@@ -264,7 +264,7 @@ class Precise {
             return null;
         }
         $string2_precise = new Precise($string2);
-        if (gmp_cmp($string2_precise->integer, '0') === 0) {
+        if (gmp_cmp($string2_precise->integer, 0) === 0) {
             return null;
         }
         return strval((new Precise($string1))->div($string2_precise, $precision));
