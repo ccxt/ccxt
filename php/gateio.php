@@ -400,7 +400,11 @@ class gateio extends \ccxt\async\gateio {
             $payload = [$marketId];
             $messageHash .= ':' . $marketSymbol;
         }
-        return yield $this->subscribe_private($url, $channel, $messageHash, $payload, null);
+        $trades = yield $this->subscribe_private($url, $channel, $messageHash, $payload, null);
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit ($symbol, $limit);
+        }
+        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
     }
 
     public function handle_my_trades($client, $message) {
