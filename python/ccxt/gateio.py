@@ -2813,13 +2813,13 @@ class gateio(Exchange):
         price = self.safe_string(order, 'price', price)
         remaining = self.safe_string(order, 'left')
         filled = Precise.string_sub(amount, remaining)
-        cost = self.safe_number(order, 'filled_total')
+        cost = self.safe_string(order, 'filled_total')
         rawStatus = None
         average = None
         if put:
             remaining = amount
             filled = '0'
-            cost = self.parse_number('0')
+            cost = '0'
         if contract:
             isMarketOrder = Precise.string_equals(price, '0') and (timeInForce == 'IOC')
             type = 'market' if isMarketOrder else 'limit'
@@ -2874,8 +2874,8 @@ class gateio(Exchange):
             'stopPrice': self.safe_number(trigger, 'price'),
             'average': average,
             'amount': self.parse_number(Precise.string_abs(amount)),
-            'cost': cost,
-            'filled': self.parse_number(filled),
+            'cost': Precise.string_abs(cost),
+            'filled': self.parse_number(Precise.string_abs(filled)),
             'remaining': self.parse_number(Precise.string_abs(remaining)),
             'fee': None if multipleFeeCurrencies else self.safe_value(fees, 0),
             'fees': fees if multipleFeeCurrencies else [],

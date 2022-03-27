@@ -2927,13 +2927,13 @@ class gateio extends Exchange {
         $price = $this->safe_string($order, 'price', $price);
         $remaining = $this->safe_string($order, 'left');
         $filled = Precise::string_sub($amount, $remaining);
-        $cost = $this->safe_number($order, 'filled_total');
+        $cost = $this->safe_string($order, 'filled_total');
         $rawStatus = null;
         $average = null;
         if ($put) {
             $remaining = $amount;
             $filled = '0';
-            $cost = $this->parse_number('0');
+            $cost = '0';
         }
         if ($contract) {
             $isMarketOrder = Precise::string_equals($price, '0') && ($timeInForce === 'IOC');
@@ -2995,8 +2995,8 @@ class gateio extends Exchange {
             'stopPrice' => $this->safe_number($trigger, 'price'),
             'average' => $average,
             'amount' => $this->parse_number(Precise::string_abs($amount)),
-            'cost' => $cost,
-            'filled' => $this->parse_number($filled),
+            'cost' => Precise::string_abs($cost),
+            'filled' => $this->parse_number(Precise::string_abs($filled)),
             'remaining' => $this->parse_number(Precise::string_abs($remaining)),
             'fee' => $multipleFeeCurrencies ? null : $this->safe_value($fees, 0),
             'fees' => $multipleFeeCurrencies ? $fees : array(),
