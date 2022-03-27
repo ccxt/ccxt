@@ -2924,9 +2924,9 @@ class Exchange {
             $result = gmp_div_qr($numerator, $denominator, GMP_ROUND_MINUSINF);
             $quotientInteger = $result[0];
             $remainderInteger = $result[1];
-            $remainderDecimals = $rationizerDenominator + $numPrecisionDigitsP->decimals;
             
             if (gmp_cmp($remainderInteger, 0) != 0) {
+                $remainderDecimals = $rationizerDenominator + $numPrecisionDigitsP->decimals;
                 if ($roundingMode === ROUND) {
                     $halfDenominator = gmp_div($denominator, 2);
                     if (gmp_cmp($quotientInteger,0)>0) {
