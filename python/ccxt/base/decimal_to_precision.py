@@ -177,19 +177,20 @@ def decimal_to_precision(x, rounding_mode=ROUND, num_precision_digits=None, coun
                 if counting_mode == DECIMAL_PLACES:
                     last_digit_pos += 1
                 break
-        if last_digit_pos < 0 or (last_digit_pos < len(char_array) and char_array[last_digit_pos] == '-'):
-            return '0'
-        for p in range(last_digit_pos + 1, len(char_array)):
-            if p != point_index:
-                char_array[p] = '0'
     elif rounding_mode == TRUNCATE:
-        if last_digit_pos < 0 or (last_digit_pos < len(char_array) and char_array[last_digit_pos] == '-'):
-            return '0'
-        for p in range(last_digit_pos + 1, len(char_array)):
-            if p != point_index:
-                char_array[p] = '0'
+        pass
     else:
         assert False
+    if last_digit_pos < 0 or (last_digit_pos < len(char_array) and char_array[last_digit_pos] == '-'):
+        return '0'
+    if last_digit_pos > point_index:
+        for p in range(last_digit_pos + 1, len(char_array)):
+            char_array[p] = '0'
+    else:
+        for p in range(last_digit_pos + 1, point_index):
+            char_array[p] = '0'
+        for p in range(point_index + 1, len(char_array)):
+            char_array[p] = '0'
     result = ''.join(char_array[0:max(point_index, last_digit_pos + 1)])
     has_dot = '.' in result
     if padding_mode == NO_PADDING:
