@@ -65,7 +65,7 @@ module.exports = class mexc3 extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
-                'fetchOHLCV': false,
+                'fetchOHLCV': true,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -378,7 +378,7 @@ module.exports = class mexc3 extends Exchange {
             //     {}
             //
             status = Object.keys (response).length ? 'ok' : 'maintenance';
-        } else {
+        } else if (marketType === 'swap') {
             response = await this.contractPublicGetPing (query);
             //
             //     {"success":true,"code":"0","data":"1648124374985"}
@@ -395,18 +395,18 @@ module.exports = class mexc3 extends Exchange {
     async fetchTime (params = {}) {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
         let response = undefined;
-        if (marketType === 'swap') {
-            response = await this.contractPublicGetPing (query);
-            //
-            //     {"success":true,"code":"0","data":"1648124374985"}
-            //
-            return this.safeInteger (response, 'data');
-        } else {
+        if (marketType === 'spot') {
             response = await this.spotPublicGetTime (query);
             //
             //     {"serverTime": "1647519277579"}
             //
             return this.safeInteger (response, 'serverTime');
+        } else if (marketType === 'swap') {
+            response = await this.contractPublicGetPing (query);
+            //
+            //     {"success":true,"code":"0","data":"1648124374985"}
+            //
+            return this.safeInteger (response, 'data');
         }
     }
 
@@ -549,7 +549,7 @@ module.exports = class mexc3 extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
         if (marketType === 'spot') {
             return await this.fetchSpotMarkets (query);
-        } else {
+        } else if (marketType === 'swap') {
             return await this.fetchSwapMarkets (query);
         }
     }
@@ -1155,7 +1155,7 @@ module.exports = class mexc3 extends Exchange {
             //       }
             //     ]
             //
-        } else {
+        } else if (marketType === 'swap') {
             const response = await this.contractPublicGetTicker (this.extend (request, query));
             //     {
             //         "success":true,
@@ -1218,7 +1218,7 @@ module.exports = class mexc3 extends Exchange {
             //         "count": null
             //     }
             //
-        } else {
+        } else if (marketType === 'swap') {
             const response = await this.contractPublicGetTicker (this.extend (request, query));
             //     {
             //         "success":true,
