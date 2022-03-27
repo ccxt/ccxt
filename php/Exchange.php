@@ -3058,29 +3058,19 @@ class Exchange {
                     break;
                 }
             }
-            if (($lastDigitPos < 0) or (($lastDigitPos < $xlen) and ($x[$lastDigitPos] == '-'))) {
-                return '0';
-            }
-            if (($pointIndex !== $xlen) and ($lastDigitPos+1<$xlen)) {
-                $lastDigitPos1 = max($pointIndex,$lastDigitPos)+1;
-                $x = substr($x,0,$lastDigitPos1) . str_repeat('0',$xlen-$lastDigitPos1);
-            }
-            if ($lastDigitPos+1<$pointIndex) {
-                $x = substr($x,0,$lastDigitPos+1) . str_repeat('0',$pointIndex-$lastDigitPos-1) . substr($x,$pointIndex);
-            }
         } elseif ($roundingMode === TRUNCATE) {
-            if (($lastDigitPos < 0) or (($lastDigitPos < $xlen) and ($x[$lastDigitPos] === '-'))) {
-                return '0';
-            }
-            if (($pointIndex !== $xlen) and ($lastDigitPos+1<$xlen)) {
-                $lastDigitPos1 = max($pointIndex,$lastDigitPos)+1;
-                $x = substr($x,0,$lastDigitPos1) . str_repeat('0',$xlen-$lastDigitPos1);
-            }
-            if ($lastDigitPos+1<$pointIndex) {
-                $x = substr($x,0,$lastDigitPos+1) . str_repeat('0',$pointIndex-$lastDigitPos-1) . substr($x,$pointIndex);
-            }
         } else {
             assert(false);
+        }
+        if (($lastDigitPos < 0) or (($lastDigitPos < $xlen) and ($x[$lastDigitPos] == '-'))) {
+            return '0';
+        }
+        if (($pointIndex !== $xlen) and ($lastDigitPos+1<$xlen)) {
+            $lastDigitPos1 = max($pointIndex,$lastDigitPos)+1;
+            $x = substr($x,0,$lastDigitPos1) . str_repeat('0',$xlen-$lastDigitPos1);
+        }
+        if ($lastDigitPos+1<$pointIndex) {
+            $x = substr($x,0,$lastDigitPos+1) . str_repeat('0',$pointIndex-$lastDigitPos-1) . substr($x,$pointIndex);
         }
         $result = substr($x,0,max($pointIndex, $lastDigitPos+1));
         $resultlen = strlen($result);
