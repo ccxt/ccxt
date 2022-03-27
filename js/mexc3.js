@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { BadRequest, InvalidOrder, ExchangeError, ArgumentsRequired, InsufficientFunds } = require ('./base/errors');
+const { BadRequest, InvalidOrder, InvalidAddress, ExchangeError, ArgumentsRequired, InsufficientFunds } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
@@ -41,15 +41,15 @@ module.exports = class mexc3 extends Exchange {
                 'fetchBorrowRateHistory': undefined,
                 'fetchBorrowRates': undefined,
                 'fetchBorrowRatesPerSymbol': undefined,
-                'fetchCanceledOrders': undefined,
+                'fetchCanceledOrders': true,
                 'fetchClosedOrder': undefined,
-                'fetchClosedOrders': undefined,
-                'fetchCurrencies': undefined,
+                'fetchClosedOrders': true,
+                'fetchCurrencies': true,
                 'fetchDeposit': undefined,
-                'fetchDepositAddress': undefined,
+                'fetchDepositAddress': true,
                 'fetchDepositAddresses': undefined,
-                'fetchDepositAddressesByNetwork': undefined,
-                'fetchDeposits': undefined,
+                'fetchDepositAddressesByNetwork': true,
+                'fetchDeposits': true,
                 'fetchFundingFee': undefined,
                 'fetchFundingFees': undefined,
                 'fetchFundingHistory': true,
@@ -71,10 +71,10 @@ module.exports = class mexc3 extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': undefined,
-                'fetchOrders': undefined,
+                'fetchOrders': true,
                 'fetchOrderTrades': true,
-                'fetchPosition': undefined,
-                'fetchPositions': undefined,
+                'fetchPosition': true,
+                'fetchPositions': true,
                 'fetchPositionsRisk': undefined,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
@@ -88,7 +88,7 @@ module.exports = class mexc3 extends Exchange {
                 'fetchTransactions': undefined,
                 'fetchTransfers': undefined,
                 'fetchWithdrawal': undefined,
-                'fetchWithdrawals': undefined,
+                'fetchWithdrawals': true,
                 'loadMarkets': undefined,
                 'privateAPI': true,
                 'publicAPI': true,
@@ -98,7 +98,7 @@ module.exports = class mexc3 extends Exchange {
                 'setPositionMode': undefined,
                 'signIn': undefined,
                 'transfer': undefined,
-                'withdraw': undefined,
+                'withdraw': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/137283979-8b2a818d-8633-461b-bfca-de89e8c446b2.jpg',
@@ -107,9 +107,13 @@ module.exports = class mexc3 extends Exchange {
                         'public': 'https://api.mexc.com',
                         'private': 'https://api.mexc.com',
                     },
+                    'spotv2': {
+                        'public': 'https://www.mexc.com/open/api/v2',
+                        'private': 'https://www.mexc.com/open/api/v2',
+                    },
                     'contract': {
-                        'public': 'https://contract.mexc.com',
-                        'private': 'https://contract.mexc.com',
+                        'public': 'https://contract.mexc.com/api/v1/contract',
+                        'private': 'https://contract.mexc.com/api/v1/private',
                     },
                 },
                 'www': 'https://www.mexc.com/',
@@ -361,6 +365,141 @@ module.exports = class mexc3 extends Exchange {
             //
             return this.safeInteger (response, 'serverTime');
         }
+    }
+
+    async fetchCurrencies (params = {}) {
+        const response = await this.spotv2PublicGetMarketCoinList (params);
+        //
+        //     {
+        //         "code":200,
+        //         "data":[
+        //             {
+        //                 "currency":"AGLD",
+        //                 "coins":[
+        //                     {
+        //                         "chain":"ERC20",
+        //                         "precision":18,
+        //                         "fee":8.09,
+        //                         "is_withdraw_enabled":true,
+        //                         "is_deposit_enabled":true,
+        //                         "deposit_min_confirm":16,
+        //                         "withdraw_limit_max":500000.0,
+        //                         "withdraw_limit_min":14.0
+        //                     }
+        //                 ],
+        //                 "full_name":"Adventure Gold"
+        //             },
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const result = {};
+        for (let i = 0; i < data.length; i++) {
+            const currency = data[i];
+            const id = this.safeString (currency, 'currency');
+            const code = this.safeCurrencyCode (id);
+            const name = this.safeString (currency, 'full_name');
+            let currencyActive = false;
+            let currencyPrecision = undefined;
+            let currencyFee = undefined;
+            let currencyWithdrawMin = undefined;
+            let currencyWithdrawMax = undefined;
+            const networks = {};
+            const chains = this.safeValue (currency, 'coins', []);
+            let depositEnabled = false;
+            let withdrawEnabled = false;
+            for (let j = 0; j < chains.length; j++) {
+                const chain = chains[j];
+                const networkId = this.safeString (chain, 'chain');
+                const network = this.safeNetwork (networkId);
+                const isDepositEnabled = this.safeValue (chain, 'is_deposit_enabled', false);
+                const isWithdrawEnabled = this.safeValue (chain, 'is_withdraw_enabled', false);
+                const active = (isDepositEnabled && isWithdrawEnabled);
+                currencyActive = active || currencyActive;
+                const precisionDigits = this.safeInteger (chain, 'precision');
+                const precision = 1 / Math.pow (10, precisionDigits);
+                const withdrawMin = this.safeString (chain, 'withdraw_limit_min');
+                const withdrawMax = this.safeString (chain, 'withdraw_limit_max');
+                currencyWithdrawMin = (currencyWithdrawMin === undefined) ? withdrawMin : currencyWithdrawMin;
+                currencyWithdrawMax = (currencyWithdrawMax === undefined) ? withdrawMax : currencyWithdrawMax;
+                if (Precise.stringGt (currencyWithdrawMin, withdrawMin)) {
+                    currencyWithdrawMin = withdrawMin;
+                }
+                if (Precise.stringLt (currencyWithdrawMax, withdrawMax)) {
+                    currencyWithdrawMax = withdrawMax;
+                }
+                if (isDepositEnabled) {
+                    depositEnabled = true;
+                }
+                if (isWithdrawEnabled) {
+                    withdrawEnabled = true;
+                }
+                networks[network] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': network,
+                    'active': active,
+                    'deposit': isDepositEnabled,
+                    'withdraw': isWithdrawEnabled,
+                    'fee': this.safeNumber (chain, 'fee'),
+                    'precision': precision,
+                    'limits': {
+                        'withdraw': {
+                            'min': withdrawMin,
+                            'max': withdrawMax,
+                        },
+                    },
+                };
+            }
+            const networkKeys = Object.keys (networks);
+            const networkKeysLength = networkKeys.length;
+            if ((networkKeysLength === 1) || ('NONE' in networks)) {
+                const defaultNetwork = this.safeValue2 (networks, 'NONE', networkKeysLength - 1);
+                if (defaultNetwork !== undefined) {
+                    currencyFee = defaultNetwork['fee'];
+                    currencyPrecision = defaultNetwork['precision'];
+                }
+            }
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'name': name,
+                'active': currencyActive,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
+                'fee': currencyFee,
+                'precision': currencyPrecision,
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': currencyWithdrawMin,
+                        'max': currencyWithdrawMax,
+                    },
+                },
+                'networks': networks,
+            };
+        }
+        return result;
+    }
+
+    safeNetwork (networkId) {
+        if (networkId.indexOf ('BSC') >= 0) {
+            return 'BEP20';
+        }
+        const parts = networkId.split (' ');
+        networkId = parts.join ('');
+        networkId = networkId.replace ('-20', '20');
+        const networksById = {
+            'ETH': 'ETH',
+            'ERC20': 'ERC20',
+            'BEP20(BSC)': 'BEP20',
+            'TRX': 'TRC20',
+        };
+        return this.safeString (networksById, networkId, networkId);
     }
 
     async fetchMarkets (params = {}) {
@@ -1528,6 +1667,38 @@ module.exports = class mexc3 extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
+    async fetchOrdersByState (state, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrdersByState() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            // 'start_time': since, // default 7 days, max 30 days
+            // 'limit': limit, // default 50, max 1000
+            // 'trade_type': 'BID', // BID / ASK
+            'states': state, // NEW, FILLED, PARTIALLY_FILLED, CANCELED, PARTIALLY_CANCELED
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['start_time'] = since;
+        }
+        const response = await this.spotv2PrivateGetOrderList (this.extend (request, params));
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOrders (data, market, since, limit);
+    }
+
+    async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchOrdersByState ('CANCELED', symbol, since, limit, params);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchOrdersByState ('FILLED', symbol, since, limit, params);
+    }
+
     parseOrder (order, market = undefined) {
         //
         // spot: createOrder
@@ -1708,17 +1879,45 @@ module.exports = class mexc3 extends Exchange {
     }
 
     async fetchBalance (params = {}) {
-        const response = await this.fetchAccountHelper (params);
-        const balances = this.safeValue (response, 'balances');
+        await this.loadMarkets ();
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const result = {};
-        for (let i = 0; i < balances.length; i++) {
-            const entry = balances[i];
-            const currencyId = this.safeString (entry, 'asset');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeString (entry, 'free');
-            account['used'] = this.safeString (entry, 'locked');
-            result[code] = account;
+        let response = undefined;
+        if (marketType === 'spot') {
+            response = await this.fetchAccountHelper (query);
+            const balances = this.safeValue (response, 'balances');
+            for (let i = 0; i < balances.length; i++) {
+                const entry = balances[i];
+                const currencyId = this.safeString (entry, 'asset');
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['free'] = this.safeString (entry, 'free');
+                account['used'] = this.safeString (entry, 'locked');
+                result[code] = account;
+            }
+        } else if (marketType === 'swap') {
+            response = await this.contractPrivateGetAccountAssets (query);
+            //
+            //     {
+            //         "success":true,
+            //         "code":0,
+            //         "data":[
+            //             {"currency":"BSV","positionMargin":0,"availableBalance":0,"cashBalance":0,"frozenBalance":0,"equity":0,"unrealized":0,"bonus":0},
+            //             {"currency":"BCH","positionMargin":0,"availableBalance":0,"cashBalance":0,"frozenBalance":0,"equity":0,"unrealized":0,"bonus":0},
+            //             {"currency":"CRV","positionMargin":0,"availableBalance":0,"cashBalance":0,"frozenBalance":0,"equity":0,"unrealized":0,"bonus":0},
+            //         ]
+            //     }
+            //
+            const data = this.safeValue (response, 'data', []);
+            for (let i = 0; i < data.length; i++) {
+                const balance = data[i];
+                const currencyId = this.safeString (balance, 'currency');
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['free'] = this.safeString (balance, 'availableBalance');
+                account['used'] = this.safeString (balance, 'frozenBalance');
+                result[code] = account;
+            }
         }
         result['info'] = response;
         return this.safeBalance (result);
@@ -2133,6 +2332,441 @@ module.exports = class mexc3 extends Exchange {
         return tiers;
     }
 
+    parseDepositAddress (depositAddress, currency = undefined) {
+        //
+        //     {"chain":"ERC-20","address":"0x55cbd73db24eafcca97369e3f2db74b2490586e6"},
+        //     {"chain":"MATIC","address":"0x05aa3236f1970eae0f8feb17ec19435b39574d74"},
+        //     {"chain":"TRC20","address":"TGaPfhW41EXD3sAfs1grLF6DKfugfqANNw"},
+        //     {"chain":"SOL","address":"5FSpUKuh2gjw4mF89T2e7sEjzUA1SkRKjBChFqP43KhV"},
+        //     {"chain":"ALGO","address":"B3XTZND2JJTSYR7R2TQVCUDT4QSSYVAIZYDPWVBX34DGAYATBU3AUV43VU"}
+        //
+        //
+        const address = this.safeString (depositAddress, 'address');
+        const code = this.safeCurrencyCode (undefined, currency);
+        const networkId = this.safeString (depositAddress, 'chain');
+        const network = this.safeNetwork (networkId);
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': undefined,
+            'network': network,
+            'info': depositAddress,
+        };
+    }
+
+    async fetchDepositAddressesByNetwork (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.spotv2PrivateGetAssetDepositAddressList (this.extend (request, params));
+        //
+        //     {
+        //         "code":200,
+        //         "data":{
+        //             "currency":"USDC",
+        //             "chains":[
+        //                 {"chain":"ERC-20","address":"0x55cbd73db24eafcca97369e3f2db74b2490586e6"},
+        //                 {"chain":"MATIC","address":"0x05aa3236f1970eae0f8feb17ec19435b39574d74"},
+        //                 {"chain":"TRC20","address":"TGaPfhW41EXD3sAfs1grLF6DKfugfqANNw"},
+        //                 {"chain":"SOL","address":"5FSpUKuh2gjw4mF89T2e7sEjzUA1SkRKjBChFqP43KhV"},
+        //                 {"chain":"ALGO","address":"B3XTZND2JJTSYR7R2TQVCUDT4QSSYVAIZYDPWVBX34DGAYATBU3AUV43VU"}
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const chains = this.safeValue (data, 'chains', []);
+        const depositAddresses = [];
+        for (let i = 0; i < chains.length; i++) {
+            const depositAddress = this.parseDepositAddress (chains[i], currency);
+            depositAddresses.push (depositAddress);
+        }
+        return this.indexBy (depositAddresses, 'network');
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        const rawNetwork = this.safeStringUpper (params, 'network');
+        params = this.omit (params, 'network');
+        const response = await this.fetchDepositAddressesByNetwork (code, params);
+        const networks = this.safeValue (this.options, 'networks', {});
+        const network = this.safeString (networks, rawNetwork, rawNetwork);
+        let result = undefined;
+        if (network === undefined) {
+            result = this.safeValue (response, code);
+            if (result === undefined) {
+                const alias = this.safeString (networks, code, code);
+                result = this.safeValue (response, alias);
+                if (result === undefined) {
+                    const defaultNetwork = this.safeString (this.options, 'defaultNetwork', 'ERC20');
+                    result = this.safeValue (response, defaultNetwork);
+                    if (result === undefined) {
+                        const values = Object.values (response);
+                        result = this.safeValue (values, 0);
+                        if (result === undefined) {
+                            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find deposit address for ' + code);
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+        // TODO: add support for all aliases here
+        result = this.safeValue (response, rawNetwork);
+        if (result === undefined) {
+            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code);
+        }
+        return result;
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // 'currency': currency['id'],
+            // 'state': 'state',
+            // 'start_time': since, // default 1 day
+            // 'end_time': this.milliseconds (),
+            // 'page_num': 1,
+            // 'page_size': limit, // default 20, maximum 50
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['start_time'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.spotv2PrivateGetAssetDepositList (this.extend (request, params));
+        //
+        //     {
+        //         "code":200,
+        //         "data":{
+        //             "page_size":20,
+        //             "total_page":1,
+        //             "total_size":1,
+        //             "page_num":1,
+        //             "result_list":[
+        //                 {
+        //                     "currency":"USDC",
+        //                     "amount":150.0,
+        //                     "fee":0.0,
+        //                     "confirmations":19,
+        //                     "address":"0x55cbd73db24eafcca97369e3f2db74b2490586e6",
+        //                     "state":"SUCCESS",
+        //                     "tx_id":"0xc65a9b09e1b71def81bf8bb3ec724c0c1b2b4c82200c8c142e4ea4c1469fd789:0",
+        //                     "require_confirmations":12,
+        //                     "create_time":"2021-10-11T18:58:25.000+00:00",
+        //                     "update_time":"2021-10-11T19:01:06.000+00:00"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const resultList = this.safeValue (data, 'result_list', []);
+        return this.parseTransactions (resultList, code, since, limit);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // 'withdrawal_id': '4b450616042a48c99dd45cacb4b092a7', // string
+            // 'currency': currency['id'],
+            // 'state': 'state',
+            // 'start_time': since, // default 1 day
+            // 'end_time': this.milliseconds (),
+            // 'page_num': 1,
+            // 'page_size': limit, // default 20, maximum 50
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['start_time'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.spotv2PrivateGetAssetWithdrawList (this.extend (request, params));
+        //
+        //     {
+        //         "code":200,
+        //         "data":{
+        //             "page_size":20,
+        //             "total_page":1,
+        //             "total_size":1,
+        //             "page_num":1,
+        //             "result_list":[
+        //                 {
+        //                     "id":"4b450616042a48c99dd45cacb4b092a7",
+        //                     "currency":"USDT-TRX",
+        //                     "address":"TRHKnx74Gb8UVcpDCMwzZVe4NqXfkdtPak",
+        //                     "amount":30.0,
+        //                     "fee":1.0,
+        //                     "remark":"this is my first withdrawal remark",
+        //                     "state":"WAIT",
+        //                     "create_time":"2021-10-11T20:45:08.000+00:00"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const resultList = this.safeValue (data, 'result_list', []);
+        return this.parseTransactions (resultList, code, since, limit);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // fetchDeposits
+        //
+        //     {
+        //         "currency":"USDC",
+        //         "amount":150.0,
+        //         "fee":0.0,
+        //         "confirmations":19,
+        //         "address":"0x55cbd73db24eafcca97369e3f2db74b2490586e6",
+        //         "state":"SUCCESS",
+        //         "tx_id":"0xc65a9b09e1b71def81bf8bb3ec724c0c1b2b4c82200c8c142e4ea4c1469fd789:0",
+        //         "require_confirmations":12,
+        //         "create_time":"2021-10-11T18:58:25.000+00:00",
+        //         "update_time":"2021-10-11T19:01:06.000+00:00"
+        //     }
+        //
+        // fetchWithdrawals
+        //
+        //     {
+        //         "id":"4b450616042a48c99dd45cacb4b092a7",
+        //         "currency":"USDT-TRX",
+        //         "address":"TRHKnx74Gb8UVcpDCMwzZVe4NqXfkdtPak",
+        //         "amount":30.0,
+        //         "fee":1.0,
+        //         "remark":"this is my first withdrawal remark",
+        //         "state":"WAIT",
+        //         "create_time":"2021-10-11T20:45:08.000+00:00"
+        //     }
+        //
+        const id = this.safeString (transaction, 'id');
+        const type = (id === undefined) ? 'deposit' : 'withdrawal';
+        const timestamp = this.parse8601 (this.safeString (transaction, 'create_time'));
+        const updated = this.parse8601 (this.safeString (transaction, 'update_time'));
+        let currencyId = this.safeString (transaction, 'currency');
+        let network = undefined;
+        if ((currencyId !== undefined) && (currencyId.indexOf ('-') >= 0)) {
+            const parts = currencyId.split ('-');
+            currencyId = this.safeString (parts, 0);
+            const networkId = this.safeString (parts, 1);
+            network = this.safeNetwork (networkId);
+        }
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
+        let amountString = this.safeString (transaction, 'amount');
+        const address = this.safeString (transaction, 'address');
+        const txid = this.safeString (transaction, 'tx_id');
+        let fee = undefined;
+        const feeCostString = this.safeString (transaction, 'fee');
+        if (feeCostString !== undefined) {
+            fee = {
+                'cost': this.parseNumber (feeCostString),
+                'currency': code,
+            };
+        }
+        if (type === 'withdrawal') {
+            // mexc withdrawal amount includes the fee
+            amountString = Precise.stringSub (amountString, feeCostString);
+        }
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'network': network,
+            'address': address,
+            'addressTo': undefined,
+            'addressFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
+            'type': type,
+            'amount': this.parseNumber (amountString),
+            'currency': code,
+            'status': status,
+            'updated': updated,
+            'fee': fee,
+        };
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            'WAIT': 'pending',
+            'WAIT_PACKAGING': 'pending',
+            'SUCCESS': 'ok',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    async fetchPosition (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.fetchPositions (this.extend (request, params));
+        return this.safeValue (response, 0);
+    }
+
+    async fetchPositions (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.contractPrivateGetPositionOpenPositions (params);
+        //
+        //     {
+        //         "success": true,
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "positionId": 1394650,
+        //                 "symbol": "ETH_USDT",
+        //                 "positionType": 1,
+        //                 "openType": 1,
+        //                 "state": 1,
+        //                 "holdVol": 1,
+        //                 "frozenVol": 0,
+        //                 "closeVol": 0,
+        //                 "holdAvgPrice": 1217.3,
+        //                 "openAvgPrice": 1217.3,
+        //                 "closeAvgPrice": 0,
+        //                 "liquidatePrice": 1211.2,
+        //                 "oim": 0.1290338,
+        //                 "im": 0.1290338,
+        //                 "holdFee": 0,
+        //                 "realised": -0.0073,
+        //                 "leverage": 100,
+        //                 "createTime": 1609991676000,
+        //                 "updateTime": 1609991676000,
+        //                 "autoAddIm": false
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parsePositions (data);
+    }
+
+    parsePosition (position, market = undefined) {
+        //
+        //     {
+        //         "positionId": 1394650,
+        //         "symbol": "ETH_USDT",
+        //         "positionType": 1,
+        //         "openType": 1,
+        //         "state": 1,
+        //         "holdVol": 1,
+        //         "frozenVol": 0,
+        //         "closeVol": 0,
+        //         "holdAvgPrice": 1217.3,
+        //         "openAvgPrice": 1217.3,
+        //         "closeAvgPrice": 0,
+        //         "liquidatePrice": 1211.2,
+        //         "oim": 0.1290338,
+        //         "im": 0.1290338,
+        //         "holdFee": 0,
+        //         "realised": -0.0073,
+        //         "leverage": 100,
+        //         "createTime": 1609991676000,
+        //         "updateTime": 1609991676000,
+        //         "autoAddIm": false
+        //     }
+        //
+        market = this.safeMarket (this.safeString (position, 'symbol'), market);
+        const symbol = market['symbol'];
+        const contracts = this.safeString (position, 'holdVol');
+        const entryPrice = this.safeNumber (position, 'openAvgPrice');
+        const initialMargin = this.safeString (position, 'im');
+        const rawSide = this.safeString (position, 'positionType');
+        const side = (rawSide === '1') ? 'long' : 'short';
+        const openType = this.safeString (position, 'margin_mode');
+        const marginType = (openType === '1') ? 'isolated' : 'cross';
+        const leverage = this.safeString (position, 'leverage');
+        const liquidationPrice = this.safeNumber (position, 'liquidatePrice');
+        const timestamp = this.safeNumber (position, 'updateTime');
+        return {
+            'info': position,
+            'symbol': symbol,
+            'contracts': this.parseNumber (contracts),
+            'contractSize': undefined,
+            'entryPrice': entryPrice,
+            'collateral': undefined,
+            'side': side,
+            'unrealizedProfit': undefined,
+            'leverage': this.parseNumber (leverage),
+            'percentage': undefined,
+            'marginType': marginType,
+            'notional': undefined,
+            'markPrice': undefined,
+            'liquidationPrice': liquidationPrice,
+            'initialMargin': this.parseNumber (initialMargin),
+            'initialMarginPercentage': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'marginRatio': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+    }
+
+    parsePositions (positions) {
+        const result = [];
+        for (let i = 0; i < positions.length; i++) {
+            result.push (this.parsePosition (positions[i]));
+        }
+        return result;
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeString2 (params, 'network', 'chain'); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeString (networks, network, network); // handle ETH > ERC-20 alias
+        this.checkAddress (address);
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        if (tag !== undefined) {
+            address += ':' + tag;
+        }
+        const request = {
+            'currency': currency['id'],
+            'address': address,
+            'amount': amount,
+        };
+        if (network !== undefined) {
+            request['chain'] = network;
+            params = this.omit (params, [ 'network', 'chain' ]);
+        }
+        const response = await this.spotv2PrivatePostAssetWithdraw (this.extend (request, params));
+        //
+        //     {
+        //         "code":200,
+        //         "data": {
+        //             "withdrawId":"25fb2831fb6d4fc7aa4094612a26c81d"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return {
+            'info': data,
+            'id': this.safeString (data, 'withdrawId'),
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const [ section, access ] = api;
         [ path, params ] = this.resolvePath (path, params);
@@ -2159,8 +2793,9 @@ module.exports = class mexc3 extends Exchange {
             if (method === 'POST') {
                 headers['Content-Type'] = 'application/json';
             }
-        } else if (section === 'contract') {
-            url = this.urls['api'][section][access] + '/api/v1/contract/' + path;
+        } else if (section === 'contract' || section === 'spotv2') {
+            url = this.urls['api'][section][access] + '/' + this.implodeParams (path, params);
+            params = this.omit (params, this.extractParams (path));
             if (access === 'public') {
                 if (Object.keys (params).length) {
                     url += '?' + this.urlencode (params);
