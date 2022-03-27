@@ -60,10 +60,13 @@ module.exports = class bitso extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
+                'fetchTransfer': false,
+                'fetchTransfers': false,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
+                'transfer': false,
                 'withdraw': true,
             },
             'urls': {
