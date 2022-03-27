@@ -270,6 +270,22 @@ module.exports = class mexc3 extends Exchange {
                 },
             },
             'timeframes': {
+
+                '1m': '1m', // spot, swap
+                '3m': '3m', // spot
+                '5m': '5m', // spot, swap
+                '15m': '15m', // spot, swap
+                '30m': '30m', // spot, swap
+                '1h': '1h', // spot, swap
+                '2h': '2h', // spot
+                '4h': '4h', // spot, swap
+                '6h': '6h', // spot
+                '8h': '8h', // spot, swap
+                '12h': '12h', // spot
+                '1d': '1d', // spot, swap
+                '3d': '3d', // spot
+                '1w': '1w', // spot, swap
+                '1M': '1M', // spot, swap
             },
             'fees': {
                 'trading': {
@@ -288,7 +304,7 @@ module.exports = class mexc3 extends Exchange {
                             'inverse': false,
                         },
                         'swap': {
-                            'linear': false,
+                            'linear': true,
                             'inverse': false,
                         },
                     },
@@ -552,6 +568,7 @@ module.exports = class mexc3 extends Exchange {
         } else if (marketType === 'swap') {
             return await this.fetchSwapMarkets (query);
         }
+        console.log(marketType);
     }
 
     async fetchSpotMarkets (params = {}) {
@@ -1361,29 +1378,25 @@ module.exports = class mexc3 extends Exchange {
 
     async fetchBidsAsks (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const defaultType = this.safeString2 (this.options, 'fetchBidsAsks', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
-        const query = this.omit (params, 'type');
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         let method = undefined;
-        if (type === 'spot') {
+        if (marketType === 'spot') {
             method = 'spotPublicGetTickerBookTicker';
-        } else {
+            //
+            //     [
+            //       {
+            //         "symbol": "AEUSDT",
+            //         "bidPrice": "0.11001",
+            //         "bidQty": "115.59",
+            //         "askPrice": "0.11127",
+            //         "askQty": "215.48"
+            //       },
+            //     ]
+            //
+        } else if (marketType === 'swap') {
             method = '';
         }
         const response = await this[method] (query);
-        //
-        // spot
-        //
-        //     [
-        //       {
-        //         "symbol": "AEUSDT",
-        //         "bidPrice": "0.11001",
-        //         "bidQty": "115.59",
-        //         "askPrice": "0.11127",
-        //         "askQty": "215.48"
-        //       },
-        //     ]
-        //
         return this.parseTickers (response, symbols);
     }
 
