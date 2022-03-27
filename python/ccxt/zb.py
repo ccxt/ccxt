@@ -109,6 +109,213 @@ class zb(Exchange):
                 '5d': '5d',
                 '1w': '1w',
             },
+            'hostname': 'zb.com',  # zb.cafe for users in China
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg',
+                'api': {
+                    'spot': {
+                        'v1': {
+                            'public': 'https://api.{hostname}/data',
+                            'private': 'https://trade.{hostname}/api',
+                        },
+                    },
+                    'contract': {
+                        'v1': {
+                            'public': 'https://fapi.{hostname}/api/public',
+                        },
+                        'v2': {
+                            'public': 'https://fapi.{hostname}/Server/api',
+                            'private': 'https://fapi.{hostname}/Server/api',
+                        },
+                    },
+                },
+                'www': 'https://www.zb.com',
+                'doc': 'https://www.zb.com/i/developer',
+                'fees': 'https://www.zb.com/i/rate',
+                'referral': {
+                    'url': 'https://www.zbex.club/en/register?ref=4301lera',
+                    'discount': 0.16,
+                },
+            },
+            'api': {
+                'spot': {
+                    'v1': {
+                        'public': {
+                            'get': [
+                                'markets',
+                                'ticker',
+                                'allTicker',
+                                'depth',
+                                'trades',
+                                'kline',
+                                'getGroupMarkets',
+                                'getFeeInfo',
+                            ],
+                        },
+                        'private': {
+                            'get': [
+                                # spot API
+                                'order',
+                                'orderMoreV2',
+                                'cancelOrder',
+                                'getOrder',
+                                'getOrders',
+                                'getOrdersNew',
+                                'getOrdersIgnoreTradeType',
+                                'getUnfinishedOrdersIgnoreTradeType',
+                                'getFinishedAndPartialOrders',
+                                'getAccountInfo',
+                                'getUserAddress',
+                                'getPayinAddress',
+                                'getWithdrawAddress',
+                                'getWithdrawRecord',
+                                'getChargeRecord',
+                                'getCnyWithdrawRecord',
+                                'getCnyChargeRecord',
+                                'withdraw',
+                                # sub accounts
+                                'addSubUser',
+                                'getSubUserList',
+                                'doTransferFunds',
+                                'createSubUserKey',  # removed on 2021-03-16 according to the update log in the API doc
+                                # leverage API
+                                'getLeverAssetsInfo',
+                                'getLeverBills',
+                                'transferInLever',
+                                'transferOutLever',
+                                'loan',
+                                'cancelLoan',
+                                'getLoans',
+                                'getLoanRecords',
+                                'borrow',
+                                'autoBorrow',
+                                'repay',
+                                'doAllRepay',
+                                'getRepayments',
+                                'getFinanceRecords',
+                                'changeInvestMark',
+                                'changeLoop',
+                                # cross API
+                                'getCrossAssets',
+                                'getCrossBills',
+                                'transferInCross',
+                                'transferOutCross',
+                                'doCrossLoan',
+                                'doCrossRepay',
+                                'getCrossRepayRecords',
+                            ],
+                        },
+                    },
+                },
+                'contract': {
+                    'v1': {
+                        'public': {
+                            'get': [
+                                'depth',
+                                'fundingRate',
+                                'indexKline',
+                                'indexPrice',
+                                'kline',
+                                'markKline',
+                                'markPrice',
+                                'ticker',
+                                'trade',
+                            ],
+                        },
+                    },
+                    'v2': {
+                        'public': {
+                            'get': [
+                                'allForceOrders',
+                                'config/marketList',
+                                'topLongShortAccountRatio',
+                                'topLongShortPositionRatio',
+                                'fundingRate',
+                                'premiumIndex',
+                            ],
+                        },
+                        'private': {
+                            'get': [
+                                'Fund/balance',
+                                'Fund/getAccount',
+                                'Fund/getBill',
+                                'Fund/getBillTypeList',
+                                'Fund/marginHistory',
+                                'Positions/getPositions',
+                                'Positions/getNominalValue',
+                                'Positions/marginInfo',
+                                'setting/get',
+                                'trade/getAllOrders',
+                                'trade/getOrder',
+                                'trade/getOrderAlgos',
+                                'trade/getTradeList',
+                                'trade/getUndoneOrders',
+                                'trade/tradeHistory',
+                            ],
+                            'post': [
+                                'activity/buyTicket',
+                                'Fund/transferFund',
+                                'Positions/setMarginCoins',
+                                'Positions/updateAppendUSDValue',
+                                'Positions/updateMargin',
+                                'setting/setLeverage',
+                                'trade/batchOrder',
+                                'trade/batchCancelOrder',
+                                'trade/cancelAlgos',
+                                'trade/cancelAllOrders',
+                                'trade/cancelOrder',
+                                'trade/order',
+                                'trade/orderAlgo',
+                                'trade/updateOrderAlgo',
+                            ],
+                        },
+                    },
+                },
+            },
+            'fees': {
+                'funding': {
+                    'withdraw': {},
+                },
+                'trading': {
+                    'maker': self.parse_number('0.002'),
+                    'taker': self.parse_number('0.002'),
+                },
+            },
+            'commonCurrencies': {
+                'ANG': 'Anagram',
+                'ENT': 'ENTCash',
+                'BCHABC': 'BCHABC',  # conflict with BCH / BCHA
+                'BCHSV': 'BCHSV',  # conflict with BCH / BSV
+            },
+            'options': {
+                'timeframes': {
+                    'spot': {
+                        '1m': '1min',
+                        '3m': '3min',
+                        '5m': '5min',
+                        '15m': '15min',
+                        '30m': '30min',
+                        '1h': '1hour',
+                        '2h': '2hour',
+                        '4h': '4hour',
+                        '6h': '6hour',
+                        '12h': '12hour',
+                        '1d': '1day',
+                        '3d': '3day',
+                        '1w': '1week',
+                    },
+                    'swap': {
+                        '1m': '1M',
+                        '5m': '5M',
+                        '15m': '15M',
+                        '30m': '30M',
+                        '1h': '1H',
+                        '6h': '6H',
+                        '1d': '1D',
+                        '5d': '5D',
+                    },
+                },
+            },
             'exceptions': {
                 'ws': {
                     # '1000': ExchangeError,  # The call is successful.
@@ -335,212 +542,6 @@ class zb(Exchange):
                     '响应超时': RequestTimeout,  # {"code":1001,"message":"响应超时"}
                 },
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg',
-                'api': {
-                    'spot': {
-                        'v1': {
-                            'public': 'https://api.zb.work/data',
-                            'private': 'https://trade.zb.work/api',
-                        },
-                    },
-                    'contract': {
-                        'v1': {
-                            'public': 'https://fapi.zb.com/api/public',
-                        },
-                        'v2': {
-                            'public': 'https://fapi.zb.com/Server/api',
-                            'private': 'https://fapi.zb.com/Server/api',
-                        },
-                    },
-                },
-                'www': 'https://www.zb.com',
-                'doc': 'https://www.zb.com/i/developer',
-                'fees': 'https://www.zb.com/i/rate',
-                'referral': {
-                    'url': 'https://www.zbex.club/en/register?ref=4301lera',
-                    'discount': 0.16,
-                },
-            },
-            'api': {
-                'spot': {
-                    'v1': {
-                        'public': {
-                            'get': [
-                                'markets',
-                                'ticker',
-                                'allTicker',
-                                'depth',
-                                'trades',
-                                'kline',
-                                'getGroupMarkets',
-                                'getFeeInfo',
-                            ],
-                        },
-                        'private': {
-                            'get': [
-                                # spot API
-                                'order',
-                                'orderMoreV2',
-                                'cancelOrder',
-                                'getOrder',
-                                'getOrders',
-                                'getOrdersNew',
-                                'getOrdersIgnoreTradeType',
-                                'getUnfinishedOrdersIgnoreTradeType',
-                                'getFinishedAndPartialOrders',
-                                'getAccountInfo',
-                                'getUserAddress',
-                                'getPayinAddress',
-                                'getWithdrawAddress',
-                                'getWithdrawRecord',
-                                'getChargeRecord',
-                                'getCnyWithdrawRecord',
-                                'getCnyChargeRecord',
-                                'withdraw',
-                                # sub accounts
-                                'addSubUser',
-                                'getSubUserList',
-                                'doTransferFunds',
-                                'createSubUserKey',  # removed on 2021-03-16 according to the update log in the API doc
-                                # leverage API
-                                'getLeverAssetsInfo',
-                                'getLeverBills',
-                                'transferInLever',
-                                'transferOutLever',
-                                'loan',
-                                'cancelLoan',
-                                'getLoans',
-                                'getLoanRecords',
-                                'borrow',
-                                'autoBorrow',
-                                'repay',
-                                'doAllRepay',
-                                'getRepayments',
-                                'getFinanceRecords',
-                                'changeInvestMark',
-                                'changeLoop',
-                                # cross API
-                                'getCrossAssets',
-                                'getCrossBills',
-                                'transferInCross',
-                                'transferOutCross',
-                                'doCrossLoan',
-                                'doCrossRepay',
-                                'getCrossRepayRecords',
-                            ],
-                        },
-                    },
-                },
-                'contract': {
-                    'v1': {
-                        'public': {
-                            'get': [
-                                'depth',
-                                'fundingRate',
-                                'indexKline',
-                                'indexPrice',
-                                'kline',
-                                'markKline',
-                                'markPrice',
-                                'ticker',
-                                'trade',
-                            ],
-                        },
-                    },
-                    'v2': {
-                        'public': {
-                            'get': [
-                                'allForceOrders',
-                                'config/marketList',
-                                'topLongShortAccountRatio',
-                                'topLongShortPositionRatio',
-                                'fundingRate',
-                                'premiumIndex',
-                            ],
-                        },
-                        'private': {
-                            'get': [
-                                'Fund/balance',
-                                'Fund/getAccount',
-                                'Fund/getBill',
-                                'Fund/getBillTypeList',
-                                'Fund/marginHistory',
-                                'Positions/getPositions',
-                                'Positions/getNominalValue',
-                                'Positions/marginInfo',
-                                'setting/get',
-                                'trade/getAllOrders',
-                                'trade/getOrder',
-                                'trade/getOrderAlgos',
-                                'trade/getTradeList',
-                                'trade/getUndoneOrders',
-                                'trade/tradeHistory',
-                            ],
-                            'post': [
-                                'activity/buyTicket',
-                                'Fund/transferFund',
-                                'Positions/setMarginCoins',
-                                'Positions/updateAppendUSDValue',
-                                'Positions/updateMargin',
-                                'setting/setLeverage',
-                                'trade/batchOrder',
-                                'trade/batchCancelOrder',
-                                'trade/cancelAlgos',
-                                'trade/cancelAllOrders',
-                                'trade/cancelOrder',
-                                'trade/order',
-                                'trade/orderAlgo',
-                                'trade/updateOrderAlgo',
-                            ],
-                        },
-                    },
-                },
-            },
-            'fees': {
-                'funding': {
-                    'withdraw': {},
-                },
-                'trading': {
-                    'maker': self.parse_number('0.002'),
-                    'taker': self.parse_number('0.002'),
-                },
-            },
-            'commonCurrencies': {
-                'ANG': 'Anagram',
-                'ENT': 'ENTCash',
-                'BCHABC': 'BCHABC',  # conflict with BCH / BCHA
-                'BCHSV': 'BCHSV',  # conflict with BCH / BSV
-            },
-            'options': {
-                'timeframes': {
-                    'spot': {
-                        '1m': '1min',
-                        '3m': '3min',
-                        '5m': '5min',
-                        '15m': '15min',
-                        '30m': '30min',
-                        '1h': '1hour',
-                        '2h': '2hour',
-                        '4h': '4hour',
-                        '6h': '6hour',
-                        '12h': '12hour',
-                        '1d': '1day',
-                        '3d': '3day',
-                        '1w': '1week',
-                    },
-                    'swap': {
-                        '1m': '1M',
-                        '5m': '5M',
-                        '15m': '15M',
-                        '30m': '30M',
-                        '1h': '1H',
-                        '6h': '6H',
-                        '1d': '1D',
-                        '5d': '5D',
-                    },
-                },
-            },
         })
 
     def fetch_markets(self, params={}):
@@ -555,7 +556,13 @@ class zb(Exchange):
         #         },
         #     }
         #
-        contracts = self.contractV2PublicGetConfigMarketList(params)
+        contracts = None
+        try:
+            # https://github.com/ZBFuture/docs_en/blob/main/API%20V2%20_en.md#7-public-markethttp
+            # https://fapi.zb.com/Server/api/v2/config/marketList 502 Bad Gateway
+            contracts = self.contractV2PublicGetConfigMarketList(params)
+        except Exception as e:
+            contracts = {}
         #
         #     {
         #         BTC_USDT: {
@@ -1397,7 +1404,7 @@ class zb(Exchange):
             ohlcvLength = len(ohlcv)
             if ohlcvLength > 5:
                 return [
-                    self.safe_integer(ohlcv, 5),
+                    self.safe_timestamp(ohlcv, 5),
                     self.safe_number(ohlcv, 0),
                     self.safe_number(ohlcv, 1),
                     self.safe_number(ohlcv, 2),
@@ -1406,7 +1413,7 @@ class zb(Exchange):
                 ]
             else:
                 return [
-                    self.safe_integer(ohlcv, 4),
+                    self.safe_timestamp(ohlcv, 4),
                     self.safe_number(ohlcv, 0),
                     self.safe_number(ohlcv, 1),
                     self.safe_number(ohlcv, 2),
@@ -1427,6 +1434,7 @@ class zb(Exchange):
         self.load_markets()
         market = self.market(symbol)
         swap = market['swap']
+        spot = market['spot']
         options = self.safe_value(self.options, 'timeframes', {})
         timeframes = self.safe_value(options, market['type'], {})
         timeframeValue = self.safe_string(timeframes, timeframe)
@@ -1440,21 +1448,26 @@ class zb(Exchange):
             # 'type': timeframeValue,  # spot only
             # 'period': timeframeValue,  # swap only
             # 'since': since,  # spot only
-            # 'limit': limit,  # spot only
-            # 'size': limit,  # swap only
+            # 'size': limit,  # spot and swap
         }
         marketIdField = 'symbol' if swap else 'market'
         request[marketIdField] = market['id']
         periodField = 'period' if swap else 'type'
         request[periodField] = timeframeValue
-        sizeField = 'size' if swap else 'limit'
-        request[sizeField] = limit
+        price = self.safe_string(params, 'price')
+        params = self.omit(params, 'price')
         method = self.get_supported_mapping(market['type'], {
             'spot': 'spotV1PublicGetKline',
             'swap': 'contractV1PublicGetKline',
         })
-        if since is not None:
-            request['since'] = since
+        if swap:
+            if price == 'mark':
+                method = 'contractV1PublicGetMarkKline'
+            elif price == 'index':
+                method = 'contractV1PublicGetIndexKline'
+        elif spot:
+            if since is not None:
+                request['since'] = since
         if limit is not None:
             request['size'] = limit
         response = getattr(self, method)(self.extend(request, params))
@@ -1483,29 +1496,7 @@ class zb(Exchange):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
-        return self.parse_ohlcvs(data, market, timeframe, since, limit)
-
-    def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        self.load_markets()
-        market = self.market(symbol)
-        options = self.safe_value(self.options, 'timeframes', {})
-        timeframes = self.safe_value(options, market['type'], {})
-        timeframeValue = self.safe_string(timeframes, timeframe)
-        if timeframeValue is None:
-            raise NotSupported(self.id + ' fetchMarkOHLCV() does not support ' + timeframe + ' timeframe for ' + market['type'] + ' markets')
-        if limit is None:
-            limit = 1000
-        request = {
-            'symbol': market['id'],
-            'period': timeframeValue,
-            'size': limit,
-        }
-        if since is not None:
-            request['since'] = since
-        if limit is not None:
-            request['size'] = limit
-        response = self.contractV1PublicGetMarkKline(self.extend(request, params))
+        # Mark
         #
         #     {
         #         "code": 10000,
@@ -1517,29 +1508,7 @@ class zb(Exchange):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
-        return self.parse_ohlcvs(data, market, timeframe, since, limit)
-
-    def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        self.load_markets()
-        market = self.market(symbol)
-        options = self.safe_value(self.options, 'timeframes', {})
-        timeframes = self.safe_value(options, market['type'], {})
-        timeframeValue = self.safe_string(timeframes, timeframe)
-        if timeframeValue is None:
-            raise NotSupported(self.id + ' fetchIndexOHLCV() does not support ' + timeframe + ' timeframe for ' + market['type'] + ' markets')
-        if limit is None:
-            limit = 1000
-        request = {
-            'symbol': market['id'],
-            'period': timeframeValue,
-            'size': limit,
-        }
-        if since is not None:
-            request['since'] = since
-        if limit is not None:
-            request['size'] = limit
-        response = self.contractV1PublicGetIndexKline(self.extend(request, params))
+        # Index
         #
         #     {
         #         "code": 10000,
@@ -1553,6 +1522,18 @@ class zb(Exchange):
         #
         data = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
+
+    def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        request = {
+            'price': 'mark',
+        }
+        return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
+
+    def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        request = {
+            'price': 'index',
+        }
+        return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
 
     def parse_trade(self, trade, market=None):
         #
@@ -3270,10 +3251,10 @@ class zb(Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         section, version, access = api
-        url = self.urls['api'][section][version][access]
+        url = self.implode_hostname(self.urls['api'][section][version][access])
         if access == 'public':
             if path == 'getFeeInfo':
-                url = self.urls['api'][section][version]['private'] + '/' + path
+                url = self.implode_hostname(self.urls['api'][section][version]['private']) + '/' + path
             else:
                 url += '/' + version + '/' + path
             if params:

@@ -1646,10 +1646,11 @@ class mexc(Exchange):
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        if market['spot']:
-            return await self.create_spot_order(symbol, type, side, amount, price, params)
-        elif market['swap']:
-            return await self.create_swap_order(symbol, type, side, amount, price, params)
+        marketType, query = self.handle_market_type_and_params('createOrder', market, params)
+        if marketType == 'spot':
+            return await self.create_spot_order(symbol, type, side, amount, price, query)
+        elif marketType == 'swap':
+            return await self.create_swap_order(symbol, type, side, amount, price, query)
 
     async def create_spot_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -1730,7 +1731,7 @@ class mexc(Exchange):
         method = 'contractPrivatePostOrderSubmit'
         stopPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
         params = self.omit(params, ['stopPrice', 'triggerPrice'])
-        if stopPrice:
+        if stopPrice is not None:
             method = 'contractPrivatePostPlanorderPlace'
             request['triggerPrice'] = self.price_to_precision(symbol, stopPrice)
             request['triggerType'] = self.safe_integer(params, 'triggerType', 1)

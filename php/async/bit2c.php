@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\Precise;
 
 class bit2c extends Exchange {
 
@@ -52,6 +53,8 @@ class bit2c extends Exchange {
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => true,
                 'reduceMargin' => false,
                 'setLeverage' => false,
                 'setMarginMode' => false,
@@ -270,6 +273,48 @@ class bit2c extends Exchange {
             throw new ExchangeError($response);
         }
         return $this->parse_trades($response, $market, $since, $limit);
+    }
+
+    public function fetch_trading_fees($params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->privateGetAccountBalance ($params);
+        //
+        //     {
+        //         "AVAILABLE_NIS" => 0.0,
+        //         "NIS" => 0.0,
+        //         "LOCKED_NIS" => 0.0,
+        //         "AVAILABLE_BTC" => 0.0,
+        //         "BTC" => 0.0,
+        //         "LOCKED_BTC" => 0.0,
+        //         ...
+        //         "Fees" => {
+        //             "BtcNis" => array( "FeeMaker" => 1.0, "FeeTaker" => 1.0 ),
+        //             "EthNis" => array( "FeeMaker" => 1.0, "FeeTaker" => 1.0 ),
+        //             ...
+        //         }
+        //     }
+        //
+        $fees = $this->safe_value($response, 'Fees', array());
+        $keys = is_array($fees) ? array_keys($fees) : array();
+        $result = array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $marketId = $keys[$i];
+            $symbol = $this->safe_symbol($marketId);
+            $fee = $this->safe_value($fees, $marketId);
+            $makerString = $this->safe_string($fee, 'FeeMaker');
+            $takerString = $this->safe_string($fee, 'FeeTaker');
+            $maker = $this->parse_number(Precise::string_div($makerString, '100'));
+            $taker = $this->parse_number(Precise::string_div($takerString, '100'));
+            $result[$symbol] = array(
+                'info' => $fee,
+                'symbol' => $symbol,
+                'taker' => $taker,
+                'maker' => $maker,
+                'percentage' => true,
+                'tierBased' => false,
+            );
+        }
+        return $result;
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

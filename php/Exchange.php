@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.76.95';
+$version = '1.77.34';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.76.95';
+    const VERSION = '1.77.34';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2754,10 +2754,13 @@ class Exchange {
         if (!isset($this->markets)) {
             throw new ExchangeError($this->id . ' markets not loaded');
         }
+        if (!isset($this->markets_by_id)) {
+            throw new ExchangeError($this->id . ' markets not loaded');
+        }
         if (gettype($symbol) === 'string') {
             if (isset($this->markets[$symbol])) {
                 return $this->markets[$symbol];
-            } elseif (isset($this->markets_by_id)) {
+            } elseif (isset($this->markets_by_id[$symbol])) {
                 return $this->markets_by_id[$symbol];
             }
         }

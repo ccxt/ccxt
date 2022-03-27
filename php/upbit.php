@@ -57,6 +57,8 @@ class upbit extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => true,
+                'fetchTradingFees' => false,
                 'fetchTransactions' => null,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
@@ -293,30 +295,36 @@ class upbit extends Exchange {
         );
         $response = $this->privateGetOrdersChance (array_merge($request, $params));
         //
-        //     {     bid_fee =>   "0.0005",
-        //           ask_fee =>   "0.0005",
-        //            market => array(          $id =>   "KRW-BTC",
-        //                             name =>   "BTC/KRW",
-        //                      order_types => ["limit"],
-        //                      order_sides => ["ask", "bid"],
-        //                              $bid => array(   currency => "KRW",
-        //                                     price_unit =>  null,
-        //                                      min_total =>  1000  ),
-        //                              $ask => array(   currency => "BTC",
-        //                                     price_unit =>  null,
-        //                                      min_total =>  1000  ),
-        //                        max_total =>   "1000000000.0",
-        //                            $state =>   "active"              ),
-        //       bid_account => array(          currency => "KRW",
-        //                                balance => "0.0",
-        //                                 locked => "0.0",
-        //                      avg_krw_buy_price => "0",
-        //                               modified =>  false ),
-        //       ask_account => {          currency => "BTC",
-        //                                balance => "0.00780836",
-        //                                 locked => "0.0",
-        //                      avg_krw_buy_price => "6465564.67",
-        //                               modified =>  false        }      }
+        //     {
+        //         "bid_fee" => "0.0015",
+        //         "ask_fee" => "0.0015",
+        //         "market" => array(
+        //             "id" => "KRW-BTC",
+        //             "name" => "BTC/KRW",
+        //             "order_types" => array( "limit" ),
+        //             "order_sides" => array( "ask", "bid" ),
+        //             "bid" => array( "currency" => "KRW", "price_unit" => null, "min_total" => 1000 ),
+        //             "ask" => array( "currency" => "BTC", "price_unit" => null, "min_total" => 1000 ),
+        //             "max_total" => "100000000.0",
+        //             "state" => "active",
+        //         ),
+        //         "bid_account" => array(
+        //             "currency" => "KRW",
+        //             "balance" => "0.0",
+        //             "locked" => "0.0",
+        //             "avg_buy_price" => "0",
+        //             "avg_buy_price_modified" => false,
+        //             "unit_currency" => "KRW",
+        //         ),
+        //         "ask_account" => {
+        //             "currency" => "BTC",
+        //             "balance" => "10.0",
+        //             "locked" => "0.0",
+        //             "avg_buy_price" => "8042000",
+        //             "avg_buy_price_modified" => false,
+        //             "unit_currency" => "KRW",
+        //         }
+        //     }
         //
         $marketInfo = $this->safe_value($response, 'market');
         $bid = $this->safe_value($marketInfo, 'bid');
@@ -783,6 +791,63 @@ class upbit extends Exchange {
         //              sequential_id =>  15428917910540000 }  )
         //
         return $this->parse_trades($response, $market, $since, $limit);
+    }
+
+    public function fetch_trading_fee($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'market' => $market['id'],
+        );
+        $response = $this->privateGetOrdersChance (array_merge($request, $params));
+        //
+        //     {
+        //         "bid_fee" => "0.0005",
+        //         "ask_fee" => "0.0005",
+        //         "maker_bid_fee" => "0.0005",
+        //         "maker_ask_fee" => "0.0005",
+        //         "market" => array(
+        //             "id" => "KRW-BTC",
+        //             "name" => "BTC/KRW",
+        //             "order_types" => array( "limit" ),
+        //             "order_sides" => array( "ask", "bid" ),
+        //             "bid" => array( "currency" => "KRW", "price_unit" => null, "min_total" => 5000 ),
+        //             "ask" => array( "currency" => "BTC", "price_unit" => null, "min_total" => 5000 ),
+        //             "max_total" => "1000000000.0",
+        //             "state" => "active"
+        //         ),
+        //         "bid_account" => array(
+        //             "currency" => "KRW",
+        //             "balance" => "0.34202414",
+        //             "locked" => "4999.99999922",
+        //             "avg_buy_price" => "0",
+        //             "avg_buy_price_modified" => true,
+        //             "unit_currency" => "KRW"
+        //         ),
+        //         "ask_account" => {
+        //             "currency" => "BTC",
+        //             "balance" => "0.00048",
+        //             "locked" => "0.0",
+        //             "avg_buy_price" => "20870000",
+        //             "avg_buy_price_modified" => false,
+        //             "unit_currency" => "KRW"
+        //         }
+        //     }
+        //
+        $askFee = $this->safe_string($response, 'ask_fee');
+        $bidFee = $this->safe_string($response, 'bid_fee');
+        $taker = Precise::string_max($askFee, $bidFee);
+        $makerAskFee = $this->safe_string($response, 'maker_ask_fee');
+        $makerBidFee = $this->safe_string($response, 'maker_bid_fee');
+        $maker = Precise::string_max($makerAskFee, $makerBidFee);
+        return array(
+            'info' => $response,
+            'symbol' => $symbol,
+            'maker' => $this->parse_number($maker),
+            'taker' => $this->parse_number($taker),
+            'percentage' => true,
+            'tierBased' => false,
+        );
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {

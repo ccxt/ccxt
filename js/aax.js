@@ -59,7 +59,7 @@ module.exports = class aax extends Exchange {
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
-                'fetchIndexOHLCV': true,
+                'fetchIndexOHLCV': false,
                 'fetchIsolatedPositions': undefined,
                 'fetchL3OrderBook': undefined,
                 'fetchLedger': undefined,
@@ -68,7 +68,7 @@ module.exports = class aax extends Exchange {
                 'fetchLeverageTiers': true,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
-                'fetchMarkOHLCV': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyBuys': undefined,
                 'fetchMySells': undefined,
                 'fetchMyTrades': true,
@@ -83,7 +83,7 @@ module.exports = class aax extends Exchange {
                 'fetchPosition': undefined,
                 'fetchPositions': undefined,
                 'fetchPositionsRisk': false,
-                'fetchPremiumIndexOHLCV': true,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
                 'fetchTicker': 'emulated',
                 'fetchTickers': true,
@@ -102,7 +102,7 @@ module.exports = class aax extends Exchange {
                 'setMarginMode': false,
                 'setPositionMode': undefined,
                 'signIn': undefined,
-                'transfer': undefined,
+                'transfer': true,
                 'withdraw': undefined,
             },
             'timeframes': {
@@ -318,6 +318,10 @@ module.exports = class aax extends Exchange {
                     'ETH': 'ERC20',
                     'TRX': 'TRC20',
                     'SOL': 'SPL',
+                },
+                'transfer': {
+                    'fillFromAccountToAccount': true,
+                    'fillAmount': true,
                 },
             },
         });
@@ -891,27 +895,6 @@ module.exports = class aax extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
-    }
-
-    async fetchMarkOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        const request = {
-            'price': 'mark',
-        };
-        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
-    }
-
-    async fetchPremiumIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        const request = {
-            'price': 'premiumIndex',
-        };
-        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
-    }
-
-    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        const request = {
-            'price': 'index',
-        };
-        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
     }
 
     async fetchBalance (params = {}) {
@@ -2390,6 +2373,76 @@ module.exports = class aax extends Exchange {
             floor = cap;
         }
         return tiers;
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        const data = this.safeValue (transfer, 'data', {});
+        const id = this.safeString (data, 'transferID');
+        const dateTime = this.safeString (data, 'transferTime');
+        const timestamp = this.safeNumber (transfer, 'ts');
+        const currencyCode = this.safeString (currency, 'code');
+        const responseCode = this.safeString (transfer, 'code');
+        let status = 'canceled';
+        if (responseCode === '1') {
+            status = 'ok';
+        }
+        return {
+            'info': transfer,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': dateTime,
+            'currency': currencyCode,
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': status,
+        };
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const accountTypes = this.safeValue (this.options, 'types', {});
+        const fromId = this.safeString (accountTypes, fromAccount);
+        const toId = this.safeString (accountTypes, toAccount);
+        if (fromId === undefined) {
+            const keys = Object.keys (accountTypes);
+            throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', '));
+        }
+        if (toId === undefined) {
+            const keys = Object.keys (accountTypes);
+            throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', '));
+        }
+        const request = {
+            'currency': currency['id'],
+            'fromPurse': fromId,
+            'toPurse': toId,
+            'quantity': amount,
+        };
+        const response = await this.privatePostAccountTransfer (this.extend (request, params));
+        //
+        //     {
+        //         "code": 1,
+        //         "data": {
+        //             "transferID": 888561,
+        //             "transferTime": "2022-03-22T15:29:05.197Z"
+        //         },
+        //         "message": "success",
+        //         "ts": 1647962945151
+        //     }
+        //
+        const transfer = this.parseTransfer (response, currency);
+        const transferOptions = this.safeValue (this.options, 'transfer', {});
+        const fillFromAccountToAccount = this.safeValue (transferOptions, 'fillFromAccountToAccount', true);
+        const fillAmount = this.safeValue (transferOptions, 'fillAmount', true);
+        if (fillFromAccountToAccount) {
+            transfer['fromAccount'] = fromAccount;
+            transfer['toAccount'] = toAccount;
+        }
+        if (fillAmount) {
+            transfer['amount'] = amount;
+        }
+        return transfer;
     }
 
     nonce () {

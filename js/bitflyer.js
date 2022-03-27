@@ -39,7 +39,10 @@ module.exports = class bitflyer extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': false,
+                'fetchTransfer': false,
+                'fetchTransfers': false,
                 'fetchWithdrawals': true,
+                'transfer': false,
                 'withdraw': true,
             },
             'urls': {

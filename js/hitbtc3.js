@@ -760,6 +760,7 @@ module.exports = class hitbtc3 extends Exchange {
         const method = this.getSupportedMapping (marketType, {
             'spot': 'privateGetSpotHistoryTrade',
             'swap': 'privateGetFuturesHistoryTrade',
+            'margin': 'privateGetMarginHistoryTrade',
         });
         const response = await this[method] (this.extend (request, query));
         return this.parseTrades (response, market, since, limit);
@@ -804,7 +805,7 @@ module.exports = class hitbtc3 extends Exchange {
         //      taker: true
         //  }
         //
-        // fetchMyTrades swap
+        // fetchMyTrades swap and margin
         //
         //  {
         //      "id": 4718564,
@@ -1195,6 +1196,7 @@ module.exports = class hitbtc3 extends Exchange {
         const method = this.getSupportedMapping (marketType, {
             'spot': 'privateGetSpotHistoryOrder',
             'swap': 'privateGetFuturesHistoryOrder',
+            'margin': 'privateGetMarginHistoryOrder',
         });
         const response = await this[method] (this.extend (request, query));
         const parsed = this.parseOrders (response, market, since, limit);
@@ -1211,6 +1213,7 @@ module.exports = class hitbtc3 extends Exchange {
         const method = this.getSupportedMapping (marketType, {
             'spot': 'privateGetSpotHistoryOrder',
             'swap': 'privateGetFuturesHistoryOrder',
+            'margin': 'privateGetMarginHistoryOrder',
         });
         const request = {
             'client_order_id': id,
@@ -1252,6 +1255,7 @@ module.exports = class hitbtc3 extends Exchange {
         const method = this.getSupportedMapping (marketType, {
             'spot': 'privateGetSpotHistoryTrade',
             'swap': 'privateGetFuturesHistoryTrade',
+            'margin': 'privateGetMarginHistoryTrade',
         });
         const response = await this[method] (this.extend (request, query));
         //
@@ -1272,7 +1276,7 @@ module.exports = class hitbtc3 extends Exchange {
         //       }
         //     ]
         //
-        // Swap
+        // Swap and Margin
         //
         //     [
         //         {
@@ -1307,6 +1311,7 @@ module.exports = class hitbtc3 extends Exchange {
         const method = this.getSupportedMapping (marketType, {
             'spot': 'privateGetSpotOrder',
             'swap': 'privateGetFuturesOrder',
+            'margin': 'privateGetMarginOrder',
         });
         const response = await this[method] (this.extend (request, query));
         //
@@ -1341,6 +1346,7 @@ module.exports = class hitbtc3 extends Exchange {
         const method = this.getSupportedMapping (marketType, {
             'spot': 'privateGetSpotOrderClientOrderId',
             'swap': 'privateGetFuturesOrderClientOrderId',
+            'margin': 'privateGetMarginOrderClientOrderId',
         });
         const request = {
             'client_order_id': id,
@@ -1361,6 +1367,7 @@ module.exports = class hitbtc3 extends Exchange {
         const method = this.getSupportedMapping (marketType, {
             'spot': 'privateDeleteSpotOrder',
             'swap': 'privateDeleteFuturesOrder',
+            'margin': 'privateDeleteMarginOrder',
         });
         const response = await this[method] (this.extend (request, query));
         return this.parseOrders (response, market);
@@ -1379,6 +1386,7 @@ module.exports = class hitbtc3 extends Exchange {
         const method = this.getSupportedMapping (marketType, {
             'spot': 'privateDeleteSpotOrderClientOrderId',
             'swap': 'privateDeleteFuturesOrderClientOrderId',
+            'margin': 'privateDeleteMarginOrderClientOrderId',
         });
         const response = await this[method] (this.extend (request, query));
         return this.parseOrder (response, market);
@@ -1400,11 +1408,13 @@ module.exports = class hitbtc3 extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const method = this.getSupportedMapping (market['type'], {
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('editOrder', market, params);
+        const method = this.getSupportedMapping (marketType, {
             'spot': 'privatePatchSpotOrderClientOrderId',
             'swap': 'privatePatchFuturesOrderClientOrderId',
+            'margin': 'privatePatchMarginOrderClientOrderId',
         });
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
         return this.parseOrder (response, market);
     }
 
@@ -1455,11 +1465,13 @@ module.exports = class hitbtc3 extends Exchange {
             }
             request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
         }
-        const method = this.getSupportedMapping (market['type'], {
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('createOrder', market, params);
+        const method = this.getSupportedMapping (marketType, {
             'spot': 'privatePostSpotOrder',
             'swap': 'privatePostFuturesOrder',
+            'margin': 'privatePostMarginOrder',
         });
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
         return this.parseOrder (response, market);
     }
 
@@ -1529,7 +1541,7 @@ module.exports = class hitbtc3 extends Exchange {
         //       ]
         //     }
         //
-        // swap
+        // swap and margin
         //
         //     {
         //         "id": 58418961892,

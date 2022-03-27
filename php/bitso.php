@@ -48,6 +48,7 @@ class bitso extends Exchange {
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
+                'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
@@ -60,10 +61,13 @@ class bitso extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
+                'fetchTransfer' => false,
+                'fetchTransfers' => false,
                 'reduceMargin' => false,
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
+                'transfer' => false,
                 'withdraw' => true,
             ),
             'urls' => array(
@@ -83,6 +87,17 @@ class bitso extends Exchange {
                 ),
                 'defaultPrecision' => 0.00000001,
             ),
+            'timeframes' => array(
+                '1m' => '60',
+                '5m' => '300',
+                '15m' => '900',
+                '30m' => '1800',
+                '1h' => '3600',
+                '4h' => '14400',
+                '12h' => '43200',
+                '1d' => '86400',
+                '1w' => '604800',
+            ),
             'api' => array(
                 'public' => array(
                     'get' => array(
@@ -90,6 +105,7 @@ class bitso extends Exchange {
                         'ticker',
                         'order_book',
                         'trades',
+                        'ohlc',
                     ),
                 ),
                 'private' => array(
@@ -140,6 +156,7 @@ class bitso extends Exchange {
             'exceptions' => array(
                 '0201' => '\\ccxt\\AuthenticationError', // Invalid Nonce or Invalid Credentials
                 '104' => '\\ccxt\\InvalidNonce', // Cannot perform request - nonce must be higher than 1520307203724237
+                '0304' => '\\ccxt\\BadRequest', // array("success":false,"error":array("code":"0304","message":"The field time_bucket () is either invalid or missing"))
             ),
         ));
     }
@@ -409,6 +426,73 @@ class bitso extends Exchange {
         //     }
         //
         return $this->parse_ticker($ticker, $market);
+    }
+
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'book' => $market['id'],
+            'time_bucket' => $this->timeframes[$timeframe],
+        );
+        if ($since !== null) {
+            $request['start'] = $since;
+            if ($limit !== null) {
+                $duration = $this->parse_timeframe($timeframe);
+                $request['end'] = $this->sum($since, $duration * $limit * 1000);
+            }
+        } else if ($limit !== null) {
+            $now = $this->milliseconds();
+            $request['end'] = $now;
+            $request['start'] = $now - $this->parse_timeframe($timeframe) * 1000 * $limit;
+        }
+        $response = $this->publicGetOhlc (array_merge($request, $params));
+        //
+        //     {
+        //         "success":true,
+        //         "payload" => array(
+        //             array(
+        //                 "bucket_start_time":1648219140000,
+        //                 "first_trade_time":1648219154990,
+        //                 "last_trade_time":1648219189441,
+        //                 "first_rate":"44958.60",
+        //                 "last_rate":"44979.88",
+        //                 "min_rate":"44957.33",
+        //                 "max_rate":"44979.88",
+        //                 "trade_count":8,
+        //                 "volume":"0.00082814",
+        //                 "vwap":"44965.02"
+        //             ),
+        //         )
+        //     }
+        //
+        $payload = $this->safe_value($response, 'payload', array());
+        return $this->parse_ohlcvs($payload, $market, $timeframe, $since, $limit);
+    }
+
+    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m') {
+        //
+        //     array(
+        //         "bucket_start_time":1648219140000,
+        //         "first_trade_time":1648219154990,
+        //         "last_trade_time":1648219189441,
+        //         "first_rate":"44958.60",
+        //         "last_rate":"44979.88",
+        //         "min_rate":"44957.33",
+        //         "max_rate":"44979.88",
+        //         "trade_count":8,
+        //         "volume":"0.00082814",
+        //         "vwap":"44965.02"
+        //     ),
+        //
+        return array(
+            $this->safe_integer($ohlcv, 'bucket_start_time'),
+            $this->safe_number($ohlcv, 'first_rate'),
+            $this->safe_number($ohlcv, 'max_rate'),
+            $this->safe_number($ohlcv, 'min_rate'),
+            $this->safe_number($ohlcv, 'last_rate'),
+            $this->safe_number($ohlcv, 'volume'),
+        );
     }
 
     public function parse_trade($trade, $market = null) {

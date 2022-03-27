@@ -638,33 +638,36 @@ module.exports = class gateio extends Exchange {
         const marginMarkets = this.indexBy (marginResponse, 'id');
         //
         //  Spot
-        //      [
-        //           {
-        //             "id": "DEGO_USDT",
-        //             "base": "DEGO",
-        //             "quote": "USDT",
-        //             "fee": "0.2",
-        //             "min_quote_amount": "1",
-        //             "amount_precision": "4",
-        //             "precision": "4",
-        //             "trade_status": "tradable",
-        //             "sell_start": "0",
-        //             "buy_start": "0"
-        //           }
-        //      ]
+        //
+        //     [
+        //         {
+        //             "id":"QTUM_ETH",
+        //             "base":"QTUM",
+        //             "quote":"ETH",
+        //             "fee":"0.2",
+        //             "min_base_amount":"0.01",
+        //             "min_quote_amount":"0.001",
+        //             "amount_precision":3,
+        //             "precision":6,
+        //             "trade_status":"tradable",
+        //             "sell_start":0,
+        //             "buy_start":0
+        //         }
+        //     ]
         //
         //  Margin
-        //      [
+        //
+        //     [
         //         {
-        //           "id": "ETH_USDT",
-        //           "base": "ETH",
-        //           "quote": "USDT",
-        //           "leverage": 3,
-        //           "min_base_amount": "0.01",
-        //           "min_quote_amount": "100",
-        //           "max_quote_amount": "1000000"
+        //             "id": "ETH_USDT",
+        //             "base": "ETH",
+        //             "quote": "USDT",
+        //             "leverage": 3,
+        //             "min_base_amount": "0.01",
+        //             "min_quote_amount": "100",
+        //             "max_quote_amount": "1000000"
         //         }
-        //       ]
+        //     ]
         //
         const result = [];
         for (let i = 0; i < spotMarketsResponse.length; i++) {
@@ -719,7 +722,7 @@ module.exports = class gateio extends Exchange {
                         'max': this.safeNumber (market, 'leverage', 1),
                     },
                     'amount': {
-                        'min': undefined,
+                        'min': this.safeNumber (market, 'min_base_amount'),
                         'max': undefined,
                     },
                     'price': {
@@ -1433,14 +1436,7 @@ module.exports = class gateio extends Exchange {
         //       "futures_maker_fee": "0"
         //     }
         //
-        const taker = this.safeNumber (response, 'taker_fee');
-        const maker = this.safeNumber (response, 'maker_fee');
-        return {
-            'info': response,
-            'symbol': symbol,
-            'maker': maker,
-            'taker': taker,
-        };
+        return this.parseTradingFee (response, market);
     }
 
     async fetchTradingFees (params = {}) {
@@ -1460,19 +1456,43 @@ module.exports = class gateio extends Exchange {
         //       "futures_maker_fee": "0"
         //     }
         //
+        return this.parseTradingFees (response);
+    }
+
+    parseTradingFees (response) {
         const result = {};
-        const taker = this.safeNumber (response, 'taker_fee');
-        const maker = this.safeNumber (response, 'maker_fee');
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
-            result[symbol] = {
-                'maker': maker,
-                'taker': taker,
-                'info': response,
-                'symbol': symbol,
-            };
+            const market = this.market (symbol);
+            result[symbol] = this.parseTradingFee (response, market);
         }
         return result;
+    }
+
+    parseTradingFee (info, market = undefined) {
+        //
+        //     {
+        //       "user_id": 1486602,
+        //       "taker_fee": "0.002",
+        //       "maker_fee": "0.002",
+        //       "gt_discount": true,
+        //       "gt_taker_fee": "0.0015",
+        //       "gt_maker_fee": "0.0015",
+        //       "loan_fee": "0.18",
+        //       "point_type": "0",
+        //       "futures_taker_fee": "0.0005",
+        //       "futures_maker_fee": "0"
+        //     }
+        //
+        const contract = this.safeValue (market, 'contract');
+        const takerKey = contract ? 'futures_taker_fee' : 'taker_fee';
+        const makerKey = contract ? 'futures_maker_fee' : 'maker_fee';
+        return {
+            'info': info,
+            'symbol': this.safeString (market, 'symbol'),
+            'maker': this.safeNumber (info, makerKey),
+            'taker': this.safeNumber (info, takerKey),
+        };
     }
 
     async fetchFundingFees (params = {}) {
@@ -2901,13 +2921,13 @@ module.exports = class gateio extends Exchange {
         price = this.safeString (order, 'price', price);
         let remaining = this.safeString (order, 'left');
         let filled = Precise.stringSub (amount, remaining);
-        let cost = this.safeNumber (order, 'filled_total');
+        let cost = this.safeString (order, 'filled_total');
         let rawStatus = undefined;
         let average = undefined;
         if (put) {
             remaining = amount;
             filled = '0';
-            cost = this.parseNumber ('0');
+            cost = '0';
         }
         if (contract) {
             const isMarketOrder = Precise.stringEquals (price, '0') && (timeInForce === 'IOC');
@@ -2918,7 +2938,14 @@ module.exports = class gateio extends Exchange {
         } else {
             rawStatus = this.safeString (order, 'status');
         }
-        const timestamp = this.safeTimestamp2 (order, 'create_time', 'ctime');
+        let timestamp = this.safeInteger (order, 'create_time_ms');
+        if (timestamp === undefined) {
+            timestamp = this.safeTimestamp2 (order, 'create_time', 'ctime');
+        }
+        let lastTradeTimestamp = this.safeInteger (order, 'update_time_ms');
+        if (lastTradeTimestamp === undefined) {
+            lastTradeTimestamp = this.safeTimestamp2 (order, 'update_time', 'finish_time');
+        }
         const exchangeSymbol = this.safeString2 (order, 'currency_pair', 'market', contract);
         // Everything below this(above return) is related to fees
         const fees = [];
@@ -2951,7 +2978,7 @@ module.exports = class gateio extends Exchange {
             'clientOrderId': this.safeString (order, 'text'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': this.safeTimestamp2 (order, 'update_time', 'finish_time'),
+            'lastTradeTimestamp': lastTradeTimestamp,
             'status': status,
             'symbol': this.safeSymbol (exchangeSymbol),
             'type': type,
@@ -2962,8 +2989,8 @@ module.exports = class gateio extends Exchange {
             'stopPrice': this.safeNumber (trigger, 'price'),
             'average': average,
             'amount': this.parseNumber (Precise.stringAbs (amount)),
-            'cost': cost,
-            'filled': this.parseNumber (filled),
+            'cost': Precise.stringAbs (cost),
+            'filled': this.parseNumber (Precise.stringAbs (filled)),
             'remaining': this.parseNumber (Precise.stringAbs (remaining)),
             'fee': multipleFeeCurrencies ? undefined : this.safeValue (fees, 0),
             'fees': multipleFeeCurrencies ? fees : [],

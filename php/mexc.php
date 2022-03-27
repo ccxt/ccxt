@@ -1720,10 +1720,11 @@ class mexc extends Exchange {
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
-        if ($market['spot']) {
-            return $this->create_spot_order($symbol, $type, $side, $amount, $price, $params);
-        } else if ($market['swap']) {
-            return $this->create_swap_order($symbol, $type, $side, $amount, $price, $params);
+        list($marketType, $query) = $this->handle_market_type_and_params('createOrder', $market, $params);
+        if ($marketType === 'spot') {
+            return $this->create_spot_order($symbol, $type, $side, $amount, $price, $query);
+        } else if ($marketType === 'swap') {
+            return $this->create_swap_order($symbol, $type, $side, $amount, $price, $query);
         }
     }
 
@@ -1814,7 +1815,7 @@ class mexc extends Exchange {
         $method = 'contractPrivatePostOrderSubmit';
         $stopPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
         $params = $this->omit($params, array( 'stopPrice', 'triggerPrice' ));
-        if ($stopPrice) {
+        if ($stopPrice !== null) {
             $method = 'contractPrivatePostPlanorderPlace';
             $request['triggerPrice'] = $this->price_to_precision($symbol, $stopPrice);
             $request['triggerType'] = $this->safe_integer($params, 'triggerType', 1);

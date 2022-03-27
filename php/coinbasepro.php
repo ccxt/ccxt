@@ -172,8 +172,8 @@ class coinbasepro extends Exchange {
                 'trading' => array(
                     'tierBased' => true, // complicated tier system per coin
                     'percentage' => true,
-                    'maker' => 0.5 / 100, // highest fee of all tiers
-                    'taker' => 0.5 / 100, // highest fee of all tiers
+                    'maker' => 0.4 / 100, // highest fee of all tiers
+                    'taker' => 0.6 / 100, // highest fee of all tiers
                 ),
                 'funding' => array(
                     'tierBased' => false,

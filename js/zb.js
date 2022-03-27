@@ -88,6 +88,213 @@ module.exports = class zb extends Exchange {
                 '5d': '5d',
                 '1w': '1w',
             },
+            'hostname': 'zb.com', // zb.cafe for users in China
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg',
+                'api': {
+                    'spot': {
+                        'v1': {
+                            'public': 'https://api.{hostname}/data',
+                            'private': 'https://trade.{hostname}/api',
+                        },
+                    },
+                    'contract': {
+                        'v1': {
+                            'public': 'https://fapi.{hostname}/api/public',
+                        },
+                        'v2': {
+                            'public': 'https://fapi.{hostname}/Server/api',
+                            'private': 'https://fapi.{hostname}/Server/api',
+                        },
+                    },
+                },
+                'www': 'https://www.zb.com',
+                'doc': 'https://www.zb.com/i/developer',
+                'fees': 'https://www.zb.com/i/rate',
+                'referral': {
+                    'url': 'https://www.zbex.club/en/register?ref=4301lera',
+                    'discount': 0.16,
+                },
+            },
+            'api': {
+                'spot': {
+                    'v1': {
+                        'public': {
+                            'get': [
+                                'markets',
+                                'ticker',
+                                'allTicker',
+                                'depth',
+                                'trades',
+                                'kline',
+                                'getGroupMarkets',
+                                'getFeeInfo',
+                            ],
+                        },
+                        'private': {
+                            'get': [
+                                // spot API
+                                'order',
+                                'orderMoreV2',
+                                'cancelOrder',
+                                'getOrder',
+                                'getOrders',
+                                'getOrdersNew',
+                                'getOrdersIgnoreTradeType',
+                                'getUnfinishedOrdersIgnoreTradeType',
+                                'getFinishedAndPartialOrders',
+                                'getAccountInfo',
+                                'getUserAddress',
+                                'getPayinAddress',
+                                'getWithdrawAddress',
+                                'getWithdrawRecord',
+                                'getChargeRecord',
+                                'getCnyWithdrawRecord',
+                                'getCnyChargeRecord',
+                                'withdraw',
+                                // sub accounts
+                                'addSubUser',
+                                'getSubUserList',
+                                'doTransferFunds',
+                                'createSubUserKey', // removed on 2021-03-16 according to the update log in the API doc
+                                // leverage API
+                                'getLeverAssetsInfo',
+                                'getLeverBills',
+                                'transferInLever',
+                                'transferOutLever',
+                                'loan',
+                                'cancelLoan',
+                                'getLoans',
+                                'getLoanRecords',
+                                'borrow',
+                                'autoBorrow',
+                                'repay',
+                                'doAllRepay',
+                                'getRepayments',
+                                'getFinanceRecords',
+                                'changeInvestMark',
+                                'changeLoop',
+                                // cross API
+                                'getCrossAssets',
+                                'getCrossBills',
+                                'transferInCross',
+                                'transferOutCross',
+                                'doCrossLoan',
+                                'doCrossRepay',
+                                'getCrossRepayRecords',
+                            ],
+                        },
+                    },
+                },
+                'contract': {
+                    'v1': {
+                        'public': {
+                            'get': [
+                                'depth',
+                                'fundingRate',
+                                'indexKline',
+                                'indexPrice',
+                                'kline',
+                                'markKline',
+                                'markPrice',
+                                'ticker',
+                                'trade',
+                            ],
+                        },
+                    },
+                    'v2': {
+                        'public': {
+                            'get': [
+                                'allForceOrders',
+                                'config/marketList',
+                                'topLongShortAccountRatio',
+                                'topLongShortPositionRatio',
+                                'fundingRate',
+                                'premiumIndex',
+                            ],
+                        },
+                        'private': {
+                            'get': [
+                                'Fund/balance',
+                                'Fund/getAccount',
+                                'Fund/getBill',
+                                'Fund/getBillTypeList',
+                                'Fund/marginHistory',
+                                'Positions/getPositions',
+                                'Positions/getNominalValue',
+                                'Positions/marginInfo',
+                                'setting/get',
+                                'trade/getAllOrders',
+                                'trade/getOrder',
+                                'trade/getOrderAlgos',
+                                'trade/getTradeList',
+                                'trade/getUndoneOrders',
+                                'trade/tradeHistory',
+                            ],
+                            'post': [
+                                'activity/buyTicket',
+                                'Fund/transferFund',
+                                'Positions/setMarginCoins',
+                                'Positions/updateAppendUSDValue',
+                                'Positions/updateMargin',
+                                'setting/setLeverage',
+                                'trade/batchOrder',
+                                'trade/batchCancelOrder',
+                                'trade/cancelAlgos',
+                                'trade/cancelAllOrders',
+                                'trade/cancelOrder',
+                                'trade/order',
+                                'trade/orderAlgo',
+                                'trade/updateOrderAlgo',
+                            ],
+                        },
+                    },
+                },
+            },
+            'fees': {
+                'funding': {
+                    'withdraw': {},
+                },
+                'trading': {
+                    'maker': this.parseNumber ('0.002'),
+                    'taker': this.parseNumber ('0.002'),
+                },
+            },
+            'commonCurrencies': {
+                'ANG': 'Anagram',
+                'ENT': 'ENTCash',
+                'BCHABC': 'BCHABC', // conflict with BCH / BCHA
+                'BCHSV': 'BCHSV', // conflict with BCH / BSV
+            },
+            'options': {
+                'timeframes': {
+                    'spot': {
+                        '1m': '1min',
+                        '3m': '3min',
+                        '5m': '5min',
+                        '15m': '15min',
+                        '30m': '30min',
+                        '1h': '1hour',
+                        '2h': '2hour',
+                        '4h': '4hour',
+                        '6h': '6hour',
+                        '12h': '12hour',
+                        '1d': '1day',
+                        '3d': '3day',
+                        '1w': '1week',
+                    },
+                    'swap': {
+                        '1m': '1M',
+                        '5m': '5M',
+                        '15m': '15M',
+                        '30m': '30M',
+                        '1h': '1H',
+                        '6h': '6H',
+                        '1d': '1D',
+                        '5d': '5D',
+                    },
+                },
+            },
             'exceptions': {
                 'ws': {
                     // '1000': ExchangeError, // The call is successful.
@@ -314,212 +521,6 @@ module.exports = class zb extends Exchange {
                     '响应超时': RequestTimeout, // {"code":1001,"message":"响应超时"}
                 },
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg',
-                'api': {
-                    'spot': {
-                        'v1': {
-                            'public': 'https://api.zb.work/data',
-                            'private': 'https://trade.zb.work/api',
-                        },
-                    },
-                    'contract': {
-                        'v1': {
-                            'public': 'https://fapi.zb.com/api/public',
-                        },
-                        'v2': {
-                            'public': 'https://fapi.zb.com/Server/api',
-                            'private': 'https://fapi.zb.com/Server/api',
-                        },
-                    },
-                },
-                'www': 'https://www.zb.com',
-                'doc': 'https://www.zb.com/i/developer',
-                'fees': 'https://www.zb.com/i/rate',
-                'referral': {
-                    'url': 'https://www.zbex.club/en/register?ref=4301lera',
-                    'discount': 0.16,
-                },
-            },
-            'api': {
-                'spot': {
-                    'v1': {
-                        'public': {
-                            'get': [
-                                'markets',
-                                'ticker',
-                                'allTicker',
-                                'depth',
-                                'trades',
-                                'kline',
-                                'getGroupMarkets',
-                                'getFeeInfo',
-                            ],
-                        },
-                        'private': {
-                            'get': [
-                                // spot API
-                                'order',
-                                'orderMoreV2',
-                                'cancelOrder',
-                                'getOrder',
-                                'getOrders',
-                                'getOrdersNew',
-                                'getOrdersIgnoreTradeType',
-                                'getUnfinishedOrdersIgnoreTradeType',
-                                'getFinishedAndPartialOrders',
-                                'getAccountInfo',
-                                'getUserAddress',
-                                'getPayinAddress',
-                                'getWithdrawAddress',
-                                'getWithdrawRecord',
-                                'getChargeRecord',
-                                'getCnyWithdrawRecord',
-                                'getCnyChargeRecord',
-                                'withdraw',
-                                // sub accounts
-                                'addSubUser',
-                                'getSubUserList',
-                                'doTransferFunds',
-                                'createSubUserKey', // removed on 2021-03-16 according to the update log in the API doc
-                                // leverage API
-                                'getLeverAssetsInfo',
-                                'getLeverBills',
-                                'transferInLever',
-                                'transferOutLever',
-                                'loan',
-                                'cancelLoan',
-                                'getLoans',
-                                'getLoanRecords',
-                                'borrow',
-                                'autoBorrow',
-                                'repay',
-                                'doAllRepay',
-                                'getRepayments',
-                                'getFinanceRecords',
-                                'changeInvestMark',
-                                'changeLoop',
-                                // cross API
-                                'getCrossAssets',
-                                'getCrossBills',
-                                'transferInCross',
-                                'transferOutCross',
-                                'doCrossLoan',
-                                'doCrossRepay',
-                                'getCrossRepayRecords',
-                            ],
-                        },
-                    },
-                },
-                'contract': {
-                    'v1': {
-                        'public': {
-                            'get': [
-                                'depth',
-                                'fundingRate',
-                                'indexKline',
-                                'indexPrice',
-                                'kline',
-                                'markKline',
-                                'markPrice',
-                                'ticker',
-                                'trade',
-                            ],
-                        },
-                    },
-                    'v2': {
-                        'public': {
-                            'get': [
-                                'allForceOrders',
-                                'config/marketList',
-                                'topLongShortAccountRatio',
-                                'topLongShortPositionRatio',
-                                'fundingRate',
-                                'premiumIndex',
-                            ],
-                        },
-                        'private': {
-                            'get': [
-                                'Fund/balance',
-                                'Fund/getAccount',
-                                'Fund/getBill',
-                                'Fund/getBillTypeList',
-                                'Fund/marginHistory',
-                                'Positions/getPositions',
-                                'Positions/getNominalValue',
-                                'Positions/marginInfo',
-                                'setting/get',
-                                'trade/getAllOrders',
-                                'trade/getOrder',
-                                'trade/getOrderAlgos',
-                                'trade/getTradeList',
-                                'trade/getUndoneOrders',
-                                'trade/tradeHistory',
-                            ],
-                            'post': [
-                                'activity/buyTicket',
-                                'Fund/transferFund',
-                                'Positions/setMarginCoins',
-                                'Positions/updateAppendUSDValue',
-                                'Positions/updateMargin',
-                                'setting/setLeverage',
-                                'trade/batchOrder',
-                                'trade/batchCancelOrder',
-                                'trade/cancelAlgos',
-                                'trade/cancelAllOrders',
-                                'trade/cancelOrder',
-                                'trade/order',
-                                'trade/orderAlgo',
-                                'trade/updateOrderAlgo',
-                            ],
-                        },
-                    },
-                },
-            },
-            'fees': {
-                'funding': {
-                    'withdraw': {},
-                },
-                'trading': {
-                    'maker': this.parseNumber ('0.002'),
-                    'taker': this.parseNumber ('0.002'),
-                },
-            },
-            'commonCurrencies': {
-                'ANG': 'Anagram',
-                'ENT': 'ENTCash',
-                'BCHABC': 'BCHABC', // conflict with BCH / BCHA
-                'BCHSV': 'BCHSV', // conflict with BCH / BSV
-            },
-            'options': {
-                'timeframes': {
-                    'spot': {
-                        '1m': '1min',
-                        '3m': '3min',
-                        '5m': '5min',
-                        '15m': '15min',
-                        '30m': '30min',
-                        '1h': '1hour',
-                        '2h': '2hour',
-                        '4h': '4hour',
-                        '6h': '6hour',
-                        '12h': '12hour',
-                        '1d': '1day',
-                        '3d': '3day',
-                        '1w': '1week',
-                    },
-                    'swap': {
-                        '1m': '1M',
-                        '5m': '5M',
-                        '15m': '15M',
-                        '30m': '30M',
-                        '1h': '1H',
-                        '6h': '6H',
-                        '1d': '1D',
-                        '5d': '5D',
-                    },
-                },
-            },
         });
     }
 
@@ -535,7 +536,14 @@ module.exports = class zb extends Exchange {
         //         },
         //     }
         //
-        const contracts = await this.contractV2PublicGetConfigMarketList (params);
+        let contracts = undefined;
+        try {
+            // https://github.com/ZBFuture/docs_en/blob/main/API%20V2%20_en.md#7-public-markethttp
+            // https://fapi.zb.com/Server/api/v2/config/marketList 502 Bad Gateway
+            contracts = await this.contractV2PublicGetConfigMarketList (params);
+        } catch (e) {
+            contracts = {};
+        }
         //
         //     {
         //         BTC_USDT: {
@@ -1409,7 +1417,7 @@ module.exports = class zb extends Exchange {
             const ohlcvLength = ohlcv.length;
             if (ohlcvLength > 5) {
                 return [
-                    this.safeInteger (ohlcv, 5),
+                    this.safeTimestamp (ohlcv, 5),
                     this.safeNumber (ohlcv, 0),
                     this.safeNumber (ohlcv, 1),
                     this.safeNumber (ohlcv, 2),
@@ -1418,7 +1426,7 @@ module.exports = class zb extends Exchange {
                 ];
             } else {
                 return [
-                    this.safeInteger (ohlcv, 4),
+                    this.safeTimestamp (ohlcv, 4),
                     this.safeNumber (ohlcv, 0),
                     this.safeNumber (ohlcv, 1),
                     this.safeNumber (ohlcv, 2),
@@ -1442,6 +1450,7 @@ module.exports = class zb extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const swap = market['swap'];
+        const spot = market['spot'];
         const options = this.safeValue (this.options, 'timeframes', {});
         const timeframes = this.safeValue (options, market['type'], {});
         const timeframeValue = this.safeString (timeframes, timeframe);
@@ -1457,21 +1466,28 @@ module.exports = class zb extends Exchange {
             // 'type': timeframeValue, // spot only
             // 'period': timeframeValue, // swap only
             // 'since': since, // spot only
-            // 'limit': limit, // spot only
-            // 'size': limit, // swap only
+            // 'size': limit, // spot and swap
         };
         const marketIdField = swap ? 'symbol' : 'market';
         request[marketIdField] = market['id'];
         const periodField = swap ? 'period' : 'type';
         request[periodField] = timeframeValue;
-        const sizeField = swap ? 'size' : 'limit';
-        request[sizeField] = limit;
-        const method = this.getSupportedMapping (market['type'], {
+        const price = this.safeString (params, 'price');
+        params = this.omit (params, 'price');
+        let method = this.getSupportedMapping (market['type'], {
             'spot': 'spotV1PublicGetKline',
             'swap': 'contractV1PublicGetKline',
         });
-        if (since !== undefined) {
-            request['since'] = since;
+        if (swap) {
+            if (price === 'mark') {
+                method = 'contractV1PublicGetMarkKline';
+            } else if (price === 'index') {
+                method = 'contractV1PublicGetIndexKline';
+            }
+        } else if (spot) {
+            if (since !== undefined) {
+                request['since'] = since;
+            }
         }
         if (limit !== undefined) {
             request['size'] = limit;
@@ -1502,34 +1518,7 @@ module.exports = class zb extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
-        return this.parseOHLCVs (data, market, timeframe, since, limit);
-    }
-
-    async fetchMarkOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const options = this.safeValue (this.options, 'timeframes', {});
-        const timeframes = this.safeValue (options, market['type'], {});
-        const timeframeValue = this.safeString (timeframes, timeframe);
-        if (timeframeValue === undefined) {
-            throw new NotSupported (this.id + ' fetchMarkOHLCV() does not support ' + timeframe + ' timeframe for ' + market['type'] + ' markets');
-        }
-        if (limit === undefined) {
-            limit = 1000;
-        }
-        const request = {
-            'symbol': market['id'],
-            'period': timeframeValue,
-            'size': limit,
-        };
-        if (since !== undefined) {
-            request['since'] = since;
-        }
-        if (limit !== undefined) {
-            request['size'] = limit;
-        }
-        const response = await this.contractV1PublicGetMarkKline (this.extend (request, params));
+        // Mark
         //
         //     {
         //         "code": 10000,
@@ -1541,34 +1530,7 @@ module.exports = class zb extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
-        return this.parseOHLCVs (data, market, timeframe, since, limit);
-    }
-
-    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const options = this.safeValue (this.options, 'timeframes', {});
-        const timeframes = this.safeValue (options, market['type'], {});
-        const timeframeValue = this.safeString (timeframes, timeframe);
-        if (timeframeValue === undefined) {
-            throw new NotSupported (this.id + ' fetchIndexOHLCV() does not support ' + timeframe + ' timeframe for ' + market['type'] + ' markets');
-        }
-        if (limit === undefined) {
-            limit = 1000;
-        }
-        const request = {
-            'symbol': market['id'],
-            'period': timeframeValue,
-            'size': limit,
-        };
-        if (since !== undefined) {
-            request['since'] = since;
-        }
-        if (limit !== undefined) {
-            request['size'] = limit;
-        }
-        const response = await this.contractV1PublicGetIndexKline (this.extend (request, params));
+        // Index
         //
         //     {
         //         "code": 10000,
@@ -1582,6 +1544,20 @@ module.exports = class zb extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
+    }
+
+    async fetchMarkOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'price': 'mark',
+        };
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
+    }
+
+    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'price': 'index',
+        };
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
     }
 
     parseTrade (trade, market = undefined) {
@@ -3417,10 +3393,10 @@ module.exports = class zb extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const [ section, version, access ] = api;
-        let url = this.urls['api'][section][version][access];
+        let url = this.implodeHostname (this.urls['api'][section][version][access]);
         if (access === 'public') {
             if (path === 'getFeeInfo') {
-                url = this.urls['api'][section][version]['private'] + '/' + path;
+                url = this.implodeHostname (this.urls['api'][section][version]['private']) + '/' + path;
             } else {
                 url += '/' + version + '/' + path;
             }

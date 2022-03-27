@@ -649,33 +649,36 @@ class gateio(Exchange):
         marginMarkets = self.index_by(marginResponse, 'id')
         #
         #  Spot
-        #      [
-        #           {
-        #             "id": "DEGO_USDT",
-        #             "base": "DEGO",
-        #             "quote": "USDT",
-        #             "fee": "0.2",
-        #             "min_quote_amount": "1",
-        #             "amount_precision": "4",
-        #             "precision": "4",
-        #             "trade_status": "tradable",
-        #             "sell_start": "0",
-        #             "buy_start": "0"
-        #           }
-        #      ]
+        #
+        #     [
+        #         {
+        #             "id":"QTUM_ETH",
+        #             "base":"QTUM",
+        #             "quote":"ETH",
+        #             "fee":"0.2",
+        #             "min_base_amount":"0.01",
+        #             "min_quote_amount":"0.001",
+        #             "amount_precision":3,
+        #             "precision":6,
+        #             "trade_status":"tradable",
+        #             "sell_start":0,
+        #             "buy_start":0
+        #         }
+        #     ]
         #
         #  Margin
-        #      [
+        #
+        #     [
         #         {
-        #           "id": "ETH_USDT",
-        #           "base": "ETH",
-        #           "quote": "USDT",
-        #           "leverage": 3,
-        #           "min_base_amount": "0.01",
-        #           "min_quote_amount": "100",
-        #           "max_quote_amount": "1000000"
+        #             "id": "ETH_USDT",
+        #             "base": "ETH",
+        #             "quote": "USDT",
+        #             "leverage": 3,
+        #             "min_base_amount": "0.01",
+        #             "min_quote_amount": "100",
+        #             "max_quote_amount": "1000000"
         #         }
-        #       ]
+        #     ]
         #
         result = []
         for i in range(0, len(spotMarketsResponse)):
@@ -730,7 +733,7 @@ class gateio(Exchange):
                         'max': self.safe_number(market, 'leverage', 1),
                     },
                     'amount': {
-                        'min': None,
+                        'min': self.safe_number(market, 'min_base_amount'),
                         'max': None,
                     },
                     'price': {
@@ -1413,14 +1416,7 @@ class gateio(Exchange):
         #       "futures_maker_fee": "0"
         #     }
         #
-        taker = self.safe_number(response, 'taker_fee')
-        maker = self.safe_number(response, 'maker_fee')
-        return {
-            'info': response,
-            'symbol': symbol,
-            'maker': maker,
-            'taker': taker,
-        }
+        return self.parse_trading_fee(response, market)
 
     def fetch_trading_fees(self, params={}):
         self.load_markets()
@@ -1439,18 +1435,40 @@ class gateio(Exchange):
         #       "futures_maker_fee": "0"
         #     }
         #
+        return self.parse_trading_fees(response)
+
+    def parse_trading_fees(self, response):
         result = {}
-        taker = self.safe_number(response, 'taker_fee')
-        maker = self.safe_number(response, 'maker_fee')
         for i in range(0, len(self.symbols)):
             symbol = self.symbols[i]
-            result[symbol] = {
-                'maker': maker,
-                'taker': taker,
-                'info': response,
-                'symbol': symbol,
-            }
+            market = self.market(symbol)
+            result[symbol] = self.parse_trading_fee(response, market)
         return result
+
+    def parse_trading_fee(self, info, market=None):
+        #
+        #     {
+        #       "user_id": 1486602,
+        #       "taker_fee": "0.002",
+        #       "maker_fee": "0.002",
+        #       "gt_discount": True,
+        #       "gt_taker_fee": "0.0015",
+        #       "gt_maker_fee": "0.0015",
+        #       "loan_fee": "0.18",
+        #       "point_type": "0",
+        #       "futures_taker_fee": "0.0005",
+        #       "futures_maker_fee": "0"
+        #     }
+        #
+        contract = self.safe_value(market, 'contract')
+        takerKey = 'futures_taker_fee' if contract else 'taker_fee'
+        makerKey = 'futures_maker_fee' if contract else 'maker_fee'
+        return {
+            'info': info,
+            'symbol': self.safe_string(market, 'symbol'),
+            'maker': self.safe_number(info, makerKey),
+            'taker': self.safe_number(info, takerKey),
+        }
 
     def fetch_funding_fees(self, params={}):
         self.load_markets()
@@ -2795,13 +2813,13 @@ class gateio(Exchange):
         price = self.safe_string(order, 'price', price)
         remaining = self.safe_string(order, 'left')
         filled = Precise.string_sub(amount, remaining)
-        cost = self.safe_number(order, 'filled_total')
+        cost = self.safe_string(order, 'filled_total')
         rawStatus = None
         average = None
         if put:
             remaining = amount
             filled = '0'
-            cost = self.parse_number('0')
+            cost = '0'
         if contract:
             isMarketOrder = Precise.string_equals(price, '0') and (timeInForce == 'IOC')
             type = 'market' if isMarketOrder else 'limit'
@@ -2810,7 +2828,12 @@ class gateio(Exchange):
             average = self.safe_number(order, 'fill_price')
         else:
             rawStatus = self.safe_string(order, 'status')
-        timestamp = self.safe_timestamp_2(order, 'create_time', 'ctime')
+        timestamp = self.safe_integer(order, 'create_time_ms')
+        if timestamp is None:
+            timestamp = self.safe_timestamp_2(order, 'create_time', 'ctime')
+        lastTradeTimestamp = self.safe_integer(order, 'update_time_ms')
+        if lastTradeTimestamp is None:
+            lastTradeTimestamp = self.safe_timestamp_2(order, 'update_time', 'finish_time')
         exchangeSymbol = self.safe_string_2(order, 'currency_pair', 'market', contract)
         # Everything below self(above return) is related to fees
         fees = []
@@ -2840,7 +2863,7 @@ class gateio(Exchange):
             'clientOrderId': self.safe_string(order, 'text'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': self.safe_timestamp_2(order, 'update_time', 'finish_time'),
+            'lastTradeTimestamp': lastTradeTimestamp,
             'status': status,
             'symbol': self.safe_symbol(exchangeSymbol),
             'type': type,
@@ -2851,8 +2874,8 @@ class gateio(Exchange):
             'stopPrice': self.safe_number(trigger, 'price'),
             'average': average,
             'amount': self.parse_number(Precise.string_abs(amount)),
-            'cost': cost,
-            'filled': self.parse_number(filled),
+            'cost': Precise.string_abs(cost),
+            'filled': self.parse_number(Precise.string_abs(filled)),
             'remaining': self.parse_number(Precise.string_abs(remaining)),
             'fee': None if multipleFeeCurrencies else self.safe_value(fees, 0),
             'fees': fees if multipleFeeCurrencies else [],

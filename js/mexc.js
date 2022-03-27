@@ -1715,10 +1715,11 @@ module.exports = class mexc extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (market['spot']) {
-            return await this.createSpotOrder (symbol, type, side, amount, price, params);
-        } else if (market['swap']) {
-            return await this.createSwapOrder (symbol, type, side, amount, price, params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('createOrder', market, params);
+        if (marketType === 'spot') {
+            return await this.createSpotOrder (symbol, type, side, amount, price, query);
+        } else if (marketType === 'swap') {
+            return await this.createSwapOrder (symbol, type, side, amount, price, query);
         }
     }
 
@@ -1809,7 +1810,7 @@ module.exports = class mexc extends Exchange {
         let method = 'contractPrivatePostOrderSubmit';
         const stopPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
         params = this.omit (params, [ 'stopPrice', 'triggerPrice' ]);
-        if (stopPrice) {
+        if (stopPrice !== undefined) {
             method = 'contractPrivatePostPlanorderPlace';
             request['triggerPrice'] = this.priceToPrecision (symbol, stopPrice);
             request['triggerType'] = this.safeInteger (params, 'triggerType', 1);

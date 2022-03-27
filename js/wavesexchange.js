@@ -14,7 +14,6 @@ module.exports = class wavesexchange extends Exchange {
             'id': 'wavesexchange',
             'name': 'Waves.Exchange',
             'countries': [ 'CH' ], // Switzerland
-            'rateLimit': 500,
             'certified': true,
             'pro': false,
             'has': {
@@ -828,9 +827,9 @@ module.exports = class wavesexchange extends Exchange {
         limit = Math.min (allowedCandles, limit);
         const duration = this.parseTimeframe (timeframe) * 1000;
         if (since === undefined) {
-            const currentTime = parseInt (this.milliseconds () / duration) * duration;
+            const durationRoundedTimestamp = parseInt (this.milliseconds () / duration) * duration;
             const delta = (limit - 1) * duration;
-            const timeStart = currentTime - delta;
+            const timeStart = durationRoundedTimestamp - delta;
             request['timeStart'] = timeStart.toString ();
         } else {
             request['timeStart'] = since.toString ();
@@ -862,7 +861,8 @@ module.exports = class wavesexchange extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const result = this.parseOHLCVs (data, market, timeframe, since, limit);
+        let result = this.parseOHLCVs (data, market, timeframe, since, limit);
+        result = this.filterFutureCandles (result);
         let lastClose = undefined;
         const length = result.length;
         for (let i = 0; i < result.length; i++) {
@@ -877,6 +877,19 @@ module.exports = class wavesexchange extends Exchange {
                 result[j] = entry;
             }
             lastClose = entry[4];
+        }
+        return result;
+    }
+
+    filterFutureCandles (ohlcvs) {
+        const result = [];
+        const timestamp = this.milliseconds ();
+        for (let i = 0; i < ohlcvs.length; i++) {
+            if (ohlcvs[i][0] > timestamp) {
+                // stop when getting data from the future
+                break;
+            }
+            result.push (ohlcvs[i]);
         }
         return result;
     }

@@ -770,6 +770,7 @@ class hitbtc3 extends Exchange {
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'privateGetSpotHistoryTrade',
             'swap' => 'privateGetFuturesHistoryTrade',
+            'margin' => 'privateGetMarginHistoryTrade',
         ));
         $response = $this->$method (array_merge($request, $query));
         return $this->parse_trades($response, $market, $since, $limit);
@@ -814,7 +815,7 @@ class hitbtc3 extends Exchange {
         //      $taker => true
         //  }
         //
-        // fetchMyTrades swap
+        // fetchMyTrades swap and margin
         //
         //  {
         //      "id" => 4718564,
@@ -1205,6 +1206,7 @@ class hitbtc3 extends Exchange {
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'privateGetSpotHistoryOrder',
             'swap' => 'privateGetFuturesHistoryOrder',
+            'margin' => 'privateGetMarginHistoryOrder',
         ));
         $response = $this->$method (array_merge($request, $query));
         $parsed = $this->parse_orders($response, $market, $since, $limit);
@@ -1221,6 +1223,7 @@ class hitbtc3 extends Exchange {
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'privateGetSpotHistoryOrder',
             'swap' => 'privateGetFuturesHistoryOrder',
+            'margin' => 'privateGetMarginHistoryOrder',
         ));
         $request = array(
             'client_order_id' => $id,
@@ -1262,6 +1265,7 @@ class hitbtc3 extends Exchange {
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'privateGetSpotHistoryTrade',
             'swap' => 'privateGetFuturesHistoryTrade',
+            'margin' => 'privateGetMarginHistoryTrade',
         ));
         $response = $this->$method (array_merge($request, $query));
         //
@@ -1282,7 +1286,7 @@ class hitbtc3 extends Exchange {
         //       }
         //     )
         //
-        // Swap
+        // Swap and Margin
         //
         //     array(
         //         {
@@ -1317,6 +1321,7 @@ class hitbtc3 extends Exchange {
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'privateGetSpotOrder',
             'swap' => 'privateGetFuturesOrder',
+            'margin' => 'privateGetMarginOrder',
         ));
         $response = $this->$method (array_merge($request, $query));
         //
@@ -1351,6 +1356,7 @@ class hitbtc3 extends Exchange {
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'privateGetSpotOrderClientOrderId',
             'swap' => 'privateGetFuturesOrderClientOrderId',
+            'margin' => 'privateGetMarginOrderClientOrderId',
         ));
         $request = array(
             'client_order_id' => $id,
@@ -1371,6 +1377,7 @@ class hitbtc3 extends Exchange {
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'privateDeleteSpotOrder',
             'swap' => 'privateDeleteFuturesOrder',
+            'margin' => 'privateDeleteMarginOrder',
         ));
         $response = $this->$method (array_merge($request, $query));
         return $this->parse_orders($response, $market);
@@ -1389,6 +1396,7 @@ class hitbtc3 extends Exchange {
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'privateDeleteSpotOrderClientOrderId',
             'swap' => 'privateDeleteFuturesOrderClientOrderId',
+            'margin' => 'privateDeleteMarginOrderClientOrderId',
         ));
         $response = $this->$method (array_merge($request, $query));
         return $this->parse_order($response, $market);
@@ -1410,11 +1418,13 @@ class hitbtc3 extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $method = $this->get_supported_mapping($market['type'], array(
+        list($marketType, $query) = $this->handle_market_type_and_params('editOrder', $market, $params);
+        $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'privatePatchSpotOrderClientOrderId',
             'swap' => 'privatePatchFuturesOrderClientOrderId',
+            'margin' => 'privatePatchMarginOrderClientOrderId',
         ));
-        $response = $this->$method (array_merge($request, $params));
+        $response = $this->$method (array_merge($request, $query));
         return $this->parse_order($response, $market);
     }
 
@@ -1465,11 +1475,13 @@ class hitbtc3 extends Exchange {
             }
             $request['stop_price'] = $this->price_to_precision($symbol, $stopPrice);
         }
-        $method = $this->get_supported_mapping($market['type'], array(
+        list($marketType, $query) = $this->handle_market_type_and_params('createOrder', $market, $params);
+        $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'privatePostSpotOrder',
             'swap' => 'privatePostFuturesOrder',
+            'margin' => 'privatePostMarginOrder',
         ));
-        $response = $this->$method (array_merge($request, $params));
+        $response = $this->$method (array_merge($request, $query));
         return $this->parse_order($response, $market);
     }
 
@@ -1539,7 +1551,7 @@ class hitbtc3 extends Exchange {
         //       )
         //     }
         //
-        // swap
+        // swap and margin
         //
         //     {
         //         "id" => 58418961892,

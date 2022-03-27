@@ -71,7 +71,7 @@ class aax(Exchange):
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
-                'fetchIndexOHLCV': True,
+                'fetchIndexOHLCV': False,
                 'fetchIsolatedPositions': None,
                 'fetchL3OrderBook': None,
                 'fetchLedger': None,
@@ -80,7 +80,7 @@ class aax(Exchange):
                 'fetchLeverageTiers': True,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': True,
-                'fetchMarkOHLCV': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyBuys': None,
                 'fetchMySells': None,
                 'fetchMyTrades': True,
@@ -95,7 +95,7 @@ class aax(Exchange):
                 'fetchPosition': None,
                 'fetchPositions': None,
                 'fetchPositionsRisk': False,
-                'fetchPremiumIndexOHLCV': True,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
                 'fetchTicker': 'emulated',
                 'fetchTickers': True,
@@ -114,7 +114,7 @@ class aax(Exchange):
                 'setMarginMode': False,
                 'setPositionMode': None,
                 'signIn': None,
-                'transfer': None,
+                'transfer': True,
                 'withdraw': None,
             },
             'timeframes': {
@@ -330,6 +330,10 @@ class aax(Exchange):
                     'ETH': 'ERC20',
                     'TRX': 'TRC20',
                     'SOL': 'SPL',
+                },
+                'transfer': {
+                    'fillFromAccountToAccount': True,
+                    'fillAmount': True,
                 },
             },
         })
@@ -877,24 +881,6 @@ class aax(Exchange):
         #
         data = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
-
-    async def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        request = {
-            'price': 'mark',
-        }
-        return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
-
-    async def fetch_premium_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        request = {
-            'price': 'premiumIndex',
-        }
-        return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
-
-    async def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        request = {
-            'price': 'index',
-        }
-        return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
@@ -2286,6 +2272,69 @@ class aax(Exchange):
             initialMarginRate = Precise.string_add(initialMarginRate, riskIncrImr)
             floor = cap
         return tiers
+
+    def parse_transfer(self, transfer, currency=None):
+        data = self.safe_value(transfer, 'data', {})
+        id = self.safe_string(data, 'transferID')
+        dateTime = self.safe_string(data, 'transferTime')
+        timestamp = self.safe_number(transfer, 'ts')
+        currencyCode = self.safe_string(currency, 'code')
+        responseCode = self.safe_string(transfer, 'code')
+        status = 'canceled'
+        if responseCode == '1':
+            status = 'ok'
+        return {
+            'info': transfer,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': dateTime,
+            'currency': currencyCode,
+            'amount': None,
+            'fromAccount': None,
+            'toAccount': None,
+            'status': status,
+        }
+
+    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        accountTypes = self.safe_value(self.options, 'types', {})
+        fromId = self.safe_string(accountTypes, fromAccount)
+        toId = self.safe_string(accountTypes, toAccount)
+        if fromId is None:
+            keys = list(accountTypes.keys())
+            raise ExchangeError(self.id + ' fromAccount must be one of ' + ', '.join(keys))
+        if toId is None:
+            keys = list(accountTypes.keys())
+            raise ExchangeError(self.id + ' toAccount must be one of ' + ', '.join(keys))
+        request = {
+            'currency': currency['id'],
+            'fromPurse': fromId,
+            'toPurse': toId,
+            'quantity': amount,
+        }
+        response = await self.privatePostAccountTransfer(self.extend(request, params))
+        #
+        #     {
+        #         "code": 1,
+        #         "data": {
+        #             "transferID": 888561,
+        #             "transferTime": "2022-03-22T15:29:05.197Z"
+        #         },
+        #         "message": "success",
+        #         "ts": 1647962945151
+        #     }
+        #
+        transfer = self.parse_transfer(response, currency)
+        transferOptions = self.safe_value(self.options, 'transfer', {})
+        fillFromAccountToAccount = self.safe_value(transferOptions, 'fillFromAccountToAccount', True)
+        fillAmount = self.safe_value(transferOptions, 'fillAmount', True)
+        if fillFromAccountToAccount:
+            transfer['fromAccount'] = fromAccount
+            transfer['toAccount'] = toAccount
+        if fillAmount:
+            transfer['amount'] = amount
+        return transfer
 
     def nonce(self):
         return self.milliseconds()

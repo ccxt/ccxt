@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
 use \ccxt\BadSymbol;
@@ -63,7 +64,7 @@ class aax extends Exchange {
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
-                'fetchIndexOHLCV' => true,
+                'fetchIndexOHLCV' => false,
                 'fetchIsolatedPositions' => null,
                 'fetchL3OrderBook' => null,
                 'fetchLedger' => null,
@@ -72,7 +73,7 @@ class aax extends Exchange {
                 'fetchLeverageTiers' => true,
                 'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
-                'fetchMarkOHLCV' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyBuys' => null,
                 'fetchMySells' => null,
                 'fetchMyTrades' => true,
@@ -87,7 +88,7 @@ class aax extends Exchange {
                 'fetchPosition' => null,
                 'fetchPositions' => null,
                 'fetchPositionsRisk' => false,
-                'fetchPremiumIndexOHLCV' => true,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => true,
                 'fetchTicker' => 'emulated',
                 'fetchTickers' => true,
@@ -106,7 +107,7 @@ class aax extends Exchange {
                 'setMarginMode' => false,
                 'setPositionMode' => null,
                 'signIn' => null,
-                'transfer' => null,
+                'transfer' => true,
                 'withdraw' => null,
             ),
             'timeframes' => array(
@@ -322,6 +323,10 @@ class aax extends Exchange {
                     'ETH' => 'ERC20',
                     'TRX' => 'TRC20',
                     'SOL' => 'SPL',
+                ),
+                'transfer' => array(
+                    'fillFromAccountToAccount' => true,
+                    'fillAmount' => true,
                 ),
             ),
         ));
@@ -895,27 +900,6 @@ class aax extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
-    }
-
-    public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $request = array(
-            'price' => 'mark',
-        );
-        return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
-    }
-
-    public function fetch_premium_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $request = array(
-            'price' => 'premiumIndex',
-        );
-        return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
-    }
-
-    public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $request = array(
-            'price' => 'index',
-        );
-        return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
     }
 
     public function fetch_balance($params = array ()) {
@@ -2394,6 +2378,76 @@ class aax extends Exchange {
             $floor = $cap;
         }
         return $tiers;
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        $data = $this->safe_value($transfer, 'data', array());
+        $id = $this->safe_string($data, 'transferID');
+        $dateTime = $this->safe_string($data, 'transferTime');
+        $timestamp = $this->safe_number($transfer, 'ts');
+        $currencyCode = $this->safe_string($currency, 'code');
+        $responseCode = $this->safe_string($transfer, 'code');
+        $status = 'canceled';
+        if ($responseCode === '1') {
+            $status = 'ok';
+        }
+        return array(
+            'info' => $transfer,
+            'id' => $id,
+            'timestamp' => $timestamp,
+            'datetime' => $dateTime,
+            'currency' => $currencyCode,
+            'amount' => null,
+            'fromAccount' => null,
+            'toAccount' => null,
+            'status' => $status,
+        );
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        yield $this->load_markets();
+        $currency = $this->currency($code);
+        $accountTypes = $this->safe_value($this->options, 'types', array());
+        $fromId = $this->safe_string($accountTypes, $fromAccount);
+        $toId = $this->safe_string($accountTypes, $toAccount);
+        if ($fromId === null) {
+            $keys = is_array($accountTypes) ? array_keys($accountTypes) : array();
+            throw new ExchangeError($this->id . ' $fromAccount must be one of ' . implode(', ', $keys));
+        }
+        if ($toId === null) {
+            $keys = is_array($accountTypes) ? array_keys($accountTypes) : array();
+            throw new ExchangeError($this->id . ' $toAccount must be one of ' . implode(', ', $keys));
+        }
+        $request = array(
+            'currency' => $currency['id'],
+            'fromPurse' => $fromId,
+            'toPurse' => $toId,
+            'quantity' => $amount,
+        );
+        $response = yield $this->privatePostAccountTransfer (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 1,
+        //         "data" => array(
+        //             "transferID" => 888561,
+        //             "transferTime" => "2022-03-22T15:29:05.197Z"
+        //         ),
+        //         "message" => "success",
+        //         "ts" => 1647962945151
+        //     }
+        //
+        $transfer = $this->parse_transfer($response, $currency);
+        $transferOptions = $this->safe_value($this->options, 'transfer', array());
+        $fillFromAccountToAccount = $this->safe_value($transferOptions, 'fillFromAccountToAccount', true);
+        $fillAmount = $this->safe_value($transferOptions, 'fillAmount', true);
+        if ($fillFromAccountToAccount) {
+            $transfer['fromAccount'] = $fromAccount;
+            $transfer['toAccount'] = $toAccount;
+        }
+        if ($fillAmount) {
+            $transfer['amount'] = $amount;
+        }
+        return $transfer;
     }
 
     public function nonce() {

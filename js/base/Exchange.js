@@ -1036,11 +1036,12 @@ module.exports = class Exchange {
     }
 
     market (symbol) {
-
         if (this.markets === undefined) {
             throw new ExchangeError (this.id + ' markets not loaded')
         }
-
+        if (this.markets_by_id === undefined) {
+            throw new ExchangeError (this.id + ' markets not loaded')
+        }
         if (typeof symbol === 'string') {
             if (symbol in this.markets) {
                 return this.markets[symbol]
@@ -1048,7 +1049,6 @@ module.exports = class Exchange {
                 return this.markets_by_id[symbol]
             }
         }
-
         throw new BadSymbol (this.id + ' does not have market symbol ' + symbol)
     }
 
@@ -1260,8 +1260,8 @@ module.exports = class Exchange {
                 symbol = this.safeSymbol (undefined, market);
             }
             const timestamp = this.safeInteger (ticker, 'timestamp');
-            const baseVolume = this.safeValue (ticker, 'baseVolume');
-            const quoteVolume = this.safeValue (ticker, 'quoteVolume');
+            let baseVolume = this.safeValue (ticker, 'baseVolume');
+            let quoteVolume = this.safeValue (ticker, 'quoteVolume');
             let vwap = this.safeValue (ticker, 'vwap');
             if (vwap === undefined) {
                 vwap = this.vwap (baseVolume, quoteVolume);
