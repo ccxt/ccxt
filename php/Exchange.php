@@ -3078,7 +3078,7 @@ class Exchange {
         }
         $result = substr($x,0,max($pointIndex, $lastDigitPos+1));
         $resultlen = strlen($result);
-        $hasDot = (false !== strpos($result, '.'));
+        $hasDot = $pointIndex < $resultlen;
         if ($paddingMode === NO_PADDING) {
             if (($resultlen === 0) and ($numPrecisionDigitsNum === 0)) {
                 return '0';
