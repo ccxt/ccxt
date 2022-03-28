@@ -4,19 +4,20 @@
 //      npm run export-exchanges
 // ----------------------------------------------------------------------------
 
-"use strict";
+import fs from 'fs'
+import { countries } from './countries.js'
+import asTable from 'as-table'
+    // , asTable   = require ('as-table').configure ({
+    //     delimiter: '|',
+    //     print: (x) => ' ' + x + ' '
+    // })
+import { replaceInFile } from './fsLocal.js'
+import execSync from 'child_process'//.execSync
+import log       from 'ololog'//.unlimited
+import ansi      from 'ansicolor'//.nice
 
-const fs        = require ('fs')
-    , countries = require ('./countries')
-    , asTable   = require ('as-table').configure ({
-        delimiter: '|',
-        print: (x) => ' ' + x + ' '
-    })
-    , execSync  = require ('child_process').execSync
-    , log       = require ('ololog').unlimited
-    , ansi      = require ('ansicolor').nice
-    , { keys, values, entries, fromEntries } = Object
-    , { replaceInFile } = require ('./fs.js')
+
+const { keys, values, entries, fromEntries } = Object
 
 // ----------------------------------------------------------------------------
 
@@ -70,9 +71,9 @@ function exportExchanges (replacements) {
 
 // ----------------------------------------------------------------------------
 
-function createExchanges (ids) {
+async function createExchanges (ids) {
 
-    const ccxt = require ('../ccxt.js')
+    const ccxt = await import('../ccxt.js')
 
     const createExchange = (id) => {
         ccxt[id].prototype.checkRequiredDependencies = () => {} // suppress it
@@ -398,7 +399,7 @@ function flatten (nested, result = []) {
 
 // ----------------------------------------------------------------------------
 
-function exportEverything () {
+async function exportEverything () {
     const ids = getIncludedExchangeIds ()
     const errorHierarchy = require ('../js/base/errorHierarchy.js')
     const flat = flatten (errorHierarchy)
@@ -408,7 +409,7 @@ function exportEverything () {
         {
             file: './ccxt.js',
             regex:  /(?:const|var)\s+exchanges\s+\=\s+\{[^\}]+\}/,
-            replacement: "const exchanges = {\n" + ids.map (id => ("    '" + id + "':").padEnd (30) + " require ('./js/" + id + ".js'),").join ("\n") + "    \n}",
+            replacement: "const exchanges = {\n" + ids.map (id => ("    '" + id + "':").padEnd (30) + " await import ('./js/" + id + ".js'),").join ("\n") + "    \n}",
         },
         {
             file: './python/ccxt/__init__.py',
@@ -450,7 +451,7 @@ function exportEverything () {
     exportExchanges (replacements)
 
     // strategically placed exactly here (we can require it AFTER the export)
-    const exchanges = createExchanges (ids)
+    const exchanges = await createExchanges (ids)
 
     const wikiPath = 'wiki'
         , gitWikiPath = 'build/ccxt.wiki'
@@ -484,11 +485,11 @@ function exportEverything () {
 // ============================================================================
 // main entry point
 
-if (require.main === module) {
+if (true || import.meta.url === `file://${process.argv[1]}`) {
 
     // if called directly like `node module`
 
-    exportEverything ()
+    await exportEverything ()
 
 } else {
 
@@ -497,7 +498,7 @@ if (require.main === module) {
 
 // ============================================================================
 
-module.exports = {
+export {
     cloneGitHubWiki,
     createExchanges,
     createMarkdownExchange,

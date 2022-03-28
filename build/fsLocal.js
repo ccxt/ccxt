@@ -1,7 +1,5 @@
-"use strict";
-
-const fs = require ('fs')
-    , path = require ('path')
+import fs from 'fs'
+import path from 'path'
 
 function replaceInFile (filename, regex, replacement) {
     const contents = fs.readFileSync (filename, 'utf8')
@@ -42,7 +40,7 @@ function createFolderRecursively (folder) {
     }
 }
 
-module.exports = {
+export {
     replaceInFile,
     copyFile,
     overwriteFile,
