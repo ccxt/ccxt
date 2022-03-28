@@ -4089,111 +4089,7 @@ if ($exchange->has['fetchOrderTrades']) {
 }
 ```
 
-# Contract trading
 
-```JavaScript
-//TODO
-```
-
-This can include futures with a set expiry date, perpetual swaps with funding payments, and inverse futures or swaps.
-Information about the positions can be served from different endpoints depending on the exchange.
-In the case that there are multiple endpoints serving different types of derivatives CCXT will default to just loading the "linear" (as oppose to the "inverse") contracts or the "swap" (as oppose to the "future") contracts. 
-If you want to get the position information of the inverse contracts you can set:
-
-## Positions
-
-*contract only*
-
-To get information about positions currently held in contract markets, use
-
-- fetchPosition ()            // for a single market
-- fetchPositions ()           // for all positions
-- fetchAccountPositions ()    // TODO
-- fetchIsolatedPositions ()   // for positions in isolated margin mode only
-
-```JavaScript
-fetchPosition (symbol, params = {})                         // for a single market
-```
-
-Parameters
-
-- **symbol** (String) *required* Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`)
-- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
-
-Returns
-
-- A [position structure](#position-structure)
-
-```JavaScript
-fetchPositions (symbols = undefined, params = {})
-fetchAccountPositions (symbols = undefined, params = {})
-fetchIsolatedPositions (symbols = undefined, params = {})
-```
-
-Parameters
-
-- **symbols** (\[String\]) Unified CCXT market symbols, do not set to retrieve all positions (e.g. `["BTC/USDT:USDT"]`)
-- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
-
-Returns
-
-- An array of [position structures](#position-structure)
-
-### Position Structure
-
-```Javascript
-{
-   'info': { ... },             // json response returned from the exchange as is
-   'id': '1234323',             // string, position id to reference the position, similar to an order id
-   'symbol': 'BTC/USD',         // uppercase string literal of a pair of currencies
-   'timestamp': 1607723554607,  // integer unix time since 1st Jan 1970 in milliseconds
-   'datetime': '2020-12-11T21:52:34.607Z',  // ISO8601 representation of the unix time above
-   'isolated': true,            // boolean, whether or not the position is isolated, as opposed to cross where margin is added automatically
-   'hedged': false,             // boolean, whether or not the position is hedged, i.e. if trading in the opposite direction will close this position or make a new one
-   'side': 'long',              // string, long or short
-   'contracts': 5,              // float, number of contracts bought, aka the amount or size of the position
-   'contractSize': 100,         // float, the size of one contract in quote units
-   'entryPrice': 20000,         // float, the average entry price of the position
-   'markPrice': 20050,          // float, a price that is used for funding calculations
-   'notional': 100000,          // float, the value of the position in the settlement currency
-   'leverage': 100,             // float, the leverage of the position, related to how many contracts you can buy with a given amount of collateral
-   'collateral': 5300,          // float, the maximum amount of collateral that can be lost, affected by pnl
-   'initialMargin': 5000,       // float, the amount of collateral that is locked up in this position
-   'maintenanceMargin': 1000,   // float, the mininum amount of collateral needed to avoid being liquidated
-   'initialMarginPercentage': 0.05,      // float, the initialMargin as a percentage of the notional
-   'maintenanceMarginPercentage': 0.01,  // float, the maintenanceMargin as a percentage of the notional
-   'unrealizedPnl': 300,        // float, the difference between the market price and the entry price times the number of contracts, can be negative
-   'liquidationPrice': 19850,   // float, the price at which collateral becomes less than maintenanceMargin
-   'marginType': 'cross',       // string, can be cross or isolated
-   'percentage': 3.32,          // float, represents unrealizedPnl / initialMargin * 100
-}
-```
-Positions allow you to borrow money from an exchange to go long or short on an market. Some exchanges require you to pay a funding fee to keep the position open.
-
-When you go long on a position you are betting that the price will be higher in the future and that the price will never be less than the `liquidationPrice`.
-
-As the price of the underlying index changes so does the unrealisedPnl and as a consequence the amount of collateral you have left in the position (since you can only close it at market price or worse). At some price you will have zero collateral left, this is called the "bust" or "zero" price. Beyond this point, if the price goes in the opposite direction far enough, the collateral of the position will drop below the `maintenanceMargin`. The maintenanceMargin acts as a safety buffer between your position and negative collateral, a scenario where the exchange incurs losses on your behalf. To protect itself the exchange will swiftly liquidate your position if and when this happens. Even if the price returns back above the liquidationPrice you will not get your money back since the exchange sold all the `contracts` you bought at market. In other words the maintenanceMargin is a hidden fee to borrow money.
-
-It is recommended to use the `maintenanceMargin` and `initialMargin` instead of the `maintenanceMarginPercentage` and `initialMarginPercentage` since these tend to be more accurate. The maintenanceMargin might be calculated from other factors outside of the maintenanceMarginPercentage including the funding rate and taker fees, for example on [kucoin](https://futures.kucoin.com/contract/detail).
-
-An inverse contract will allow you to go long or short on BTC/USD by putting up BTC as collateral. Our API for inverse contracts is the same as for linear contracts. The amounts in an inverse contracts are quoted as if they were traded USD/BTC, however the price is still quoted terms of BTC/USD.  The formula for the profit and loss of a inverse contract is `(1/markPrice - 1/price) * contracts`. The profit and loss and collateral will now be quoted in BTC, and the number of contracts are quoted in USD.
-
-### Liquidation price
-
-It is the price at which the `initialMargin + unrealized = collateral = maintenanceMargin`. The price has gone in the opposite direction of your position to the point where the is only maintenanceMargin collateral left and if it goes any further the position will have negative collateral.
-
-```JavaScript
-// if long
-(liquidationPrice - price) * contracts = maintenanceMargin
-
-// if short
-(price - liquidationPrice) * contracts = maintenanceMargin
-// if inverse long
-(1/liquidationPrice - 1/price) * contracts = maintenanceMargin
-
-// if inverse short
-(1/price - 1/liquidationPrice) * contracts = maintenanceMargin
-```
 
 ## Ledger
 
@@ -4976,6 +4872,107 @@ e.g.
 
 ```JavaScript
 { code: -4046, msg: 'No need to change margin type.' }
+```
+
+## Contract trading
+
+This can include futures with a set expiry date, perpetual swaps with funding payments, and inverse futures or swaps.
+Information about the positions can be served from different endpoints depending on the exchange.
+In the case that there are multiple endpoints serving different types of derivatives CCXT will default to just loading the "linear" (as oppose to the "inverse") contracts or the "swap" (as opposed to the "future") contracts. 
+
+## Positions
+
+*contract only*
+
+To get information about positions currently held in contract markets, use
+
+- fetchPosition ()            // for a single market
+- fetchPositions ()           // for all positions
+- fetchAccountPositions ()    // TODO
+- fetchIsolatedPositions ()   // for positions in isolated margin mode only
+
+```JavaScript
+fetchPosition (symbol, params = {})                         // for a single market
+```
+
+Parameters
+
+- **symbol** (String) *required* Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- A [position structure](#position-structure)
+
+```JavaScript
+fetchPositions (symbols = undefined, params = {})
+fetchAccountPositions (symbols = undefined, params = {})
+fetchIsolatedPositions (symbols = undefined, params = {})
+```
+
+Parameters
+
+- **symbols** (\[String\]) Unified CCXT market symbols, do not set to retrieve all positions (e.g. `["BTC/USDT:USDT"]`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- An array of [position structures](#position-structure)
+
+### Position Structure
+
+```Javascript
+{
+   'info': { ... },             // json response returned from the exchange as is
+   'id': '1234323',             // string, position id to reference the position, similar to an order id
+   'symbol': 'BTC/USD',         // uppercase string literal of a pair of currencies
+   'timestamp': 1607723554607,  // integer unix time since 1st Jan 1970 in milliseconds
+   'datetime': '2020-12-11T21:52:34.607Z',  // ISO8601 representation of the unix time above
+   'isolated': true,            // boolean, whether or not the position is isolated, as opposed to cross where margin is added automatically
+   'hedged': false,             // boolean, whether or not the position is hedged, i.e. if trading in the opposite direction will close this position or make a new one
+   'side': 'long',              // string, long or short
+   'contracts': 5,              // float, number of contracts bought, aka the amount or size of the position
+   'contractSize': 100,         // float, the size of one contract in quote units
+   'entryPrice': 20000,         // float, the average entry price of the position
+   'markPrice': 20050,          // float, a price that is used for funding calculations
+   'notional': 100000,          // float, the value of the position in the settlement currency
+   'leverage': 100,             // float, the leverage of the position, related to how many contracts you can buy with a given amount of collateral
+   'collateral': 5300,          // float, the maximum amount of collateral that can be lost, affected by pnl
+   'initialMargin': 5000,       // float, the amount of collateral that is locked up in this position
+   'maintenanceMargin': 1000,   // float, the mininum amount of collateral needed to avoid being liquidated
+   'initialMarginPercentage': 0.05,      // float, the initialMargin as a percentage of the notional
+   'maintenanceMarginPercentage': 0.01,  // float, the maintenanceMargin as a percentage of the notional
+   'unrealizedPnl': 300,        // float, the difference between the market price and the entry price times the number of contracts, can be negative
+   'liquidationPrice': 19850,   // float, the price at which collateral becomes less than maintenanceMargin
+   'marginType': 'cross',       // string, can be cross or isolated
+   'percentage': 3.32,          // float, represents unrealizedPnl / initialMargin * 100
+}
+```
+Positions allow you to borrow money from an exchange to go long or short on an market. Some exchanges require you to pay a funding fee to keep the position open.
+
+When you go long on a position you are betting that the price will be higher in the future and that the price will never be less than the `liquidationPrice`.
+
+As the price of the underlying index changes so does the unrealisedPnl and as a consequence the amount of collateral you have left in the position (since you can only close it at market price or worse). At some price you will have zero collateral left, this is called the "bust" or "zero" price. Beyond this point, if the price goes in the opposite direction far enough, the collateral of the position will drop below the `maintenanceMargin`. The maintenanceMargin acts as a safety buffer between your position and negative collateral, a scenario where the exchange incurs losses on your behalf. To protect itself the exchange will swiftly liquidate your position if and when this happens. Even if the price returns back above the liquidationPrice you will not get your money back since the exchange sold all the `contracts` you bought at market. In other words the maintenanceMargin is a hidden fee to borrow money.
+
+It is recommended to use the `maintenanceMargin` and `initialMargin` instead of the `maintenanceMarginPercentage` and `initialMarginPercentage` since these tend to be more accurate. The maintenanceMargin might be calculated from other factors outside of the maintenanceMarginPercentage including the funding rate and taker fees, for example on [kucoin](https://futures.kucoin.com/contract/detail).
+
+An inverse contract will allow you to go long or short on BTC/USD by putting up BTC as collateral. Our API for inverse contracts is the same as for linear contracts. The amounts in an inverse contracts are quoted as if they were traded USD/BTC, however the price is still quoted terms of BTC/USD.  The formula for the profit and loss of a inverse contract is `(1/markPrice - 1/price) * contracts`. The profit and loss and collateral will now be quoted in BTC, and the number of contracts are quoted in USD.
+
+### Liquidation price
+
+It is the price at which the `initialMargin + unrealized = collateral = maintenanceMargin`. The price has gone in the opposite direction of your position to the point where the is only maintenanceMargin collateral left and if it goes any further the position will have negative collateral.
+
+```JavaScript
+// if long
+(liquidationPrice - price) * contracts = maintenanceMargin
+
+// if short
+(price - liquidationPrice) * contracts = maintenanceMargin
+// if inverse long
+(1/liquidationPrice - 1/price) * contracts = maintenanceMargin
+
+// if inverse short
+(1/price - 1/liquidationPrice) * contracts = maintenanceMargin
 ```
 
 ## Funding History
