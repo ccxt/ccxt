@@ -416,7 +416,11 @@ module.exports = class gateio extends ccxt.gateio {
             payload = [marketId];
             messageHash += ':' + marketSymbol;
         }
-        return await this.subscribePrivate (url, channel, messageHash, payload);
+        const trades = await this.subscribePrivate (url, channel, messageHash, payload, undefined);
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
     handleMyTrades (client, message) {

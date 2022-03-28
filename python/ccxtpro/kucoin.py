@@ -627,7 +627,7 @@ class kucoin(Exchange, ccxt.kucoin):
             messageHash = messageHash + ':' + symbol
         trades = await self.subscribe(negotiation, topic, messageHash, None, None, self.extend(request, params))
         if self.newUpdates:
-            limit = trades.getLimit()
+            limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
 
     def handle_my_trade(self, client, message):

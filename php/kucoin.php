@@ -687,7 +687,7 @@ class kucoin extends \ccxt\async\kucoin {
         }
         $trades = yield $this->subscribe($negotiation, $topic, $messageHash, null, null, array_merge($request, $params));
         if ($this->newUpdates) {
-            $limit = $trades->getLimit ();
+            $limit = $trades->getLimit ($symbol, $limit);
         }
         return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
     }
