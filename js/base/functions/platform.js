@@ -1,4 +1,3 @@
-"use strict";
 
 // ----------------------------------------------------------------------------
 // There's been a lot of messing with this code...
@@ -27,7 +26,7 @@ const defaultFetch = typeof (fetch) === "undefined" ? require ('../../static_dep
 
 // ----------------------------------------------------------------------------
 
-module.exports = {
+export {
 
     isBrowser,
     isElectron,

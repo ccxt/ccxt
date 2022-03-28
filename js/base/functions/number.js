@@ -1,4 +1,3 @@
-'use strict'
 
 /*  ------------------------------------------------------------------------
 
@@ -307,7 +306,7 @@ function omitZero (stringNumber) {
 
 /*  ------------------------------------------------------------------------ */
 
-module.exports = {
+export {
     numberToString,
     precisionFromString,
     decimalToPrecision,
