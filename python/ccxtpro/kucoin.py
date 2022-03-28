@@ -627,7 +627,7 @@ class kucoin(Exchange, ccxt.kucoin):
             messageHash = messageHash + ':' + symbol
         trades = await self.subscribe(negotiation, topic, messageHash, None, None, self.extend(request, params))
         if self.newUpdates:
-            limit = trades.getLimit()
+            limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
 
     def handle_my_trade(self, client, message):
@@ -758,9 +758,10 @@ class kucoin(Exchange, ccxt.kucoin):
         account['free'] = self.safe_string(data, 'available')
         account['used'] = self.safe_string(data, 'hold')
         account['total'] = self.safe_string(data, 'total')
-        self.balance[selectedType][code] = account
-        self.balance[selectedType] = self.safe_balance(self.balance[selectedType])
-        client.resolve(self.balance[selectedType], messageHash)
+        self.balance[uniformType][code] = account
+        self.balance[uniformType] = self.safe_balance(self.balance[uniformType])
+        if uniformType == selectedType:
+            client.resolve(self.balance[uniformType], messageHash)
 
     def handle_balance_subscription(self, client, message, subscription):
         self.spawn(self.fetch_balance_snapshot, client, message)

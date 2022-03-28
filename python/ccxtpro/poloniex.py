@@ -157,7 +157,7 @@ class poloniex(Exchange, ccxt.poloniex):
             messageHash = messageHash + ':' + marketId
         orders = await self.subscribe_private(messageHash, {})
         if self.newUpdates:
-            limit = orders.getLimit()
+            limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
@@ -169,7 +169,7 @@ class poloniex(Exchange, ccxt.poloniex):
             messageHash = messageHash + ':' + marketId
         trades = await self.subscribe_private(messageHash, {})
         if self.newUpdates:
-            limit = trades.getLimit()
+            limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
 
     async def watch_ticker(self, symbol, params={}):

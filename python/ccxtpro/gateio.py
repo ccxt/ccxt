@@ -376,7 +376,10 @@ class gateio(Exchange, ccxt.gateio):
         if marketId is not None:
             payload = [marketId]
             messageHash += ':' + marketSymbol
-        return await self.subscribe_private(url, channel, messageHash, payload, None)
+        trades = await self.subscribe_private(url, channel, messageHash, payload, None)
+        if self.newUpdates:
+            limit = trades.getLimit(symbol, limit)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
     def handle_my_trades(self, client, message):
         #

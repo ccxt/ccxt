@@ -687,7 +687,7 @@ class kucoin extends \ccxt\async\kucoin {
         }
         $trades = yield $this->subscribe($negotiation, $topic, $messageHash, null, null, array_merge($request, $params));
         if ($this->newUpdates) {
-            $limit = $trades->getLimit ();
+            $limit = $trades->getLimit ($symbol, $limit);
         }
         return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
     }
@@ -828,9 +828,11 @@ class kucoin extends \ccxt\async\kucoin {
         $account['free'] = $this->safe_string($data, 'available');
         $account['used'] = $this->safe_string($data, 'hold');
         $account['total'] = $this->safe_string($data, 'total');
-        $this->balance[$selectedType][$code] = $account;
-        $this->balance[$selectedType] = $this->safe_balance($this->balance[$selectedType]);
-        $client->resolve ($this->balance[$selectedType], $messageHash);
+        $this->balance[$uniformType][$code] = $account;
+        $this->balance[$uniformType] = $this->safe_balance($this->balance[$uniformType]);
+        if ($uniformType === $selectedType) {
+            $client->resolve ($this->balance[$uniformType], $messageHash);
+        }
     }
 
     public function handle_balance_subscription($client, $message, $subscription) {

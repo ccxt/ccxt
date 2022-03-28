@@ -1,6 +1,6 @@
 {
   "name": "ccxt.pro",
-  "version": "1.0.29",
+  "version": "1.0.47",
   "description": "A professional tool for algorithmic cryptocurrency trading",
   "main": "./ccxt.pro.js",
   "unpkg": "dist/ccxt.pro.browser.js",
@@ -44,7 +44,7 @@
   },
   "types": "./ccxt.pro.d.ts",
   "dependencies": {
-    "ccxt": "^1.76.31",
+    "ccxt": "^1.77.20",
     "ws": "^7.4.6"
   },
   "devDependencies": {
@@ -495,6 +495,9 @@
     "zipmex.com",
     "Zipmex",
     "okx.com",
-    "OKX"
+    "OKX",
+    "ascendex.com",
+    "AscendEX",
+    "Crypto.com"
   ]
 }

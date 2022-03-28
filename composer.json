@@ -23,10 +23,10 @@
     },
     "require": {
         "php": ">=7.0",
-        "ccxt/ccxt": ">=1.76.31",
-        "react/http": "=1.4.0",
-        "recoil/react": "1.0.2",
-        "ratchet/pawl": "^0.4.1",
+        "ccxt/ccxt": ">=1.77.20",
+        "react/http": ">=1.6.0",
+        "recoil/react": ">=1.0.3",
+        "ratchet/pawl": ">=0.4.1",
         "ext-ds": "*",
         "ext-json": "*"
     },

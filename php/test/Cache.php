@@ -178,3 +178,113 @@ assert (equals ($cache, array(
     array( 'symbol' => 'BTC/USDT', 'id' => '8', 'i' => 38 ),
     array( 'symbol' => 'BTC/USDT', 'id' => '30', 'i' => 50 ),
 )));
+
+// ----------------------------------------------------------------------------
+
+// test ArrayCacheBySymbolById limit with $symbol set
+$symbol = 'BTC/USDT';
+$cache = new ArrayCacheBySymbolById ();
+$initialLength = 5;
+for ($i = 0; $i < $initialLength; $i++) {
+    $cache->append (array(
+        'symbol' => $symbol,
+        'id' => (string) $i,
+        'i' => $i,
+    ));
+}
+
+$limited = $cache->getLimit ($symbol, null);
+
+assert ($initialLength === $limited);
+
+$appendItemsLength = 3;
+for ($i = 0; $i < $appendItemsLength; $i++) {
+    $cache->append (array(
+        'symbol' => $symbol,
+        'id' => (string) $i,
+        'i' => $i,
+    ));
+}
+$outsideLimit = 5;
+$limited = $cache->getLimit ($symbol, $outsideLimit);
+
+assert ($appendItemsLength === $limited);
+
+$outsideLimit = 2; // if limit < newsUpdate that should be returned
+$limited = $cache->getLimit ($symbol, $outsideLimit);
+
+assert ($outsideLimit === $limited);
+
+// ----------------------------------------------------------------------------
+
+// test ArrayCacheBySymbolById limit with $symbol null
+$symbol = null;
+$cache = new ArrayCacheBySymbolById ();
+$initialLength = 5;
+for ($i = 0; $i < $initialLength; $i++) {
+    $cache->append (array(
+        'symbol' => $symbol,
+        'id' => (string) $i,
+        'i' => $i,
+    ));
+}
+
+$limited = $cache->getLimit ($symbol, null);
+
+assert ($initialLength === $limited);
+
+$appendItemsLength = 3;
+for ($i = 0; $i < $appendItemsLength; $i++) {
+    $cache->append (array(
+        'symbol' => $symbol,
+        'id' => (string) $i,
+        'i' => $i,
+    ));
+}
+$outsideLimit = 5;
+$limited = $cache->getLimit ($symbol, $outsideLimit);
+
+assert ($appendItemsLength === $limited);
+
+$outsideLimit = 2; // if limit < newsUpdate that should be returned
+$limited = $cache->getLimit ($symbol, $outsideLimit);
+
+assert ($outsideLimit === $limited);
+
+// ----------------------------------------------------------------------------
+// test testLimitArrayCacheByTimestamp limit
+
+$cache = new ArrayCacheByTimestamp ();
+
+$initialLength = 5;
+for ($i = 0; $i < $initialLength; $i++) {
+    $cache->append (array(
+        $i * 10,
+        $i * 10,
+        $i * 10,
+        $i * 10
+    ));
+}
+
+$limited = $cache->getLimit (null, null);
+
+assert ($initialLength === $limited);
+
+$appendItemsLength = 3;
+for ($i = 0; $i < $appendItemsLength; $i++) {
+    $cache->append (array(
+        $i * 4,
+        $i * 4,
+        $i * 4,
+        $i * 4
+    ));
+}
+$outsideLimit = 5;
+$limited = $cache->getLimit (null, $outsideLimit);
+
+assert ($appendItemsLength === $limited);
+
+$outsideLimit = 2; // if limit < newsUpdate that should be returned
+$limited = $cache->getLimit (null, $outsideLimit);
+
+assert ($outsideLimit === $limited);
