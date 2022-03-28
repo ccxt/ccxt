@@ -237,7 +237,7 @@ module.exports = class bitstamp extends Exchange {
                         'wbtc_withdrawal/',
                         'wbtc_address/',
                         'ctsi_withdrawal/',
-                        'ctsi_address/',                      
+                        'ctsi_address/',
                         'cvx_withdrawal/',
                         'cvx_address/',
                         'imx_withdrawal/',
