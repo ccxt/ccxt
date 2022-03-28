@@ -1,10 +1,8 @@
-"use strict";
-
 /*  ------------------------------------------------------------------------ */
 
-const CryptoJS = require ('../../static_dependencies/crypto-js/crypto-js')
-const qs       = require ('../../static_dependencies/qs/index')
-const BN = require ('../../static_dependencies/BN/bn')
+import CryptoJS from '../../static_dependencies/crypto-js/crypto-js'
+import qs from'../../static_dependencies/qs/index'
+import BN from'../../static_dependencies/BN/bn'
 
 
 /*  ------------------------------------------------------------------------ */
@@ -16,49 +14,46 @@ let base58Encoder = null
 
 /*  ------------------------------------------------------------------------ */
 
-module.exports =
 
-    { json:   (data, params = undefined) => JSON.stringify (data)
-
-    , isJsonEncodedObject: object => (
+const json =  (data, params = undefined) => JSON.stringify (data)
+    , isJsonEncodedObject = object => (
         (typeof object === 'string') &&
         (object.length >= 2) &&
         ((object[0] === '{') || (object[0] === '['))
     )
+    , stringToBinary = string => CryptoJS.enc.Latin1.parse (string)
+    , stringToBase64 = string => CryptoJS.enc.Latin1.parse (string).toString (CryptoJS.enc.Base64)
+    , base64ToBinary = string => CryptoJS.enc.Base64.parse (string)
+    , base64ToString = string => CryptoJS.enc.Base64.parse (string).toString (CryptoJS.enc.Utf8)
+    , binaryToBase64 = binary => binary.toString (CryptoJS.enc.Base64)
+    , base16ToBinary = string => CryptoJS.enc.Hex.parse (string)
+    , binaryToBase16 = binary => binary.toString (CryptoJS.enc.Hex)
+    , binaryConcat = (...args) => args.reduce ((a, b) => a.concat (b))
+    , binaryConcatArray = (arr) => arr.reduce ((a, b) => a.concat (b))
 
-    , stringToBinary: string => CryptoJS.enc.Latin1.parse (string)
-    , stringToBase64: string => CryptoJS.enc.Latin1.parse (string).toString (CryptoJS.enc.Base64)
-    , base64ToBinary: string => CryptoJS.enc.Base64.parse (string)
-    , base64ToString: string => CryptoJS.enc.Base64.parse (string).toString (CryptoJS.enc.Utf8)
-    , binaryToBase64: binary => binary.toString (CryptoJS.enc.Base64)
-    , base16ToBinary: string => CryptoJS.enc.Hex.parse (string)
-    , binaryToBase16: binary => binary.toString (CryptoJS.enc.Hex)
-    , binaryConcat: (...args) => args.reduce ((a, b) => a.concat (b))
-    , binaryConcatArray: (arr) => arr.reduce ((a, b) => a.concat (b))
-
-    , urlencode: object => qs.stringify (object)
-    , urlencodeWithArrayRepeat: object => qs.stringify (object, { arrayFormat: 'repeat' })
-    , rawencode: object => qs.stringify (object, { encode: false })
-    , encode: x => x
-    , decode: x => x
+    , urlencode = object => qs.stringify (object)
+    , urlencodeWithArrayRepeat = object => qs.stringify (object, { arrayFormat: 'repeat' })
+    , rawencode = object => qs.stringify (object, { encode: false })
+    , encode = x => x
+    , decode = x => x
 
     // Url-safe-base64 without equals signs, with + replaced by - and slashes replaced by underscores
 
-    , urlencodeBase64: base64string => base64string.replace (/[=]+$/, '')
+    , urlencodeBase64 = base64string => base64string.replace (/[=]+$/, '')
                                                    .replace (/\+/g, '-')
                                                    .replace (/\//g, '_')
 
-    , numberToLE: (n, padding) => {
+    , numberToLE = (n, padding) => {
         const hexArray = new BN (n).toArray ('le', padding)
         return byteArrayToWordArray (hexArray)
     }
 
-    , numberToBE: (n, padding) => {
+    , numberToBE = (n, padding) => {
         const hexArray = new BN (n).toArray ('be', padding)
         return byteArrayToWordArray (hexArray)
     }
 
-    , base58ToBinary: (string) => {
+    , base58ToBinary = (string) => {
         if (!base58Decoder) {
             base58Decoder = {}
             base58Encoder = {}
@@ -79,7 +74,7 @@ module.exports =
         return byteArrayToWordArray (result.toArray ('be'))
     }
 
-    , binaryToBase58: (wordArray) => {
+    , binaryToBase58 = (wordArray) => {
         if (!base58Encoder) {
             base58Decoder = {}
             base58Encoder = {}
@@ -101,8 +96,7 @@ module.exports =
             string.push (base58Encoder[mod])
         }
         return string.reverse ().join ('')
-    }
-}
+    };
 
 function byteArrayToWordArray (ba) {
     const wa = []
@@ -112,6 +106,31 @@ function byteArrayToWordArray (ba) {
     return CryptoJS.lib.WordArray.create (wa, ba.length)
 }
 
-module.exports['byteArrayToWordArray'] = byteArrayToWordArray
+
+export {
+    json 
+    , isJsonEncodedObject
+    , stringToBinary
+    , stringToBase64
+    , base64ToBinary
+    , base64ToString
+    , binaryToBase64
+    , base16ToBinary
+    , binaryToBase16
+    , binaryConcat
+    , binaryConcatArray
+    , urlencode
+    , urlencodeWithArrayRepeat
+    , rawencode
+    , encode
+    , decode
+    // Url-safe-base64 without equals signs, with + replaced by - and slashes replaced by underscores
+    , urlencodeBase64
+    , numberToLE
+    , numberToBE
+    , base58ToBinary
+    , binaryToBase58
+    , byteArrayToWordArray
+}
 
 /*  ------------------------------------------------------------------------ */
