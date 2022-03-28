@@ -1,14 +1,13 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadRequest, InvalidNonce, RequestTimeout, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, AuthenticationError, BadSymbol, AccountSuspended, ArgumentsRequired } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
+import { Exchange } from './base/Exchange';
+import { ExchangeError, BadRequest, InvalidNonce, RequestTimeout, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, AuthenticationError, BadSymbol, AccountSuspended, ArgumentsRequired } from './base/errors';
+import { TICK_SIZE } from './base/functions/number';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class crex24 extends Exchange {
+export default class crex24 extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'crex24',
@@ -1630,4 +1629,4 @@ module.exports = class crex24 extends Exchange {
         }
         throw new ExchangeError (feedback); // unknown message
     }
-};
+}

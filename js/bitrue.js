@@ -1,15 +1,14 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance } = require ('./base/errors');
-const { TRUNCATE } = require ('./base/functions/number');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance } from './base/errors';
+import { Precise } from './base/Precise';
+import { TRUNCATE } from './base/functions/number';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class bitrue extends Exchange {
+export default class bitrue extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitrue',
@@ -1737,4 +1736,4 @@ module.exports = class bitrue extends Exchange {
         }
         return this.safeInteger (config, 'cost', 1);
     }
-};
+}

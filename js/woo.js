@@ -1,15 +1,14 @@
-'use strict';
 
 // ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, InvalidOrder } = require ('./base/errors');
-const Precise = require ('./base/Precise');
-const { TICK_SIZE } = require ('./base/functions/number');
+import { Exchange } from './base/Exchange';
+import { ArgumentsRequired, AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, InvalidOrder } from './base/errors';
+import { Precise } from './base/Precise';
+import { TICK_SIZE } from './base/functions/number';
 
 // ---------------------------------------------------------------------------
 
-module.exports = class woo extends Exchange {
+export default class woo extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'woo',
@@ -1505,4 +1504,4 @@ module.exports = class woo extends Exchange {
         const networkKeys = Object.keys (networks);
         return this.safeValue (networkKeys, 0);
     }
-};
+}

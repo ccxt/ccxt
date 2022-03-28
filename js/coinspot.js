@@ -1,13 +1,12 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired } = require ('./base/errors');
+import { Exchange } from './base/Exchange';
+import { ExchangeError, ArgumentsRequired } from './base/errors';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class coinspot extends Exchange {
+export default class coinspot extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coinspot',
@@ -343,4 +342,4 @@ module.exports = class coinspot extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-};
+}

@@ -1,15 +1,14 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, DDoSProtection, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, NotSupported, BadSymbol, RateLimitExceeded } = require ('./base/errors');
-const { TICK_SIZE, TRUNCATE } = require ('./base/functions/number');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, DDoSProtection, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, NotSupported, BadSymbol, RateLimitExceeded } from './base/errors';
+import { Precise } from './base/Precise';
+import { TICK_SIZE, TRUNCATE } from './base/functions/number';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class okcoin extends Exchange {
+export default class okcoin extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'okcoin',
@@ -3743,4 +3742,4 @@ module.exports = class okcoin extends Exchange {
             throw new ExchangeError (feedback); // unknown message
         }
     }
-};
+}

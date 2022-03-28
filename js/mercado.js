@@ -1,13 +1,12 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, InvalidOrder } = require ('./base/errors');
+import { Exchange } from './base/Exchange';
+import { ExchangeError, ArgumentsRequired, InvalidOrder } from './base/errors';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class mercado extends Exchange {
+export default class mercado extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'mercado',
@@ -713,4 +712,4 @@ module.exports = class mercado extends Exchange {
             throw new ExchangeError (this.id + ' ' + this.json (response));
         }
     }
-};
+}

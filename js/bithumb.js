@@ -1,15 +1,14 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, AuthenticationError, BadRequest, PermissionDenied, InvalidAddress, ArgumentsRequired, InvalidOrder } = require ('./base/errors');
-const { DECIMAL_PLACES, SIGNIFICANT_DIGITS, TRUNCATE } = require ('./base/functions/number');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { ExchangeError, ExchangeNotAvailable, AuthenticationError, BadRequest, PermissionDenied, InvalidAddress, ArgumentsRequired, InvalidOrder } from './base/errors';
+import { Precise } from './base/Precise';
+import { DECIMAL_PLACES, SIGNIFICANT_DIGITS, TRUNCATE } from './base/functions/number';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class bithumb extends Exchange {
+export default class bithumb extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bithumb',
@@ -945,4 +944,4 @@ module.exports = class bithumb extends Exchange {
             }
         }
     }
-};
+}

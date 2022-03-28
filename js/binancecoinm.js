@@ -1,4 +1,3 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -6,7 +5,7 @@ const binance = require ('./binance.js');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class binancecoinm extends binance {
+export default class binancecoinm extends binance {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'binancecoinm',
@@ -34,4 +33,4 @@ module.exports = class binancecoinm extends binance {
         // transfer from coinm futures wallet to spot wallet
         return await this.futuresTransfer (code, amount, 4, params);
     }
-};
+}

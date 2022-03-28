@@ -1,15 +1,14 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { BadSymbol, BadRequest, ExchangeNotAvailable, ArgumentsRequired, PermissionDenied, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress, RateLimitExceeded, OnMaintenance } = require ('./base/errors');
-const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { BadSymbol, BadRequest, ExchangeNotAvailable, ArgumentsRequired, PermissionDenied, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress, RateLimitExceeded, OnMaintenance } from './base/errors';
+import { Precise } from './base/Precise';
+import { TRUNCATE, DECIMAL_PLACES } from './base/functions/number';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class kraken extends Exchange {
+export default class kraken extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'kraken',
@@ -2147,4 +2146,4 @@ module.exports = class kraken extends Exchange {
             }
         }
     }
-};
+}

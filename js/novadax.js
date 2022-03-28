@@ -1,15 +1,14 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, CancelPending, OrderNotFound, InsufficientFunds, RateLimitExceeded, InvalidOrder, AccountSuspended, BadSymbol, OnMaintenance, ArgumentsRequired } = require ('./base/errors');
-const { TRUNCATE } = require ('./base/functions/number');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, CancelPending, OrderNotFound, InsufficientFunds, RateLimitExceeded, InvalidOrder, AccountSuspended, BadSymbol, OnMaintenance, ArgumentsRequired } from './base/errors';
+import { Precise } from './base/Precise';
+import { TRUNCATE } from './base/functions/number';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class novadax extends Exchange {
+export default class novadax extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'novadax',
@@ -1259,4 +1258,4 @@ module.exports = class novadax extends Exchange {
             throw new ExchangeError (feedback); // unknown message
         }
     }
-};
+}

@@ -1,15 +1,14 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { BadRequest, AuthenticationError, NetworkError, ArgumentsRequired, OrderNotFound, InsufficientFunds } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { BadRequest, AuthenticationError, NetworkError, ArgumentsRequired, OrderNotFound, InsufficientFunds } from './base/errors';
+import { Precise } from './base/Precise';
+import { TICK_SIZE } from './base/functions/number';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class hollaex extends Exchange {
+export default class hollaex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'hollaex',
@@ -1466,4 +1465,4 @@ module.exports = class hollaex extends Exchange {
             this.throwExactlyMatchedException (this.exceptions['exact'], status, feedback);
         }
     }
-};
+}

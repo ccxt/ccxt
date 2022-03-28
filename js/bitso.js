@@ -1,15 +1,14 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, InvalidNonce, AuthenticationError, OrderNotFound, BadRequest } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { ExchangeError, InvalidNonce, AuthenticationError, OrderNotFound, BadRequest } from './base/errors';
+import { Precise } from './base/Precise';
+import { TICK_SIZE } from './base/functions/number';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class bitso extends Exchange {
+export default class bitso extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitso',
@@ -1000,4 +999,4 @@ module.exports = class bitso extends Exchange {
             }
         }
     }
-};
+}

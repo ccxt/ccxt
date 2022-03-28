@@ -1,14 +1,13 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, AuthenticationError, InsufficientFunds, InvalidOrder, AccountSuspended, ExchangeError, DuplicateOrderId, OrderNotFound, BadSymbol, ExchangeNotAvailable, BadRequest } = require ('./base/errors');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { ArgumentsRequired, AuthenticationError, InsufficientFunds, InvalidOrder, AccountSuspended, ExchangeError, DuplicateOrderId, OrderNotFound, BadSymbol, ExchangeNotAvailable, BadRequest } from './base/errors';
+import { Precise } from './base/Precise';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class wavesexchange extends Exchange {
+export default class wavesexchange extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'wavesexchange',
@@ -1993,4 +1992,4 @@ module.exports = class wavesexchange extends Exchange {
         };
         return await this.nodePostTransactionsBroadcast (request);
     }
-};
+}

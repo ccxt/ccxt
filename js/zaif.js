@@ -1,14 +1,13 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadRequest } = require ('./base/errors');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { ExchangeError, BadRequest } from './base/errors';
+import { Precise } from './base/Precise';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class zaif extends Exchange {
+export default class zaif extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'zaif',
@@ -563,4 +562,4 @@ module.exports = class zaif extends Exchange {
             throw new ExchangeError (feedback);
         }
     }
-};
+}

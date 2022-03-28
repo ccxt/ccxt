@@ -1,14 +1,13 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds, ArgumentsRequired } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds, ArgumentsRequired } from './base/errors';
+import { Precise } from './base/Precise';
+import { TICK_SIZE } from './base/functions/number';
 
 // ---------------------------------------------------------------------------
 
-module.exports = class blockchaincom extends Exchange {
+export default class blockchaincom extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'blockchaincom',
@@ -965,4 +964,4 @@ module.exports = class blockchaincom extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
         }
     }
-};
+}

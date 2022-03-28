@@ -1,13 +1,12 @@
-'use strict';
 
 // ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { Precise } from './base/Precise';
 
 // ---------------------------------------------------------------------------
 
-module.exports = class bl3p extends Exchange {
+export default class bl3p extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bl3p',
@@ -344,4 +343,4 @@ module.exports = class bl3p extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-};
+}

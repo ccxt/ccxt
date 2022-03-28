@@ -1,13 +1,12 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const Precise = require ('./base/Precise');
-const { TICK_SIZE } = require ('./base/functions/number');
-const { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled } = require ('./base/errors');
+import { Exchange } from './base/Exchange';
+import { Precise } from './base/Precise';
+import { TICK_SIZE } from './base/functions/number';
+import { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled } from './base/errors';
 
-module.exports = class gateio extends Exchange {
+export default class gateio extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'gateio',
@@ -3900,4 +3899,4 @@ module.exports = class gateio extends Exchange {
             throw new ExchangeError (feedback);
         }
     }
-};
+}

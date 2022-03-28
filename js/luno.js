@@ -1,14 +1,13 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired } = require ('./base/errors');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { ExchangeError, ArgumentsRequired } from './base/errors';
+import { Precise } from './base/Precise';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class luno extends Exchange {
+export default class luno extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'luno',
@@ -806,4 +805,4 @@ module.exports = class luno extends Exchange {
             throw new ExchangeError (this.id + ' ' + this.json (response));
         }
     }
-};
+}

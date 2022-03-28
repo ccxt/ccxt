@@ -1,15 +1,14 @@
-'use strict';
 
 // ----------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, BadRequest, PermissionDenied, AccountSuspended, CancelPending, DDoSProtection, DuplicateOrderId, RateLimitExceeded } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, BadRequest, PermissionDenied, AccountSuspended, CancelPending, DDoSProtection, DuplicateOrderId, RateLimitExceeded } from './base/errors';
+import { Precise } from './base/Precise';
+import { TICK_SIZE } from './base/functions/number';
 
 // ----------------------------------------------------------------------------
 
-module.exports = class phemex extends Exchange {
+export default class phemex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'phemex',
@@ -2922,4 +2921,4 @@ module.exports = class phemex extends Exchange {
             throw new ExchangeError (feedback); // unknown message
         }
     }
-};
+}

@@ -1,15 +1,14 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RateLimitExceeded, RequestTimeout, NetworkError, InvalidAddress, NotSupported } = require ('./base/errors');
-const { TICK_SIZE, TRUNCATE } = require ('./base/functions/number');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RateLimitExceeded, RequestTimeout, NetworkError, InvalidAddress, NotSupported } from './base/errors';
+import { Precise } from './base/Precise';
+import { TICK_SIZE, TRUNCATE } from './base/functions/number';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class huobi extends Exchange {
+export default class huobi extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'huobi',
@@ -5558,4 +5557,4 @@ module.exports = class huobi extends Exchange {
         }
         return result;
     }
-};
+}

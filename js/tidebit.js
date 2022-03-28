@@ -1,13 +1,12 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, InsufficientFunds, OrderNotFound, ArgumentsRequired } = require ('./base/errors');
+import { Exchange } from './base/Exchange';
+import { ExchangeError, InsufficientFunds, OrderNotFound, ArgumentsRequired } from './base/errors';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class tidebit extends Exchange {
+export default class tidebit extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'tidebit',
@@ -608,4 +607,4 @@ module.exports = class tidebit extends Exchange {
             // fallback to default error handler
         }
     }
-};
+}

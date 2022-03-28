@@ -1,15 +1,14 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeError, BadSymbol, BadRequest, InvalidOrder, ArgumentsRequired, OrderNotFound, InsufficientFunds, DDoSProtection } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { AuthenticationError, ExchangeError, BadSymbol, BadRequest, InvalidOrder, ArgumentsRequired, OrderNotFound, InsufficientFunds, DDoSProtection } from './base/errors';
+import { Precise } from './base/Precise';
+import { TICK_SIZE } from './base/functions/number';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class ripio extends Exchange {
+export default class ripio extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'ripio',
@@ -1050,4 +1049,4 @@ module.exports = class ripio extends Exchange {
             throw new ExchangeError (feedback); // unknown message
         }
     }
-};
+}

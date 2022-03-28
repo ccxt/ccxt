@@ -1,15 +1,14 @@
-'use strict';
 
 // ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, OrderNotFound, InvalidOrder, BadRequest, AuthenticationError, RateLimitExceeded, RequestTimeout, BadSymbol, AddressPending, PermissionDenied, InsufficientFunds } = require ('./base/errors');
-const { ROUND } = require ('./base/functions/number');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { ExchangeError, OrderNotFound, InvalidOrder, BadRequest, AuthenticationError, RateLimitExceeded, RequestTimeout, BadSymbol, AddressPending, PermissionDenied, InsufficientFunds } from './base/errors';
+import { Precise } from './base/Precise';
+import { ROUND } from './base/functions/number';
 
 // ---------------------------------------------------------------------------
 
-module.exports = class vcc extends Exchange {
+export default class vcc extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'vcc',
@@ -1344,4 +1343,4 @@ module.exports = class vcc extends Exchange {
             throw new ExchangeError (feedback);
         }
     }
-};
+}

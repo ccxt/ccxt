@@ -1,14 +1,13 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { ExchangeError } from './base/errors';
+import { Precise } from './base/Precise';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class paymium extends Exchange {
+export default class paymium extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'paymium',
@@ -312,4 +311,4 @@ module.exports = class paymium extends Exchange {
             throw new ExchangeError (this.id + ' ' + this.json (response));
         }
     }
-};
+}

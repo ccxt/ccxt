@@ -1,14 +1,13 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, ArgumentsRequired, InvalidNonce, BadRequest, ExchangeNotAvailable, PermissionDenied, AccountSuspended, RateLimitExceeded, InsufficientFunds, BadSymbol } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
+import { Exchange } from './base/Exchange';
+import { ExchangeError, AuthenticationError, ArgumentsRequired, InvalidNonce, BadRequest, ExchangeNotAvailable, PermissionDenied, AccountSuspended, RateLimitExceeded, InsufficientFunds, BadSymbol } from './base/errors';
+import { TICK_SIZE } from './base/functions/number';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class latoken extends Exchange {
+export default class latoken extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'latoken',
@@ -1305,4 +1304,4 @@ module.exports = class latoken extends Exchange {
             throw new ExchangeError (feedback); // unknown message
         }
     }
-};
+}

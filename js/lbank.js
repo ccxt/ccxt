@@ -1,14 +1,13 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, DDoSProtection, AuthenticationError, InvalidOrder, ArgumentsRequired } = require ('./base/errors');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { ExchangeError, DDoSProtection, AuthenticationError, InvalidOrder, ArgumentsRequired } from './base/errors';
+import { Precise } from './base/Precise';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class lbank extends Exchange {
+export default class lbank extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'lbank',
@@ -719,4 +718,4 @@ module.exports = class lbank extends Exchange {
             throw new ErrorClass (message);
         }
     }
-};
+}

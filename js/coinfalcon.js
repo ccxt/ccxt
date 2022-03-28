@@ -1,14 +1,13 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, RateLimitExceeded, ArgumentsRequired } = require ('./base/errors');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { ExchangeError, AuthenticationError, RateLimitExceeded, ArgumentsRequired } from './base/errors';
+import { Precise } from './base/Precise';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class coinfalcon extends Exchange {
+export default class coinfalcon extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coinfalcon',
@@ -835,4 +834,4 @@ module.exports = class coinfalcon extends Exchange {
         }, code, ExchangeError);
         throw new ErrorClass (body);
     }
-};
+}

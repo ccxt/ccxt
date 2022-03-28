@@ -1,14 +1,13 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { TICK_SIZE } = require ('./base/functions/number');
-const { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, DDoSProtection, NotSupported, ExchangeNotAvailable, InsufficientFunds, BadRequest, InvalidAddress, OnMaintenance } = require ('./base/errors');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { TICK_SIZE } from './base/functions/number';
+import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, DDoSProtection, NotSupported, ExchangeNotAvailable, InsufficientFunds, BadRequest, InvalidAddress, OnMaintenance } from './base/errors';
+import { Precise } from './base/Precise';
 //  ---------------------------------------------------------------------------
 
-module.exports = class deribit extends Exchange {
+export default class deribit extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'deribit',
@@ -1980,4 +1979,4 @@ module.exports = class deribit extends Exchange {
             throw new ExchangeError (feedback); // unknown message
         }
     }
-};
+}

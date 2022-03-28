@@ -1,14 +1,13 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, RateLimitExceeded, InsufficientFunds, AuthenticationError } = require ('./base/errors');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, RateLimitExceeded, InsufficientFunds, AuthenticationError } from './base/errors';
+import { Precise } from './base/Precise';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class coinmate extends Exchange {
+export default class coinmate extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coinmate',
@@ -791,4 +790,4 @@ module.exports = class coinmate extends Exchange {
             throw new ExchangeError (this.id + ' ' + body);
         }
     }
-};
+}

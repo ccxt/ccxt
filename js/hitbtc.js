@@ -1,15 +1,14 @@
-'use strict';
 
 // ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { BadSymbol, PermissionDenied, ExchangeError, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, RequestTimeout, AuthenticationError } = require ('./base/errors');
-const { TRUNCATE, DECIMAL_PLACES, TICK_SIZE } = require ('./base/functions/number');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { BadSymbol, PermissionDenied, ExchangeError, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, RequestTimeout, AuthenticationError } from './base/errors';
+import { Precise } from './base/Precise';
+import { TRUNCATE, DECIMAL_PLACES, TICK_SIZE } from './base/functions/number';
 
 // ---------------------------------------------------------------------------
 
-module.exports = class hitbtc extends Exchange {
+export default class hitbtc extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'hitbtc',
@@ -1355,4 +1354,4 @@ module.exports = class hitbtc extends Exchange {
             throw new ExchangeError (feedback);
         }
     }
-};
+}

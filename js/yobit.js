@@ -1,14 +1,13 @@
-'use strict';
 
 // ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InvalidNonce, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError, RateLimitExceeded } = require ('./base/errors');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InvalidNonce, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError, RateLimitExceeded } from './base/errors';
+import { Precise } from './base/Precise';
 
 // ---------------------------------------------------------------------------
 
-module.exports = class yobit extends Exchange {
+export default class yobit extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'yobit',
@@ -955,4 +954,4 @@ module.exports = class yobit extends Exchange {
             }
         }
     }
-};
+}

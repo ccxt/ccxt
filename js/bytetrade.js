@@ -1,14 +1,13 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, BadRequest, AuthenticationError, DDoSProtection, BadResponse } = require ('./base/errors');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { ExchangeError, ArgumentsRequired, BadRequest, AuthenticationError, DDoSProtection, BadResponse } from './base/errors';
+import { Precise } from './base/Precise';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class bytetrade extends Exchange {
+export default class bytetrade extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bytetrade',
@@ -1334,4 +1333,4 @@ module.exports = class bytetrade extends Exchange {
             }
         }
     }
-};
+}

@@ -1,4 +1,3 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -6,7 +5,7 @@ const hitbtc = require ('./hitbtc.js');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class fmfwio extends hitbtc {
+export default class fmfwio extends hitbtc {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'fmfwio',
@@ -31,4 +30,4 @@ module.exports = class fmfwio extends hitbtc {
             },
         });
     }
-};
+}

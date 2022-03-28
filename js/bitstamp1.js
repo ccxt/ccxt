@@ -1,14 +1,13 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { BadSymbol, ExchangeError, NotSupported } = require ('./base/errors');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { BadSymbol, ExchangeError, NotSupported } from './base/errors';
+import { Precise } from './base/Precise';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class bitstamp1 extends Exchange {
+export default class bitstamp1 extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitstamp1',
@@ -345,4 +344,4 @@ module.exports = class bitstamp1 extends Exchange {
             throw new ExchangeError (this.id + ' ' + this.json (response));
         }
     }
-};
+}

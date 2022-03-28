@@ -1,4 +1,3 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -6,7 +5,7 @@ const ndax = require ('./ndax.js');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class flowbtc extends ndax {
+export default class flowbtc extends ndax {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'flowbtc',
@@ -32,4 +31,4 @@ module.exports = class flowbtc extends ndax {
             },
         });
     }
-};
+}

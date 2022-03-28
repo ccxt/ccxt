@@ -1,15 +1,14 @@
-'use strict';
 
 // ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { PAD_WITH_ZERO } = require ('./base/functions/number');
-const { InvalidOrder, InsufficientFunds, ExchangeError, ExchangeNotAvailable, DDoSProtection, BadRequest, NotSupported, InvalidAddress, AuthenticationError } = require ('./base/errors');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { PAD_WITH_ZERO } from './base/functions/number';
+import { InvalidOrder, InsufficientFunds, ExchangeError, ExchangeNotAvailable, DDoSProtection, BadRequest, NotSupported, InvalidAddress, AuthenticationError } from './base/errors';
+import { Precise } from './base/Precise';
 
 // ---------------------------------------------------------------------------
 
-module.exports = class idex extends Exchange {
+export default class idex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'idex',
@@ -1417,4 +1416,4 @@ module.exports = class idex extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-};
+}

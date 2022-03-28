@@ -1,14 +1,13 @@
-'use strict';
 
 // ----------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, AuthenticationError, RateLimitExceeded, InvalidNonce } = require ('./base/errors');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { ExchangeError, ArgumentsRequired, AuthenticationError, RateLimitExceeded, InvalidNonce } from './base/errors';
+import { Precise } from './base/Precise';
 
 // ----------------------------------------------------------------------------
 
-module.exports = class coinbase extends Exchange {
+export default class coinbase extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coinbase',
@@ -1341,4 +1340,4 @@ module.exports = class coinbase extends Exchange {
             throw new ExchangeError (this.id + ' failed due to a malformed response ' + this.json (response));
         }
     }
-};
+}

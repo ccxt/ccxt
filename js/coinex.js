@@ -1,13 +1,12 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError, PermissionDenied, ExchangeNotAvailable, RequestTimeout } = require ('./base/errors');
+import { Exchange } from './base/Exchange';
+import { ExchangeError, ArgumentsRequired, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError, PermissionDenied, ExchangeNotAvailable, RequestTimeout } from './base/errors';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class coinex extends Exchange {
+export default class coinex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coinex',
@@ -1301,4 +1300,4 @@ module.exports = class coinex extends Exchange {
             throw new ErrorClass (response['message']);
         }
     }
-};
+}

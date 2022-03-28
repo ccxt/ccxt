@@ -1,14 +1,13 @@
-'use strict';
 
 // ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, ArgumentsRequired, BadSymbol, BadRequest, RequestTimeout, NetworkError } = require ('./base/errors');
-const { TRUNCATE } = require ('./base/functions/number');
+import { Exchange } from './base/Exchange';
+import { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, ArgumentsRequired, BadSymbol, BadRequest, RequestTimeout, NetworkError } from './base/errors';
+import { TRUNCATE } from './base/functions/number';
 
 // ---------------------------------------------------------------------------
 
-module.exports = class cdax extends Exchange {
+export default class cdax extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'cdax',
@@ -1647,4 +1646,4 @@ module.exports = class cdax extends Exchange {
             }
         }
     }
-};
+}

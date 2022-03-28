@@ -1,15 +1,14 @@
-'use strict';
 
 // ----------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, AuthenticationError, ExchangeError, ExchangeNotAvailable, OrderNotFound, InvalidOrder, CancelPending, RateLimitExceeded, InsufficientFunds, BadRequest, BadSymbol, PermissionDenied } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { ArgumentsRequired, AuthenticationError, ExchangeError, ExchangeNotAvailable, OrderNotFound, InvalidOrder, CancelPending, RateLimitExceeded, InsufficientFunds, BadRequest, BadSymbol, PermissionDenied } from './base/errors';
+import { Precise } from './base/Precise';
+import { TICK_SIZE } from './base/functions/number';
 
 // ----------------------------------------------------------------------------
 
-module.exports = class aax extends Exchange {
+export default class aax extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'aax',
@@ -2502,4 +2501,4 @@ module.exports = class aax extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
         }
     }
-};
+}

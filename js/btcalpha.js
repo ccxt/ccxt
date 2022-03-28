@@ -1,14 +1,13 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, DDoSProtection, InvalidOrder, InsufficientFunds } = require ('./base/errors');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { ExchangeError, AuthenticationError, DDoSProtection, InvalidOrder, InsufficientFunds } from './base/errors';
+import { Precise } from './base/Precise';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class btcalpha extends Exchange {
+export default class btcalpha extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'btcalpha',
@@ -574,4 +573,4 @@ module.exports = class btcalpha extends Exchange {
         }
         throw new ExchangeError (feedback);
     }
-};
+}

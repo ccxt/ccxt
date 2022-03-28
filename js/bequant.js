@@ -1,11 +1,10 @@
-'use strict';
 
 // ---------------------------------------------------------------------------
 
 const hitbtc = require ('./hitbtc');
 // ---------------------------------------------------------------------------
 
-module.exports = class bequant extends hitbtc {
+export default class bequant extends hitbtc {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bequant',
@@ -29,4 +28,4 @@ module.exports = class bequant extends hitbtc {
             },
         });
     }
-};
+}

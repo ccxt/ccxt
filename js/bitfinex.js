@@ -1,15 +1,14 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { NotSupported, RateLimitExceeded, AuthenticationError, PermissionDenied, ArgumentsRequired, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, InvalidNonce, BadSymbol } = require ('./base/errors');
-const { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } = require ('./base/functions/number');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { NotSupported, RateLimitExceeded, AuthenticationError, PermissionDenied, ArgumentsRequired, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, InvalidNonce, BadSymbol } from './base/errors';
+import { Precise } from './base/Precise';
+import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class bitfinex extends Exchange {
+export default class bitfinex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitfinex',
@@ -1393,4 +1392,4 @@ module.exports = class bitfinex extends Exchange {
             }
         }
     }
-};
+}

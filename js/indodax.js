@@ -1,13 +1,12 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError, BadSymbol } = require ('./base/errors');
+import { Exchange } from './base/Exchange';
+import { ExchangeError, ArgumentsRequired, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError, BadSymbol } from './base/errors';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class indodax extends Exchange {
+export default class indodax extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'indodax',
@@ -705,4 +704,4 @@ module.exports = class indodax extends Exchange {
         this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
         throw new ExchangeError (feedback); // unknown message
     }
-};
+}

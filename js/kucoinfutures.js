@@ -1,15 +1,14 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const { ArgumentsRequired, ExchangeNotAvailable, InvalidOrder, InsufficientFunds, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, RateLimitExceeded, PermissionDenied } = require ('./base/errors');
-const Precise = require ('./base/Precise');
-const kucoin = require ('./kucoin.js');
-const { TICK_SIZE } = require ('./base/functions/number');
+import { ArgumentsRequired, ExchangeNotAvailable, InvalidOrder, InsufficientFunds, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, RateLimitExceeded, PermissionDenied } from './base/errors';
+import { Precise } from './base/Precise';
+import { TICK_SIZE } from './base/functions/number';
+import kucoin from './kucoin.js';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class kucoinfutures extends kucoin {
+export default class kucoinfutures extends kucoin {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'kucoinfutures',
@@ -1686,4 +1685,4 @@ module.exports = class kucoinfutures extends kucoin {
         }
         return tiers;
     }
-};
+}

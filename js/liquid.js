@@ -1,15 +1,14 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { TICK_SIZE } = require ('./base/functions/number');
-const { ExchangeError, ArgumentsRequired, InvalidNonce, OrderNotFound, InvalidOrder, InsufficientFunds, AuthenticationError, DDoSProtection, NotSupported, BadSymbol } = require ('./base/errors');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { TICK_SIZE } from './base/functions/number';
+import { ExchangeError, ArgumentsRequired, InvalidNonce, OrderNotFound, InvalidOrder, InsufficientFunds, AuthenticationError, DDoSProtection, NotSupported, BadSymbol } from './base/errors';
+import { Precise } from './base/Precise';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class liquid extends Exchange {
+export default class liquid extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'liquid',
@@ -1424,4 +1423,4 @@ module.exports = class liquid extends Exchange {
             throw new ExchangeError (feedback);
         }
     }
-};
+}

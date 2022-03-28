@@ -1,4 +1,3 @@
-'use strict';
 
 // ---------------------------------------------------------------------------
 
@@ -6,7 +5,7 @@ const huobi = require ('./huobi.js');
 
 // ---------------------------------------------------------------------------
 
-module.exports = class huobipro extends huobi {
+export default class huobipro extends huobi {
     describe () {
         // this is an alias for backward-compatibility
         // to be removed soon
@@ -15,4 +14,4 @@ module.exports = class huobipro extends huobi {
             'alias': true,
         });
     }
-};
+}

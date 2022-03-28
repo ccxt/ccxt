@@ -1,14 +1,13 @@
-'use strict';
 
 // ----------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, InvalidAddress, BadRequest, RateLimitExceeded, PermissionDenied, ExchangeNotAvailable, AccountSuspended, OnMaintenance } = require ('./base/errors');
-const { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } = require ('./base/functions/number');
+import { Exchange } from './base/Exchange';
+import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, InvalidAddress, BadRequest, RateLimitExceeded, PermissionDenied, ExchangeNotAvailable, AccountSuspended, OnMaintenance } from './base/errors';
+import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number';
 
 // ----------------------------------------------------------------------------
 
-module.exports = class bitvavo extends Exchange {
+export default class bitvavo extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitvavo',
@@ -1571,4 +1570,4 @@ module.exports = class bitvavo extends Exchange {
         }
         return this.safeValue (config, 'cost', 1);
     }
-};
+}

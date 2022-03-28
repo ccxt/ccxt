@@ -1,15 +1,14 @@
-'use strict';
 
 // ----------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { InsufficientFunds, ArgumentsRequired, ExchangeError, InvalidOrder, InvalidAddress, AuthenticationError, NotSupported, OrderNotFound, OnMaintenance, PermissionDenied, RateLimitExceeded } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { InsufficientFunds, ArgumentsRequired, ExchangeError, InvalidOrder, InvalidAddress, AuthenticationError, NotSupported, OrderNotFound, OnMaintenance, PermissionDenied, RateLimitExceeded } from './base/errors';
+import { Precise } from './base/Precise';
+import { TICK_SIZE } from './base/functions/number';
 
 // ----------------------------------------------------------------------------
 
-module.exports = class coinbasepro extends Exchange {
+export default class coinbasepro extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coinbasepro',
@@ -1454,4 +1453,4 @@ module.exports = class coinbasepro extends Exchange {
         }
         return response;
     }
-};
+}

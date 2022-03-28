@@ -1,14 +1,13 @@
-'use strict';
 
 // ---------------------------------------------------------------------------
 
-const bitfinex = require ('./bitfinex.js');
-const { ExchangeError, InvalidAddress, ArgumentsRequired, InsufficientFunds, AuthenticationError, OrderNotFound, InvalidOrder, BadRequest, InvalidNonce, BadSymbol, OnMaintenance, NotSupported, PermissionDenied, ExchangeNotAvailable } = require ('./base/errors');
-const Precise = require ('./base/Precise');
+import { ExchangeError, InvalidAddress, ArgumentsRequired, InsufficientFunds, AuthenticationError, OrderNotFound, InvalidOrder, BadRequest, InvalidNonce, BadSymbol, OnMaintenance, NotSupported, PermissionDenied, ExchangeNotAvailable } from './base/errors';
+import { Precise } from './base/Precise';
+import bitfinex from './bitfinex.js';
 
 // ---------------------------------------------------------------------------
 
-module.exports = class bitfinex2 extends bitfinex {
+export default class bitfinex2 extends bitfinex {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitfinex2',
@@ -2001,4 +2000,4 @@ module.exports = class bitfinex2 extends bitfinex {
         //
         return this.parseLedger (response, currency, since, limit);
     }
-};
+}

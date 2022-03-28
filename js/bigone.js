@@ -1,13 +1,12 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFunds, PermissionDenied, BadRequest, BadSymbol, RateLimitExceeded, InvalidOrder } = require ('./base/errors');
+import { Exchange } from './base/Exchange';
+import { ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFunds, PermissionDenied, BadRequest, BadSymbol, RateLimitExceeded, InvalidOrder } from './base/errors';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class bigone extends Exchange {
+export default class bigone extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bigone',
@@ -1285,4 +1284,4 @@ module.exports = class bigone extends Exchange {
             throw new ExchangeError (feedback); // unknown message
         }
     }
-};
+}

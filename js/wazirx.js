@@ -1,10 +1,9 @@
-'use strict';
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadRequest, RateLimitExceeded, BadSymbol, ArgumentsRequired, PermissionDenied, InsufficientFunds, InvalidOrder } = require ('./base/errors');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { ExchangeError, BadRequest, RateLimitExceeded, BadSymbol, ArgumentsRequired, PermissionDenied, InsufficientFunds, InvalidOrder } from './base/errors';
+import { Precise } from './base/Precise';
 
-module.exports = class wazirx extends Exchange {
+export default class wazirx extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'wazirx',
@@ -722,4 +721,4 @@ module.exports = class wazirx extends Exchange {
             throw new ExchangeError (feedback);
         }
     }
-};
+}

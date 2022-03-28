@@ -1,10 +1,9 @@
-'use strict';
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, PermissionDenied, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, RateLimitExceeded, NotSupported, BadRequest, AuthenticationError } = require ('./base/errors');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { ExchangeError, PermissionDenied, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, RateLimitExceeded, NotSupported, BadRequest, AuthenticationError } from './base/errors';
+import { Precise } from './base/Precise';
 
-module.exports = class timex extends Exchange {
+export default class timex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'timex',
@@ -1281,4 +1280,4 @@ module.exports = class timex extends Exchange {
             throw new ExchangeError (feedback);
         }
     }
-};
+}

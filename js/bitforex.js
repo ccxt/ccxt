@@ -1,13 +1,12 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds, DDoSProtection, PermissionDenied, BadSymbol, InvalidOrder } = require ('./base/errors');
+import { Exchange } from './base/Exchange';
+import { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds, DDoSProtection, PermissionDenied, BadSymbol, InvalidOrder } from './base/errors';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class bitforex extends Exchange {
+export default class bitforex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitforex',
@@ -605,4 +604,4 @@ module.exports = class bitforex extends Exchange {
             }
         }
     }
-};
+}

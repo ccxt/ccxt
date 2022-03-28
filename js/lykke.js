@@ -1,14 +1,13 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { NotSupported, ExchangeError, BadRequest, InsufficientFunds, InvalidOrder, DuplicateOrderId } = require ('./base/errors');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { NotSupported, ExchangeError, BadRequest, InsufficientFunds, InvalidOrder, DuplicateOrderId } from './base/errors';
+import { Precise } from './base/Precise';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class lykke extends Exchange {
+export default class lykke extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'lykke',
@@ -1144,4 +1143,4 @@ module.exports = class lykke extends Exchange {
             throw new ExchangeError (feedback);
         }
     }
-};
+}

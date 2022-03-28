@@ -1,9 +1,9 @@
-const Exchange = require ('./base/Exchange');
-const { TICK_SIZE } = require ('./base/functions/number');
-const Precise = require ('./base/Precise');
-const { BadSymbol, BadRequest, OnMaintenance, AccountSuspended, PermissionDenied, ExchangeError, RateLimitExceeded, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, AuthenticationError, ArgumentsRequired } = require ('./base/errors');
+import { Exchange } from './base/Exchange';
+import { TICK_SIZE } from './base/functions/number';
+import { Precise } from './base/Precise';
+import { BadSymbol, BadRequest, OnMaintenance, AccountSuspended, PermissionDenied, ExchangeError, RateLimitExceeded, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, AuthenticationError, ArgumentsRequired } from './base/errors';
 
-module.exports = class hitbtc3 extends Exchange {
+export default class hitbtc3 extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'hitbtc3',
@@ -2033,4 +2033,4 @@ module.exports = class hitbtc3 extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-};
+}

@@ -1,13 +1,12 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { BadSymbol, ExchangeError, AuthenticationError } = require ('./base/errors');
+import { Exchange } from './base/Exchange';
+import { BadSymbol, ExchangeError, AuthenticationError } from './base/errors';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class coincheck extends Exchange {
+export default class coincheck extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coincheck',
@@ -753,4 +752,4 @@ module.exports = class coincheck extends Exchange {
             throw new ExchangeError (this.id + ' ' + this.json (response));
         }
     }
-};
+}

@@ -1,14 +1,13 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, InvalidOrder, InsufficientFunds, AuthenticationError, RateLimitExceeded, BadSymbol } = require ('./base/errors');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { ExchangeError, InvalidOrder, InsufficientFunds, AuthenticationError, RateLimitExceeded, BadSymbol } from './base/errors';
+import { Precise } from './base/Precise';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class qtrade extends Exchange {
+export default class qtrade extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'qtrade',
@@ -1586,4 +1585,4 @@ module.exports = class qtrade extends Exchange {
         }
         throw new ExchangeError (feedback); // unknown message
     }
-};
+}

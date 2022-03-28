@@ -1,13 +1,12 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, OrderNotFound } = require ('./base/errors');
+import { Exchange } from './base/Exchange';
+import { ExchangeError, ArgumentsRequired, OrderNotFound } from './base/errors';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class bitflyer extends Exchange {
+export default class bitflyer extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitflyer',
@@ -828,4 +827,4 @@ module.exports = class bitflyer extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-};
+}

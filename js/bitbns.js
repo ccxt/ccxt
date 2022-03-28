@@ -1,14 +1,13 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, InsufficientFunds, OrderNotFound, BadRequest, BadSymbol } = require ('./base/errors');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { ExchangeError, ArgumentsRequired, InsufficientFunds, OrderNotFound, BadRequest, BadSymbol } from './base/errors';
+import { Precise } from './base/Precise';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class bitbns extends Exchange {
+export default class bitbns extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitbns',
@@ -1066,4 +1065,4 @@ module.exports = class bitbns extends Exchange {
             throw new ExchangeError (feedback); // unknown message
         }
     }
-};
+}

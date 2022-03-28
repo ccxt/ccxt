@@ -1,10 +1,9 @@
-'use strict';
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError, PermissionDenied } = require ('./base/errors');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError, PermissionDenied } from './base/errors';
+import { Precise } from './base/Precise';
 
-module.exports = class tidex extends Exchange {
+export default class tidex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'tidex',
@@ -896,4 +895,4 @@ module.exports = class tidex extends Exchange {
             }
         }
     }
-};
+}

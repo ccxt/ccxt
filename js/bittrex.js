@@ -1,14 +1,13 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { BadSymbol, ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, PermissionDenied, AddressPending, OnMaintenance, BadRequest, InvalidAddress } = require ('./base/errors');
-const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
+import { Exchange } from './base/Exchange';
+import { BadSymbol, ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, PermissionDenied, AddressPending, OnMaintenance, BadRequest, InvalidAddress } from './base/errors';
+import { TRUNCATE, DECIMAL_PLACES } from './base/functions/number';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class bittrex extends Exchange {
+export default class bittrex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bittrex',
@@ -1522,4 +1521,4 @@ module.exports = class bittrex extends Exchange {
             }
         }
     }
-};
+}

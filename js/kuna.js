@@ -1,14 +1,13 @@
-'use strict';
 
 // ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, InsufficientFunds, OrderNotFound, NotSupported } = require ('./base/errors');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { ArgumentsRequired, InsufficientFunds, OrderNotFound, NotSupported } from './base/errors';
+import { Precise } from './base/Precise';
 
 // ---------------------------------------------------------------------------
 
-module.exports = class kuna extends Exchange {
+export default class kuna extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'kuna',
@@ -756,4 +755,4 @@ module.exports = class kuna extends Exchange {
             // fallback to default error handler
         }
     }
-};
+}

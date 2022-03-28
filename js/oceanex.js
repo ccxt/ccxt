@@ -1,13 +1,12 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, ArgumentsRequired, BadRequest, InvalidOrder, InsufficientFunds, OrderNotFound, PermissionDenied } = require ('./base/errors');
+import { Exchange } from './base/Exchange';
+import { ExchangeError, AuthenticationError, ArgumentsRequired, BadRequest, InvalidOrder, InsufficientFunds, OrderNotFound, PermissionDenied } from './base/errors';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class oceanex extends Exchange {
+export default class oceanex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'oceanex',
@@ -779,4 +778,4 @@ module.exports = class oceanex extends Exchange {
             throw new ExchangeError (feedback);
         }
     }
-};
+}

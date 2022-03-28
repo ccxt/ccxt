@@ -1,13 +1,12 @@
-'use strict';
 
 // ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadRequest, ArgumentsRequired, InsufficientFunds, InvalidOrder } = require ('./base/errors');
+import { Exchange } from './base/Exchange';
+import { ExchangeError, BadRequest, ArgumentsRequired, InsufficientFunds, InvalidOrder } from './base/errors';
 
 // ---------------------------------------------------------------------------
 
-module.exports = class bkex extends Exchange {
+export default class bkex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bkex',
@@ -1234,4 +1233,4 @@ module.exports = class bkex extends Exchange {
             throw new ExchangeError (feedback);
         }
     }
-};
+}

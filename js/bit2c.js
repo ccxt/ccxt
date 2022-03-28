@@ -1,14 +1,13 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, ExchangeError, InvalidNonce, AuthenticationError, PermissionDenied } = require ('./base/errors');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { ArgumentsRequired, ExchangeError, InvalidNonce, AuthenticationError, PermissionDenied } from './base/errors';
+import { Precise } from './base/Precise';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class bit2c extends Exchange {
+export default class bit2c extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bit2c',
@@ -529,5 +528,5 @@ module.exports = class bit2c extends Exchange {
             throw new ExchangeError (feedback); // unknown message
         }
     }
-};
+}
 

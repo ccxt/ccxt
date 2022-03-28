@@ -1,14 +1,13 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, AuthenticationError, InvalidOrder, InsufficientFunds, BadRequest } = require ('./base/errors');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { ExchangeError, ArgumentsRequired, AuthenticationError, InvalidOrder, InsufficientFunds, BadRequest } from './base/errors';
+import { Precise } from './base/Precise';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class bitopro extends Exchange {
+export default class bitopro extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitopro',
@@ -1412,4 +1411,4 @@ module.exports = class bitopro extends Exchange {
         this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
         throw new ExchangeError (feedback); // unknown message
     }
-};
+}

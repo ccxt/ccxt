@@ -1,13 +1,12 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds, DDoSProtection, BadRequest } = require ('./base/errors');
+import { Exchange } from './base/Exchange';
+import { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds, DDoSProtection, BadRequest } from './base/errors';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class btcmarkets extends Exchange {
+export default class btcmarkets extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'btcmarkets',
@@ -1020,4 +1019,4 @@ module.exports = class btcmarkets extends Exchange {
             throw new ExchangeError (feedback);
         }
     }
-};
+}

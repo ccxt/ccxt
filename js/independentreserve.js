@@ -1,13 +1,12 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { Precise } from './base/Precise';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class independentreserve extends Exchange {
+export default class independentreserve extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'independentreserve',
@@ -647,4 +646,4 @@ module.exports = class independentreserve extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-};
+}

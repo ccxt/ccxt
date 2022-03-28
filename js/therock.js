@@ -1,14 +1,13 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidAddress } = require ('./base/errors');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidAddress } from './base/errors';
+import { Precise } from './base/Precise';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class therock extends Exchange {
+export default class therock extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'therock',
@@ -1396,4 +1395,4 @@ module.exports = class therock extends Exchange {
             throw new ExchangeError (feedback); // unknown message
         }
     }
-};
+}

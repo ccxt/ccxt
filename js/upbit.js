@@ -1,14 +1,13 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadRequest, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, PermissionDenied, AddressPending } = require ('./base/errors');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { ExchangeError, BadRequest, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, PermissionDenied, AddressPending } from './base/errors';
+import { Precise } from './base/Precise';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class upbit extends Exchange {
+export default class upbit extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'upbit',
@@ -1618,4 +1617,4 @@ module.exports = class upbit extends Exchange {
             throw new ExchangeError (feedback); // unknown message
         }
     }
-};
+}

@@ -1,15 +1,14 @@
-'use strict';
 
 // ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, ArgumentsRequired, BadSymbol, BadRequest, RequestTimeout, NetworkError } = require ('./base/errors');
-const { TRUNCATE } = require ('./base/functions/number');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, ArgumentsRequired, BadSymbol, BadRequest, RequestTimeout, NetworkError } from './base/errors';
+import { Precise } from './base/Precise';
+import { TRUNCATE } from './base/functions/number';
 
 // ---------------------------------------------------------------------------
 
-module.exports = class huobijp extends Exchange {
+export default class huobijp extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'huobijp',
@@ -1695,4 +1694,4 @@ module.exports = class huobijp extends Exchange {
             }
         }
     }
-};
+}

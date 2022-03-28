@@ -1,13 +1,12 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, ExchangeError, OrderNotFound, AccountSuspended, BadSymbol, OrderImmediatelyFillable, RateLimitExceeded, OnMaintenance, PermissionDenied } = require ('./base/errors');
+import { Exchange } from './base/Exchange';
+import { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, ExchangeError, OrderNotFound, AccountSuspended, BadSymbol, OrderImmediatelyFillable, RateLimitExceeded, OnMaintenance, PermissionDenied } from './base/errors';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class zonda extends Exchange {
+export default class zonda extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'zonda',
@@ -1350,4 +1349,4 @@ module.exports = class zonda extends Exchange {
             }
         }
     }
-};
+}

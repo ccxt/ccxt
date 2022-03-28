@@ -1,14 +1,13 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, InsufficientFunds, BadRequest, BadSymbol, InvalidOrder, AuthenticationError, ArgumentsRequired, OrderNotFound, ExchangeNotAvailable } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
+import { Exchange } from './base/Exchange';
+import { ExchangeError, InsufficientFunds, BadRequest, BadSymbol, InvalidOrder, AuthenticationError, ArgumentsRequired, OrderNotFound, ExchangeNotAvailable } from './base/errors';
+import { TICK_SIZE } from './base/functions/number';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class delta extends Exchange {
+export default class delta extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'delta',
@@ -1502,4 +1501,4 @@ module.exports = class delta extends Exchange {
             throw new ExchangeError (feedback); // unknown message
         }
     }
-};
+}

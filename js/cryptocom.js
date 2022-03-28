@@ -1,12 +1,11 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFunds, DDoSProtection, InvalidNonce, PermissionDenied, BadRequest, BadSymbol, NotSupported, AccountNotEnabled } = require ('./base/errors');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFunds, DDoSProtection, InvalidNonce, PermissionDenied, BadRequest, BadSymbol, NotSupported, AccountNotEnabled } from './base/errors';
+import { Precise } from './base/Precise';
 
-module.exports = class cryptocom extends Exchange {
+export default class cryptocom extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'cryptocom',
@@ -1827,4 +1826,4 @@ module.exports = class cryptocom extends Exchange {
             throw new ExchangeError (this.id + ' ' + body);
         }
     }
-};
+}

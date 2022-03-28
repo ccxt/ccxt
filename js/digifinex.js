@@ -1,13 +1,12 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection, AuthenticationError, PermissionDenied, ExchangeError, InsufficientFunds, InvalidOrder, InvalidNonce, OrderNotFound, InvalidAddress, RateLimitExceeded, BadSymbol } = require ('./base/errors');
+import { Exchange } from './base/Exchange';
+import { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection, AuthenticationError, PermissionDenied, ExchangeError, InsufficientFunds, InvalidOrder, InvalidNonce, OrderNotFound, InvalidAddress, RateLimitExceeded, BadSymbol } from './base/errors';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class digifinex extends Exchange {
+export default class digifinex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'digifinex',
@@ -1519,4 +1518,4 @@ module.exports = class digifinex extends Exchange {
         const [ ExceptionClass, message ] = this.safeValue (this.exceptions['exact'], code, unknownError);
         throw new ExceptionClass (message);
     }
-};
+}

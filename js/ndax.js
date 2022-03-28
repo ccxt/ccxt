@@ -1,15 +1,14 @@
-'use strict';
 
 // ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, InsufficientFunds, BadSymbol, OrderNotFound } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { ExchangeError, AuthenticationError, InsufficientFunds, BadSymbol, OrderNotFound } from './base/errors';
+import { Precise } from './base/Precise';
+import { TICK_SIZE } from './base/functions/number';
 
 // ---------------------------------------------------------------------------
 
-module.exports = class ndax extends Exchange {
+export default class ndax extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'ndax',
@@ -2238,4 +2237,4 @@ module.exports = class ndax extends Exchange {
             throw new ExchangeError (feedback);
         }
     }
-};
+}

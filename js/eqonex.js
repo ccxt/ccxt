@@ -1,14 +1,13 @@
-'use strict';
 
 // ----------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, BadSymbol } = require ('./base/errors');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { ExchangeError, ArgumentsRequired, BadSymbol } from './base/errors';
+import { Precise } from './base/Precise';
 
 // ----------------------------------------------------------------------------
 
-module.exports = class eqonex extends Exchange {
+export default class eqonex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'eqonex',
@@ -1654,4 +1653,4 @@ module.exports = class eqonex extends Exchange {
         url = this.urls['api'][api] + '/' + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-};
+}

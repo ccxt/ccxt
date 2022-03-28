@@ -1,14 +1,13 @@
-'use strict';
 
 // ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, BadSymbol, RateLimitExceeded, PermissionDenied, InvalidAddress } = require ('./base/errors');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, BadSymbol, RateLimitExceeded, PermissionDenied, InvalidAddress } from './base/errors';
+import { Precise } from './base/Precise';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class kucoin extends Exchange {
+export default class kucoin extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'kucoin',
@@ -2399,4 +2398,4 @@ module.exports = class kucoin extends Exchange {
         this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
         this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
     }
-};
+}

@@ -1,10 +1,9 @@
-'use strict';
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, BadRequest, InsufficientFunds, InvalidAddress, BadSymbol, InvalidOrder } = require ('./base/errors');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange';
+import { ExchangeError, ArgumentsRequired, BadRequest, InsufficientFunds, InvalidAddress, BadSymbol, InvalidOrder } from './base/errors';
+import { Precise } from './base/Precise';
 
-module.exports = class xena extends Exchange {
+export default class xena extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'xena',
@@ -1931,4 +1930,4 @@ module.exports = class xena extends Exchange {
             throw new ExchangeError (feedback); // unknown message
         }
     }
-};
+}
