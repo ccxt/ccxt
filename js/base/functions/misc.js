@@ -1,7 +1,8 @@
-'use strict';
 
-const { ROUND_UP, ROUND_DOWN } = require ('./number')
-const { NotSupported } = require ('../errors')
+import { ROUND_UP, ROUND_DOWN } from './number'
+// const { NotSupported } = require ('../errors')
+import exceptions from '../errors'
+const { NotSupported } = exceptions
 
 //-------------------------------------------------------------------------
 // converts timeframe to seconds
@@ -107,31 +108,27 @@ function vwap (baseVolume, quoteVolume) {
 
 /*  ------------------------------------------------------------------------ */
 
-module.exports = {
+function aggregate (bidasks) {
 
-    aggregate (bidasks) {
+    const result = {}
 
-        const result = {}
-
-        for (let i = 0; i < bidasks.length; i++) {
-            const [ price, volume ] = bidasks[i];
-            if (volume > 0) {
-                result[price] = (result[price] || 0) + volume
-            }
+    for (let i = 0; i < bidasks.length; i++) {
+        const [ price, volume ] = bidasks[i];
+        if (volume > 0) {
+            result[price] = (result[price] || 0) + volume
         }
+    }
 
-        return Object.keys (result).map ((price) => [parseFloat (price), parseFloat (result[price])])
-    },
+    return Object.keys (result).map ((price) => [parseFloat (price), parseFloat (result[price])])
+}
 
+export {
+    aggregate,
     parseTimeframe,
     roundTimeframe,
     buildOHLCVC,
-    ROUND_UP,
-    ROUND_DOWN,
-
     implodeParams,
     extractParams,
-
     vwap,
 }
 
