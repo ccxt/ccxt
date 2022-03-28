@@ -24,7 +24,8 @@ module.exports = class lbank2 extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
-                'cancelOrder': false,
+                'cancelAllOrders': true,
+                'cancelOrder': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'fetchBalance': true,
@@ -33,7 +34,7 @@ module.exports = class lbank2 extends Exchange {
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
-                'fetchClosedOrders': false,
+                'fetchClosedOrders': true,
                 'fetchFundingFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -135,7 +136,6 @@ module.exports = class lbank2 extends Exchange {
                         'withdraw': 2.5,
                         'withdrawCancel': 2.5,
                         'withdraws': 2.5,
-                        // TODO new wallet endpoints
                         'supplement/user_info': 2.5,
                         'supplement/withdraw': 2.5, // TODO Withdraw (last)
                         'supplement/deposit_history': 2.5, // TODO fetchDeposits
@@ -148,14 +148,14 @@ module.exports = class lbank2 extends Exchange {
                         'supplement/system_ping': 2.5,
                         // new order endpoints
                         'supplement/create_order_test': 1,
-                        'supplement/create_order': 1, // TODO createOrder (redo update)
-                        'supplement/cancel_order': 1, // TODO cancelOrder (redo update)
-                        'supplement/cancel_order_by_symbol': 1, // TODO cancelAllOrders (redo update)
-                        'supplement/orders_info': 2.5, // TODO fetchOrder (redo update)
-                        'supplement/orders_info_no_deal': 2.5, // TODO fetchOpenOrders (redo update)
-                        'supplement/orders_info_history': 2.5, // TODO fetchOrders (investigate)
+                        'supplement/create_order': 1,
+                        'supplement/cancel_order': 1,
+                        'supplement/cancel_order_by_symbol': 1,
+                        'supplement/orders_info': 2.5,
+                        'supplement/orders_info_no_deal': 2.5,
+                        'supplement/orders_info_history': 2.5,
                         'supplement/user_info_account': 2.5,
-                        'supplement/transaction_history': 2.5, // TODO fetchMyTrades (investigate)
+                        'supplement/transaction_history': 2.5,
                     },
                 },
             },
@@ -769,7 +769,7 @@ module.exports = class lbank2 extends Exchange {
             '3': 'closed', // filled partially and cancelled
             '4': 'closed', // disposal processing
         };
-        return this.safeString (statuses, status);
+        return this.safeString (statuses, status, status);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -852,6 +852,7 @@ module.exports = class lbank2 extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        // TODO unify
         //
         // fetchOrderSupplement (private)
         //
@@ -884,6 +885,76 @@ module.exports = class lbank2 extends Exchange {
         //          "custom_id": "007" // field id only present if custom Id exists
         //          "deal_amount":18,
         //          "status":2
+        //      }
+        //
+        // fetchOpenOrders (private)
+        //
+        //      {
+        //          "cummulativeQuoteQty":0,
+        //          "symbol":"doge_usdt",
+        //          "executedQty":0,
+        //          "orderId":"73878edf-008d-4e4c-8041-df1f1b2cd8bb",
+        //          "origQty":100,
+        //          "price":0.05,
+        //          "origQuoteOrderQty":5,
+        //          "updateTime":1648501762000,
+        //          "time":1648501762353,
+        //          "type":"buy",
+        //          "status":0
+        //      }
+        //
+        // fetchOrders (private)
+        //
+        //      {
+        //          "cummulativeQuoteQty":0,
+        //          "symbol":"doge_usdt",
+        //          "executedQty":0,
+        //          "orderId":"2cadc7cc-b5f6-486b-a5b4-d6ac49a9c186",
+        //          "origQty":100,
+        //          "price":0.05,
+        //          "origQuoteOrderQty":5,
+        //          "updateTime":1648501384000,
+        //          "time":1648501363889,
+        //          "type":"buy",
+        //          "status":-1
+        //      }
+        //
+        // fetchClosedOrders (private)
+        //
+        //      {
+        //          "symbol":"doge_usdt",
+        //          "quoteQty":4.53339000000000000000,
+        //          "orderId":"38b4e7a4-14f6-45fd-aba1-1a37024124a0",
+        //          "price":0.15111300000000000000,
+        //          "qty":30.00000000000000000000,
+        //          "commission":0.00453300000000000000,
+        //          "id":"11f3850cc6214ea3b495adad3a032794",
+        //          "time":1648500944496,
+        //          "isMaker":false,
+        //          "isBuyer":false
+        //      }
+        //
+        //
+        // cancelOrder (private)
+        //
+        //    {
+        //          "executedQty":0.0,
+        //          "price":0.05,
+        //          "origQty":100.0,
+        //          "tradeType":"buy",
+        //          "status":0
+        //     }
+        //
+        //
+        // cancelAllOrders (private)
+        //
+        //      {
+        //          "executedQty":0.00000000000000000000,
+        //          "orderId":"90f7ecff-906b-4aaf-9830-3cd6cfb572ba",
+        //          "price":0.05000000000000000000,
+        //          "origQty":100.00000000000000000000,
+        //          "tradeType":"buy",
+        //          "status":0
         //      }
         //
         return this.safeOrder ({
@@ -1005,6 +1076,8 @@ module.exports = class lbank2 extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        // default query is for cancelled and completely filled orders
+        // does not return open orders unless specified explicitly
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
         }
@@ -1017,30 +1090,91 @@ module.exports = class lbank2 extends Exchange {
             'symbol': market['id'],
             'current_page': 1,
             'page_length': limit,
-            // 'status': -1：Cancelled, 0：on trading, 1：filled partially, 2：Filled totally, 3：filled partially and cancelled, 4：Cancelling
+            // 'status'  -1: Cancelled, 0: Unfilled, 1: Partially filled, 2: Completely filled, 3: Partially filled and cancelled, 4: Cancellation is being processed
         };
-        // this endpoint does not return open orders
-        const response = await this.privatePostOrdersInfoHistory (this.extend (request, params));
+        const response = await this.privatePostSupplementOrdersInfoHistory (this.extend (request, params));
+        //
+        //      {
+        //          "result":true,
+        //          "data":{
+        //              "total":1,
+        //              "page_length":100,
+        //              "orders":[
+        //                  {
+        //                      "cummulativeQuoteQty":0,
+        //                      "symbol":"doge_usdt",
+        //                      "executedQty":0,
+        //                      "orderId":"2cadc7cc-b5f6-486b-a5b4-d6ac49a9c186",
+        //                      "origQty":100,
+        //                      "price":0.05,
+        //                      "origQuoteOrderQty":5,
+        //                      "updateTime":1648501384000,
+        //                      "time":1648501363889,
+        //                      "type":"buy",
+        //                      "status":-1
+        //                  }, ...
+        //              ],
+        //              "current_page":1
+        //          },
+        //          "error_code":0,
+        //          "ts":1648505706348
+        //      }
+        //
         const result = this.safeValue (response, 'data', {});
         const orders = this.safeValue (result, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const orders = await this.fetchOrders (market['symbol'], since, limit, params);
-        const closed = this.filterBy (orders, 'status', 'closed');
-        const canceled = this.filterBy (orders, 'status', 'cancelled'); // cancelled orders may be partially filled
-        const allOrders = this.arrayConcat (closed, canceled);
-        return this.filterBySymbolSinceLimit (allOrders, market['symbol'], since, limit);
+        since = this.safeValue (params, 'startTime', since);
+        params = this.omit (params, 'startTime');
+        const request = {
+            'symbol': market['id'],
+            // 'endTime': string No End time yyyy-mm-dd, the maximum value is today, the default is today The query window for the start and end time is up to 2 days
+            // 'fromId': string No The starting transaction ID of the query
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['startTime'] = this.ymd (since, '-'); // max query 2 days ago
+        }
+        const response = await this.privatePostSupplementTransactionHistory (this.extend (request, params));
+        //
+        //      {
+        //          "result":true,
+        //          "data":[
+        //              {
+        //                  "symbol":"doge_usdt",
+        //                  "quoteQty":4.53339000000000000000,
+        //                  "orderId":"38b4e7a4-14f6-45fd-aba1-1a37024124a0",
+        //                  "price":0.15111300000000000000,
+        //                  "qty":30.00000000000000000000,
+        //                  "commission":0.00453300000000000000,
+        //                  "id":"11f3850cc6214ea3b495adad3a032794",
+        //                  "time":1648500944496,
+        //                  "isMaker":false,
+        //                  "isBuyer":false
+        //                  }, ...
+        //              ],
+        //          "error_code":0,
+        //          "ts":1648504384232
+        //      }
+        //
+        const orders = this.safeValue (response, 'data', []);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }
+        await this.loadMarkets ();
         const market = this.market (symbol);
         if (limit === undefined) {
             limit = 100;
@@ -1050,34 +1184,101 @@ module.exports = class lbank2 extends Exchange {
             'current_page': 1,
             'page_length': limit,
         };
-        const response = await this.privatePostOrdersInfoNoDeal (this.extend (request, params));
+        const response = await this.privatePostSupplementOrdersInfoNoDeal (this.extend (request, params));
+        //
+        //      {
+        //          "result":true,
+        //          "data":{
+        //              "total":1,
+        //              "page_length":100,
+        //              "orders":[
+        //                  {
+        //                      "cummulativeQuoteQty":0,
+        //                      "symbol":"doge_usdt",
+        //                      "executedQty":0,
+        //                      "orderId":"73878edf-008d-4e4c-8041-df1f1b2cd8bb",
+        //                      "origQty":100,
+        //                      "price":0.05,
+        //                      "origQuoteOrderQty":5,
+        //                      "updateTime":1648501762000,
+        //                      "time":1648501762353,
+        //                      "type":"buy",
+        //                      "status":0
+        //                  }, ...
+        //             ],
+        //             "current_page":1
+        //         },
+        //         "error_code":0,
+        //         "ts":1648506110196
+        //     }
+        //
         const result = this.safeValue (response, 'data', {});
         const orders = this.safeValue (result, 'orders', []);
-        const openOrders = this.parseOrders (orders);
-        return this.filterBySymbolSinceLimit (openOrders, market['symbol'], since, limit);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
+        await this.loadMarkets ();
+        const clientOrderId = this.safeString2 (params, 'origClientOrderId', 'clientOrderId');
+        params = this.omit (params, [ 'origClientOrderId', 'clientOrderId' ]);
         const market = this.market (symbol);
-        const clientOrderId = this.safeString2 (params, 'customer_id', 'clientOrderId');
-        params = this.omit (params, [ 'customer_id', 'clientOrderId' ]);
         const request = {
             'symbol': market['id'],
         };
-        let method = undefined;
         if (clientOrderId !== undefined) {
-            method = 'privatePostCancelClientOrders';
-            request['customer_id'] = clientOrderId;
-        } else {
-            method = 'privatePostCancelOrder';
-            request['order_id'] = id;
+            request['origClientOrderId'] = clientOrderId;
         }
-        const response = await this[method] (this.extend (request, params));
-        return response;
+        request['orderId'] = id;
+        const response = await this.privatePostSupplementCancelOrder (this.extend (request, params));
+        //
+        //   {
+        //      "result":true,
+        //      "data":{
+        //          "executedQty":0.0,
+        //          "price":0.05,
+        //          "origQty":100.0,
+        //          "tradeType":"buy",
+        //          "status":0
+        //          },
+        //      "error_code":0,
+        //      "ts":1648501286196
+        //  }
+        const result = this.safeValue (response, 'data', {});
+        return this.parseOrder (result);
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.privatePostSupplementCancelOrderBySymbol (this.extend (request, params));
+        //
+        //      {
+        //          "result":"true",
+        //          "data":[
+        //              {
+        //                  "executedQty":0.00000000000000000000,
+        //                  "orderId":"293ef71b-3e67-4962-af93-aa06990a045f",
+        //                  "price":0.05000000000000000000,
+        //                  "origQty":100.00000000000000000000,
+        //                  "tradeType":"buy",
+        //                  "status":0
+        //              },
+        //          ],
+        //          "error_code":0,
+        //          "ts":1648506641469
+        //      }
+        //
+        const result = this.safeValue (response, 'data', []);
+        return this.parseOrders (result, market);
     }
 
     async fetchDepositAddress (code, params = {}) {
