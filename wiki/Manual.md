@@ -2834,15 +2834,15 @@ Returns
 - [Orders](#orders)
 - [My Trades](#my-trades)
 - [Positions](#positions)
+- [Ledger](#ledger)
 - [Deposit](#deposit)
 - [Withdraw](#withdraw)
 - [Transactions](#transactions)
+- [Transfers](#transfers)
 - [Fees](#fees)
-- [Ledger](#ledger)
 - [Margin](#Margin)
 - [Margin Mode](#margin-mode)
 - [Funding History](#funding-history)
-- [Transfers](#transfers)
 - [Leverage](#leverage)
 
 In order to be able to access your user account, perform algorithmic trading by placing market and limit orders, query balances, deposit and withdraw funds and so on, you need to obtain your API keys for authentication from each exchange you want to trade with. They usually have it available on a separate tab or page within your user account settings. API keys are exchange-specific and cannnot be interchanged under any circumstances.
@@ -4195,7 +4195,96 @@ It is the price at which the `initialMargin + unrealized = collateral = maintena
 (1/price - 1/liquidationPrice) * contracts = maintenanceMargin
 ```
 
+## Ledger
 
+The ledger is simply the history of changes, actions done by the user or operations that altered the user's balance in any way, that is, the history of movements of all funds from/to all accounts of the user which includes 
+
+- deposits and withdrawals (funding)
+- amounts incoming and outcoming in result of a trade or an order
+- trading fees
+- transfers between accounts
+- rebates, cashbacks and other types of events that are subject to accounting.
+
+Data on ledger entries can be retrieved using
+
+- `fetchLedgerEntry ()` for a ledger entry
+- `fetchLedger ( code )` for multiple ledger entries of the same currency
+- `fetchLedger ()` for all ledger entries
+
+```Javascript
+fetchLedgerEntry (id, code = undefined, params = {})
+```
+
+Parameters
+
+- **id** (String) *required* Ledger entry id
+- **code** (String) Unified CCXT currency code, required (e.g. `"USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"type": "deposit"}`)
+
+Returns
+
+- A [ledger entry structure](#ledger-entry-structure)
+
+```JavaScript
+async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {})
+```
+
+Parameters
+
+- **code** (String) Unified CCXT currency code; *required* if fetching all ledger entries for all assets at once is not supported (e.g. `"USDT"`)
+- **since** (Integer) Timestamp (ms) of the earliest time to retrieve withdrawals for (e.g. `1646940314000`)
+- **limit** (Integer) The number of [ledger entry structures](#ledger-entry-structure) to retrieve (e.g. `5`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- An array of [ledger entry structures](#ledger-entry-structure)
+
+### Ledger Entry Structure
+
+```JavaScript
+{
+    'id': 'hqfl-f125f9l2c9',                // string id of the ledger entry, e.g. an order id
+    'direction': 'out',                     // or 'in'
+    'account': '06d4ab58-dfcd-468a',        // string id of the account if any
+    'referenceId': 'bf7a-d4441fb3fd31',     // string id of the trade, transaction, etc...
+    'referenceAccount': '3146-4286-bb71',   // string id of the opposite account (if any)
+    'type': 'trade',                        // string, reference type, see below
+    'currency': 'BTC',                      // string, unified currency code, 'ETH', 'USDT'...
+    'amount': 123.45,                       // absolute number, float (does not include the fee)
+    'timestamp': 1544582941735,             // milliseconds since epoch time in UTC
+    'datetime': "2018-12-12T02:49:01.735Z", // string of timestamp, ISO8601
+    'before': 0,                            // amount of currency on balance before
+    'after': 0,                             // amount of currency on balance after
+    'status': 'ok',                         // 'ok, 'pending', 'canceled'
+    'fee': {                                // object or or undefined
+        'cost': 54.321,                     // absolute number on top of the amount
+        'currency': 'ETH',                  // string, unified currency code, 'ETH', 'USDT'...
+    },
+    'info': { ... },                        // raw ledger entry as is from the exchange
+}
+```
+
+#### Notes on Ledger Entry Structure
+
+The type of the ledger entry is the type of the operation associated with it. If the amount comes due to a sell order, then it is associated with a corresponding trade type ledger entry, and the referenceId will contain associated trade id (if the exchange in question provides it). If the amount comes out due to a withdrawal, then is is associated with a corresponding transaction.
+
+- `trade`
+- `transaction`
+- `fee`
+- `rebate`
+- `cashback`
+- `referral`
+- `transfer`
+- `airdrop`
+- `whatever`
+- ...
+
+The `referenceId` field holds the id of the corresponding event that was registered by adding a new item to the ledger.
+
+The `status` field is there to support for exchanges that include pending and canceled changes in the ledger. The ledger naturally represents the actual changes that have taken place, therefore the status is `'ok'` in most cases.
+
+The ledger entry type can be associated with a regular trade or a funding transaction (deposit or withdrawal) or an internal `transfer` between two accounts of the same user. If the ledger entry is associated with an internal transfer, the `account` field will contain the id of the account that is being altered with the ledger entry in question. The `referenceAccount` field will contain the id of the opposite account the funds are transferred to/from, depending on the `direction` (`'in'` or `'out'`).
 ## Deposit
 
 In order to deposit funds to an exchange you must get an address from the exchange for the currency you want to deposit there. Most of exchanges will create and manage those addresses for the user. Some exchanges will also allow the user to create new addresses for deposits. Some of exchanges require a new deposit address to be created for each new deposit.
@@ -4800,100 +4889,6 @@ Returns
     'info': { ... },
 }
 ```
-
-## Ledger
-
-```UNDER CONSTRUCTION```
-
-The ledger is simply the history of changes, actions done by the user or operations that altered the user's balance in any way, that is, the history of movements of all funds from/to all accounts of the user which includes 
-
-- deposits and withdrawals (funding)
-- amounts incoming and outcoming in result of a trade or an order
-- trading fees
-- transfers between accounts
-- rebates, cashbacks and other types of events that are subject to accounting.
-
-Data on ledger entries can be retrieved using
-
-- `fetchLedgerEntry ()` for a ledger entry
-- `fetchLedger ( code )` for multiple ledger entries of the same currency
-- `fetchLedger ()` for all ledger entries
-
-```Javascript
-fetchLedgerEntry (id, code = undefined, params = {})
-```
-
-Parameters
-
-- **id** (String) *required* Ledger entry id
-- **code** (String) Unified CCXT currency code, required (e.g. `"USDT"`)
-- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"type": "deposit"}`)
-
-Returns
-
-- A [ledger entry structure](#ledger-entry-structure)
-
-```JavaScript
-async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {})
-```
-
-Parameters
-
-- **code** (String) Unified CCXT currency code; *required* if fetching all ledger entries for all assets at once is not supported (e.g. `"USDT"`)
-- **since** (Integer) Timestamp (ms) of the earliest time to retrieve withdrawals for (e.g. `1646940314000`)
-- **limit** (Integer) The number of [ledger entry structures](#ledger-entry-structure) to retrieve (e.g. `5`)
-- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
-
-Returns
-
-- An array of [ledger entry structures](#ledger-entry-structure)
-
-### Ledger Entry Structure
-
-```JavaScript
-{
-    'id': 'hqfl-f125f9l2c9',                // string id of the ledger entry, e.g. an order id
-    'direction': 'out',                     // or 'in'
-    'account': '06d4ab58-dfcd-468a',        // string id of the account if any
-    'referenceId': 'bf7a-d4441fb3fd31',     // string id of the trade, transaction, etc...
-    'referenceAccount': '3146-4286-bb71',   // string id of the opposite account (if any)
-    'type': 'trade',                        // string, reference type, see below
-    'currency': 'BTC',                      // string, unified currency code, 'ETH', 'USDT'...
-    'amount': 123.45,                       // absolute number, float (does not include the fee)
-    'timestamp': 1544582941735,             // milliseconds since epoch time in UTC
-    'datetime': "2018-12-12T02:49:01.735Z", // string of timestamp, ISO8601
-    'before': 0,                            // amount of currency on balance before
-    'after': 0,                             // amount of currency on balance after
-    'status': 'ok',                         // 'ok, 'pending', 'canceled'
-    'fee': {                                // object or or undefined
-        'cost': 54.321,                     // absolute number on top of the amount
-        'currency': 'ETH',                  // string, unified currency code, 'ETH', 'USDT'...
-    },
-    'info': { ... },                        // raw ledger entry as is from the exchange
-}
-```
-
-#### Notes on Ledger Entry Structure
-
-The type of the ledger entry is the type of the operation associated with it. If the amount comes due to a sell order, then it is associated with a corresponding trade type ledger entry, and the referenceId will contain associated trade id (if the exchange in question provides it). If the amount comes out due to a withdrawal, then is is associated with a corresponding transaction.
-
-- `trade`
-- `transaction`
-- `fee`
-- `rebate`
-- `cashback`
-- `referral`
-- `transfer`
-- `airdrop`
-- `whatever`
-- ...
-
-The `referenceId` field holds the id of the corresponding event that was registered by adding a new item to the ledger.
-
-The `status` field is there to support for exchanges that include pending and canceled changes in the ledger. The ledger naturally represents the actual changes that have taken place, therefore the status is `'ok'` in most cases.
-
-The ledger entry type can be associated with a regular trade or a funding transaction (deposit or withdrawal) or an internal `transfer` between two accounts of the same user. If the ledger entry is associated with an internal transfer, the `account` field will contain the id of the account that is being altered with the ledger entry in question. The `referenceAccount` field will contain the id of the opposite account the funds are transferred to/from, depending on the `direction` (`'in'` or `'out'`).
-
 
 ## Margin
 
