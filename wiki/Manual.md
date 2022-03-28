@@ -1876,9 +1876,9 @@ if ($exchange->has['fetchMyTrades']) {
 - [Leverage Tiers](#leverage-tiers)
 - [Funding Rate](#funding-rate)
 - [Funding Rate History](#funding-rate-history)
+- [Positions Risk](#positions-risk)
 - [Borrow Rates](#borrow-rates)
 - [Borrow Rate History](#borrow-rate-history)
-- [Positions Risk](#positions-risk)
 
 ## Order Book
 
@@ -2782,6 +2782,8 @@ Returns
 
 ## Positions Risk
 
+*contract only*
+
 ```Javascript
 fetchPositionsRisk (symbols = undefined, params = {})
 ```
@@ -2841,9 +2843,9 @@ Returns
 - [Fees](#fees)
 - [Margin](#Margin)
 - [Margin Mode](#margin-mode)
+- [Leverage](#leverage)
 - [Positions](#positions)
 - [Funding History](#funding-history)
-- [Leverage](#leverage)
 
 In order to be able to access your user account, perform algorithmic trading by placing market and limit orders, query balances, deposit and withdraw funds and so on, you need to obtain your API keys for authentication from each exchange you want to trade with. They usually have it available on a separate tab or page within your user account settings. API keys are exchange-specific and cannnot be interchanged under any circumstances.
 
@@ -4876,6 +4878,24 @@ e.g.
 { code: -4046, msg: 'No need to change margin type.' }
 ```
 
+## Leverage
+
+*margin and contract only*
+
+```Javascript
+setLeverage (leverage, symbol = undefined, params = {})
+```
+
+Parameters
+
+- **leverage** (Integer) *required* The desired leverage
+- **symbol** (String) Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`) *required* on most exchanges. Is not required when leverage is not specific to a market (e.g. Not required on **FTX** because leverage is set for the account and not per market)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"marginMode": "cross"}`)
+
+Returns
+
+- response from the exchange
+
 ## Contract trading
 
 This can include futures with a set expiry date, perpetual swaps with funding payments, and inverse futures or swaps.
@@ -5097,22 +5117,7 @@ Returns
 }
 ```
 
-## Leverage
-*margin and contract only*
 
-```Javascript
-setLeverage (leverage, symbol = undefined, params = {})
-```
-
-Parameters
-
-- **leverage** (Integer) *required* The desired leverage
-- **symbol** (String) Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`) *required* on most exchanges. Is not required when leverage is not specific to a market (e.g. Not required on **FTX** because leverage is set for the account and not per market)
-- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"marginMode": "cross"}`)
-
-Returns
-
-- response from the exchange
 
 # Error Handling
 
