@@ -1545,42 +1545,6 @@ print(dir(ccxt.hitbtc()))           # Python
 var_dump (new \ccxt\okcoinusd ()); // PHP
 ```
 
-## Accounts
-
-You can get all the accounts associated with a profile by using the `fetchAccounts()` method
-
-```JavaScript
-fetchAccounts (params = {})
-```
-
-### Accounts Structure
-
-The `fetchAccounts()` method will return a structure like shown below:
-
-```JavaScript
-[
-    {       
-        id: "s32kj302lasli3930",
-        type: "main",
-        currency: "USDT",
-        info: { ... }
-    },
-    {
-        id: "20f0sdlri34lf90",
-        type: "margin",
-        currency: "USDT",
-        info: { ... }
-    },
-    {
-        id: "4oidfk40dadeg4328",
-        type: "trade",
-        currency: "BTC",
-        info: { ... }
-    },
-    ...
-]
-```
-
 # Unified API
 
 - [Overriding Unified API Params](#overriding-unified-api-params)
@@ -2865,6 +2829,7 @@ Returns
 - [Authentication](#authentication)
 - [Sign In](#sign-in)
 - [API Keys Setup](#api-keys-setup)
+- [Accounts](#accounts)
 - [Account Balance](#account-balance)
 - [Orders](#orders)
 - [My Trades](#my-trades)
@@ -3134,6 +3099,42 @@ class MyZaif extends \ccxt\zaif {
         return $this->milliseconds ();
     }
 }
+```
+
+## Accounts
+
+You can get all the accounts associated with a profile by using the `fetchAccounts()` method
+
+```JavaScript
+fetchAccounts (params = {})
+```
+
+### Accounts Structure
+
+The `fetchAccounts()` method will return a structure like shown below:
+
+```JavaScript
+[
+    {       
+        id: "s32kj302lasli3930",
+        type: "main",
+        currency: "USDT",
+        info: { ... }
+    },
+    {
+        id: "20f0sdlri34lf90",
+        type: "margin",
+        currency: "USDT",
+        info: { ... }
+    },
+    {
+        id: "4oidfk40dadeg4328",
+        type: "trade",
+        currency: "BTC",
+        info: { ... }
+    },
+    ...
+]
 ```
 
 ## Account Balance
