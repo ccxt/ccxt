@@ -2,7 +2,7 @@
 
 /*  ------------------------------------------------------------------------ */
 
-const { now, sleep } = require ('./time')
+import { now, sleep } from './time'
 
 /*  ------------------------------------------------------------------------ */
 
@@ -72,7 +72,7 @@ function throttle (config) {
     return bound
 }
 
-module.exports = {
+export {
     throttle,
 }
 
