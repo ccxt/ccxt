@@ -576,7 +576,8 @@ module.exports = class kucoin extends ccxt.kucoin {
         };
         let messageHash = topic;
         if (symbol !== undefined) {
-            messageHash = messageHash + ':' + symbol;
+            const market = this.market (symbol);
+            messageHash = messageHash + ':' + market['symbol'];
         }
         const orders = await this.subscribe (negotiation, topic, messageHash, undefined, undefined, this.extend (request, params));
         if (this.newUpdates) {
@@ -605,10 +606,7 @@ module.exports = class kucoin extends ccxt.kucoin {
         const amount = this.safeString (order, 'size');
         const rawType = this.safeString (order, 'type');
         const status = this.parseWsOrderStatus (rawType);
-        let timestamp = this.safeInteger (order, 'ts');
-        if (timestamp !== undefined) {
-            timestamp = parseInt (timestamp / 1000000);
-        }
+        const timestamp = this.safeIntegerProduct (order, 'time', 0.000001);
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
