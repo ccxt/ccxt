@@ -2547,7 +2547,6 @@ Returns
 
 - a [leverage-tiers-structure](#leverage-tiers-structure)
 
-
 ```Javascript
 fetchLeverageTiers(symbols = undefined, params = {})
 ```
@@ -4553,7 +4552,82 @@ Be careful when specifying the `tag` and the `address`. The `tag` is **NOT an ar
 
 **The `network` field is relatively new, it may be `undefined / None / null` or missing entirely in certain cases (with some exchanges), but will be added everywhere eventually. It is still in the process of unification.**
 
+## Transfers
 
+The `transfer` method makes internal transfers of funds between accounts on the same exchange. If an exchange is separated on CCXT into a spot and futures class (e.g. `binanceusdm`, `kucoinfutures`, ...), then the method `transferIn` may be available to transfer funds into the futures account, and the method `transferOut` may be available to transfer funds out of the futures account
+
+```Javascript
+transfer (code, amount, fromAccount, toAccount, params = {})
+```
+
+Parameters
+
+- **code** (String) Unified CCXT currency code (e.g. `"USDT"`)
+- **amount** (Float) The amount of currency to transfer (e.g. `10.5`)
+- **fromAccount** (String) The account to transfer funds from.
+- **toAccount** (String) The account to transfer funds to
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+**Account Types**
+
+Unified values for `fromAccount` and `toAccount` include
+
+- `funding` *For some exchanges `funding` and `spot` are the same account*
+- `spot`
+- `margin`
+- `future`
+
+You can retrieve all the account types by selecting the keys from `exchange.options['accountsByType']
+
+Returns
+
+- A [transfer structure](#transfer-structure)
+
+```Javascript
+transferIn (code, amount, params = {})
+transferOut (code, amount, params = {})
+```
+
+Parameters
+
+- **code** (String) Unified CCXT currency code (e.g. `"USDT"`)
+- **amount** (Float) The amount of currency to transfer (e.g. `10.5`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- A [transfer structure](#transfer-structure)
+
+```Javascript
+fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {})
+```
+
+Parameters
+
+- **code** (String) Unified CCXT currency code (e.g. `"USDT"`)
+- **since** (Integer) Timestamp (ms) of the earliest time to retrieve transfers for (e.g. `1646940314000`)
+- **limit** (Integer) The number of [transfer structures](#transfer-structure) to retrieve (e.g. `5`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- An array of [transfer structures](#transfer-structure)
+
+### Transfer Structure
+
+```JavaScript
+{
+    info: { ... },
+    id: "93920432048",
+    timestamp: 1646764072000,
+    datetime: "2022-03-08T18:27:52.000Z",
+    currency: "USDT",
+    amount: 11.31,
+    fromAccount: "spot",
+    toAccount: "future",
+    status: "ok"
+}
+```
 ## Fees
 
 **This section of the Unified CCXT API is under development.**
@@ -5039,84 +5113,6 @@ Returns
     amount: -0.027722
 }
 ```
-
-## Transfers
-
-The `transfer` method makes internal transfers of funds between accounts on the same exchange. If an exchange is separated on CCXT into a spot and futures class (e.g. `binanceusdm`, `kucoinfutures`, ...), then the method `transferIn` may be available to transfer funds into the futures account, and the method `transferOut` may be available to transfer funds out of the futures account
-
-```Javascript
-transfer (code, amount, fromAccount, toAccount, params = {})
-```
-
-Parameters
-
-- **code** (String) Unified CCXT currency code (e.g. `"USDT"`)
-- **amount** (Float) The amount of currency to transfer (e.g. `10.5`)
-- **fromAccount** (String) The account to transfer funds from.
-- **toAccount** (String) The account to transfer funds to
-- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
-
-**Account Types**
-
-Unified values for `fromAccount` and `toAccount` include
-
-- `funding` *For some exchanges `funding` and `spot` are the same account*
-- `spot`
-- `margin`
-- `future`
-
-You can retrieve all the account types by selecting the keys from `exchange.options['accountsByType']
-
-Returns
-
-- A [transfer structure](#transfer-structure)
-
-```Javascript
-transferIn (code, amount, params = {})
-transferOut (code, amount, params = {})
-```
-
-Parameters
-
-- **code** (String) Unified CCXT currency code (e.g. `"USDT"`)
-- **amount** (Float) The amount of currency to transfer (e.g. `10.5`)
-- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
-
-Returns
-
-- A [transfer structure](#transfer-structure)
-
-```Javascript
-fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {})
-```
-
-Parameters
-
-- **code** (String) Unified CCXT currency code (e.g. `"USDT"`)
-- **since** (Integer) Timestamp (ms) of the earliest time to retrieve transfers for (e.g. `1646940314000`)
-- **limit** (Integer) The number of [transfer structures](#transfer-structure) to retrieve (e.g. `5`)
-- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
-
-Returns
-
-- An array of [transfer structures](#transfer-structure)
-
-### Transfer Structure
-
-```JavaScript
-{
-    info: { ... },
-    id: "93920432048",
-    timestamp: 1646764072000,
-    datetime: "2022-03-08T18:27:52.000Z",
-    currency: "USDT",
-    amount: 11.31,
-    fromAccount: "spot",
-    toAccount: "future",
-    status: "ok"
-}
-```
-
 
 
 # Error Handling
