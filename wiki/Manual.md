@@ -2833,7 +2833,6 @@ Returns
 - [Account Balance](#account-balance)
 - [Orders](#orders)
 - [My Trades](#my-trades)
-- [Positions](#positions)
 - [Ledger](#ledger)
 - [Deposit](#deposit)
 - [Withdraw](#withdraw)
@@ -2842,6 +2841,7 @@ Returns
 - [Fees](#fees)
 - [Margin](#Margin)
 - [Margin Mode](#margin-mode)
+- [Positions](#positions)
 - [Funding History](#funding-history)
 - [Leverage](#leverage)
 
@@ -4787,6 +4787,8 @@ Returns
 ```
 
 ## Margin
+
+*margin and contract only*
 
 To increase or reduce your margin balance (collateral) in an open leveraged position, use `addMargin`  and `reduceMargin` respectively. This is kind of like adjusting the amount of leverage you're using with a position that's already open. 
 
