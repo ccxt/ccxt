@@ -1,17 +1,17 @@
-'use strict'
 
 /*  ------------------------------------------------------------------------ */
 
-const CryptoJS = require ('../../static_dependencies/crypto-js/crypto-js')
-const { capitalize } = require ('./string')
-const { stringToBase64, urlencodeBase64 } = require ('./encode')
-const NodeRSA = require ('./../../static_dependencies/node-rsa/NodeRSA')
-const { binaryToBase58, byteArrayToWordArray } = require ('./encode')
-const elliptic = require ('./../../static_dependencies/elliptic/lib/elliptic')
+import BN from '../../static_dependencies/BN/bn.js'
+import elliptic from './../../static_dependencies/elliptic/lib/elliptic'
+import NodeRSA from './../../static_dependencies/node-rsa/NodeRSA'
+import CryptoJS from '../../static_dependencies/crypto-js/crypto-js'
+
+
+import { capitalize } from './string'
+import { binaryToBase58, byteArrayToWordArray, urlencodeBase64, stringToBase64 } from './encode'
 const EC = elliptic.ec
 const EDDSA = elliptic.eddsa
-const { ArgumentsRequired } = require ('./../errors')
-const BN = require ('../../static_dependencies/BN/bn.js')
+const { ArgumentsRequired, ExchangeError } = require ('./../errors')
 
 /*  ------------------------------------------------------------------------ */
 
@@ -145,7 +145,7 @@ const totp = (secret) => {
 
 /*  ------------------------------------------------------------------------ */
 
-module.exports = {
+export {
     hash,
     hmac,
     jwt,
