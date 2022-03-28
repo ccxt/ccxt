@@ -1,4 +1,3 @@
-'use strict';
 
 /*  ------------------------------------------------------------------------ */
 
@@ -25,7 +24,8 @@ const setTimeout_safe = (done, ms, setTimeout = setTimeout_original /* overridea
 
     // avoid MAX_INT issue https://stackoverflow.com/questions/60474110
     if (ms >= 2147483647) {
-        throw new Exception('setTimeout() function was called with unrealistic value of ' + ms.toString ())
+        // @ts-expect-error: check thiss
+        throw new Exception ('setTimeout() function was called with unrealistic value of ' + ms.toString ())
     }
     
     // The built-in setTimeout function can fire its callback earlier than specified, so we
@@ -61,6 +61,7 @@ class TimedOut extends Error {
         const message = 'timed out'
         super (message)
         this.constructor = TimedOut
+        // @ts-expect-error
         this.__proto__   = TimedOut.prototype
         this.message     = message
     }
@@ -137,8 +138,8 @@ const mdy = (timestamp, infix = '-') => {
     infix = infix || ''
     const date = new Date (timestamp)
     const Y = date.getUTCFullYear ().toString ()
-    let m = date.getUTCMonth () + 1
-    let d = date.getUTCDate ()
+    let m = date.getUTCMonth () + 1 
+    let d = date.getUTCDate () 
     m = m < 10 ? ('0' + m) : m.toString ()
     d = d < 10 ? ('0' + d) : d.toString ()
     return m + infix + d + infix + Y
@@ -150,8 +151,8 @@ const ymd = (timestamp, infix, fullYear = true) => {
     const intYear = date.getUTCFullYear ()
     const year = fullYear ? intYear : (intYear - 2000)
     const Y = year.toString ()
-    let m = date.getUTCMonth () + 1
-    let d = date.getUTCDate ()
+    let m = date.getUTCMonth () + 1 
+    let d = date.getUTCDate () 
     m = m < 10 ? ('0' + m) : m.toString ()
     d = d < 10 ? ('0' + d) : d.toString ()
     return Y + infix + m + infix + d
@@ -163,11 +164,11 @@ const yyyymmdd = (timestamp, infix = '-') => ymd (timestamp, infix, true)
 const ymdhms = (timestamp, infix = ' ') => {
     const date = new Date (timestamp)
     const Y = date.getUTCFullYear ()
-    let m = date.getUTCMonth () + 1
-    let d = date.getUTCDate ()
-    let H = date.getUTCHours ()
-    let M = date.getUTCMinutes ()
-    let S = date.getUTCSeconds ()
+    let m = date.getUTCMonth () + 1 
+    let d = date.getUTCDate ()  
+    let H = date.getUTCHours ()  
+    let M = date.getUTCMinutes ()  
+    let S = date.getUTCSeconds ()  
     m = m < 10 ? ('0' + m) : m
     d = d < 10 ? ('0' + d) : d
     H = H < 10 ? ('0' + H) : H
@@ -176,7 +177,21 @@ const ymdhms = (timestamp, infix = ' ') => {
     return Y + '-' + m + '-' + d + infix + H + ':' + M + ':' + S
 }
 
-module.exports = {
+const sleep = (ms) => new Promise ((resolve) => setTimeout_safe (resolve, ms))
+
+const timeout = async (ms, promise) => {
+
+    let clear = () => {}
+    const expires = new Promise ((resolve) => (clear = setTimeout_safe (resolve, ms)))
+
+    try {
+        return await Promise.race ([promise, expires.then (() => { throw new TimedOut () })])
+    } finally {
+        clear () // fixes https://github.com/ccxt/ccxt/issues/749
+    }
+}
+
+export {
     now
     , microseconds
     , milliseconds
@@ -192,19 +207,9 @@ module.exports = {
     , yyyymmdd
     , ymdhms
     , setTimeout_safe
-    , sleep: (ms) => new Promise ((resolve) => setTimeout_safe (resolve, ms))
+    , sleep
     , TimedOut
-    , timeout: async (ms, promise) => {
-
-        let clear = () => {}
-        const expires = new Promise ((resolve) => (clear = setTimeout_safe (resolve, ms)))
-
-        try {
-            return await Promise.race ([promise, expires.then (() => { throw new TimedOut () })])
-        } finally {
-            clear () // fixes https://github.com/ccxt/ccxt/issues/749
-        }
-    }
+    , timeout
 }
 
 /*  ------------------------------------------------------------------------ */
