@@ -1,5 +1,3 @@
-"use strict";
-
 /*  ------------------------------------------------------------------------ */
 
 const isNumber          = Number.isFinite
@@ -24,8 +22,27 @@ const asFloat   = x => ((isNumber (x) || isString (x)) ? parseFloat (x)     : Na
 
 /*  .............................................   */
 
-module.exports = {
+const safeFloat =   (o, k,          $default, n =   asFloat (prop (o, k))) => (isNumber (n)          ? n                         : $default)
+, safeInteger =     (o, k,          $default, n = asInteger (prop (o, k))) => (isNumber (n)          ? n                         : $default)
+, safeIntegerProduct = (o, k, $factor, $default, n = asInteger (prop (o, k))) => (isNumber (n)          ? parseInt (n * $factor)    : $default)
+, safeTimestamp =      (o, k,          $default, n =   asFloat (prop (o, k))) => (isNumber (n)          ? parseInt (n * 1000)       : $default)
+, safeValue =         (o, k,          $default, x =            prop (o, k))  => (hasProps (x)          ? x                         : $default)
+, safeString =         (o, k,          $default, x =            prop (o, k))  => (isStringCoercible (x) ? String (x)                : $default)
+, safeStringLower =    (o, k,          $default, x =            prop (o, k))  => (isStringCoercible (x) ? String (x).toLowerCase () : $default)
+, safeStringUpper=    (o, k,          $default, x =            prop (o, k))  => (isStringCoercible (x) ? String (x).toUpperCase () : $default)
 
+/*  .............................................   */
+
+const safeFloat2 =          (o, k1, k2,          $default, n =   asFloat (prop2 (o, k1, k2))) => (isNumber (n)          ? n                         : $default)
+, safeInteger2 =     (o, k1, k2,          $default, n = asInteger (prop2 (o, k1, k2))) => (isNumber (n)          ? n                         : $default)
+, safeIntegerProduct2 = (o, k1, k2, $factor, $default, n = asInteger (prop2 (o, k1, k2))) => (isNumber (n)          ? parseInt (n * $factor)    : $default)
+, safeTimestamp2 =      (o, k1, k2,          $default, n =   asFloat (prop2 (o, k1, k2))) => (isNumber (n)          ? parseInt (n * 1000)       : $default)
+, safeValue2 =          (o, k1, k2,          $default, x =            prop2 (o, k1, k2))  => (hasProps (x)          ? x                         : $default)
+, safeString2 =         (o, k1, k2,          $default, x =            prop2 (o, k1, k2))  => (isStringCoercible (x) ? String (x)                : $default)
+, safeStringLower2 =    (o, k1, k2,          $default, x =            prop2 (o, k1, k2))  => (isStringCoercible (x) ? String (x).toLowerCase () : $default)
+, safeStringUpper2 =    (o, k1, k2,          $default, x =            prop2 (o, k1, k2))  => (isStringCoercible (x) ? String (x).toUpperCase () : $default)
+
+export {
     isNumber
     , isInteger
     , isArray
@@ -40,27 +57,26 @@ module.exports = {
     , asFloat
     , asInteger
 
-    , safeFloat:          (o, k,          $default, n =   asFloat (prop (o, k))) => (isNumber (n)          ? n                         : $default)
-    , safeInteger:        (o, k,          $default, n = asInteger (prop (o, k))) => (isNumber (n)          ? n                         : $default)
-    , safeIntegerProduct: (o, k, $factor, $default, n = asInteger (prop (o, k))) => (isNumber (n)          ? parseInt (n * $factor)    : $default)
-    , safeTimestamp:      (o, k,          $default, n =   asFloat (prop (o, k))) => (isNumber (n)          ? parseInt (n * 1000)       : $default)
-    , safeValue:          (o, k,          $default, x =            prop (o, k))  => (hasProps (x)          ? x                         : $default)
-    , safeString:         (o, k,          $default, x =            prop (o, k))  => (isStringCoercible (x) ? String (x)                : $default)
-    , safeStringLower:    (o, k,          $default, x =            prop (o, k))  => (isStringCoercible (x) ? String (x).toLowerCase () : $default)
-    , safeStringUpper:    (o, k,          $default, x =            prop (o, k))  => (isStringCoercible (x) ? String (x).toUpperCase () : $default)
+    , safeFloat
+    , safeInteger
+    , safeIntegerProduct
+    , safeTimestamp
+    , safeValue
+    , safeString
+    , safeStringLower
+    , safeStringUpper
 
     // not using safeFloats with an array argument as we're trying to save some cycles here
     // we're not using safeFloat3 either because those cases are too rare to deserve their own optimization
 
-    , safeFloat2:          (o, k1, k2,          $default, n =   asFloat (prop2 (o, k1, k2))) => (isNumber (n)          ? n                         : $default)
-    , safeInteger2:        (o, k1, k2,          $default, n = asInteger (prop2 (o, k1, k2))) => (isNumber (n)          ? n                         : $default)
-    , safeIntegerProduct2: (o, k1, k2, $factor, $default, n = asInteger (prop2 (o, k1, k2))) => (isNumber (n)          ? parseInt (n * $factor)    : $default)
-    , safeTimestamp2:      (o, k1, k2,          $default, n =   asFloat (prop2 (o, k1, k2))) => (isNumber (n)          ? parseInt (n * 1000)       : $default)
-    , safeValue2:          (o, k1, k2,          $default, x =            prop2 (o, k1, k2))  => (hasProps (x)          ? x                         : $default)
-    , safeString2:         (o, k1, k2,          $default, x =            prop2 (o, k1, k2))  => (isStringCoercible (x) ? String (x)                : $default)
-    , safeStringLower2:    (o, k1, k2,          $default, x =            prop2 (o, k1, k2))  => (isStringCoercible (x) ? String (x).toLowerCase () : $default)
-    , safeStringUpper2:    (o, k1, k2,          $default, x =            prop2 (o, k1, k2))  => (isStringCoercible (x) ? String (x).toUpperCase () : $default)
-
+    , safeFloat2
+    , safeInteger2
+    , safeIntegerProduct2
+    , safeTimestamp2
+    , safeValue2
+    , safeString2
+    , safeStringLower2
+    , safeStringUpper2
 }
 
 /*  ------------------------------------------------------------------------ */
