@@ -1,6 +1,6 @@
 {
   "name": "ccxt.pro",
-  "version": "1.0.45",
+  "version": "1.0.47",
   "description": "A professional tool for algorithmic cryptocurrency trading",
   "main": "./ccxt.pro.js",
   "unpkg": "dist/ccxt.pro.browser.js",
@@ -497,6 +497,7 @@
     "okx.com",
     "OKX",
     "ascendex.com",
-    "AscendEX"
+    "AscendEX",
+    "Crypto.com"
   ]
 }

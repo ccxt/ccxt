@@ -1,4 +1,5 @@
 {
+    "aax": { "skip": true },
     "binancecoinm": { "skip": true },
     "bitcoincom": { "skip": true },
     "bitmart": { "skip": true },
