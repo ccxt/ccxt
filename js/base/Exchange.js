@@ -1,9 +1,7 @@
-"use strict";
-
 // ----------------------------------------------------------------------------
 
-const functions = require ('./functions')
 
+import * as functions from './functions'
 const {
     isNode
     , keys
@@ -29,9 +27,82 @@ const {
     , buildOHLCVC
     , decimalToPrecision
     , defaultFetch
+    , safeValue
+    , safeValue2
+    , safeString
+    , safeString2
+    , seconds
+    , milliseconds
+    , binaryToBase16
+    , numberToBE
+    , base16ToBinary
+    , stringToBinary
+    , iso8601
+    , omit
+    , isJsonEncodedObject
+    , safeInteger
+    , sum
+    , omitZero
+    , implodeParams
+    , extractParams
+    , json
+    , vwap
+    , merge
+    , binaryConcat
+    , hash
+    , ecdsa
+    , totp
+    , arrayConcat
+    , encode
+    , urlencode
+    , hmac
+    , numberToString
+    , parseTimeframe
+    , safeInteger2
+    , safeStringLower
+    , parse8601
+    , yyyymmdd
+    , safeStringUpper
+    , safeTimestamp
+    , binaryConcatArray
+    , uuidv1
+    , numberToLE
+    , ymdhms
+    , stringToBase64
+    , decode
+    , uuid22
+    , safeIntegerProduct2
+    , safeIntegerProduct
+    , safeStringLower2
+    , yymmdd
+    , base58ToBinary
+    , eddsa
+    , safeTimestamp2
+    , rawencode
+    , keysort
+    , inArray
+    , isEmpty
+    , ordered
+    , jwt
+    , filterBy
+    , uuid16
+    , safeFloat
+    , base64ToBinary
+    , safeStringUpper2
+    , urlencodeWithArrayRepeat
+    , microseconds
+    , binaryToBase64
+    , rsa
+    , strip
+    , TRUNCATE
+    , ROUND
+    , DECIMAL_PLACES
+    , NO_PADDING
 } = functions
 
-const { // eslint-disable-line object-curly-newline
+import exceptions from "./errors"
+
+ const { // eslint-disable-line object-curly-newline
     ExchangeError
     , BadSymbol
     , InvalidAddress
@@ -40,16 +111,13 @@ const { // eslint-disable-line object-curly-newline
     , DDoSProtection
     , RequestTimeout
     , ExchangeNotAvailable
-    , RateLimitExceeded } = require ('./errors')
+    , RateLimitExceeded } = exceptions
 
-const { TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING } = functions.precisionConstants
-
-const BN = require ('../static_dependencies/BN/bn')
-const Precise = require ('./Precise')
-
+import BN from '../static_dependencies/BN/bn'
+import { Precise } from './Precise'
 // ----------------------------------------------------------------------------
 
-module.exports = class Exchange {
+export class Exchange {
 
     describe () {
         return {
