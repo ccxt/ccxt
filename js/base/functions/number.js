@@ -148,12 +148,25 @@ const decimalToPrecision = (x, roundingMode
         const remainder = xP.mod (numPrecisionDigitsP)
         if (remainder.integer != Bzero) {
             if (roundingMode === ROUND) {
-                xP = xP.div (numPrecisionDigitsP).round ().mul (numPrecisionDigitsP)
+				const doubleRemainder = remainder.add(remainder);
+                if (xP.integer >= Bzero) {
+					if (doubleRemainder.ge (numPrecisionDigitsP)) {
+	                    xP = xP.add (numPrecisionDigitsP.sub (remainder))
+					} else {
+	                    xP = xP.sub (remainder)
+					}
+                } else {
+					if (doubleRemainder.gt (numPrecisionDigitsP)) {
+	                    xP = xP.add (numPrecisionDigitsP.sub (remainder))
+					} else {
+	                    xP = xP.sub (remainder)
+					}
+                }
             } else if (roundingMode === TRUNCATE) {
                 if (xP.integer >= Bzero) {
-                    xP = xP.div (numPrecisionDigitsP).floor ().mul (numPrecisionDigitsP)
+                    xP = xP.sub (remainder)
                 } else {
-                    xP = xP.div (numPrecisionDigitsP).ceil ().mul (numPrecisionDigitsP)
+                    xP = xP.add (numPrecisionDigitsP.sub(remainder))
                 }
             }
         }
