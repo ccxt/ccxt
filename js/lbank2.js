@@ -34,7 +34,7 @@ module.exports = class lbank2 extends Exchange {
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
-                'fetchClosedOrders': true,
+                'fetchClosedOrders': false,
                 'fetchFundingFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -46,6 +46,7 @@ module.exports = class lbank2 extends Exchange {
                 'fetchLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -453,26 +454,81 @@ module.exports = class lbank2 extends Exchange {
         //          "isBuyerMaker":false
         //      }
         //
-        const timestamp = this.safeInteger2 (trade, 'date_ms', 'time');
-        const amountString = this.safeString2 (trade, 'amount', 'qty');
-        const priceString = this.safeString (trade, 'price');
-        const costString = this.safeString (trade, 'quoteQty');
-        const side = this.safeString (trade, 'type');
-        const id = this.safeString2 (trade, 'tid', 'id');
+        // fetchMyTrades (private)
+        //
+        //      {
+        //          "orderUuid":"38b4e7a4-14f6-45fd-aba1-1a37024124a0",
+        //          "tradeFeeRate":0.0010000000,
+        //          "dealTime":1648500944496,
+        //          "dealQuantity":30.00000000000000000000,
+        //          "tradeFee":0.00453300000000000000,
+        //          "txUuid":"11f3850cc6214ea3b495adad3a032794",
+        //          "dealPrice":0.15111300000000000000,
+        //          "dealVolumePrice":4.53339000000000000000,
+        //          "tradeType":"sell_market"
+        //      }
+        //
+        let timestamp = this.safeInteger2 (trade, 'date_ms', 'time');
+        if (timestamp === undefined) {
+            timestamp = this.safeInteger (trade, 'dealTime');
+        }
+        let amountString = this.safeString2 (trade, 'amount', 'qty');
+        if (amountString === undefined) {
+            amountString = this.safeString (trade, 'dealQuantity');
+        }
+        let priceString = this.safeString (trade, 'price');
+        if (priceString === undefined) {
+            priceString = this.safeString (trade, 'dealPrice');
+        }
+        let costString = this.safeString (trade, 'quoteQty');
+        if (costString === undefined) {
+            costString = this.safeString (trade, 'dealVolumePrice');
+        }
+        let side = this.safeString2 (trade, 'tradeType', 'type');
+        let type = undefined;
+        let takerOrMaker = undefined;
+        if (side !== undefined) {
+            const parts = side.split ('_');
+            side = parts[0];
+            const typePart = parts[1];
+            type = 'limit';
+            takerOrMaker = 'taker';
+            if (typePart !== undefined) {
+                if (typePart === 'market') {
+                    type = 'market';
+                } else if (typePart === 'maker') {
+                    takerOrMaker = 'maker';
+                }
+            }
+        }
+        let id = this.safeString2 (trade, 'tid', 'id');
+        if (id === undefined) {
+            id = this.safeString (trade, 'txUuid');
+        }
+        const order = this.safeString (trade, 'orderUuid');
         const symbol = this.safeSymbol (undefined, market);
+        let fee = undefined;
+        const feeCost = this.safeString (trade, 'tradeFee');
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': undefined,
+                'rate': this.safeString (trade, 'tradeFeeRate'),
+            };
+        }
         return this.safeTrade ({
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'id': id,
-            'order': undefined,
-            'type': undefined,
-            'takerOrMaker': undefined,
+            'order': order,
+            'type': type,
+            'takerOrMaker': takerOrMaker,
             'side': side,
             'price': priceString,
             'amount': amountString,
             'cost': costString,
-            'fee': undefined,
+            'fee': fee,
             'info': trade,
         }, market);
     }
@@ -919,21 +975,6 @@ module.exports = class lbank2 extends Exchange {
         //          "status":-1
         //      }
         //
-        // fetchClosedOrders (private)
-        //
-        //      {
-        //          "symbol":"doge_usdt",
-        //          "quoteQty":4.53339000000000000000,
-        //          "orderId":"38b4e7a4-14f6-45fd-aba1-1a37024124a0",
-        //          "price":0.15111300000000000000,
-        //          "qty":30.00000000000000000000,
-        //          "commission":0.00453300000000000000,
-        //          "id":"11f3850cc6214ea3b495adad3a032794",
-        //          "time":1648500944496,
-        //          "isMaker":false,
-        //          "isBuyer":false
-        //      }
-        //
         //
         // cancelOrder (private)
         //
@@ -1075,6 +1116,54 @@ module.exports = class lbank2 extends Exchange {
         }
     }
 
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades () requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        since = this.safeValue (params, 'start_date', since);
+        params = this.omit (params, 'start_date');
+        const request = {
+            'symbol': market['id'],
+            // 'start_date': String Start time yyyy-mm-dd, the maximum is today, the default is yesterday
+            // 'end_date': String Finish time yyyy-mm-dd, the maximum is today, the default is today
+            // 'The start': and end date of the query window is up to 2 days
+            // 'from': String Initial transaction number inquiring
+            // 'direct': String inquire direction,The default is the 'next' which is the positive sequence of dealing time，the 'prev' is inverted order of dealing time
+            // 'size': String Query the number of defaults to 100
+        };
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        if (since !== undefined) {
+            request['start_date'] = this.ymd (since, '-'); // max query 2 days ago
+        }
+        const response = await this.privatePostTransactionHistory (this.extend (request, params));
+        //
+        //      {
+        //          "result":true,
+        //          "data":[
+        //              {
+        //                  "orderUuid":"38b4e7a4-14f6-45fd-aba1-1a37024124a0",
+        //                  "tradeFeeRate":0.0010000000,
+        //                  "dealTime":1648500944496,
+        //                  "dealQuantity":30.00000000000000000000,
+        //                  "tradeFee":0.00453300000000000000,
+        //                  "txUuid":"11f3850cc6214ea3b495adad3a032794",
+        //                  "dealPrice":0.15111300000000000000,
+        //                  "dealVolumePrice":4.53339000000000000000,
+        //                  "tradeType":"sell_market"
+        //              }
+        //          ],
+        //          "error_code":0,
+        //          "ts":1648509742164
+        //      }
+        //
+        const trades = this.safeValue (response, 'data', []);
+        return this.parseTrades (trades, market, since, limit);
+    }
+
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         // default query is for cancelled and completely filled orders
         // does not return open orders unless specified explicitly
@@ -1122,51 +1211,6 @@ module.exports = class lbank2 extends Exchange {
         //
         const result = this.safeValue (response, 'data', {});
         const orders = this.safeValue (result, 'orders', []);
-        return this.parseOrders (orders, market, since, limit);
-    }
-
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        since = this.safeValue (params, 'startTime', since);
-        params = this.omit (params, 'startTime');
-        const request = {
-            'symbol': market['id'],
-            // 'endTime': string No End time yyyy-mm-dd, the maximum value is today, the default is today The query window for the start and end time is up to 2 days
-            // 'fromId': string No The starting transaction ID of the query
-        };
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        if (since !== undefined) {
-            request['startTime'] = this.ymd (since, '-'); // max query 2 days ago
-        }
-        const response = await this.privatePostSupplementTransactionHistory (this.extend (request, params));
-        //
-        //      {
-        //          "result":true,
-        //          "data":[
-        //              {
-        //                  "symbol":"doge_usdt",
-        //                  "quoteQty":4.53339000000000000000,
-        //                  "orderId":"38b4e7a4-14f6-45fd-aba1-1a37024124a0",
-        //                  "price":0.15111300000000000000,
-        //                  "qty":30.00000000000000000000,
-        //                  "commission":0.00453300000000000000,
-        //                  "id":"11f3850cc6214ea3b495adad3a032794",
-        //                  "time":1648500944496,
-        //                  "isMaker":false,
-        //                  "isBuyer":false
-        //                  }, ...
-        //              ],
-        //          "error_code":0,
-        //          "ts":1648504384232
-        //      }
-        //
-        const orders = this.safeValue (response, 'data', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
