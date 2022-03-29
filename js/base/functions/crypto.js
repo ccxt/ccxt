@@ -11,8 +11,8 @@ import { capitalize } from './string.js'
 import { binaryToBase58, byteArrayToWordArray, urlencodeBase64, stringToBase64 } from './encode.js'
 const EC = elliptic.ec
 const EDDSA = elliptic.eddsa
-import errors from './../errors.js'
-const { ArgumentsRequired, ExchangeError } = errors
+// import errors from './../errors.js'
+import { ArgumentsRequired, ExchangeError } from './../errors.js'
 /*  ------------------------------------------------------------------------ */
 
 const hash = (request, hash = 'md5', digest = 'hex') => {

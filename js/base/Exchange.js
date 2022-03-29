@@ -100,9 +100,9 @@ const {
     , NO_PADDING
 } = functions
 
-import exceptions from "./errors.js"
+// import exceptions from "./errors.js"
 
- const { // eslint-disable-line object-curly-newline
+ import { // eslint-disable-line object-curly-newline
     ExchangeError
     , BadSymbol
     , InvalidAddress
@@ -111,7 +111,7 @@ import exceptions from "./errors.js"
     , DDoSProtection
     , RequestTimeout
     , ExchangeNotAvailable
-    , RateLimitExceeded } = exceptions
+    , RateLimitExceeded } from "./errors.js"
 
 import BN from '../static_dependencies/BN/bn.cjs'
 import { Precise } from './Precise.js'

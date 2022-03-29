@@ -1,8 +1,8 @@
 
 import { ROUND_UP, ROUND_DOWN } from './number.js'
 // const { NotSupported } = require ('../errors')
-import exceptions from '../errors.js'
-const { NotSupported } = exceptions
+// import exceptions from '../errors.js'
+import { NotSupported } from '../errors.js'
 
 //-------------------------------------------------------------------------
 // converts timeframe to seconds

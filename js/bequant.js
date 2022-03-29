@@ -1,7 +1,7 @@
 
 // ---------------------------------------------------------------------------
 
-const hitbtc = require ('./hitbtc');
+import hitbtc from './hitbtc.js';
 // ---------------------------------------------------------------------------
 
 export default class bequant extends hitbtc {
