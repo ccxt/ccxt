@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.77.29'
+__version__ = '1.77.39'
 
 # -----------------------------------------------------------------------------
 
@@ -2769,7 +2769,7 @@ class Exchange(object):
             if isinstance(method_options, str):
                 method_type = method_options
             else:
-                method_type = self.safe_string_2(method_options, 'defaultType', 'type')
+                method_type = self.safe_string_2(method_options, 'defaultType', 'type', method_type)
         market_type = method_type if market is None else market['type']
         type = self.safe_string_2(params, 'defaultType', 'type', market_type)
         params = self.omit(params, ['defaultType', 'type'])
