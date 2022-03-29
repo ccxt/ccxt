@@ -3107,7 +3107,7 @@ class Exchange {
         if (($type !== 'integer') && ($type !== 'double')) {
             return $s;
         }
-        if (strpos($x, 'E') === false) {
+        if (strpos($s, 'E') === false) {
             return $s;
         }
         $splitted = explode('E', $s);
