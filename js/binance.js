@@ -79,7 +79,6 @@ module.exports = class binance extends Exchange {
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
                 'fetchPartiallyFilledOrders': undefined,
-                'fetchPosition': 'emulated',
                 'fetchPositions': true,
                 'fetchPositionsRisk': true,
                 'fetchPremiumIndexOHLCV': false,

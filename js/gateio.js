@@ -97,7 +97,6 @@ module.exports = class gateio extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrdersByStatus': true,
-                'fetchPosition': 'emulated',
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,

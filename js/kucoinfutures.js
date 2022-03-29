@@ -63,7 +63,6 @@ module.exports = class kucoinfutures extends kucoin {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrdersByStatus': true,
-                'fetchPosition': 'emulated',
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
