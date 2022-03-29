@@ -1378,11 +1378,27 @@ module.exports = class ftx extends Exchange {
         //         "type":"limit"
         //     }
         //
+        // fetchOrder (condition-order)
+        //
+        //     {
+        //         "time": "2022-03-29T04:54:04.390665+00:00",
+        //         "orderId": 132144259673,  //this is not the same id used in fetchOrder, instead reference id
+        //         "error": null,
+        //         "orderSize": 0.1234,
+        //         "filledSize": 0.1234
+        //     }
+        //
         const id = this.safeString (order, 'id');
-        const timestamp = this.parse8601 (this.safeString (order, 'createdAt'));
+        const timestamp = this.parse8601 (this.safeString2 (order, 'createdAt', 'time'));
         let status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const amount = this.safeString (order, 'size');
+        const amount = this.safeString2 (order, 'size', 'orderSize');
         const filled = this.safeString (order, 'filledSize');
+        // if conditional order
+        if ('trigger_order_flag' in order) {
+            order = this.omit (order, 'trigger_order_flag');
+            const hasReferenceOrderId = 'orderId' in order;
+            status = (hasReferenceOrderId && Precise.stringEq (amount, filled)) ? 'closed' : 'open';
+        }
         let remaining = this.safeString (order, 'remainingSize');
         if (Precise.stringEquals (remaining, '0')) {
             remaining = Precise.stringSub (amount, filled);
@@ -1697,7 +1713,9 @@ module.exports = class ftx extends Exchange {
         await this.loadMarkets ();
         const request = {};
         const clientOrderId = this.safeValue2 (params, 'client_order_id', 'clientOrderId');
-        let method = 'privateGetOrdersOrderId';
+        const options = this.safeValue (this.options, 'fetchOrder', {});
+        const defaultMethod = this.safeString (options, 'method', 'privateGetOrdersOrderId');
+        let method = this.safeString (params, 'method', defaultMethod);
         if (clientOrderId === undefined) {
             request['order_id'] = id;
         } else {
@@ -1705,32 +1723,69 @@ module.exports = class ftx extends Exchange {
             params = this.omit (params, [ 'client_order_id', 'clientOrderId' ]);
             method = 'privateGetOrdersByClientIdClientOrderId';
         }
-        const response = await this[method] (this.extend (request, params));
-        //
-        //     {
-        //         "success": true,
-        //         "result": {
-        //             "createdAt": "2019-03-05T09:56:55.728933+00:00",
-        //             "filledSize": 10,
-        //             "future": "XRP-PERP",
-        //             "id": 9596912,
-        //             "market": "XRP-PERP",
-        //             "price": 0.306525,
-        //             "avgFillPrice": 0.306526,
-        //             "remainingSize": 31421,
-        //             "side": "sell",
-        //             "size": 31431,
-        //             "status": "open",
-        //             "type": "limit",
-        //             "reduceOnly": false,
-        //             "ioc": false,
-        //             "postOnly": false,
-        //             "clientId": null
-        //         }
-        //     }
-        //
-        const result = this.safeValue (response, 'result', {});
-        return this.parseOrder (result);
+        const type = this.safeValue (params, 'type');
+        // Note, the below types use non-standard endpoints, look through the implementation to understand better.
+        if ((type === 'stop') || (type === 'trailingStop') || (type === 'takeProfit')) {
+            if (method === 'privateGetConditionalOrdersConditionalOrderIdTriggers') {
+                request['conditional_order_id'] = id;
+                const response = await this[method] (this.extend (request, params));
+                // Note: if endpoint retuns non-empy "result" property, then it means order had fill (and returns the order reference ID, which is not same order-id as provided id for `fetchOrder` )
+                //
+                // {
+                //     "success": true,
+                //     "result": [
+                //         {
+                //             "time": "2022-03-29T04:54:04.390665+00:00",
+                //             "orderId": 132144259673,
+                //             "error": null,
+                //             "orderSize": 0.1234,
+                //             "filledSize": 0.1234
+                //         }
+                //     ]
+                // }
+                //
+                const result = this.safeValue (response, 'result');
+                const order = this.safeValue (result, 0, {});
+                // It seems one order is being retrieved from above endpoint, so
+                order['trigger_order_flag'] = true;
+                return this.extend (this.parseOrder (order), { 'id': id });
+            } else {
+                if (symbol === undefined) {
+                    throw new ArgumentsRequired (this.id + ' fetchOrder() for conditional orders require symbol argument');
+                }
+                request['market'] = this.market (symbol);
+                const response = await this.fetchOrders (symbol, undefined, undefined, this.extend (request, params));
+                const parsedOrders = this.filterBy (response, 'id', id);
+                return this.safeValue (parsedOrders, 0);
+            }
+        } else {
+            const response = await this[method] (this.extend (request, params));
+            //
+            //     {
+            //         "success": true,
+            //         "result": {
+            //             "createdAt": "2019-03-05T09:56:55.728933+00:00",
+            //             "filledSize": 10,
+            //             "future": "XRP-PERP",
+            //             "id": 9596912,
+            //             "market": "XRP-PERP",
+            //             "price": 0.306525,
+            //             "avgFillPrice": 0.306526,
+            //             "remainingSize": 31421,
+            //             "side": "sell",
+            //             "size": 31431,
+            //             "status": "open",
+            //             "type": "limit",
+            //             "reduceOnly": false,
+            //             "ioc": false,
+            //             "postOnly": false,
+            //             "clientId": null
+            //         }
+            //     }
+            //
+            const result = this.safeValue (response, 'result', {});
+            return this.parseOrder (result);
+        }
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
