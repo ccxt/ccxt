@@ -336,18 +336,27 @@ class zaif extends Exchange {
     }
 
     public function parse_trade($trade, $market = null) {
+        //
+        // fetchTrades (public)
+        //
+        //      {
+        //          "date" => 1648559414,
+        //          "price" => 5880375.0,
+        //          "amount" => 0.017,
+        //          "tid" => 176126557,
+        //          "currency_pair" => "btc_jpy",
+        //          "trade_type" => "ask"
+        //      }
+        //
         $side = $this->safe_string($trade, 'trade_type');
         $side = ($side === 'bid') ? 'buy' : 'sell';
         $timestamp = $this->safe_timestamp($trade, 'date');
         $id = $this->safe_string_2($trade, 'id', 'tid');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $marketId = $this->safe_string($trade, 'currency_pair');
         $symbol = $this->safe_symbol($marketId, $market, '_');
-        return array(
+        return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -357,11 +366,11 @@ class zaif extends Exchange {
             'side' => $side,
             'order' => null,
             'takerOrMaker' => null,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'fee' => null,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -371,6 +380,18 @@ class zaif extends Exchange {
             'pair' => $market['id'],
         );
         $response = yield $this->publicGetTradesPair (array_merge($request, $params));
+        //
+        //      array(
+        //          array(
+        //              "date" => 1648559414,
+        //              "price" => 5880375.0,
+        //              "amount" => 0.017,
+        //              "tid" => 176126557,
+        //              "currency_pair" => "btc_jpy",
+        //              "trade_type" => "ask"
+        //          ), ...
+        //      )
+        //
         $numTrades = is_array($response) ? count($response) : 0;
         if ($numTrades === 1) {
             $firstTrade = $response[0];
