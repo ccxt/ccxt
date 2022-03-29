@@ -1711,6 +1711,7 @@ module.exports = class ftx extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
+        const market = (symbol !== undefined) ? this.market (symbol) : undefined;
         const request = {};
         const clientOrderId = this.safeValue2 (params, 'client_order_id', 'clientOrderId');
         const options = this.safeValue (this.options, 'fetchOrder', {});
@@ -1726,47 +1727,44 @@ module.exports = class ftx extends Exchange {
         const type = this.safeValue (params, 'type');
         // Note, the below types use non-standard endpoints, look through the implementation to understand better (It might better to use `fetchOrders/fetchOpenOrder` to get your trigger order's details)
         if ((type === 'stop') || (type === 'trailingStop') || (type === 'takeProfit')) {
-            request['conditional_order_id'] = id;
-            const response = await this[method] (this.extend (request, params));
-            // Note: if endpoint retuns non-empy "result" property, then it means order had fill (and returns the order reference ID, which is not same order-id as provided id for `fetchOrder` )
-            //
-            // {
-            //     "success": true,
-            //     "result": [
-            //         {
-            //             "time": "2022-03-29T04:54:04.390665+00:00",
-            //             "orderId": 132144259673,
-            //             "error": null,
-            //             "orderSize": 0.1234,
-            //             "filledSize": 0.1234
-            //         }
-            //     ]
-            // }
-            //
-            const result = this.safeValue (response, 'result');
-            // It seems one order is being retrieved from above endpoint
-            const order = this.safeValue (result, 0, {});
-            // now, decide, if the reference orderId was returned, it means there is now provided a way to fetch the normal order.
-            const referenceOrderId = this.safeString (order, 'orderId');
-            if ((referenceOrderId !== undefined) && this.safeValue (params, 'redirectConditionalOrderId', true)) {
-                params = this.omit (params, 'redirectConditionalOrderId');
-                return this.fetchOrder (referenceOrderId, symbol, params);
-            } else {
+            if (method === 'privateGetConditionalOrdersConditionalOrderIdTriggers') {
+                request['conditional_order_id'] = id;
+                const response = await this[method] (this.extend (request, params));
+                // Note: if endpoint retuns non-empy "result" property, then it means order had fill (and returns the order reference ID, which is not same order-id as provided id for `fetchOrder` )
+                //
+                // {
+                //     "success": true,
+                //     "result": [
+                //         {
+                //             "time": "2022-03-29T04:54:04.390665+00:00",
+                //             "orderId": 132144259673,
+                //             "error": null,
+                //             "orderSize": 0.1234,
+                //             "filledSize": 0.1234
+                //         }
+                //     ]
+                // }
+                //
+                const result = this.safeValue (response, 'result');
+                // It seems one order is being retrieved from above endpoint
+                const order = this.safeValue (result, 0, {});
                 order['trigger_order_flag'] = true;
-                return this.extend (this.parseOrder (order), { 'id': id });
+                return this.extend (this.parseOrder (order, market), { 'id': id });
+            } else {
+                throw new ArgumentsRequired (this.id + ' fetchOrder() can access conditional orders endpoint if you set "method" param to "privateGetConditionalOrdersConditionalOrderIdTriggers"');
+                //
+                // TODO : can be migrated into 'fetchOpenOrder' and use 'open trigger orders' endpoint instead of 'all tirgger orders history'
+                //
+                // else {
+                //     if (symbol === undefined) {
+                //         throw new ArgumentsRequired (this.id + ' fetchOrder() for conditional orders require symbol argument');
+                //     }
+                //     request['market'] = this.market (symbol);
+                //     const response = await this.fetchOrders (symbol, undefined, undefined, this.extend (request, params));
+                //     const parsedOrders = this.filterBy (response, 'id', id);
+                //     return this.safeValue (parsedOrders, 0);
+                // }
             }
-            //
-            // TODO : can be migrated into 'fetchOpenOrder' and use 'open trigger orders' endpoint instead of 'all tirgger orders history'
-            //
-            // else {
-            //     if (symbol === undefined) {
-            //         throw new ArgumentsRequired (this.id + ' fetchOrder() for conditional orders require symbol argument');
-            //     }
-            //     request['market'] = this.market (symbol);
-            //     const response = await this.fetchOrders (symbol, undefined, undefined, this.extend (request, params));
-            //     const parsedOrders = this.filterBy (response, 'id', id);
-            //     return this.safeValue (parsedOrders, 0);
-            // }
         } else {
             const response = await this[method] (this.extend (request, params));
             //
@@ -1793,7 +1791,7 @@ module.exports = class ftx extends Exchange {
             //     }
             //
             const result = this.safeValue (response, 'result', {});
-            return this.parseOrder (result);
+            return this.parseOrder (result, market);
         }
     }
 
