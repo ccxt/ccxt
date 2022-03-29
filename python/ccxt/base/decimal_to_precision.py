@@ -78,22 +78,17 @@ def decimal_to_precision(x, rounding_mode=ROUND, num_precision_digits=None, coun
         rem = numerator % denominator
 
         if rem != 0:
+            x_p.integer = numerator - rem
             if rounding_mode == ROUND:
                 if numerator > 0:
                     if rem * 2 >= denominator:
-                        x_p.integer = numerator + (denominator - rem)
-                    else:
-                        x_p.integer = numerator - rem
+                        x_p.integer += denominator
                 else:
                     if rem * 2 > denominator:
-                        x_p.integer = numerator + (denominator - rem)
-                    else:
-                        x_p.integer = numerator - rem
+                        x_p.integer += denominator
             elif rounding_mode == TRUNCATE:
                 if numerator < 0:
-                    x_p.integer = numerator + (denominator - rem)
-                else:
-                    x_p.integer = numerator - rem
+                    x_p.integer += denominator
             x_p.decimals = rationizerDenominator + precision_p.decimals
         x = str(x_p)
         rounding_mode = ROUND
