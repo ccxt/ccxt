@@ -2319,11 +2319,7 @@ module.exports = class mexc extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const resultList = this.safeValue (data, 'result_list', []);
-        const result = [];
-        for (let i = 0; i < resultList.length; i++) {
-            result.push (this.parseTransfer (resultList[i]));
-        }
-        return result;
+        return this.parseTransfers (resultList, currency, since, limit);
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
