@@ -1396,7 +1396,7 @@ module.exports = class ftx extends Exchange {
         // if conditional order
         if ('trigger_order_flag' in order) {
             order = this.omit (order, 'trigger_order_flag');
-            const hasReferenceOrderId = 'orderId' in order;
+            const hasReferenceOrderId = ('orderId' in order);
             status = (hasReferenceOrderId && Precise.stringEq (amount, filled)) ? 'closed' : 'open';
         }
         let remaining = this.safeString (order, 'remainingSize');
@@ -1724,40 +1724,49 @@ module.exports = class ftx extends Exchange {
             method = 'privateGetOrdersByClientIdClientOrderId';
         }
         const type = this.safeValue (params, 'type');
-        // Note, the below types use non-standard endpoints, look through the implementation to understand better.
+        // Note, the below types use non-standard endpoints, look through the implementation to understand better (It might better to use `fetchOrders/fetchOpenOrder` to get your trigger order's details)
         if ((type === 'stop') || (type === 'trailingStop') || (type === 'takeProfit')) {
-            if (method === 'privateGetConditionalOrdersConditionalOrderIdTriggers') {
-                request['conditional_order_id'] = id;
-                const response = await this[method] (this.extend (request, params));
-                // Note: if endpoint retuns non-empy "result" property, then it means order had fill (and returns the order reference ID, which is not same order-id as provided id for `fetchOrder` )
-                //
-                // {
-                //     "success": true,
-                //     "result": [
-                //         {
-                //             "time": "2022-03-29T04:54:04.390665+00:00",
-                //             "orderId": 132144259673,
-                //             "error": null,
-                //             "orderSize": 0.1234,
-                //             "filledSize": 0.1234
-                //         }
-                //     ]
-                // }
-                //
-                const result = this.safeValue (response, 'result');
-                const order = this.safeValue (result, 0, {});
-                // It seems one order is being retrieved from above endpoint, so
+            request['conditional_order_id'] = id;
+            const response = await this[method] (this.extend (request, params));
+            // Note: if endpoint retuns non-empy "result" property, then it means order had fill (and returns the order reference ID, which is not same order-id as provided id for `fetchOrder` )
+            //
+            // {
+            //     "success": true,
+            //     "result": [
+            //         {
+            //             "time": "2022-03-29T04:54:04.390665+00:00",
+            //             "orderId": 132144259673,
+            //             "error": null,
+            //             "orderSize": 0.1234,
+            //             "filledSize": 0.1234
+            //         }
+            //     ]
+            // }
+            //
+            const result = this.safeValue (response, 'result');
+            // It seems one order is being retrieved from above endpoint
+            const order = this.safeValue (result, 0, {});
+            // now, decide, if the reference orderId was returned, it means there is now provided a way to fetch the normal order.
+            const referenceOrderId = this.safeString (order, 'orderId');
+            if ((referenceOrderId !== undefined) && this.safeValue (params, 'redirectConditionalOrderId', true)) {
+                params = this.omit (params, 'redirectConditionalOrderId');
+                return this.fetchOrder (referenceOrderId, symbol, params);
+            } else {
                 order['trigger_order_flag'] = true;
                 return this.extend (this.parseOrder (order), { 'id': id });
-            } else {
-                if (symbol === undefined) {
-                    throw new ArgumentsRequired (this.id + ' fetchOrder() for conditional orders require symbol argument');
-                }
-                request['market'] = this.market (symbol);
-                const response = await this.fetchOrders (symbol, undefined, undefined, this.extend (request, params));
-                const parsedOrders = this.filterBy (response, 'id', id);
-                return this.safeValue (parsedOrders, 0);
             }
+            //
+            // TODO : can be migrated into 'fetchOpenOrder' and use 'open trigger orders' endpoint instead of 'all tirgger orders history'
+            //
+            // else {
+            //     if (symbol === undefined) {
+            //         throw new ArgumentsRequired (this.id + ' fetchOrder() for conditional orders require symbol argument');
+            //     }
+            //     request['market'] = this.market (symbol);
+            //     const response = await this.fetchOrders (symbol, undefined, undefined, this.extend (request, params));
+            //     const parsedOrders = this.filterBy (response, 'id', id);
+            //     return this.safeValue (parsedOrders, 0);
+            // }
         } else {
             const response = await this[method] (this.extend (request, params));
             //
@@ -1892,7 +1901,14 @@ module.exports = class ftx extends Exchange {
         const request = {
             'orderId': id,
         };
-        return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
+        let method = this.safeString (params, 'method', defaultMethod);
+        const type = this.safeValue (params, 'type');
+        if ((type === 'stop') || (type === 'trailingStop') || (type === 'takeProfit')) {
+            method = await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
+            return 
+        } else {
+            return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
+        }
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
