@@ -8,15 +8,14 @@ import fs from 'fs'
 import { countries } from './countries.js'
 import asTable from 'as-table'
 import { replaceInFile } from './fsLocal.js'
-import execSync from 'child_process'//.execSync
-import log       from 'ololog'//.unlimited
-import ansi      from 'ansicolor'//.nice
+import execSync from 'child_process'
+import log       from 'ololog'
+import ansi      from 'ansicolor'
 
 
 const { keys, values, entries, fromEntries } = Object
 
 const unlimitedLog = log.unlimited;
-// execSync = execSync
 log.unlimited
 ansi.nice
 // ----------------------------------------------------------------------------
@@ -25,7 +24,7 @@ function cloneGitHubWiki (gitWikiPath) {
 
     if (!fs.existsSync (gitWikiPath)) {
         unlimitedLog.bright.cyan ('Cloning ccxt.wiki...')
-        execSync ('git clone https://github.com/ccxt/ccxt.wiki.git ' + gitWikiPath)
+        execSync.execSync ('git clone https://github.com/ccxt/ccxt.wiki.git ' + gitWikiPath)
     }
 }
 
@@ -392,7 +391,7 @@ function exportKeywordsToPackageJson (exchanges) {
     fs.writeFileSync ('./package.json', JSON.stringify (packageJSON, null, 2) + "\n")
 }
 
-// ----------------------------------------------------------------------------
+// -------------------------------------------------------------------------r---
 
 function flatten (nested, result = []) {
     for (const key in nested) {
@@ -407,7 +406,8 @@ function flatten (nested, result = []) {
 
 async function exportEverything () {
     const ids = getIncludedExchangeIds ()
-    const errorHierarchy = await import ('../js/base/errorHierarchy.js')
+    let errorHierarchy = await import ('../js/base/errorHierarchy.js')
+    errorHierarchy = errorHierarchy['errorHierarchy']
     const flat = flatten (errorHierarchy)
     flat.push ('error_hierarchy')
 
