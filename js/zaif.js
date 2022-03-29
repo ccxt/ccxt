@@ -334,18 +334,27 @@ module.exports = class zaif extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades (public)
+        //
+        //      {
+        //          "date": 1648559414,
+        //          "price": 5880375.0,
+        //          "amount": 0.017,
+        //          "tid": 176126557,
+        //          "currency_pair": "btc_jpy",
+        //          "trade_type": "ask"
+        //      }
+        //
         let side = this.safeString (trade, 'trade_type');
         side = (side === 'bid') ? 'buy' : 'sell';
         const timestamp = this.safeTimestamp (trade, 'date');
         const id = this.safeString2 (trade, 'id', 'tid');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const marketId = this.safeString (trade, 'currency_pair');
         const symbol = this.safeSymbol (marketId, market, '_');
-        return {
+        return this.safeTrade ({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -355,11 +364,11 @@ module.exports = class zaif extends Exchange {
             'side': side,
             'order': undefined,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': undefined,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -369,6 +378,18 @@ module.exports = class zaif extends Exchange {
             'pair': market['id'],
         };
         let response = await this.publicGetTradesPair (this.extend (request, params));
+        //
+        //      [
+        //          {
+        //              "date": 1648559414,
+        //              "price": 5880375.0,
+        //              "amount": 0.017,
+        //              "tid": 176126557,
+        //              "currency_pair": "btc_jpy",
+        //              "trade_type": "ask"
+        //          }, ...
+        //      ]
+        //
         const numTrades = response.length;
         if (numTrades === 1) {
             const firstTrade = response[0];
