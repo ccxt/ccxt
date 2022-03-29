@@ -66,6 +66,8 @@ module.exports = class bitpanda extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
+                'fetchTransfer': false,
+                'fetchTransfers': false,
                 'fetchWithdrawals': true,
                 'privateAPI': true,
                 'publicAPI': true,
@@ -73,6 +75,7 @@ module.exports = class bitpanda extends Exchange {
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
+                'transfer': false,
                 'withdraw': true,
             },
             'timeframes': {
