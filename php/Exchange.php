@@ -3058,9 +3058,6 @@ class Exchange {
                     break;
                 }
             }
-        } elseif ($roundingMode === TRUNCATE) {
-        } else {
-            assert(false);
         }
         if (($lastDigitPos < 0) or (($lastDigitPos < $xlen) and ($x[$lastDigitPos] == '-'))) {
             return '0';
