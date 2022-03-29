@@ -1,17 +1,17 @@
-'use strict'
+// ----------------------------------------------------------------------------
+
+import fs from 'fs'
+import assert from 'assert'
+import { Agent } from 'https'
+import { ccxt } from '../../ccxt.js' // eslint-disable-line import/order
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
 
 // ----------------------------------------------------------------------------
 
 const [processPath, , exchangeId = null, exchangeSymbol = null] = process.argv.filter ((x) => !x.startsWith ('--'))
 const verbose = process.argv.includes ('--verbose') || false
 const debug = process.argv.includes ('--debug') || false
-
-// ----------------------------------------------------------------------------
-
-const fs = require ('fs')
-    , assert = require ('assert')
-    , { Agent } = require ('https')
-    , ccxt = require ('../../ccxt.js') // eslint-disable-line import/order
 
 // ----------------------------------------------------------------------------
 
@@ -47,6 +47,9 @@ const exchange = new (ccxt)[exchangeId] ({
     timeout,
 })
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+
 //-----------------------------------------------------------------------------
 
 const tests = {}
@@ -54,19 +57,19 @@ const properties = Object.keys (exchange.has)
 properties
     // eslint-disable-next-line no-path-concat
     .filter ((property) => fs.existsSync (__dirname + '/Exchange/test.' + property + '.js'))
-    .forEach ((property) => {
+    .forEach (async (property) => {
         // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-        tests[property] = require (__dirname + '/Exchange/test.' + property + '.js')
+        tests[property] =  await import (__dirname + '/Exchange/test.' + property + '.js')
     })
 
-const errors = require ('../base/errors.js')
+const errors = await import ('../base/errorHierarchy.js')
 
 Object.keys (errors)
     // eslint-disable-next-line no-path-concat
     .filter ((error) => fs.existsSync (__dirname + '/errors/test.' + error + '.js'))
-    .forEach ((error) => {
+    .forEach (async (error) => {
         // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-        tests[error] = require (__dirname + '/errors/test.' + error + '.js')
+        tests[error] = await import (__dirname + '/errors/test.' + error + '.js')
     })
 
 //-----------------------------------------------------------------------------
@@ -75,8 +78,10 @@ const keysGlobal = 'keys.json'
 const keysLocal = 'keys.local.json'
 
 const keysFile = fs.existsSync (keysLocal) ? keysLocal : keysGlobal
+const settingsFile  = fs.readFileSync(keysFile);
 // eslint-disable-next-line import/no-dynamic-require, no-path-concat
-const settings = require (__dirname + '/../../' + keysFile)[exchangeId]
+let settings = JSON.parse(settingsFile)
+settings = settings[exchangeId]
 
 if (settings) {
     const keys = Object.keys (settings)
