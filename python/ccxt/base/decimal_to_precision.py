@@ -75,21 +75,26 @@ def decimal_to_precision(x, rounding_mode=ROUND, num_precision_digits=None, coun
         numerator = x_p.integer * (x_p.base ** rationizerNumerator)
         rationizerDenominator = max(-precision_p.decimals + x_p.decimals, 0)
         denominator = precision_p.integer * (x_p.base ** rationizerDenominator)
-        quotient_integer, rem = divmod(numerator, denominator)
+        rem = numerator % denominator
 
         if rem != 0:
             if rounding_mode == ROUND:
-                if quotient_integer > 0:
+                if numerator > 0:
                     if rem * 2 >= denominator:
-                        quotient_integer += 1
+                        x_p.integer = numerator + (denominator - rem)
+                    else:
+                        x_p.integer = numerator - rem
                 else:
                     if rem * 2 > denominator:
-                        quotient_integer += 1
+                        x_p.integer = numerator + (denominator - rem)
+                    else:
+                        x_p.integer = numerator - rem
             elif rounding_mode == TRUNCATE:
-                if quotient_integer < 0:
-                    quotient_integer += 1
-            quotient_p = Precise(quotient_integer, 0)
-            x_p = quotient_p.mul(precision_p)
+                if numerator < 0:
+                    x_p.integer = numerator + (denominator - rem)
+                else:
+                    x_p.integer = numerator - rem
+            x_p.decimals = rationizerDenominator + precision_p.decimals
         x = str(x_p)
         rounding_mode = ROUND
         num_precision_digits_num = new_num_precision_digits
