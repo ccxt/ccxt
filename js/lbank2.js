@@ -1555,8 +1555,9 @@ module.exports = class lbank2 extends Exchange {
                 // TODO fix RSA signing
             } else if (signatureMethod === 'HmacSHA256') {
                 sign = this.hmac (this.encode (hash), this.secret);
+                query['sign'] = sign;
             }
-            body = this.urlencode (this.keysort (query)) + '&sign=' + sign;
+            body = this.urlencode (this.keysort (query));
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'timestamp': timestamp,
