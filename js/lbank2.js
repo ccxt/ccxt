@@ -103,7 +103,7 @@ module.exports = class lbank2 extends Exchange {
                         'incrDepth': 2.5,
                         'trades': 2.5,
                         'kline': 2.5,
-                        // new quote endpoints
+                        // new quote endpoints (testing)
                         'supplement/system_ping': 2.5,
                         'supplement/incrDepth': 2.5,
                         'supplement/trades': 2.5,
