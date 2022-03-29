@@ -1396,8 +1396,11 @@ module.exports = class ftx extends Exchange {
         // if conditional order
         if ('trigger_order_flag' in order) {
             order = this.omit (order, 'trigger_order_flag');
-            const hasReferenceOrderId = ('orderId' in order);
-            status = (hasReferenceOrderId && Precise.stringEq (amount, filled)) ? 'closed' : 'open';
+            if (('orderId' in order) && Precise.stringEq (amount, filled)) {
+                status = 'closed';
+            } else {
+                status = 'open';
+            }
         }
         let remaining = this.safeString (order, 'remainingSize');
         if (Precise.stringEquals (remaining, '0')) {
