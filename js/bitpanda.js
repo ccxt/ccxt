@@ -75,7 +75,7 @@ module.exports = class bitpanda extends Exchange {
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
-                 'transfer': false,
+                'transfer': false,
                 'withdraw': true,
             },
             'timeframes': {
