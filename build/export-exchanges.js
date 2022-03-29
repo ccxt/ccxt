@@ -7,10 +7,6 @@
 import fs from 'fs'
 import { countries } from './countries.js'
 import asTable from 'as-table'
-    // , asTable   = require ('as-table').configure ({
-    //     delimiter: '|',
-    //     print: (x) => ' ' + x + ' '
-    // })
 import { replaceInFile } from './fsLocal.js'
 import execSync from 'child_process'//.execSync
 import log       from 'ololog'//.unlimited
@@ -19,6 +15,13 @@ import ansi      from 'ansicolor'//.nice
 
 const { keys, values, entries, fromEntries } = Object
 
+asTable.configure ({
+        delimiter: '|',
+        print: (x) => ' ' + x + ' '
+})
+// execSync = execSync
+// log = log.unlimited
+// ansi = ansi.nice
 // ----------------------------------------------------------------------------
 
 function cloneGitHubWiki (gitWikiPath) {
@@ -73,7 +76,8 @@ function exportExchanges (replacements) {
 
 async function createExchanges (ids) {
 
-    const ccxt = await import('../ccxt.js')
+    const module = await import('../ccxt.js')
+    const ccxt = module.ccxt
 
     const createExchange = (id) => {
         ccxt[id].prototype.checkRequiredDependencies = () => {} // suppress it
@@ -234,7 +238,12 @@ function createMarkdownTable (array, markdownMethod, centeredColumns) {
 
     array = markdownMethod (array)
 
-    const table = asTable (array)
+    const asTableDelimiter = asTable.configure ({
+        delimiter: '|',
+        print: (x) => ' ' + x + ' '
+    })
+
+    const table = asTableDelimiter (array)
     const lines = table.split ("\n")
 
     //
