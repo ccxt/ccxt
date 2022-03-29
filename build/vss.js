@@ -4,13 +4,15 @@
 //      npm run vss
 // ---------------------------------------------------------------------------
 
-"use strict";
+import fs from 'fs'
+import log from 'ololog'
+import ansi from 'ansicolor'
+import { execSync } from 'child_process'
+import { copyFile } from './fsLocal.js'
+import { pathToFileURL } from 'url'
+import packageJson from '../package.json' assert { type: "json" };
 
-const fs           = require ('fs')
-    , log          = require ('ololog')
-    , ansi         = require ('ansicolor').nice
-    , { execSync } = require ('child_process')
-    , { copyFile } = require ('./fs.js')
+ansi.nice
 
 //-----------------------------------------------------------------------------
 
@@ -25,9 +27,9 @@ function vss (filename, template, version) {
 
 // ----------------------------------------------------------------------------
 
-function vssEverything () {
+async function vssEverything () {
 
-    let { version } = require ('../package.json')
+    const version = packageJson['version']
 
     log.bright ('New version: '.cyan, version)
 
@@ -58,12 +60,14 @@ function vssEverything () {
 
 // ============================================================================
 // main entry point
-
-if (require.main === module) {
+let metaUrl = import.meta.url
+metaUrl = metaUrl.substring(0, metaUrl.lastIndexOf(".")) // remove extension
+const url = pathToFileURL(process.argv[1]);
+if (metaUrl === url.href) {
 
     // if called directly like `node module`
 
-    vssEverything ()
+    await vssEverything ()
 
 } else {
 
@@ -72,7 +76,7 @@ if (require.main === module) {
 
 // ============================================================================
 
-module.exports = {
+export {
     vss,
     vssEverything,
 }
