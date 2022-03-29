@@ -12,6 +12,8 @@
 
 
 class Precise:
+    base = 10
+
     def __init__(self, number, decimals=None):
         if decimals is None:
             # assert(isinstance(number, str))
@@ -33,7 +35,6 @@ class Precise:
             # assert(isinstance(decimals, int))
             self.integer = number
             self.decimals = decimals
-        self.base = 10
 
     def __add__(self, other):
         return self.add(other)
@@ -89,10 +90,10 @@ class Precise:
         if distance == 0:
             numerator = self.integer
         elif distance < 0:
-            exponent = self.base ** -distance
+            exponent = Precise.base ** -distance
             numerator = self.integer // exponent
         else:
-            exponent = self.base ** distance
+            exponent = Precise.base ** distance
             numerator = self.integer * exponent
         result, mod = divmod(numerator, other.integer)
         # python floors negative numbers down instead of truncating
@@ -107,7 +108,7 @@ class Precise:
         else:
             smaller, bigger = [other, self] if self.decimals > other.decimals else [self, other]
             exponent = bigger.decimals - smaller.decimals
-            normalised = smaller.integer * (self.base ** exponent)
+            normalised = smaller.integer * (Precise.base ** exponent)
             result = normalised + bigger.integer
             return Precise(result, bigger.decimals)
 
@@ -115,7 +116,7 @@ class Precise:
         # this must represent a positive or negative integer
         if self.decimals is None or self.decimals == 0:
             if self.integer >= 0:
-                result = self.base ** self.integer
+                result = Precise.base ** self.integer
                 return Precise(result, 0)
             else:
                 return Precise(1, -self.integer)
@@ -135,9 +136,9 @@ class Precise:
 
     def mod(self, other):
         rationizerNumerator = max(-self.decimals + other.decimals, 0)
-        numerator = self.integer * (self.base ** rationizerNumerator)
+        numerator = self.integer * (Precise.base ** rationizerNumerator)
         rationizerDenominator = max(-other.decimals + self.decimals, 0)
-        denominator = other.integer * (self.base ** rationizerDenominator)
+        denominator = other.integer * (Precise.base ** rationizerDenominator)
         result = numerator % denominator
         if result < 0:
             result += denominator
