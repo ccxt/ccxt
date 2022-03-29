@@ -1725,6 +1725,7 @@ module.exports = class ftx extends Exchange {
             method = 'privateGetOrdersByClientIdClientOrderId';
         }
         const type = this.safeValue (params, 'type');
+        params = this.omit (params, 'type');
         // Note, the below types use non-standard endpoints, look through the implementation to understand better (It might better to use `fetchOrders/fetchOpenOrder` to get your trigger order's details)
         if ((type === 'stop') || (type === 'trailingStop') || (type === 'takeProfit')) {
             if (method === 'privateGetConditionalOrdersConditionalOrderIdTriggers') {
@@ -1906,6 +1907,7 @@ module.exports = class ftx extends Exchange {
             'orderId': id,
         };
         const type = this.safeValue (params, 'type');
+        params = this.omit (params, 'type');
         if ((type === 'stop') || (type === 'trailingStop') || (type === 'takeProfit')) {
             const order = await this.fetchConditionalTriggersHelper (id, params);
             const orderId = this.safeString (order, 'orderId');
