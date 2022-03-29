@@ -678,10 +678,10 @@ class gateio extends Exchange {
         //
         $result = array();
         for ($i = 0; $i < count($spotMarketsResponse); $i++) {
-            $market = $spotMarketsResponse[$i];
-            $id = $this->safe_string($market, 'id');
+            $spotMarket = $spotMarketsResponse[$i];
+            $id = $this->safe_string($spotMarket, 'id');
             $marginMarket = $this->safe_value($marginMarkets, $id);
-            $market = $this->deep_extend($marginMarket, $market);
+            $market = $this->deep_extend($marginMarket, $spotMarket);
             list($baseId, $quoteId) = explode('_', $id);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
@@ -691,6 +691,7 @@ class gateio extends Exchange {
             $pricePrecisionString = $this->safe_string($market, 'precision');
             $tradeStatus = $this->safe_string($market, 'trade_status');
             $leverage = $this->safe_number($market, 'leverage');
+            $defaultMinAmountLimit = $this->parse_number($this->parse_precision($amountPrecisionString));
             $margin = $leverage !== null;
             $result[] = array(
                 'id' => $id,
@@ -729,7 +730,7 @@ class gateio extends Exchange {
                         'max' => $this->safe_number($market, 'leverage', 1),
                     ),
                     'amount' => array(
-                        'min' => $this->safe_number($market, 'min_base_amount'),
+                        'min' => $this->safe_number($spotMarket, 'min_base_amount', $defaultMinAmountLimit),
                         'max' => null,
                     ),
                     'price' => array(

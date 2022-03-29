@@ -682,10 +682,10 @@ class gateio(Exchange):
         #
         result = []
         for i in range(0, len(spotMarketsResponse)):
-            market = spotMarketsResponse[i]
-            id = self.safe_string(market, 'id')
+            spotMarket = spotMarketsResponse[i]
+            id = self.safe_string(spotMarket, 'id')
             marginMarket = self.safe_value(marginMarkets, id)
-            market = self.deep_extend(marginMarket, market)
+            market = self.deep_extend(marginMarket, spotMarket)
             baseId, quoteId = id.split('_')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
@@ -695,6 +695,7 @@ class gateio(Exchange):
             pricePrecisionString = self.safe_string(market, 'precision')
             tradeStatus = self.safe_string(market, 'trade_status')
             leverage = self.safe_number(market, 'leverage')
+            defaultMinAmountLimit = self.parse_number(self.parse_precision(amountPrecisionString))
             margin = leverage is not None
             result.append({
                 'id': id,
@@ -733,7 +734,7 @@ class gateio(Exchange):
                         'max': self.safe_number(market, 'leverage', 1),
                     },
                     'amount': {
-                        'min': self.safe_number(market, 'min_base_amount'),
+                        'min': self.safe_number(spotMarket, 'min_base_amount', defaultMinAmountLimit),
                         'max': None,
                     },
                     'price': {
