@@ -92,7 +92,7 @@ module.exports = class huobi extends Exchange {
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
-                'fetchTradingFees': undefined,
+                'fetchTradingFees': false,
                 'fetchTradingLimits': true,
                 'fetchTransactions': undefined,
                 'fetchTransfers': undefined,
@@ -645,6 +645,8 @@ module.exports = class huobi extends Exchange {
                             'swap-api/v1/swap_track_openorders': 1,
                             'swap-api/v1/swap_track_hisorders': 1,
                             // Swap Account Interface
+                            'linear-swap-api/v1/swap_lever_position_limit': 1,
+                            'linear-swap-api/v1/swap_cross_lever_position_limit': 1,
                             'linear-swap-api/v1/swap_balance_valuation': 1,
                             'linear-swap-api/v1/swap_account_info': 1,
                             'linear-swap-api/v1/swap_cross_account_info': 1,
@@ -703,6 +705,8 @@ module.exports = class huobi extends Exchange {
                             'linear-swap-api/v1/swap_cross_matchresults': 1,
                             'linear-swap-api/v1/swap_matchresults_exact': 1,
                             'linear-swap-api/v1/swap_cross_matchresults_exact': 1,
+                            'linear-swap-api/v1/swap_switch_position_mode': 1,
+                            'linear-swap-api/v1/swap_cross_switch_position_mode': 1,
                             // Swap Strategy Order Interface
                             'linear-swap-api/v1/swap_trigger_order': 1,
                             'linear-swap-api/v1/swap_cross_trigger_order': 1,
@@ -756,6 +760,7 @@ module.exports = class huobi extends Exchange {
                 },
                 'exact': {
                     // err-code
+                    '1010': AccountNotEnabled, // {"status":"error","err_code":1010,"err_msg":"Account doesnt exist.","ts":1648137970490}
                     '1017': OrderNotFound, // {"status":"error","err_code":1017,"err_msg":"Order doesnt exist.","ts":1640550859242}
                     '1034': InvalidOrder, // {"status":"error","err_code":1034,"err_msg":"Incorrect field of order price type.","ts":1643802870182}
                     '1036': InvalidOrder, // {"status":"error","err_code":1036,"err_msg":"Incorrect field of open long form.","ts":1643802518986}
@@ -836,6 +841,7 @@ module.exports = class huobi extends Exchange {
                 },
                 'accountsByType': {
                     'spot': 'pro',
+                    'funding': 'pro',
                     'future': 'futures',
                 },
                 'typesByAccount': {
@@ -1663,10 +1669,15 @@ module.exports = class huobi extends Exchange {
         } else {
             if (limit !== undefined) {
                 // Valid depths are 5, 10, 20 or empty https://huobiapi.github.io/docs/spot/v1/en/#get-market-depth
-                if ((limit !== 5) && (limit !== 10) && (limit !== 20)) {
-                    throw new BadRequest (this.id + ' fetchOrderBook() limit argument must be undefined, 5, 10 or 20, default is 150');
+                if ((limit !== 5) && (limit !== 10) && (limit !== 20) && (limit !== 150)) {
+                    throw new BadRequest (this.id + ' fetchOrderBook() limit argument must be undefined, 5, 10, 20, or 150, default is 150');
                 }
-                request['depth'] = limit;
+                // only set the depth if it is not 150
+                // 150 is the implicit default on the exchange side for step0 and no orderbook aggregation
+                // it is not accepted by the exchange if you set it explicitly
+                if (limit !== 150) {
+                    request['depth'] = limit;
+                }
             }
         }
         request[fieldName] = market['id'];
@@ -2067,7 +2078,7 @@ module.exports = class huobi extends Exchange {
             }
         }
         result = this.sortBy (result, 'timestamp');
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (result, market['symbol'], since, limit);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -3508,6 +3519,7 @@ module.exports = class huobi extends Exchange {
             //     direction sell, offset open = open short
             //     direction buy, offset close = close short
             //
+            // 'reduce_only': 0, // 1 or 0, in hedge mode it is invalid, and in one-way mode its value is 0 when not filled
             'lever_rate': 1, // required, using leverage greater than 20x requires prior approval of high-leverage agreement
             // 'order_price_type': 'limit', // required
             //
@@ -3577,17 +3589,13 @@ module.exports = class huobi extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         request['order_price_type'] = type;
-        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id'); // must be 64 chars max and unique within 24 hours
-        if (clientOrderId === undefined) {
-            const broker = this.safeValue (this.options, 'broker', {});
-            const brokerId = this.safeString (broker, 'id');
-            request['client_order_id'] = brokerId + this.uuid ();
-        } else {
-            request['client_order_id'] = clientOrderId;
-        }
+        const broker = this.safeValue (this.options, 'broker', {});
+        const brokerId = this.safeString (broker, 'id');
+        request['channel_code'] = brokerId;
+        const clientOrderId = this.safeString2 (params, 'client_order_id', 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
-            params = this.omit (params, [ 'clientOrderId', 'client_order_id' ]);
+            params = this.omit (params, [ 'client_order_id', 'clientOrderId' ]);
         }
         let method = undefined;
         if (market['linear']) {
@@ -4482,7 +4490,7 @@ module.exports = class huobi extends Exchange {
             });
         }
         const sorted = this.sortBy (rates, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
     }
 
     parseFundingRate (fundingRate, market = undefined) {

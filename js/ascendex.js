@@ -17,6 +17,7 @@ module.exports = class ascendex extends Exchange {
             'countries': [ 'SG' ], // Singapore
             'rateLimit': 500,
             'certified': true,
+            'pro': true,
             // new metainfo interface
             'has': {
                 'CORS': undefined,
@@ -85,8 +86,12 @@ module.exports = class ascendex extends Exchange {
             'version': 'v2',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/112027508-47984600-8b48-11eb-9e17-d26459cc36c6.jpg',
-                'api': 'https://ascendex.com',
-                'test': 'https://api-test.ascendex-sandbox.com',
+                'api': {
+                    'rest': 'https://ascendex.com',
+                },
+                'test': {
+                    'rest': 'https://api-test.ascendex-sandbox.com',
+                },
                 'www': 'https://ascendex.com',
                 'doc': [
                     'https://bitmax-exchange.github.io/bitmax-pro-api/#bitmax-pro-api-documentation',
@@ -1459,6 +1464,7 @@ module.exports = class ascendex extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
+            symbol = market['symbol'];
         }
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeValue (account, 'id');
@@ -2449,7 +2455,7 @@ module.exports = class ascendex extends Exchange {
                 body = this.json (params);
             }
         }
-        url = this.urls['api'] + url;
+        url = this.urls['api']['rest'] + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 

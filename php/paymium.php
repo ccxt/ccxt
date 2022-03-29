@@ -37,6 +37,8 @@ class paymium extends Exchange {
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => false,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/87153930-f0f02200-c2c0-11ea-9c0a-40337375ae89.jpg',
@@ -91,8 +93,8 @@ class paymium extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
-                    'maker' => $this->parse_number('0.002'),
-                    'taker' => $this->parse_number('0.002'),
+                    'maker' => $this->parse_number('-0.001'),
+                    'taker' => $this->parse_number('0.005'),
                 ),
             ),
         ));

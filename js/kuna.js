@@ -48,6 +48,8 @@ module.exports = class kuna extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': false,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setPositionMode': false,
@@ -256,8 +258,8 @@ module.exports = class kuna extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'taker': 0.25 / 100,
-                    'maker': 0.25 / 100,
+                    'taker': this.parseNumber ('0.0025'),
+                    'maker': this.parseNumber ('0.0025'),
                 },
                 'funding': {
                     'withdraw': {

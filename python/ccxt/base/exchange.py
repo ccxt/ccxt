@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.75.14'
+__version__ = '1.77.40'
 
 # -----------------------------------------------------------------------------
 
@@ -56,7 +56,6 @@ __all__ = [
 
 # -----------------------------------------------------------------------------
 
-# Python 2 & 3
 import types
 import logging
 import base64
@@ -86,25 +85,7 @@ import zlib
 from decimal import Decimal
 from time import mktime
 from wsgiref.handlers import format_date_time
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # basestring was removed in Python 3
-except NameError:
-    basestring = str
-
-try:
-    long  # long integer was removed in Python 3
-except NameError:
-    long = int
-
-# -----------------------------------------------------------------------------
-
-try:
-    import urllib.parse as _urlencode    # Python 3
-except ImportError:
-    import urllib as _urlencode          # Python 2
+import urllib.parse as _urlencode
 
 # -----------------------------------------------------------------------------
 
@@ -126,6 +107,8 @@ class Exchange(object):
     aiohttp_trust_env = False
     session = None  # Session () by default
     verify = True  # SSL verification
+    validateServerSsl = True
+    validateClientSsl = False
     logger = None  # logging.getLogger(__name__) by default
     userAgent = None
     userAgents = {
@@ -441,7 +424,10 @@ class Exchange(object):
 
     def __del__(self):
         if self.session:
-            self.session.close()
+            try:
+                self.session.close()
+            except Exception as e:
+                pass
 
     def __repr__(self):
         return 'ccxt.' + ('async_support.' if self.asyncio_loop else '') + self.id + '()'
@@ -487,6 +473,7 @@ class Exchange(object):
 
         def partialer():
             outer_kwargs = {'path': path, 'api': api_argument, 'method': uppercase_method, 'config': config}
+
             @functools.wraps(entry)
             def inner(_self, params=None, context=None):
                 """
@@ -638,7 +625,7 @@ class Exchange(object):
                 headers=request_headers,
                 timeout=int(self.timeout / 1000),
                 proxies=self.proxies,
-                verify=self.verify
+                verify=self.verify and self.validateServerSsl
             )
             # does not try to detect encoding
             response.encoding = 'utf-8'
@@ -781,7 +768,7 @@ class Exchange(object):
         value = dictionary[key]
         if isinstance(value, Number):
             return int(value * factor)
-        elif isinstance(value, basestring):
+        elif isinstance(value, str):
             try:
                 return int(float(value) * factor)
             except ValueError:
@@ -1103,7 +1090,7 @@ class Exchange(object):
     def iso8601(timestamp=None):
         if timestamp is None:
             return timestamp
-        if not isinstance(timestamp, (int, long)):
+        if not isinstance(timestamp, int):
             return None
         if int(timestamp) < 0:
             return None
@@ -1342,7 +1329,7 @@ class Exchange(object):
 
     @staticmethod
     def is_json_encoded_object(input):
-        return (isinstance(input, basestring) and
+        return (isinstance(input, str) and
                 (len(input) >= 2) and
                 ((input[0] == '{') or (input[0] == '[')))
 
@@ -1920,6 +1907,10 @@ class Exchange(object):
                 change = percentage / 100 * last
             if (open is None) and (last is not None) and (change is not None):
                 open = last - change
+            if (vwap is not None) and (baseVolume is not None) and (quoteVolume is None):
+                quoteVolume = vwap / baseVolume
+            if (vwap is not None) and (quoteVolume is not None) and (baseVolume is None):
+                baseVolume = quoteVolume / vwap
             ticker['symbol'] = symbol
             ticker['timestamp'] = timestamp
             ticker['datetime'] = self.iso8601(timestamp)
@@ -2149,14 +2140,16 @@ class Exchange(object):
     def currency(self, code):
         if not self.currencies:
             raise ExchangeError('Currencies not loaded')
-        if isinstance(code, basestring) and (code in self.currencies):
+        if isinstance(code, str) and (code in self.currencies):
             return self.currencies[code]
         raise ExchangeError('Does not have currency code ' + str(code))
 
     def market(self, symbol):
         if not self.markets:
             raise ExchangeError('Markets not loaded')
-        if isinstance(symbol, basestring):
+        if not self.markets_by_id:
+            raise ExchangeError('Markets not loaded')
+        if isinstance(symbol, str):
             if symbol in self.markets:
                 return self.markets[symbol]
             elif symbol in self.markets_by_id:
@@ -2692,6 +2685,12 @@ class Exchange(object):
             if 'rate' in fee:
                 fee['rate'] = self.safe_number(fee, 'rate')
             entry['fee'] = fee
+        # timeInForceHandling
+        timeInForce = self.safe_string(order, 'timeInForce')
+        if self.safe_value(order, 'postOnly', False):
+            timeInForce = 'PO'
+        elif self.safe_string(order, 'type') == 'market':
+            timeInForce = 'IOC'
         return self.extend(order, {
             'lastTradeTimestamp': lastTradeTimeTimestamp,
             'price': self.parse_number(price),
@@ -2701,6 +2700,7 @@ class Exchange(object):
             'filled': self.parse_number(filled),
             'remaining': self.parse_number(remaining),
             'trades': trades,
+            'timeInForce': timeInForce,
         })
 
     def parse_number(self, value, default=None):
@@ -2769,7 +2769,7 @@ class Exchange(object):
             if isinstance(method_options, str):
                 method_type = method_options
             else:
-                method_type = self.safe_string_2(method_options, 'defaultType', 'type')
+                method_type = self.safe_string_2(method_options, 'defaultType', 'type', method_type)
         market_type = method_type if market is None else market['type']
         type = self.safe_string_2(params, 'defaultType', 'type', market_type)
         params = self.omit(params, ['defaultType', 'type'])
@@ -2789,9 +2789,9 @@ class Exchange(object):
             symbol = market['symbol']
             symbols_length = 0
             if (symbols is not None):
-                symbols_length = symbols.length
+                symbols_length = len(symbols)
             contract = self.safe_value(market, 'contract', False)
-            if (contract and (symbols_length == 0 or symbols.includes(symbol))):
+            if (contract and (symbols_length == 0 or symbol in symbols)):
                 tiers[symbol] = self.parse_market_leverage_tiers(item, market)
         return tiers
 

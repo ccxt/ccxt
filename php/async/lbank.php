@@ -57,6 +57,8 @@ class lbank extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => false,
                 'reduceMargin' => false,
                 'setLeverage' => false,
                 'setMarginMode' => false,
@@ -82,7 +84,7 @@ class lbank extends Exchange {
                 'api' => 'https://api.lbank.info',
                 'www' => 'https://www.lbank.info',
                 'doc' => 'https://github.com/LBank-exchange/lbank-official-api-docs',
-                'fees' => 'https://lbankinfo.zendesk.com/hc/en-gb/articles/360012072873-Trading-Fees',
+                'fees' => 'https://www.lbank.info/fees.html',
                 'referral' => 'https://www.lbex.io/invite?icode=7QCY',
             ),
             'api' => array(
@@ -587,6 +589,11 @@ class lbank extends Exchange {
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+        }
         $orders = yield $this->fetch_orders($symbol, $since, $limit, $params);
         $closed = $this->filter_by($orders, 'status', 'closed');
         $canceled = $this->filter_by($orders, 'status', 'cancelled'); // cancelled $orders may be partially filled

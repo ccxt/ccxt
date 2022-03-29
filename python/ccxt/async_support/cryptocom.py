@@ -224,6 +224,7 @@ class cryptocom(Exchange):
             'options': {
                 'defaultType': 'spot',
                 'accountsByType': {
+                    'funding': 'SPOT',
                     'spot': 'SPOT',
                     'derivatives': 'DERIVATIVES',
                     'swap': 'DERIVATIVES',
@@ -1386,8 +1387,8 @@ class cryptocom(Exchange):
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': None,
-            'percentage': relativeChange,
+            'change': relativeChange,
+            'percentage': None,
             'average': None,
             'baseVolume': self.safe_string(ticker, 'v'),
             'quoteVolume': None,

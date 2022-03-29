@@ -4,17 +4,11 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import NullResponse
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -162,6 +156,7 @@ class cex(Exchange):
                     'Invalid API key': AuthenticationError,
                     'There was an error while placing your order': InvalidOrder,
                     'Sorry, too many clients already': DDoSProtection,
+                    'Invalid Symbols Pair': BadSymbol,
                 },
             },
             'options': {
@@ -680,7 +675,7 @@ class cex(Exchange):
         # Depending on the call, 'time' can be a unix int, unix string or ISO string
         # Yes, really
         timestamp = self.safe_value(order, 'time')
-        if isinstance(timestamp, basestring) and timestamp.find('T') >= 0:
+        if isinstance(timestamp, str) and timestamp.find('T') >= 0:
             # ISO8601 string
             timestamp = self.parse8601(timestamp)
         else:

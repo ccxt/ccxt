@@ -38,21 +38,30 @@ class hitbtc3(Exchange):
             'has': {
                 'CORS': False,
                 'spot': True,
-                'margin': None,  # has but not fully unimplemented
-                'swap': None,  # has but not fully unimplemented
-                'future': None,  # has but not fully unimplemented
+                'margin': None,  # has but not fully implemented
+                'swap': True,
+                'future': False,
                 'option': None,
+                'addMargin': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': None,
+                'fetchLeverageTiers': None,
+                'fetchMarketLeverageTiers': None,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': None,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrder': True,
@@ -62,6 +71,9 @@ class hitbtc3(Exchange):
                 'fetchOrderBooks': True,
                 'fetchOrders': False,
                 'fetchOrderTrades': True,
+                'fetchPosition': False,
+                'fetchPositions': True,
+                'fetchPremiumIndexOHLCV': None,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
@@ -69,6 +81,10 @@ class hitbtc3(Exchange):
                 'fetchTradingFees': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
+                'reduceMargin': None,
+                'setLeverage': None,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'transfer': True,
                 'withdraw': True,
             },
@@ -278,7 +294,7 @@ class hitbtc3(Exchange):
                     '20042': ExchangeError,
                     '20043': ExchangeError,
                     '20044': PermissionDenied,
-                    '20045': ExchangeError,
+                    '20045': InvalidOrder,
                     '20080': ExchangeError,
                     '21001': ExchangeError,
                     '21003': AccountSuspended,
@@ -296,7 +312,9 @@ class hitbtc3(Exchange):
                 },
                 'accountsByType': {
                     'spot': 'spot',
+                    'funding': 'wallet',
                     'wallet': 'wallet',
+                    'future': 'derivatives',
                     'derivatives': 'derivatives',
                 },
             },
@@ -701,7 +719,7 @@ class hitbtc3(Exchange):
         if limit is not None:
             request['limit'] = limit
         if since is not None:
-            request['since'] = since
+            request['from'] = since
         response = await self.publicGetPublicTrades(self.extend(request, params))
         marketIds = list(response.keys())
         trades = []
@@ -723,8 +741,14 @@ class hitbtc3(Exchange):
         if limit is not None:
             request['limit'] = limit
         if since is not None:
-            request['since'] = since
-        response = await self.privateGetSpotHistoryTrade(self.extend(request, params))
+            request['from'] = since
+        marketType, query = self.handle_market_type_and_params('fetchMyTrades', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateGetSpotHistoryTrade',
+            'swap': 'privateGetFuturesHistoryTrade',
+            'margin': 'privateGetMarginHistoryTrade',
+        })
+        response = await getattr(self, method)(self.extend(request, query))
         return self.parse_trades(response, market, since, limit)
 
     def parse_trade(self, trade, market=None):
@@ -751,7 +775,7 @@ class hitbtc3(Exchange):
         #      timestamp: '2020-10-16T12:57:39.846Z'
         #  }
         #
-        # fetchMyTrades
+        # fetchMyTrades spot
         #
         #  {
         #      id: 277210397,
@@ -764,6 +788,24 @@ class hitbtc3(Exchange):
         #      fee: '0.000000147',
         #      timestamp: '2018-04-28T18:39:55.345Z',
         #      taker: True
+        #  }
+        #
+        # fetchMyTrades swap and margin
+        #
+        #  {
+        #      "id": 4718564,
+        #      "order_id": 58730811958,
+        #      "client_order_id": "475c47d97f867f09726186eb22b4c3d4",
+        #      "symbol": "BTCUSDT_PERP",
+        #      "side": "sell",
+        #      "quantity": "0.0001",
+        #      "price": "41118.51",
+        #      "fee": "0.002055925500",
+        #      "timestamp": "2022-03-17T05:23:17.795Z",
+        #      "taker": True,
+        #      "position_id": 2350122,
+        #      "pnl": "0.002255000000",
+        #      "liquidation": False
         #  }
         #
         timestamp = self.parse8601(trade['timestamp'])
@@ -1006,7 +1048,11 @@ class hitbtc3(Exchange):
         request = {
             'symbol': market['id'],
         }
-        response = await self.privateGetSpotFeeSymbol(self.extend(request, params))
+        method = self.get_supported_mapping(market['type'], {
+            'spot': 'privateGetSpotFeeSymbol',
+            'swap': 'privateGetFuturesFeeSymbol',
+        })
+        response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         "take_rate":"0.0009",
@@ -1017,7 +1063,12 @@ class hitbtc3(Exchange):
 
     async def fetch_trading_fees(self, symbols=None, params={}):
         await self.load_markets()
-        response = await self.privateGetSpotFee(params)
+        marketType, query = self.handle_market_type_and_params('fetchTradingFees', None, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateGetSpotFee',
+            'swap': 'privateGetFuturesFee',
+        })
+        response = await getattr(self, method)(query)
         #
         #     [
         #         {
@@ -1096,7 +1147,13 @@ class hitbtc3(Exchange):
             request['from'] = self.iso8601(since)
         if limit is not None:
             request['limit'] = limit
-        response = await self.privateGetSpotHistoryOrder(self.extend(request, params))
+        marketType, query = self.handle_market_type_and_params('fetchClosedOrders', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateGetSpotHistoryOrder',
+            'swap': 'privateGetFuturesHistoryOrder',
+            'margin': 'privateGetMarginHistoryOrder',
+        })
+        response = await getattr(self, method)(self.extend(request, query))
         parsed = self.parse_orders(response, market, since, limit)
         return self.filter_by_array(parsed, 'status', ['closed', 'canceled'], False)
 
@@ -1105,10 +1162,16 @@ class hitbtc3(Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
+        marketType, query = self.handle_market_type_and_params('fetchOrder', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateGetSpotHistoryOrder',
+            'swap': 'privateGetFuturesHistoryOrder',
+            'margin': 'privateGetMarginHistoryOrder',
+        })
         request = {
             'client_order_id': id,
         }
-        response = await self.privateGetSpotHistoryOrder(self.extend(request, params))
+        response = await getattr(self, method)(self.extend(request, query))
         #
         #     [
         #       {
@@ -1139,7 +1202,15 @@ class hitbtc3(Exchange):
         request = {
             'order_id': id,  # exchange assigned order id as oppose to the client order id
         }
-        response = await self.privateGetSpotHistoryTrade(self.extend(request, params))
+        marketType, query = self.handle_market_type_and_params('fetchOrderTrades', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateGetSpotHistoryTrade',
+            'swap': 'privateGetFuturesHistoryTrade',
+            'margin': 'privateGetMarginHistoryTrade',
+        })
+        response = await getattr(self, method)(self.extend(request, query))
+        #
+        # Spot
         #
         #     [
         #       {
@@ -1156,6 +1227,26 @@ class hitbtc3(Exchange):
         #       }
         #     ]
         #
+        # Swap and Margin
+        #
+        #     [
+        #         {
+        #             "id": 4718551,
+        #             "order_id": 58730748700,
+        #             "client_order_id": "dcbcd8549e3445ee922665946002ef67",
+        #             "symbol": "BTCUSDT_PERP",
+        #             "side": "buy",
+        #             "quantity": "0.0001",
+        #             "price": "41095.96",
+        #             "fee": "0.002054798000",
+        #             "timestamp": "2022-03-17T05:23:02.217Z",
+        #             "taker": True,
+        #             "position_id": 2350122,
+        #             "pnl": "0",
+        #             "liquidation": False
+        #         }
+        #     ]
+        #
         return self.parse_trades(response, market, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -1165,7 +1256,13 @@ class hitbtc3(Exchange):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        response = await self.privateGetSpotOrder(self.extend(request, params))
+        marketType, query = self.handle_market_type_and_params('fetchOpenOrders', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateGetSpotOrder',
+            'swap': 'privateGetFuturesOrder',
+            'margin': 'privateGetMarginOrder',
+        })
+        response = await getattr(self, method)(self.extend(request, query))
         #
         #     [
         #       {
@@ -1192,10 +1289,16 @@ class hitbtc3(Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
+        marketType, query = self.handle_market_type_and_params('fetchOpenOrder', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateGetSpotOrderClientOrderId',
+            'swap': 'privateGetFuturesOrderClientOrderId',
+            'margin': 'privateGetMarginOrderClientOrderId',
+        })
         request = {
             'client_order_id': id,
         }
-        response = await self.privateGetSpotOrderClientOrderId(self.extend(request, params))
+        response = await getattr(self, method)(self.extend(request, query))
         return self.parse_order(response, market)
 
     async def cancel_all_orders(self, symbol=None, params={}):
@@ -1205,7 +1308,13 @@ class hitbtc3(Exchange):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        response = await self.privateDeleteSpotOrder(self.extend(request, params))
+        marketType, query = self.handle_market_type_and_params('cancelAllOrders', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateDeleteSpotOrder',
+            'swap': 'privateDeleteFuturesOrder',
+            'margin': 'privateDeleteMarginOrder',
+        })
+        response = await getattr(self, method)(self.extend(request, query))
         return self.parse_orders(response, market)
 
     async def cancel_order(self, id, symbol=None, params={}):
@@ -1216,7 +1325,13 @@ class hitbtc3(Exchange):
         }
         if symbol is not None:
             market = self.market(symbol)
-        response = await self.privateDeleteSpotOrderClientOrderId(self.extend(request, params))
+        marketType, query = self.handle_market_type_and_params('cancelOrder', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateDeleteSpotOrderClientOrderId',
+            'swap': 'privateDeleteFuturesOrderClientOrderId',
+            'margin': 'privateDeleteMarginOrderClientOrderId',
+        })
+        response = await getattr(self, method)(self.extend(request, query))
         return self.parse_order(response, market)
 
     async def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
@@ -1232,24 +1347,68 @@ class hitbtc3(Exchange):
             request['price'] = self.price_to_precision(symbol, price)
         if symbol is not None:
             market = self.market(symbol)
-        response = await self.privatePatchSpotOrderClientOrderId(self.extend(request, params))
+        marketType, query = self.handle_market_type_and_params('editOrder', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privatePatchSpotOrderClientOrderId',
+            'swap': 'privatePatchFuturesOrderClientOrderId',
+            'margin': 'privatePatchMarginOrderClientOrderId',
+        })
+        response = await getattr(self, method)(self.extend(request, query))
         return self.parse_order(response, market)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        reduceOnly = self.safe_value_2(params, 'reduce_only', 'reduceOnly')
+        if reduceOnly is not None:
+            if (market['type'] != 'swap') and (market['type'] != 'margin'):
+                raise InvalidOrder(self.id + ' createOrder() does not support reduce_only for ' + market['type'] + ' orders, reduce_only orders are supported for swap and margin markets only')
         request = {
             'type': type,
             'side': side,
             'quantity': self.amount_to_precision(symbol, amount),
             'symbol': market['id'],
+            # 'client_order_id': 'r42gdPjNMZN-H_xs8RKl2wljg_dfgdg4',  # Optional
+            # 'time_in_force': 'GTC',  # Optional GTC, IOC, FOK, Day, GTD
+            # 'price': self.price_to_precision(symbol, price),  # Required if type is limit, stopLimit, or takeProfitLimit
+            # 'stop_price': self.safe_number(params, 'stop_price'),  # Required if type is stopLimit, stopMarket, takeProfitLimit, takeProfitMarket
+            # 'expire_time': '2021-06-15T17:01:05.092Z',  # Required if timeInForce is GTD
+            # 'strict_validate': False,
+            # 'post_only': False,  # Optional
+            # 'reduce_only': False,  # Optional
+            # 'display_quantity': '0',  # Optional
+            # 'take_rate': 0.001,  # Optional
+            # 'make_rate': 0.001,  # Optional
         }
-        if (type == 'limit') or (type == 'stopLimit'):
+        timeInForce = self.safe_string_2(params, 'timeInForce', 'time_in_force')
+        expireTime = self.safe_string(params, 'expire_time')
+        stopPrice = self.safe_number_2(params, 'stopPrice', 'stop_price')
+        if (type == 'limit') or (type == 'stopLimit') or (type == 'takeProfitLimit'):
             if price is None:
-                raise ExchangeError(self.id + ' limit order requires price')
+                raise ExchangeError(self.id + ' createOrder() requires a price argument for limit orders')
             request['price'] = self.price_to_precision(symbol, price)
-        response = await self.privatePostSpotOrder(self.extend(request, params))
+        if (timeInForce == 'GTD'):
+            if expireTime is None:
+                raise ExchangeError(self.id + ' createOrder() requires an expire_time parameter for a GTD order')
+            request['expire_time'] = expireTime
+        if (type == 'stopLimit') or (type == 'stopMarket') or (type == 'takeProfitLimit') or (type == 'takeProfitMarket'):
+            if stopPrice is None:
+                raise ExchangeError(self.id + ' createOrder() requires a stopPrice parameter for stop-loss and take-profit orders')
+            request['stop_price'] = self.price_to_precision(symbol, stopPrice)
+        marketType, query = self.handle_market_type_and_params('createOrder', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privatePostSpotOrder',
+            'swap': 'privatePostFuturesOrder',
+            'margin': 'privatePostMarginOrder',
+        })
+        response = await getattr(self, method)(self.extend(request, query))
         return self.parse_order(response, market)
+
+    async def create_reduce_only_order(self, symbol, type, side, amount, price=None, params={}):
+        request = {
+            'reduce_only': True,
+        }
+        return await self.create_order(symbol, type, side, amount, price, self.extend(request, params))
 
     def parse_order_status(self, status):
         statuses = {
@@ -1307,6 +1466,25 @@ class hitbtc3(Exchange):
         #           "taker": True
         #         }
         #       ]
+        #     }
+        #
+        # swap and margin
+        #
+        #     {
+        #         "id": 58418961892,
+        #         "client_order_id": "r42gdPjNMZN-H_xs8RKl2wljg_dfgdg4",
+        #         "symbol": "BTCUSDT_PERP",
+        #         "side": "buy",
+        #         "status": "new",
+        #         "type": "limit",
+        #         "time_in_force": "GTC",
+        #         "quantity": "0.0005",
+        #         "quantity_cumulative": "0",
+        #         "price": "30000.00",
+        #         "post_only": False,
+        #         "reduce_only": False,
+        #         "created_at": "2022-03-16T08:16:53.039Z",
+        #         "updated_at": "2022-03-16T08:16:53.039Z"
         #     }
         #
         id = self.safe_string(order, 'client_order_id')
@@ -1459,6 +1637,7 @@ class hitbtc3(Exchange):
         }
         if symbol is not None:
             market = self.market(symbol)
+            symbol = market['symbol']
             request['symbols'] = market['id']
         if since is not None:
             request['from'] = since
@@ -1500,6 +1679,191 @@ class hitbtc3(Exchange):
                 })
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+
+    async def fetch_positions(self, symbols=None, params={}):
+        await self.load_markets()
+        request = {}
+        response = await self.privateGetFuturesAccount(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "symbol": "ETHUSDT_PERP",
+        #             "type": "isolated",
+        #             "leverage": "10.00",
+        #             "created_at": "2022-03-19T07:54:35.24Z",
+        #             "updated_at": "2022-03-19T07:54:58.922Z",
+        #             currencies": [
+        #                 {
+        #                     "code": "USDT",
+        #                     "margin_balance": "7.478100643043",
+        #                     "reserved_orders": "0",
+        #                     "reserved_positions": "0.303530761300"
+        #                 }
+        #             ],
+        #             "positions": [
+        #                 {
+        #                     "id": 2470568,
+        #                     "symbol": "ETHUSDT_PERP",
+        #                     "quantity": "0.001",
+        #                     "price_entry": "2927.509",
+        #                     "price_margin_call": "0",
+        #                     "price_liquidation": "0",
+        #                     "pnl": "0",
+        #                     "created_at": "2022-03-19T07:54:35.24Z",
+        #                     "updated_at": "2022-03-19T07:54:58.922Z"
+        #                 }
+        #             ]
+        #         },
+        #     ]
+        #
+        result = []
+        for i in range(0, len(response)):
+            result.append(self.parse_position(response[i]))
+        return result
+
+    def parse_position(self, position, market=None):
+        #
+        #     [
+        #         {
+        #             "symbol": "ETHUSDT_PERP",
+        #             "type": "isolated",
+        #             "leverage": "10.00",
+        #             "created_at": "2022-03-19T07:54:35.24Z",
+        #             "updated_at": "2022-03-19T07:54:58.922Z",
+        #             currencies": [
+        #                 {
+        #                     "code": "USDT",
+        #                     "margin_balance": "7.478100643043",
+        #                     "reserved_orders": "0",
+        #                     "reserved_positions": "0.303530761300"
+        #                 }
+        #             ],
+        #             "positions": [
+        #                 {
+        #                     "id": 2470568,
+        #                     "symbol": "ETHUSDT_PERP",
+        #                     "quantity": "0.001",
+        #                     "price_entry": "2927.509",
+        #                     "price_margin_call": "0",
+        #                     "price_liquidation": "0",
+        #                     "pnl": "0",
+        #                     "created_at": "2022-03-19T07:54:35.24Z",
+        #                     "updated_at": "2022-03-19T07:54:58.922Z"
+        #                 }
+        #             ]
+        #         },
+        #     ]
+        #
+        marginType = self.safe_string(position, 'type')
+        leverage = self.safe_number(position, 'leverage')
+        datetime = self.safe_string(position, 'updated_at')
+        positions = self.safe_value(position, 'positions', [])
+        liquidationPrice = None
+        entryPrice = None
+        for i in range(0, len(positions)):
+            entry = positions[i]
+            liquidationPrice = self.safe_number(entry, 'price_liquidation')
+            entryPrice = self.safe_number(entry, 'price_entry')
+        currencies = self.safe_value(position, 'currencies', [])
+        collateral = None
+        for i in range(0, len(currencies)):
+            entry = currencies[i]
+            collateral = self.safe_number(entry, 'margin_balance')
+        marketId = self.safe_string(position, 'symbol')
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
+        return {
+            'info': position,
+            'symbol': symbol,
+            'notional': None,
+            'marginType': marginType,
+            'liquidationPrice': liquidationPrice,
+            'entryPrice': entryPrice,
+            'unrealizedPnl': None,
+            'percentage': None,
+            'contracts': None,
+            'contractSize': None,
+            'markPrice': None,
+            'side': None,
+            'hedged': None,
+            'timestamp': self.parse8601(datetime),
+            'datetime': datetime,
+            'maintenanceMargin': None,
+            'maintenanceMarginPercentage': None,
+            'collateral': collateral,
+            'initialMargin': None,
+            'initialMarginPercentage': None,
+            'leverage': leverage,
+            'marginRatio': None,
+        }
+
+    async def fetch_funding_rate(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise BadSymbol(self.id + ' fetchFundingRate() supports swap contracts only')
+        request = {}
+        if symbol is not None:
+            symbol = market['symbol']
+            request['symbols'] = market['id']
+        response = await self.publicGetPublicFuturesInfo(self.extend(request, params))
+        #
+        #     {
+        #         "BTCUSDT_PERP": {
+        #             "contract_type": "perpetual",
+        #             "mark_price": "42307.43",
+        #             "index_price": "42303.27",
+        #             "funding_rate": "0.0001",
+        #             "open_interest": "30.9826",
+        #             "next_funding_time": "2022-03-22T16:00:00.000Z",
+        #             "indicative_funding_rate": "0.0001",
+        #             "premium_index": "0",
+        #             "avg_premium_index": "0.000029587712038098",
+        #             "interest_rate": "0.0001",
+        #             "timestamp": "2022-03-22T08:08:26.687Z"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, market['id'], {})
+        return self.parse_funding_rate(data, market)
+
+    def parse_funding_rate(self, contract, market=None):
+        #
+        #     {
+        #         "contract_type": "perpetual",
+        #         "mark_price": "42307.43",
+        #         "index_price": "42303.27",
+        #         "funding_rate": "0.0001",
+        #         "open_interest": "30.9826",
+        #         "next_funding_time": "2022-03-22T16:00:00.000Z",
+        #         "indicative_funding_rate": "0.0001",
+        #         "premium_index": "0",
+        #         "avg_premium_index": "0.000029587712038098",
+        #         "interest_rate": "0.0001",
+        #         "timestamp": "2022-03-22T08:08:26.687Z"
+        #     }
+        #
+        nextFundingDatetime = self.safe_string(contract, 'next_funding_time')
+        datetime = self.safe_string(contract, 'timestamp')
+        return {
+            'info': contract,
+            'symbol': self.safe_symbol(None, market),
+            'markPrice': self.safe_number(contract, 'mark_price'),
+            'indexPrice': self.safe_number(contract, 'index_price'),
+            'interestRate': self.safe_number(contract, 'interest_rate'),
+            'estimatedSettlePrice': None,
+            'timestamp': self.parse8601(datetime),
+            'datetime': datetime,
+            'fundingRate': self.safe_number(contract, 'funding_rate'),
+            'fundingTimestamp': None,
+            'fundingDatetime': None,
+            'nextFundingRate': self.safe_number(contract, 'indicative_funding_rate'),
+            'nextFundingTimestamp': self.parse8601(nextFundingDatetime),
+            'nextFundingDatetime': nextFundingDatetime,
+            'previousFundingRate': None,
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
+        }
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         #

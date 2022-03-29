@@ -4,6 +4,7 @@
     "bcex":          { "skip": true },
     "bibox":         { "has": { "fetchCurrencies": false }},
     "bitbns":        { "skip": true },
+    "bitbank":       { "skip": true },
     "bitcoincom":    { "skip": true },
     "bitforex":      { "skip": true },
     "bitflyer":      { "skip": true },
@@ -47,6 +48,7 @@
     "tidebit":       { "skip": true },
     "tidex":         { "skip": true },
     "vcc":           { "skip": true },
+    "woo":           { "skip": true },
     "xbtce":         { "skip": true },
     "zaif":          { "skip": true }
 }

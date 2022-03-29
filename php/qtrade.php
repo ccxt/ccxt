@@ -24,6 +24,7 @@ class qtrade extends Exchange {
                 'www' => 'https://qtrade.io',
                 'doc' => 'https://qtrade-exchange.github.io/qtrade-docs',
                 'referral' => 'https://qtrade.io/?ref=BKOQWVFGRH2C',
+                'fees' => 'https://qtrade.io/fees',
             ),
             'has' => array(
                 'CORS' => null,
@@ -71,6 +72,8 @@ class qtrade extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => true,
+                'fetchTradingFees' => false,
                 'fetchTransactions' => null,
                 'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
@@ -133,8 +136,8 @@ class qtrade extends Exchange {
                     'feeSide' => 'quote',
                     'tierBased' => true,
                     'percentage' => true,
-                    'taker' => 0.005,
-                    'maker' => 0.0,
+                    'taker' => $this->parse_number('0.005'),
+                    'maker' => $this->parse_number('0.0'),
                 ),
                 'funding' => array(
                     'withdraw' => array(),
@@ -711,6 +714,48 @@ class qtrade extends Exchange {
             'cost' => $cost,
             'fee' => $fee,
         ), $market);
+    }
+
+    public function fetch_trading_fee($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'market_string' => $market['id'],
+        );
+        $response = $this->publicGetMarketMarketString (array_merge($request, $params));
+        //
+        //     {
+        //         $data => {
+        //             $market => array(
+        //                 id => '41',
+        //                 market_currency => 'ETH',
+        //                 base_currency => 'BTC',
+        //                 maker_fee => '0',
+        //                 taker_fee => '0.005',
+        //                 metadata => array(),
+        //                 can_trade => true,
+        //                 can_cancel => true,
+        //                 can_view => true,
+        //                 market_string => 'ETH_BTC',
+        //                 minimum_sell_amount => '0.001',
+        //                 minimum_buy_value => '0.0001',
+        //                 market_precision => '18',
+        //                 base_precision => '8'
+        //             ),
+        //             recent_trades => array()
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $marketData = $this->safe_value($data, 'market', array());
+        return array(
+            'info' => $marketData,
+            'symbol' => $symbol,
+            'maker' => $this->safe_number($marketData, 'maker_fee'),
+            'taker' => $this->safe_number($marketData, 'taker_fee'),
+            'percentage' => true,
+            'tierBased' => true,
+        );
     }
 
     public function parse_balance($response) {

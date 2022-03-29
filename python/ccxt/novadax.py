@@ -77,6 +77,8 @@ class novadax(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': False,
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
@@ -146,7 +148,7 @@ class novadax(Exchange):
                     'tierBased': False,
                     'percentage': True,
                     'taker': self.parse_number('0.005'),
-                    'maker': self.parse_number('0.003'),
+                    'maker': self.parse_number('0.0025'),
                 },
             },
             'requiredCredentials': {

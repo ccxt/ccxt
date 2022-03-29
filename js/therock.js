@@ -46,6 +46,8 @@ module.exports = class therock extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchTradingFee': true,
+                'fetchTradingFees': true,
                 'fetchTransactions': 'emulated',
                 'fetchWithdrawals': true,
             },
@@ -62,6 +64,7 @@ module.exports = class therock extends Exchange {
                 'public': {
                     'get': [
                         'funds',
+                        'funds/{id}',
                         'funds/{id}/orderbook',
                         'funds/{id}/ticker',
                         'funds/{id}/trades',
@@ -1221,6 +1224,119 @@ module.exports = class therock extends Exchange {
         return this.parseTrades (response['trades'], market, since, limit);
     }
 
+    async fetchTradingFee (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let request = {
+            'id': market['id'],
+        };
+        const response = await this.publicGetFundsId (this.extend (request, params));
+        //
+        //     {
+        //         id: 'ETHBTC',
+        //         description: 'Trade Ether with Bitcoin',
+        //         type: 'currency',
+        //         base_currency: 'BTC',
+        //         trade_currency: 'ETH',
+        //         buy_fee: '0.2',
+        //         sell_fee: '0.2',
+        //         minimum_price_offer: '0.00000001',
+        //         minimum_quantity_offer: '0.005',
+        //         base_currency_decimals: '8',
+        //         trade_currency_decimals: '3',
+        //         leverages: []
+        //     }
+        //
+        request = {
+            'id': market['quoteId'],
+        };
+        const discount = await this.privateGetDiscountsId (this.extend (request, params));
+        //
+        //     {
+        //         "currency":"BTC",
+        //         "discount":50.0,
+        //         "details": {
+        //             "personal_discount": 50.0,
+        //             "commissions_related_discount": 0.0
+        //         }
+        //     }
+        //
+        return this.parseTradingFee (response, discount, market);
+    }
+
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetFunds (params);
+        //
+        //     {
+        //         funds: [
+        //             {
+        //                 id: 'BTCEUR',
+        //                 description: 'Trade Bitcoin with Euro',
+        //                 type: 'currency',
+        //                 base_currency: 'EUR',
+        //                 trade_currency: 'BTC',
+        //                 buy_fee: '0.2',
+        //                 sell_fee: '0.2',
+        //                 minimum_price_offer: '0.01',
+        //                 minimum_quantity_offer: '0.0005',
+        //                 base_currency_decimals: '2',
+        //                 trade_currency_decimals: '4',
+        //                 leverages: []
+        //             },
+        //         ]
+        //     }
+        //
+        const discountsResponse = await this.privateGetDiscounts (params);
+        //
+        //     {
+        //         "discounts": [
+        //             {
+        //                 "currency":"BTC",
+        //                 "discount":50.0,
+        //                 "details": {
+        //                     "personal_discount": 50.0,
+        //                     "commissions_related_discount": 0.0
+        //                 }
+        //             }
+        //         ]
+        //     }
+        //
+        const funds = this.safeValue (response, 'funds', []);
+        const discounts = this.safeValue (discountsResponse, 'discounts', []);
+        const result = {};
+        for (let i = 0; i < funds.length; i++) {
+            const fund = funds[i];
+            const marketId = this.safeString (fund, 'id');
+            const market = this.safeMarket (marketId);
+            const quoteId = this.safeValue (market, 'quoteId');
+            const discount = this.filterBy (discounts, 'currency', quoteId);
+            const fee = this.parseTradingFee (fund, discount, market);
+            const symbol = fee['symbol'];
+            result[symbol] = fee;
+        }
+        return result;
+    }
+
+    parseTradingFee (fee, discount = undefined, market = undefined) {
+        const marketId = this.safeString (fee, 'id');
+        const takerString = this.safeString (fee, 'buy_fee');
+        const makerString = this.safeString (fee, 'sell_fee');
+        // TotalFee = (100 - discount) * fee / 10000
+        const discountString = this.safeString (discount, 'discount', '0');
+        const feePercentage = Precise.stringSub ('100', discountString);
+        const taker = this.parseNumber (Precise.stringDiv (Precise.stringMul (takerString, feePercentage), '10000'));
+        const maker = this.parseNumber (Precise.stringDiv (Precise.stringMul (makerString, feePercentage), '10000'));
+        return {
+            'info': fee,
+            'symbol': this.safeSymbol (marketId, market),
+            'maker': maker,
+            'taker': taker,
+            'percentage': true,
+            'tierBased': true,
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
@@ -1257,8 +1373,7 @@ module.exports = class therock extends Exchange {
         }
         //
         //     {
-        //         "errors":
-        //         [
+        //         "errors": [
         //             { "message": ":currency is not a valid value for param currency","code": "11","meta": { "key":"currency","value":":currency"} },
         //             { "message": "Address allocation limit reached for currency :currency.","code": "13" },
         //             { "message": "Request already running", "code": "50"},

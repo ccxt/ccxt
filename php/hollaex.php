@@ -70,6 +70,8 @@ class hollaex extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => true,
                 'fetchTransactions' => null,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
@@ -597,6 +599,59 @@ class hollaex extends Exchange {
             'cost' => null,
             'fee' => $fee,
         ), $market);
+    }
+
+    public function fetch_trading_fees($params = array ()) {
+        $this->load_markets();
+        $response = $this->publicGetTiers ($params);
+        //
+        //     {
+        //         '1' => {
+        //             id => '1',
+        //             name => 'Silver',
+        //             icon => '',
+        //             description => 'Your crypto journey starts here! Make your first deposit to start trading, and verify your account to level up!',
+        //             deposit_limit => '0',
+        //             withdrawal_limit => '1000',
+        //             $fees => array(
+        //                 maker => array(
+        //                     'eth-btc' => '0.1',
+        //                     'ada-usdt' => '0.1',
+        //                     ...
+        //                 ),
+        //                 taker => array(
+        //                     'eth-btc' => '0.1',
+        //                     'ada-usdt' => '0.1',
+        //                     ...
+        //                 }
+        //             ),
+        //             note => '<ul>\n<li>Login and verify email</li>\n</ul>\n',
+        //             created_at => '2021-03-22T03:51:39.129Z',
+        //             updated_at => '2021-11-01T02:51:56.214Z'
+        //         ),
+        //         ...
+        //     }
+        //
+        $firstTier = $this->safe_value($response, '1', array());
+        $fees = $this->safe_value($firstTier, 'fees', array());
+        $makerFees = $this->safe_value($fees, 'maker', array());
+        $takerFees = $this->safe_value($fees, 'taker', array());
+        $result = array();
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
+            $market = $this->market($symbol);
+            $makerString = $this->safe_string($makerFees, $market['id']);
+            $takerString = $this->safe_string($takerFees, $market['id']);
+            $result[$symbol] = array(
+                'info' => $fees,
+                'symbol' => $symbol,
+                'maker' => $this->parse_number(Precise::string_div($makerString, '100')),
+                'taker' => $this->parse_number(Precise::string_div($takerString, '100')),
+                'percentage' => true,
+                'tierBased' => true,
+            );
+        }
+        return $result;
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1h', $since = null, $limit = null, $params = array ()) {

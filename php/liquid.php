@@ -43,6 +43,8 @@ class liquid extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => true,
+                'fetchTradingFees' => true,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
             ),
@@ -695,6 +697,166 @@ class liquid extends Exchange {
         $response = $this->publicGetExecutions (array_merge($request, $params));
         $result = ($since !== null) ? $response : $response['models'];
         return $this->parse_trades($result, $market, $since, $limit);
+    }
+
+    public function fetch_trading_fee($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'id' => $market['id'],
+        );
+        $response = $this->publicGetProductsId (array_merge($request, $params));
+        //
+        //     {
+        //         "id":"637",
+        //         "product_type":"CurrencyPair",
+        //         "code":"CASH",
+        //         "name":null,
+        //         "market_ask":"0.00000797",
+        //         "market_bid":"0.00000727",
+        //         "indicator":null,
+        //         "currency":"BTC",
+        //         "currency_pair_code":"TFTBTC",
+        //         "symbol":null,
+        //         "btc_minimum_withdraw":null,
+        //         "fiat_minimum_withdraw":null,
+        //         "pusher_channel":"product_cash_tftbtc_637",
+        //         "taker_fee":"0.0",
+        //         "maker_fee":"0.0",
+        //         "low_market_bid":"0.00000685",
+        //         "high_market_ask":"0.00000885",
+        //         "volume_24h":"3696.0755956",
+        //         "last_price_24h":"0.00000716",
+        //         "last_traded_price":"0.00000766",
+        //         "last_traded_quantity":"1748.0377978",
+        //         "average_price":null,
+        //         "quoted_currency":"BTC",
+        //         "base_currency":"TFT",
+        //         "tick_size":"0.00000001",
+        //         "disabled":false,
+        //         "margin_enabled":false,
+        //         "cfd_enabled":false,
+        //         "perpetual_enabled":false,
+        //         "last_event_timestamp":"1596962820.000797146",
+        //         "timestamp":"1596962820.000797146",
+        //         "multiplier_up":"9.0",
+        //         "multiplier_down":"0.1",
+        //         "average_time_interval":null
+        //     }
+        //
+        return $this->parse_trading_fee($response, $market);
+    }
+
+    public function parse_trading_fee($fee, $market = null) {
+        $marketId = $this->safe_string($fee, 'id');
+        $symbol = $this->safe_symbol($marketId, $market);
+        return array(
+            'info' => $fee,
+            'symbol' => $symbol,
+            'maker' => $this->safe_number($fee, 'maker_fee'),
+            'taker' => $this->safe_number($fee, 'taker_fee'),
+            'percentage' => true,
+            'tierBased' => true,
+        );
+    }
+
+    public function fetch_trading_fees($params = array ()) {
+        $this->load_markets();
+        $spot = $this->publicGetProducts ($params);
+        //
+        //     array(
+        //         array(
+        //             "id":"637",
+        //             "product_type":"CurrencyPair",
+        //             "code":"CASH",
+        //             "name":null,
+        //             "market_ask":"0.00000797",
+        //             "market_bid":"0.00000727",
+        //             "indicator":null,
+        //             "currency":"BTC",
+        //             "currency_pair_code":"TFTBTC",
+        //             "symbol":null,
+        //             "btc_minimum_withdraw":null,
+        //             "fiat_minimum_withdraw":null,
+        //             "pusher_channel":"product_cash_tftbtc_637",
+        //             "taker_fee":"0.0",
+        //             "maker_fee":"0.0",
+        //             "low_market_bid":"0.00000685",
+        //             "high_market_ask":"0.00000885",
+        //             "volume_24h":"3696.0755956",
+        //             "last_price_24h":"0.00000716",
+        //             "last_traded_price":"0.00000766",
+        //             "last_traded_quantity":"1748.0377978",
+        //             "average_price":null,
+        //             "quoted_currency":"BTC",
+        //             "base_currency":"TFT",
+        //             "tick_size":"0.00000001",
+        //             "disabled":false,
+        //             "margin_enabled":false,
+        //             "cfd_enabled":false,
+        //             "perpetual_enabled":false,
+        //             "last_event_timestamp":"1596962820.000797146",
+        //             "timestamp":"1596962820.000797146",
+        //             "multiplier_up":"9.0",
+        //             "multiplier_down":"0.1",
+        //             "average_time_interval":null
+        //         ),
+        //     )
+        //
+        $perpetual = $this->publicGetProducts (array( 'perpetual' => '1' ));
+        //
+        //     array(
+        //         array(
+        //             "id":"604",
+        //             "product_type":"Perpetual",
+        //             "code":"CASH",
+        //             "name":null,
+        //             "market_ask":"11721.5",
+        //             "market_bid":"11719.0",
+        //             "indicator":null,
+        //             "currency":"USD",
+        //             "currency_pair_code":"P-BTCUSD",
+        //             "symbol":"$",
+        //             "btc_minimum_withdraw":null,
+        //             "fiat_minimum_withdraw":null,
+        //             "pusher_channel":"product_cash_p-btcusd_604",
+        //             "taker_fee":"0.0012",
+        //             "maker_fee":"0.0",
+        //             "low_market_bid":"11624.5",
+        //             "high_market_ask":"11859.0",
+        //             "volume_24h":"0.271",
+        //             "last_price_24h":"11621.5",
+        //             "last_traded_price":"11771.5",
+        //             "last_traded_quantity":"0.09",
+        //             "average_price":"11771.5",
+        //             "quoted_currency":"USD",
+        //             "base_currency":"P-BTC",
+        //             "tick_size":"0.5",
+        //             "disabled":false,
+        //             "margin_enabled":false,
+        //             "cfd_enabled":false,
+        //             "perpetual_enabled":true,
+        //             "last_event_timestamp":"1596963309.418853092",
+        //             "timestamp":"1596963309.418853092",
+        //             "multiplier_up":null,
+        //             "multiplier_down":"0.1",
+        //             "average_time_interval":300,
+        //             "index_price":"11682.8124",
+        //             "mark_price":"11719.96781",
+        //             "funding_rate":"0.00273",
+        //             "fair_price":"11720.2745"
+        //         ),
+        //     )
+        //
+        $markets = $this->array_concat($spot, $perpetual);
+        $result = array();
+        for ($i = 0; $i < count($markets); $i++) {
+            $market = $markets[$i];
+            $marketId = $this->safe_string($market, 'id');
+            $symbol = $this->safe_symbol($marketId, $market);
+            $result[$symbol] = $this->parse_trading_fee($market);
+        }
+        return $result;
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {

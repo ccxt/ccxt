@@ -1,8 +1,4 @@
 import numbers  # noqa: E402
-try:
-    basestring  # basestring was removed in Python 3
-except NameError:
-    basestring = str
 
 
 def test_leverage_tier(exchange, method, tier):

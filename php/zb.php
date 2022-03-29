@@ -29,7 +29,7 @@ class zb extends Exchange {
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
-                'margin' => null, // has but unimplemented
+                'margin' => true,
                 'swap' => true,
                 'future' => null,
                 'option' => null,
@@ -40,6 +40,10 @@ class zb extends Exchange {
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => true,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
@@ -66,6 +70,8 @@ class zb extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
                 'setLeverage' => true,
@@ -89,6 +95,213 @@ class zb extends Exchange {
                 '3d' => '3d',
                 '5d' => '5d',
                 '1w' => '1w',
+            ),
+            'hostname' => 'zb.com', // zb.cafe for users in China
+            'urls' => array(
+                'logo' => 'https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg',
+                'api' => array(
+                    'spot' => array(
+                        'v1' => array(
+                            'public' => 'https://api.{hostname}/data',
+                            'private' => 'https://trade.{hostname}/api',
+                        ),
+                    ),
+                    'contract' => array(
+                        'v1' => array(
+                            'public' => 'https://fapi.{hostname}/api/public',
+                        ),
+                        'v2' => array(
+                            'public' => 'https://fapi.{hostname}/Server/api',
+                            'private' => 'https://fapi.{hostname}/Server/api',
+                        ),
+                    ),
+                ),
+                'www' => 'https://www.zb.com',
+                'doc' => 'https://www.zb.com/i/developer',
+                'fees' => 'https://www.zb.com/i/rate',
+                'referral' => array(
+                    'url' => 'https://www.zbex.club/en/register?ref=4301lera',
+                    'discount' => 0.16,
+                ),
+            ),
+            'api' => array(
+                'spot' => array(
+                    'v1' => array(
+                        'public' => array(
+                            'get' => array(
+                                'markets',
+                                'ticker',
+                                'allTicker',
+                                'depth',
+                                'trades',
+                                'kline',
+                                'getGroupMarkets',
+                                'getFeeInfo',
+                            ),
+                        ),
+                        'private' => array(
+                            'get' => array(
+                                // spot API
+                                'order',
+                                'orderMoreV2',
+                                'cancelOrder',
+                                'getOrder',
+                                'getOrders',
+                                'getOrdersNew',
+                                'getOrdersIgnoreTradeType',
+                                'getUnfinishedOrdersIgnoreTradeType',
+                                'getFinishedAndPartialOrders',
+                                'getAccountInfo',
+                                'getUserAddress',
+                                'getPayinAddress',
+                                'getWithdrawAddress',
+                                'getWithdrawRecord',
+                                'getChargeRecord',
+                                'getCnyWithdrawRecord',
+                                'getCnyChargeRecord',
+                                'withdraw',
+                                // sub accounts
+                                'addSubUser',
+                                'getSubUserList',
+                                'doTransferFunds',
+                                'createSubUserKey', // removed on 2021-03-16 according to the update log in the API doc
+                                // leverage API
+                                'getLeverAssetsInfo',
+                                'getLeverBills',
+                                'transferInLever',
+                                'transferOutLever',
+                                'loan',
+                                'cancelLoan',
+                                'getLoans',
+                                'getLoanRecords',
+                                'borrow',
+                                'autoBorrow',
+                                'repay',
+                                'doAllRepay',
+                                'getRepayments',
+                                'getFinanceRecords',
+                                'changeInvestMark',
+                                'changeLoop',
+                                // cross API
+                                'getCrossAssets',
+                                'getCrossBills',
+                                'transferInCross',
+                                'transferOutCross',
+                                'doCrossLoan',
+                                'doCrossRepay',
+                                'getCrossRepayRecords',
+                            ),
+                        ),
+                    ),
+                ),
+                'contract' => array(
+                    'v1' => array(
+                        'public' => array(
+                            'get' => array(
+                                'depth',
+                                'fundingRate',
+                                'indexKline',
+                                'indexPrice',
+                                'kline',
+                                'markKline',
+                                'markPrice',
+                                'ticker',
+                                'trade',
+                            ),
+                        ),
+                    ),
+                    'v2' => array(
+                        'public' => array(
+                            'get' => array(
+                                'allForceOrders',
+                                'config/marketList',
+                                'topLongShortAccountRatio',
+                                'topLongShortPositionRatio',
+                                'fundingRate',
+                                'premiumIndex',
+                            ),
+                        ),
+                        'private' => array(
+                            'get' => array(
+                                'Fund/balance',
+                                'Fund/getAccount',
+                                'Fund/getBill',
+                                'Fund/getBillTypeList',
+                                'Fund/marginHistory',
+                                'Positions/getPositions',
+                                'Positions/getNominalValue',
+                                'Positions/marginInfo',
+                                'setting/get',
+                                'trade/getAllOrders',
+                                'trade/getOrder',
+                                'trade/getOrderAlgos',
+                                'trade/getTradeList',
+                                'trade/getUndoneOrders',
+                                'trade/tradeHistory',
+                            ),
+                            'post' => array(
+                                'activity/buyTicket',
+                                'Fund/transferFund',
+                                'Positions/setMarginCoins',
+                                'Positions/updateAppendUSDValue',
+                                'Positions/updateMargin',
+                                'setting/setLeverage',
+                                'trade/batchOrder',
+                                'trade/batchCancelOrder',
+                                'trade/cancelAlgos',
+                                'trade/cancelAllOrders',
+                                'trade/cancelOrder',
+                                'trade/order',
+                                'trade/orderAlgo',
+                                'trade/updateOrderAlgo',
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+            'fees' => array(
+                'funding' => array(
+                    'withdraw' => array(),
+                ),
+                'trading' => array(
+                    'maker' => $this->parse_number('0.002'),
+                    'taker' => $this->parse_number('0.002'),
+                ),
+            ),
+            'commonCurrencies' => array(
+                'ANG' => 'Anagram',
+                'ENT' => 'ENTCash',
+                'BCHABC' => 'BCHABC', // conflict with BCH / BCHA
+                'BCHSV' => 'BCHSV', // conflict with BCH / BSV
+            ),
+            'options' => array(
+                'timeframes' => array(
+                    'spot' => array(
+                        '1m' => '1min',
+                        '3m' => '3min',
+                        '5m' => '5min',
+                        '15m' => '15min',
+                        '30m' => '30min',
+                        '1h' => '1hour',
+                        '2h' => '2hour',
+                        '4h' => '4hour',
+                        '6h' => '6hour',
+                        '12h' => '12hour',
+                        '1d' => '1day',
+                        '3d' => '3day',
+                        '1w' => '1week',
+                    ),
+                    'swap' => array(
+                        '1m' => '1M',
+                        '5m' => '5M',
+                        '15m' => '15M',
+                        '30m' => '30M',
+                        '1h' => '1H',
+                        '6h' => '6H',
+                        '1d' => '1D',
+                        '5d' => '5D',
+                    ),
+                ),
             ),
             'exceptions' => array(
                 'ws' => array(
@@ -316,212 +529,6 @@ class zb extends Exchange {
                     '响应超时' => '\\ccxt\\RequestTimeout', // array("code":1001,"message":"响应超时")
                 ),
             ),
-            'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg',
-                'api' => array(
-                    'spot' => array(
-                        'v1' => array(
-                            'public' => 'https://api.zb.work/data',
-                            'private' => 'https://trade.zb.work/api',
-                        ),
-                    ),
-                    'contract' => array(
-                        'v1' => array(
-                            'public' => 'https://fapi.zb.com/api/public',
-                        ),
-                        'v2' => array(
-                            'public' => 'https://fapi.zb.com/Server/api',
-                            'private' => 'https://fapi.zb.com/Server/api',
-                        ),
-                    ),
-                ),
-                'www' => 'https://www.zb.com',
-                'doc' => 'https://www.zb.com/i/developer',
-                'fees' => 'https://www.zb.com/i/rate',
-                'referral' => array(
-                    'url' => 'https://www.zbex.club/en/register?ref=4301lera',
-                    'discount' => 0.16,
-                ),
-            ),
-            'api' => array(
-                'spot' => array(
-                    'v1' => array(
-                        'public' => array(
-                            'get' => array(
-                                'markets',
-                                'ticker',
-                                'allTicker',
-                                'depth',
-                                'trades',
-                                'kline',
-                                'getGroupMarkets',
-                                'getFeeInfo',
-                            ),
-                        ),
-                        'private' => array(
-                            'get' => array(
-                                // spot API
-                                'order',
-                                'orderMoreV2',
-                                'cancelOrder',
-                                'getOrder',
-                                'getOrders',
-                                'getOrdersNew',
-                                'getOrdersIgnoreTradeType',
-                                'getUnfinishedOrdersIgnoreTradeType',
-                                'getFinishedAndPartialOrders',
-                                'getAccountInfo',
-                                'getUserAddress',
-                                'getPayinAddress',
-                                'getWithdrawAddress',
-                                'getWithdrawRecord',
-                                'getChargeRecord',
-                                'getCnyWithdrawRecord',
-                                'getCnyChargeRecord',
-                                'withdraw',
-                                // sub accounts
-                                'addSubUser',
-                                'getSubUserList',
-                                'doTransferFunds',
-                                'createSubUserKey', // removed on 2021-03-16 according to the update log in the API doc
-                                // leverage API
-                                'getLeverAssetsInfo',
-                                'getLeverBills',
-                                'transferInLever',
-                                'transferOutLever',
-                                'loan',
-                                'cancelLoan',
-                                'getLoans',
-                                'getLoanRecords',
-                                'borrow',
-                                'autoBorrow',
-                                'repay',
-                                'doAllRepay',
-                                'getRepayments',
-                                'getFinanceRecords',
-                                'changeInvestMark',
-                                'changeLoop',
-                                // cross API
-                                'getCrossAssets',
-                                'getCrossBills',
-                                'transferInCross',
-                                'transferOutCross',
-                                'doCrossLoan',
-                                'doCrossRepay',
-                                'getCrossRepayRecords',
-                            ),
-                        ),
-                    ),
-                ),
-                'contract' => array(
-                    'v1' => array(
-                        'public' => array(
-                            'get' => array(
-                                'depth',
-                                'fundingRate',
-                                'indexKline',
-                                'indexPrice',
-                                'kline',
-                                'markKline',
-                                'markPrice',
-                                'ticker',
-                                'trade',
-                            ),
-                        ),
-                    ),
-                    'v2' => array(
-                        'public' => array(
-                            'get' => array(
-                                'allForceOrders',
-                                'config/marketList',
-                                'topLongShortAccountRatio',
-                                'topLongShortPositionRatio',
-                                'fundingRate',
-                                'premiumIndex',
-                            ),
-                        ),
-                        'private' => array(
-                            'get' => array(
-                                'Fund/balance',
-                                'Fund/getAccount',
-                                'Fund/getBill',
-                                'Fund/getBillTypeList',
-                                'Fund/marginHistory',
-                                'Positions/getPositions',
-                                'Positions/getNominalValue',
-                                'Positions/marginInfo',
-                                'setting/get',
-                                'trade/getAllOrders',
-                                'trade/getOrder',
-                                'trade/getOrderAlgos',
-                                'trade/getTradeList',
-                                'trade/getUndoneOrders',
-                                'trade/tradeHistory',
-                            ),
-                            'post' => array(
-                                'activity/buyTicket',
-                                'Fund/transferFund',
-                                'Positions/setMarginCoins',
-                                'Positions/updateAppendUSDValue',
-                                'Positions/updateMargin',
-                                'setting/setLeverage',
-                                'trade/batchOrder',
-                                'trade/batchCancelOrder',
-                                'trade/cancelAlgos',
-                                'trade/cancelAllOrders',
-                                'trade/cancelOrder',
-                                'trade/order',
-                                'trade/orderAlgo',
-                                'trade/updateOrderAlgo',
-                            ),
-                        ),
-                    ),
-                ),
-            ),
-            'fees' => array(
-                'funding' => array(
-                    'withdraw' => array(),
-                ),
-                'trading' => array(
-                    'maker' => 0.2 / 100,
-                    'taker' => 0.2 / 100,
-                ),
-            ),
-            'commonCurrencies' => array(
-                'ANG' => 'Anagram',
-                'ENT' => 'ENTCash',
-                'BCHABC' => 'BCHABC', // conflict with BCH / BCHA
-                'BCHSV' => 'BCHSV', // conflict with BCH / BSV
-            ),
-            'options' => array(
-                'timeframes' => array(
-                    'spot' => array(
-                        '1m' => '1min',
-                        '3m' => '3min',
-                        '5m' => '5min',
-                        '15m' => '15min',
-                        '30m' => '30min',
-                        '1h' => '1hour',
-                        '2h' => '2hour',
-                        '4h' => '4hour',
-                        '6h' => '6hour',
-                        '12h' => '12hour',
-                        '1d' => '1day',
-                        '3d' => '3day',
-                        '1w' => '1week',
-                    ),
-                    'swap' => array(
-                        '1m' => '1M',
-                        '5m' => '5M',
-                        '15m' => '15M',
-                        '30m' => '30M',
-                        '1h' => '1H',
-                        '6h' => '6H',
-                        '1d' => '1D',
-                        '5d' => '5D',
-                    ),
-                ),
-            ),
         ));
     }
 
@@ -537,7 +544,14 @@ class zb extends Exchange {
         //         ),
         //     }
         //
-        $contracts = $this->contractV2PublicGetConfigMarketList ($params);
+        $contracts = null;
+        try {
+            // https://github.com/ZBFuture/docs_en/blob/main/API%20V2%20_en.md#7-public-markethttp
+            // https://fapi.zb.com/Server/api/v2/config/marketList 502 Bad Gateway
+            $contracts = $this->contractV2PublicGetConfigMarketList ($params);
+        } catch (Exception $e) {
+            $contracts = array();
+        }
         //
         //     {
         //         BTC_USDT => array(
@@ -802,19 +816,134 @@ class zb extends Exchange {
         return $this->safe_balance($result);
     }
 
+    public function parse_margin_balance($response, $marginType) {
+        $result = array(
+            'info' => $response,
+        );
+        $levers = null;
+        if ($marginType === 'isolated') {
+            $message = $this->safe_value($response, 'message', array());
+            $data = $this->safe_value($message, 'datas', array());
+            $levers = $this->safe_value($data, 'levers', array());
+        } else {
+            $crossResponse = $this->safe_value($response, 'result', array());
+            $levers = $this->safe_value($crossResponse, 'list', array());
+        }
+        for ($i = 0; $i < count($levers); $i++) {
+            $balance = $levers[$i];
+            //
+            // Isolated Margin
+            //
+            //     {
+            //         "cNetUSD" => "0.00",
+            //         "repayLeverShow" => "-",
+            //         "cCanLoanIn" => "0.002115400000000",
+            //         "fNetCNY" => "147.76081161",
+            //         "fLoanIn" => "0.00",
+            //         "repayLevel" => 0,
+            //         "level" => 1,
+            //         "netConvertCNY" => "147.760811613032",
+            //         "cFreeze" => "0.00",
+            //         "cUnitTag" => "BTC",
+            //         "version" => 1646783178609,
+            //         "cAvailableUSD" => "0.00",
+            //         "cNetCNY" => "0.00",
+            //         "riskRate" => "-",
+            //         "fAvailableUSD" => "20.49273433",
+            //         "fNetUSD" => "20.49273432",
+            //         "cShowName" => "BTC",
+            //         "leverMultiple" => "5.00",
+            //         "couldTransferOutFiat" => "20.49273433",
+            //         "noticeLine" => "1.13",
+            //         "fFreeze" => "0.00",
+            //         "cUnitDecimal" => 8,
+            //         "fCanLoanIn" => "81.970937320000000",
+            //         "cAvailable" => "0.00",
+            //         "repayLock" => false,
+            //         "status" => 1,
+            //         "forbidType" => 0,
+            //         "totalConvertCNY" => "147.760811613032",
+            //         "cAvailableCNY" => "0.00",
+            //         "unwindPrice" => "0.00",
+            //         "fOverdraft" => "0.00",
+            //         "fShowName" => "USDT",
+            //         "statusShow" => "%E6%AD%A3%E5%B8%B8",
+            //         "cOverdraft" => "0.00",
+            //         "netConvertUSD" => "20.49273433",
+            //         "cNetBtc" => "0.00",
+            //         "loanInConvertCNY" => "0.00",
+            //         "fAvailableCNY" => "147.760811613032",
+            //         "key" => "btcusdt",
+            //         "fNetBtc" => "0.0005291",
+            //         "fUnitDecimal" => 8,
+            //         "loanInConvertUSD" => "0.00",
+            //         "showName" => "BTC/USDT",
+            //         "startLine" => "1.25",
+            //         "totalConvertUSD" => "20.49273433",
+            //         "couldTransferOutCoin" => "0.00",
+            //         "cEnName" => "BTC",
+            //         "leverMultipleInterest" => "3.00",
+            //         "fAvailable" => "20.49273433",
+            //         "fEnName" => "USDT",
+            //         "forceRepayLine" => "1.08",
+            //         "cLoanIn" => "0.00"
+            //     }
+            //
+            // Cross Margin
+            //
+            //     array(
+            //         array(
+            //             "fundType" => 2,
+            //             "loanIn" => 0,
+            //             "amount" => 0,
+            //             "freeze" => 0,
+            //             "overdraft" => 0,
+            //             "key" => "BTC",
+            //             "canTransferOut" => 0
+            //         ),
+            //     ),
+            //
+            $account = $this->account();
+            if ($marginType === 'isolated') {
+                $code = $this->safe_currency_code($this->safe_string($balance, 'fShowName'));
+                $account['total'] = $this->safe_string($balance, 'fAvailableUSD'); // total amount in USD
+                $account['free'] = $this->safe_string($balance, 'couldTransferOutFiat');
+                $account['used'] = $this->safe_string($balance, 'fFreeze');
+                $result[$code] = $account;
+            } else {
+                $code = $this->safe_currency_code($this->safe_string($balance, 'key'));
+                $account['total'] = $this->safe_string($balance, 'amount');
+                $account['free'] = $this->safe_string($balance, 'canTransferOut');
+                $account['used'] = $this->safe_string($balance, 'freeze');
+                $result[$code] = $account;
+            }
+        }
+        return $this->safe_balance($result);
+    }
+
     public function fetch_balance($params = array ()) {
         $this->load_markets();
         list($marketType, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        $margin = ($marketType === 'margin');
+        $swap = ($marketType === 'swap');
+        $marginMethod = null;
+        $defaultMargin = $margin ? 'isolated' : 'cross';
+        $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', $defaultMargin);
+        if ($marginType === 'isolated') {
+            $marginMethod = 'spotV1PrivateGetGetLeverAssetsInfo';
+        } else if ($marginType === 'cross') {
+            $marginMethod = 'spotV1PrivateGetGetCrossAssets';
+        }
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'spotV1PrivateGetGetAccountInfo',
             'swap' => 'contractV2PrivateGetFundBalance',
+            'margin' => $marginMethod,
         ));
         $request = array(
             // 'futuresAccountType' => 1, // SWAP
             // 'currencyId' => currency['id'], // SWAP
             // 'currencyName' => 'usdt', // SWAP
         );
-        $swap = ($marketType === 'swap');
         if ($swap) {
             $request['futuresAccountType'] = 1;
         }
@@ -879,10 +1008,105 @@ class zb extends Exchange {
         //         "desc" => "操作成功"
         //     }
         //
+        // Isolated Margin
+        //
+        //     {
+        //         "code" => 1000,
+        //         "message" => {
+        //             "des" => "success",
+        //             "isSuc" => true,
+        //             "datas" => {
+        //                 "leverPerm" => true,
+        //                 "levers" => array(
+        //                     {
+        //                         "cNetUSD" => "0.00",
+        //                         "repayLeverShow" => "-",
+        //                         "cCanLoanIn" => "0.002115400000000",
+        //                         "fNetCNY" => "147.76081161",
+        //                         "fLoanIn" => "0.00",
+        //                         "repayLevel" => 0,
+        //                         "level" => 1,
+        //                         "netConvertCNY" => "147.760811613032",
+        //                         "cFreeze" => "0.00",
+        //                         "cUnitTag" => "BTC",
+        //                         "version" => 1646783178609,
+        //                         "cAvailableUSD" => "0.00",
+        //                         "cNetCNY" => "0.00",
+        //                         "riskRate" => "-",
+        //                         "fAvailableUSD" => "20.49273433",
+        //                         "fNetUSD" => "20.49273432",
+        //                         "cShowName" => "BTC",
+        //                         "leverMultiple" => "5.00",
+        //                         "couldTransferOutFiat" => "20.49273433",
+        //                         "noticeLine" => "1.13",
+        //                         "fFreeze" => "0.00",
+        //                         "cUnitDecimal" => 8,
+        //                         "fCanLoanIn" => "81.970937320000000",
+        //                         "cAvailable" => "0.00",
+        //                         "repayLock" => false,
+        //                         "status" => 1,
+        //                         "forbidType" => 0,
+        //                         "totalConvertCNY" => "147.760811613032",
+        //                         "cAvailableCNY" => "0.00",
+        //                         "unwindPrice" => "0.00",
+        //                         "fOverdraft" => "0.00",
+        //                         "fShowName" => "USDT",
+        //                         "statusShow" => "%E6%AD%A3%E5%B8%B8",
+        //                         "cOverdraft" => "0.00",
+        //                         "netConvertUSD" => "20.49273433",
+        //                         "cNetBtc" => "0.00",
+        //                         "loanInConvertCNY" => "0.00",
+        //                         "fAvailableCNY" => "147.760811613032",
+        //                         "key" => "btcusdt",
+        //                         "fNetBtc" => "0.0005291",
+        //                         "fUnitDecimal" => 8,
+        //                         "loanInConvertUSD" => "0.00",
+        //                         "showName" => "BTC/USDT",
+        //                         "startLine" => "1.25",
+        //                         "totalConvertUSD" => "20.49273433",
+        //                         "couldTransferOutCoin" => "0.00",
+        //                         "cEnName" => "BTC",
+        //                         "leverMultipleInterest" => "3.00",
+        //                         "fAvailable" => "20.49273433",
+        //                         "fEnName" => "USDT",
+        //                         "forceRepayLine" => "1.08",
+        //                         "cLoanIn" => "0.00"
+        //                     }
+        //                 )
+        //             }
+        //         }
+        //     }
+        //
+        // Cross Margin
+        //
+        //     {
+        //         "code" => 1000,
+        //         "message" => "操作成功",
+        //         "result" => {
+        //             "loanIn" => 0,
+        //             "total" => 71.167,
+        //             "riskRate" => "-",
+        //             "list" :array(
+        //                 array(
+        //                     "fundType" => 2,
+        //                     "loanIn" => 0,
+        //                     "amount" => 0,
+        //                     "freeze" => 0,
+        //                     "overdraft" => 0,
+        //                     "key" => "BTC",
+        //                     "canTransferOut" => 0
+        //                 ),
+        //             ),
+        //             "net" => 71.167
+        //         }
+        //     }
+        //
         // todo => use this somehow
         // $permissions = $response['result']['base'];
         if ($swap) {
             return $this->parse_swap_balance($response);
+        } else if ($margin) {
+            return $this->parse_margin_balance($response, $marginType);
         } else {
             return $this->parse_balance($response);
         }
@@ -1201,7 +1425,7 @@ class zb extends Exchange {
             $ohlcvLength = is_array($ohlcv) ? count($ohlcv) : 0;
             if ($ohlcvLength > 5) {
                 return array(
-                    $this->safe_integer($ohlcv, 5),
+                    $this->safe_timestamp($ohlcv, 5),
                     $this->safe_number($ohlcv, 0),
                     $this->safe_number($ohlcv, 1),
                     $this->safe_number($ohlcv, 2),
@@ -1210,7 +1434,7 @@ class zb extends Exchange {
                 );
             } else {
                 return array(
-                    $this->safe_integer($ohlcv, 4),
+                    $this->safe_timestamp($ohlcv, 4),
                     $this->safe_number($ohlcv, 0),
                     $this->safe_number($ohlcv, 1),
                     $this->safe_number($ohlcv, 2),
@@ -1234,6 +1458,7 @@ class zb extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $swap = $market['swap'];
+        $spot = $market['spot'];
         $options = $this->safe_value($this->options, 'timeframes', array());
         $timeframes = $this->safe_value($options, $market['type'], array());
         $timeframeValue = $this->safe_string($timeframes, $timeframe);
@@ -1244,26 +1469,33 @@ class zb extends Exchange {
             $limit = 1000;
         }
         $request = array(
-            // 'market' => $market['id'], // spot only
+            // 'market' => $market['id'], // $spot only
             // 'symbol' => $market['id'], // $swap only
-            // 'type' => $timeframeValue, // spot only
+            // 'type' => $timeframeValue, // $spot only
             // 'period' => $timeframeValue, // $swap only
-            // 'since' => $since, // spot only
-            // 'limit' => $limit, // spot only
-            // 'size' => $limit, // $swap only
+            // 'since' => $since, // $spot only
+            // 'size' => $limit, // $spot and $swap
         );
         $marketIdField = $swap ? 'symbol' : 'market';
         $request[$marketIdField] = $market['id'];
         $periodField = $swap ? 'period' : 'type';
         $request[$periodField] = $timeframeValue;
-        $sizeField = $swap ? 'size' : 'limit';
-        $request[$sizeField] = $limit;
+        $price = $this->safe_string($params, 'price');
+        $params = $this->omit($params, 'price');
         $method = $this->get_supported_mapping($market['type'], array(
             'spot' => 'spotV1PublicGetKline',
             'swap' => 'contractV1PublicGetKline',
         ));
-        if ($since !== null) {
-            $request['since'] = $since;
+        if ($swap) {
+            if ($price === 'mark') {
+                $method = 'contractV1PublicGetMarkKline';
+            } else if ($price === 'index') {
+                $method = 'contractV1PublicGetIndexKline';
+            }
+        } else if ($spot) {
+            if ($since !== null) {
+                $request['since'] = $since;
+            }
         }
         if ($limit !== null) {
             $request['size'] = $limit;
@@ -1294,34 +1526,7 @@ class zb extends Exchange {
         //         ]
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
-        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
-    }
-
-    public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
-        $market = $this->market($symbol);
-        $options = $this->safe_value($this->options, 'timeframes', array());
-        $timeframes = $this->safe_value($options, $market['type'], array());
-        $timeframeValue = $this->safe_string($timeframes, $timeframe);
-        if ($timeframeValue === null) {
-            throw new NotSupported($this->id . ' fetchMarkOHLCV() does not support ' . $timeframe . ' $timeframe for ' . $market['type'] . ' markets');
-        }
-        if ($limit === null) {
-            $limit = 1000;
-        }
-        $request = array(
-            'symbol' => $market['id'],
-            'period' => $timeframeValue,
-            'size' => $limit,
-        );
-        if ($since !== null) {
-            $request['since'] = $since;
-        }
-        if ($limit !== null) {
-            $request['size'] = $limit;
-        }
-        $response = $this->contractV1PublicGetMarkKline (array_merge($request, $params));
+        // Mark
         //
         //     {
         //         "code" => 10000,
@@ -1333,34 +1538,7 @@ class zb extends Exchange {
         //         ]
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
-        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
-    }
-
-    public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
-        $market = $this->market($symbol);
-        $options = $this->safe_value($this->options, 'timeframes', array());
-        $timeframes = $this->safe_value($options, $market['type'], array());
-        $timeframeValue = $this->safe_string($timeframes, $timeframe);
-        if ($timeframeValue === null) {
-            throw new NotSupported($this->id . ' fetchIndexOHLCV() does not support ' . $timeframe . ' $timeframe for ' . $market['type'] . ' markets');
-        }
-        if ($limit === null) {
-            $limit = 1000;
-        }
-        $request = array(
-            'symbol' => $market['id'],
-            'period' => $timeframeValue,
-            'size' => $limit,
-        );
-        if ($since !== null) {
-            $request['since'] = $since;
-        }
-        if ($limit !== null) {
-            $request['size'] = $limit;
-        }
-        $response = $this->contractV1PublicGetIndexKline (array_merge($request, $params));
+        // Index
         //
         //     {
         //         "code" => 10000,
@@ -1374,6 +1552,20 @@ class zb extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
+    }
+
+    public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'price' => 'mark',
+        );
+        return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
+    }
+
+    public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'price' => 'index',
+        );
+        return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
     }
 
     public function parse_trade($trade, $market = null) {
@@ -1550,6 +1742,9 @@ class zb extends Exchange {
         ));
         $request = array(
             'amount' => $this->amount_to_precision($symbol, $amount),
+            // 'acctType' => 0, // Spot, Margin 0/1/2 [Spot/Isolated/Cross] Optional, Default to => 0 Spot
+            // 'customerOrderId' => '1f2g', // Spot, Margin
+            // 'orderType' => 1, // Spot, Margin order $type 1/2 [PostOnly/IOC] Optional
         );
         if ($price) {
             $request['price'] = $this->price_to_precision($symbol, $price);
@@ -1557,6 +1752,15 @@ class zb extends Exchange {
         if ($spot) {
             $request['tradeType'] = ($side === 'buy') ? '1' : '0';
             $request['currency'] = $market['id'];
+            if ($timeInForce !== null) {
+                if ($timeInForce === 'PO') {
+                    $request['orderType'] = 1;
+                } else if ($timeInForce === 'IOC') {
+                    $request['orderType'] = 2;
+                } else {
+                    throw new InvalidOrder($this->id . ' createOrder() on ' . $market['type'] . ' markets does not allow ' . $timeInForce . ' orders');
+                }
+            }
         } else if ($swap) {
             $reduceOnly = $this->safe_value($params, 'reduceOnly');
             $params = $this->omit($params, 'reduceOnly');
@@ -2263,6 +2467,7 @@ class zb extends Exchange {
         );
         if ($symbol !== null) {
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $request['symbol'] = $market['id'];
         }
         if ($since !== null) {
@@ -2922,25 +3127,67 @@ class zb extends Exchange {
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
         $this->load_markets();
-        $side = null;
-        if ($fromAccount === 'spot' || $toAccount === 'future') {
-            $side = 1;
-        } else {
-            $side = 0;
-        }
+        list($marketType, $query) = $this->handle_market_type_and_params('transfer', null, $params);
         $currency = $this->currency($code);
+        $margin = ($marketType === 'margin');
+        $swap = ($marketType === 'swap');
+        $side = null;
+        $marginMethod = null;
         $request = array(
-            'currencyName' => $currency['id'],
-            'amount' => $amount,
-            'clientId' => $this->safe_string($params, 'clientId'), // "2sdfsdfsdf232342"
-            'side' => $side, // 1：Deposit (zb account -> futures account)，0：Withdrawal (futures account -> zb account)
+            'amount' => $amount, // Swap, Cross Margin, Isolated Margin
+            // 'coin' => $currency['id'], // Margin
+            // 'currencyName' => $currency['id'], // Swap
+            // 'clientId' => $this->safe_string($params, 'clientId'), // Swap "2sdfsdfsdf232342"
+            // 'side' => $side, // Swap, 1：Deposit (zb account -> futures account)，0：Withdrawal (futures account -> zb account)
+            // 'marketName' => $this->safe_string($params, 'marketName'), // Isolated Margin
         );
-        $response = $this->contractV2PrivatePostFundTransferFund (array_merge($request, $params));
+        if ($swap) {
+            if ($fromAccount === 'spot' || $toAccount === 'future') {
+                $side = 1;
+            } else {
+                $side = 0;
+            }
+            $request['currencyName'] = $currency['id'];
+            $request['clientId'] = $this->safe_string($params, 'clientId');
+            $request['side'] = $side;
+        } else {
+            $defaultMargin = $margin ? 'isolated' : 'cross';
+            $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', $defaultMargin);
+            if ($marginType === 'isolated') {
+                if ($fromAccount === 'spot' || $toAccount === 'isolated') {
+                    $marginMethod = 'spotV1PrivateGetTransferInLever';
+                } else {
+                    $marginMethod = 'spotV1PrivateGetTransferOutLever';
+                }
+                $request['marketName'] = $this->safe_string($params, 'marketName');
+            } else if ($marginType === 'cross') {
+                if ($fromAccount === 'spot' || $toAccount === 'cross') {
+                    $marginMethod = 'spotV1PrivateGetTransferInCross';
+                } else {
+                    $marginMethod = 'spotV1PrivateGetTransferOutCross';
+                }
+            }
+            $request['coin'] = $currency['id'];
+        }
+        $method = $this->get_supported_mapping($marketType, array(
+            'swap' => 'contractV2PrivatePostFundTransferFund',
+            'margin' => $marginMethod,
+        ));
+        $response = $this->$method (array_merge($request, $query));
+        //
+        // Swap
         //
         //     {
         //         "code" => 10000,
         //         "data" => "2sdfsdfsdf232342",
         //         "desc" => "Success"
+        //     }
+        //
+        // Margin
+        //
+        //     {
+        //         "code" => 1000,
+        //         "message" => "Success"
         //     }
         //
         $timestamp = $this->milliseconds();
@@ -2980,7 +3227,7 @@ class zb extends Exchange {
             'amount' => $this->safe_number($transfer, 'amount'),
             'fromAccount' => $this->safe_string($transfer, 'fromAccount'),
             'toAccount' => $this->safe_string($transfer, 'toAccount'),
-            'status' => $this->safe_string($transfer, 'status'),
+            'status' => $this->safe_integer($transfer, 'status'),
         );
     }
 
@@ -3067,16 +3314,97 @@ class zb extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 1, $params);
     }
 
+    public function fetch_borrow_rate($code, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'coin' => $currency['id'],
+        );
+        $response = $this->spotV1PrivateGetGetLoans (array_merge($request, $params));
+        //
+        //     {
+        //         $code => '1000',
+        //         message => '操作成功',
+        //         result => array(
+        //             array(
+        //                 interestRateOfDay => '0.0005',
+        //                 repaymentDay => '30',
+        //                 amount => '148804.4841',
+        //                 balance => '148804.4841',
+        //                 rateOfDayShow => '0.05 %',
+        //                 coinName => 'USDT',
+        //                 lowestAmount => '0.01'
+        //             ),
+        //         )
+        //     }
+        //
+        $timestamp = $this->milliseconds();
+        $data = $this->safe_value($response, 'result', array());
+        $rate = $this->safe_value($data, 0, array());
+        return array(
+            'currency' => $this->safe_currency_code($this->safe_string($rate, 'coinName')),
+            'rate' => $this->safe_number($rate, 'interestRateOfDay'),
+            'period' => $this->safe_number($rate, 'repaymentDay'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $rate,
+        );
+    }
+
+    public function fetch_borrow_rates($params = array ()) {
+        if ($params['coin'] === null) {
+            throw new ArgumentsRequired($this->id . ' fetchBorrowRates() requires a coin argument in the params');
+        }
+        $this->load_markets();
+        $currency = $this->currency($this->safe_string($params, 'coin'));
+        $request = array(
+            'coin' => $currency['id'],
+        );
+        $response = $this->spotV1PrivateGetGetLoans (array_merge($request, $params));
+        //
+        //     {
+        //         code => '1000',
+        //         message => '操作成功',
+        //         result => array(
+        //             array(
+        //                 interestRateOfDay => '0.0005',
+        //                 repaymentDay => '30',
+        //                 amount => '148804.4841',
+        //                 balance => '148804.4841',
+        //                 rateOfDayShow => '0.05 %',
+        //                 coinName => 'USDT',
+        //                 lowestAmount => '0.01'
+        //             ),
+        //         )
+        //     }
+        //
+        $timestamp = $this->milliseconds();
+        $data = $this->safe_value($response, 'result');
+        $rates = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $entry = $data[$i];
+            $rates[] = array(
+                'currency' => $this->safe_currency_code($this->safe_string($entry, 'coinName')),
+                'rate' => $this->safe_number($entry, 'interestRateOfDay'),
+                'period' => $this->safe_number($entry, 'repaymentDay'),
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+                'info' => $entry,
+            );
+        }
+        return $rates;
+    }
+
     public function nonce() {
         return $this->milliseconds();
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         list($section, $version, $access) = $api;
-        $url = $this->urls['api'][$section][$version][$access];
+        $url = $this->implode_hostname($this->urls['api'][$section][$version][$access]);
         if ($access === 'public') {
             if ($path === 'getFeeInfo') {
-                $url = $this->urls['api'][$section][$version]['private'] . '/' . $path;
+                $url = $this->implode_hostname($this->urls['api'][$section][$version]['private']) . '/' . $path;
             } else {
                 $url .= '/' . $version . '/' . $path;
             }

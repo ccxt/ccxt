@@ -26,7 +26,6 @@ class wavesexchange(Exchange):
             'id': 'wavesexchange',
             'name': 'Waves.Exchange',
             'countries': ['CH'],  # Switzerland
-            'rateLimit': 500,
             'certified': True,
             'pro': False,
             'has': {
@@ -802,9 +801,9 @@ class wavesexchange(Exchange):
         limit = min(allowedCandles, limit)
         duration = self.parse_timeframe(timeframe) * 1000
         if since is None:
-            currentTime = int(self.milliseconds() / duration) * duration
+            durationRoundedTimestamp = int(self.milliseconds() / duration) * duration
             delta = (limit - 1) * duration
-            timeStart = currentTime - delta
+            timeStart = durationRoundedTimestamp - delta
             request['timeStart'] = str(timeStart)
         else:
             request['timeStart'] = str(since)
@@ -836,6 +835,7 @@ class wavesexchange(Exchange):
         #
         data = self.safe_value(response, 'data', [])
         result = self.parse_ohlcvs(data, market, timeframe, since, limit)
+        result = self.filter_future_candles(result)
         lastClose = None
         length = len(result)
         for i in range(0, len(result)):
@@ -849,6 +849,16 @@ class wavesexchange(Exchange):
                 entry[4] = lastClose
                 result[j] = entry
             lastClose = entry[4]
+        return result
+
+    def filter_future_candles(self, ohlcvs):
+        result = []
+        timestamp = self.milliseconds()
+        for i in range(0, len(ohlcvs)):
+            if ohlcvs[i][0] > timestamp:
+                # stop when getting data from the future
+                break
+            result.append(ohlcvs[i])
         return result
 
     def parse_ohlcv(self, ohlcv, market=None):

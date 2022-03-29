@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1242,28 +1235,36 @@ class bybit(Exchange):
         # TODO method = 'publicGetPublicLinearFundingPrevFundingRate' if market['linear'] else 'publicGetV2PublicFundingRate ???? throws ExchangeError'
         response = getattr(self, method)(self.extend(request, params))
         #
-        #    {
-        #        "ret_code": 0,
-        #        "ret_msg": "ok",
-        #        "ext_code": "",
-        #        "result": {
-        #            "symbol": "BTCUSD",
-        #            "funding_rate": "0.00010000",
-        #            "funding_rate_timestamp": 1577433600  # v2PublicGetFundingPrevFundingRate
-        #  #         "funding_rate_timestamp": "2022-02-05T08:00:00.000Z"  # publicLinearGetFundingPrevFundingRate
-        #        },
-        #        "ext_info": null,
-        #        "time_now": "1577445586.446797",
-        #        "rate_limit_status": 119,
-        #        "rate_limit_reset_ms": 1577445586454,
-        #        "rate_limit": 120,
-        #    }
+        #     {
+        #         "ret_code":0,
+        #         "ret_msg":"OK",
+        #         "ext_code":"",
+        #         "ext_info":"",
+        #         "result":{
+        #             "symbol":"BTCUSDT",
+        #             "funding_rate":0.00006418,
+        #             "funding_rate_timestamp":"2022-03-11T16:00:00.000Z"
+        #         },
+        #         "time_now":"1647040818.724895"
+        #     }
+        #
+        #     {
+        #         "ret_code":0,
+        #         "ret_msg":"OK",
+        #         "ext_code":"",
+        #         "ext_info":"",
+        #         "result":{
+        #             "symbol":"BTCUSD",
+        #             "funding_rate":"0.00009536",
+        #             "funding_rate_timestamp":1647014400
+        #         },
+        #         "time_now":"1647040852.515724"
+        #     }
         #
         result = self.safe_value(response, 'result')
         fundingRate = self.safe_number(result, 'funding_rate')
-        fundingTimestamp = self.safe_timestamp(result, 'funding_rate_timestamp')
-        if fundingTimestamp is None:
-            fundingTimestamp = self.parse8601(self.safe_string(result, 'funding_rate_timestamp'))
+        fundingTimestamp = self.parse8601(self.safe_string(result, 'funding_rate_timestamp'))
+        fundingTimestamp = self.safe_timestamp(result, 'funding_rate_timestamp', fundingTimestamp)
         currentTime = self.milliseconds()
         return {
             'info': result,
@@ -2738,7 +2739,7 @@ class bybit(Exchange):
             response = self.v2PrivateGetPositionList(self.extend(request, params))
         elif type == 'inverseFuture':
             response = self.futuresPrivateGetPositionList(self.extend(request, params))
-        if (isinstance(response, basestring)) and self.is_json_encoded_object(response):
+        if (isinstance(response, str)) and self.is_json_encoded_object(response):
             response = json.loads(response)
         #
         #     {

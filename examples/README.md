@@ -73,9 +73,15 @@ php -f path/to/example.php # substitute for actual filename here
 
 [FTX API (Crypto Exchange) and Google Cloud Functions](https://www.youtube.com/watch?v=mtpA3vDg5js) – A video on trading with CCXT and Google Cloud Functions!
 
+[VectorBT Scheduler, Alpaca Crypto API, Stochastic Oscillator](https://www.youtube.com/watch?v=ZffdACbvFjc) – A video tutorial on CCXT + VectorBT Scheduler + Alpaca Crypto API + Stochastic Oscillator.
+
 [Coinbase Pro, TradingView Webhooks, and Google Cloud Functions](https://www.youtube.com/watch?v=3jA2vAJSdAI) – How to automate your trading by connecting Coinbase Pro to Google Cloud Functions using TradingView Webhooks and CCXT!
 
 [CCXT - Crypto Trading](https://www.youtube.com/playlist?list=PLvzuUVysUFOv5XEPHeqefgyHZcDfLxH-W) – An awesome video playlist on CCXT and tons of other cool videos by [Part Time Larry](https://www.youtube.com/c/parttimelarry)!
+
+[Python and CCXT Grid Bot Tutorial](https://www.youtube.com/watch?v=QzqMGX4Qk1A) – A video tutorial on building a Grid Bot with Python and CCXT!
+
+[Crypto Trading Bot In Python](https://medium.com/coinmonks/crypto-trading-bot-on-python-22a245f1a9d) – An article on structuring a basic bot with CCXT and Python.
 
 [Writing a crypto trading bot](https://www.kleemans.ch/writing-a-crypto-trading-bot) – How to write an automated trading bot, for fun and profit.
 

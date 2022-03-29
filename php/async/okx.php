@@ -174,6 +174,7 @@ class okx extends Exchange {
                         'public/position-tiers' => 2,
                         'public/underlying' => 1,
                         'public/interest-rate-loan-quota' => 10,
+                        'public/vip-interest-rate-loan-quota' => 10,
                         'rubik/stat/trading-data/support-coin' => 4,
                         'rubik/stat/taker-volume' => 4,
                         'rubik/stat/margin/loan-ratio' => 4,
@@ -235,12 +236,21 @@ class okx extends Exchange {
                         'asset/subaccount/bills' => 5 / 3,
                         'users/subaccount/list' => 10,
                         'users/subaccount/apikey' => 10,
+                        'users/entrust-subaccount-list' => 10,
                         // broker
                         'broker/nd/info' => 10,
                         'broker/nd/subaccount-info' => 10,
                         'asset/broker/nd/subaccount-deposit-address' => 4,
                         'asset/broker/nd/subaccount-deposit-history' => 4,
                         'broker/nd/rebate-daily' => 1,
+                        // convert
+                        'asset/convert/currencies' => 5 / 3,
+                        'asset/convert/currency-pair' => 5 / 3,
+                        'asset/convert/estimate-quote' => 5,
+                        'asset/convert/trade' => 5,
+                        'asset/convert/history' => 5 / 3,
+                        // options
+                        'account/greeks' => 2,
                     ),
                     'post' => array(
                         'account/set-position-mode' => 4,
@@ -287,7 +297,7 @@ class okx extends Exchange {
                     'taker' => $this->parse_number('0.0015'),
                     'maker' => $this->parse_number('0.0010'),
                 ),
-                'futures' => array(
+                'future' => array(
                     'taker' => $this->parse_number('0.0005'),
                     'maker' => $this->parse_number('0.0002'),
                 ),
@@ -590,6 +600,10 @@ class okx extends Exchange {
                     'ETH' => 'ERC20',
                     'TRX' => 'TRC20',
                     'OMNI' => 'Omni',
+                    'SOLANA' => 'Solana',
+                    'POLYGON' => 'Polygon',
+                    'OEC' => 'OEC',
+                    'ALGO' => 'ALGO', // temporarily unavailable
                 ),
                 'layerTwo' => array(
                     'Lightning' => true,
@@ -598,10 +612,10 @@ class okx extends Exchange {
                 'fetchOHLCV' => array(
                     // 'type' => 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
                 ),
-                'createOrder' => 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder'
+                'createOrder' => 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder' or 'privatePostTradeOrderAlgo'
                 'createMarketBuyOrderRequiresPrice' => false,
-                'fetchMarkets' => array( 'spot', 'futures', 'swap', 'option' ), // spot, futures, swap, option
-                'defaultType' => 'spot', // 'funding', 'spot', 'margin', 'futures', 'swap', 'option'
+                'fetchMarkets' => array( 'spot', 'future', 'swap', 'option' ), // spot, future, swap, option
+                'defaultType' => 'spot', // 'funding', 'spot', 'margin', 'future', 'swap', 'option'
                 // 'fetchBalance' => array(
                 //     'type' => 'spot', // 'funding', 'trading', 'spot'
                 // ),
@@ -611,6 +625,7 @@ class okx extends Exchange {
                 // 1 = SPOT, 3 = FUTURES, 5 = MARGIN, 6 = FUNDING, 9 = SWAP, 12 = OPTION, 18 = Unified account
                 'accountsByType' => array(
                     'spot' => '1',
+                    'future' => '3',
                     'futures' => '3',
                     'margin' => '5',
                     'funding' => '6',
@@ -621,12 +636,25 @@ class okx extends Exchange {
                 ),
                 'typesByAccount' => array(
                     '1' => 'spot',
-                    '3' => 'futures',
+                    '3' => 'future',
                     '5' => 'margin',
                     '6' => 'funding',
                     '9' => 'swap',
                     '12' => 'option',
                     '18' => 'trading', // unified trading account
+                ),
+                'exchangeType' => array(
+                    'spot' => 'SPOT',
+                    'margin' => 'MARGIN',
+                    'swap' => 'SWAP',
+                    'future' => 'FUTURES',
+                    'futures' => 'FUTURES', // deprecated
+                    'option' => 'OPTION',
+                    'SPOT' => 'SPOT',
+                    'MARGIN' => 'MARGIN',
+                    'SWAP' => 'SWAP',
+                    'FUTURES' => 'FUTURES',
+                    'OPTION' => 'OPTION',
                 ),
                 'brokerId' => 'e847386590ce4dBC',
             ),
@@ -643,6 +671,21 @@ class okx extends Exchange {
                 'WIN' => 'WinToken', // https://github.com/ccxt/ccxt/issues/5701
             ),
         ));
+    }
+
+    public function handle_market_type_and_params($methodName, $market = null, $params = array ()) {
+        $instType = $this->safe_string($params, 'instType');
+        $params = $this->omit($params, 'instType');
+        $type = $this->safe_string($params, 'type');
+        if (($type === null) && ($instType !== null)) {
+            $params['type'] = $instType;
+        }
+        return parent::handle_market_type_and_params($methodName, $market, $params);
+    }
+
+    public function convert_to_instrument_type($type) {
+        $exchangeTypes = $this->safe_value($this->options, 'exchangeType', array());
+        return $this->safe_string($exchangeTypes, $type, $type);
     }
 
     public function fetch_status($params = array ()) {
@@ -808,11 +851,14 @@ class okx extends Exchange {
         //
         $id = $this->safe_string($market, 'instId');
         $type = $this->safe_string_lower($market, 'instType');
+        if ($type === 'futures') {
+            $type = 'future';
+        }
         $spot = ($type === 'spot');
-        $futures = ($type === 'futures');
+        $future = ($type === 'future');
         $swap = ($type === 'swap');
         $option = ($type === 'option');
-        $contract = $swap || $futures || $option;
+        $contract = $swap || $future || $option;
         $baseId = $this->safe_string($market, 'baseCcy');
         $quoteId = $this->safe_string($market, 'quoteCcy');
         $settleId = $this->safe_string($market, 'settleCcy');
@@ -832,7 +878,7 @@ class okx extends Exchange {
         if ($contract) {
             $symbol = $symbol . ':' . $settle;
             $expiry = $this->safe_integer($market, 'expTime');
-            if ($futures) {
+            if ($future) {
                 $ymd = $this->yymmdd($expiry);
                 $symbol = $symbol . '-' . $ymd;
             } else if ($option) {
@@ -865,8 +911,7 @@ class okx extends Exchange {
             'spot' => $spot,
             'margin' => $spot && (Precise::string_gt($maxLeverage, '1')),
             'swap' => $swap,
-            'future' => $futures,
-            'futures' => $futures, // deprecated
+            'future' => $future,
             'option' => $option,
             'active' => true,
             'contract' => $contract,
@@ -904,11 +949,10 @@ class okx extends Exchange {
     }
 
     public function fetch_markets_by_type($type, $params = array ()) {
-        $uppercaseType = strtoupper($type);
         $request = array(
-            'instType' => $uppercaseType,
+            'instType' => $this->convert_to_instrument_type($type),
         );
-        if ($uppercaseType === 'OPTION') {
+        if ($type === 'option') {
             $defaultUnderlying = $this->safe_value($this->options, 'defaultUnderlying', 'BTC-USD');
             $currencyId = $this->safe_string_2($params, 'uly', 'marketId', $defaultUnderlying);
             if ($currencyId === null) {
@@ -919,7 +963,7 @@ class okx extends Exchange {
         }
         $response = yield $this->publicGetPublicInstruments (array_merge($request, $params));
         //
-        // spot, futures, swaps, options
+        // spot, future, swap, option
         //
         //     {
         //         "code":"0",
@@ -1147,7 +1191,7 @@ class okx extends Exchange {
         $symbol = $market['symbol'];
         $last = $this->safe_string($ticker, 'last');
         $open = $this->safe_string($ticker, 'open24h');
-        $quoteVolume = $this->safe_string($ticker, 'volCcy24h');
+        $quoteVolume = $market['spot'] ? $this->safe_string($ticker, 'volCcy24h') : null;
         $baseVolume = $this->safe_string($ticker, 'vol24h');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -1213,11 +1257,10 @@ class okx extends Exchange {
 
     public function fetch_tickers_by_type($type, $symbols = null, $params = array ()) {
         yield $this->load_markets();
-        $uppercaseType = strtoupper($type);
         $request = array(
-            'instType' => strtoupper($type),
+            'instType' => $this->convert_to_instrument_type($type),
         );
-        if ($uppercaseType === 'OPTION') {
+        if ($type === 'option') {
             $defaultUnderlying = $this->safe_value($this->options, 'defaultUnderlying', 'BTC-USD');
             $currencyId = $this->safe_string_2($params, 'uly', 'marketId', $defaultUnderlying);
             if ($currencyId === null) {
@@ -1258,9 +1301,8 @@ class okx extends Exchange {
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
-        $defaultType = $this->safe_string_2($this->options, 'fetchTickers', 'defaultType');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        return yield $this->fetch_tickers_by_type($type, $symbols, $this->omit($params, 'type'));
+        list($type, $query) = $this->handle_market_type_and_params('fetchTickers', null, $params);
+        return yield $this->fetch_tickers_by_type($type, $symbols, $query);
     }
 
     public function parse_trade($trade, $market = null) {
@@ -1490,7 +1532,7 @@ class okx extends Exchange {
             );
         }
         $sorted = $this->sort_by($rates, 'timestamp');
-        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
     public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -1585,17 +1627,17 @@ class okx extends Exchange {
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
-            'instType' => strtoupper($market['type']), // SPOT, MARGIN, SWAP, FUTURES, OPTION
+            'instType' => $this->convert_to_instrument_type($market['type']), // SPOT, MARGIN, SWAP, FUTURES, OPTION
             // 'instId' => $market['id'], // only applicable to SPOT/MARGIN
             // 'uly' => $market['id'], // only applicable to FUTURES/SWAP/OPTION
             // 'category' => '1', // 1 = Class A, 2 = Class B, 3 = Class C, 4 = Class D
         );
         if ($market['spot']) {
             $request['instId'] = $market['id'];
-        } else if ($market['swap'] || $market['futures'] || $market['option']) {
+        } else if ($market['swap'] || $market['future'] || $market['option']) {
             $request['uly'] = $market['baseId'] . '-' . $market['quoteId'];
         } else {
-            throw new NotSupported($this->id . ' fetchTradingFee supports spot, swap, futures or option markets only');
+            throw new NotSupported($this->id . ' fetchTradingFee supports spot, swap, future or option markets only');
         }
         $response = yield $this->privateGetAccountTradeFee (array_merge($request, $params));
         //
@@ -1774,7 +1816,7 @@ class okx extends Exchange {
             //
             'side' => $side,
             // 'posSide' => 'long', // long, short, // required in the long/short mode, and can only be long or short
-            'ordType' => $type, // $market, limit, post_only, fok, ioc
+            'ordType' => $type, // $market, limit, post_only, fok, ioc, (trigger for stop orders)
             //
             //     for SPOT/MARGIN bought and sold at a limit $price, sz refers to the $amount of trading currency
             //     for SPOT/MARGIN bought at a $market $price, sz refers to the $amount of quoted currency
@@ -1784,6 +1826,9 @@ class okx extends Exchange {
             // 'sz' => $this->amount_to_precision($symbol, $amount),
             // 'px' => $this->price_to_precision($symbol, $price), // limit orders only
             // 'reduceOnly' => false, // MARGIN orders only
+            // 'triggerPx' => 10, // Stop $order trigger $price
+            // 'orderPx' => 10, // Order $price if -1, the $order will be executed at the $market $price->
+            // 'triggerPxType' => 'last', // Conditional default is last, mark or index
         );
         $tdMode = $this->safe_string_lower($params, 'tdMode');
         if ($market['spot']) {
@@ -1846,8 +1891,19 @@ class okx extends Exchange {
             $request['px'] = $this->price_to_precision($symbol, $price);
         }
         $extendedRequest = null;
-        $defaultMethod = $this->safe_string($this->options, 'createOrder', 'privatePostTradeBatchOrders'); // or privatePostTradeOrder
-        if ($defaultMethod === 'privatePostTradeOrder') {
+        $defaultMethod = $this->safe_string($this->options, 'createOrder', 'privatePostTradeBatchOrders'); // or privatePostTradeOrder or privatePostTradeOrderAlgo
+        $stopPrice = $this->safe_number_2($params, 'triggerPx', 'stopPrice');
+        $params = $this->omit($params, array( 'triggerPx', 'stopPrice' ));
+        if ($stopPrice) {
+            $defaultMethod = 'privatePostTradeOrderAlgo';
+            $request['ordType'] = 'trigger';
+            $request['triggerPx'] = $this->price_to_precision($symbol, $stopPrice);
+            if ($type === 'market') {
+                $price = -1;
+            }
+            $request['orderPx'] = $this->price_to_precision($symbol, $price);
+        }
+        if ($defaultMethod === 'privatePostTradeOrder' || $defaultMethod === 'privatePostTradeOrderAlgo') {
             $extendedRequest = array_merge($request, $params);
         } else if ($defaultMethod === 'privatePostTradeBatchOrders') {
             // keep the $request body the same
@@ -1871,6 +1927,20 @@ class okx extends Exchange {
         //                 "sMsg" => ""
         //             }
         //         )
+        //     }
+        //
+        // Trigger Order
+        //
+        //     {
+        //         "code" => "0",
+        //         "data" => array(
+        //             {
+        //                 "algoId" => "422774258702659590",
+        //                 "sCode" => "0",
+        //                 "sMsg" => ""
+        //             }
+        //         ),
+        //         "msg" => ""
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
@@ -2237,11 +2307,6 @@ class okx extends Exchange {
 
     public function fetch_canceled_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
-        $defaultType = $this->safe_string($this->options, 'defaultType');
-        $options = $this->safe_value($this->options, 'fetchCanceledOrders', array());
-        $type = $this->safe_string($options, 'type', $defaultType);
-        $type = $this->safe_string($params, 'type', $type);
-        $params = $this->omit($params, 'type');
         $request = array(
             // 'instType' => strtoupper($type), // SPOT, MARGIN, SWAP, FUTURES, OPTION
             // 'uly' => currency['id'],
@@ -2255,18 +2320,16 @@ class okx extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            if ($market['futures'] || $market['swap']) {
-                $type = $market['type'];
-            }
             $request['instId'] = $market['id'];
         }
-        $request['instType'] = strtoupper($type);
+        list($type, $query) = $this->handle_market_type_and_params('fetchCanceledOrders', $market, $params);
+        $request['instType'] = $this->convert_to_instrument_type($type);
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 100
         }
         $request['state'] = 'canceled';
-        $method = $this->safe_string($options, 'method', 'privateGetTradeOrdersHistory');
-        $response = yield $this->$method (array_merge($request, $params));
+        $method = $this->safe_string($this->options, 'method', 'privateGetTradeOrdersHistory');
+        $response = yield $this->$method (array_merge($request, $query));
         //
         //     {
         //         "code" => "0",
@@ -2319,11 +2382,6 @@ class okx extends Exchange {
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
-        $defaultType = $this->safe_string($this->options, 'defaultType');
-        $options = $this->safe_value($this->options, 'fetchClosedOrders', array());
-        $type = $this->safe_string($options, 'type', $defaultType);
-        $type = $this->safe_string($params, 'type', $type);
-        $params = $this->omit($params, 'type');
         $request = array(
             // 'instType' => strtoupper($type), // SPOT, MARGIN, SWAP, FUTURES, OPTION
             // 'uly' => currency['id'],
@@ -2337,18 +2395,16 @@ class okx extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            if ($market['futures'] || $market['swap']) {
-                $type = $market['type'];
-            }
             $request['instId'] = $market['id'];
         }
-        $request['instType'] = strtoupper($type);
+        list($type, $query) = $this->handle_market_type_and_params('fetchClosedOrders', $market, $params);
+        $request['instType'] = $this->convert_to_instrument_type($type);
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 100
         }
         $request['state'] = 'filled';
-        $method = $this->safe_string($options, 'method', 'privateGetTradeOrdersHistory');
-        $response = yield $this->$method (array_merge($request, $params));
+        $method = $this->safe_string($this->options, 'method', 'privateGetTradeOrdersHistory');
+        $response = yield $this->$method (array_merge($request, $query));
         //
         //     {
         //         "code":"0",
@@ -2396,10 +2452,6 @@ class okx extends Exchange {
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $defaultType = $this->safe_string($this->options, 'defaultType');
-        $options = $this->safe_value($this->options, 'fetchMyTrades', array());
-        $type = $this->safe_string($options, 'type', $defaultType);
-        $params = $this->omit($params, 'type');
         yield $this->load_markets();
         $request = array(
             // 'instType' => 'SPOT', // SPOT, MARGIN, SWAP, FUTURES, OPTION
@@ -2414,13 +2466,13 @@ class okx extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['instId'] = $market['id'];
-            $type = $market['type'];
         }
-        $request['instType'] = strtoupper($type);
+        list($type, $query) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
+        $request['instType'] = $this->convert_to_instrument_type($type);
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 100
         }
-        $response = yield $this->privateGetTradeFillsHistory (array_merge($request, $params));
+        $response = yield $this->privateGetTradeFillsHistory (array_merge($request, $query));
         //
         //     {
         //         "code":"0",
@@ -2447,7 +2499,7 @@ class okx extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_trades($data, $market, $since, $limit, $params);
+        return $this->parse_trades($data, $market, $since, $limit, $query);
     }
 
     public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -2528,6 +2580,10 @@ class okx extends Exchange {
             // 'before' => 'id', // return records newer than the requested bill id
             // 'limit' => 100, // default 100, max 100
         );
+        list($type, $query) = $this->handle_market_type_and_params('fetchLedger', null, $params);
+        if ($type !== null) {
+            $request['instType'] = $this->convert_to_instrument_type($type);
+        }
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
@@ -2536,7 +2592,7 @@ class okx extends Exchange {
             $currency = $this->currency($code);
             $request['ccy'] = $currency['id'];
         }
-        $response = yield $this->$method (array_merge($request, $params));
+        $response = yield $this->$method (array_merge($request, $query));
         //
         // privateGetAccountBills, privateGetAccountBillsArchive
         //
@@ -2727,6 +2783,45 @@ class okx extends Exchange {
         $networks = $this->safe_value($currency, 'networks', array());
         $networksById = $this->index_by($networks, 'id');
         $networkData = $this->safe_value($networksById, $chain);
+        // inconsistent naming responses from exchange
+        // with respect to $network naming provided in $currency info vs $address $chain-names and ids
+        //
+        // response from $address endpoint:
+        //      {
+        //          "chain":"USDT-Polygon",
+        //          "ctAddr":"",
+        //          "ccy":"USDT",
+        //          "to":"6",
+        //          "addr":"0x1903441e386cc49d937f6302955b5feb4286dcfa",
+        //          "selected":true
+        //      }
+        // $network information from $currency['networks'] field:
+        // Polygon => array(
+        //       info => array(
+        //         canDep => false,
+        //         canInternal => false,
+        //         canWd => false,
+        //         ccy => 'USDT',
+        //         $chain => 'USDT-Polygon-Bridge',
+        //         mainNet => false,
+        //         maxFee => '26.879528',
+        //         minFee => '13.439764',
+        //         minWd => '0.001',
+        //         name => ''
+        //       ),
+        //       id => 'USDT-Polygon-Bridge',
+        //       $network => 'Polygon',
+        //       active => false,
+        //       deposit => false,
+        //       withdraw => false,
+        //       fee => 13.439764,
+        //       precision => null,
+        //       limits => array( withdraw => array( min => 0.001, max => null ) )
+        //     ),
+        //
+        if ($chain === 'USDT-Polygon') {
+            $networkData = $this->safe_value($networksById, 'USDT-Polygon-Bridge');
+        }
         $network = $this->safe_string($networkData, 'network');
         $this->check_address($address);
         return array(
@@ -3142,18 +3237,16 @@ class okx extends Exchange {
     public function fetch_position($symbol, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
-        $type = $this->safe_string($params, 'type');
-        $params = $this->omit($params, 'type');
+        list($type, $query) = $this->handle_market_type_and_params('fetchPosition', $market, $params);
         $request = array(
             // instType String No Instrument $type, MARGIN, SWAP, FUTURES, OPTION
             'instId' => $market['id'],
             // posId String No Single $position ID or multiple $position IDs (no more than 20) separated with comma
         );
         if ($type !== null) {
-            $request['instType'] = strtoupper($type);
+            $request['instType'] = $this->convert_to_instrument_type($type);
         }
-        $params = $this->omit($params, 'type');
-        $response = yield $this->privateGetAccountPositions ($params);
+        $response = yield $this->privateGetAccountPositions ($query);
         //
         //     {
         //         "code" => "0",
@@ -3212,18 +3305,18 @@ class okx extends Exchange {
         yield $this->load_markets();
         // $defaultType = $this->safe_string_2($this->options, 'fetchPositions', 'defaultType');
         // $type = $this->safe_string($params, 'type', $defaultType);
-        $type = $this->safe_string($params, 'type');
-        $params = $this->omit($params, 'type');
         $request = array(
             // instType String No Instrument $type, MARGIN, SWAP, FUTURES, OPTION, instId will be checked against instType when both parameters are passed, and the position information of the instId will be returned.
             // instId String No Instrument ID, e.g. BTC-USD-190927-5000-C
             // posId String No Single position ID or multiple position IDs (no more than 20) separated with comma
         );
+        list($type, $query) = $this->handle_market_type_and_params('fetchPositions', null, $params);
         if ($type !== null) {
-            $request['instType'] = strtoupper($type);
+            if (($type === 'swap') || ($type === 'future')) {
+                $request['instType'] = $this->convert_to_instrument_type($type);
+            }
         }
-        $params = $this->omit($params, 'type');
-        $response = yield $this->privateGetAccountPositions (array_merge($request, $params));
+        $response = yield $this->privateGetAccountPositions (array_merge($request, $query));
         //
         //     {
         //         "code" => "0",
@@ -3275,7 +3368,7 @@ class okx extends Exchange {
         for ($i = 0; $i < count($positions); $i++) {
             $entry = $positions[$i];
             $instrument = $this->safe_string($entry, 'instType');
-            if (($instrument === 'FUTURES') || $instrument === ('SWAP')) {
+            if (($instrument === 'FUTURES') || ($instrument === 'SWAP')) {
                 $result[] = $this->parse_position($positions[$i]);
             }
         }
@@ -3659,7 +3752,7 @@ class okx extends Exchange {
             // 'ctType' => 'linear', // linear, inverse, only applicable to FUTURES/SWAP
             'type' => '8',
             //
-            // supported values for type
+            // supported values for $type
             //
             //     1 Transfer
             //     2 Trade
@@ -3731,7 +3824,26 @@ class okx extends Exchange {
         if ($limit !== null) {
             $request['limit'] = (string) $limit; // default 100, max 100
         }
-        $response = yield $this->privateGetAccountBills (array_merge($request, $params));
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            if ($market['contract']) {
+                if ($market['linear']) {
+                    $request['ctType'] = 'linear';
+                    $request['ccy'] = $market['quoteId'];
+                } else {
+                    $request['ctType'] = 'inverse';
+                    $request['ccy'] = $market['baseId'];
+                }
+            }
+        }
+        list($type, $query) = $this->handle_market_type_and_params('fetchFundingHistory', $market, $params);
+        if ($type === 'swap') {
+            $request['instType'] = $this->convert_to_instrument_type($type);
+        }
+        // AccountBillsArchive has the same cost as AccountBills but supports three months of $data
+        $response = yield $this->privateGetAccountBillsArchive (array_merge($request, $query));
         //
         //     {
         //       "bal" => "0.0242946200998573",
@@ -3763,10 +3875,12 @@ class okx extends Exchange {
             $timestamp = $this->safe_integer($entry, 'ts');
             $instId = $this->safe_string($entry, 'instId');
             $market = $this->safe_market($instId);
+            $currencyId = $this->safe_string($entry, 'ccy');
+            $code = $this->safe_currency_code($currencyId);
             $result[] = array(
                 'info' => $entry,
                 'symbol' => $market['symbol'],
-                'code' => $market['inverse'] ? $market['base'] : $market['quote'],
+                'code' => $code,
                 'timestamp' => $timestamp,
                 'datetime' => $this->iso8601($timestamp),
                 'id' => $this->safe_string($entry, 'billId'),
@@ -4065,7 +4179,7 @@ class okx extends Exchange {
     public function fetch_market_leverage_tiers($symbol, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
-        $type = $market['spot'] ? 'MARGIN' : strtoupper($market['type']);
+        $type = $market['spot'] ? 'MARGIN' : $this->convert_to_instrument_type($market['type']);
         $uly = $this->safe_string($market['info'], 'uly');
         if (!$uly) {
             throw new BadRequest($this->id . ' fetchLeverageTiers() cannot fetch leverage tiers for ' . $symbol);

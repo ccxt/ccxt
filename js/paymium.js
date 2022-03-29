@@ -36,6 +36,8 @@ module.exports = class paymium extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87153930-f0f02200-c2c0-11ea-9c0a-40337375ae89.jpg',
@@ -90,8 +92,8 @@ module.exports = class paymium extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': this.parseNumber ('0.002'),
-                    'taker': this.parseNumber ('0.002'),
+                    'maker': this.parseNumber ('-0.001'),
+                    'taker': this.parseNumber ('0.005'),
                 },
             },
         });

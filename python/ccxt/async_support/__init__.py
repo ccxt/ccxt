@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.75.14'
+__version__ = '1.77.40'
 
 # -----------------------------------------------------------------------------
 
@@ -75,6 +75,7 @@ from ccxt.async_support.bitget import bitget                              # noqa
 from ccxt.async_support.bithumb import bithumb                            # noqa: F401
 from ccxt.async_support.bitmart import bitmart                            # noqa: F401
 from ccxt.async_support.bitmex import bitmex                              # noqa: F401
+from ccxt.async_support.bitopro import bitopro                            # noqa: F401
 from ccxt.async_support.bitpanda import bitpanda                          # noqa: F401
 from ccxt.async_support.bitrue import bitrue                              # noqa: F401
 from ccxt.async_support.bitso import bitso                                # noqa: F401
@@ -82,6 +83,7 @@ from ccxt.async_support.bitstamp import bitstamp                          # noqa
 from ccxt.async_support.bitstamp1 import bitstamp1                        # noqa: F401
 from ccxt.async_support.bittrex import bittrex                            # noqa: F401
 from ccxt.async_support.bitvavo import bitvavo                            # noqa: F401
+from ccxt.async_support.bkex import bkex                                  # noqa: F401
 from ccxt.async_support.bl3p import bl3p                                  # noqa: F401
 from ccxt.async_support.blockchaincom import blockchaincom                # noqa: F401
 from ccxt.async_support.btcalpha import btcalpha                          # noqa: F401
@@ -111,7 +113,6 @@ from ccxt.async_support.delta import delta                                # noqa
 from ccxt.async_support.deribit import deribit                            # noqa: F401
 from ccxt.async_support.digifinex import digifinex                        # noqa: F401
 from ccxt.async_support.eqonex import eqonex                              # noqa: F401
-from ccxt.async_support.equos import equos                                # noqa: F401
 from ccxt.async_support.exmo import exmo                                  # noqa: F401
 from ccxt.async_support.flowbtc import flowbtc                            # noqa: F401
 from ccxt.async_support.fmfwio import fmfwio                              # noqa: F401
@@ -194,6 +195,7 @@ exchanges = [
     'bithumb',
     'bitmart',
     'bitmex',
+    'bitopro',
     'bitpanda',
     'bitrue',
     'bitso',
@@ -201,6 +203,7 @@ exchanges = [
     'bitstamp1',
     'bittrex',
     'bitvavo',
+    'bkex',
     'bl3p',
     'blockchaincom',
     'btcalpha',
@@ -230,7 +233,6 @@ exchanges = [
     'deribit',
     'digifinex',
     'eqonex',
-    'equos',
     'exmo',
     'flowbtc',
     'fmfwio',

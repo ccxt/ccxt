@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -123,6 +116,10 @@ class ftx(Exchange):
                 '3d': '259200',
                 '1w': '604800',
                 '2w': '1209600',
+                # the exchange does not align candles to the start of the month
+                # it can only fetch candles in fixed intervals of multiples of whole days
+                # that works for all timeframes, except the monthly timeframe
+                # because months have varying numbers of days
                 '1M': '2592000',
             },
             'api': {
@@ -249,6 +246,7 @@ class ftx(Exchange):
                         # account
                         'account/leverage': 1,
                         # wallet
+                        'wallet/deposit_address/list': 1,
                         'wallet/withdrawals': 90,
                         'wallet/saved_addresses': 1,
                         # orders
@@ -404,6 +402,7 @@ class ftx(Exchange):
                 },
             },
             'commonCurrencies': {
+                'AMC': 'AMC Entertainment Holdings',
                 'STARS': 'StarLaunch',
             },
         })
@@ -853,22 +852,28 @@ class ftx(Exchange):
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market, marketId = self.get_market_params(symbol, 'market_name', params)
+        # max 1501 candles, including the current candle when since is not specified
+        maxLimit = 5000
+        defaultLimit = 1500
+        limit = defaultLimit if (limit is None) else min(limit, maxLimit)
         request = {
             'resolution': self.timeframes[timeframe],
             'market_name': marketId,
+            # 'start_time': int(since / 1000),
+            # 'end_time': self.seconds(),
+            'limit': limit,
         }
         price = self.safe_string(params, 'price')
         params = self.omit(params, 'price')
-        # max 1501 candles, including the current candle when since is not specified
-        limit = 1501 if (limit is None) else limit
-        if since is None:
-            request['end_time'] = self.seconds()
-            request['limit'] = limit
-            request['start_time'] = request['end_time'] - limit * self.parse_timeframe(timeframe)
-        else:
-            request['start_time'] = int(since / 1000)
-            request['limit'] = limit
-            request['end_time'] = self.sum(request['start_time'], limit * self.parse_timeframe(timeframe))
+        if since is not None:
+            startTime = int(since / 1000)
+            request['start_time'] = startTime
+            duration = self.parse_timeframe(timeframe)
+            endTime = self.sum(startTime, limit * duration)
+            request['end_time'] = min(endTime, self.seconds())
+            if duration > 86400:
+                wholeDaysInTimeframe = int(duration / 86400)
+                request['limit'] = min(limit * wholeDaysInTimeframe, maxLimit)
         method = 'publicGetMarketsMarketNameCandles'
         if price == 'index':
             if symbol in self.markets:
@@ -1157,6 +1162,7 @@ class ftx(Exchange):
         request = {}
         if symbol is not None:
             market = self.market(symbol)
+            symbol = market['symbol']
             request['future'] = market['id']
         if since is not None:
             request['start_time'] = int(since / 1000)
@@ -2079,7 +2085,7 @@ class ftx(Exchange):
         txid = self.safe_string(transaction, 'txid')
         tag = None
         address = self.safe_value(transaction, 'address')
-        if not isinstance(address, basestring):
+        if not isinstance(address, str):
             tag = self.safe_string(address, 'tag')
             address = self.safe_string(address, 'address')
         if address is None:

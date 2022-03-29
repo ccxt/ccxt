@@ -58,8 +58,12 @@ class phemex extends Exchange {
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => false,
                 'fetchWithdrawals' => true,
                 'setLeverage' => true,
+                'transfer' => true,
+                'withdraw' => null,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg',
@@ -101,6 +105,7 @@ class phemex extends Exchange {
                 'public' => array(
                     'get' => array(
                         'cfg/v2/products', // spot . contracts
+                        'cfg/fundingRates',
                         'products', // contracts only
                         'nomics/trades', // ?market=<symbol>&since=<since>
                         'md/kline', // ?from=1589811875&resolution=1800&symbol=sBTCUSDT&to=1592457935
@@ -145,13 +150,12 @@ class phemex extends Exchange {
                         'exchange/wallets/v2/depositAddress', // ?currency=<currency>
                         'api-data/spots/funds', // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         'assets/convert', // ?startTime=<startTime>&endTime=<endTime>&limit=<limit>&offset=<offset>
-                        'assets/transfer', // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         // transfer
-                        'assets/transfer',
-                        'assets/spots/sub-accounts/transfer',
-                        'assets/spots/sub-accounts/transfer',
-                        'assets/quote',
-                        'assets/convert',
+                        'assets/transfer', // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'assets/spots/sub-accounts/transfer', // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'assets/futures/sub-accounts/transfer', // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'assets/quote', // ?fromCurrency=<currency>&toCurrency=<currency>&amountEv=<amount>
+                        'assets/convert', // ?fromCurrency=<currency>&toCurrency=<currency>&startTime=<start>&endTime=<end>&limit=<limit>&offset=<offset>
                     ),
                     'post' => array(
                         // spot
@@ -332,6 +336,24 @@ class phemex extends Exchange {
                     '11113' => '\\ccxt\\BadRequest', // TE_USER_ID_INVALID UserId is invalid
                     '11114' => '\\ccxt\\InvalidOrder', // TE_ORDER_VALUE_TOO_LARGE Order value is too large
                     '11115' => '\\ccxt\\InvalidOrder', // TE_ORDER_VALUE_TOO_SMALL Order value is too small
+                    '11116' => '\\ccxt\\InvalidOrder', // TE_BO_NUM_EXCEEDS Details => the total count of brakcet orders should equal or less than 5
+                    '11117' => '\\ccxt\\InvalidOrder', // TE_BO_CANNOT_HAVE_BO_WITH_DIFF_SIDE Details => all bracket orders should have the same Side.
+                    '11118' => '\\ccxt\\InvalidOrder', // TE_BO_TP_PRICE_INVALID Details => bracker order take profit price is invalid
+                    '11119' => '\\ccxt\\InvalidOrder', // TE_BO_SL_PRICE_INVALID Details => bracker order stop loss price is invalid
+                    '11120' => '\\ccxt\\InvalidOrder', // TE_BO_SL_TRIGGER_PRICE_INVALID Details => bracker order stop loss trigger price is invalid
+                    '11121' => '\\ccxt\\InvalidOrder', // TE_BO_CANNOT_REPLACE Details => cannot replace bracket order.
+                    '11122' => '\\ccxt\\InvalidOrder', // TE_BO_BOTP_STATUS_INVALID Details => bracket take profit order status is invalid
+                    '11123' => '\\ccxt\\InvalidOrder', // TE_BO_CANNOT_PLACE_BOTP_OR_BOSL_ORDER Details => cannot place bracket take profit order
+                    '11124' => '\\ccxt\\InvalidOrder', // TE_BO_CANNOT_REPLACE_BOTP_OR_BOSL_ORDER Details => cannot place bracket stop loss order
+                    '11125' => '\\ccxt\\InvalidOrder', // TE_BO_CANNOT_CANCEL_BOTP_OR_BOSL_ORDER Details => cannot cancel bracket sl/tp order
+                    '11126' => '\\ccxt\\InvalidOrder', // TE_BO_DONOT_SUPPORT_API Details => doesn't support bracket order via API
+                    '11128' => '\\ccxt\\InvalidOrder', // TE_BO_INVALID_EXECINST Details => ExecInst value is invalid
+                    '11129' => '\\ccxt\\InvalidOrder', // TE_BO_MUST_BE_SAME_SIDE_AS_POS Details => bracket order should have the same side as position's side
+                    '11130' => '\\ccxt\\InvalidOrder', // TE_BO_WRONG_SL_TRIGGER_TYPE Details => bracket stop loss order trigger type is invalid
+                    '11131' => '\\ccxt\\InvalidOrder', // TE_BO_WRONG_TP_TRIGGER_TYPE Details => bracket take profit order trigger type is invalid
+                    '11132' => '\\ccxt\\InvalidOrder', // TE_BO_ABORT_BOSL_DUE_BOTP_CREATE_FAILED Details => cancel bracket stop loss order due failed to create take profit order.
+                    '11133' => '\\ccxt\\InvalidOrder', // TE_BO_ABORT_BOSL_DUE_BOPO_CANCELED Details => cancel bracket stop loss order due main order canceled.
+                    '11134' => '\\ccxt\\InvalidOrder', // TE_BO_ABORT_BOTP_DUE_BOPO_CANCELED Details => cancel bracket take profit order due main order canceled.
                     // not documented
                     '30000' => '\\ccxt\\BadRequest', // array("code":30000,"msg":"Please double check input arguments","data":null)
                     '30018' => '\\ccxt\\BadRequest', // array("code":30018,"msg":"phemex.data.size.uplimt","data":null)
@@ -359,6 +381,10 @@ class phemex extends Exchange {
                     'USDT' => 'ETH',
                 ),
                 'defaultSubType' => 'linear',
+                'accountsByType' => array(
+                    'spot' => 'spot',
+                    'future' => 'future',
+                ),
             ),
         ));
     }
@@ -569,9 +595,9 @@ class phemex extends Exchange {
             'expiryDatetime' => null,
             'strike' => null,
             'optionType' => null,
-            'priceScale' => $this->parse_number('8'),
-            'valueScale' => $this->parse_number('8'),
-            'ratioScale' => $this->parse_number('8'),
+            'priceScale' => 8,
+            'valueScale' => 8,
+            'ratioScale' => 8,
             'precision' => array(
                 'amount' => $precisionAmount,
                 'price' => $precisionPrice,
@@ -2778,6 +2804,105 @@ class phemex extends Exchange {
             'leverage' => $leverage,
         );
         return $this->privatePutPositionsLeverage (array_merge($request, $params));
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $fromId = $this->safe_string($accountsByType, $fromAccount);
+        $toId = $this->safe_string($accountsByType, $toAccount);
+        $direction = null;
+        if ($fromId === null) {
+            $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
+            throw new ExchangeError($this->id . ' $fromAccount must be one of ' . implode(', ', $keys));
+        }
+        if ($toId === null) {
+            $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
+            throw new ExchangeError($this->id . ' $toAccount must be one of ' . implode(', ', $keys));
+        }
+        if ($fromId === 'spot' && $toId === 'future') {
+            $direction = 2;
+        }
+        if ($fromId === 'future' && $toId === 'spot') {
+            $direction = 1;
+        }
+        if ($direction === null) {
+            throw new ExchangeError($this->id . ' transfer can only be down from future to spot or from spot to future');
+        }
+        $scaledAmmount = $this->to_ev($amount, $currency);
+        $request = array(
+            'currency' => $currency['id'],
+            'moveOp' => $direction,
+            'amountEv' => $scaledAmmount,
+        );
+        $response = $this->privatePostAssetsTransfer (array_merge($request, $params));
+        //
+        //     {
+        //         $code => '0',
+        //         msg => 'OK',
+        //         $data => {
+        //             linkKey => '8564eba4-c9ec-49d6-9b8c-2ec5001a0fb9',
+        //             userId => '4018340',
+        //             $currency => 'USD',
+        //             amountEv => '10',
+        //             side => '2',
+        //             status => '10'
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_transfer($data, $currency);
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        //     {
+        //         linkKey => '8564eba4-c9ec-49d6-9b8c-2ec5001a0fb9',
+        //         userId => '4018340',
+        //         $currency => 'USD',
+        //         $amountEv => '10',
+        //         $side => '2',
+        //         $status => '10'
+        //     }
+        //
+        $id = $this->safe_string($transfer, 'linkKey');
+        $status = $this->safe_string($transfer, 'status');
+        $amountEv = $this->safe_string($transfer, 'amountEv');
+        $amountTransfered = $this->from_ev($amountEv, $currency);
+        $currencyId = $this->safe_string($transfer, 'currency');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $side = $this->safe_integer($transfer, 'side');
+        $fromId = null;
+        $toId = null;
+        if ($side === 1) {
+            $fromId = 'future';
+            $toId = 'spot';
+        } else if ($side === 2) {
+            $fromId = 'spot';
+            $toId = 'future';
+        }
+        return array(
+            'info' => $transfer,
+            'id' => $id,
+            'timestamp' => null,
+            'datetime' => null,
+            'currency' => $code,
+            'amount' => $amountTransfered,
+            'fromAccount' => $fromId,
+            'toAccount' => $toId,
+            'status' => $this->parse_transfer_status($status),
+        );
+    }
+
+    public function parse_transfer_status($status) {
+        $statuses = array(
+            '3' => 'rejected', // 'Rejected',
+            '6' => 'canceled', // 'Got error and wait for recovery',
+            '10' => 'ok', // 'Success',
+            '11' => 'failed', // 'Failed',
+        );
+        return $this->safe_string($statuses, $status, 'pending');
     }
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

@@ -211,6 +211,7 @@ module.exports = class cryptocom extends Exchange {
             'options': {
                 'defaultType': 'spot',
                 'accountsByType': {
+                    'funding': 'SPOT',
                     'spot': 'SPOT',
                     'derivatives': 'DERIVATIVES',
                     'swap': 'DERIVATIVES',
@@ -1449,8 +1450,8 @@ module.exports = class cryptocom extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': undefined,
-            'percentage': relativeChange,
+            'change': relativeChange,
+            'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeString (ticker, 'v'),
             'quoteVolume': undefined,

@@ -216,6 +216,7 @@ class cryptocom extends Exchange {
             'options' => array(
                 'defaultType' => 'spot',
                 'accountsByType' => array(
+                    'funding' => 'SPOT',
                     'spot' => 'SPOT',
                     'derivatives' => 'DERIVATIVES',
                     'swap' => 'DERIVATIVES',
@@ -1454,8 +1455,8 @@ class cryptocom extends Exchange {
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => null,
-            'percentage' => $relativeChange,
+            'change' => $relativeChange,
+            'percentage' => null,
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'v'),
             'quoteVolume' => null,

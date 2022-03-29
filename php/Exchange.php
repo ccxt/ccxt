@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.75.14';
+$version = '1.77.40';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.75.14';
+    const VERSION = '1.77.40';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -84,6 +84,7 @@ class Exchange {
         'bithumb',
         'bitmart',
         'bitmex',
+        'bitopro',
         'bitpanda',
         'bitrue',
         'bitso',
@@ -91,6 +92,7 @@ class Exchange {
         'bitstamp1',
         'bittrex',
         'bitvavo',
+        'bkex',
         'bl3p',
         'blockchaincom',
         'btcalpha',
@@ -120,7 +122,6 @@ class Exchange {
         'deribit',
         'digifinex',
         'eqonex',
-        'equos',
         'exmo',
         'flowbtc',
         'fmfwio',
@@ -1062,6 +1063,8 @@ class Exchange {
 
         $this->id = null;
 
+        $this->validateServerSsl = true;
+        $this->validateClientSsl = false;
         $this->curlopt_interface = null;
         $this->timeout = 10000; // in milliseconds
         $this->proxy = '';
@@ -1387,7 +1390,7 @@ class Exchange {
                         $path = trim($endpoint);
                         if (static::is_associative($config)) {
                             $this->define_rest_api_endpoint($method_name, $uppercase_method, $lowercase_method, $camelcase_method, $path, $paths, $config);
-                        } else if (is_numeric($config)) {
+                        } elseif (is_numeric($config)) {
                             $this->define_rest_api_endpoint($method_name, $uppercase_method, $lowercase_method, $camelcase_method, $path, $paths, array('cost' => $config));
                         } else {
                             throw new NotSupported($this->id . ' define_rest_api() API format not supported, API leafs must strings, objects or numbers');
@@ -1627,7 +1630,7 @@ class Exchange {
             if ($this->curl_close) {
                 curl_close($this->curl); // we properly close the curl channel here to save cookies
                 $this->curl = curl_init();
-            } else if ($this->curl_reset) {
+            } elseif ($this->curl_reset) {
                 curl_reset($this->curl); // this is the default
             }
         } else {
@@ -1642,7 +1645,12 @@ class Exchange {
         }
 
         curl_setopt($this->curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($this->curl, CURLOPT_SSL_VERIFYPEER, false);
+        if (!$this->validateClientSsl) {
+            curl_setopt($this->curl, CURLOPT_SSL_VERIFYPEER, false);
+        }
+        if (!$this->validateServerSsl) {
+            curl_setopt($this->curl, CURLOPT_SSL_VERIFYHOST, false);
+        }
 
         if ($this->userAgent) {
             if (gettype($this->userAgent) == 'string') {
@@ -2119,7 +2127,7 @@ class Exchange {
             $average = $this->safe_value($ticker, 'average');
             if (($last !== null) && ($close === null)) {
                 $close = $last;
-            } else if (($last === null) && ($close !== null)) {
+            } elseif (($last === null) && ($close !== null)) {
                 $last = $close;
             }
             if (($last !== null) && ($open !== null)) {
@@ -2138,6 +2146,12 @@ class Exchange {
             }
             if (($open === null) && ($last !== null) && ($change !== null)) {
                 $open = $last - $change;
+            }
+            if (($vwap !== null) && ($baseVolume !== null) && ($quoteVolume === null)) {
+                $quoteVolume = $vwap / $baseVolume;
+            }
+            if (($vwap !== null) && ($quoteVolume !== null) && ($baseVolume === null)) {
+                $baseVolume = $quoteVolume / $vwap;
             }
             $ticker['symbol'] = $symbol;
             $ticker['timestamp'] = $timestamp;
@@ -2165,7 +2179,7 @@ class Exchange {
             }
             if (($last !== null) && ($close === null)) {
                 $close = $last;
-            } else if (($last === null) && ($close !== null)) {
+            } elseif (($last === null) && ($close !== null)) {
                 $last = $close;
             }
             if (($last !== null) && ($open !== null)) {
@@ -2304,7 +2318,7 @@ class Exchange {
         if ($marketId !== null) {
             if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$marketId];
-            } else if ($delimiter !== null) {
+            } elseif ($delimiter !== null) {
                 $parts = explode($delimiter, $marketId);
                 if (count($parts) === 2) {
                     $baseId = $this->safe_string($parts, 0);
@@ -2653,10 +2667,10 @@ class Exchange {
         if ($feeSide === 'quote') {
             // the fee is always in quote currency
             $cost = $amount * $price;
-        } else if ($feeSide === 'base') {
+        } elseif ($feeSide === 'base') {
             // the fee is always in base currency
             $cost = $amount;
-        } else if ($feeSide === 'get') {
+        } elseif ($feeSide === 'get') {
             // the fee is always in the currency you get
             $cost = $amount;
             if ($side === 'sell') {
@@ -2664,7 +2678,7 @@ class Exchange {
             } else {
                 $key = 'base';
             }
-        } else if ($feeSide === 'give') {
+        } elseif ($feeSide === 'give') {
             // the fee is always in the currency you give
             $cost = $amount;
             if ($side === 'buy') {
@@ -2740,10 +2754,13 @@ class Exchange {
         if (!isset($this->markets)) {
             throw new ExchangeError($this->id . ' markets not loaded');
         }
+        if (!isset($this->markets_by_id)) {
+            throw new ExchangeError($this->id . ' markets not loaded');
+        }
         if (gettype($symbol) === 'string') {
             if (isset($this->markets[$symbol])) {
                 return $this->markets[$symbol];
-            } elseif (isset($this->markets_by_id)) {
+            } elseif (isset($this->markets_by_id[$symbol])) {
                 return $this->markets_by_id[$symbol];
             }
         }
@@ -2770,10 +2787,10 @@ class Exchange {
             $partial[6] = $config;
             $partial[7] = ($params && (count($params) > 1)) ? $params[1] : array();
             return call_user_func_array(array($this, $entry), $partial);
-        } else if (array_key_exists($function, static::$camelcase_methods)) {
+        } elseif (array_key_exists($function, static::$camelcase_methods)) {
             $underscore = static::$camelcase_methods[$function];
             return call_user_func_array(array($this, $underscore), $params);
-        } else if (!preg_match('/^[A-Z0-9_]+$/', $function)) {
+        } elseif (!preg_match('/^[A-Z0-9_]+$/', $function)) {
             $underscore = preg_replace_callback('/[a-z0-9][A-Z]/m', function ($x) {
                 return $x[0][0] . '_' . $x[0][1];
             }, $function);
@@ -2903,7 +2920,7 @@ class Exchange {
                             $x = $x - $missing - $numPrecisionDigits;
                         }
                     }
-                } else if (TRUNCATE === $roundingMode) {
+                } elseif (TRUNCATE === $roundingMode) {
                     $x = $x - $missing;
                 }
             }
@@ -3055,7 +3072,7 @@ class Exchange {
         if ($intMajor1 === $intMajor2) {
             if ($intMinor1 > $intMinor2) {
                 $result = false;
-            } else if ($intMinor1 === $intMinor2 && $intPatch1 > $intPatch2) {
+            } elseif ($intMinor1 === $intMinor2 && $intPatch1 > $intPatch2) {
                 $result = false;
             }
         }
@@ -3140,7 +3157,7 @@ class Exchange {
         );
         if ($network === $code) {
             return $network;
-        } else if (is_array($aliases) && array_key_exists($network, $aliases)) {
+        } elseif (is_array($aliases) && array_key_exists($network, $aliases)) {
             return $aliases[$network];
         } else {
             throw new NotSupported($this->id . ' $network ' . $network . ' is not yet supported');
@@ -3505,7 +3522,7 @@ class Exchange {
             // ensure $amount = $filled + $remaining
             if ($filled !== null && $remaining !== null) {
                 $amount = Precise::string_add($filled, $remaining);
-            } else if ($this->safe_string($order, 'status') === 'closed') {
+            } elseif ($this->safe_string($order, 'status') === 'closed') {
                 $amount = $filled;
             }
         }
@@ -3564,6 +3581,13 @@ class Exchange {
             }
             $entry['fee'] = $fee;
         }
+        // timeInForceHandling
+        $timeInForce = $this->safe_string($order, 'timeInForce');
+        if ($this->safe_value($order, 'postOnly', false)) {
+            $timeInForce = 'PO';
+        } elseif ($this->safe_string($order, 'type') === 'market') {
+            $timeInForce = 'IOC';
+        }
         return array_merge($order, array(
             'lastTradeTimestamp' => $lastTradeTimeTimestamp,
             'price' => $this->parse_number($price),
@@ -3573,6 +3597,7 @@ class Exchange {
             'filled' => $this->parse_number($filled),
             'remaining' => $this->parse_number($remaining),
             'trades' => $trades,
+            'timeInForce' => $timeInForce,
         ));
     }
 
@@ -3661,7 +3686,7 @@ class Exchange {
             if (is_string($method_options)) {
                 $method_type = $method_options;
             } else {
-                $method_type = $this->safe_string_2($method_options, 'defaultType', 'type');
+                $method_type = $this->safe_string_2($method_options, 'defaultType', 'type', $method_type);
             }
         }
         $market_type = isset($market) ? $market['type'] : $method_type;

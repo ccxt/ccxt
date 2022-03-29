@@ -306,12 +306,12 @@ class gemini extends Exchange {
             $amountPrecisionParts = explode(' ', $amountPrecisionString);
             $idLength = strlen($marketId) - 0;
             $startingIndex = $idLength - 3;
-            $quoteId = mb_substr($marketId, $startingIndex, $idLength - $startingIndex);
-            $quote = $this->safe_currency_code($quoteId);
             $pricePrecisionString = str_replace('<td>', '', $cells[3]);
             $pricePrecisionParts = explode(' ', $pricePrecisionString);
-            $baseId = str_replace($quoteId, '', $marketId);
+            $quoteId = $this->safe_string_lower($pricePrecisionParts, 1, mb_substr($marketId, $startingIndex, $idLength - $startingIndex));
+            $baseId = $this->safe_string_lower($amountPrecisionParts, 1, str_replace($quoteId, '', $marketId));
             $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $result[] = array(
                 'id' => $marketId,
                 'symbol' => $base . '/' . $quote,
@@ -1040,6 +1040,9 @@ class gemini extends Exchange {
             }
         }
         $url = $this->urls['api'][$api] . $url;
+        if (($method === 'POST') || ($method === 'DELETE')) {
+            $body = $this->json($query);
+        }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 

@@ -76,8 +76,8 @@ class crex24 extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
-                'fetchTradingFee' => null, // actually, true, but will be implemented later
-                'fetchTradingFees' => null, // actually, true, but will be implemented later
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => true,
                 'fetchTransactions' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
@@ -206,6 +206,9 @@ class crex24 extends Exchange {
                 'warnOnFetchOpenOrdersWithoutSymbol' => true,
                 'parseOrderToPrecision' => false, // force amounts and costs in parseOrder to precision
                 'newOrderRespType' => 'RESULT', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+                'fetchTradingFees' => array(
+                    'method' => 'fetchPrivateTradingFees', // or 'fetchPublicTradingFees'
+                ),
             ),
             'exceptions' => array(
                 'exact' => array(
@@ -761,6 +764,104 @@ class crex24 extends Exchange {
         //         timestamp => "2018-10-31T04:19:35Z" }  )
         //
         return $this->parse_trades($response, $market, $since, $limit);
+    }
+
+    public function fetch_trading_fees($params = array ()) {
+        $method = $this->safe_string($params, 'method');
+        $params = $this->omit($params, 'method');
+        if ($method === null) {
+            $options = $this->safe_value($this->options, 'fetchTradingFees', array());
+            $method = $this->safe_string($options, 'method', 'fetchPrivateTradingFees');
+        }
+        return $this->$method ($params);
+    }
+
+    public function fetch_public_trading_fees($params = array ()) {
+        $this->load_markets();
+        $response = $this->publicGetTradingFeeSchedules ($params);
+        //
+        //     array(
+        //         array(
+        //             name => 'FeeSchedule05',
+        //             $feeRates => array(
+        //                 array( volumeThreshold => 0, $maker => 0.0005, $taker => 0.0005 ),
+        //                 array( volumeThreshold => 5, $maker => 0.0004, $taker => 0.0004 ),
+        //                 array( volumeThreshold => 15, $maker => 0.0003, $taker => 0.0003 ),
+        //                 array( volumeThreshold => 30, $maker => 0.0002, $taker => 0.0002 ),
+        //                 array( volumeThreshold => 50, $maker => 0.0001, $taker => 0.0001 )
+        //             )
+        //         ),
+        //         {
+        //             name => 'OriginalSchedule',
+        //             $feeRates => array(
+        //                 array( volumeThreshold => 0, $maker => -0.0001, $taker => 0.001 ),
+        //                 array( volumeThreshold => 5, $maker => -0.0002, $taker => 0.0009 ),
+        //                 array( volumeThreshold => 15, $maker => -0.0003, $taker => 0.0008 ),
+        //                 array( volumeThreshold => 30, $maker => -0.0004, $taker => 0.0007 ),
+        //                 array( volumeThreshold => 50, $maker => -0.0005, $taker => 0.0006 )
+        //             )
+        //         }
+        //     )
+        //
+        $feeSchedulesByName = $this->index_by($response, 'name');
+        $originalSchedule = $this->safe_value($feeSchedulesByName, 'OriginalSchedule', array());
+        $feeRates = $this->safe_value($originalSchedule, 'feeRates', array());
+        $firstFee = $this->safe_value($feeRates, 0, array());
+        $maker = $this->safe_number($firstFee, 'maker');
+        $taker = $this->safe_number($firstFee, 'taker');
+        $result = array();
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
+            $result[$symbol] = array(
+                'info' => $response,
+                'symbol' => $symbol,
+                'maker' => $maker,
+                'taker' => $taker,
+                'percentage' => true,
+                'tierBased' => true,
+            );
+        }
+        return $result;
+    }
+
+    public function fetch_private_trading_fees($params = array ()) {
+        $this->load_markets();
+        $response = $this->tradingGetTradingFee ($params);
+        //
+        //     {
+        //         $feeRates => array(
+        //             array( schedule => 'FeeSchedule05', $maker => 0.0005, $taker => 0.0005 ),
+        //             array( schedule => 'FeeSchedule08', $maker => 0.0008, $taker => 0.0008 ),
+        //             array( schedule => 'FeeSchedule10', $maker => 0.001, $taker => 0.001 ),
+        //             array( schedule => 'FeeSchedule15', $maker => 0.0015, $taker => 0.0015 ),
+        //             array( schedule => 'FeeSchedule20', $maker => 0.002, $taker => 0.002 ),
+        //             array( schedule => 'FeeSchedule30', $maker => 0.003, $taker => 0.003 ),
+        //             array( schedule => 'FeeSchedule40', $maker => 0.004, $taker => 0.004 ),
+        //             array( schedule => 'FeeSchedule50', $maker => 0.005, $taker => 0.005 ),
+        //             array( schedule => 'OriginalSchedule', $maker => -0.0001, $taker => 0.001 )
+        //         ),
+        //         tradingVolume => 0,
+        //         lastUpdate => '2022-03-16T04:55:02Z'
+        //     }
+        //
+        $feeRates = $this->safe_value($response, 'feeRates', array());
+        $feeRatesBySchedule = $this->index_by($feeRates, 'schedule');
+        $originalSchedule = $this->safe_value($feeRatesBySchedule, 'OriginalSchedule', array());
+        $maker = $this->safe_number($originalSchedule, 'maker');
+        $taker = $this->safe_number($originalSchedule, 'taker');
+        $result = array();
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
+            $result[$symbol] = array(
+                'info' => $response,
+                'symbol' => $symbol,
+                'maker' => $maker,
+                'taker' => $taker,
+                'percentage' => true,
+                'tierBased' => true,
+            );
+        }
+        return $result;
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {

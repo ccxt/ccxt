@@ -57,7 +57,10 @@ class bitmart extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
+                'fetchTransfer' => false,
+                'fetchTransfers' => false,
                 'fetchWithdrawals' => true,
+                'transfer' => false,
                 'withdraw' => true,
             ),
             'hostname' => 'bitmart.com', // bitmart.info, bitmart.news for Hong Kong users
@@ -291,6 +294,7 @@ class bitmart extends Exchange {
                     '40032' => '\\ccxt\\InvalidOrder', // 400, The plan order's life cycle is too long.
                     '40033' => '\\ccxt\\InvalidOrder', // 400, The plan order's life cycle is too short.
                     '40034' => '\\ccxt\\BadSymbol', // 400, This contract is not found
+                    '53002' => '\\ccxt\\PermissionDenied', // 403, Your account has not yet completed the kyc advanced certification, please complete first
                 ),
                 'broad' => array(),
             ),
@@ -2340,33 +2344,25 @@ class bitmart extends Exchange {
         }
         $url .= '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
-        if ($type === 'system') {
+        $queryString = '';
+        $getOrDelete = ($method === 'GET') || ($method === 'DELETE');
+        if ($getOrDelete) {
             if ($query) {
-                // var_dump ($query);
-                $url .= '?' . $this->urlencode($query);
+                $queryString = $this->urlencode($query);
+                $url .= '?' . $queryString;
             }
-        } else if ($access === 'public') {
-            if ($query) {
-                // var_dump ($query);
-                $url .= '?' . $this->urlencode($query);
-            }
-        } else if ($access === 'private') {
+        }
+        if ($access === 'private') {
             $this->check_required_credentials();
             $timestamp = (string) $this->milliseconds();
-            $queryString = '';
             $headers = array(
                 'X-BM-KEY' => $this->apiKey,
                 'X-BM-TIMESTAMP' => $timestamp,
+                'Content-Type' => 'application/json',
             );
-            if (($method === 'POST') || ($method === 'PUT')) {
-                $headers['Content-Type'] = 'application/json';
+            if (!$getOrDelete) {
                 $body = $this->json($query);
                 $queryString = $body;
-            } else {
-                if ($query) {
-                    $queryString = $this->urlencode($query);
-                    $url .= '?' . $queryString;
-                }
             }
             $auth = $timestamp . '#' . $this->uid . '#' . $queryString;
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));

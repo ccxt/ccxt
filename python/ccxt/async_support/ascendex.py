@@ -26,6 +26,7 @@ class ascendex(Exchange):
             'countries': ['SG'],  # Singapore
             'rateLimit': 500,
             'certified': True,
+            'pro': True,
             # new metainfo interface
             'has': {
                 'CORS': None,
@@ -94,8 +95,12 @@ class ascendex(Exchange):
             'version': 'v2',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/112027508-47984600-8b48-11eb-9e17-d26459cc36c6.jpg',
-                'api': 'https://ascendex.com',
-                'test': 'https://api-test.ascendex-sandbox.com',
+                'api': {
+                    'rest': 'https://ascendex.com',
+                },
+                'test': {
+                    'rest': 'https://api-test.ascendex-sandbox.com',
+                },
                 'www': 'https://ascendex.com',
                 'doc': [
                     'https://bitmax-exchange.github.io/bitmax-pro-api/#bitmax-pro-api-documentation',
@@ -1419,6 +1424,7 @@ class ascendex(Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
+            symbol = market['symbol']
         account = self.safe_value(self.accounts, 0, {})
         accountGroup = self.safe_value(account, 'id')
         type, query = self.handle_market_type_and_params('fetchOpenOrders', market, params)
@@ -2345,7 +2351,7 @@ class ascendex(Exchange):
             else:
                 headers['Content-Type'] = 'application/json'
                 body = self.json(params)
-        url = self.urls['api'] + url
+        url = self.urls['api']['rest'] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):

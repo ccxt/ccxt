@@ -323,6 +323,7 @@ module.exports = class bitfinex2 extends bitfinex {
                     'funding': 'funding',
                     'margin': 'margin',
                     'derivatives': 'margin',
+                    'future': 'margin',
                 },
             },
             'exceptions': {

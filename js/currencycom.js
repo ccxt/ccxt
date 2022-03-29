@@ -234,6 +234,8 @@ module.exports = class currencycom extends Exchange {
                     'limit': 'RESULT', // we change it from 'ACK' by default to 'RESULT'
                     'stop': 'RESULT',
                 },
+                'leverage_markets_suffix': '_LEVERAGE',
+                'collateralCurrencies': [ 'USD', 'EUR', 'USDT' ],
             },
             'exceptions': {
                 'broad': {
@@ -264,6 +266,7 @@ module.exports = class currencycom extends Exchange {
             },
             'commonCurrencies': {
                 'ACN': 'Accenture',
+                'AMC': 'AMC Entertainment Holdings',
                 'BNS': 'Bank of Nova Scotia',
                 'CAR': 'Avis Budget Group Inc',
                 'CLR': 'Continental Resources',
@@ -364,64 +367,49 @@ module.exports = class currencycom extends Exchange {
         const response = await this.publicGetV2ExchangeInfo (params);
         //
         //     {
-        //         "timezone":"UTC",
-        //         "serverTime":1603252990096,
-        //         "rateLimits":[
-        //             {"rateLimitType":"REQUEST_WEIGHT","interval":"MINUTE","intervalNum":1,"limit":1200},
-        //             {"rateLimitType":"ORDERS","interval":"SECOND","intervalNum":1,"limit":10},
-        //             {"rateLimitType":"ORDERS","interval":"DAY","intervalNum":1,"limit":864000},
+        //         timezone: "UTC",
+        //         serverTime: "1645186287261",
+        //         rateLimits: [
+        //             { rateLimitType: "REQUEST_WEIGHT", interval: "MINUTE", intervalNum: "1", limit: "1200" },
+        //             { rateLimitType: "ORDERS", interval: "SECOND", intervalNum: "1", limit: "10" },
+        //             { rateLimitType: "ORDERS", interval: "DAY", intervalNum: "1", limit: "864000" },
         //         ],
-        //         "exchangeFilters":[],
-        //         "symbols":[
+        //         exchangeFilters: [],
+        //         symbols: [
         //             {
-        //                 "symbol":"EVK",
-        //                 "name":"Evonik",
-        //                 "status":"BREAK",
-        //                 "baseAsset":"EVK",
-        //                 "baseAssetPrecision":3,
-        //                 "quoteAsset":"EUR",
-        //                 "quoteAssetId":"EUR",
-        //                 "quotePrecision":3,
-        //                 "orderTypes":["LIMIT","MARKET"],
-        //                 "filters":[
-        //                     {"filterType":"LOT_SIZE","minQty":"1","maxQty":"27000","stepSize":"1"},
-        //                     {"filterType":"MIN_NOTIONAL","minNotional":"23"}
+        //                 symbol: "BTC/USDT", // BTC/USDT, BTC/USDT_LEVERAGE
+        //                 name: "Bitcoin / Tether",
+        //                 status: "TRADING", // TRADING, BREAK, HALT
+        //                 baseAsset: "BTC",
+        //                 baseAssetPrecision: "4",
+        //                 quoteAsset: "USDT",
+        //                 quoteAssetId: "USDT", // USDT, USDT_LEVERAGE
+        //                 quotePrecision: "4",
+        //                 orderTypes: [ "LIMIT", "MARKET" ], // LIMIT, MARKET, STOP
+        //                 filters: [
+        //                     { filterType: "LOT_SIZE", minQty: "0.0001", maxQty: "100", stepSize: "0.0001", },
+        //                     { filterType: "MIN_NOTIONAL", minNotional: "5", },
         //                 ],
-        //                 "marketType":"SPOT",
-        //                 "country":"DE",
-        //                 "sector":"Basic Materials",
-        //                 "industry":"Diversified Chemicals",
-        //                 "tradingHours":"UTC; Mon 07:02 - 15:30; Tue 07:02 - 15:30; Wed 07:02 - 15:30; Thu 07:02 - 15:30; Fri 07:02 - 15:30",
-        //                 "tickSize":0.005,
-        //                 "tickValue":0.11125,
-        //                 "exchangeFee":0.05
-        //             },
-        //             {
-        //                 "symbol":"BTC/USD_LEVERAGE",
-        //                 "name":"Bitcoin / USD",
-        //                 "status":"TRADING",
-        //                 "baseAsset":"BTC",
-        //                 "baseAssetPrecision":3,
-        //                 "quoteAsset":"USD",
-        //                 "quoteAssetId":"USD_LEVERAGE",
-        //                 "quotePrecision":3,
-        //                 "orderTypes":["LIMIT","MARKET","STOP"],
-        //                 "filters":[
-        //                     {"filterType":"LOT_SIZE","minQty":"0.001","maxQty":"100","stepSize":"0.001"},
-        //                     {"filterType":"MIN_NOTIONAL","minNotional":"13"}
-        //                 ],
-        //                 "marketType":"LEVERAGE",
-        //                 "longRate":-0.01,
-        //                 "shortRate":0.01,
-        //                 "swapChargeInterval":480,
-        //                 "country":"",
-        //                 "sector":"",
-        //                 "industry":"",
-        //                 "tradingHours":"UTC; Mon - 21:00, 21:05 -; Tue - 21:00, 21:05 -; Wed - 21:00, 21:05 -; Thu - 21:00, 21:05 -; Fri - 21:00, 22:01 -; Sat - 21:00, 21:05 -; Sun - 20:00, 21:05 -",
-        //                 "tickSize":0.05,
-        //                 "tickValue":610.20875,
-        //                 "makerFee":-0.025,
-        //                 "takerFee":0.075
+        //                 marketModes: [ "REGULAR" ], // CLOSE_ONLY, LONG_ONLY, REGULAR
+        //                 marketType: "SPOT", // SPOT, LEVERAGE
+        //                 longRate: -0.0684932, // LEVERAGE only
+        //                 shortRate: -0.0684932, // LEVERAGE only
+        //                 swapChargeInterval: 1440, // LEVERAGE only
+        //                 country: "",
+        //                 sector: "",
+        //                 industry: "",
+        //                 tradingHours: "UTC; Mon - 22:00, 22:05 -; Tue - 22:00, 22:05 -; Wed - 22:00, 22:05 -; Thu - 22:00, 22:05 -; Fri - 22:00, 23:01 -; Sat - 22:00, 22:05 -; Sun - 21:00, 22:05 -",
+        //                 tickSize: "0.01",
+        //                 tickValue: "403.4405", // not available in BTC/USDT_LEVERAGE, but available in BTC/USD_LEVERAGE
+        //                 exchangeFee: "0.2", // SPOT only
+        //                 tradingFee: 0.075, // LEVERAGE only
+        //                 makerFee: -0.025, // LEVERAGE only
+        //                 takerFee: 0.06, // LEVERAGE only
+        //                 maxSLGap: 50, // LEVERAGE only
+        //                 minSLGap: 1, // LEVERAGE only
+        //                 maxTPGap: 50, // LEVERAGE only
+        //                 minTPGap: 0.5, // LEVERAGE only
+        //                 assetType: "CRYPTOCURRENCY",
         //             },
         //         ]
         //     }
@@ -439,22 +427,24 @@ module.exports = class currencycom extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
-            if (id.indexOf ('/') >= 0) {
-                symbol = id;
+            const type = this.safeString (market, 'marketType');
+            const spot = (type === 'SPOT');
+            const futures = false;
+            const swap = (type === 'LEVERAGE');
+            const margin = swap; // as we decided to set
+            if (swap) {
+                symbol = symbol.replace (this.options['leverage_markets_suffix'], '');
+                symbol += ':' + quote;
             }
+            const active = this.safeString (market, 'status') === 'TRADING';
+            // to set taker & maker fees, we use one from the below data - pairs either have 'exchangeFee' or 'tradingFee', if none of them (rare cases), then they should have 'takerFee & makerFee'
+            const exchangeFee = this.safeString2 (market, 'exchangeFee', 'tradingFee');
+            let makerFee = this.safeString (market, 'makerFee', exchangeFee);
+            let takerFee = this.safeString (market, 'takerFee', exchangeFee);
+            makerFee = Precise.stringDiv (makerFee, '100');
+            takerFee = Precise.stringDiv (takerFee, '100');
             const filters = this.safeValue (market, 'filters', []);
             const filtersByType = this.indexBy (filters, 'filterType');
-            const status = this.safeString (market, 'status');
-            const active = (status === 'TRADING');
-            let type = this.safeStringLower (market, 'marketType');
-            if (type === 'leverage') {
-                type = 'margin';
-            }
-            const spot = (type === 'spot');
-            const margin = (type === 'margin');
-            const exchangeFee = this.safeString2 (market, 'exchangeFee', 'tradingFee');
-            const maker = Precise.stringDiv (this.safeString (market, 'makerFee', exchangeFee), '100');
-            const taker = Precise.stringDiv (this.safeString (market, 'takerFee', exchangeFee), '100');
             let limitPriceMin = undefined;
             let limitPriceMax = undefined;
             let precisionPrice = this.safeNumber (market, 'tickSize');
@@ -500,6 +490,7 @@ module.exports = class currencycom extends Exchange {
                 const filter = this.safeValue (filtersByType, 'MIN_NOTIONAL', {});
                 costMin = this.safeNumber (filter, 'minNotional');
             }
+            const isContract = swap || futures;
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -512,15 +503,15 @@ module.exports = class currencycom extends Exchange {
                 'type': type,
                 'spot': spot,
                 'margin': margin,
-                'swap': false,
-                'future': false,
+                'swap': swap,
+                'future': futures,
                 'option': false,
                 'active': active,
-                'contract': false,
-                'linear': undefined,
+                'contract': isContract,
+                'linear': isContract ? true : undefined,
                 'inverse': undefined,
-                'taker': this.parseNumber (taker),
-                'maker': this.parseNumber (maker),
+                'taker': this.parseNumber (takerFee),
+                'maker': this.parseNumber (makerFee),
                 'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
@@ -570,7 +561,7 @@ module.exports = class currencycom extends Exchange {
         //                 "accountId": "120702016179403605",
         //                 "collateralCurrency": false,
         //                 "asset": "CAKE",
-        //                 "free": "1.784",
+        //                 "free": "3.1",
         //                 "locked": "0.0",
         //                 "default": false,
         //             },
@@ -578,7 +569,7 @@ module.exports = class currencycom extends Exchange {
         //                 "accountId": "109698017713125316",
         //                 "collateralCurrency": true,
         //                 "asset": "USD",
-        //                 "free": "7.58632",
+        //                 "free": "17.58632",
         //                 "locked": "0.0",
         //                 "default": true,
         //             }
@@ -596,7 +587,7 @@ module.exports = class currencycom extends Exchange {
                 'id': accountId,
                 'type': undefined,
                 'currency': currencyCode,
-                'info': response,
+                'info': account,
             });
         }
         return result;
@@ -1184,9 +1175,10 @@ module.exports = class currencycom extends Exchange {
         const market = this.market (symbol);
         let accountId = undefined;
         if (market['margin']) {
-            accountId = this.safeInteger (params, 'accountId');
+            accountId = this.safeString (this.options, 'accountId');
+            accountId = this.safeString (params, 'accountId', accountId);
             if (accountId === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires an accountId parameter for ' + market['type'] + ' market ' + symbol);
+                throw new ArgumentsRequired (this.id + " createOrder() requires an accountId parameter or an exchange.options['accountId'] option for " + market['type'] + ' markets');
             }
         }
         const newOrderRespType = this.safeValue (this.options['newOrderRespType'], type, 'RESULT');
@@ -1205,8 +1197,18 @@ module.exports = class currencycom extends Exchange {
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
             request['timeInForce'] = this.options['defaultTimeInForce'];
-        } else if (type === 'stop') {
-            request['price'] = this.priceToPrecision (symbol, price);
+        } else {
+            if (type === 'stop') {
+                request['type'] = 'STOP';
+                request['price'] = this.priceToPrecision (symbol, price);
+            } else if (type === 'market') {
+                const stopPrice = this.safeNumber (params, 'stopPrice');
+                params = this.omit (params, 'stopPrice');
+                if (stopPrice !== undefined) {
+                    request['type'] = 'STOP';
+                    request['price'] = this.priceToPrecision (symbol, stopPrice);
+                }
+            }
         }
         const response = await this.privatePostV2Order (this.extend (request, params));
         //

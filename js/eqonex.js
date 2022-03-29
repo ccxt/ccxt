@@ -44,6 +44,7 @@ module.exports = class eqonex extends Exchange {
                 'fetchOrders': true,
                 'fetchTicker': undefined,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTradingLimits': true,
                 'fetchWithdrawals': true,
@@ -1265,24 +1266,78 @@ module.exports = class eqonex extends Exchange {
     }
 
     async fetchTradingFees (params = {}) {
-        // getExchangeInfo
+        await this.loadMarkets ();
         const response = await this.publicGetGetExchangeInfo (params);
-        const tradingFees = this.safeValue (response, 'spotFees', []);
-        const taker = {};
-        const maker = {};
-        for (let i = 0; i < tradingFees.length; i++) {
-            const tradingFee = tradingFees[i];
-            if (this.safeString (tradingFee, 'tier') !== undefined) {
-                taker[tradingFee['tier']] = this.safeNumber (tradingFee, 'taker');
-                maker[tradingFee['tier']] = this.safeNumber (tradingFee, 'maker');
-            }
+        //
+        //     {
+        //         tradingLimits: [],
+        //         withdrawLimits: [{ All: '0.0', Type: 'percent' }],
+        //         futuresFees: [
+        //             { tier: '0', maker: '0.000300', taker: '0.000500' },
+        //             { tier: '1', maker: '0.000200', taker: '0.000400' },
+        //             { tier: '2', maker: '0.000180', taker: '0.000400' },
+        //         ],
+        //         spotFees: [
+        //             { tier: '0', maker: '0.000900', taker: '0.001500', volume: '0' },
+        //             { tier: '1', maker: '0.000600', taker: '0.001250', volume: '200000' },
+        //             { tier: '2', maker: '0.000540', taker: '0.001200', volume: '2500000' },
+        //         ],
+        //         referrals: { earning: '0.30', discount: '0.05', duration: '180' }
+        //     }
+        //
+        const spotFees = this.safeValue (response, 'spotFees', []);
+        const firstSpotFee = this.safeValue (spotFees, 0, {});
+        const spotMakerFee = this.safeNumber (firstSpotFee, 'maker');
+        const spotTakerFee = this.safeNumber (firstSpotFee, 'taker');
+        const futureFees = this.safeValue (response, 'futuresFees', []);
+        const firstFutureFee = this.safeValue (futureFees, 0, {});
+        const futureMakerFee = this.safeNumber (firstFutureFee, 'maker');
+        const futureTakerFee = this.safeNumber (firstFutureFee, 'taker');
+        const spotTakerTiers = [];
+        const spotMakerTiers = [];
+        const result = {};
+        for (let i = 0; i < spotFees.length; i++) {
+            const spotFee = spotFees[i];
+            const volume = this.safeNumber (spotFee, 'volume');
+            spotTakerTiers.push ([ volume, this.safeNumber (spotFee, 'taker') ]);
+            spotMakerTiers.push ([ volume, this.safeNumber (spotFee, 'maker') ]);
         }
-        return {
-            'info': tradingFees,
-            'tierBased': true,
-            'maker': maker,
-            'taker': taker,
+        const spotTiers = {
+            'taker': spotTakerTiers,
+            'maker': spotMakerTiers,
         };
+        const futureTakerTiers = [];
+        const futureMakerTiers = [];
+        for (let i = 0; i < futureFees.length; i++) {
+            const futureFee = futureFees[i];
+            futureTakerTiers.push ([ undefined, this.safeNumber (futureFee, 'taker') ]);
+            futureMakerTiers.push ([ undefined, this.safeNumber (futureFee, 'maker') ]);
+        }
+        const futureTiers = {
+            'taker': futureTakerTiers,
+            'maker': futureMakerTiers,
+        };
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            const market = this.market (symbol);
+            const fee = {
+                'info': response,
+                'symbol': symbol,
+                'percentage': true,
+                'tierBased': true,
+            };
+            if (this.safeValue (market, 'spot')) {
+                fee['maker'] = spotMakerFee;
+                fee['taker'] = spotTakerFee;
+                fee['tiers'] = spotTiers;
+            } else if (this.safeValue (market, 'contract')) {
+                fee['maker'] = futureMakerFee;
+                fee['taker'] = futureTakerFee;
+                fee['tiers'] = futureTiers;
+            }
+            result[symbol] = fee;
+        }
+        return result;
     }
 
     async fetchTradingLimits (symbols = undefined, params = {}) {

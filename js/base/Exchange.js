@@ -270,6 +270,8 @@ module.exports = class Exchange {
 
         // do not delete this line, it is needed for users to be able to define their own fetchImplementation
         this.fetchImplementation = defaultFetch
+        this.validateServerSsl = true
+        this.validateClientSsl = false
 
         this.timeout       = 10000 // milliseconds
         this.verbose       = false
@@ -332,6 +334,10 @@ module.exports = class Exchange {
 
         const agentOptions = {
             'keepAlive': true,
+        }
+
+        if (!this.validateServerSsl) {
+            agentOptions['rejectUnauthorized'] = false;
         }
 
         if (!this.httpAgent && defaultFetch.http && isNode) {
@@ -1030,11 +1036,12 @@ module.exports = class Exchange {
     }
 
     market (symbol) {
-
         if (this.markets === undefined) {
             throw new ExchangeError (this.id + ' markets not loaded')
         }
-
+        if (this.markets_by_id === undefined) {
+            throw new ExchangeError (this.id + ' markets not loaded')
+        }
         if (typeof symbol === 'string') {
             if (symbol in this.markets) {
                 return this.markets[symbol]
@@ -1042,7 +1049,6 @@ module.exports = class Exchange {
                 return this.markets_by_id[symbol]
             }
         }
-
         throw new BadSymbol (this.id + ' does not have market symbol ' + symbol)
     }
 
@@ -1254,8 +1260,8 @@ module.exports = class Exchange {
                 symbol = this.safeSymbol (undefined, market);
             }
             const timestamp = this.safeInteger (ticker, 'timestamp');
-            const baseVolume = this.safeValue (ticker, 'baseVolume');
-            const quoteVolume = this.safeValue (ticker, 'quoteVolume');
+            let baseVolume = this.safeValue (ticker, 'baseVolume');
+            let quoteVolume = this.safeValue (ticker, 'quoteVolume');
             let vwap = this.safeValue (ticker, 'vwap');
             if (vwap === undefined) {
                 vwap = this.vwap (baseVolume, quoteVolume);
@@ -1287,6 +1293,12 @@ module.exports = class Exchange {
             }
             if ((open === undefined) && (last !== undefined) && (change !== undefined)) {
                 open = last - change;
+            }
+            if ((vwap !== undefined) && (baseVolume !== undefined) && (quoteVolume === undefined)) {
+                quoteVolume = vwap / baseVolume;
+            }
+            if ((vwap !== undefined) && (quoteVolume !== undefined) && (baseVolume === undefined)) {
+                baseVolume = quoteVolume / vwap;
             }
             ticker['symbol'] = symbol;
             ticker['timestamp'] = timestamp;
@@ -2073,6 +2085,13 @@ module.exports = class Exchange {
             }
             entry['fee'] = fee;
         }
+        // timeInForceHandling
+        let timeInForce = this.safeString (order, 'timeInForce');
+        if (this.safeValue (order, 'postOnly', false)) {
+            timeInForce = 'PO';
+        } else if (this.safeString (order, 'type') === 'market') {
+            timeInForce = 'IOC';
+        }
         return this.extend (order, {
             'lastTradeTimestamp': lastTradeTimeTimestamp,
             'price': this.parseNumber (price),
@@ -2081,6 +2100,7 @@ module.exports = class Exchange {
             'average': this.parseNumber (average),
             'filled': this.parseNumber (filled),
             'remaining': this.parseNumber (remaining),
+            'timeInForce': timeInForce,
             'trades': trades,
         });
     }
@@ -2160,7 +2180,7 @@ module.exports = class Exchange {
             if (typeof methodOptions === 'string') {
                 methodType = methodOptions;
             } else {
-                methodType = this.safeString2 (methodOptions, 'defaultType', 'type');
+                methodType = this.safeString2 (methodOptions, 'defaultType', 'type', methodType);
             }
         }
         const marketType = (market === undefined) ? methodType : market['type'];

@@ -21,7 +21,7 @@ module.exports = class zb extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined, // has but unimplemented
+                'margin': true,
                 'swap': true,
                 'future': undefined,
                 'option': undefined,
@@ -32,6 +32,10 @@ module.exports = class zb extends Exchange {
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowRate': true,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
@@ -58,6 +62,8 @@ module.exports = class zb extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
                 'setLeverage': true,
@@ -81,6 +87,213 @@ module.exports = class zb extends Exchange {
                 '3d': '3d',
                 '5d': '5d',
                 '1w': '1w',
+            },
+            'hostname': 'zb.com', // zb.cafe for users in China
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg',
+                'api': {
+                    'spot': {
+                        'v1': {
+                            'public': 'https://api.{hostname}/data',
+                            'private': 'https://trade.{hostname}/api',
+                        },
+                    },
+                    'contract': {
+                        'v1': {
+                            'public': 'https://fapi.{hostname}/api/public',
+                        },
+                        'v2': {
+                            'public': 'https://fapi.{hostname}/Server/api',
+                            'private': 'https://fapi.{hostname}/Server/api',
+                        },
+                    },
+                },
+                'www': 'https://www.zb.com',
+                'doc': 'https://www.zb.com/i/developer',
+                'fees': 'https://www.zb.com/i/rate',
+                'referral': {
+                    'url': 'https://www.zbex.club/en/register?ref=4301lera',
+                    'discount': 0.16,
+                },
+            },
+            'api': {
+                'spot': {
+                    'v1': {
+                        'public': {
+                            'get': [
+                                'markets',
+                                'ticker',
+                                'allTicker',
+                                'depth',
+                                'trades',
+                                'kline',
+                                'getGroupMarkets',
+                                'getFeeInfo',
+                            ],
+                        },
+                        'private': {
+                            'get': [
+                                // spot API
+                                'order',
+                                'orderMoreV2',
+                                'cancelOrder',
+                                'getOrder',
+                                'getOrders',
+                                'getOrdersNew',
+                                'getOrdersIgnoreTradeType',
+                                'getUnfinishedOrdersIgnoreTradeType',
+                                'getFinishedAndPartialOrders',
+                                'getAccountInfo',
+                                'getUserAddress',
+                                'getPayinAddress',
+                                'getWithdrawAddress',
+                                'getWithdrawRecord',
+                                'getChargeRecord',
+                                'getCnyWithdrawRecord',
+                                'getCnyChargeRecord',
+                                'withdraw',
+                                // sub accounts
+                                'addSubUser',
+                                'getSubUserList',
+                                'doTransferFunds',
+                                'createSubUserKey', // removed on 2021-03-16 according to the update log in the API doc
+                                // leverage API
+                                'getLeverAssetsInfo',
+                                'getLeverBills',
+                                'transferInLever',
+                                'transferOutLever',
+                                'loan',
+                                'cancelLoan',
+                                'getLoans',
+                                'getLoanRecords',
+                                'borrow',
+                                'autoBorrow',
+                                'repay',
+                                'doAllRepay',
+                                'getRepayments',
+                                'getFinanceRecords',
+                                'changeInvestMark',
+                                'changeLoop',
+                                // cross API
+                                'getCrossAssets',
+                                'getCrossBills',
+                                'transferInCross',
+                                'transferOutCross',
+                                'doCrossLoan',
+                                'doCrossRepay',
+                                'getCrossRepayRecords',
+                            ],
+                        },
+                    },
+                },
+                'contract': {
+                    'v1': {
+                        'public': {
+                            'get': [
+                                'depth',
+                                'fundingRate',
+                                'indexKline',
+                                'indexPrice',
+                                'kline',
+                                'markKline',
+                                'markPrice',
+                                'ticker',
+                                'trade',
+                            ],
+                        },
+                    },
+                    'v2': {
+                        'public': {
+                            'get': [
+                                'allForceOrders',
+                                'config/marketList',
+                                'topLongShortAccountRatio',
+                                'topLongShortPositionRatio',
+                                'fundingRate',
+                                'premiumIndex',
+                            ],
+                        },
+                        'private': {
+                            'get': [
+                                'Fund/balance',
+                                'Fund/getAccount',
+                                'Fund/getBill',
+                                'Fund/getBillTypeList',
+                                'Fund/marginHistory',
+                                'Positions/getPositions',
+                                'Positions/getNominalValue',
+                                'Positions/marginInfo',
+                                'setting/get',
+                                'trade/getAllOrders',
+                                'trade/getOrder',
+                                'trade/getOrderAlgos',
+                                'trade/getTradeList',
+                                'trade/getUndoneOrders',
+                                'trade/tradeHistory',
+                            ],
+                            'post': [
+                                'activity/buyTicket',
+                                'Fund/transferFund',
+                                'Positions/setMarginCoins',
+                                'Positions/updateAppendUSDValue',
+                                'Positions/updateMargin',
+                                'setting/setLeverage',
+                                'trade/batchOrder',
+                                'trade/batchCancelOrder',
+                                'trade/cancelAlgos',
+                                'trade/cancelAllOrders',
+                                'trade/cancelOrder',
+                                'trade/order',
+                                'trade/orderAlgo',
+                                'trade/updateOrderAlgo',
+                            ],
+                        },
+                    },
+                },
+            },
+            'fees': {
+                'funding': {
+                    'withdraw': {},
+                },
+                'trading': {
+                    'maker': this.parseNumber ('0.002'),
+                    'taker': this.parseNumber ('0.002'),
+                },
+            },
+            'commonCurrencies': {
+                'ANG': 'Anagram',
+                'ENT': 'ENTCash',
+                'BCHABC': 'BCHABC', // conflict with BCH / BCHA
+                'BCHSV': 'BCHSV', // conflict with BCH / BSV
+            },
+            'options': {
+                'timeframes': {
+                    'spot': {
+                        '1m': '1min',
+                        '3m': '3min',
+                        '5m': '5min',
+                        '15m': '15min',
+                        '30m': '30min',
+                        '1h': '1hour',
+                        '2h': '2hour',
+                        '4h': '4hour',
+                        '6h': '6hour',
+                        '12h': '12hour',
+                        '1d': '1day',
+                        '3d': '3day',
+                        '1w': '1week',
+                    },
+                    'swap': {
+                        '1m': '1M',
+                        '5m': '5M',
+                        '15m': '15M',
+                        '30m': '30M',
+                        '1h': '1H',
+                        '6h': '6H',
+                        '1d': '1D',
+                        '5d': '5D',
+                    },
+                },
             },
             'exceptions': {
                 'ws': {
@@ -308,212 +521,6 @@ module.exports = class zb extends Exchange {
                     '响应超时': RequestTimeout, // {"code":1001,"message":"响应超时"}
                 },
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg',
-                'api': {
-                    'spot': {
-                        'v1': {
-                            'public': 'https://api.zb.work/data',
-                            'private': 'https://trade.zb.work/api',
-                        },
-                    },
-                    'contract': {
-                        'v1': {
-                            'public': 'https://fapi.zb.com/api/public',
-                        },
-                        'v2': {
-                            'public': 'https://fapi.zb.com/Server/api',
-                            'private': 'https://fapi.zb.com/Server/api',
-                        },
-                    },
-                },
-                'www': 'https://www.zb.com',
-                'doc': 'https://www.zb.com/i/developer',
-                'fees': 'https://www.zb.com/i/rate',
-                'referral': {
-                    'url': 'https://www.zbex.club/en/register?ref=4301lera',
-                    'discount': 0.16,
-                },
-            },
-            'api': {
-                'spot': {
-                    'v1': {
-                        'public': {
-                            'get': [
-                                'markets',
-                                'ticker',
-                                'allTicker',
-                                'depth',
-                                'trades',
-                                'kline',
-                                'getGroupMarkets',
-                                'getFeeInfo',
-                            ],
-                        },
-                        'private': {
-                            'get': [
-                                // spot API
-                                'order',
-                                'orderMoreV2',
-                                'cancelOrder',
-                                'getOrder',
-                                'getOrders',
-                                'getOrdersNew',
-                                'getOrdersIgnoreTradeType',
-                                'getUnfinishedOrdersIgnoreTradeType',
-                                'getFinishedAndPartialOrders',
-                                'getAccountInfo',
-                                'getUserAddress',
-                                'getPayinAddress',
-                                'getWithdrawAddress',
-                                'getWithdrawRecord',
-                                'getChargeRecord',
-                                'getCnyWithdrawRecord',
-                                'getCnyChargeRecord',
-                                'withdraw',
-                                // sub accounts
-                                'addSubUser',
-                                'getSubUserList',
-                                'doTransferFunds',
-                                'createSubUserKey', // removed on 2021-03-16 according to the update log in the API doc
-                                // leverage API
-                                'getLeverAssetsInfo',
-                                'getLeverBills',
-                                'transferInLever',
-                                'transferOutLever',
-                                'loan',
-                                'cancelLoan',
-                                'getLoans',
-                                'getLoanRecords',
-                                'borrow',
-                                'autoBorrow',
-                                'repay',
-                                'doAllRepay',
-                                'getRepayments',
-                                'getFinanceRecords',
-                                'changeInvestMark',
-                                'changeLoop',
-                                // cross API
-                                'getCrossAssets',
-                                'getCrossBills',
-                                'transferInCross',
-                                'transferOutCross',
-                                'doCrossLoan',
-                                'doCrossRepay',
-                                'getCrossRepayRecords',
-                            ],
-                        },
-                    },
-                },
-                'contract': {
-                    'v1': {
-                        'public': {
-                            'get': [
-                                'depth',
-                                'fundingRate',
-                                'indexKline',
-                                'indexPrice',
-                                'kline',
-                                'markKline',
-                                'markPrice',
-                                'ticker',
-                                'trade',
-                            ],
-                        },
-                    },
-                    'v2': {
-                        'public': {
-                            'get': [
-                                'allForceOrders',
-                                'config/marketList',
-                                'topLongShortAccountRatio',
-                                'topLongShortPositionRatio',
-                                'fundingRate',
-                                'premiumIndex',
-                            ],
-                        },
-                        'private': {
-                            'get': [
-                                'Fund/balance',
-                                'Fund/getAccount',
-                                'Fund/getBill',
-                                'Fund/getBillTypeList',
-                                'Fund/marginHistory',
-                                'Positions/getPositions',
-                                'Positions/getNominalValue',
-                                'Positions/marginInfo',
-                                'setting/get',
-                                'trade/getAllOrders',
-                                'trade/getOrder',
-                                'trade/getOrderAlgos',
-                                'trade/getTradeList',
-                                'trade/getUndoneOrders',
-                                'trade/tradeHistory',
-                            ],
-                            'post': [
-                                'activity/buyTicket',
-                                'Fund/transferFund',
-                                'Positions/setMarginCoins',
-                                'Positions/updateAppendUSDValue',
-                                'Positions/updateMargin',
-                                'setting/setLeverage',
-                                'trade/batchOrder',
-                                'trade/batchCancelOrder',
-                                'trade/cancelAlgos',
-                                'trade/cancelAllOrders',
-                                'trade/cancelOrder',
-                                'trade/order',
-                                'trade/orderAlgo',
-                                'trade/updateOrderAlgo',
-                            ],
-                        },
-                    },
-                },
-            },
-            'fees': {
-                'funding': {
-                    'withdraw': {},
-                },
-                'trading': {
-                    'maker': 0.2 / 100,
-                    'taker': 0.2 / 100,
-                },
-            },
-            'commonCurrencies': {
-                'ANG': 'Anagram',
-                'ENT': 'ENTCash',
-                'BCHABC': 'BCHABC', // conflict with BCH / BCHA
-                'BCHSV': 'BCHSV', // conflict with BCH / BSV
-            },
-            'options': {
-                'timeframes': {
-                    'spot': {
-                        '1m': '1min',
-                        '3m': '3min',
-                        '5m': '5min',
-                        '15m': '15min',
-                        '30m': '30min',
-                        '1h': '1hour',
-                        '2h': '2hour',
-                        '4h': '4hour',
-                        '6h': '6hour',
-                        '12h': '12hour',
-                        '1d': '1day',
-                        '3d': '3day',
-                        '1w': '1week',
-                    },
-                    'swap': {
-                        '1m': '1M',
-                        '5m': '5M',
-                        '15m': '15M',
-                        '30m': '30M',
-                        '1h': '1H',
-                        '6h': '6H',
-                        '1d': '1D',
-                        '5d': '5D',
-                    },
-                },
-            },
         });
     }
 
@@ -529,7 +536,14 @@ module.exports = class zb extends Exchange {
         //         },
         //     }
         //
-        const contracts = await this.contractV2PublicGetConfigMarketList (params);
+        let contracts = undefined;
+        try {
+            // https://github.com/ZBFuture/docs_en/blob/main/API%20V2%20_en.md#7-public-markethttp
+            // https://fapi.zb.com/Server/api/v2/config/marketList 502 Bad Gateway
+            contracts = await this.contractV2PublicGetConfigMarketList (params);
+        } catch (e) {
+            contracts = {};
+        }
         //
         //     {
         //         BTC_USDT: {
@@ -794,19 +808,134 @@ module.exports = class zb extends Exchange {
         return this.safeBalance (result);
     }
 
+    parseMarginBalance (response, marginType) {
+        const result = {
+            'info': response,
+        };
+        let levers = undefined;
+        if (marginType === 'isolated') {
+            const message = this.safeValue (response, 'message', {});
+            const data = this.safeValue (message, 'datas', {});
+            levers = this.safeValue (data, 'levers', []);
+        } else {
+            const crossResponse = this.safeValue (response, 'result', {});
+            levers = this.safeValue (crossResponse, 'list', []);
+        }
+        for (let i = 0; i < levers.length; i++) {
+            const balance = levers[i];
+            //
+            // Isolated Margin
+            //
+            //     {
+            //         "cNetUSD": "0.00",
+            //         "repayLeverShow": "-",
+            //         "cCanLoanIn": "0.002115400000000",
+            //         "fNetCNY": "147.76081161",
+            //         "fLoanIn": "0.00",
+            //         "repayLevel": 0,
+            //         "level": 1,
+            //         "netConvertCNY": "147.760811613032",
+            //         "cFreeze": "0.00",
+            //         "cUnitTag": "BTC",
+            //         "version": 1646783178609,
+            //         "cAvailableUSD": "0.00",
+            //         "cNetCNY": "0.00",
+            //         "riskRate": "-",
+            //         "fAvailableUSD": "20.49273433",
+            //         "fNetUSD": "20.49273432",
+            //         "cShowName": "BTC",
+            //         "leverMultiple": "5.00",
+            //         "couldTransferOutFiat": "20.49273433",
+            //         "noticeLine": "1.13",
+            //         "fFreeze": "0.00",
+            //         "cUnitDecimal": 8,
+            //         "fCanLoanIn": "81.970937320000000",
+            //         "cAvailable": "0.00",
+            //         "repayLock": false,
+            //         "status": 1,
+            //         "forbidType": 0,
+            //         "totalConvertCNY": "147.760811613032",
+            //         "cAvailableCNY": "0.00",
+            //         "unwindPrice": "0.00",
+            //         "fOverdraft": "0.00",
+            //         "fShowName": "USDT",
+            //         "statusShow": "%E6%AD%A3%E5%B8%B8",
+            //         "cOverdraft": "0.00",
+            //         "netConvertUSD": "20.49273433",
+            //         "cNetBtc": "0.00",
+            //         "loanInConvertCNY": "0.00",
+            //         "fAvailableCNY": "147.760811613032",
+            //         "key": "btcusdt",
+            //         "fNetBtc": "0.0005291",
+            //         "fUnitDecimal": 8,
+            //         "loanInConvertUSD": "0.00",
+            //         "showName": "BTC/USDT",
+            //         "startLine": "1.25",
+            //         "totalConvertUSD": "20.49273433",
+            //         "couldTransferOutCoin": "0.00",
+            //         "cEnName": "BTC",
+            //         "leverMultipleInterest": "3.00",
+            //         "fAvailable": "20.49273433",
+            //         "fEnName": "USDT",
+            //         "forceRepayLine": "1.08",
+            //         "cLoanIn": "0.00"
+            //     }
+            //
+            // Cross Margin
+            //
+            //     [
+            //         {
+            //             "fundType": 2,
+            //             "loanIn": 0,
+            //             "amount": 0,
+            //             "freeze": 0,
+            //             "overdraft": 0,
+            //             "key": "BTC",
+            //             "canTransferOut": 0
+            //         },
+            //     ],
+            //
+            const account = this.account ();
+            if (marginType === 'isolated') {
+                const code = this.safeCurrencyCode (this.safeString (balance, 'fShowName'));
+                account['total'] = this.safeString (balance, 'fAvailableUSD'); // total amount in USD
+                account['free'] = this.safeString (balance, 'couldTransferOutFiat');
+                account['used'] = this.safeString (balance, 'fFreeze');
+                result[code] = account;
+            } else {
+                const code = this.safeCurrencyCode (this.safeString (balance, 'key'));
+                account['total'] = this.safeString (balance, 'amount');
+                account['free'] = this.safeString (balance, 'canTransferOut');
+                account['used'] = this.safeString (balance, 'freeze');
+                result[code] = account;
+            }
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const margin = (marketType === 'margin');
+        const swap = (marketType === 'swap');
+        let marginMethod = undefined;
+        const defaultMargin = margin ? 'isolated' : 'cross';
+        const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', defaultMargin);
+        if (marginType === 'isolated') {
+            marginMethod = 'spotV1PrivateGetGetLeverAssetsInfo';
+        } else if (marginType === 'cross') {
+            marginMethod = 'spotV1PrivateGetGetCrossAssets';
+        }
         const method = this.getSupportedMapping (marketType, {
             'spot': 'spotV1PrivateGetGetAccountInfo',
             'swap': 'contractV2PrivateGetFundBalance',
+            'margin': marginMethod,
         });
         const request = {
             // 'futuresAccountType': 1, // SWAP
             // 'currencyId': currency['id'], // SWAP
             // 'currencyName': 'usdt', // SWAP
         };
-        const swap = (marketType === 'swap');
         if (swap) {
             request['futuresAccountType'] = 1;
         }
@@ -871,10 +1000,105 @@ module.exports = class zb extends Exchange {
         //         "desc": "操作成功"
         //     }
         //
+        // Isolated Margin
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": {
+        //             "des": "success",
+        //             "isSuc": true,
+        //             "datas": {
+        //                 "leverPerm": true,
+        //                 "levers": [
+        //                     {
+        //                         "cNetUSD": "0.00",
+        //                         "repayLeverShow": "-",
+        //                         "cCanLoanIn": "0.002115400000000",
+        //                         "fNetCNY": "147.76081161",
+        //                         "fLoanIn": "0.00",
+        //                         "repayLevel": 0,
+        //                         "level": 1,
+        //                         "netConvertCNY": "147.760811613032",
+        //                         "cFreeze": "0.00",
+        //                         "cUnitTag": "BTC",
+        //                         "version": 1646783178609,
+        //                         "cAvailableUSD": "0.00",
+        //                         "cNetCNY": "0.00",
+        //                         "riskRate": "-",
+        //                         "fAvailableUSD": "20.49273433",
+        //                         "fNetUSD": "20.49273432",
+        //                         "cShowName": "BTC",
+        //                         "leverMultiple": "5.00",
+        //                         "couldTransferOutFiat": "20.49273433",
+        //                         "noticeLine": "1.13",
+        //                         "fFreeze": "0.00",
+        //                         "cUnitDecimal": 8,
+        //                         "fCanLoanIn": "81.970937320000000",
+        //                         "cAvailable": "0.00",
+        //                         "repayLock": false,
+        //                         "status": 1,
+        //                         "forbidType": 0,
+        //                         "totalConvertCNY": "147.760811613032",
+        //                         "cAvailableCNY": "0.00",
+        //                         "unwindPrice": "0.00",
+        //                         "fOverdraft": "0.00",
+        //                         "fShowName": "USDT",
+        //                         "statusShow": "%E6%AD%A3%E5%B8%B8",
+        //                         "cOverdraft": "0.00",
+        //                         "netConvertUSD": "20.49273433",
+        //                         "cNetBtc": "0.00",
+        //                         "loanInConvertCNY": "0.00",
+        //                         "fAvailableCNY": "147.760811613032",
+        //                         "key": "btcusdt",
+        //                         "fNetBtc": "0.0005291",
+        //                         "fUnitDecimal": 8,
+        //                         "loanInConvertUSD": "0.00",
+        //                         "showName": "BTC/USDT",
+        //                         "startLine": "1.25",
+        //                         "totalConvertUSD": "20.49273433",
+        //                         "couldTransferOutCoin": "0.00",
+        //                         "cEnName": "BTC",
+        //                         "leverMultipleInterest": "3.00",
+        //                         "fAvailable": "20.49273433",
+        //                         "fEnName": "USDT",
+        //                         "forceRepayLine": "1.08",
+        //                         "cLoanIn": "0.00"
+        //                     }
+        //                 ]
+        //             }
+        //         }
+        //     }
+        //
+        // Cross Margin
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": "操作成功",
+        //         "result": {
+        //             "loanIn": 0,
+        //             "total": 71.167,
+        //             "riskRate": "-",
+        //             "list" :[
+        //                 {
+        //                     "fundType": 2,
+        //                     "loanIn": 0,
+        //                     "amount": 0,
+        //                     "freeze": 0,
+        //                     "overdraft": 0,
+        //                     "key": "BTC",
+        //                     "canTransferOut": 0
+        //                 },
+        //             ],
+        //             "net": 71.167
+        //         }
+        //     }
+        //
         // todo: use this somehow
         // let permissions = response['result']['base'];
         if (swap) {
             return this.parseSwapBalance (response);
+        } else if (margin) {
+            return this.parseMarginBalance (response, marginType);
         } else {
             return this.parseBalance (response);
         }
@@ -1193,7 +1417,7 @@ module.exports = class zb extends Exchange {
             const ohlcvLength = ohlcv.length;
             if (ohlcvLength > 5) {
                 return [
-                    this.safeInteger (ohlcv, 5),
+                    this.safeTimestamp (ohlcv, 5),
                     this.safeNumber (ohlcv, 0),
                     this.safeNumber (ohlcv, 1),
                     this.safeNumber (ohlcv, 2),
@@ -1202,7 +1426,7 @@ module.exports = class zb extends Exchange {
                 ];
             } else {
                 return [
-                    this.safeInteger (ohlcv, 4),
+                    this.safeTimestamp (ohlcv, 4),
                     this.safeNumber (ohlcv, 0),
                     this.safeNumber (ohlcv, 1),
                     this.safeNumber (ohlcv, 2),
@@ -1226,6 +1450,7 @@ module.exports = class zb extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const swap = market['swap'];
+        const spot = market['spot'];
         const options = this.safeValue (this.options, 'timeframes', {});
         const timeframes = this.safeValue (options, market['type'], {});
         const timeframeValue = this.safeString (timeframes, timeframe);
@@ -1241,21 +1466,28 @@ module.exports = class zb extends Exchange {
             // 'type': timeframeValue, // spot only
             // 'period': timeframeValue, // swap only
             // 'since': since, // spot only
-            // 'limit': limit, // spot only
-            // 'size': limit, // swap only
+            // 'size': limit, // spot and swap
         };
         const marketIdField = swap ? 'symbol' : 'market';
         request[marketIdField] = market['id'];
         const periodField = swap ? 'period' : 'type';
         request[periodField] = timeframeValue;
-        const sizeField = swap ? 'size' : 'limit';
-        request[sizeField] = limit;
-        const method = this.getSupportedMapping (market['type'], {
+        const price = this.safeString (params, 'price');
+        params = this.omit (params, 'price');
+        let method = this.getSupportedMapping (market['type'], {
             'spot': 'spotV1PublicGetKline',
             'swap': 'contractV1PublicGetKline',
         });
-        if (since !== undefined) {
-            request['since'] = since;
+        if (swap) {
+            if (price === 'mark') {
+                method = 'contractV1PublicGetMarkKline';
+            } else if (price === 'index') {
+                method = 'contractV1PublicGetIndexKline';
+            }
+        } else if (spot) {
+            if (since !== undefined) {
+                request['since'] = since;
+            }
         }
         if (limit !== undefined) {
             request['size'] = limit;
@@ -1286,34 +1518,7 @@ module.exports = class zb extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
-        return this.parseOHLCVs (data, market, timeframe, since, limit);
-    }
-
-    async fetchMarkOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const options = this.safeValue (this.options, 'timeframes', {});
-        const timeframes = this.safeValue (options, market['type'], {});
-        const timeframeValue = this.safeString (timeframes, timeframe);
-        if (timeframeValue === undefined) {
-            throw new NotSupported (this.id + ' fetchMarkOHLCV() does not support ' + timeframe + ' timeframe for ' + market['type'] + ' markets');
-        }
-        if (limit === undefined) {
-            limit = 1000;
-        }
-        const request = {
-            'symbol': market['id'],
-            'period': timeframeValue,
-            'size': limit,
-        };
-        if (since !== undefined) {
-            request['since'] = since;
-        }
-        if (limit !== undefined) {
-            request['size'] = limit;
-        }
-        const response = await this.contractV1PublicGetMarkKline (this.extend (request, params));
+        // Mark
         //
         //     {
         //         "code": 10000,
@@ -1325,34 +1530,7 @@ module.exports = class zb extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
-        return this.parseOHLCVs (data, market, timeframe, since, limit);
-    }
-
-    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const options = this.safeValue (this.options, 'timeframes', {});
-        const timeframes = this.safeValue (options, market['type'], {});
-        const timeframeValue = this.safeString (timeframes, timeframe);
-        if (timeframeValue === undefined) {
-            throw new NotSupported (this.id + ' fetchIndexOHLCV() does not support ' + timeframe + ' timeframe for ' + market['type'] + ' markets');
-        }
-        if (limit === undefined) {
-            limit = 1000;
-        }
-        const request = {
-            'symbol': market['id'],
-            'period': timeframeValue,
-            'size': limit,
-        };
-        if (since !== undefined) {
-            request['since'] = since;
-        }
-        if (limit !== undefined) {
-            request['size'] = limit;
-        }
-        const response = await this.contractV1PublicGetIndexKline (this.extend (request, params));
+        // Index
         //
         //     {
         //         "code": 10000,
@@ -1366,6 +1544,20 @@ module.exports = class zb extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
+    }
+
+    async fetchMarkOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'price': 'mark',
+        };
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
+    }
+
+    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'price': 'index',
+        };
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
     }
 
     parseTrade (trade, market = undefined) {
@@ -1542,6 +1734,9 @@ module.exports = class zb extends Exchange {
         });
         const request = {
             'amount': this.amountToPrecision (symbol, amount),
+            // 'acctType': 0, // Spot, Margin 0/1/2 [Spot/Isolated/Cross] Optional, Default to: 0 Spot
+            // 'customerOrderId': '1f2g', // Spot, Margin
+            // 'orderType': 1, // Spot, Margin order type 1/2 [PostOnly/IOC] Optional
         };
         if (price) {
             request['price'] = this.priceToPrecision (symbol, price);
@@ -1549,6 +1744,15 @@ module.exports = class zb extends Exchange {
         if (spot) {
             request['tradeType'] = (side === 'buy') ? '1' : '0';
             request['currency'] = market['id'];
+            if (timeInForce !== undefined) {
+                if (timeInForce === 'PO') {
+                    request['orderType'] = 1;
+                } else if (timeInForce === 'IOC') {
+                    request['orderType'] = 2;
+                } else {
+                    throw new InvalidOrder (this.id + ' createOrder() on ' + market['type'] + ' markets does not allow ' + timeInForce + ' orders');
+                }
+            }
         } else if (swap) {
             const reduceOnly = this.safeValue (params, 'reduceOnly');
             params = this.omit (params, 'reduceOnly');
@@ -2255,6 +2459,7 @@ module.exports = class zb extends Exchange {
         };
         if (symbol !== undefined) {
             const market = this.market (symbol);
+            symbol = market['symbol'];
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {
@@ -2914,25 +3119,67 @@ module.exports = class zb extends Exchange {
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
         await this.loadMarkets ();
-        let side = undefined;
-        if (fromAccount === 'spot' || toAccount === 'future') {
-            side = 1;
-        } else {
-            side = 0;
-        }
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('transfer', undefined, params);
         const currency = this.currency (code);
+        const margin = (marketType === 'margin');
+        const swap = (marketType === 'swap');
+        let side = undefined;
+        let marginMethod = undefined;
         const request = {
-            'currencyName': currency['id'],
-            'amount': amount,
-            'clientId': this.safeString (params, 'clientId'), // "2sdfsdfsdf232342"
-            'side': side, // 1：Deposit (zb account -> futures account)，0：Withdrawal (futures account -> zb account)
+            'amount': amount, // Swap, Cross Margin, Isolated Margin
+            // 'coin': currency['id'], // Margin
+            // 'currencyName': currency['id'], // Swap
+            // 'clientId': this.safeString (params, 'clientId'), // Swap "2sdfsdfsdf232342"
+            // 'side': side, // Swap, 1：Deposit (zb account -> futures account)，0：Withdrawal (futures account -> zb account)
+            // 'marketName': this.safeString (params, 'marketName'), // Isolated Margin
         };
-        const response = await this.contractV2PrivatePostFundTransferFund (this.extend (request, params));
+        if (swap) {
+            if (fromAccount === 'spot' || toAccount === 'future') {
+                side = 1;
+            } else {
+                side = 0;
+            }
+            request['currencyName'] = currency['id'];
+            request['clientId'] = this.safeString (params, 'clientId');
+            request['side'] = side;
+        } else {
+            const defaultMargin = margin ? 'isolated' : 'cross';
+            const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', defaultMargin);
+            if (marginType === 'isolated') {
+                if (fromAccount === 'spot' || toAccount === 'isolated') {
+                    marginMethod = 'spotV1PrivateGetTransferInLever';
+                } else {
+                    marginMethod = 'spotV1PrivateGetTransferOutLever';
+                }
+                request['marketName'] = this.safeString (params, 'marketName');
+            } else if (marginType === 'cross') {
+                if (fromAccount === 'spot' || toAccount === 'cross') {
+                    marginMethod = 'spotV1PrivateGetTransferInCross';
+                } else {
+                    marginMethod = 'spotV1PrivateGetTransferOutCross';
+                }
+            }
+            request['coin'] = currency['id'];
+        }
+        const method = this.getSupportedMapping (marketType, {
+            'swap': 'contractV2PrivatePostFundTransferFund',
+            'margin': marginMethod,
+        });
+        const response = await this[method] (this.extend (request, query));
+        //
+        // Swap
         //
         //     {
         //         "code": 10000,
         //         "data": "2sdfsdfsdf232342",
         //         "desc": "Success"
+        //     }
+        //
+        // Margin
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": "Success"
         //     }
         //
         const timestamp = this.milliseconds ();
@@ -2972,7 +3219,7 @@ module.exports = class zb extends Exchange {
             'amount': this.safeNumber (transfer, 'amount'),
             'fromAccount': this.safeString (transfer, 'fromAccount'),
             'toAccount': this.safeString (transfer, 'toAccount'),
-            'status': this.safeString (transfer, 'status'),
+            'status': this.safeInteger (transfer, 'status'),
         };
     }
 
@@ -3059,16 +3306,97 @@ module.exports = class zb extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 1, params);
     }
 
+    async fetchBorrowRate (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'coin': currency['id'],
+        };
+        const response = await this.spotV1PrivateGetGetLoans (this.extend (request, params));
+        //
+        //     {
+        //         code: '1000',
+        //         message: '操作成功',
+        //         result: [
+        //             {
+        //                 interestRateOfDay: '0.0005',
+        //                 repaymentDay: '30',
+        //                 amount: '148804.4841',
+        //                 balance: '148804.4841',
+        //                 rateOfDayShow: '0.05 %',
+        //                 coinName: 'USDT',
+        //                 lowestAmount: '0.01'
+        //             },
+        //         ]
+        //     }
+        //
+        const timestamp = this.milliseconds ();
+        const data = this.safeValue (response, 'result', []);
+        const rate = this.safeValue (data, 0, {});
+        return {
+            'currency': this.safeCurrencyCode (this.safeString (rate, 'coinName')),
+            'rate': this.safeNumber (rate, 'interestRateOfDay'),
+            'period': this.safeNumber (rate, 'repaymentDay'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': rate,
+        };
+    }
+
+    async fetchBorrowRates (params = {}) {
+        if (params['coin'] === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchBorrowRates() requires a coin argument in the params');
+        }
+        await this.loadMarkets ();
+        const currency = this.currency (this.safeString (params, 'coin'));
+        const request = {
+            'coin': currency['id'],
+        };
+        const response = await this.spotV1PrivateGetGetLoans (this.extend (request, params));
+        //
+        //     {
+        //         code: '1000',
+        //         message: '操作成功',
+        //         result: [
+        //             {
+        //                 interestRateOfDay: '0.0005',
+        //                 repaymentDay: '30',
+        //                 amount: '148804.4841',
+        //                 balance: '148804.4841',
+        //                 rateOfDayShow: '0.05 %',
+        //                 coinName: 'USDT',
+        //                 lowestAmount: '0.01'
+        //             },
+        //         ]
+        //     }
+        //
+        const timestamp = this.milliseconds ();
+        const data = this.safeValue (response, 'result');
+        const rates = [];
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            rates.push ({
+                'currency': this.safeCurrencyCode (this.safeString (entry, 'coinName')),
+                'rate': this.safeNumber (entry, 'interestRateOfDay'),
+                'period': this.safeNumber (entry, 'repaymentDay'),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'info': entry,
+            });
+        }
+        return rates;
+    }
+
     nonce () {
         return this.milliseconds ();
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const [ section, version, access ] = api;
-        let url = this.urls['api'][section][version][access];
+        let url = this.implodeHostname (this.urls['api'][section][version][access]);
         if (access === 'public') {
             if (path === 'getFeeInfo') {
-                url = this.urls['api'][section][version]['private'] + '/' + path;
+                url = this.implodeHostname (this.urls['api'][section][version]['private']) + '/' + path;
             } else {
                 url += '/' + version + '/' + path;
             }

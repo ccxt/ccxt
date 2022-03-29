@@ -20,7 +20,6 @@ class wavesexchange extends Exchange {
             'id' => 'wavesexchange',
             'name' => 'Waves.Exchange',
             'countries' => array( 'CH' ), // Switzerland
-            'rateLimit' => 500,
             'certified' => true,
             'pro' => false,
             'has' => array(
@@ -834,9 +833,9 @@ class wavesexchange extends Exchange {
         $limit = min ($allowedCandles, $limit);
         $duration = $this->parse_timeframe($timeframe) * 1000;
         if ($since === null) {
-            $currentTime = intval($this->milliseconds() / $duration) * $duration;
+            $durationRoundedTimestamp = intval($this->milliseconds() / $duration) * $duration;
             $delta = ($limit - 1) * $duration;
-            $timeStart = $currentTime - $delta;
+            $timeStart = $durationRoundedTimestamp - $delta;
             $request['timeStart'] = (string) $timeStart;
         } else {
             $request['timeStart'] = (string) $since;
@@ -869,6 +868,7 @@ class wavesexchange extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $result = $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
+        $result = $this->filter_future_candles($result);
         $lastClose = null;
         $length = is_array($result) ? count($result) : 0;
         for ($i = 0; $i < count($result); $i++) {
@@ -883,6 +883,19 @@ class wavesexchange extends Exchange {
                 $result[$j] = $entry;
             }
             $lastClose = $entry[4];
+        }
+        return $result;
+    }
+
+    public function filter_future_candles($ohlcvs) {
+        $result = array();
+        $timestamp = $this->milliseconds();
+        for ($i = 0; $i < count($ohlcvs); $i++) {
+            if ($ohlcvs[$i][0] > $timestamp) {
+                // stop when getting data from the future
+                break;
+            }
+            $result[] = $ohlcvs[$i];
         }
         return $result;
     }

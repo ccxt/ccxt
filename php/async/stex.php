@@ -70,6 +70,8 @@ class stex extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => true,
+                'fetchTradingFees' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
                 'setLeverage' => false,
@@ -848,6 +850,31 @@ class stex extends Exchange {
         //
         $trades = $this->safe_value($response, 'data', array());
         return $this->parse_trades($trades, $market, $since, $limit);
+    }
+
+    public function fetch_trading_fee($symbol, $params = array ()) {
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'currencyPairId' => $market['id'],
+        );
+        $response = yield $this->tradingGetFeesCurrencyPairId (array_merge($request, $params));
+        //
+        //     {
+        //         success => true,
+        //         $data => array( buy_fee => '0.00200000', sell_fee => '0.00200000' ),
+        //         unified_message => array( message_id => 'operation_successful', substitutions => array() )
+        //      }
+        //
+        $data = $this->safe_value($response, 'data');
+        return array(
+            'info' => $response,
+            'symbol' => $market['symbol'],
+            'maker' => $this->safe_number($data, 'sell_fee'),
+            'taker' => $this->safe_number($data, 'buy_fee'),
+            'percentage' => true,
+            'tierBased' => true,
+        );
     }
 
     public function parse_balance($response) {

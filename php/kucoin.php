@@ -68,7 +68,7 @@ class kucoin extends Exchange {
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
-                'fetchTradingFees' => null,
+                'fetchTradingFees' => false,
                 'fetchWithdrawals' => true,
                 'transfer' => true,
                 'withdraw' => true,
@@ -1684,6 +1684,8 @@ class kucoin extends Exchange {
             'symbol' => $this->safe_symbol($marketId, $market),
             'maker' => $this->safe_number($first, 'makerFeeRate'),
             'taker' => $this->safe_number($first, 'takerFeeRate'),
+            'percentage' => true,
+            'tierBased' => true,
         );
     }
 

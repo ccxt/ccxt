@@ -8,6 +8,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.precise import Precise
 
 
 class coinfalcon(Exchange):
@@ -58,6 +59,8 @@ class coinfalcon(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchTradinFee': False,
+                'fetchTradingFees': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
                 'setLeverage': False,
@@ -402,6 +405,36 @@ class coinfalcon(Exchange):
         #
         data = self.safe_value(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
+
+    def fetch_trading_fees(self, params={}):
+        self.load_markets()
+        response = self.privateGetUserFees(params)
+        #
+        #    {
+        #        data: {
+        #            maker_fee: '0.0',
+        #            taker_fee: '0.2',
+        #            btc_volume_30d: '0.0'
+        #        }
+        #    }
+        #
+        data = self.safe_value(response, 'data', {})
+        makerString = self.safe_string(data, 'maker_fee')
+        takerString = self.safe_string(data, 'taker_fee')
+        maker = self.parse_number(Precise.string_div(makerString, '100'))
+        taker = self.parse_number(Precise.string_div(takerString, '100'))
+        result = {}
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            result[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': maker,
+                'taker': taker,
+                'percentage': True,
+                'tierBased': True,
+            }
+        return result
 
     def parse_balance(self, response):
         result = {'info': response}

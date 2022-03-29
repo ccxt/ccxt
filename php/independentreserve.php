@@ -53,6 +53,8 @@ class independentreserve extends Exchange {
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => true,
                 'reduceMargin' => false,
                 'setLeverage' => false,
                 'setMarginMode' => false,
@@ -538,6 +540,46 @@ class independentreserve extends Exchange {
         );
         $response = $this->publicGetGetRecentTrades (array_merge($request, $params));
         return $this->parse_trades($response['Trades'], $market, $since, $limit);
+    }
+
+    public function fetch_trading_fees($params = array ()) {
+        $this->load_markets();
+        $response = $this->privatePostGetBrokerageFees ($params);
+        //
+        //     array(
+        //         {
+        //             "CurrencyCode" => "Xbt",
+        //             "Fee" => 0.005
+        //         }
+        //         ...
+        //     )
+        //
+        $fees = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $fee = $response[$i];
+            $currencyId = $this->safe_string($fee, 'CurrencyCode');
+            $code = $this->safe_currency_code($currencyId);
+            $tradingFee = $this->safe_number($fee, 'Fee');
+            $fees[$code] = array(
+                'info' => $fee,
+                'fee' => $tradingFee,
+            );
+        }
+        $result = array();
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
+            $market = $this->market($symbol);
+            $fee = $this->safe_value($fees, $market['base'], array());
+            $result[$symbol] = array(
+                'info' => $this->safe_value($fee, 'info'),
+                'symbol' => $symbol,
+                'maker' => $this->safe_number($fee, 'fee'),
+                'taker' => $this->safe_number($fee, 'fee'),
+                'percentage' => true,
+                'tierBased' => true,
+            );
+        }
+        return $result;
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

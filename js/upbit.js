@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, BadRequest, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, PermissionDenied, AddressPending } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -53,6 +54,8 @@ module.exports = class upbit extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchTradingFee': true,
+                'fetchTradingFees': false,
                 'fetchTransactions': undefined,
                 'fetchWithdrawals': true,
                 'withdraw': true,
@@ -289,30 +292,36 @@ module.exports = class upbit extends Exchange {
         };
         const response = await this.privateGetOrdersChance (this.extend (request, params));
         //
-        //     {     bid_fee:   "0.0005",
-        //           ask_fee:   "0.0005",
-        //            market: {          id:   "KRW-BTC",
-        //                             name:   "BTC/KRW",
-        //                      order_types: ["limit"],
-        //                      order_sides: ["ask", "bid"],
-        //                              bid: {   currency: "KRW",
-        //                                     price_unit:  null,
-        //                                      min_total:  1000  },
-        //                              ask: {   currency: "BTC",
-        //                                     price_unit:  null,
-        //                                      min_total:  1000  },
-        //                        max_total:   "1000000000.0",
-        //                            state:   "active"              },
-        //       bid_account: {          currency: "KRW",
-        //                                balance: "0.0",
-        //                                 locked: "0.0",
-        //                      avg_krw_buy_price: "0",
-        //                               modified:  false },
-        //       ask_account: {          currency: "BTC",
-        //                                balance: "0.00780836",
-        //                                 locked: "0.0",
-        //                      avg_krw_buy_price: "6465564.67",
-        //                               modified:  false        }      }
+        //     {
+        //         "bid_fee": "0.0015",
+        //         "ask_fee": "0.0015",
+        //         "market": {
+        //             "id": "KRW-BTC",
+        //             "name": "BTC/KRW",
+        //             "order_types": [ "limit" ],
+        //             "order_sides": [ "ask", "bid" ],
+        //             "bid": { "currency": "KRW", "price_unit": null, "min_total": 1000 },
+        //             "ask": { "currency": "BTC", "price_unit": null, "min_total": 1000 },
+        //             "max_total": "100000000.0",
+        //             "state": "active",
+        //         },
+        //         "bid_account": {
+        //             "currency": "KRW",
+        //             "balance": "0.0",
+        //             "locked": "0.0",
+        //             "avg_buy_price": "0",
+        //             "avg_buy_price_modified": false,
+        //             "unit_currency": "KRW",
+        //         },
+        //         "ask_account": {
+        //             "currency": "BTC",
+        //             "balance": "10.0",
+        //             "locked": "0.0",
+        //             "avg_buy_price": "8042000",
+        //             "avg_buy_price_modified": false,
+        //             "unit_currency": "KRW",
+        //         }
+        //     }
         //
         const marketInfo = this.safeValue (response, 'market');
         const bid = this.safeValue (marketInfo, 'bid');
@@ -779,6 +788,63 @@ module.exports = class upbit extends Exchange {
         //              sequential_id:  15428917910540000 }  ]
         //
         return this.parseTrades (response, market, since, limit);
+    }
+
+    async fetchTradingFee (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+        };
+        const response = await this.privateGetOrdersChance (this.extend (request, params));
+        //
+        //     {
+        //         "bid_fee": "0.0005",
+        //         "ask_fee": "0.0005",
+        //         "maker_bid_fee": "0.0005",
+        //         "maker_ask_fee": "0.0005",
+        //         "market": {
+        //             "id": "KRW-BTC",
+        //             "name": "BTC/KRW",
+        //             "order_types": [ "limit" ],
+        //             "order_sides": [ "ask", "bid" ],
+        //             "bid": { "currency": "KRW", "price_unit": null, "min_total": 5000 },
+        //             "ask": { "currency": "BTC", "price_unit": null, "min_total": 5000 },
+        //             "max_total": "1000000000.0",
+        //             "state": "active"
+        //         },
+        //         "bid_account": {
+        //             "currency": "KRW",
+        //             "balance": "0.34202414",
+        //             "locked": "4999.99999922",
+        //             "avg_buy_price": "0",
+        //             "avg_buy_price_modified": true,
+        //             "unit_currency": "KRW"
+        //         },
+        //         "ask_account": {
+        //             "currency": "BTC",
+        //             "balance": "0.00048",
+        //             "locked": "0.0",
+        //             "avg_buy_price": "20870000",
+        //             "avg_buy_price_modified": false,
+        //             "unit_currency": "KRW"
+        //         }
+        //     }
+        //
+        const askFee = this.safeString (response, 'ask_fee');
+        const bidFee = this.safeString (response, 'bid_fee');
+        const taker = Precise.stringMax (askFee, bidFee);
+        const makerAskFee = this.safeString (response, 'maker_ask_fee');
+        const makerBidFee = this.safeString (response, 'maker_bid_fee');
+        const maker = Precise.stringMax (makerAskFee, makerBidFee);
+        return {
+            'info': response,
+            'symbol': symbol,
+            'maker': this.parseNumber (maker),
+            'taker': this.parseNumber (taker),
+            'percentage': true,
+            'tierBased': false,
+        };
     }
 
     parseOHLCV (ohlcv, market = undefined) {

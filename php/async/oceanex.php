@@ -57,7 +57,7 @@ class oceanex extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
-                'fetchTradingFee' => null,
+                'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
                 'fetchTradingLimits' => null,
             ),
@@ -111,8 +111,8 @@ class oceanex extends Exchange {
                 'trading' => array(
                     'tierBased' => false,
                     'percentage' => true,
-                    'maker' => 0.1 / 100,
-                    'taker' => 0.1 / 100,
+                    'maker' => $this->parse_number('0.001'),
+                    'taker' => $this->parse_number('0.001'),
                 ),
             ),
             'commonCurrencies' => array(
@@ -480,6 +480,7 @@ class oceanex extends Exchange {
                 'symbol' => $symbol,
                 'maker' => $this->safe_number($maker, 'value'),
                 'taker' => $this->safe_number($taker, 'value'),
+                'percentage' => true,
             );
         }
         return $result;

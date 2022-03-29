@@ -191,6 +191,7 @@ class mexc(Exchange):
                             'market/depth': 1,
                             'market/deals': 1,
                             'market/kline': 1,
+                            'market/api_default_symbols': 2,
                         },
                     },
                     'private': {
@@ -205,15 +206,21 @@ class mexc(Exchange):
                             'asset/deposit/list': 2,
                             'asset/address/list': 2,
                             'asset/withdraw/list': 2,
+                            'asset/internal/transfer/record': 10,
+                            'account/balance': 10,
+                            'asset/internal/transfer/info': 10,
+                            'market/api_symbols': 2,
                         },
                         'post': {
                             'order/place': 1,
                             'order/place_batch': 1,
-                            'asset/withdraw': 1,
+                            'asset/withdraw': 2,
+                            'asset/internal/transfer': 10,
                         },
                         'delete': {
                             'order/cancel': 1,
                             'order/cancel_by_symbol': 1,
+                            'asset/withdraw': 2,
                         },
                     },
                 },
@@ -458,10 +465,6 @@ class mexc(Exchange):
                 'networks': networks,
             }
         return result
-
-    def fetch_markets_by_type(self, type, params={}):
-        method = 'fetch_' + type + '_markets'
-        return getattr(self, method)(params)
 
     def fetch_markets(self, params={}):
         defaultType = self.safe_string_2(self.options, 'fetchMarkets', 'defaultType', 'spot')
@@ -1643,10 +1646,11 @@ class mexc(Exchange):
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        if market['spot']:
-            return self.create_spot_order(symbol, type, side, amount, price, params)
-        elif market['swap']:
-            return self.create_swap_order(symbol, type, side, amount, price, params)
+        marketType, query = self.handle_market_type_and_params('createOrder', market, params)
+        if marketType == 'spot':
+            return self.create_spot_order(symbol, type, side, amount, price, query)
+        elif marketType == 'swap':
+            return self.create_swap_order(symbol, type, side, amount, price, query)
 
     def create_spot_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -1700,7 +1704,7 @@ class mexc(Exchange):
             raise InvalidOrder(self.id + ' createSwapOrder() order side must be 1 open long, 2 close short, 3 open short or 4 close long')
         request = {
             'symbol': market['id'],
-            'price': float(self.price_to_precision(symbol, price)),
+            # 'price': float(self.price_to_precision(symbol, price)),
             'vol': float(self.amount_to_precision(symbol, amount)),
             # 'leverage': int,  # required for isolated margin
             'side': side,  # 1 open long, 2 close short, 3 open short, 4 close long
@@ -1718,9 +1722,24 @@ class mexc(Exchange):
             'openType': openType,  # 1 isolated, 2 cross
             # 'positionId': 1394650,  # long, filling in self parameter when closing a position is recommended
             # 'externalOid': clientOrderId,
-            # 'stopLossPrice': self.price_to_precision(symbol, stopLossPrice),
-            # 'takeProfitPrice': self.price_to_precision(symbol, takeProfitPrice),
+            # 'triggerPrice': 10.0,  # Required for trigger order
+            # 'triggerType': 1,  # Required for trigger order 1: more than or equal, 2: less than or equal
+            # 'executeCycle': 1,  # Required for trigger order 1: 24 hours,2: 7 days
+            # 'trend': 1,  # Required for trigger order 1: latest price, 2: fair price, 3: index price
+            # 'orderType': 1,  # Required for trigger order 1: limit order,2:Post Only Maker,3: close or cancel instantly ,4: close or cancel completely,5: Market order
         }
+        method = 'contractPrivatePostOrderSubmit'
+        stopPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
+        params = self.omit(params, ['stopPrice', 'triggerPrice'])
+        if stopPrice is not None:
+            method = 'contractPrivatePostPlanorderPlace'
+            request['triggerPrice'] = self.price_to_precision(symbol, stopPrice)
+            request['triggerType'] = self.safe_integer(params, 'triggerType', 1)
+            request['executeCycle'] = self.safe_integer(params, 'executeCycle', 1)
+            request['trend'] = self.safe_integer(params, 'trend', 1)
+            request['orderType'] = self.safe_integer(params, 'orderType', 1)
+        if (type != 5) and (type != 6) and (type != 'market'):
+            request['price'] = float(self.price_to_precision(symbol, price))
         if openType == 1:
             leverage = self.safe_integer(params, 'leverage')
             if leverage is None:
@@ -1729,9 +1748,13 @@ class mexc(Exchange):
         if clientOrderId is not None:
             request['externalOid'] = clientOrderId
         params = self.omit(params, ['clientOrderId', 'externalOid', 'postOnly'])
-        response = self.contractPrivatePostOrderSubmit(self.extend(request, params))
+        response = getattr(self, method)(self.extend(request, params))
         #
+        # Swap
         #     {"code":200,"data":"2ff3163e8617443cb9c6fc19d42b1ca4"}
+        #
+        # Trigger
+        #     {"success":true,"code":0,"data":259208506303929856}
         #
         return self.parse_order(response, market)
 
@@ -2372,7 +2395,7 @@ class mexc(Exchange):
                 'datetime': self.iso8601(timestamp),
             })
         sorted = self.sort_by(rates, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
     def fetch_leverage_tiers(self, symbols=None, params={}):
         self.load_markets()

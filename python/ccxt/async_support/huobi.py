@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -118,7 +111,7 @@ class huobi(Exchange):
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFee': True,
-                'fetchTradingFees': None,
+                'fetchTradingFees': False,
                 'fetchTradingLimits': True,
                 'fetchTransactions': None,
                 'fetchTransfers': None,
@@ -671,6 +664,8 @@ class huobi(Exchange):
                             'swap-api/v1/swap_track_openorders': 1,
                             'swap-api/v1/swap_track_hisorders': 1,
                             # Swap Account Interface
+                            'linear-swap-api/v1/swap_lever_position_limit': 1,
+                            'linear-swap-api/v1/swap_cross_lever_position_limit': 1,
                             'linear-swap-api/v1/swap_balance_valuation': 1,
                             'linear-swap-api/v1/swap_account_info': 1,
                             'linear-swap-api/v1/swap_cross_account_info': 1,
@@ -729,6 +724,8 @@ class huobi(Exchange):
                             'linear-swap-api/v1/swap_cross_matchresults': 1,
                             'linear-swap-api/v1/swap_matchresults_exact': 1,
                             'linear-swap-api/v1/swap_cross_matchresults_exact': 1,
+                            'linear-swap-api/v1/swap_switch_position_mode': 1,
+                            'linear-swap-api/v1/swap_cross_switch_position_mode': 1,
                             # Swap Strategy Order Interface
                             'linear-swap-api/v1/swap_trigger_order': 1,
                             'linear-swap-api/v1/swap_cross_trigger_order': 1,
@@ -782,6 +779,7 @@ class huobi(Exchange):
                 },
                 'exact': {
                     # err-code
+                    '1010': AccountNotEnabled,  # {"status":"error","err_code":1010,"err_msg":"Account doesnt exist.","ts":1648137970490}
                     '1017': OrderNotFound,  # {"status":"error","err_code":1017,"err_msg":"Order doesnt exist.","ts":1640550859242}
                     '1034': InvalidOrder,  # {"status":"error","err_code":1034,"err_msg":"Incorrect field of order price type.","ts":1643802870182}
                     '1036': InvalidOrder,  # {"status":"error","err_code":1036,"err_msg":"Incorrect field of open long form.","ts":1643802518986}
@@ -862,6 +860,7 @@ class huobi(Exchange):
                 },
                 'accountsByType': {
                     'spot': 'pro',
+                    'funding': 'pro',
                     'future': 'futures',
                 },
                 'typesByAccount': {
@@ -1640,9 +1639,13 @@ class huobi(Exchange):
         else:
             if limit is not None:
                 # Valid depths are 5, 10, 20 or empty https://huobiapi.github.io/docs/spot/v1/en/#get-market-depth
-                if (limit != 5) and (limit != 10) and (limit != 20):
-                    raise BadRequest(self.id + ' fetchOrderBook() limit argument must be None, 5, 10 or 20, default is 150')
-                request['depth'] = limit
+                if (limit != 5) and (limit != 10) and (limit != 20) and (limit != 150):
+                    raise BadRequest(self.id + ' fetchOrderBook() limit argument must be None, 5, 10, 20, or 150, default is 150')
+                # only set the depth if it is not 150
+                # 150 is the implicit default on the exchange side for step0 and no orderbook aggregation
+                # it is not accepted by the exchange if you set it explicitly
+                if limit != 150:
+                    request['depth'] = limit
         request[fieldName] = market['id']
         response = await getattr(self, method)(self.extend(request, params))
         #
@@ -2014,7 +2017,7 @@ class huobi(Exchange):
                 trade = self.parse_trade(trades[j], market)
                 result.append(trade)
         result = self.sort_by(result, 'timestamp')
-        return self.filter_by_symbol_since_limit(result, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(result, market['symbol'], since, limit)
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
@@ -3352,6 +3355,7 @@ class huobi(Exchange):
             #     direction sell, offset open = open short
             #     direction buy, offset close = close short
             #
+            # 'reduce_only': 0,  # 1 or 0, in hedge mode it is invalid, and in one-way mode its value is 0 when not filled
             'lever_rate': 1,  # required, using leverage greater than 20x requires prior approval of high-leverage agreement
             # 'order_price_type': 'limit',  # required
             #
@@ -3412,16 +3416,13 @@ class huobi(Exchange):
         if type == 'limit' or type == 'ioc' or type == 'fok' or type == 'post_only':
             request['price'] = self.price_to_precision(symbol, price)
         request['order_price_type'] = type
-        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')  # must be 64 chars max and unique within 24 hours
-        if clientOrderId is None:
-            broker = self.safe_value(self.options, 'broker', {})
-            brokerId = self.safe_string(broker, 'id')
-            request['client_order_id'] = brokerId + self.uuid()
-        else:
-            request['client_order_id'] = clientOrderId
+        broker = self.safe_value(self.options, 'broker', {})
+        brokerId = self.safe_string(broker, 'id')
+        request['channel_code'] = brokerId
+        clientOrderId = self.safe_string_2(params, 'client_order_id', 'clientOrderId')
         if clientOrderId is not None:
             request['client_order_id'] = clientOrderId
-            params = self.omit(params, ['clientOrderId', 'client_order_id'])
+            params = self.omit(params, ['client_order_id', 'clientOrderId'])
         method = None
         if market['linear']:
             defaultMargin = 'cross' if market['future'] else 'isolated'
@@ -3548,12 +3549,12 @@ class huobi(Exchange):
             clientOrderIds = self.safe_value_2(params, 'client-order-id', 'clientOrderId')
             clientOrderIds = self.safe_value_2(params, 'client-order-ids', 'clientOrderIds', clientOrderIds)
             if clientOrderIds is None:
-                if isinstance(clientOrderIds, basestring):
+                if isinstance(clientOrderIds, str):
                     request['order-ids'] = ids
                 else:
                     request['order-ids'] = ','.join(ids)
             else:
-                if isinstance(clientOrderIds, basestring):
+                if isinstance(clientOrderIds, str):
                     request['client-order-ids'] = clientOrderIds
                 else:
                     request['client-order-ids'] = ','.join(clientOrderIds)
@@ -4233,7 +4234,7 @@ class huobi(Exchange):
                 'datetime': self.iso8601(timestamp),
             })
         sorted = self.sort_by(rates, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
     def parse_funding_rate(self, fundingRate, market=None):
         #
@@ -4348,7 +4349,7 @@ class huobi(Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/'
         query = self.omit(params, self.extract_params(path))
-        if isinstance(api, basestring):
+        if isinstance(api, str):
             # signing implementation for the old endpoints
             if api == 'market':
                 url += api

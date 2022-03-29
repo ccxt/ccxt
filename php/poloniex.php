@@ -216,13 +216,15 @@ class poloniex extends Exchange {
                     'Currently in maintenance mode.' => '\\ccxt\\OnMaintenance',
                     'Order not found, or you are not the person who placed it.' => '\\ccxt\\OrderNotFound',
                     'Invalid API key/secret pair.' => '\\ccxt\\AuthenticationError',
-                    'Please do not make more than 8 API calls per second.' => '\\ccxt\\DDoSProtection',
+                    'Please do not make more than 8 API calls per second.' => '\\ccxt\\RateLimitExceeded',
+                    'This IP has been temporarily throttled. Please ensure your requests are valid and try again in one minute.' => '\\ccxt\\RateLimitExceeded',
                     'Rate must be greater than zero.' => '\\ccxt\\InvalidOrder', // array("error":"Rate must be greater than zero.")
                     'Invalid currency pair.' => '\\ccxt\\BadSymbol', // array("error":"Invalid currency pair.")
                     'Invalid currencyPair parameter.' => '\\ccxt\\BadSymbol', // array("error":"Invalid currencyPair parameter.")
                     'Trading is disabled in this market.' => '\\ccxt\\BadSymbol', // array("error":"Trading is disabled in this market.")
                     'Invalid orderNumber parameter.' => '\\ccxt\\OrderNotFound',
                     'Order is beyond acceptable bounds.' => '\\ccxt\\InvalidOrder', // array("error":"Order is beyond acceptable bounds.","fee":"0.00155000","currencyPair":"USDT_BOBA")
+                    'This account is closed.' => '\\ccxt\\AccountSuspended', // array("error":"This account is closed.")
                 ),
                 'broad' => array(
                     'Total must be at least' => '\\ccxt\\InvalidOrder', // array("error":"Total must be at least 0.0001.")

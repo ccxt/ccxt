@@ -52,7 +52,10 @@ module.exports = class bitmart extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
+                'fetchTransfer': false,
+                'fetchTransfers': false,
                 'fetchWithdrawals': true,
+                'transfer': false,
                 'withdraw': true,
             },
             'hostname': 'bitmart.com', // bitmart.info, bitmart.news for Hong Kong users
@@ -286,6 +289,7 @@ module.exports = class bitmart extends Exchange {
                     '40032': InvalidOrder, // 400, The plan order's life cycle is too long.
                     '40033': InvalidOrder, // 400, The plan order's life cycle is too short.
                     '40034': BadSymbol, // 400, This contract is not found
+                    '53002': PermissionDenied, // 403, Your account has not yet completed the kyc advanced certification, please complete first
                 },
                 'broad': {},
             },
@@ -2335,33 +2339,25 @@ module.exports = class bitmart extends Exchange {
         }
         url += '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        if (type === 'system') {
+        let queryString = '';
+        const getOrDelete = (method === 'GET') || (method === 'DELETE');
+        if (getOrDelete) {
             if (Object.keys (query).length) {
-                // console.log (query);
-                url += '?' + this.urlencode (query);
+                queryString = this.urlencode (query);
+                url += '?' + queryString;
             }
-        } else if (access === 'public') {
-            if (Object.keys (query).length) {
-                // console.log (query);
-                url += '?' + this.urlencode (query);
-            }
-        } else if (access === 'private') {
+        }
+        if (access === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ().toString ();
-            let queryString = '';
             headers = {
                 'X-BM-KEY': this.apiKey,
                 'X-BM-TIMESTAMP': timestamp,
+                'Content-Type': 'application/json',
             };
-            if ((method === 'POST') || (method === 'PUT')) {
-                headers['Content-Type'] = 'application/json';
+            if (!getOrDelete) {
                 body = this.json (query);
                 queryString = body;
-            } else {
-                if (Object.keys (query).length) {
-                    queryString = this.urlencode (query);
-                    url += '?' + queryString;
-                }
             }
             const auth = timestamp + '#' + this.uid + '#' + queryString;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret));

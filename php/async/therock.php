@@ -49,6 +49,8 @@ class therock extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => true,
+                'fetchTradingFees' => true,
                 'fetchTransactions' => 'emulated',
                 'fetchWithdrawals' => true,
             ),
@@ -65,6 +67,7 @@ class therock extends Exchange {
                 'public' => array(
                     'get' => array(
                         'funds',
+                        'funds/{id}',
                         'funds/{id}/orderbook',
                         'funds/{id}/ticker',
                         'funds/{id}/trades',
@@ -1224,6 +1227,119 @@ class therock extends Exchange {
         return $this->parse_trades($response['trades'], $market, $since, $limit);
     }
 
+    public function fetch_trading_fee($symbol, $params = array ()) {
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'id' => $market['id'],
+        );
+        $response = yield $this->publicGetFundsId (array_merge($request, $params));
+        //
+        //     {
+        //         id => 'ETHBTC',
+        //         description => 'Trade Ether with Bitcoin',
+        //         type => 'currency',
+        //         base_currency => 'BTC',
+        //         trade_currency => 'ETH',
+        //         buy_fee => '0.2',
+        //         sell_fee => '0.2',
+        //         minimum_price_offer => '0.00000001',
+        //         minimum_quantity_offer => '0.005',
+        //         base_currency_decimals => '8',
+        //         trade_currency_decimals => '3',
+        //         leverages => array()
+        //     }
+        //
+        $request = array(
+            'id' => $market['quoteId'],
+        );
+        $discount = yield $this->privateGetDiscountsId (array_merge($request, $params));
+        //
+        //     {
+        //         "currency":"BTC",
+        //         "discount":50.0,
+        //         "details" => {
+        //             "personal_discount" => 50.0,
+        //             "commissions_related_discount" => 0.0
+        //         }
+        //     }
+        //
+        return $this->parse_trading_fee($response, $discount, $market);
+    }
+
+    public function fetch_trading_fees($params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->publicGetFunds ($params);
+        //
+        //     {
+        //         $funds => array(
+        //             array(
+        //                 id => 'BTCEUR',
+        //                 description => 'Trade Bitcoin with Euro',
+        //                 type => 'currency',
+        //                 base_currency => 'EUR',
+        //                 trade_currency => 'BTC',
+        //                 buy_fee => '0.2',
+        //                 sell_fee => '0.2',
+        //                 minimum_price_offer => '0.01',
+        //                 minimum_quantity_offer => '0.0005',
+        //                 base_currency_decimals => '2',
+        //                 trade_currency_decimals => '4',
+        //                 leverages => array()
+        //             ),
+        //         )
+        //     }
+        //
+        $discountsResponse = yield $this->privateGetDiscounts ($params);
+        //
+        //     {
+        //         "discounts" => array(
+        //             {
+        //                 "currency":"BTC",
+        //                 "discount":50.0,
+        //                 "details" => {
+        //                     "personal_discount" => 50.0,
+        //                     "commissions_related_discount" => 0.0
+        //                 }
+        //             }
+        //         )
+        //     }
+        //
+        $funds = $this->safe_value($response, 'funds', array());
+        $discounts = $this->safe_value($discountsResponse, 'discounts', array());
+        $result = array();
+        for ($i = 0; $i < count($funds); $i++) {
+            $fund = $funds[$i];
+            $marketId = $this->safe_string($fund, 'id');
+            $market = $this->safe_market($marketId);
+            $quoteId = $this->safe_value($market, 'quoteId');
+            $discount = $this->filter_by($discounts, 'currency', $quoteId);
+            $fee = $this->parse_trading_fee($fund, $discount, $market);
+            $symbol = $fee['symbol'];
+            $result[$symbol] = $fee;
+        }
+        return $result;
+    }
+
+    public function parse_trading_fee($fee, $discount = null, $market = null) {
+        $marketId = $this->safe_string($fee, 'id');
+        $takerString = $this->safe_string($fee, 'buy_fee');
+        $makerString = $this->safe_string($fee, 'sell_fee');
+        // TotalFee = (100 - $discount) * $fee / 10000
+        $discountString = $this->safe_string($discount, 'discount', '0');
+        $feePercentage = Precise::string_sub('100', $discountString);
+        $taker = $this->parse_number(Precise::string_div(Precise::string_mul($takerString, $feePercentage), '10000'));
+        $maker = $this->parse_number(Precise::string_div(Precise::string_mul($makerString, $feePercentage), '10000'));
+        return array(
+            'info' => $fee,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'maker' => $maker,
+            'taker' => $taker,
+            'percentage' => true,
+            'tierBased' => true,
+        );
+    }
+
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
@@ -1260,8 +1376,7 @@ class therock extends Exchange {
         }
         //
         //     {
-        //         "errors":
-        //         array(
+        //         "errors" => array(
         //             array( "message" => ":currency is not a valid value for param currency","code" => "11","meta" => array( "key":"currency","value":":currency") ),
         //             array( "message" => "Address allocation limit reached for currency :currency.","code" => "13" ),
         //             array( "message" => "Request already running", "code" => "50"),

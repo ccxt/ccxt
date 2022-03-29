@@ -66,6 +66,8 @@ class novadax extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => false,
                 'fetchTransactions' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
@@ -135,7 +137,7 @@ class novadax extends Exchange {
                     'tierBased' => false,
                     'percentage' => true,
                     'taker' => $this->parse_number('0.005'),
-                    'maker' => $this->parse_number('0.003'),
+                    'maker' => $this->parse_number('0.0025'),
                 ),
             ),
             'requiredCredentials' => array(

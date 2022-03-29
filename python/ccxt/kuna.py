@@ -52,6 +52,8 @@ class kuna(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': False,
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setPositionMode': False,
@@ -260,8 +262,8 @@ class kuna(Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'taker': 0.25 / 100,
-                    'maker': 0.25 / 100,
+                    'taker': self.parse_number('0.0025'),
+                    'maker': self.parse_number('0.0025'),
                 },
                 'funding': {
                     'withdraw': {

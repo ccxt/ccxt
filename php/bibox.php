@@ -47,6 +47,8 @@ class bibox extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => false,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
             ),
@@ -105,8 +107,8 @@ class bibox extends Exchange {
                 'trading' => array(
                     'tierBased' => false,
                     'percentage' => true,
-                    'taker' => $this->parse_number('0.001'),
-                    'maker' => $this->parse_number('0.0008'),
+                    'taker' => $this->parse_number('0.002'),
+                    'maker' => $this->parse_number('0.001'),
                 ),
                 'funding' => array(
                     'tierBased' => false,
@@ -143,7 +145,6 @@ class bibox extends Exchange {
                 'APENFT(NFT)' => 'NFT',
                 'BOX' => 'DefiBox',
                 'BPT' => 'BlockPool Token',
-                'GTC' => 'Game.com',
                 'KEY' => 'Bihu',
                 'MTC' => 'MTC Mesh Network', // conflict with MTC Docademic doc.com Token https://github.com/ccxt/ccxt/issues/6081 https://github.com/ccxt/ccxt/issues/3025
                 'NFT' => 'NFT Protocol',

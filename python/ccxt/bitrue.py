@@ -253,6 +253,9 @@ class bitrue(Exchange):
                     'ADA': 'Cardano',
                 },
             },
+            'commonCurrencies': {
+                'MIM': 'MIM Swarm',
+            },
             # https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
             'exceptions': {
                 'exact': {

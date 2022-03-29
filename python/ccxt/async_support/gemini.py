@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -317,12 +310,12 @@ class gemini(Exchange):
             amountPrecisionParts = amountPrecisionString.split(' ')
             idLength = len(marketId) - 0
             startingIndex = idLength - 3
-            quoteId = marketId[startingIndex:idLength]
-            quote = self.safe_currency_code(quoteId)
             pricePrecisionString = cells[3].replace('<td>', '')
             pricePrecisionParts = pricePrecisionString.split(' ')
-            baseId = marketId.replace(quoteId, '')
+            quoteId = self.safe_string_lower(pricePrecisionParts, 1, marketId[startingIndex:idLength])
+            baseId = self.safe_string_lower(amountPrecisionParts, 1, marketId.replace(quoteId, ''))
             base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             result.append({
                 'id': marketId,
                 'symbol': base + '/' + quote,
@@ -1001,11 +994,13 @@ class gemini(Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         url = self.urls['api'][api] + url
+        if (method == 'POST') or (method == 'DELETE'):
+            body = self.json(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            if isinstance(body, basestring):
+            if isinstance(body, str):
                 feedback = self.id + ' ' + body
                 self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             return  # fallback to default error handler

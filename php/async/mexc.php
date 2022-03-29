@@ -182,6 +182,7 @@ class mexc extends Exchange {
                             'market/depth' => 1,
                             'market/deals' => 1,
                             'market/kline' => 1,
+                            'market/api_default_symbols' => 2,
                         ),
                     ),
                     'private' => array(
@@ -196,15 +197,21 @@ class mexc extends Exchange {
                             'asset/deposit/list' => 2,
                             'asset/address/list' => 2,
                             'asset/withdraw/list' => 2,
+                            'asset/internal/transfer/record' => 10,
+                            'account/balance' => 10,
+                            'asset/internal/transfer/info' => 10,
+                            'market/api_symbols' => 2,
                         ),
                         'post' => array(
                             'order/place' => 1,
                             'order/place_batch' => 1,
-                            'asset/withdraw' => 1,
+                            'asset/withdraw' => 2,
+                            'asset/internal/transfer' => 10,
                         ),
                         'delete' => array(
                             'order/cancel' => 1,
                             'order/cancel_by_symbol' => 1,
+                            'asset/withdraw' => 2,
                         ),
                     ),
                 ),
@@ -461,11 +468,6 @@ class mexc extends Exchange {
             );
         }
         return $result;
-    }
-
-    public function fetch_markets_by_type($type, $params = array ()) {
-        $method = 'fetch_' . $type . '_markets';
-        return yield $this->$method ($params);
     }
 
     public function fetch_markets($params = array ()) {
@@ -1719,10 +1721,11 @@ class mexc extends Exchange {
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
-        if ($market['spot']) {
-            return yield $this->create_spot_order($symbol, $type, $side, $amount, $price, $params);
-        } else if ($market['swap']) {
-            return yield $this->create_swap_order($symbol, $type, $side, $amount, $price, $params);
+        list($marketType, $query) = $this->handle_market_type_and_params('createOrder', $market, $params);
+        if ($marketType === 'spot') {
+            return yield $this->create_spot_order($symbol, $type, $side, $amount, $price, $query);
+        } else if ($marketType === 'swap') {
+            return yield $this->create_swap_order($symbol, $type, $side, $amount, $price, $query);
         }
     }
 
@@ -1786,7 +1789,7 @@ class mexc extends Exchange {
         }
         $request = array(
             'symbol' => $market['id'],
-            'price' => floatval($this->price_to_precision($symbol, $price)),
+            // 'price' => floatval($this->price_to_precision($symbol, $price)),
             'vol' => floatval($this->amount_to_precision($symbol, $amount)),
             // 'leverage' => int, // required for isolated margin
             'side' => $side, // 1 open long, 2 close short, 3 open short, 4 close long
@@ -1804,9 +1807,26 @@ class mexc extends Exchange {
             'openType' => $openType, // 1 isolated, 2 cross
             // 'positionId' => 1394650, // long, filling in this parameter when closing a position is recommended
             // 'externalOid' => $clientOrderId,
-            // 'stopLossPrice' => $this->price_to_precision($symbol, stopLossPrice),
-            // 'takeProfitPrice' => $this->price_to_precision($symbol, takeProfitPrice),
+            // 'triggerPrice' => 10.0, // Required for trigger order
+            // 'triggerType' => 1, // Required for trigger order 1 => more than or equal, 2 => less than or equal
+            // 'executeCycle' => 1, // Required for trigger order 1 => 24 hours,2 => 7 days
+            // 'trend' => 1, // Required for trigger order 1 => latest $price, 2 => fair $price, 3 => index $price
+            // 'orderType' => 1, // Required for trigger order 1 => limit order,2:Post Only Maker,3 => close or cancel instantly ,4 => close or cancel completely,5 => Market order
         );
+        $method = 'contractPrivatePostOrderSubmit';
+        $stopPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
+        $params = $this->omit($params, array( 'stopPrice', 'triggerPrice' ));
+        if ($stopPrice !== null) {
+            $method = 'contractPrivatePostPlanorderPlace';
+            $request['triggerPrice'] = $this->price_to_precision($symbol, $stopPrice);
+            $request['triggerType'] = $this->safe_integer($params, 'triggerType', 1);
+            $request['executeCycle'] = $this->safe_integer($params, 'executeCycle', 1);
+            $request['trend'] = $this->safe_integer($params, 'trend', 1);
+            $request['orderType'] = $this->safe_integer($params, 'orderType', 1);
+        }
+        if (($type !== 5) && ($type !== 6) && ($type !== 'market')) {
+            $request['price'] = floatval($this->price_to_precision($symbol, $price));
+        }
         if ($openType === 1) {
             $leverage = $this->safe_integer($params, 'leverage');
             if ($leverage === null) {
@@ -1818,9 +1838,13 @@ class mexc extends Exchange {
             $request['externalOid'] = $clientOrderId;
         }
         $params = $this->omit($params, array( 'clientOrderId', 'externalOid', 'postOnly' ));
-        $response = yield $this->contractPrivatePostOrderSubmit (array_merge($request, $params));
+        $response = yield $this->$method (array_merge($request, $params));
         //
+        // Swap
         //     array("code":200,"data":"2ff3163e8617443cb9c6fc19d42b1ca4")
+        //
+        // Trigger
+        //     array("success":true,"code":0,"data":259208506303929856)
         //
         return $this->parse_order($response, $market);
     }
@@ -2515,7 +2539,7 @@ class mexc extends Exchange {
             );
         }
         $sorted = $this->sort_by($rates, 'timestamp');
-        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
     public function fetch_leverage_tiers($symbols = null, $params = array ()) {

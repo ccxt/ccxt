@@ -160,6 +160,7 @@ module.exports = class yobit extends Exchange {
                 'GCC': 'GlobalCryptocurrency',
                 'GEN': 'Genstake',
                 'GENE': 'Genesiscoin',
+                'GMR': 'Gimmer',
                 'GOLD': 'GoldMint',
                 'GOT': 'Giotto Coin',
                 'GSX': 'GlowShares',
@@ -807,7 +808,7 @@ module.exports = class yobit extends Exchange {
             }), market);
             result.push (trade);
         }
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (result, market['symbol'], since, limit);
     }
 
     async createDepositAddress (code, params = {}) {

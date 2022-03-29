@@ -59,6 +59,8 @@ class bibox(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': False,
                 'fetchWithdrawals': True,
                 'withdraw': True,
             },
@@ -117,8 +119,8 @@ class bibox(Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'taker': self.parse_number('0.001'),
-                    'maker': self.parse_number('0.0008'),
+                    'taker': self.parse_number('0.002'),
+                    'maker': self.parse_number('0.001'),
                 },
                 'funding': {
                     'tierBased': False,
@@ -155,7 +157,6 @@ class bibox(Exchange):
                 'APENFT(NFT)': 'NFT',
                 'BOX': 'DefiBox',
                 'BPT': 'BlockPool Token',
-                'GTC': 'Game.com',
                 'KEY': 'Bihu',
                 'MTC': 'MTC Mesh Network',  # conflict with MTC Docademic doc.com Token https://github.com/ccxt/ccxt/issues/6081 https://github.com/ccxt/ccxt/issues/3025
                 'NFT': 'NFT Protocol',

@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -75,7 +68,10 @@ class bitmart(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
                 'fetchWithdrawals': True,
+                'transfer': False,
                 'withdraw': True,
             },
             'hostname': 'bitmart.com',  # bitmart.info, bitmart.news for Hong Kong users
@@ -309,6 +305,7 @@ class bitmart(Exchange):
                     '40032': InvalidOrder,  # 400, The plan order's life cycle is too long.
                     '40033': InvalidOrder,  # 400, The plan order's life cycle is too short.
                     '40034': BadSymbol,  # 400, This contract is not found
+                    '53002': PermissionDenied,  # 403, Your account has not yet completed the kyc advanced certification, please complete first
                 },
                 'broad': {},
             },
@@ -1520,7 +1517,7 @@ class bitmart(Exchange):
         #     }
         #
         id = None
-        if isinstance(order, basestring):
+        if isinstance(order, str):
             id = order
             order = {}
         id = self.safe_string(order, 'order_id', id)
@@ -1920,7 +1917,7 @@ class bitmart(Exchange):
         self.load_markets()
         request = {}
         market = self.market(symbol)
-        if not isinstance(id, basestring):
+        if not isinstance(id, str):
             id = str(id)
         marketType, query = self.handle_market_type_and_params('fetchOrder', market, params)
         if market['spot']:
@@ -2234,30 +2231,23 @@ class bitmart(Exchange):
             url += '/' + self.version
         url += '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        if type == 'system':
+        queryString = ''
+        getOrDelete = (method == 'GET') or (method == 'DELETE')
+        if getOrDelete:
             if query:
-                # print(query)
-                url += '?' + self.urlencode(query)
-        elif access == 'public':
-            if query:
-                # print(query)
-                url += '?' + self.urlencode(query)
-        elif access == 'private':
+                queryString = self.urlencode(query)
+                url += '?' + queryString
+        if access == 'private':
             self.check_required_credentials()
             timestamp = str(self.milliseconds())
-            queryString = ''
             headers = {
                 'X-BM-KEY': self.apiKey,
                 'X-BM-TIMESTAMP': timestamp,
+                'Content-Type': 'application/json',
             }
-            if (method == 'POST') or (method == 'PUT'):
-                headers['Content-Type'] = 'application/json'
+            if not getOrDelete:
                 body = self.json(query)
                 queryString = body
-            else:
-                if query:
-                    queryString = self.urlencode(query)
-                    url += '?' + queryString
             auth = timestamp + '#' + self.uid + '#' + queryString
             signature = self.hmac(self.encode(auth), self.encode(self.secret))
             headers['X-BM-SIGN'] = signature

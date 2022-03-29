@@ -339,6 +339,7 @@ class bitfinex2(bitfinex):
                     'funding': 'funding',
                     'margin': 'margin',
                     'derivatives': 'margin',
+                    'future': 'margin',
                 },
             },
             'exceptions': {

@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadSymbol
@@ -35,6 +28,7 @@ class qtrade(Exchange):
                 'www': 'https://qtrade.io',
                 'doc': 'https://qtrade-exchange.github.io/qtrade-docs',
                 'referral': 'https://qtrade.io/?ref=BKOQWVFGRH2C',
+                'fees': 'https://qtrade.io/fees',
             },
             'has': {
                 'CORS': None,
@@ -82,6 +76,8 @@ class qtrade(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchTradingFee': True,
+                'fetchTradingFees': False,
                 'fetchTransactions': None,
                 'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
@@ -144,8 +140,8 @@ class qtrade(Exchange):
                     'feeSide': 'quote',
                     'tierBased': True,
                     'percentage': True,
-                    'taker': 0.005,
-                    'maker': 0.0,
+                    'taker': self.parse_number('0.005'),
+                    'maker': self.parse_number('0.0'),
                 },
                 'funding': {
                     'withdraw': {},
@@ -703,6 +699,47 @@ class qtrade(Exchange):
             'cost': cost,
             'fee': fee,
         }, market)
+
+    async def fetch_trading_fee(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'market_string': market['id'],
+        }
+        response = await self.publicGetMarketMarketString(self.extend(request, params))
+        #
+        #     {
+        #         data: {
+        #             market: {
+        #                 id: '41',
+        #                 market_currency: 'ETH',
+        #                 base_currency: 'BTC',
+        #                 maker_fee: '0',
+        #                 taker_fee: '0.005',
+        #                 metadata: {},
+        #                 can_trade: True,
+        #                 can_cancel: True,
+        #                 can_view: True,
+        #                 market_string: 'ETH_BTC',
+        #                 minimum_sell_amount: '0.001',
+        #                 minimum_buy_value: '0.0001',
+        #                 market_precision: '18',
+        #                 base_precision: '8'
+        #             },
+        #             recent_trades: []
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        marketData = self.safe_value(data, 'market', {})
+        return {
+            'info': marketData,
+            'symbol': symbol,
+            'maker': self.safe_number(marketData, 'maker_fee'),
+            'taker': self.safe_number(marketData, 'taker_fee'),
+            'percentage': True,
+            'tierBased': True,
+        }
 
     def parse_balance(self, response):
         data = self.safe_value(response, 'data', {})
@@ -1462,7 +1499,7 @@ class qtrade(Exchange):
             ])  # eslint-disable-line quotes
             hash = self.hash(self.encode(auth), 'sha256', 'base64')
             key = self.apiKey
-            if not isinstance(key, basestring):
+            if not isinstance(key, str):
                 key = str(key)
             signature = 'HMAC-SHA256 ' + key + ':' + hash
             headers = {

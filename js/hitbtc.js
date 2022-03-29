@@ -70,6 +70,7 @@ module.exports = class hitbtc extends Exchange {
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
+                'fetchTradingFees': false,
                 'fetchTransactions': true,
                 'fetchWithdrawals': undefined,
                 'reduceMargin': false,
@@ -104,8 +105,7 @@ module.exports = class hitbtc extends Exchange {
                 'www': 'https://hitbtc.com',
                 'referral': 'https://hitbtc.com/?ref_id=5a5d39a65d466',
                 'doc': [
-                    'https://api.hitbtc.com',
-                    'https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv2.md',
+                    'https://api.hitbtc.com/v2',
                 ],
                 'fees': [
                     'https://hitbtc.com/fees-and-limits',
@@ -264,6 +264,7 @@ module.exports = class hitbtc extends Exchange {
                 '20002': OrderNotFound, // canceling non-existent order
                 '20001': InsufficientFunds, // {"error":{"code":20001,"message":"Insufficient funds","description":"Check that the funds are sufficient, given commissions"}}
                 '20010': BadSymbol, // {"error":{"code":20010,"message":"Exchange temporary closed","description":"Exchange market for this symbol is temporary closed"}}
+                '20045': InvalidOrder, // {"error":{"code":20045,"message":"Fat finger limit exceeded"}}
             },
         });
     }
@@ -491,6 +492,8 @@ module.exports = class hitbtc extends Exchange {
             'symbol': this.safeSymbol (undefined, market),
             'maker': this.safeNumber (fee, 'provideLiquidityRate'),
             'taker': this.safeNumber (fee, 'takeLiquidityRate'),
+            'percentage': true,
+            'tierBased': true,
         };
     }
 

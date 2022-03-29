@@ -55,8 +55,12 @@ module.exports = class phemex extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': false,
                 'fetchWithdrawals': true,
                 'setLeverage': true,
+                'transfer': true,
+                'withdraw': undefined,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg',
@@ -98,6 +102,7 @@ module.exports = class phemex extends Exchange {
                 'public': {
                     'get': [
                         'cfg/v2/products', // spot + contracts
+                        'cfg/fundingRates',
                         'products', // contracts only
                         'nomics/trades', // ?market=<symbol>&since=<since>
                         'md/kline', // ?from=1589811875&resolution=1800&symbol=sBTCUSDT&to=1592457935
@@ -142,13 +147,12 @@ module.exports = class phemex extends Exchange {
                         'exchange/wallets/v2/depositAddress', // ?currency=<currency>
                         'api-data/spots/funds', // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         'assets/convert', // ?startTime=<startTime>&endTime=<endTime>&limit=<limit>&offset=<offset>
-                        'assets/transfer', // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         // transfer
-                        'assets/transfer',
-                        'assets/spots/sub-accounts/transfer',
-                        'assets/spots/sub-accounts/transfer',
-                        'assets/quote',
-                        'assets/convert',
+                        'assets/transfer', // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'assets/spots/sub-accounts/transfer', // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'assets/futures/sub-accounts/transfer', // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'assets/quote', // ?fromCurrency=<currency>&toCurrency=<currency>&amountEv=<amount>
+                        'assets/convert', // ?fromCurrency=<currency>&toCurrency=<currency>&startTime=<start>&endTime=<end>&limit=<limit>&offset=<offset>
                     ],
                     'post': [
                         // spot
@@ -329,6 +333,24 @@ module.exports = class phemex extends Exchange {
                     '11113': BadRequest, // TE_USER_ID_INVALID UserId is invalid
                     '11114': InvalidOrder, // TE_ORDER_VALUE_TOO_LARGE Order value is too large
                     '11115': InvalidOrder, // TE_ORDER_VALUE_TOO_SMALL Order value is too small
+                    '11116': InvalidOrder, // TE_BO_NUM_EXCEEDS Details: the total count of brakcet orders should equal or less than 5
+                    '11117': InvalidOrder, // TE_BO_CANNOT_HAVE_BO_WITH_DIFF_SIDE Details: all bracket orders should have the same Side.
+                    '11118': InvalidOrder, // TE_BO_TP_PRICE_INVALID Details: bracker order take profit price is invalid
+                    '11119': InvalidOrder, // TE_BO_SL_PRICE_INVALID Details: bracker order stop loss price is invalid
+                    '11120': InvalidOrder, // TE_BO_SL_TRIGGER_PRICE_INVALID Details: bracker order stop loss trigger price is invalid
+                    '11121': InvalidOrder, // TE_BO_CANNOT_REPLACE Details: cannot replace bracket order.
+                    '11122': InvalidOrder, // TE_BO_BOTP_STATUS_INVALID Details: bracket take profit order status is invalid
+                    '11123': InvalidOrder, // TE_BO_CANNOT_PLACE_BOTP_OR_BOSL_ORDER Details: cannot place bracket take profit order
+                    '11124': InvalidOrder, // TE_BO_CANNOT_REPLACE_BOTP_OR_BOSL_ORDER Details: cannot place bracket stop loss order
+                    '11125': InvalidOrder, // TE_BO_CANNOT_CANCEL_BOTP_OR_BOSL_ORDER Details: cannot cancel bracket sl/tp order
+                    '11126': InvalidOrder, // TE_BO_DONOT_SUPPORT_API Details: doesn't support bracket order via API
+                    '11128': InvalidOrder, // TE_BO_INVALID_EXECINST Details: ExecInst value is invalid
+                    '11129': InvalidOrder, // TE_BO_MUST_BE_SAME_SIDE_AS_POS Details: bracket order should have the same side as position's side
+                    '11130': InvalidOrder, // TE_BO_WRONG_SL_TRIGGER_TYPE Details: bracket stop loss order trigger type is invalid
+                    '11131': InvalidOrder, // TE_BO_WRONG_TP_TRIGGER_TYPE Details: bracket take profit order trigger type is invalid
+                    '11132': InvalidOrder, // TE_BO_ABORT_BOSL_DUE_BOTP_CREATE_FAILED Details: cancel bracket stop loss order due failed to create take profit order.
+                    '11133': InvalidOrder, // TE_BO_ABORT_BOSL_DUE_BOPO_CANCELED Details: cancel bracket stop loss order due main order canceled.
+                    '11134': InvalidOrder, // TE_BO_ABORT_BOTP_DUE_BOPO_CANCELED Details: cancel bracket take profit order due main order canceled.
                     // not documented
                     '30000': BadRequest, // {"code":30000,"msg":"Please double check input arguments","data":null}
                     '30018': BadRequest, // {"code":30018,"msg":"phemex.data.size.uplimt","data":null}
@@ -356,6 +378,10 @@ module.exports = class phemex extends Exchange {
                     'USDT': 'ETH',
                 },
                 'defaultSubType': 'linear',
+                'accountsByType': {
+                    'spot': 'spot',
+                    'future': 'future',
+                },
             },
         });
     }
@@ -566,9 +592,9 @@ module.exports = class phemex extends Exchange {
             'expiryDatetime': undefined,
             'strike': undefined,
             'optionType': undefined,
-            'priceScale': this.parseNumber ('8'),
-            'valueScale': this.parseNumber ('8'),
-            'ratioScale': this.parseNumber ('8'),
+            'priceScale': 8,
+            'valueScale': 8,
+            'ratioScale': 8,
             'precision': {
                 'amount': precisionAmount,
                 'price': precisionPrice,
@@ -2775,6 +2801,105 @@ module.exports = class phemex extends Exchange {
             'leverage': leverage,
         };
         return await this.privatePutPositionsLeverage (this.extend (request, params));
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const fromId = this.safeString (accountsByType, fromAccount);
+        const toId = this.safeString (accountsByType, toAccount);
+        let direction = undefined;
+        if (fromId === undefined) {
+            const keys = Object.keys (accountsByType);
+            throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', '));
+        }
+        if (toId === undefined) {
+            const keys = Object.keys (accountsByType);
+            throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', '));
+        }
+        if (fromId === 'spot' && toId === 'future') {
+            direction = 2;
+        }
+        if (fromId === 'future' && toId === 'spot') {
+            direction = 1;
+        }
+        if (direction === undefined) {
+            throw new ExchangeError (this.id + ' transfer can only be down from future to spot or from spot to future');
+        }
+        const scaledAmmount = this.toEv (amount, currency);
+        const request = {
+            'currency': currency['id'],
+            'moveOp': direction,
+            'amountEv': scaledAmmount,
+        };
+        const response = await this.privatePostAssetsTransfer (this.extend (request, params));
+        //
+        //     {
+        //         code: '0',
+        //         msg: 'OK',
+        //         data: {
+        //             linkKey: '8564eba4-c9ec-49d6-9b8c-2ec5001a0fb9',
+        //             userId: '4018340',
+        //             currency: 'USD',
+        //             amountEv: '10',
+        //             side: '2',
+        //             status: '10'
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseTransfer (data, currency);
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        //     {
+        //         linkKey: '8564eba4-c9ec-49d6-9b8c-2ec5001a0fb9',
+        //         userId: '4018340',
+        //         currency: 'USD',
+        //         amountEv: '10',
+        //         side: '2',
+        //         status: '10'
+        //     }
+        //
+        const id = this.safeString (transfer, 'linkKey');
+        const status = this.safeString (transfer, 'status');
+        const amountEv = this.safeString (transfer, 'amountEv');
+        const amountTransfered = this.fromEv (amountEv, currency);
+        const currencyId = this.safeString (transfer, 'currency');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const side = this.safeInteger (transfer, 'side');
+        let fromId = undefined;
+        let toId = undefined;
+        if (side === 1) {
+            fromId = 'future';
+            toId = 'spot';
+        } else if (side === 2) {
+            fromId = 'spot';
+            toId = 'future';
+        }
+        return {
+            'info': transfer,
+            'id': id,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': code,
+            'amount': amountTransfered,
+            'fromAccount': fromId,
+            'toAccount': toId,
+            'status': this.parseTransferStatus (status),
+        };
+    }
+
+    parseTransferStatus (status) {
+        const statuses = {
+            '3': 'rejected', // 'Rejected',
+            '6': 'canceled', // 'Got error and wait for recovery',
+            '10': 'ok', // 'Success',
+            '11': 'failed', // 'Failed',
+        };
+        return this.safeString (statuses, status, 'pending');
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

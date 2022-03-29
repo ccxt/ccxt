@@ -83,7 +83,7 @@ class kucoin(Exchange):
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFee': True,
-                'fetchTradingFees': None,
+                'fetchTradingFees': False,
                 'fetchWithdrawals': True,
                 'transfer': True,
                 'withdraw': True,
@@ -1631,6 +1631,8 @@ class kucoin(Exchange):
             'symbol': self.safe_symbol(marketId, market),
             'maker': self.safe_number(first, 'makerFeeRate'),
             'taker': self.safe_number(first, 'takerFeeRate'),
+            'percentage': True,
+            'tierBased': True,
         }
 
     def withdraw(self, code, amount, address, tag=None, params={}):

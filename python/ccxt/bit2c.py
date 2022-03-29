@@ -4,19 +4,13 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.precise import Precise
 
 
 class bit2c(Exchange):
@@ -62,6 +56,8 @@ class bit2c(Exchange):
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': True,
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setMarginMode': False,
@@ -266,9 +262,49 @@ class bit2c(Exchange):
         if limit is not None:
             request['limit'] = limit  # max 100000
         response = getattr(self, method)(self.extend(request, params))
-        if isinstance(response, basestring):
+        if isinstance(response, str):
             raise ExchangeError(response)
         return self.parse_trades(response, market, since, limit)
+
+    def fetch_trading_fees(self, params={}):
+        self.load_markets()
+        response = self.privateGetAccountBalance(params)
+        #
+        #     {
+        #         "AVAILABLE_NIS": 0.0,
+        #         "NIS": 0.0,
+        #         "LOCKED_NIS": 0.0,
+        #         "AVAILABLE_BTC": 0.0,
+        #         "BTC": 0.0,
+        #         "LOCKED_BTC": 0.0,
+        #         ...
+        #         "Fees": {
+        #             "BtcNis": {"FeeMaker": 1.0, "FeeTaker": 1.0},
+        #             "EthNis": {"FeeMaker": 1.0, "FeeTaker": 1.0},
+        #             ...
+        #         }
+        #     }
+        #
+        fees = self.safe_value(response, 'Fees', {})
+        keys = list(fees.keys())
+        result = {}
+        for i in range(0, len(keys)):
+            marketId = keys[i]
+            symbol = self.safe_symbol(marketId)
+            fee = self.safe_value(fees, marketId)
+            makerString = self.safe_string(fee, 'FeeMaker')
+            takerString = self.safe_string(fee, 'FeeTaker')
+            maker = self.parse_number(Precise.string_div(makerString, '100'))
+            taker = self.parse_number(Precise.string_div(takerString, '100'))
+            result[symbol] = {
+                'info': fee,
+                'symbol': symbol,
+                'taker': taker,
+                'maker': maker,
+                'percentage': True,
+                'tierBased': False,
+            }
+        return result
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

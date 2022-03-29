@@ -1415,20 +1415,32 @@ module.exports = class bitget extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m') {
+        //
         // spot
+        //
         //     {
-        //       open: '57882.31',
-        //       high: '58967.24',
-        //       low: '57509.56',
-        //       close: '57598.96',
-        //       quoteVol: '439160536.605821',
-        //       baseVol: '7531.2927',
-        //       usdtVol: '439160536.605821',
-        //       ts: '1637337600000'
+        //         open: '57882.31',
+        //         high: '58967.24',
+        //         low: '57509.56',
+        //         close: '57598.96',
+        //         quoteVol: '439160536.605821',
+        //         baseVol: '7531.2927',
+        //         usdtVol: '439160536.605821',
+        //         ts: '1637337600000'
         //     }
         //
         // swap
-        //  ["1645911960000","39406","39407","39374.5","39379","35.526","1399132.341"]
+        //
+        //     [
+        //         "1645911960000",
+        //         "39406",
+        //         "39407",
+        //         "39374.5",
+        //         "39379",
+        //         "35.526",
+        //         "1399132.341"
+        //     ]
+        //
         return [
             this.safeInteger2 (ohlcv, 0, 'ts'),
             this.safeNumber2 (ohlcv, 1, 'open'),
@@ -1599,7 +1611,7 @@ module.exports = class bitget extends Exchange {
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        const id = this.safeString2 (order, 'orderId');
+        const id = this.safeString (order, 'orderId');
         const price = this.safeString (order, 'price');
         const amount = this.safeString2 (order, 'quantity', 'size');
         const filled = this.safeString2 (order, 'fillQuantity', 'filledQty');

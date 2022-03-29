@@ -60,6 +60,8 @@ class lbank(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': False,
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setMarginMode': False,
@@ -85,7 +87,7 @@ class lbank(Exchange):
                 'api': 'https://api.lbank.info',
                 'www': 'https://www.lbank.info',
                 'doc': 'https://github.com/LBank-exchange/lbank-official-api-docs',
-                'fees': 'https://lbankinfo.zendesk.com/hc/en-gb/articles/360012072873-Trading-Fees',
+                'fees': 'https://www.lbank.info/fees.html',
                 'referral': 'https://www.lbex.io/invite?icode=7QCY',
             },
             'api': {
@@ -560,6 +562,10 @@ class lbank(Exchange):
         return self.parse_orders(data, None, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        if symbol is not None:
+            market = self.market(symbol)
+            symbol = market['symbol']
         orders = self.fetch_orders(symbol, since, limit, params)
         closed = self.filter_by(orders, 'status', 'closed')
         canceled = self.filter_by(orders, 'status', 'cancelled')  # cancelled orders may be partially filled

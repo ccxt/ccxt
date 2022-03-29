@@ -52,6 +52,8 @@ class therock(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchTradingFee': True,
+                'fetchTradingFees': True,
                 'fetchTransactions': 'emulated',
                 'fetchWithdrawals': True,
             },
@@ -68,6 +70,7 @@ class therock(Exchange):
                 'public': {
                     'get': [
                         'funds',
+                        'funds/{id}',
                         'funds/{id}/orderbook',
                         'funds/{id}/ticker',
                         'funds/{id}/trades',
@@ -1170,6 +1173,115 @@ class therock(Exchange):
         #
         return self.parse_trades(response['trades'], market, since, limit)
 
+    def fetch_trading_fee(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'id': market['id'],
+        }
+        response = self.publicGetFundsId(self.extend(request, params))
+        #
+        #     {
+        #         id: 'ETHBTC',
+        #         description: 'Trade Ether with Bitcoin',
+        #         type: 'currency',
+        #         base_currency: 'BTC',
+        #         trade_currency: 'ETH',
+        #         buy_fee: '0.2',
+        #         sell_fee: '0.2',
+        #         minimum_price_offer: '0.00000001',
+        #         minimum_quantity_offer: '0.005',
+        #         base_currency_decimals: '8',
+        #         trade_currency_decimals: '3',
+        #         leverages: []
+        #     }
+        #
+        request = {
+            'id': market['quoteId'],
+        }
+        discount = self.privateGetDiscountsId(self.extend(request, params))
+        #
+        #     {
+        #         "currency":"BTC",
+        #         "discount":50.0,
+        #         "details": {
+        #             "personal_discount": 50.0,
+        #             "commissions_related_discount": 0.0
+        #         }
+        #     }
+        #
+        return self.parse_trading_fee(response, discount, market)
+
+    def fetch_trading_fees(self, params={}):
+        self.load_markets()
+        response = self.publicGetFunds(params)
+        #
+        #     {
+        #         funds: [
+        #             {
+        #                 id: 'BTCEUR',
+        #                 description: 'Trade Bitcoin with Euro',
+        #                 type: 'currency',
+        #                 base_currency: 'EUR',
+        #                 trade_currency: 'BTC',
+        #                 buy_fee: '0.2',
+        #                 sell_fee: '0.2',
+        #                 minimum_price_offer: '0.01',
+        #                 minimum_quantity_offer: '0.0005',
+        #                 base_currency_decimals: '2',
+        #                 trade_currency_decimals: '4',
+        #                 leverages: []
+        #             },
+        #         ]
+        #     }
+        #
+        discountsResponse = self.privateGetDiscounts(params)
+        #
+        #     {
+        #         "discounts": [
+        #             {
+        #                 "currency":"BTC",
+        #                 "discount":50.0,
+        #                 "details": {
+        #                     "personal_discount": 50.0,
+        #                     "commissions_related_discount": 0.0
+        #                 }
+        #             }
+        #         ]
+        #     }
+        #
+        funds = self.safe_value(response, 'funds', [])
+        discounts = self.safe_value(discountsResponse, 'discounts', [])
+        result = {}
+        for i in range(0, len(funds)):
+            fund = funds[i]
+            marketId = self.safe_string(fund, 'id')
+            market = self.safe_market(marketId)
+            quoteId = self.safe_value(market, 'quoteId')
+            discount = self.filter_by(discounts, 'currency', quoteId)
+            fee = self.parse_trading_fee(fund, discount, market)
+            symbol = fee['symbol']
+            result[symbol] = fee
+        return result
+
+    def parse_trading_fee(self, fee, discount=None, market=None):
+        marketId = self.safe_string(fee, 'id')
+        takerString = self.safe_string(fee, 'buy_fee')
+        makerString = self.safe_string(fee, 'sell_fee')
+        # TotalFee = (100 - discount) * fee / 10000
+        discountString = self.safe_string(discount, 'discount', '0')
+        feePercentage = Precise.string_sub('100', discountString)
+        taker = self.parse_number(Precise.string_div(Precise.string_mul(takerString, feePercentage), '10000'))
+        maker = self.parse_number(Precise.string_div(Precise.string_mul(makerString, feePercentage), '10000'))
+        return {
+            'info': fee,
+            'symbol': self.safe_symbol(marketId, market),
+            'maker': maker,
+            'taker': taker,
+            'percentage': True,
+            'tierBased': True,
+        }
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
@@ -1199,8 +1311,7 @@ class therock(Exchange):
             return  # fallback to default error handler
         #
         #     {
-        #         "errors":
-        #         [
+        #         "errors": [
         #             {"message": ":currency is not a valid value for param currency","code": "11","meta": {"key":"currency","value":":currency"}},
         #             {"message": "Address allocation limit reached for currency :currency.","code": "13"},
         #             {"message": "Request already running", "code": "50"},

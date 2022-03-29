@@ -14,7 +14,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import CancelPending
-from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
@@ -229,13 +229,15 @@ class poloniex(Exchange):
                     'Currently in maintenance mode.': OnMaintenance,
                     'Order not found, or you are not the person who placed it.': OrderNotFound,
                     'Invalid API key/secret pair.': AuthenticationError,
-                    'Please do not make more than 8 API calls per second.': DDoSProtection,
+                    'Please do not make more than 8 API calls per second.': RateLimitExceeded,
+                    'This IP has been temporarily throttled. Please ensure your requests are valid and try again in one minute.': RateLimitExceeded,
                     'Rate must be greater than zero.': InvalidOrder,  # {"error":"Rate must be greater than zero."}
                     'Invalid currency pair.': BadSymbol,  # {"error":"Invalid currency pair."}
                     'Invalid currencyPair parameter.': BadSymbol,  # {"error":"Invalid currencyPair parameter."}
                     'Trading is disabled in self market.': BadSymbol,  # {"error":"Trading is disabled in self market."}
                     'Invalid orderNumber parameter.': OrderNotFound,
                     'Order is beyond acceptable bounds.': InvalidOrder,  # {"error":"Order is beyond acceptable bounds.","fee":"0.00155000","currencyPair":"USDT_BOBA"}
+                    'This account is closed.': AccountSuspended,  # {"error":"This account is closed."}
                 },
                 'broad': {
                     'Total must be at least': InvalidOrder,  # {"error":"Total must be at least 0.0001."}

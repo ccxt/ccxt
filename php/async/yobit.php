@@ -163,6 +163,7 @@ class yobit extends Exchange {
                 'GCC' => 'GlobalCryptocurrency',
                 'GEN' => 'Genstake',
                 'GENE' => 'Genesiscoin',
+                'GMR' => 'Gimmer',
                 'GOLD' => 'GoldMint',
                 'GOT' => 'Giotto Coin',
                 'GSX' => 'GlowShares',
@@ -810,7 +811,7 @@ class yobit extends Exchange {
             )), $market);
             $result[] = $trade;
         }
-        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
+        return $this->filter_by_symbol_since_limit($result, $market['symbol'], $since, $limit);
     }
 
     public function create_deposit_address($code, $params = array ()) {

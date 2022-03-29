@@ -21,6 +21,7 @@ class ascendex extends Exchange {
             'countries' => array( 'SG' ), // Singapore
             'rateLimit' => 500,
             'certified' => true,
+            'pro' => true,
             // new metainfo interface
             'has' => array(
                 'CORS' => null,
@@ -89,8 +90,12 @@ class ascendex extends Exchange {
             'version' => 'v2',
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/112027508-47984600-8b48-11eb-9e17-d26459cc36c6.jpg',
-                'api' => 'https://ascendex.com',
-                'test' => 'https://api-test.ascendex-sandbox.com',
+                'api' => array(
+                    'rest' => 'https://ascendex.com',
+                ),
+                'test' => array(
+                    'rest' => 'https://api-test.ascendex-sandbox.com',
+                ),
                 'www' => 'https://ascendex.com',
                 'doc' => array(
                     'https://bitmax-exchange.github.io/bitmax-pro-api/#bitmax-pro-api-documentation',
@@ -1463,6 +1468,7 @@ class ascendex extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
         }
         $account = $this->safe_value($this->accounts, 0, array());
         $accountGroup = $this->safe_value($account, 'id');
@@ -2453,7 +2459,7 @@ class ascendex extends Exchange {
                 $body = $this->json($params);
             }
         }
-        $url = $this->urls['api'] . $url;
+        $url = $this->urls['api']['rest'] . $url;
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 

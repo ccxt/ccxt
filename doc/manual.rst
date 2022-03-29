@@ -51,7 +51,7 @@ Exchanges
 
 
 
-The CCXT library currently supports the following 113 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 114 cryptocurrency exchange markets and trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -91,7 +91,10 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
           :target: https://github.com/ccxt/ccxt/wiki/Certification
           :alt: CCXT Certified
      
-     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
    * - .. image:: https://user-images.githubusercontent.com/1294454/55248342-a75dfe00-525a-11e9-8aa2-05e9dca943c6.jpg
           :target: https://bequant.io
           :alt: bequant
@@ -236,7 +239,7 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
      
      - 
      - 
-   * - .. image:: https://user-images.githubusercontent.com/1294454/97296144-514fa300-1861-11eb-952b-3d55d492200b.jpg
+   * - .. image:: https://user-images.githubusercontent.com/1294454/159177712-b685b40c-5269-4cea-ac83-f7894c49525d.jpg
           :target: https://fmfw.io/referral/da948b21d6c92d69
           :alt: bitcoincom
      
@@ -359,6 +362,18 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
+   * - .. image:: https://user-images.githubusercontent.com/1294454/158227251-3a92a220-9222-453c-9277-977c6677fe71.jpg
+          :target: https://www.bitopro.com
+          :alt: bitopro
+     
+     - bitopro
+     - `BitoPro <https://www.bitopro.com>`__
+     - .. image:: https://img.shields.io/badge/3-lightgray
+          :target: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/v3-1/rest-1/rest.md
+          :alt: API Version 3
+     
+     - 
+     - 
    * - .. image:: https://user-images.githubusercontent.com/51840849/87591171-9a377d80-c6f0-11ea-94ac-97a126eac3bc.jpg
           :target: https://www.bitpanda.com/en/pro
           :alt: bitpanda
@@ -455,6 +470,18 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
+   * - .. image:: https://user-images.githubusercontent.com/1294454/158043180-bb079a65-69e8-45a2-b393-f094d334e610.jpg
+          :target: https://www.bkex.com/
+          :alt: bkex
+     
+     - bkex
+     - `BKEX <https://www.bkex.com/>`__
+     - .. image:: https://img.shields.io/badge/2-lightgray
+          :target: https://bkexapi.github.io/docs/api_en.htm
+          :alt: API Version 2
+     
+     - 
+     - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg
           :target: https://bl3p.eu
           :alt: bl3p
@@ -815,18 +842,6 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
      
      - 
      - 
-   * - .. image:: https://user-images.githubusercontent.com/1294454/107758499-05edd180-6d38-11eb-9e09-0b69602a7a15.jpg
-          :target: https://eqonex.com?referredByCode=zpa8kij4ouvBFup3
-          :alt: equos
-     
-     - equos
-     - `EQUOS <https://eqonex.com?referredByCode=zpa8kij4ouvBFup3>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://developer.eqonex.com
-          :alt: API Version *
-     
-     - 
-     - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg
           :target: https://exmo.me/?ref=131685
           :alt: exmo
@@ -854,7 +869,7 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
-   * - .. image:: https://user-images.githubusercontent.com/1294454/97296144-514fa300-1861-11eb-952b-3d55d492200b.jpg
+   * - .. image:: https://user-images.githubusercontent.com/1294454/159177712-b685b40c-5269-4cea-ac83-f7894c49525d.jpg
           :target: https://fmfw.io/referral/da948b21d6c92d69
           :alt: fmfwio
      
@@ -939,7 +954,7 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
      - hitbtc
      - `HitBTC <https://hitbtc.com/?ref_id=5a5d39a65d466>`__
      - .. image:: https://img.shields.io/badge/2-lightgray
-          :target: https://api.hitbtc.com
+          :target: https://api.hitbtc.com/v2
           :alt: API Version 2
      
      - 
@@ -1562,7 +1577,7 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
-   * - .. image:: https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg
+   * - .. image:: https://user-images.githubusercontent.com/1294454/159202310-a0e38007-5e7c-4ba9-a32f-c8263a0291fe.jpg
           :target: https://auth.zondaglobal.com/ref/jHlbB4mIkdS1
           :alt: zonda
      
@@ -2962,7 +2977,7 @@ To use the async version of the library, use the ``ccxt_async`` namespace, as in
    }, $loop);
    $kernel->run();
 
-See further examples in the ``examples/php`` directory; look for filenames that include the ``async`` word. Also, make sure you have installed the required dependencies using ``composer require recoil/recoil clue/buzz-react react/event-loop recoil/react``. Lastly, `this article <https://sergeyzhuk.me/2018/10/26/from-promise-to-coroutines/>`__ provides a good introduction to the methods used here. While syntactically the change is simple (i.e., just using a ``yield`` keyword before relevant methods), concurrency has significant implications for the overall design of your code.
+See further examples in the ``examples/php`` directory; look for filenames that include the ``async`` word. Also, make sure you have installed the required dependencies using ``composer require recoil/recoil clue/buzz-react react/event-loop recoil/react react/http``. Lastly, `this article <https://sergeyzhuk.me/2018/10/26/from-promise-to-coroutines/>`__ provides a good introduction to the methods used here. While syntactically the change is simple (i.e., just using a ``yield`` keyword before relevant methods), concurrency has significant implications for the overall design of your code.
 
 Returned JSON Objects
 ^^^^^^^^^^^^^^^^^^^^^
@@ -3509,7 +3524,7 @@ In order to get current best price (query market price) and calculate bidask spr
 .. code-block:: JavaScript
 
    // JavaScript
-   let orderbook = exchange.fetchOrderBook (exchange.symbols[0])
+   let orderbook = await exchange.fetchOrderBook (exchange.symbols[0])
    let bid = orderbook.bids.length ? orderbook.bids[0][0] : undefined
    let ask = orderbook.asks.length ? orderbook.asks[0][0] : undefined
    let spread = (bid && ask) ? ask - bid : undefined
@@ -4796,12 +4811,19 @@ Most of methods returning orders within ccxt unified API will usually yield an o
  * The ``cost`` of an order is: ``{ filled * price }``
  * The ``cost`` of an order means the total *quote* volume of the order (whereas the ``amount`` is the *base* volume). The value of ``cost`` should be as close to the actual most recent known order cost as possible. The ``cost`` field itself is there mostly for convenience and can be deduced from other fields.
  * The ``clientOrderId`` field can be set upon placing orders by the user with :ref:`custom order params <custom order params>`. Using the ``clientOrderId`` the user can later distinguish between own orders. This is only available for the exchanges that do support ``clientOrderId`` at this time.
- * The ``timeInForce`` field may be ``undefined/None/null`` if not specified by the exchange. The unification of ``timeInForce`` is a work in progress. Possible values for the\ ``timeInForce`` field:
 
-  * ``'GTC'`` = *Good Till Cancel(ed)*\ , the order stays on the orderbook until it is matched or canceled.
-  * ``'IOC'`` = *Immediate Or Cancel*\ , the order has to be matched immediately and filled either partially or completely, the unfilled remainder is canceled (or the entire order is canceled).
-  * ``'FOK'`` = *Fill Or Kill*\ , the order has to get fully filled and closed immediately, otherwise the entire order is canceled.
-  * ``'PO'`` = *Post Only*\ , the order has to land on the orderbook and spend at least some time there in an unfilled state, this makes it a maker order by definition, otherwise it is not placed. The post only ``timeInForce`` is not too common across the exchanges, since orders are allowed to be both ``GTC`` and ``PO`` at the same time, therefore the post only mode is often returned as a separate flag. The unification of ``timeInForce`` and ``postOnly`` is a work in progress.
+timeInForce
+~~~~~~~~~~~
+
+The ``timeInForce`` field may be ``undefined/None/null`` if not specified by the exchange. The unification of ``timeInForce`` is a work in progress. Possible values for the\ ``timeInForce`` field:
+
+.. code-block::
+
+   - `'GTC'` = _Good Till Cancel(ed)_, the order stays on the orderbook until it is matched or canceled.
+   - `'IOC'` = _Immediate Or Cancel_, the order has to be matched immediately and filled either partially or completely, the unfilled remainder is canceled (or the entire order is canceled).
+   - `'FOK'` = _Fill Or Kill_, the order has to get fully filled and closed immediately, otherwise the entire order is canceled.
+   - `'PO'` = _Post Only_, the order has to land on the orderbook and spend at least some time there in an unfilled state, this makes it a maker order by definition, otherwise it is not placed. The post only `timeInForce` is not too common across the exchanges, since orders are allowed to be both `GTC` and `PO` at the same time, therefore the post only mode is often returned as a separate flag. The unification of `timeInForce` and `postOnly` is a work in progress.
+
 
 Placing Orders
 ^^^^^^^^^^^^^^

@@ -66,6 +66,8 @@ class indodax(Exchange):
                 'fetchTickers': None,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': False,
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setMarginMode': False,
@@ -535,6 +537,7 @@ class indodax(Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
+            symbol = market['symbol']
             request['pair'] = market['id']
         response = await self.privatePostOrderHistory(self.extend(request, params))
         orders = self.parse_orders(response['return']['orders'], market)

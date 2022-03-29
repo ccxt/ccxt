@@ -232,6 +232,7 @@ module.exports = class bitfinex extends Exchange {
                 'EDO': 'PNT',
                 'EUS': 'EURS',
                 'EUT': 'EURT',
+                'IDX': 'ID',
                 'IOT': 'IOTA',
                 'IQX': 'IQ',
                 'MNA': 'MANA',
@@ -564,7 +565,7 @@ module.exports = class bitfinex extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': this.safeNumber (market, 'minimum_margin'),
+                        'min': undefined,
                         'max': undefined,
                     },
                 },

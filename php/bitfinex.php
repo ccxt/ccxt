@@ -234,6 +234,7 @@ class bitfinex extends Exchange {
                 'EDO' => 'PNT',
                 'EUS' => 'EURS',
                 'EUT' => 'EURT',
+                'IDX' => 'ID',
                 'IOT' => 'IOTA',
                 'IQX' => 'IQ',
                 'MNA' => 'MANA',
@@ -566,7 +567,7 @@ class bitfinex extends Exchange {
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => $this->safe_number($market, 'minimum_margin'),
+                        'min' => null,
                         'max' => null,
                     ),
                 ),

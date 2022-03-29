@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, AuthenticationError, NullResponse, InvalidOrder, NotSupported, InsufficientFunds, InvalidNonce, OrderNotFound, RateLimitExceeded, DDoSProtection } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, AuthenticationError, NullResponse, InvalidOrder, NotSupported, InsufficientFunds, InvalidNonce, OrderNotFound, RateLimitExceeded, DDoSProtection, BadSymbol } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -143,6 +143,7 @@ module.exports = class cex extends Exchange {
                     'Invalid API key': AuthenticationError,
                     'There was an error while placing your order': InvalidOrder,
                     'Sorry, too many clients already': DDoSProtection,
+                    'Invalid Symbols Pair': BadSymbol,
                 },
             },
             'options': {

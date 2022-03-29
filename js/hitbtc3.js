@@ -18,21 +18,30 @@ module.exports = class hitbtc3 extends Exchange {
             'has': {
                 'CORS': false,
                 'spot': true,
-                'margin': undefined, // has but not fully unimplemented
-                'swap': undefined, // has but not fully unimplemented
-                'future': undefined, // has but not fully unimplemented
+                'margin': undefined, // has but not fully implemented
+                'swap': true,
+                'future': false,
                 'option': undefined,
+                'addMargin': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': undefined,
+                'fetchLeverageTiers': undefined,
+                'fetchMarketLeverageTiers': undefined,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': undefined,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrder': true,
@@ -42,6 +51,9 @@ module.exports = class hitbtc3 extends Exchange {
                 'fetchOrderBooks': true,
                 'fetchOrders': false,
                 'fetchOrderTrades': true,
+                'fetchPosition': false,
+                'fetchPositions': true,
+                'fetchPremiumIndexOHLCV': undefined,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
@@ -49,6 +61,10 @@ module.exports = class hitbtc3 extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
+                'reduceMargin': undefined,
+                'setLeverage': undefined,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -258,7 +274,7 @@ module.exports = class hitbtc3 extends Exchange {
                     '20042': ExchangeError,
                     '20043': ExchangeError,
                     '20044': PermissionDenied,
-                    '20045': ExchangeError,
+                    '20045': InvalidOrder,
                     '20080': ExchangeError,
                     '21001': ExchangeError,
                     '21003': AccountSuspended,
@@ -276,7 +292,9 @@ module.exports = class hitbtc3 extends Exchange {
                 },
                 'accountsByType': {
                     'spot': 'spot',
+                    'funding': 'wallet',
                     'wallet': 'wallet',
+                    'future': 'derivatives',
                     'derivatives': 'derivatives',
                 },
             },
@@ -709,7 +727,7 @@ module.exports = class hitbtc3 extends Exchange {
             request['limit'] = limit;
         }
         if (since !== undefined) {
-            request['since'] = since;
+            request['from'] = since;
         }
         const response = await this.publicGetPublicTrades (this.extend (request, params));
         const marketIds = Object.keys (response);
@@ -736,9 +754,15 @@ module.exports = class hitbtc3 extends Exchange {
             request['limit'] = limit;
         }
         if (since !== undefined) {
-            request['since'] = since;
+            request['from'] = since;
         }
-        const response = await this.privateGetSpotHistoryTrade (this.extend (request, params));
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'privateGetSpotHistoryTrade',
+            'swap': 'privateGetFuturesHistoryTrade',
+            'margin': 'privateGetMarginHistoryTrade',
+        });
+        const response = await this[method] (this.extend (request, query));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -766,7 +790,7 @@ module.exports = class hitbtc3 extends Exchange {
         //      timestamp: '2020-10-16T12:57:39.846Z'
         //  }
         //
-        // fetchMyTrades
+        // fetchMyTrades spot
         //
         //  {
         //      id: 277210397,
@@ -779,6 +803,24 @@ module.exports = class hitbtc3 extends Exchange {
         //      fee: '0.000000147',
         //      timestamp: '2018-04-28T18:39:55.345Z',
         //      taker: true
+        //  }
+        //
+        // fetchMyTrades swap and margin
+        //
+        //  {
+        //      "id": 4718564,
+        //      "order_id": 58730811958,
+        //      "client_order_id": "475c47d97f867f09726186eb22b4c3d4",
+        //      "symbol": "BTCUSDT_PERP",
+        //      "side": "sell",
+        //      "quantity": "0.0001",
+        //      "price": "41118.51",
+        //      "fee": "0.002055925500",
+        //      "timestamp": "2022-03-17T05:23:17.795Z",
+        //      "taker": true,
+        //      "position_id": 2350122,
+        //      "pnl": "0.002255000000",
+        //      "liquidation": false
         //  }
         //
         const timestamp = this.parse8601 (trade['timestamp']);
@@ -1041,7 +1083,11 @@ module.exports = class hitbtc3 extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.privateGetSpotFeeSymbol (this.extend (request, params));
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'privateGetSpotFeeSymbol',
+            'swap': 'privateGetFuturesFeeSymbol',
+        });
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "take_rate":"0.0009",
@@ -1053,7 +1099,12 @@ module.exports = class hitbtc3 extends Exchange {
 
     async fetchTradingFees (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetSpotFee (params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTradingFees', undefined, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'privateGetSpotFee',
+            'swap': 'privateGetFuturesFee',
+        });
+        const response = await this[method] (query);
         //
         //     [
         //         {
@@ -1141,7 +1192,13 @@ module.exports = class hitbtc3 extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetSpotHistoryOrder (this.extend (request, params));
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'privateGetSpotHistoryOrder',
+            'swap': 'privateGetFuturesHistoryOrder',
+            'margin': 'privateGetMarginHistoryOrder',
+        });
+        const response = await this[method] (this.extend (request, query));
         const parsed = this.parseOrders (response, market, since, limit);
         return this.filterByArray (parsed, 'status', [ 'closed', 'canceled' ], false);
     }
@@ -1152,10 +1209,16 @@ module.exports = class hitbtc3 extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'privateGetSpotHistoryOrder',
+            'swap': 'privateGetFuturesHistoryOrder',
+            'margin': 'privateGetMarginHistoryOrder',
+        });
         const request = {
             'client_order_id': id,
         };
-        const response = await this.privateGetSpotHistoryOrder (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
         //
         //     [
         //       {
@@ -1188,7 +1251,15 @@ module.exports = class hitbtc3 extends Exchange {
         const request = {
             'order_id': id, // exchange assigned order id as oppose to the client order id
         };
-        const response = await this.privateGetSpotHistoryTrade (this.extend (request, params));
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrderTrades', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'privateGetSpotHistoryTrade',
+            'swap': 'privateGetFuturesHistoryTrade',
+            'margin': 'privateGetMarginHistoryTrade',
+        });
+        const response = await this[method] (this.extend (request, query));
+        //
+        // Spot
         //
         //     [
         //       {
@@ -1205,6 +1276,26 @@ module.exports = class hitbtc3 extends Exchange {
         //       }
         //     ]
         //
+        // Swap and Margin
+        //
+        //     [
+        //         {
+        //             "id": 4718551,
+        //             "order_id": 58730748700,
+        //             "client_order_id": "dcbcd8549e3445ee922665946002ef67",
+        //             "symbol": "BTCUSDT_PERP",
+        //             "side": "buy",
+        //             "quantity": "0.0001",
+        //             "price": "41095.96",
+        //             "fee": "0.002054798000",
+        //             "timestamp": "2022-03-17T05:23:02.217Z",
+        //             "taker": true,
+        //             "position_id": 2350122,
+        //             "pnl": "0",
+        //             "liquidation": false
+        //         }
+        //     ]
+        //
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -1216,7 +1307,13 @@ module.exports = class hitbtc3 extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const response = await this.privateGetSpotOrder (this.extend (request, params));
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'privateGetSpotOrder',
+            'swap': 'privateGetFuturesOrder',
+            'margin': 'privateGetMarginOrder',
+        });
+        const response = await this[method] (this.extend (request, query));
         //
         //     [
         //       {
@@ -1245,10 +1342,16 @@ module.exports = class hitbtc3 extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOpenOrder', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'privateGetSpotOrderClientOrderId',
+            'swap': 'privateGetFuturesOrderClientOrderId',
+            'margin': 'privateGetMarginOrderClientOrderId',
+        });
         const request = {
             'client_order_id': id,
         };
-        const response = await this.privateGetSpotOrderClientOrderId (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
         return this.parseOrder (response, market);
     }
 
@@ -1260,7 +1363,13 @@ module.exports = class hitbtc3 extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const response = await this.privateDeleteSpotOrder (this.extend (request, params));
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'privateDeleteSpotOrder',
+            'swap': 'privateDeleteFuturesOrder',
+            'margin': 'privateDeleteMarginOrder',
+        });
+        const response = await this[method] (this.extend (request, query));
         return this.parseOrders (response, market);
     }
 
@@ -1273,7 +1382,13 @@ module.exports = class hitbtc3 extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const response = await this.privateDeleteSpotOrderClientOrderId (this.extend (request, params));
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'privateDeleteSpotOrderClientOrderId',
+            'swap': 'privateDeleteFuturesOrderClientOrderId',
+            'margin': 'privateDeleteMarginOrderClientOrderId',
+        });
+        const response = await this[method] (this.extend (request, query));
         return this.parseOrder (response, market);
     }
 
@@ -1293,27 +1408,78 @@ module.exports = class hitbtc3 extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const response = await this.privatePatchSpotOrderClientOrderId (this.extend (request, params));
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('editOrder', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'privatePatchSpotOrderClientOrderId',
+            'swap': 'privatePatchFuturesOrderClientOrderId',
+            'margin': 'privatePatchMarginOrderClientOrderId',
+        });
+        const response = await this[method] (this.extend (request, query));
         return this.parseOrder (response, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const reduceOnly = this.safeValue2 (params, 'reduce_only', 'reduceOnly');
+        if (reduceOnly !== undefined) {
+            if ((market['type'] !== 'swap') && (market['type'] !== 'margin')) {
+                throw new InvalidOrder (this.id + ' createOrder() does not support reduce_only for ' + market['type'] + ' orders, reduce_only orders are supported for swap and margin markets only');
+            }
+        }
         const request = {
             'type': type,
             'side': side,
             'quantity': this.amountToPrecision (symbol, amount),
             'symbol': market['id'],
+            // 'client_order_id': 'r42gdPjNMZN-H_xs8RKl2wljg_dfgdg4', // Optional
+            // 'time_in_force': 'GTC', // Optional GTC, IOC, FOK, Day, GTD
+            // 'price': this.priceToPrecision (symbol, price), // Required if type is limit, stopLimit, or takeProfitLimit
+            // 'stop_price': this.safeNumber (params, 'stop_price'), // Required if type is stopLimit, stopMarket, takeProfitLimit, takeProfitMarket
+            // 'expire_time': '2021-06-15T17:01:05.092Z', // Required if timeInForce is GTD
+            // 'strict_validate': false,
+            // 'post_only': false, // Optional
+            // 'reduce_only': false, // Optional
+            // 'display_quantity': '0', // Optional
+            // 'take_rate': 0.001, // Optional
+            // 'make_rate': 0.001, // Optional
         };
-        if ((type === 'limit') || (type === 'stopLimit')) {
+        const timeInForce = this.safeString2 (params, 'timeInForce', 'time_in_force');
+        const expireTime = this.safeString (params, 'expire_time');
+        const stopPrice = this.safeNumber2 (params, 'stopPrice', 'stop_price');
+        if ((type === 'limit') || (type === 'stopLimit') || (type === 'takeProfitLimit')) {
             if (price === undefined) {
-                throw new ExchangeError (this.id + ' limit order requires price');
+                throw new ExchangeError (this.id + ' createOrder() requires a price argument for limit orders');
             }
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const response = await this.privatePostSpotOrder (this.extend (request, params));
+        if ((timeInForce === 'GTD')) {
+            if (expireTime === undefined) {
+                throw new ExchangeError (this.id + ' createOrder() requires an expire_time parameter for a GTD order');
+            }
+            request['expire_time'] = expireTime;
+        }
+        if ((type === 'stopLimit') || (type === 'stopMarket') || (type === 'takeProfitLimit') || (type === 'takeProfitMarket')) {
+            if (stopPrice === undefined) {
+                throw new ExchangeError (this.id + ' createOrder() requires a stopPrice parameter for stop-loss and take-profit orders');
+            }
+            request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
+        }
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('createOrder', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'privatePostSpotOrder',
+            'swap': 'privatePostFuturesOrder',
+            'margin': 'privatePostMarginOrder',
+        });
+        const response = await this[method] (this.extend (request, query));
         return this.parseOrder (response, market);
+    }
+
+    async createReduceOnlyOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        const request = {
+            'reduce_only': true,
+        };
+        return await this.createOrder (symbol, type, side, amount, price, this.extend (request, params));
     }
 
     parseOrderStatus (status) {
@@ -1373,6 +1539,25 @@ module.exports = class hitbtc3 extends Exchange {
         //           "taker": true
         //         }
         //       ]
+        //     }
+        //
+        // swap and margin
+        //
+        //     {
+        //         "id": 58418961892,
+        //         "client_order_id": "r42gdPjNMZN-H_xs8RKl2wljg_dfgdg4",
+        //         "symbol": "BTCUSDT_PERP",
+        //         "side": "buy",
+        //         "status": "new",
+        //         "type": "limit",
+        //         "time_in_force": "GTC",
+        //         "quantity": "0.0005",
+        //         "quantity_cumulative": "0",
+        //         "price": "30000.00",
+        //         "post_only": false,
+        //         "reduce_only": false,
+        //         "created_at": "2022-03-16T08:16:53.039Z",
+        //         "updated_at": "2022-03-16T08:16:53.039Z"
         //     }
         //
         const id = this.safeString (order, 'client_order_id');
@@ -1539,6 +1724,7 @@ module.exports = class hitbtc3 extends Exchange {
         };
         if (symbol !== undefined) {
             market = this.market (symbol);
+            symbol = market['symbol'];
             request['symbols'] = market['id'];
         }
         if (since !== undefined) {
@@ -1585,6 +1771,200 @@ module.exports = class hitbtc3 extends Exchange {
         }
         const sorted = this.sortBy (rates, 'timestamp');
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+    }
+
+    async fetchPositions (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        const response = await this.privateGetFuturesAccount (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "symbol": "ETHUSDT_PERP",
+        //             "type": "isolated",
+        //             "leverage": "10.00",
+        //             "created_at": "2022-03-19T07:54:35.24Z",
+        //             "updated_at": "2022-03-19T07:54:58.922Z",
+        //             currencies": [
+        //                 {
+        //                     "code": "USDT",
+        //                     "margin_balance": "7.478100643043",
+        //                     "reserved_orders": "0",
+        //                     "reserved_positions": "0.303530761300"
+        //                 }
+        //             ],
+        //             "positions": [
+        //                 {
+        //                     "id": 2470568,
+        //                     "symbol": "ETHUSDT_PERP",
+        //                     "quantity": "0.001",
+        //                     "price_entry": "2927.509",
+        //                     "price_margin_call": "0",
+        //                     "price_liquidation": "0",
+        //                     "pnl": "0",
+        //                     "created_at": "2022-03-19T07:54:35.24Z",
+        //                     "updated_at": "2022-03-19T07:54:58.922Z"
+        //                 }
+        //             ]
+        //         },
+        //     ]
+        //
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            result.push (this.parsePosition (response[i]));
+        }
+        return result;
+    }
+
+    parsePosition (position, market = undefined) {
+        //
+        //     [
+        //         {
+        //             "symbol": "ETHUSDT_PERP",
+        //             "type": "isolated",
+        //             "leverage": "10.00",
+        //             "created_at": "2022-03-19T07:54:35.24Z",
+        //             "updated_at": "2022-03-19T07:54:58.922Z",
+        //             currencies": [
+        //                 {
+        //                     "code": "USDT",
+        //                     "margin_balance": "7.478100643043",
+        //                     "reserved_orders": "0",
+        //                     "reserved_positions": "0.303530761300"
+        //                 }
+        //             ],
+        //             "positions": [
+        //                 {
+        //                     "id": 2470568,
+        //                     "symbol": "ETHUSDT_PERP",
+        //                     "quantity": "0.001",
+        //                     "price_entry": "2927.509",
+        //                     "price_margin_call": "0",
+        //                     "price_liquidation": "0",
+        //                     "pnl": "0",
+        //                     "created_at": "2022-03-19T07:54:35.24Z",
+        //                     "updated_at": "2022-03-19T07:54:58.922Z"
+        //                 }
+        //             ]
+        //         },
+        //     ]
+        //
+        const marginType = this.safeString (position, 'type');
+        const leverage = this.safeNumber (position, 'leverage');
+        const datetime = this.safeString (position, 'updated_at');
+        const positions = this.safeValue (position, 'positions', []);
+        let liquidationPrice = undefined;
+        let entryPrice = undefined;
+        for (let i = 0; i < positions.length; i++) {
+            const entry = positions[i];
+            liquidationPrice = this.safeNumber (entry, 'price_liquidation');
+            entryPrice = this.safeNumber (entry, 'price_entry');
+        }
+        const currencies = this.safeValue (position, 'currencies', []);
+        let collateral = undefined;
+        for (let i = 0; i < currencies.length; i++) {
+            const entry = currencies[i];
+            collateral = this.safeNumber (entry, 'margin_balance');
+        }
+        const marketId = this.safeString (position, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        return {
+            'info': position,
+            'symbol': symbol,
+            'notional': undefined,
+            'marginType': marginType,
+            'liquidationPrice': liquidationPrice,
+            'entryPrice': entryPrice,
+            'unrealizedPnl': undefined,
+            'percentage': undefined,
+            'contracts': undefined,
+            'contractSize': undefined,
+            'markPrice': undefined,
+            'side': undefined,
+            'hedged': undefined,
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'collateral': collateral,
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'leverage': leverage,
+            'marginRatio': undefined,
+        };
+    }
+
+    async fetchFundingRate (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadSymbol (this.id + ' fetchFundingRate() supports swap contracts only');
+        }
+        const request = {};
+        if (symbol !== undefined) {
+            symbol = market['symbol'];
+            request['symbols'] = market['id'];
+        }
+        const response = await this.publicGetPublicFuturesInfo (this.extend (request, params));
+        //
+        //     {
+        //         "BTCUSDT_PERP": {
+        //             "contract_type": "perpetual",
+        //             "mark_price": "42307.43",
+        //             "index_price": "42303.27",
+        //             "funding_rate": "0.0001",
+        //             "open_interest": "30.9826",
+        //             "next_funding_time": "2022-03-22T16:00:00.000Z",
+        //             "indicative_funding_rate": "0.0001",
+        //             "premium_index": "0",
+        //             "avg_premium_index": "0.000029587712038098",
+        //             "interest_rate": "0.0001",
+        //             "timestamp": "2022-03-22T08:08:26.687Z"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, market['id'], {});
+        return this.parseFundingRate (data, market);
+    }
+
+    parseFundingRate (contract, market = undefined) {
+        //
+        //     {
+        //         "contract_type": "perpetual",
+        //         "mark_price": "42307.43",
+        //         "index_price": "42303.27",
+        //         "funding_rate": "0.0001",
+        //         "open_interest": "30.9826",
+        //         "next_funding_time": "2022-03-22T16:00:00.000Z",
+        //         "indicative_funding_rate": "0.0001",
+        //         "premium_index": "0",
+        //         "avg_premium_index": "0.000029587712038098",
+        //         "interest_rate": "0.0001",
+        //         "timestamp": "2022-03-22T08:08:26.687Z"
+        //     }
+        //
+        const nextFundingDatetime = this.safeString (contract, 'next_funding_time');
+        const datetime = this.safeString (contract, 'timestamp');
+        return {
+            'info': contract,
+            'symbol': this.safeSymbol (undefined, market),
+            'markPrice': this.safeNumber (contract, 'mark_price'),
+            'indexPrice': this.safeNumber (contract, 'index_price'),
+            'interestRate': this.safeNumber (contract, 'interest_rate'),
+            'estimatedSettlePrice': undefined,
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime,
+            'fundingRate': this.safeNumber (contract, 'funding_rate'),
+            'fundingTimestamp': undefined,
+            'fundingDatetime': undefined,
+            'nextFundingRate': this.safeNumber (contract, 'indicative_funding_rate'),
+            'nextFundingTimestamp': this.parse8601 (nextFundingDatetime),
+            'nextFundingDatetime': nextFundingDatetime,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+        };
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

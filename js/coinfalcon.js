@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, AuthenticationError, RateLimitExceeded, ArgumentsRequired } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -54,6 +55,8 @@ module.exports = class coinfalcon extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchTradinFee': false,
+                'fetchTradingFees': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'setLeverage': false,
@@ -413,6 +416,38 @@ module.exports = class coinfalcon extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
+    }
+
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetUserFees (params);
+        //
+        //    {
+        //        data: {
+        //            maker_fee: '0.0',
+        //            taker_fee: '0.2',
+        //            btc_volume_30d: '0.0'
+        //        }
+        //    }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const makerString = this.safeString (data, 'maker_fee');
+        const takerString = this.safeString (data, 'taker_fee');
+        const maker = this.parseNumber (Precise.stringDiv (makerString, '100'));
+        const taker = this.parseNumber (Precise.stringDiv (takerString, '100'));
+        const result = {};
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            result[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': maker,
+                'taker': taker,
+                'percentage': true,
+                'tierBased': true,
+            };
+        }
+        return result;
     }
 
     parseBalance (response) {

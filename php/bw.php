@@ -54,8 +54,8 @@ class bw extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
-                'fetchTradingFee' => null,
-                'fetchTradingFees' => null,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => true,
                 'fetchTradingLimits' => null,
                 'fetchTransactions' => null,
                 'fetchWithdrawals' => true,
@@ -84,7 +84,7 @@ class bw extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
-                    'tierBased' => false,
+                    'tierBased' => true,
                     'percentage' => true,
                     'taker' => $this->parse_number('0.002'),
                     'maker' => $this->parse_number('0.002'),
@@ -561,6 +561,62 @@ class bw extends Exchange {
         //
         $trades = $this->safe_value($response, 'datas', array());
         return $this->parse_trades($trades, $market, $since, $limit);
+    }
+
+    public function fetch_trading_fees($params = array ()) {
+        $this->load_markets();
+        $response = $this->publicGetExchangeConfigControllerWebsiteMarketcontrollerGetByWebId ();
+        //
+        //    {
+        //        resMsg => array( method => null, code => '1', message => 'success !' ),
+        //        $datas => array(
+        //            array(
+        //                leverMultiple => '10',
+        //                amountDecimal => '4',
+        //                minAmount => '0.0100000000',
+        //                modifyUid => null,
+        //                buyerCurrencyId => '11',
+        //                isCombine => '0',
+        //                priceDecimal => '3',
+        //                combineMarketId => '',
+        //                openPrice => '0',
+        //                leverEnable => true,
+        //                $marketId => '291',
+        //                serverId => 'entrust_bw_2',
+        //                isMining => '0',
+        //                webId => '102',
+        //                modifyTime => '1581595375498',
+        //                defaultFee => '0.00200000',
+        //                sellerCurrencyId => '7',
+        //                createTime => '0',
+        //                state => '1',
+        //                name => 'eos_usdt',
+        //                leverType => '2',
+        //                createUid => null,
+        //                orderNum => null,
+        //                openTime => '1574956800000'
+        //            ),
+        //            ...
+        //        )
+        //    }
+        //
+        $datas = $this->safe_value($response, 'datas', array());
+        $result = array();
+        for ($i = 0; $i < count($datas); $i++) {
+            $data = $datas[$i];
+            $marketId = $this->safe_string($data, 'name');
+            $symbol = $this->safe_symbol($marketId, null, '_');
+            $fee = $this->safe_number($data, 'defaultFee');
+            $result[$symbol] = array(
+                'info' => $data,
+                'symbol' => $symbol,
+                'maker' => $fee,
+                'taker' => $fee,
+                'percentage' => true,
+                'tierBased' => true,
+            );
+        }
+        return $result;
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {

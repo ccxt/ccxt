@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -78,7 +71,7 @@ class aax(Exchange):
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
-                'fetchIndexOHLCV': True,
+                'fetchIndexOHLCV': False,
                 'fetchIsolatedPositions': None,
                 'fetchL3OrderBook': None,
                 'fetchLedger': None,
@@ -87,7 +80,7 @@ class aax(Exchange):
                 'fetchLeverageTiers': True,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': True,
-                'fetchMarkOHLCV': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyBuys': None,
                 'fetchMySells': None,
                 'fetchMyTrades': True,
@@ -102,7 +95,7 @@ class aax(Exchange):
                 'fetchPosition': None,
                 'fetchPositions': None,
                 'fetchPositionsRisk': False,
-                'fetchPremiumIndexOHLCV': True,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
                 'fetchTicker': 'emulated',
                 'fetchTickers': True,
@@ -121,7 +114,7 @@ class aax(Exchange):
                 'setMarginMode': False,
                 'setPositionMode': None,
                 'signIn': None,
-                'transfer': None,
+                'transfer': True,
                 'withdraw': None,
             },
             'timeframes': {
@@ -337,6 +330,10 @@ class aax(Exchange):
                     'ETH': 'ERC20',
                     'TRX': 'TRC20',
                     'SOL': 'SPL',
+                },
+                'transfer': {
+                    'fillFromAccountToAccount': True,
+                    'fillAmount': True,
                 },
             },
         })
@@ -884,24 +881,6 @@ class aax(Exchange):
         #
         data = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
-
-    def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        request = {
-            'price': 'mark',
-        }
-        return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
-
-    def fetch_premium_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        request = {
-            'price': 'premiumIndex',
-        }
-        return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
-
-    def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        request = {
-            'price': 'index',
-        }
-        return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
 
     def fetch_balance(self, params={}):
         self.load_markets()
@@ -1669,7 +1648,7 @@ class aax(Exchange):
         #
         # sometimes the timestamp is returned in milliseconds
         timestamp = self.safe_value(order, 'createTime')
-        if isinstance(timestamp, basestring):
+        if isinstance(timestamp, str):
             timestamp = self.parse8601(timestamp)
         status = self.parse_order_status(self.safe_string(order, 'orderStatus'))
         type = self.parse_order_type(self.safe_string(order, 'orderType'))
@@ -1694,7 +1673,7 @@ class aax(Exchange):
         if (Precise.string_equals(filled, '0')) and (Precise.string_equals(remaining, '0')):
             remaining = None
         lastTradeTimestamp = self.safe_value(order, 'transactTime')
-        if isinstance(lastTradeTimestamp, basestring):
+        if isinstance(lastTradeTimestamp, str):
             lastTradeTimestamp = self.parse8601(lastTradeTimestamp)
         fee = None
         feeCost = self.safe_number(order, 'commission')
@@ -2142,7 +2121,7 @@ class aax(Exchange):
                 'datetime': datetime,
             })
         sorted = self.sort_by(rates, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
     def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -2293,6 +2272,69 @@ class aax(Exchange):
             initialMarginRate = Precise.string_add(initialMarginRate, riskIncrImr)
             floor = cap
         return tiers
+
+    def parse_transfer(self, transfer, currency=None):
+        data = self.safe_value(transfer, 'data', {})
+        id = self.safe_string(data, 'transferID')
+        dateTime = self.safe_string(data, 'transferTime')
+        timestamp = self.safe_number(transfer, 'ts')
+        currencyCode = self.safe_string(currency, 'code')
+        responseCode = self.safe_string(transfer, 'code')
+        status = 'canceled'
+        if responseCode == '1':
+            status = 'ok'
+        return {
+            'info': transfer,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': dateTime,
+            'currency': currencyCode,
+            'amount': None,
+            'fromAccount': None,
+            'toAccount': None,
+            'status': status,
+        }
+
+    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        accountTypes = self.safe_value(self.options, 'types', {})
+        fromId = self.safe_string(accountTypes, fromAccount)
+        toId = self.safe_string(accountTypes, toAccount)
+        if fromId is None:
+            keys = list(accountTypes.keys())
+            raise ExchangeError(self.id + ' fromAccount must be one of ' + ', '.join(keys))
+        if toId is None:
+            keys = list(accountTypes.keys())
+            raise ExchangeError(self.id + ' toAccount must be one of ' + ', '.join(keys))
+        request = {
+            'currency': currency['id'],
+            'fromPurse': fromId,
+            'toPurse': toId,
+            'quantity': amount,
+        }
+        response = self.privatePostAccountTransfer(self.extend(request, params))
+        #
+        #     {
+        #         "code": 1,
+        #         "data": {
+        #             "transferID": 888561,
+        #             "transferTime": "2022-03-22T15:29:05.197Z"
+        #         },
+        #         "message": "success",
+        #         "ts": 1647962945151
+        #     }
+        #
+        transfer = self.parse_transfer(response, currency)
+        transferOptions = self.safe_value(self.options, 'transfer', {})
+        fillFromAccountToAccount = self.safe_value(transferOptions, 'fillFromAccountToAccount', True)
+        fillAmount = self.safe_value(transferOptions, 'fillAmount', True)
+        if fillFromAccountToAccount:
+            transfer['fromAccount'] = fromAccount
+            transfer['toAccount'] = toAccount
+        if fillAmount:
+            transfer['amount'] = amount
+        return transfer
 
     def nonce(self):
         return self.milliseconds()

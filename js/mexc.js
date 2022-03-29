@@ -176,6 +176,7 @@ module.exports = class mexc extends Exchange {
                             'market/depth': 1,
                             'market/deals': 1,
                             'market/kline': 1,
+                            'market/api_default_symbols': 2,
                         },
                     },
                     'private': {
@@ -190,15 +191,21 @@ module.exports = class mexc extends Exchange {
                             'asset/deposit/list': 2,
                             'asset/address/list': 2,
                             'asset/withdraw/list': 2,
+                            'asset/internal/transfer/record': 10,
+                            'account/balance': 10,
+                            'asset/internal/transfer/info': 10,
+                            'market/api_symbols': 2,
                         },
                         'post': {
                             'order/place': 1,
                             'order/place_batch': 1,
-                            'asset/withdraw': 1,
+                            'asset/withdraw': 2,
+                            'asset/internal/transfer': 10,
                         },
                         'delete': {
                             'order/cancel': 1,
                             'order/cancel_by_symbol': 1,
+                            'asset/withdraw': 2,
                         },
                     },
                 },
@@ -455,11 +462,6 @@ module.exports = class mexc extends Exchange {
             };
         }
         return result;
-    }
-
-    async fetchMarketsByType (type, params = {}) {
-        const method = 'fetch_' + type + '_markets';
-        return await this[method] (params);
     }
 
     async fetchMarkets (params = {}) {
@@ -1713,10 +1715,11 @@ module.exports = class mexc extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (market['spot']) {
-            return await this.createSpotOrder (symbol, type, side, amount, price, params);
-        } else if (market['swap']) {
-            return await this.createSwapOrder (symbol, type, side, amount, price, params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('createOrder', market, params);
+        if (marketType === 'spot') {
+            return await this.createSpotOrder (symbol, type, side, amount, price, query);
+        } else if (marketType === 'swap') {
+            return await this.createSwapOrder (symbol, type, side, amount, price, query);
         }
     }
 
@@ -1780,7 +1783,7 @@ module.exports = class mexc extends Exchange {
         }
         const request = {
             'symbol': market['id'],
-            'price': parseFloat (this.priceToPrecision (symbol, price)),
+            // 'price': parseFloat (this.priceToPrecision (symbol, price)),
             'vol': parseFloat (this.amountToPrecision (symbol, amount)),
             // 'leverage': int, // required for isolated margin
             'side': side, // 1 open long, 2 close short, 3 open short, 4 close long
@@ -1798,9 +1801,26 @@ module.exports = class mexc extends Exchange {
             'openType': openType, // 1 isolated, 2 cross
             // 'positionId': 1394650, // long, filling in this parameter when closing a position is recommended
             // 'externalOid': clientOrderId,
-            // 'stopLossPrice': this.priceToPrecision (symbol, stopLossPrice),
-            // 'takeProfitPrice': this.priceToPrecision (symbol, takeProfitPrice),
+            // 'triggerPrice': 10.0, // Required for trigger order
+            // 'triggerType': 1, // Required for trigger order 1: more than or equal, 2: less than or equal
+            // 'executeCycle': 1, // Required for trigger order 1: 24 hours,2: 7 days
+            // 'trend': 1, // Required for trigger order 1: latest price, 2: fair price, 3: index price
+            // 'orderType': 1, // Required for trigger order 1: limit order,2:Post Only Maker,3: close or cancel instantly ,4: close or cancel completely,5: Market order
         };
+        let method = 'contractPrivatePostOrderSubmit';
+        const stopPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
+        params = this.omit (params, [ 'stopPrice', 'triggerPrice' ]);
+        if (stopPrice !== undefined) {
+            method = 'contractPrivatePostPlanorderPlace';
+            request['triggerPrice'] = this.priceToPrecision (symbol, stopPrice);
+            request['triggerType'] = this.safeInteger (params, 'triggerType', 1);
+            request['executeCycle'] = this.safeInteger (params, 'executeCycle', 1);
+            request['trend'] = this.safeInteger (params, 'trend', 1);
+            request['orderType'] = this.safeInteger (params, 'orderType', 1);
+        }
+        if ((type !== 5) && (type !== 6) && (type !== 'market')) {
+            request['price'] = parseFloat (this.priceToPrecision (symbol, price));
+        }
         if (openType === 1) {
             const leverage = this.safeInteger (params, 'leverage');
             if (leverage === undefined) {
@@ -1812,9 +1832,13 @@ module.exports = class mexc extends Exchange {
             request['externalOid'] = clientOrderId;
         }
         params = this.omit (params, [ 'clientOrderId', 'externalOid', 'postOnly' ]);
-        const response = await this.contractPrivatePostOrderSubmit (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
+        // Swap
         //     {"code":200,"data":"2ff3163e8617443cb9c6fc19d42b1ca4"}
+        //
+        // Trigger
+        //     {"success":true,"code":0,"data":259208506303929856}
         //
         return this.parseOrder (response, market);
     }
@@ -2509,7 +2533,7 @@ module.exports = class mexc extends Exchange {
             });
         }
         const sorted = this.sortBy (rates, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
     }
 
     async fetchLeverageTiers (symbols = undefined, params = {}) {
