@@ -14,9 +14,10 @@ class Precise {
             // assert(gettype($number) === 'string');
             $modifier = 0;
             $number = strtolower($number);
-            if (strpos($number, 'e') > -1) {
-                list($number, $modifier) = explode('e', $number);
-                $modifier = intval($modifier);
+            $epos = strpos($number, 'e');
+            if ($epos > -1) {
+                $modifier = intval(substr($number, $epos+1));
+                $number = substr($number, 0, $epos);
             }
             $decimalIndex = strpos($number, '.');
             if ($decimalIndex > -1) {
