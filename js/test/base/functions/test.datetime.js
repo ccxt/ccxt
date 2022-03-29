@@ -1,8 +1,8 @@
 'use strict'
 
-const ccxt = require ('../../../../ccxt');
-const assert = require ('assert');
-const { ROUND_UP, ROUND_DOWN } = require ('../../../base/functions/misc');
+import { ccxt }  from '../../../../ccxt.js';
+import assert  from 'assert.js';
+import { ROUND_UP, ROUND_DOWN }  from '../../../base/functions/misc.js';
 
 const exchange = new ccxt.Exchange ({
     'id': 'regirock',

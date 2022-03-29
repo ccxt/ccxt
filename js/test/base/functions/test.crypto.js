@@ -1,7 +1,7 @@
-const { hash, ecdsa, jwt } = require ('../../../base/functions/crypto')
-const { encode } = require ('../../../base/functions/encode')
-const Exchange = require ('../../../base/Exchange');
-const assert = require ('assert')
+import { hash, ecdsa, jwt } from '../../../base/functions/crypto.js'
+import { encode } from '../../../base/functions/encode.js'
+import { Exchange } from '../../../base/Exchange.js'
+import assert from 'assert'
 
 function equals (a, b) {
     // does not check if b has more properties than a

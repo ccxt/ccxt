@@ -1,9 +1,7 @@
-'use strict'
-
 /*  ------------------------------------------------------------------------ */
 
-const { safeFloat, safeInteger, safeValue } = require ('../../../../ccxt')
-const { strictEqual: equal, deepEqual } = require ('assert')
+import { safeFloat, safeInteger, safeValue } from '../../../../ccxt.js'
+import { equal, deepEqual } from 'assert.js'
 
 /*  ------------------------------------------------------------------------ */
 

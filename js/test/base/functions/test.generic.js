@@ -2,8 +2,8 @@
 
 /*  ------------------------------------------------------------------------ */
 
-const { deepExtend, groupBy, filterBy, omit, sum, sortBy } = require ('../../../../ccxt')
-const { strictEqual: equal, deepEqual } = require ('assert')
+import { deepExtend, groupBy, filterBy, omit, sum, sortBy } from '../../../../ccxt.js'
+import { strictEqual, equal, deepEqual } from 'assert'
 
 /*  ------------------------------------------------------------------------ */
 
