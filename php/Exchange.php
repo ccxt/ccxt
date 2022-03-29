@@ -3119,12 +3119,13 @@ class Exchange {
         $splitted = explode('E', $s);
         $number = rtrim(rtrim($splitted[0], '0'), '.');
         $exp = (int) $splitted[1];
-        $len_after_dot = 0;
-        if (strpos($number, '.') !== false) {
-            $splitted = explode('.', $number);
-            $len_after_dot = strlen($splitted[1]);
+        $pointIndex = strpos($number, '.');
+        if ($pointIndex !== false) {
+            $len_after_dot = strlen($number) - $pointIndex - 1;
+            $number = str_replace('.', '', $number);
+        } else {
+            $len_after_dot = 0;
         }
-        $number = str_replace('.', '', $number);
         if ($exp > 0) {
             $zeros = str_repeat('0', $exp - $len_after_dot);
             $s = $sign . $number . $zeros;
