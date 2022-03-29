@@ -1728,26 +1728,7 @@ module.exports = class ftx extends Exchange {
         // Note, the below types use non-standard endpoints, look through the implementation to understand better (It might better to use `fetchOrders/fetchOpenOrder` to get your trigger order's details)
         if ((type === 'stop') || (type === 'trailingStop') || (type === 'takeProfit')) {
             if (method === 'privateGetConditionalOrdersConditionalOrderIdTriggers') {
-                request['conditional_order_id'] = id;
-                const response = await this[method] (this.extend (request, params));
-                // Note: if endpoint retuns non-empy "result" property, then it means order had fill (and returns the order reference ID, which is not same order-id as provided id for `fetchOrder` )
-                //
-                // {
-                //     "success": true,
-                //     "result": [
-                //         {
-                //             "time": "2022-03-29T04:54:04.390665+00:00",
-                //             "orderId": 132144259673,
-                //             "error": null,
-                //             "orderSize": 0.1234,
-                //             "filledSize": 0.1234
-                //         }
-                //     ]
-                // }
-                //
-                const result = this.safeValue (response, 'result');
-                // It seems one order is being retrieved from above endpoint
-                const order = this.safeValue (result, 0, {});
+                const order = await this.fetchConditionalTriggersHelper (id, params);
                 order['trigger_order_flag'] = true;
                 return this.extend (this.parseOrder (order, market), { 'id': id });
             } else {
@@ -1793,6 +1774,31 @@ module.exports = class ftx extends Exchange {
             const result = this.safeValue (response, 'result', {});
             return this.parseOrder (result, market);
         }
+    }
+
+    async fetchConditionalTriggersHelper (id, params = {}) {
+        const request = {
+            'conditional_order_id': id,
+        };
+        const response = await this.privateGetConditionalOrdersConditionalOrderIdTriggers (this.extend (request, params));
+        // Note: if endpoint retuns non-empy "result" property, then it means order had fill (and returns the order reference ID, which is not same order-id as provided id for `fetchOrder` )
+        //
+        // {
+        //     "success": true,
+        //     "result": [
+        //         {
+        //             "time": "2022-03-29T04:54:04.390665+00:00",
+        //             "orderId": 132144259673,
+        //             "error": null,
+        //             "orderSize": 0.1234,
+        //             "filledSize": 0.1234
+        //         }
+        //     ]
+        // }
+        //
+        // Also note, the above endpoint seems to return one object in array
+        const result = this.safeValue (response, 'result');
+        return this.safeValue (result, 0, {});
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1899,7 +1905,21 @@ module.exports = class ftx extends Exchange {
         const request = {
             'orderId': id,
         };
-        return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
+        const type = this.safeValue (params, 'type');
+        if ((type === 'stop') || (type === 'trailingStop') || (type === 'takeProfit')) {
+            const order = await this.fetchConditionalTriggersHelper (id, params);
+            const orderId = this.safeString (order, 'orderId');
+            // if reference order-id is found, then that id is the real order-id
+            if (orderId !== undefined) {
+                return await this.fetchOrderTrades (id, symbol, since, limit, params);
+            } else {
+                // if order-id was not found, then it's empty object
+                const market = (symbol !== undefined) ? this.market (symbol) : undefined;
+                return this.parseTrades ([], market, since, limit);
+            }
+        } else {
+            return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
+        }
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
