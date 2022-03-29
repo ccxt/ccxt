@@ -2981,6 +2981,11 @@ class Exchange {
             }
         }
         
+        $negative = $x[0] === '-';
+        if ($negative) {
+            $x = substr($x,1);
+        }
+        
         $pointIndex = strpos( $x, '.');
         $xlen = strlen($x);
         if ($pointIndex === false) {
@@ -3015,7 +3020,7 @@ class Exchange {
                 $p2++;
             }
             $carry = 0;
-            while ((($p >= 0) and ($p < $xlen) and ($x[$p] != '-')) or ($p2 >= 0)) {
+            while (($p2 >= 0) or (($p >= 0) and ($p < $xlen))) {
                 if (($p2 >= $xlen) or (ord($x[$p2]) - ord('0') + 10 * $carry < 5 )) {
                     break;
                 }
@@ -3046,8 +3051,8 @@ class Exchange {
                 if (($p !== -1) and ($x[$p] === '.')) {
                     $p--;
                 }
-                if (($p === -1) or ($x[$p] === '-')) {
-                    $x = substr($x,0,$p+1) . chr(ord('0') + $carry) . substr($x,$p+1);
+                if ($p === -1) {
+                    $x = chr(ord('0') + $carry) . $x;
                     $xlen++;
                     $p++;
                     $pointIndex++;
@@ -3058,7 +3063,7 @@ class Exchange {
                 }
             }
         }
-        if (($lastDigitPos < 0) or (($lastDigitPos < $xlen) and ($x[$lastDigitPos] == '-'))) {
+        if ($lastDigitPos < 0) {
             return '0';
         }
         if (($pointIndex !== $xlen) and ($lastDigitPos+1<$xlen)) {
@@ -3093,8 +3098,15 @@ class Exchange {
         if ($hasDot) {
             $result = rtrim($result, '.');
         }
-        if (($result === '-0') || ($result === '-0.' . str_repeat('0', max(strlen($result) - 3, 0)))) {
-            $result = substr($result, 1);
+        if ($negative) {
+            $p = 0;
+            $resultlen = strlen($result);
+            while (($p < $resultlen) and (($result[$p] === '0') or ($result[$p] === '.'))) {
+                $p++;
+            }
+            if ($p !== $resultlen) {
+                $result = '-' . $result;
+            }
         }
         
         return $result;
