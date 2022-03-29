@@ -2921,32 +2921,36 @@ class Exchange {
             } else {
                 $denominator = $numPrecisionDigitsP->integer;
             }
-            $result = gmp_div_qr($numerator, $denominator, GMP_ROUND_MINUSINF);
-            $quotientInteger = $result[0];
-            $remainderInteger = $result[1];
+            $remainderInteger = gmp_div_r($numerator, $denominator, GMP_ROUND_MINUSINF);
             
             if (gmp_cmp($remainderInteger, 0) != 0) {
-                $remainderDecimals = $rationizerDenominator + $numPrecisionDigitsP->decimals;
                 if ($roundingMode === ROUND) {
                     $doubleRemainderInteger = gmp_mul($remainderInteger, 2);
-                    if (gmp_cmp($quotientInteger,0)>0) {
+                    if (gmp_cmp($numerator,0)>0) {
                         if (gmp_cmp($doubleRemainderInteger,$denominator) >= 0) {
-                            $quotientInteger = gmp_add($quotientInteger,1);
+                            $xP->integer = gmp_add($numerator, gmp_sub($denominator, $remainderInteger));
+                        } else {
+                            $xP->integer = gmp_sub($numerator, $remainderInteger);
                         }
                     } else {
                         if (gmp_cmp($doubleRemainderInteger,$denominator) > 0) {
-                            $quotientInteger = gmp_add($quotientInteger,1);
+                            $xP->integer = gmp_add($numerator, gmp_sub($denominator, $remainderInteger));
+                        } else {
+                            $xP->integer = gmp_sub($numerator, $remainderInteger);
                         }
                     }
                 } elseif ($roundingMode === TRUNCATE) {
-                    if (gmp_cmp($quotientInteger,0)<0) {
+                    if (gmp_cmp($numerator,0)<0) {
                         if (gmp_cmp($remainderInteger,0)>0) {
-                            $quotientInteger = gmp_add($quotientInteger,1);
+                            $xP->integer = gmp_add($numerator, gmp_sub($denominator, $remainderInteger));
+                        } else {
+                            $xP->integer = gmp_sub($numerator, $remainderInteger);
                         }
+                    } else {
+                        $xP->integer = gmp_sub($numerator, $remainderInteger);
                     }
                 }
-                $resultInteger = gmp_mul($quotientInteger,$denominator);
-                $xP = new Precise($resultInteger,$remainderDecimals);
+                $xP->decimals = $rationizerDenominator + $numPrecisionDigitsP->decimals;
             }
             $x = strval($xP);
             $roundingMode = ROUND;
