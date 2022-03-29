@@ -535,16 +535,17 @@ module.exports = class lbank2 extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        if (limit === undefined) {
-            throw new ArgumentsRequired (this.id + 'fetchTrades () requires a limit argument');
-        }
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'size': limit, // max
         };
         if (since !== undefined) {
             request['time'] = since;
+        }
+        if (limit !== undefined) {
+            request['size'] = limit;
+        } else {
+            request['size'] = 600; // max
         }
         let method = this.safeString (params, 'method');
         params = this.omit (params, 'method');
