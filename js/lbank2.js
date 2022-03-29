@@ -103,7 +103,7 @@ module.exports = class lbank2 extends Exchange {
                         'incrDepth': 2.5,
                         'trades': 2.5,
                         'kline': 2.5,
-                        // new quote endpoints (testing)
+                        // new quote endpoints
                         'supplement/system_ping': 2.5,
                         'supplement/incrDepth': 2.5,
                         'supplement/trades': 2.5,
@@ -411,7 +411,7 @@ module.exports = class lbank2 extends Exchange {
         //          "error_code":0,"ts":1647005190755
         //      }
         //
-        const result = this.safeValue (response, 'data')[0];
+        const result = this.safeValue (this.safeValue (response, 'data', []), 0, {});
         return this.parseTicker (result, market);
     }
 
@@ -489,8 +489,8 @@ module.exports = class lbank2 extends Exchange {
         let takerOrMaker = undefined;
         if (side !== undefined) {
             const parts = side.split ('_');
-            side = parts[0];
-            const typePart = parts[1];
+            side = this.safeString(parts, 0);
+            const typePart = this.safeString (parts, 1);
             type = 'limit';
             takerOrMaker = 'taker';
             if (typePart !== undefined) {
