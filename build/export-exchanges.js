@@ -11,7 +11,7 @@ import { replaceInFile } from './fsLocal.js'
 import execSync from 'child_process'
 import log       from 'ololog'
 import ansi      from 'ansicolor'
-
+import { pathToFileURL } from 'url'
 
 const { keys, values, entries, fromEntries } = Object
 
@@ -490,8 +490,10 @@ async function exportEverything () {
 
 // ============================================================================
 // main entry point
-
-if (true || import.meta.url === `file://${process.argv[1]}`) {
+let metaUrl = import.meta.url
+metaUrl = metaUrl.substring(0, metaUrl.lastIndexOf(".")) // remove extension
+const url = pathToFileURL(process.argv[1]);
+if (metaUrl === url.href) {
 
     // if called directly like `node module`
 

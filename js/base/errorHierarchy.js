@@ -42,6 +42,4 @@ const errorHierarchy = {
     },
 };
 
-export {
-    errorHierarchy
-}
+export { errorHierarchy }

@@ -2,26 +2,20 @@
 // Usage: npm run transpile
 // ---------------------------------------------------------------------------
 
-"use strict";
 
-const fs = require ('fs')
-    , log = require ('ololog').unlimited
-    , _ = require ('ansicolor').nice
-    , errors = require ('../js/base/errors.js')
-    , functions = require ('../js/base/functions.js')
-    , {
-        unCamelCase,
-        precisionConstants,
-        safeString,
-        unique,
-    } = functions
-    , { basename } = require ('path')
-    , {
-        createFolderRecursively,
-        replaceInFile,
-        overwriteFile,
-    } = require ('./fs.js')
-    , Exchange = require ('../js/base/Exchange.js')
+import fs from 'fs'
+import log from 'ololog'
+import ansi from 'ansicolor'
+import * as errors from "../js/base/errors.js"
+import {unCamelCase, precisionConstants, safeString, unique} from "../js/base/functions.js"
+import { Exchange } from '../js/base/Exchange.js'
+import { basename } from 'path'
+import { createFolderRecursively, replaceInFile, overwriteFile } from './fsLocal.js'
+import { pathToFileURL } from 'url'
+import { errorHierarchy } from '../js/base/errorHierarchy.js'
+
+ansi.nice
+
 
 class Transpiler {
 
@@ -969,7 +963,7 @@ class Transpiler {
     // ------------------------------------------------------------------------
 
     getExchangeClassDeclarationMatches (contents) {
-        return contents.match (/^module\.exports\s*=\s*class\s+([\S]+)\s+extends\s+([\S]+)\s+{([\s\S]+?)^};*/m)
+        return contents.match (/^export default\s*class\s+([\S]+)\s+extends\s+([\S]+)\s+{([\s\S]+?)^};*/m)
     }
 
     // ------------------------------------------------------------------------
@@ -1243,12 +1237,13 @@ class Transpiler {
     transpileErrorHierarchy () {
 
         const errorHierarchyFilename = './js/base/errorHierarchy.js'
-        const errorHierarchy = require ('.' + errorHierarchyFilename)
+        // const errorHierarchy = require ('.' + errorHierarchyFilename)
 
         let js = fs.readFileSync (errorHierarchyFilename, 'utf8')
 
         js = this.regexAll (js, [
-            [ /module\.exports = [^\;]+\;\n/s, '' ],
+            [ /export { [^\;]+\s*\}\n/s, '' ], // new esm
+            // [ /module\.exports = [^\;]+\;\n/s, '' ], // old commonjs
         ]).trim ()
 
         const message = 'Transpiling error hierachy →'
@@ -1694,8 +1689,10 @@ class Transpiler {
 
 // ============================================================================
 // main entry point
-
-if (require.main === module) { // called directly like `node module`
+let metaUrl = import.meta.url
+metaUrl = metaUrl.substring(0, metaUrl.lastIndexOf(".")) // remove extension
+const url = pathToFileURL(process.argv[1]);
+if (metaUrl === url.href) { // called directly like `node module`
 
     const transpiler = new Transpiler ()
     const test = process.argv.includes ('--test') || process.argv.includes ('--tests')
@@ -1717,4 +1714,6 @@ if (require.main === module) { // called directly like `node module`
 
 // ============================================================================
 
-module.exports = Transpiler
+export {
+    Transpiler
+}
