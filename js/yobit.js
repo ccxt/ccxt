@@ -1,9 +1,9 @@
 
 // ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange';
-import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InvalidNonce, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError, RateLimitExceeded } from './base/errors';
-import { Precise } from './base/Precise';
+import { Exchange } from './base/Exchange.js';
+import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InvalidNonce, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError, RateLimitExceeded } from './base/errors.js';
+import { Precise } from './base/Precise.js';
 
 // ---------------------------------------------------------------------------
 

@@ -1,9 +1,9 @@
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange';
-import { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds, ArgumentsRequired } from './base/errors';
-import { Precise } from './base/Precise';
-import { TICK_SIZE } from './base/functions/number';
+import { Exchange } from './base/Exchange.js';
+import { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds, ArgumentsRequired } from './base/errors.js';
+import { Precise } from './base/Precise.js';
+import { TICK_SIZE } from './base/functions/number.js';
 
 // ---------------------------------------------------------------------------
 

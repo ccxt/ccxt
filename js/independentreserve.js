@@ -1,8 +1,8 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange';
-import { Precise } from './base/Precise';
+import { Exchange } from './base/Exchange.js';
+import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 

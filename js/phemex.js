@@ -1,10 +1,10 @@
 
 // ----------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange';
-import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, BadRequest, PermissionDenied, AccountSuspended, CancelPending, DDoSProtection, DuplicateOrderId, RateLimitExceeded } from './base/errors';
-import { Precise } from './base/Precise';
-import { TICK_SIZE } from './base/functions/number';
+import { Exchange } from './base/Exchange.js';
+import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, BadRequest, PermissionDenied, AccountSuspended, CancelPending, DDoSProtection, DuplicateOrderId, RateLimitExceeded } from './base/errors.js';
+import { Precise } from './base/Precise.js';
+import { TICK_SIZE } from './base/functions/number.js';
 
 // ----------------------------------------------------------------------------
 

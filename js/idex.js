@@ -1,10 +1,10 @@
 
 // ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange';
-import { PAD_WITH_ZERO } from './base/functions/number';
-import { InvalidOrder, InsufficientFunds, ExchangeError, ExchangeNotAvailable, DDoSProtection, BadRequest, NotSupported, InvalidAddress, AuthenticationError } from './base/errors';
-import { Precise } from './base/Precise';
+import { Exchange } from './base/Exchange.js';
+import { PAD_WITH_ZERO } from './base/functions/number.js';
+import { InvalidOrder, InsufficientFunds, ExchangeError, ExchangeNotAvailable, DDoSProtection, BadRequest, NotSupported, InvalidAddress, AuthenticationError } from './base/errors.js';
+import { Precise } from './base/Precise.js';
 
 // ---------------------------------------------------------------------------
 

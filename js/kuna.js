@@ -1,9 +1,9 @@
 
 // ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange';
-import { ArgumentsRequired, InsufficientFunds, OrderNotFound, NotSupported } from './base/errors';
-import { Precise } from './base/Precise';
+import { Exchange } from './base/Exchange.js';
+import { ArgumentsRequired, InsufficientFunds, OrderNotFound, NotSupported } from './base/errors.js';
+import { Precise } from './base/Precise.js';
 
 // ---------------------------------------------------------------------------
 

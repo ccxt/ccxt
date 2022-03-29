@@ -1,9 +1,9 @@
 
 //  ---------------------------------------------------------------------------
 
-import { ArgumentsRequired, ExchangeNotAvailable, InvalidOrder, InsufficientFunds, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, RateLimitExceeded, PermissionDenied } from './base/errors';
-import { Precise } from './base/Precise';
-import { TICK_SIZE } from './base/functions/number';
+import { ArgumentsRequired, ExchangeNotAvailable, InvalidOrder, InsufficientFunds, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, RateLimitExceeded, PermissionDenied } from './base/errors.js';
+import { Precise } from './base/Precise.js';
+import { TICK_SIZE } from './base/functions/number.js';
 import kucoin from './kucoin.js';
 
 //  ---------------------------------------------------------------------------

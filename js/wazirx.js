@@ -1,7 +1,7 @@
 
-import { Exchange } from './base/Exchange';
-import { ExchangeError, BadRequest, RateLimitExceeded, BadSymbol, ArgumentsRequired, PermissionDenied, InsufficientFunds, InvalidOrder } from './base/errors';
-import { Precise } from './base/Precise';
+import { Exchange } from './base/Exchange.js';
+import { ExchangeError, BadRequest, RateLimitExceeded, BadSymbol, ArgumentsRequired, PermissionDenied, InsufficientFunds, InvalidOrder } from './base/errors.js';
+import { Precise } from './base/Precise.js';
 
 export default class wazirx extends Exchange {
     describe () {

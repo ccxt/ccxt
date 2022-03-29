@@ -1,10 +1,10 @@
 
 // ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange';
-import { ExchangeError, OrderNotFound, InvalidOrder, BadRequest, AuthenticationError, RateLimitExceeded, RequestTimeout, BadSymbol, AddressPending, PermissionDenied, InsufficientFunds } from './base/errors';
-import { Precise } from './base/Precise';
-import { ROUND } from './base/functions/number';
+import { Exchange } from './base/Exchange.js';
+import { ExchangeError, OrderNotFound, InvalidOrder, BadRequest, AuthenticationError, RateLimitExceeded, RequestTimeout, BadSymbol, AddressPending, PermissionDenied, InsufficientFunds } from './base/errors.js';
+import { Precise } from './base/Precise.js';
+import { ROUND } from './base/functions/number.js';
 
 // ---------------------------------------------------------------------------
 

@@ -1,9 +1,9 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange';
-import { ArgumentsRequired, ExchangeError, InvalidNonce, AuthenticationError, PermissionDenied } from './base/errors';
-import { Precise } from './base/Precise';
+import { Exchange } from './base/Exchange.js';
+import { ArgumentsRequired, ExchangeError, InvalidNonce, AuthenticationError, PermissionDenied } from './base/errors.js';
+import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 

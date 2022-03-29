@@ -1,10 +1,10 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange';
-import { ExchangeError, ExchangeNotAvailable, BadResponse, BadRequest, InvalidOrder, InsufficientFunds, AuthenticationError, ArgumentsRequired, InvalidAddress, RateLimitExceeded, DDoSProtection, BadSymbol } from './base/errors';
-import { Precise } from './base/Precise';
-import { TRUNCATE, TICK_SIZE } from './base/functions/number';
+import { Exchange } from './base/Exchange.js';
+import { ExchangeError, ExchangeNotAvailable, BadResponse, BadRequest, InvalidOrder, InsufficientFunds, AuthenticationError, ArgumentsRequired, InvalidAddress, RateLimitExceeded, DDoSProtection, BadSymbol } from './base/errors.js';
+import { Precise } from './base/Precise.js';
+import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
 

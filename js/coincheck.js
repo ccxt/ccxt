@@ -1,8 +1,8 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange';
-import { BadSymbol, ExchangeError, AuthenticationError } from './base/errors';
+import { Exchange } from './base/Exchange.js';
+import { BadSymbol, ExchangeError, AuthenticationError } from './base/errors.js';
 
 //  ---------------------------------------------------------------------------
 

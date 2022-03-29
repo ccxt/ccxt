@@ -1,10 +1,10 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange';
-import { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, CancelPending, OrderNotFound, InsufficientFunds, RateLimitExceeded, InvalidOrder, AccountSuspended, BadSymbol, OnMaintenance, ArgumentsRequired } from './base/errors';
-import { Precise } from './base/Precise';
-import { TRUNCATE } from './base/functions/number';
+import { Exchange } from './base/Exchange.js';
+import { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, CancelPending, OrderNotFound, InsufficientFunds, RateLimitExceeded, InvalidOrder, AccountSuspended, BadSymbol, OnMaintenance, ArgumentsRequired } from './base/errors.js';
+import { Precise } from './base/Precise.js';
+import { TRUNCATE } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
 

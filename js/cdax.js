@@ -1,9 +1,9 @@
 
 // ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange';
-import { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, ArgumentsRequired, BadSymbol, BadRequest, RequestTimeout, NetworkError } from './base/errors';
-import { TRUNCATE } from './base/functions/number';
+import { Exchange } from './base/Exchange.js';
+import { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, ArgumentsRequired, BadSymbol, BadRequest, RequestTimeout, NetworkError } from './base/errors.js';
+import { TRUNCATE } from './base/functions/number.js';
 
 // ---------------------------------------------------------------------------
 

@@ -1,8 +1,8 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange';
-import { ExchangeError, ArgumentsRequired, OrderNotFound } from './base/errors';
+import { Exchange } from './base/Exchange.js';
+import { ExchangeError, ArgumentsRequired, OrderNotFound } from './base/errors.js';
 
 //  ---------------------------------------------------------------------------
 

@@ -1,8 +1,8 @@
 
 // ---------------------------------------------------------------------------
 
-import { ExchangeError, InvalidAddress, ArgumentsRequired, InsufficientFunds, AuthenticationError, OrderNotFound, InvalidOrder, BadRequest, InvalidNonce, BadSymbol, OnMaintenance, NotSupported, PermissionDenied, ExchangeNotAvailable } from './base/errors';
-import { Precise } from './base/Precise';
+import { ExchangeError, InvalidAddress, ArgumentsRequired, InsufficientFunds, AuthenticationError, OrderNotFound, InvalidOrder, BadRequest, InvalidNonce, BadSymbol, OnMaintenance, NotSupported, PermissionDenied, ExchangeNotAvailable } from './base/errors.js';
+import { Precise } from './base/Precise.js';
 import bitfinex from './bitfinex.js';
 
 // ---------------------------------------------------------------------------

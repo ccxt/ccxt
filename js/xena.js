@@ -1,7 +1,7 @@
 
-import { Exchange } from './base/Exchange';
-import { ExchangeError, ArgumentsRequired, BadRequest, InsufficientFunds, InvalidAddress, BadSymbol, InvalidOrder } from './base/errors';
-import { Precise } from './base/Precise';
+import { Exchange } from './base/Exchange.js';
+import { ExchangeError, ArgumentsRequired, BadRequest, InsufficientFunds, InvalidAddress, BadSymbol, InvalidOrder } from './base/errors.js';
+import { Precise } from './base/Precise.js';
 
 export default class xena extends Exchange {
     describe () {
