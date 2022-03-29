@@ -3060,7 +3060,7 @@ class Exchange {
             return '0';
         }
         if (($pointIndex !== $xlen) and ($lastDigitPos+1<$xlen)) {
-            $lastDigitPos1 = max($pointIndex,$lastDigitPos)+1;
+            $lastDigitPos1 = ($pointIndex > $lastDigitPos ? $pointIndex : $lastDigitPos) + 1;
             $x = substr($x,0,$lastDigitPos1) . str_repeat('0',$xlen-$lastDigitPos1);
         }
         if ($lastDigitPos+1<$pointIndex) {
