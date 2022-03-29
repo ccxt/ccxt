@@ -3110,6 +3110,12 @@ class Exchange {
         if (strpos($s, 'E') === false) {
             return $s;
         }
+        if ($x < 0) {
+            $sign = '-';
+            $s = substr($s,1);
+        } else {
+            $sign = '';
+        }
         $splitted = explode('E', $s);
         $number = rtrim(rtrim($splitted[0], '0'), '.');
         $exp = (int) $splitted[1];
@@ -3118,8 +3124,7 @@ class Exchange {
             $splitted = explode('.', $number);
             $len_after_dot = strlen($splitted[1]);
         }
-        $number = str_replace(array('.', '-'), '', $number);
-        $sign = ($x < 0) ? '-' : '';
+        $number = str_replace('.', '', $number);
         if ($exp > 0) {
             $zeros = str_repeat('0', $exp - $len_after_dot);
             $s = $sign . $number . $zeros;
