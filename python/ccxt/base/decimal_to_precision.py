@@ -79,12 +79,11 @@ def decimal_to_precision(x, rounding_mode=ROUND, num_precision_digits=None, coun
 
         if rem != 0:
             if rounding_mode == ROUND:
-                one_integer = x_p.base ** rationizerDenominator
                 if quotient_integer > 0:
-                    if rem * 2 >= precision_p.integer * one_integer:
+                    if rem * 2 >= denominator:
                         quotient_integer += 1
                 else:
-                    if rem * 2 > precision_p.integer * one_integer:
+                    if rem * 2 > denominator:
                         quotient_integer += 1
             elif rounding_mode == TRUNCATE:
                 if quotient_integer < 0:
