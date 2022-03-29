@@ -15,19 +15,16 @@ import ansi      from 'ansicolor'//.nice
 
 const { keys, values, entries, fromEntries } = Object
 
-asTable.configure ({
-        delimiter: '|',
-        print: (x) => ' ' + x + ' '
-})
+const unlimitedLog = log.unlimited;
 // execSync = execSync
-// log = log.unlimited
-// ansi = ansi.nice
+log.unlimited
+ansi.nice
 // ----------------------------------------------------------------------------
 
 function cloneGitHubWiki (gitWikiPath) {
 
     if (!fs.existsSync (gitWikiPath)) {
-        log.bright.cyan ('Cloning ccxt.wiki...')
+        unlimitedLog.bright.cyan ('Cloning ccxt.wiki...')
         execSync ('git clone https://github.com/ccxt/ccxt.wiki.git ' + gitWikiPath)
     }
 }
@@ -35,7 +32,7 @@ function cloneGitHubWiki (gitWikiPath) {
 // ----------------------------------------------------------------------------
 
 function logExportExchanges (filename, regex, replacement) {
-    log.bright.cyan ('Exporting exchanges →', filename.yellow)
+    unlimitedLog.bright.cyan ('Exporting exchanges →', filename.yellow)
     replaceInFile (filename, regex, replacement)
 }
 
@@ -63,13 +60,13 @@ function getIncludedExchangeIds () {
 
 function exportExchanges (replacements) {
 
-    log.bright.yellow ('Exporting exchanges...')
+    unlimitedLog.bright.yellow ('Exporting exchanges...')
 
     replacements.forEach (({ file, regex, replacement }) => {
         logExportExchanges (file, regex, replacement)
     })
 
-    log.bright.green ('Base sources updated successfully.')
+    unlimitedLog.bright.green ('Base sources updated successfully.')
 }
 
 // ----------------------------------------------------------------------------
@@ -342,7 +339,7 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
 // ----------------------------------------------------------------------------
 
 function exportExchangeIdsToExchangesJson (exchanges) {
-    log.bright ('Exporting exchange ids to'.cyan, 'exchanges.json'.yellow)
+    unlimitedLog.bright ('Exporting exchange ids to'.cyan, 'exchanges.json'.yellow)
     const ids = keys (exchanges)
     console.log (ids)
     fs.writeFileSync ('exchanges.json', JSON.stringify ({ ids }, null, 4))
@@ -352,7 +349,7 @@ function exportExchangeIdsToExchangesJson (exchanges) {
 
 function exportWikiToGitHub (wikiPath, gitWikiPath) {
 
-    log.bright.cyan ('Exporting wiki to GitHub')
+    unlimitedLog.bright.cyan ('Exporting wiki to GitHub')
 
     const ccxtWikiFiles = {
         'README.md': 'Home.md',
@@ -369,7 +366,7 @@ function exportWikiToGitHub (wikiPath, gitWikiPath) {
 
         const sourcePath = wikiPath + '/' + sourceFile
         const destinationPath = gitWikiPath + '/' + destinationFile
-        log.bright.cyan ('Exporting', sourcePath.yellow, '→', destinationPath.yellow)
+        unlimitedLog.bright.cyan ('Exporting', sourcePath.yellow, '→', destinationPath.yellow)
         fs.writeFileSync (destinationPath, fs.readFileSync (sourcePath))
     }
 }
@@ -378,7 +375,7 @@ function exportWikiToGitHub (wikiPath, gitWikiPath) {
 
 function exportKeywordsToPackageJson (exchanges) {
 
-    log.bright ('Exporting exchange keywords to'.cyan, 'package.json'.yellow)
+    unlimitedLog.bright ('Exporting exchange keywords to'.cyan, 'package.json'.yellow)
 
     // const packageJSON = require ('../package.json')
     const packageJSON = JSON.parse (fs.readFileSync ('./package.json'))
@@ -488,7 +485,7 @@ async function exportEverything () {
     exportWikiToGitHub (wikiPath, gitWikiPath)
     exportKeywordsToPackageJson (exchanges)
 
-    log.bright.green ('Exported successfully.')
+    unlimitedLog.bright.green ('Exported successfully.')
 }
 
 // ============================================================================
