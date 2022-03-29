@@ -1899,14 +1899,7 @@ module.exports = class ftx extends Exchange {
         const request = {
             'orderId': id,
         };
-        let method = this.safeString (params, 'method', defaultMethod);
-        const type = this.safeValue (params, 'type');
-        if ((type === 'stop') || (type === 'trailingStop') || (type === 'takeProfit')) {
-            method = await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
-            return 
-        } else {
-            return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
-        }
+        return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
