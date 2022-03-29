@@ -3121,10 +3121,10 @@ class Exchange {
         $number = str_replace(array('.', '-'), '', $number);
         $sign = ($x < 0) ? '-' : '';
         if ($exp > 0) {
-            $zeros = str_repeat('0', abs($exp) - $len_after_dot);
+            $zeros = str_repeat('0', $exp - $len_after_dot);
             $s = $sign . $number . $zeros;
         } else {
-            $zeros = str_repeat('0', abs($exp) - 1);
+            $zeros = str_repeat('0', -$exp - 1);
             $s = $sign . '0.' . $zeros . $number;
         }
         return $s;
