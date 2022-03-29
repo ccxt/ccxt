@@ -411,8 +411,9 @@ module.exports = class lbank2 extends Exchange {
         //          "error_code":0,"ts":1647005190755
         //      }
         //
-        const result = this.safeValue (this.safeValue (response, 'data', []), 0, {});
-        return this.parseTicker (result, market);
+        const data = this.safeValue (response, 'data', []);
+        const first = this.safeValue (data, 0, {});
+        return this.parseTicker (first, market);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -489,7 +490,7 @@ module.exports = class lbank2 extends Exchange {
         let takerOrMaker = undefined;
         if (side !== undefined) {
             const parts = side.split ('_');
-            side = this.safeString(parts, 0);
+            side = this.safeString (parts, 0);
             const typePart = this.safeString (parts, 1);
             type = 'limit';
             takerOrMaker = 'taker';
