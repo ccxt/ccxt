@@ -371,12 +371,15 @@ Here's an overview of generic exchange properties with values added for example:
         'createOrder': true,
         'deposit': false,
         'fetchBalance': true,
+        'fetchCancelledOrders': false,
+        'fetchClosedOrder': false,
         'fetchClosedOrders': false,
         'fetchCurrencies': false,
         'fetchDepositAddress': false,
         'fetchMarkets': true,
         'fetchMyTrades': false,
         'fetchOHLCV': false,
+        'fetchOpenOrder': false,
         'fetchOpenOrders': false,
         'fetchOrder': false,
         'fetchOrderBook': true,
@@ -498,12 +501,15 @@ See this section on [Overriding exchange properties](#overriding-exchange-proper
         'createOrder': true,
         'deposit': false,
         'fetchBalance': true,
+        'fetchCancelledOrders': false,
+        'fetchClosedOrder': false,
         'fetchClosedOrders': false,
         'fetchCurrencies': false,
         'fetchDepositAddress': false,
         'fetchMarkets': true,
         'fetchMyTrades': false,
         'fetchOHLCV': false,
+        'fetchOpenOrder': false,
         'fetchOpenOrders': false,
         'fetchOrder': false,
         'fetchOrderBook': true,
@@ -1415,6 +1421,11 @@ print(dir(ccxt.kraken()))           # Python
 var_dump (new \ccxt\kraken ()); // PHP
 ```
 
+**contract only and margin only**
+
+- methods in this documentation that are documented as **contract only** or **margin only** are only intended to be used for contract trading and margin trading respectively. They may work when trading in other types of markets but will most likely return irrelevant information.
+
+
 ## Synchronous vs Asynchronous Calls
 
 ### JavaScript
@@ -1559,6 +1570,7 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - `fetchOrder (id[, symbol[, params]])`
 - `fetchOrders ([symbol[, since[, limit[, params]]]])`
 - `fetchOpenOrders ([symbol[, since, limit, params]]]])`
+- `fetchCancelledOrders ([symbol[, since[, limit[, params]]]])`
 - `fetchClosedOrders ([symbol[, since[, limit[, params]]]])`
 - `fetchMyTrades ([symbol[, since[, limit[, params]]]])`
 - ...
@@ -1618,10 +1630,14 @@ In most cases users are **required to use at least some type of pagination** in 
 - `fetchTrades()`
 - `fetchOHLCV()`
 - `fetchOrders()`
-- `fetchOpenOrders()`
+- `fetchCanceledOrders()`
+- `fetchClosedOrder()`
 - `fetchClosedOrders()`
+- `fetchOpenOrder()`
+- `fetchOpenOrders()`
 - `fetchMyTrades()`
 - `fetchTransactions()`
+- `fetchDeposit()`
 - `fetchDeposits()`
 - `fetchWithdrawals()`
 
@@ -1857,12 +1873,53 @@ if ($exchange->has['fetchMyTrades']) {
 - [Public Trades](#public-trades)
 - [Exchange Time](#exchange-time)
 - [Exchange Status](#exchange-status)
+- [Leverage Tiers](#leverage-tiers)
+- [Funding Rate](#funding-rate)
+- [Funding Rate History](#funding-rate-history)
+- [Positions Risk](#positions-risk)
+- [Borrow Rates](#borrow-rates)
+- [Borrow Rate History](#borrow-rate-history)
 
 ## Order Book
 
 Exchanges expose information on open orders with bid (buy) and ask (sell) prices, volumes and other data. Usually there is a separate endpoint for querying current state (stack frame) of the *order book* for a particular market. An order book is also often called *market depth*. The order book information is used in the trading decision making process.
 
-The method for fetching an order book for a particular symbol is named `fetchOrderBook` or `fetch_order_book`. It accepts a symbol and an optional dictionary with extra params (if supported by a particular exchange). The method for fetching the order book is called like shown below:
+To get data on order books, you can use 
+
+- `fetchOrderBook ()` // for a single markets order books
+- `fetchOrderBooks ( symbols )` // for multiple markets order books
+- `fetchOrderBooks ()` // for the order books of all markets
+
+```JavaScript
+async fetchOrderBook (symbol, limit = undefined, params = {})
+```
+
+Parameters
+
+- **symbol** (String) *required* Unified CCXT symbol (e.g. `"BTC/USDT"`)
+- **limit** (Integer) The number of orders to return in the order book (e.g. `10`)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- An [order book structure](#order-book-structure)
+
+
+```JavaScript
+async fetchOrderBooks (symbols = undefined, limit = undefined, params = {})
+```
+
+Parameters
+
+- **symbols** (\[String\]) Unified CCXT symbols (e.g. `["BTC/USDT", "ETH/USDT"]`)
+- **limit** (Integer) The number of orders to return in the order book (e.g. `10`)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- A dictionary of [order book structures](#order-book-structure) indexed by market symbols
+
+### fetchOrderBook Examples
 
 ```JavaScript
 // JavaScript
@@ -1894,8 +1951,6 @@ foreach ($exchange->markets as $symbol => $market) {
 ```
 
 ### Order Book Structure
-
-The structure of a returned order book is as follows:
 
 ```JavaScript
 {
@@ -2463,50 +2518,49 @@ The possible values in the `status` field are:
 - `'error'` means that either the exchange API is broken, or the implementation of the exchange in CCXT is broken
 - `'maintenance'` means regular maintenance, and the `eta` field should contain the datetime when the exchange is expected to be operational again
 
-## Leverage Tiers and Market Leverage Tiers
+## Leverage Tiers
 
-* These are private methods on **Binance**
+*contract only*
 
-You can obtain the absolute maximum leverage for a market by accessing `market['limits']['leverage']['max']`.
-For many contracts, the maximum leverage will depend on the size of your position.
-You can access those limits via the `fetchLeverageTiers()` (multiple symbols) and `fetchMarketLeverageTiers()` (single symbol) methods.
+- Leverage Tier methods are private on **binance**
 
-```Javascript
-fetchLeverageTiers(symbols = undefined, params = {})
-```
+The `fetchLeverageTiers()` method can be used to obtain the maximum leverage for a market at varying position sizes. It can also be used to obtain the maintenance margin rate, and the max tradeable amount for a market when that information is not available from the market object
+
+While you can obtain the absolute maximum leverage for a market by accessing `market['limits']['leverage']['max']`, for many contract markets, the maximum leverage will depend on the size of your position.
+
+You can access those limits by using
+
+- `fetchMarketLeverageTiers()` (single symbol)
+- `fetchLeverageTiers([symbol1, symbol2, ...])` (multiple symbols) 
+- `fetchLeverageTiers()` (all market symbols) 
 
 ```Javascript
 fetchMarketLeverageTiers(symbol, params = {})
 ```
 
-The `fetchLeverageTiers()` method can be used to obtain the maximum leverage for a market at varying position sizes. It can also be used to obtain the maintenance margin rate, and the max tradeable amount for a market when that information is not available from the market object:
+Parameters
 
-### Leverage Tiers Structure
+- **symbol** (String) *required* Unified CCXT symbol (e.g. `"BTC/USDT:USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"settle": "usdt"}`)
 
-The `fetchLeverageTiers()` method will return a structure like shown below:
+Returns
 
-```JavaScript
-{
-    'BNB/USDT': [
-        {
-            "tier": 1,                       // tier index
-            "notionalCurrency": "USDT",      // the currency that notionalFloor and notionalCap are in
-            "notionalFloor": 0,              // the lowest amount of this tier // stake = 0.0
-            "notionalCap": 10000,            // the highest amount of this tier // max stake amount at 75x leverage = 133.33333333333334
-            "maintenanceMarginRate": 0.0065, // maintenance margin rate
-            "maxLeverage": 75,               // max available leverage for this market when the value of the trade is > notionalFloor and < notionalCap
-            "info": { ... }                  // Response from exchange
-        },
-        ...
-    ]
-    ...
-  ],
-}
+- a [leverage-tiers-structure](#leverage-tiers-structure)
+
+```Javascript
+fetchLeverageTiers(symbols = undefined, params = {})
 ```
 
-### Market Leverage Tiers Structure
+Parameters
 
-The `fetchMarketLeverageTiers()` method will return a structure like shown below:
+- **symbols** (\[String\]) Unified CCXT symbol (e.g. `"BTC/USDT:USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"settle": "usdt"}`)
+
+Returns
+
+- an array of [leverage-tiers-structures](#leverage-tiers-structure)
+
+### Leverage Tiers Structure
 
 ```JavaScript
 [
@@ -2550,9 +2604,9 @@ In the example above:
 
 **Note for Huobi users:** Huobi uses both leverage and amount to determine maintenance margin rates: https://www.huobi.com/support/en-us/detail/900000089903
 
-## Funding Rate and Funding Rates
+## Funding Rate
 
-- contract only
+*contract only*
 
 Data on the current, most recent, and next funding rates can be obtained using the methods
 
@@ -2564,20 +2618,30 @@ Data on the current, most recent, and next funding rates can be obtained using t
 fetchFundingRate (symbol, params = {})
 ```
 
-- **symbol** (String) Unified CCXT symbol, required (e.g. `"BTC/USDT:USDT"`)
-- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+Parameters
+
+- **symbol** (String) *required* Unified CCXT symbol (e.g. `"BTC/USDT:USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- a [funding rate structure](#funding-rate-structure)
 
 ```Javascript
 fetchFundingRates (symbols = undefined, params = {})
 ```
 
-- **symbols** (Array[String]) An optional array/list of unified CCXT symbols (e.g. `["BTC/USDT:USDT", "ETH/USDT:USDT"]`)
-- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+Parameters
+
+- **symbols** (\[String\]) An optional array/list of unified CCXT symbols (e.g. `["BTC/USDT:USDT", "ETH/USDT:USDT"]`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- a dictionary of [funding rate structures](#funding-rate-structure) indexed by market symbols
 
 
 ### Funding Rate Structure
-
-The `fetchFundingRate()` method will return a structure like shown below:
 
 ```Javascript
 {
@@ -2601,88 +2665,197 @@ The `fetchFundingRate()` method will return a structure like shown below:
 }
 ```
 
-### Funding Rates Structure
-
-The `fetchFundingRates()` method will return a structure like shown below:
-
-```Javascript
-{
-    'BTC/USDT:USDT': {
-        info: { ... },
-        symbol: 'BTC/USDT:USDT',
-        markPrice: 39294.43,
-        indexPrice: 39291.78,
-        interestRate: 0.0003,
-        estimatedSettlePrice: undefined,
-        timestamp: undefined,
-        datetime: undefined,
-        fundingRate: 0.000072,
-        fundingTimestamp: 1645833600000,
-        fundingDatetime: '2022-02-26T00:00:00.000Z',
-        nextFundingRate: -0.000018,
-        nextFundingTimestamp: undefined,
-        nextFundingDatetime: undefined,
-        previousFundingRate: undefined,
-        previousFundingTimestamp: undefined,
-        previousFundingDatetime: undefined
-    },
-    ...
-}
-```
-
 ## Funding Rate History
 
-- contract only
+*contract only*
 
 ```Javascript
 fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {})
 ```
+
+Parameters
 
 - **symbol** (String) Unified CCXT symbol (e.g. `"BTC/USDT:USDT"`)
 - **since** (Integer) Timestamp for the earliest funding rate (e.g. `1645807945000`)
 - **limit** (Integer) The maximum number of funding rates to retrieve (e.g. `10`)
 - **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
 
+Returns
+
+- An array of [funding rate history structures](#funding-rate-history-structure)
+
 ### Funding Rate History Structure
 
-The `fetchFundingRateHistory()` method will return a structure like shown below:
+```Javascript
+{
+    info: { ... },
+    symbol: "BTC/USDT:USDT",
+    fundingRate: -0.000068,
+    timestamp: 1642953600000,
+    datetime: "2022-01-23T16:00:00.000Z"
+}
+```
+
+## Borrow Rates
+
+*margin only*
+
+When short trading or trading with leverage on a spot market, currency must be borrowed. Interest is accrued for the borrowed currency.
+
+Data on the borrow rate for a currency can be retrieved using
+
+- `fetchBorrowRate ()` for a single currencies borrow rate
+- `fetchBorrowRates ()` for all currencies borrow rates
+- `fetchBorrowRatesPerSymbol ()` for the borrow rates of currencies in individual markets
 
 ```Javascript
-[
-    {
-        info: { ... },
-        symbol: "BTC/USDT:USDT",
-        fundingRate: -0.000068,
-        timestamp: 1642953600000,
-        datetime: "2022-01-23T16:00:00.000Z"
-    },
-    ...
-]
+fetchBorrowRate (code, params = {})
+```
+
+Parameters
+
+- **code** (String) Unified CCXT currency code, required (e.g. `"USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"marginMode": "cross"}`)
+
+Returns
+
+- A [transaction structure](#transaction-structure)
+
+```Javascript
+fetchBorrowRates (params = {})
+```
+
+Parameters
+
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"marginMode": "cross"}`)
+
+Returns
+
+- A dictionary of [borrow rate structures](#borrow-rate-structure) with unified currency codes as keys
+
+```Javascript
+fetchBorrowRatesPerSymbol (params = {})
+```
+
+Parameters
+
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"marginMode": "cross"}`)
+
+Returns
+
+- A dictionary of [borrow rate structures](#borrow-rate-structure) with unified market symbols as keys
+
+
+### Borrow Rate Structure
+
+```JavaScript
+{
+  currency: 'USDT',  // Unified currency code
+  rate: 0.0006,  // A ratio of the rate that interest is accrued at
+  period: 86400000,  // The amount of time in milliseconds that is required to accrue the interest amount specified by rate
+  timestamp: 1646956800000,  // Timestamp for when the currency had this rate
+  datetime: '2022-03-11T00:00:00.000Z',  // Datetime for when the currency had this rate
+  info: [ ... ]
+}
+```
+
+## Borrow Rate History
+
+*margin only*
+
+The `fetchBorrowRateHistory` method retrieves a history of a currencies borrow interest rate at specific time slots
+
+```Javascript
+fetchBorrowRateHistory (code, since = undefined, limit = undefined, params = {})
+```
+
+Parameters
+
+- **code** (String) *required* Unified CCXT currency code (e.g. `"USDT"`)
+- **since** (Integer) Timestamp for the earliest borrow rate (e.g. `1645807945000`)
+- **limit** (Integer) The maximum number of [borrow rate structures](#borrow-rate-structure) to retrieve (e.g. `10`)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- An array of [borrow rate structures](#borrow-rate-structure)
+
+## Positions Risk
+
+*contract only*
+
+```Javascript
+fetchPositionsRisk (symbols = undefined, params = {})
+```
+
+Parameters
+
+- **symbols** (\[String\]) Unified CCXT symbols (e.g. `["BTC/USDT:USDT", "ETH/USDT:USDT"]`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"settle": "usdt"}`)
+
+Returns
+
+- A [position risk structures](#position-risk-structure)
+
+#### Positions Risk Structure
+
+```JavaScript
+{
+    info: { ... },
+    symbol: 'CTSI/USDT',
+    contracts: 0,
+    contractSize: 1,
+    unrealizedPnl: 0,
+    leverage: 20,
+    liquidationPrice: 0.7313,
+    collateral: 0,
+    notional: 0,
+    markPrice: 0.7724,
+    entryPrice: 0,
+    timestamp: 1647420354000,
+    initialMargin: 0,
+    initialMarginPercentage: 0.05,
+    maintenanceMargin: 0,
+    maintenanceMarginPercentage: 0.01,
+    marginRatio: 0.4881,
+    datetime: "2022-03-16T08:45:54.000Z",
+    marginType: 'cross',
+    side: "long",
+    hedged: false,
+    percentage: 78
+}
 ```
 
 # Private API
 
 - [Authentication](#authentication)
+- [Sign In](#sign-in)
 - [API Keys Setup](#api-keys-setup)
+- [Accounts](#accounts)
 - [Account Balance](#account-balance)
 - [Orders](#orders)
 - [My Trades](#my-trades)
-- [Positions](#positions)
+- [Ledger](#ledger)
 - [Deposit](#deposit)
 - [Withdraw](#withdraw)
 - [Transactions](#transactions)
+- [Transfers](#transfers)
 - [Fees](#fees)
-- [Ledger](#ledger)
+- [Margin](#Margin)
+- [Margin Mode](#margin-mode)
+- [Leverage](#leverage)
+- [Positions](#positions)
+- [Funding History](#funding-history)
 
 In order to be able to access your user account, perform algorithmic trading by placing market and limit orders, query balances, deposit and withdraw funds and so on, you need to obtain your API keys for authentication from each exchange you want to trade with. They usually have it available on a separate tab or page within your user account settings. API keys are exchange-specific and cannnot be interchanged under any circumstances.
 
 The exchanges' private APIs will usually allow the following types of interaction:
 
 - the current state of the user's account balance can be obtained with the `fetchBalance()` method as described in the [Account Balance](#account-balance) section
-- the user can place and cancel orders with `createOrder()`, `cancelOrder()`, as well as fetch current open orders and the past order history with methods like `fetchOrder`, `fetchOrders()`, `fetchOpenOrders()`, `fetchClosedOrders`, as described in the section on [Orders](#orders)
-- the user can query the history of past trades executed with his account using `fetchMyTrades`, as described in the [My Trades](#my-trades) section, also see [How Orders Are Related To Trades](https://docs.ccxt.com/en/latest/manual.html#how-orders-are-related-to-trades)
-- the user can query his positions with `fetchPositions()` as described in the [Positions](#positions) section
-- the user can fetch the history of his transactions (on-chain _transactions_ which are either _deposits_ to the exchange account or _withdrawals_ from the exchange account) with `fetchTransactions()`, or with `fetchDeposits()` and `fetchWithdrawals()` separately, depending on what is available from the exchange API
+- the user can place and cancel orders with `createOrder()`, `cancelOrder()`, as well as fetch current open orders and the past order history with methods like `fetchOrder`, `fetchOrders()`, `fetchOpenOrder()`, `fetchOpenOrders()`, `fetchCancelledOrders`, `fetchClosedOrder`, `fetchClosedOrders`, as described in the section on [Orders](#orders)
+- the user can query the history of past trades executed with their account using `fetchMyTrades`, as described in the [My Trades](#my-trades) section, also see [How Orders Are Related To Trades](https://docs.ccxt.com/en/latest/manual.html#how-orders-are-related-to-trades)
+- the user can query their positions with `fetchPositions()` and `fetchPosition()` as described in the [Positions](#positions) section
+- the user can fetch the history of their transactions (on-chain _transactions_ which are either _deposits_ to the exchange account or _withdrawals_ from the exchange account) with `fetchTransactions()`, or with `fetchDeposit()`, `fetchDeposits()` `fetchWithdrawal()`, and `fetchWithdrawals()` separately, depending on what is available from the exchange API
 - if the exchange API provides a ledger endpoint, the user can fetch a history of all money movements that somehow affected the balance, with `fetchLedger` that will return all accounting ledger entries such as trades, deposits, withdrawals, internal transfers between accounts, rebates, bonuses, fees, staking profits and so on, as described in the [Ledger](#ledger) section.
 
 ## Authentication
@@ -2826,6 +2999,22 @@ $exchange = new $exchange_class (array (
 
 Note that your private requests will fail with an exception or error if you don't set up your API credentials before you start trading. To avoid character escaping **always write your credentials in single quotes**, not double quotes (`'VERY_GOOD'`, `"VERY_BAD"`).
 
+### Sign In
+
+Some exchanges required you to sign in prior to calling private methods, which can be done using the `signIn` method
+
+```Javascript
+signIn (params = {})
+```
+
+Parameters
+
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"2fa": "329293"}`)
+
+Returns
+
+- response from the exchange
+
 ### Overriding The Nonce
 
 **The default nonce is defined by the underlying exchange. You can override it with a milliseconds-nonce if you want to make private requests more frequently than once per second! Most exchanges will throttle your requests if you hit their rate limits, read [API docs for your exchange](https://github.com/ccxt/ccxt/wiki/Exchanges) carefully!**
@@ -2914,6 +3103,42 @@ class MyZaif extends \ccxt\zaif {
 }
 ```
 
+## Accounts
+
+You can get all the accounts associated with a profile by using the `fetchAccounts()` method
+
+```JavaScript
+fetchAccounts (params = {})
+```
+
+### Accounts Structure
+
+The `fetchAccounts()` method will return a structure like shown below:
+
+```JavaScript
+[
+    {       
+        id: "s32kj302lasli3930",
+        type: "main",
+        currency: "USDT",
+        info: { ... }
+    },
+    {
+        id: "20f0sdlri34lf90",
+        type: "margin",
+        currency: "USDT",
+        info: { ... }
+    },
+    {
+        id: "4oidfk40dadeg4328",
+        type: "trade",
+        currency: "BTC",
+        info: { ... }
+    },
+    ...
+]
+```
+
 ## Account Balance
 
 To query for balance and get the amount of funds available for trading or funds locked in orders, use the `fetchBalance` method:
@@ -2922,9 +3147,15 @@ To query for balance and get the amount of funds available for trading or funds 
 fetchBalance (params = {})
 ```
 
-### Balance Structure
+Parameters
 
-The returned balance structure is as follows:
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"currency": "usdt"}`)
+
+Returns
+
+- A [balance structure](#balance-structure)
+
+### Balance Structure
 
 ```JavaScript
 {
@@ -2999,10 +3230,13 @@ Most of the time you can query orders by an id or by a symbol, though not all ex
 
 The list of methods for querying orders consists of the following:
 
+- `fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {})`
+- `fetchClosedOrder (id, symbol = undefined, params = {})`
+- `fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {})`
+- `fetchOpenOrder (id, symbol = undefined, params = {})`
+- `fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {})`
 - `fetchOrder (id, symbol = undefined, params = {})`
 - `fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {})`
-- `fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {})`
-- `fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {})`
 
 Note that the naming of those methods indicates if the method returns a single order or multiple orders (an array/list of orders). The `fetchOrder()` method requires a mandatory order id argument (a string). Some exchanges also require a symbol to fetch an order by id, where order ids can intersect with various trading pairs. Also, note that all other methods above return an array (a list) of orders. Most of them will require a symbol argument as well, however, some exchanges allow querying with a symbol unspecified (meaning *all symbols*).
 
@@ -3057,11 +3291,14 @@ The meanings of boolean `true` and `false` are obvious. A string value of `emula
 
 The exchanges' order management APIs differ by design. The user has to understand the purpose of each specific method and how they're combined together into a complete order API:
 
-- `fetchOrder()` – fetches a single order (open or closed) by order `id`.
-- `fetchOpenOrders()` – fetches a list of open orders.
+- `fetchCanceledOrders()`- fetches a list of canceled orders
+- `fetchClosedOrder()`- fetches a single closed order by order id
 - `fetchClosedOrders()` – fetches a list of closed (or canceled) orders.
-- `fetchOrders()` – fetches a list of all orders (either open or closed/canceled).
 - `fetchMyTrades()` – though not a part of the orders' API, it is closely related, since it provides the history of settled trades.
+- `fetchOpenOrder()`- fetches a single open order by order id
+- `fetchOpenOrders()` – fetches a list of open orders.
+- `fetchOrder()` – fetches a single order (open or closed) by order `id`.
+- `fetchOrders()` – fetches a list of all orders (either open or closed/canceled).
 
 The majority of the exchanges will have a way of fetching currently-open orders. Thus, the `exchange.has['fetchOpenOrders']`. If that method is not available, then most likely the `exchange.has['fetchOrders']` that will provide a list of all orders. The exchange will return a list of open orders either from `fetchOpenOrders()` or from `fetchOrders()`. One of the two methods is usually available from any exchange.
 
@@ -3090,6 +3327,7 @@ All methods returning lists of trades and lists of orders, accept the second `si
 - `fetchOrders()`
 - `fetchOpenOrders()`
 - `fetchClosedOrders()`
+- `fetchCanceledOrders()`
 
 The second  argument `since` reduces the array by timestamp, the third `limit` argument reduces by number (count) of returned items.
 
@@ -3177,7 +3415,7 @@ if (exchange.has['fetchClosedOrders'])
 
 ### Order Structure
 
-Most of methods returning orders within ccxt unified API will usually yield an order structure as described below:
+Most of methods returning orders within ccxt unified API will yield an order structure as described below:
 
 ```JavaScript
 {
@@ -3221,25 +3459,49 @@ Most of methods returning orders within ccxt unified API will usually yield an o
 
 #### timeInForce
 
-The `timeInForce` field may be `undefined/None/null` if not specified by the exchange. The unification of `timeInForce` is a work in progress. Possible values for the`timeInForce` field:
-    - `'GTC'` = _Good Till Cancel(ed)_, the order stays on the orderbook until it is matched or canceled.
-    - `'IOC'` = _Immediate Or Cancel_, the order has to be matched immediately and filled either partially or completely, the unfilled remainder is canceled (or the entire order is canceled).
-    - `'FOK'` = _Fill Or Kill_, the order has to get fully filled and closed immediately, otherwise the entire order is canceled.
-    - `'PO'` = _Post Only_, the order has to land on the orderbook and spend at least some time there in an unfilled state, this makes it a maker order by definition, otherwise it is not placed. The post only `timeInForce` is not too common across the exchanges, since orders are allowed to be both `GTC` and `PO` at the same time, therefore the post only mode is often returned as a separate flag. The unification of `timeInForce` and `postOnly` is a work in progress.
+The `timeInForce` field may be `undefined/None/null` if not specified by the exchange. The unification of `timeInForce` is a work in progress. 
+
+Possible values for the`timeInForce` field:
+
+- `'GTC'` = _Good Till Cancel(ed)_, the order stays on the orderbook until it is matched or canceled.
+- `'IOC'` = _Immediate Or Cancel_, the order has to be matched immediately and filled either partially or completely, the unfilled remainder is canceled (or the entire order is canceled).
+- `'FOK'` = _Fill Or Kill_, the order has to get fully filled and closed immediately, otherwise the entire order is canceled.
+- `'PO'` = _Post Only_, the order is either placed as a maker order, or it is canceled. This means the order must be placed on orderbook for at at least time in an unfilled state. The unification of `PO` as a `timeInForce` option is a work in progress with unified exchanges having `exchange.has['postOnly'] == True`.
 
 ### Placing Orders
 
-To place an order you will need the following information:
+To place an order use the `createOrder` method. You can use the `id` from the returned unified [order structure](#order-structure) to query the status and the state of the order later.
 
-- `symbol`, a string literal symbol of the market you wish to trade on, like `BTC/USD`, `ZEC/ETH`, `DOGE/DASH`, etc... Make sure the symbol in question exists with the target exchange and is available for trading.
-- `side`, a string literal for the direction of your order, `buy` or `sell`. When you place a buy order you give quote currency and receive base currency. For example, buying `BTC/USD` means that you will receive bitcoins for your dollars. When you are selling `BTC/USD` the outcome is the opposite and you receive dollars for your bitcoins.
-- `type`, a string literal type of order, **ccxt currently unifies `market` and `limit` orders only**, see #custom-order-params and #other-order-types
-- `amount`, how much of currency you want to trade. This usually refers to base currency of the trading pair symbol, though some exchanges require the amount in quote currency and a few of them require base or quote amount depending on the side of the order. See their API docs for details.
-- `price`, how much quote currency you are willing to pay for a trade lot of base currency (for limit orders only)
+```JavaScript
+createOrder (symbol, type, side, amount, price = undefined, params = {})
+```
 
-A successful call to a unified method for placing market or limit orders returns the unified [order structure](#order-structure).
+Parameters
 
-Note, that some fields from the order structure returned from `createOrder` may be `undefined / None / null` if the underlying exchange API does not return that information in the response. In general, the user is guaranteed that the `createOrder` method will return a unified [order structure](#order-structure) that will contain at least the order `id` and the `info` (a raw response from the exchange "as is"):
+- **symbol** (String) *required* Unified CCXT market symbol
+  - Make sure the symbol in question exists with the target exchange and is available for trading.
+- **side** *required* a string literal for the direction of your order. 
+  **Unified sides:**
+  - `buy` give quote currency and receive base currency; for example, buying `BTC/USD` means that you will receive bitcoins for your dollars.
+  - `sell` give base currency and receive quote currency; for example, buying `BTC/USD` means that you will receive dollars for your bitcoins.
+- **type** a string literal type of order
+  **Unified types:**
+  - [`market`](market-orders) not allowed by some exchanges, see [their docs](#exchanges) for details 
+  - [`limit`](limit-orders)
+  - see #custom-order-params and #other-order-types for non-unified types
+- **amount**, how much of currency you want to trade usually, but not always, in units of the base currency of the trading pair symbol (the units for some exchanges are dependent on the side of the order: see their API docs for details.)
+- **price** the price at which the order is to be fullfilled at in units of the quote currency (ignored in market orders)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"settle": "usdt"}`)
+
+Returns
+
+- A successful order call returns a [order structure](#order-structure)
+
+**Notes on createOrder**
+
+- Some exchanges will allow to trade with limit orders only. 
+
+Some fields from the returned order structure may be `undefined / None / null` if that information is not returned from the exchange API's response. The user is guaranteed that the `createOrder` method will return a unified [order structure](#order-structure) that will contain at least the order `id` and the `info` (a raw response from the exchange "as is"):
 
 ```JavaScript
 {
@@ -3248,28 +3510,66 @@ Note, that some fields from the order structure returned from `createOrder` may 
 }
 ```
 
-You can use the `id` from the returned unified [order structure](#order-structure) to query the status and the state of the order later.
+#### Limit Orders
 
-- **Some exchanges will allow to trade with limit orders only.** See [their docs](#exchanges) for details.
+Limit orders placed on the order book of the exchange for a price specified by the trader. They are fullfilled(closed) when there are no orders in the same market at a better price, and another trader creates a [market order](market-orders) or an opposite order for a price that matches or exceeds the price of the limit order. 
 
-#### Market Orders
-
-Market price orders are also known as *spot price orders*, *instant orders* or simply *market orders*. A market order gets executed immediately. The matching engine of the exchange closes the order (fulfills it) with one or more transactions from the top of the order book stack.
-
-The exchange will close your market order for the best price available. You are not guaranteed though, that the order will be executed for the price you observe prior to placing your order. There can be a slight change of the price for the traded market while your order is being executed, also known as *price slippage*. The price can slip because of networking roundtrip latency, high loads on the exchange, price volatility and other factors. When placing a market order you don't need to specify the price of the order.
+Limit orders may not be fully filled. This happens when the filling order is for a smaller amount than the amount specified by the limit order.
 
 ```JavaScript
 // camelCaseNotation
-exchange.createMarketSellOrder (symbol, amount[, params])
-exchange.createMarketBuyOrder (symbol, amount[, params])
+exchange.createLimitSellOrder (symbol, amount, price, params)
+exchange.createLimitBuyOrder (symbol, amount, price, params)
 
 // underscore_notation
-exchange.create_market_sell_order (symbol, amount[, params])
-exchange.create_market_buy_order (symbol, amount[, params])
+exchange.create_limit_sell_order (symbol, amount, price, params)
+exchange.create_limit_buy_order (symbol, amount, price, params)
+
+// using general createLimitOrder and side = 'buy' or 'sell'
+exchange.createLimitOrder (symbol, side, amount, price, params)
+exchange.create_limit_order (symbol, side, amount, price, params)
+
+// using general createOrder, type = 'limit' and side = 'buy' or 'sell'
+exchange.createOrder (symbol, 'limit', side, amount, price, params)
+exchange.create_order (symbol, 'limit', side, amount, price, params)
+```
+
+#### Market Orders
+
+*also known as*
+
+- market price orders
+- spot price orders 
+- instant orders 
+
+Market orders are executed immediately by fulfilling one of more already existing orders from the ask side of the exchanges order book. The orders that your market order fulfills are chosen from th top of the order book stack, meaning your market order is fulfilled at the best price available. When placing a market order you don't need to specify the price of the order, and if the price is specified, it will be ignored.
+
+You are not guaranteed that the order will be executed for the price you observe prior to placing your order. There are multiple reasons for this, including:
+
+- **price slippage** a slight change of the price for the traded market while your order is being executed. Reasons for price slippage include, but are not limited to
+
+    - networking roundtrip latency
+    - high loads on the exchange
+    - price volatility
+
+- **unequivocal order sizes** if a market order is for an amount that is larger than the size of the top order on the order book, then after the top order is filled, the market order will proceed to fill the next order in the order book, which means the market order is filled at multiple prices
+
+```JavaScript
+// camelCaseNotation
+exchange.createMarketSellOrder (symbol, amount, params)
+exchange.createMarketBuyOrder (symbol, amount, params)
+
+// underscore_notation
+exchange.create_market_sell_order (symbol, amount, params)
+exchange.create_market_buy_order (symbol, amount, params)
+
+// using general createMarketOrder and side = 'buy' or 'sell'
+exchange.createMarketOrder (symbol, side, amount, params)
+exchange.create_market_order (symbol, side, amount, params)
 
 // using general createOrder, type = 'market' and side = 'buy' or 'sell'
-exchange.createOrder (symbol, 'market', 'sell', amount, ...)
-exchange.create_order (symbol, 'market', 'buy', amount, ...)
+exchange.createOrder (symbol, 'market', side, amount, ...)
+exchange.create_order (symbol, 'market', side, amount, ...)
 ```
 
 **Note, that some exchanges will not accept market orders (they allow limit orders only).** In order to detect programmatically if the exchange in question does support market orders or not, you can use the `.has['createMarketOrder']` exchange property:
@@ -3501,24 +3801,85 @@ $params = {
 $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
 ```
 
+## Editing Orders
+
+To edit an order, you can use the `editOrder` method
+
+```Javascript
+editOrder (id, symbol, type, side, amount, price = undefined, params = {})
+```
+
+Parameters
+
+- **id** (String) *required* Order id (e.g. `1645807945000`)
+- **symbol** (String) *required* Unified CCXT market symbol
+- **side** (String) *required* the direction of your order. 
+  **Unified sides:**
+  - `buy` give quote currency and receive base currency; for example, buying `BTC/USD` means that you will receive bitcoins for your dollars.
+  - `sell` give base currency and receive quote currency; for example, buying `BTC/USD` means that you will receive dollars for your bitcoins.
+- **type** (String) *required* type of order
+  **Unified types:**
+  - [`market`](market-orders) not allowed by some exchanges, see [their docs](#exchanges) for details 
+  - [`limit`](limit-orders)
+  - see #custom-order-params and #other-order-types for non-unified types
+- **amount** (Number) *required* how much of currency you want to trade usually, but not always, in units of the base currency of the trading pair symbol (the units for some exchanges are dependent on the side of the order: see their API docs for details.)
+- **price** (Float) the price at which the order is to be fullfilled at in units of the quote currency (ignored in market orders)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"settle": "usdt"}`)
+
+Returns
+
+- An [order structure](#order-structure)
+
 ### Canceling Orders
 
-To cancel an existing order pass the order id to `cancelOrder (id, symbol, params) / cancel_order (id, symbol, params)` method. Note, that some exchanges require a second symbol parameter even to cancel a known order by id. The usage is shown in the following examples:
+To cancel an existing use
+
+- `cancelOrder ()` for a single order
+- `cancelOrders ()` for multiple orders
+- `cancelAllOrders ()` for all open orders
 
 ```JavaScript
-// JavaScript
-exchange.cancelOrder ('1234567890') // replace with your order id here (a string)
+cancelOrder (id, symbol = undefined, params = {})
 ```
 
-```Python
-# Python
-exchange.cancel_order ('1234567890') # replace with your order id here (a string)
+Parameters
+
+- **id** (String) *required* Order id (e.g. `1645807945000`)
+- **symbol** (String) Unified CCXT market symbol **required** on some exchanges (e.g. `"BTC/USDT"`)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"settle": "usdt"}`)
+
+Returns
+
+- An [order structure](#order-structure)
+
+
+```Javascript
+cancelOrders (ids, symbol = undefined, params = {})
 ```
 
-```PHP
-// PHP
-$exchange->cancel_order ('1234567890'); // replace with your order id here (a string)
+Parameters
+
+- **ids** (\[String\]) *required* Order ids (e.g. `1645807945000`)
+- **symbol** (String) Unified CCXT market symbol **required** on some exchanges (e.g. `"BTC/USDT"`)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"settle": "usdt"}`)
+
+Returns
+
+- An array of [order structures](#order-structure)
+
+
+```JavaScript
+async cancelAllOrders (symbol = undefined, params = {})
 ```
+
+Parameters
+
+- **symbol** (String) Unified CCXT market symbol **required** on some exchanges (e.g. `"BTC/USDT"`)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"settle": "usdt"}`)
+
+Returns
+
+- An array of [order structures](#order-structure)
 
 #### Exceptions on order canceling
 
@@ -3577,7 +3938,7 @@ A seller decides to place a sell limit order on the ask side for a price of 0.70
 
 As the price and amount of the incoming sell (ask) order cover more than one bid order (orders `b` and `i`), the following sequence of events usually happens within an exchange engine very quickly, but not immediately:
 
-1. Order `b` is matched against the incoming sell because their prices intersect. Their volumes *"mutually annihilate"* each other, so, the bidder gets 100 for a price of 0.800. The seller (asker) will have his sell order partially filled by bid volume 100 for a price of 0.800. Note that for the filled part of the order the seller gets a better price than he asked for initially. He asked for 0.7 at least but got 0.8 instead which is even better for the seller. Most conventional exchanges fill orders for the best price available.
+1. Order `b` is matched against the incoming sell because their prices intersect. Their volumes *"mutually annihilate"* each other, so, the bidder gets 100 for a price of 0.800. The seller (asker) will have their sell order partially filled by bid volume 100 for a price of 0.800. Note that for the filled part of the order the seller gets a better price than he asked for initially. He asked for 0.7 at least but got 0.8 instead which is even better for the seller. Most conventional exchanges fill orders for the best price available.
 
 2. A trade is generated for the order `b` against the incoming sell order. That trade *"fills"* the entire order `b` and most of the sell order. One trade is generated per each pair of matched orders, whether the amount was filled completely or partially. In this example the seller amount (100) fills order `b` completely (closes the order `b`) and also fills the selling order partially (leaves it open in the orderbook).
 
@@ -3715,179 +4076,242 @@ if ($exchange->has['fetchOrderTrades']) {
     $trades = $exchange->fetch_order_trades($order_id, $symbol, $since, $limit, $params);
 }
 ```
-## Positions
-```diff
-- this part of the unified API is currenty a work in progress
-- there may be some issues and missing implementations here and there
-- contributions, pull requests and feedback appreciated
-```
 
-Derivative trading has become increasingly popular within the crypto ecosystem. This can include futures with a set expiry date, perpetual swaps with funding payments, and inverse futures or swaps.
 
-We present a unified structure for the positions returned by exchanges.
 
-### Position Structure
+## Ledger
+
+The ledger is simply the history of changes, actions done by the user or operations that altered the user's balance in any way, that is, the history of movements of all funds from/to all accounts of the user which includes 
+
+- deposits and withdrawals (funding)
+- amounts incoming and outcoming in result of a trade or an order
+- trading fees
+- transfers between accounts
+- rebates, cashbacks and other types of events that are subject to accounting.
+
+Data on ledger entries can be retrieved using
+
+- `fetchLedgerEntry ()` for a ledger entry
+- `fetchLedger ( code )` for multiple ledger entries of the same currency
+- `fetchLedger ()` for all ledger entries
 
 ```Javascript
-{
-   'info': { ... },             // json response returned from the exchange as is
-   'id': '1234323',             // string, position id to reference the position, similar to an order id
-   'symbol': 'BTC/USD',         // uppercase string literal of a pair of currencies
-   'timestamp': 1607723554607,  // integer unix time since 1st Jan 1970 in milliseconds
-   'datetime': '2020-12-11T21:52:34.607Z',  // ISO8601 representation of the unix time above
-   'isolated': true,            // boolean, whether or not the position is isolated, as opposed to cross where margin is added automatically
-   'hedged': false,             // boolean, whether or not the position is hedged, i.e. if trading in the opposite direction will close this position or make a new one
-   'side': 'long',              // string, long or short
-   'contracts': 5,              // float, number of contracts bought, aka the amount or size of the position
-   'contractSize': 100,         // float, the size of one contract in quote units
-   'entryPrice': 20000,         // float, the average entry price of the position
-   'markPrice': 20050,          // float, a price that is used for funding calculations
-   'notional': 100000,          // float, the value of the position in the settlement currency
-   'leverage': 100,             // float, the leverage of the position, related to how many contracts you can buy with a given amount of collateral
-   'collateral': 5300,          // float, the maximum amount of collateral that can be lost, affected by pnl
-   'initialMargin': 5000,       // float, the amount of collateral that is locked up in this position
-   'maintenanceMargin': 1000,   // float, the mininum amount of collateral needed to avoid being liquidated
-   'initialMarginPercentage': 0.05,      // float, the initialMargin as a percentage of the notional
-   'maintenanceMarginPercentage': 0.01,  // float, the maintenanceMargin as a percentage of the notional
-   'unrealizedPnl': 300,        // float, the difference between the market price and the entry price times the number of contracts, can be negative
-   'liquidationPrice': 19850,   // float, the price at which collateral becomes less than maintenanceMargin
-   'marginType': 'cross',       // string, can be cross or isolated
-   'percentage': 3.32,          // float, represents unrealizedPnl / initialMargin * 100
-}
+fetchLedgerEntry (id, code = undefined, params = {})
 ```
-Positions allow you to borrow money from an exchange to go long or short on an market. Some exchanges require you to pay a funding fee to keep the position open.
 
-When you go long on a position you are betting that the price will be higher in the future and that the price will never be less than the `liquidationPrice`.
+Parameters
 
-As the price of the underlying index changes so does the unrealisedPnl and as a consequence the amount of collateral you have left in the position (since you can only close it at market price or worse). At some price you will have zero collateral left, this is called the "bust" or "zero" price. Beyond this point, if the price goes in the opposite direction far enough, the collateral of the position will drop below the `maintenanceMargin`. The maintenanceMargin acts as a safety buffer between your position and negative collateral, a scenario where the exchange incurs losses on your behalf. To protect itself the exchange will swiftly liquidate your position if and when this happens. Even if the price returns back above the liquidationPrice you will not get your money back since the exchange sold all the `contracts` you bought at market. In other words the maintenanceMargin is a hidden fee to borrow money.
+- **id** (String) *required* Ledger entry id
+- **code** (String) Unified CCXT currency code, required (e.g. `"USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"type": "deposit"}`)
 
-It is recommended to use the `maintenanceMargin` and `initialMargin` instead of the `maintenanceMarginPercentage` and `initialMarginPercentage` since these tend to be more accurate. The maintenanceMargin might be calculated from other factors outside of the maintenanceMarginPercentage including the funding rate and taker fees, for example on [kucoin](https://futures.kucoin.com/contract/detail).
+Returns
 
-An inverse contract will allow you to go long or short on BTC/USD by putting up BTC as collateral. Our API for inverse contracts is the same as for linear contracts. The amounts in an inverse contracts are quoted as if they were traded USD/BTC, however the price is still quoted terms of BTC/USD.  The formula for the profit and loss of a inverse contract is `(1/markPrice - 1/price) * contracts`. The profit and loss and collateral will now be quoted in BTC, and the number of contracts are quoted in USD.
-
-### Liquidation price
-
-It is the price at which the `initialMargin + unrealized = collateral = maintenanceMargin`. The price has gone in the opposite direction of your position to the point where the is only maintenanceMargin collateral left and if it goes any further the position will have negative collateral.
+- A [ledger entry structure](#ledger-entry-structure)
 
 ```JavaScript
-// if long
-(liquidationPrice - price) * contracts = maintenanceMargin
-
-// if short
-(price - liquidationPrice) * contracts = maintenanceMargin
-// if inverse long
-(1/liquidationPrice - 1/price) * contracts = maintenanceMargin
-
-// if inverse short
-(1/price - 1/liquidationPrice) * contracts = maintenanceMargin
+async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {})
 ```
 
-### Using fetchPositions
+Parameters
 
-Information about the positions can be served from different endpoints depending on the exchange. In the case that there are multiple endpoints serving different types of derivatives CCXT will default to just loading the "linear" (as oppose to the "inverse") contracts or the "swap" (as oppose to the "future") contracts. If you want to get the position information of the inverse contracts you can set:
+- **code** (String) Unified CCXT currency code; *required* if fetching all ledger entries for all assets at once is not supported (e.g. `"USDT"`)
+- **since** (Integer) Timestamp (ms) of the earliest time to retrieve withdrawals for (e.g. `1646940314000`)
+- **limit** (Integer) The number of [ledger entry structures](#ledger-entry-structure) to retrieve (e.g. `5`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
 
-```Javascript
-await binanceusdm.fetchPositions ()
+Returns
 
-// for inverse positions
-await binancecoinm.fetchPositions ()
+- An array of [ledger entry structures](#ledger-entry-structure)
 
-// for isolated positions
-await binancecoinm.fetchIsolatedPositions ()
+### Ledger Entry Structure
+
+```JavaScript
+{
+    'id': 'hqfl-f125f9l2c9',                // string id of the ledger entry, e.g. an order id
+    'direction': 'out',                     // or 'in'
+    'account': '06d4ab58-dfcd-468a',        // string id of the account if any
+    'referenceId': 'bf7a-d4441fb3fd31',     // string id of the trade, transaction, etc...
+    'referenceAccount': '3146-4286-bb71',   // string id of the opposite account (if any)
+    'type': 'trade',                        // string, reference type, see below
+    'currency': 'BTC',                      // string, unified currency code, 'ETH', 'USDT'...
+    'amount': 123.45,                       // absolute number, float (does not include the fee)
+    'timestamp': 1544582941735,             // milliseconds since epoch time in UTC
+    'datetime': "2018-12-12T02:49:01.735Z", // string of timestamp, ISO8601
+    'before': 0,                            // amount of currency on balance before
+    'after': 0,                             // amount of currency on balance after
+    'status': 'ok',                         // 'ok, 'pending', 'canceled'
+    'fee': {                                // object or or undefined
+        'cost': 54.321,                     // absolute number on top of the amount
+        'currency': 'ETH',                  // string, unified currency code, 'ETH', 'USDT'...
+    },
+    'info': { ... },                        // raw ledger entry as is from the exchange
+}
 ```
 
+#### Notes on Ledger Entry Structure
+
+The type of the ledger entry is the type of the operation associated with it. If the amount comes due to a sell order, then it is associated with a corresponding trade type ledger entry, and the referenceId will contain associated trade id (if the exchange in question provides it). If the amount comes out due to a withdrawal, then is is associated with a corresponding transaction.
+
+- `trade`
+- `transaction`
+- `fee`
+- `rebate`
+- `cashback`
+- `referral`
+- `transfer`
+- `airdrop`
+- `whatever`
+- ...
+
+The `referenceId` field holds the id of the corresponding event that was registered by adding a new item to the ledger.
+
+The `status` field is there to support for exchanges that include pending and canceled changes in the ledger. The ledger naturally represents the actual changes that have taken place, therefore the status is `'ok'` in most cases.
+
+The ledger entry type can be associated with a regular trade or a funding transaction (deposit or withdrawal) or an internal `transfer` between two accounts of the same user. If the ledger entry is associated with an internal transfer, the `account` field will contain the id of the account that is being altered with the ledger entry in question. The `referenceAccount` field will contain the id of the opposite account the funds are transferred to/from, depending on the `direction` (`'in'` or `'out'`).
 ## Deposit
 
 In order to deposit funds to an exchange you must get an address from the exchange for the currency you want to deposit there. Most of exchanges will create and manage those addresses for the user. Some exchanges will also allow the user to create new addresses for deposits. Some of exchanges require a new deposit address to be created for each new deposit.
 
-The address for depositing can be either an already existing address that was created previously with the exchange or it can be created upon request. In order to see which of the two methods are supported, check the `exchange.has['fetchDepositAddress']` and `exchange.has['createDepositAddress']` properties. Both methods return an [address structure](#address-structure)
-
-```JavaScript
-fetchDepositAddress (code, params = {})
-createDepositAddress (code, params = {})
+```Javascript
+deposit (code, amount, address, params = {})
 ```
 
-- `code` is the unified currency code (uppercase string)
-- `params` contains optional extra overrides
+Parameters
 
-Some exchanges may also have a method for fetching multiple deposit addresses at once or all of them at once:
+- **code** (String) *required* Unified CCXT currency code, required (e.g. `"USDT"`)
+- **amount** (Float) *required* The amount of currency to send in the deposit (e.g. `20`)
+- **address** (String) *required* The recipient address of the deposit (e.g. `"TEY6qjnKDyyq5jDc3DJizWLCdUySrpQ4yp"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"network": "TRX"}`)
 
-```JavaScript
-fetchDepositAddresses (codes = undefined, params = {})
+Returns
+
+- A [transaction structure](#transaction-structure)
+
+---
+
+Data on deposits made to an account can be retrieved using
+
+- `fetchDeposit ()` for a single deposit
+- `fetchDeposits ( code )` for multiple deposits of the same currency
+- `fetchDeposits ()` for all deposits to an account
+
+```Javascript
+fetchDeposit (id, code = undefined, params = {})
 ```
 
-Depending on the exchange it may or may not require a list of unified currency `codes` in the first argument.
-The `fetchDepositAddresses` method returns an array of address structures.
+Parameters
 
-#### Address structure
+- **id** (String) *required* Deposit id
+- **code** (String) Unified CCXT currency code, required (e.g. `"USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"network": "TRX"}`)
 
-The address structures returned from `fetchDepositAddress`, `fetchDepositAddresses` and `createDepositAddress` look like this:
+Returns
 
-```JavaScript
-{
-    'currency': currency, // currency code
-    'network': network,   // a list of deposit/withdraw networks, ERC20, TRC20, BSC20 (see below)
-    'address': address,   // address in terms of requested currency
-    'tag': tag,           // tag / memo / paymentId for particular currencies (XRP, XMR, ...)
-    'info': response,     // raw unparsed data as returned from the exchange
-}
+- A [transaction structure](#transaction-structure)
+
+```Javascript
+fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {})
 ```
 
-With certain currencies, like AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XMR, XRP, an additional argument `tag` is usually required by exchanges. Other currencies will have the `tag` set to `undefined / None / null`. The tag is a memo or a message or a payment id that is attached to a withdrawal transaction. The tag is mandatory for those currencies and it identifies the recipient user account.
+Parameters
 
-Be careful when specifying the `tag` and the `address`. The `tag` is **NOT an arbitrary user-defined string** of your choice! You cannot send user messages and comments in the `tag`. The purpose of the `tag` field is to address your wallet properly, so it must be correct. You should only use the `tag` received from the exchange you're working with, otherwise your transaction might never arrive to its destination.
+- **code** (String) Unified CCXT currency code (e.g. `"USDT"`)
+- **since** (Integer) Timestamp (ms) of the earliest time to retrieve deposits for (e.g. `1646940314000`)
+- **limit** (Integer) The number of [transaction structures](#transaction-structure) to retrieve (e.g. `5`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
 
-**The `network` field is relatively new, it may be `undefined / None / null` or missing entirely in certain cases (with some exchanges), but will be added everywhere eventually. It is still in the process of unification.**
+Returns
 
-## Withdraw
+- An array of [transaction structures](#transaction-structure)
 
-```JavaScript
-// JavaScript
-exchange.withdraw (code, amount, address, tag = undefined, params = {})
-```
 
-```Python
-# Python
-exchange.withdraw(code, amount, address, tag=None, params={})
-```
+## Withdrawal
 
-```PHP
-// PHP
-$exchange->withdraw ($code, $amount, $address, $tag = null, $params = array ())
-```
-
-The `code` is the currency code (usually three or more uppercase letters, but can be different in some cases).
-
-The withdraw method returns a dictionary containing the withdrawal id, which is usually the txid of the onchain transaction itself, or an internal *withdrawal request id* registered within the exchange. The returned value looks as follows:
-
-```JavaScript
-{
-    'info' { ... },      // unparsed reply from the exchange, as is
-    'id': '12345567890', // string withdrawal id, if any
-}
-```
+The `withdraw` method can be used to withdraw funds from an account
 
 Some exchanges require a manual approval of each withdrawal by means of 2FA (2-factor authentication). In order to approve your withdrawal you usually have to either click their secret link in your email inbox or enter a Google Authenticator code or an Authy code on their website to verify that withdrawal transaction was requested intentionally.
 
 In some cases you can also use the withdrawal id to check withdrawal status later (whether it succeeded or not) and to submit 2FA confirmation codes, where this is supported by the exchange. See [their docs](#exchanges) for details.
 
-## Deposit And Withdrawal Networks
+
+```JavaScript
+// JavaScript
+withdraw (code, amount, address, tag = undefined, params = {})
+```
+
+```Python
+# Python
+withdraw(code, amount, address, tag=None, params={})
+```
+
+```PHP
+// PHP
+withdraw ($code, $amount, $address, $tag = null, $params = array ())
+```
+
+Parameters
+
+- **code** (String) *required* Unified CCXT currency code (e.g. `"USDT"`)
+- **amount** (Float) *required* The amount of currency to withdraw (e.g. `20`)
+- **address** (String) *required* The recipient address of the withdrawal (e.g. `"TEY6qjnKDyyq5jDc3DJizWLCdUySrpQ4yp"`)
+- **tag** (String) Required for some networks (e.g. `"52055"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"network": "TRX"}`)
+
+Returns
+
+- A [transaction structure](#transaction-structure)
+
+---
+
+Data on withdrawals made to an account can be retrieved using
+
+- `fetchWithdrawal ()` for a single withdrawal
+- `fetchWithdrawals ( code )` for multiple withdrawals of the same currency
+- `fetchWithdrawals ()` for all withdrawals from an account
+
+```Javascript
+fetchWithdrawal (id, code = undefined, params = {})
+```
+
+Parameters
+
+- **id** (String) *required* Withdrawal id
+- **code** (String) Unified CCXT currency code (e.g. `"USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"network": "TRX"}`)
+
+```Javascript
+fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {})
+```
+
+Parameters
+
+- **code** (String) Unified CCXT currency code (e.g. `"USDT"`)
+- **since** (Integer) Timestamp (ms) of the earliest time to retrieve withdrawals for (e.g. `1646940314000`)
+- **limit** (Integer) The number of [transaction structures](#transaction-structure) to retrieve (e.g. `5`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- An array of [transaction structures](#transaction-structure)
+
+### Deposit And Withdrawal Networks
 
 It is also possible to pass the parameters as the fourth argument with or without a specified tag
 
 ```JavaScript
 // JavaScript
-exchange.withdraw (code, amount, address, { tag, network: 'ETH' })
+withdraw (code, amount, address, { tag, network: 'ETH' })
 ```
 
 ```Python
 # Python
-exchange.withdraw(code, amount, address, { 'tag': tag, 'network': 'ETH' })
+withdraw(code, amount, address, { 'tag': tag, 'network': 'ETH' })
 ```
 
 ```PHP
 // PHP
-$exchange->withdraw ($code, $amount, $address, array( 'tag' => tag, 'network' -> 'ETH' ));
+withdraw ($code, $amount, $address, array( 'tag' => tag, 'network' -> 'ETH' ));
 ```
 
 The following aliases of `network` allow for withdrawing crypto on multiple chains
@@ -3903,9 +4327,10 @@ The following aliases of `network` allow for withdrawing crypto on multiple chai
 
 You may set the value of `exchange.withdraw ('USDT', 100, 'TVJ1fwyJ1a8JbtUxZ8Km95sDFN9jhLxJ2D', { 'network': 'TRX' })` in order to withdraw USDT on the TRON chain, or 'BSC' to withdraw USDT on Binance Smart Chain. In the table above BSC and BEP20 are equivalent aliases, so it doesn't matter which one you use as they both will achieve the same effect.
 
-## Transactions
+### Transaction Structure
 
-#### Transaction Structure
+- *deposit structure*
+- *withdrawal structure*
 
 ```JavaScript
 {
@@ -3934,7 +4359,7 @@ You may set the value of `exchange.withdraw ('USDT', 100, 'TVJ1fwyJ1a8JbtUxZ8Km9
 }
 ```
 
-##### Notes On Transaction Structure
+#### Notes On Transaction Structure
 
 - `addressFrom` or `addressTo` may be `undefined/None/null`, if the exchange in question does not specify all sides of the transaction
 - The semantics of the `address` field is exchange-specific. In some cases it can contain the address of the sender, in other cases it may contain the address of the receiver. The actual value depends on the exchange.
@@ -3944,7 +4369,7 @@ You may set the value of `exchange.withdraw ('USDT', 100, 'TVJ1fwyJ1a8JbtUxZ8Km9
 - The `comment` field may be `undefined/None/null`, otherwise it will contain a message or note defined by the user upon creating the transaction.
 - Be careful when handling the `tag` and the `address`. The `tag` is **NOT an arbitrary user-defined string** of your choice! You cannot send user messages and comments in the `tag`. The purpose of the `tag` field is to address your wallet properly, so it must be correct. You should only use the `tag` received from the exchange you're working with, otherwise your transaction might never arrive to its destination.
 
-### Deposits
+### fetchDeposits Examples
 
 ```JavaScript
 // JavaScript
@@ -3978,7 +4403,7 @@ if ($exchange->has['fetchDeposits']) {
 }
 ```
 
-### Withdrawals
+### fetchWithdrawals Examples
 
 ```JavaScript
 // JavaScript
@@ -4012,7 +4437,7 @@ if ($exchange->has['fetchWithdrawals']) {
 }
 ```
 
-### All Transactions
+### fetchTransactions Examples
 
 ```JavaScript
 // JavaScript
@@ -4046,6 +4471,150 @@ if ($exchange->has['fetchTransactions']) {
 }
 ```
 
+## Deposit Addresses
+
+The address for depositing can be either an already existing address that was created previously with the exchange or it can be created upon request. In order to see which of the two methods are supported, check the `exchange.has['fetchDepositAddress']` and `exchange.has['createDepositAddress']` properties.
+
+```JavaScript
+fetchDepositAddress (code, params = {})
+createDepositAddress (code, params = {})
+```
+
+Parameters
+
+- **code** (String) *required* Unified CCXT currency code (e.g. `"USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- an [address structure](#address-structure)
+
+---
+
+Some exchanges may also have a method for fetching multiple deposit addresses at once or all of them at once.
+
+```JavaScript
+fetchDepositAddresses (codes = undefined, params = {})
+```
+
+Parameters
+
+- **code** (\[String\]) Array of unified CCXT currency codes. May or may not be required depending on the exchange (e.g. `["USDT", "BTC"]`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- an array of [address structures](#address-structure)
+
+```Javascript
+fetchDepositAddressesByNetwork (code, params = {})
+```
+
+Parameters
+
+- **code** (String) *required* Unified CCXT currency code (e.g. `"USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- an array of [address structures](#address-structure)
+
+#### Address structure
+
+The address structures returned from `fetchDepositAddress`, `fetchDepositAddresses`, `fetchDepositAddressesByNetwork` and `createDepositAddress` look like this:
+
+```JavaScript
+{
+    'currency': currency, // currency code
+    'network': network,   // a list of deposit/withdraw networks, ERC20, TRC20, BSC20 (see below)
+    'address': address,   // address in terms of requested currency
+    'tag': tag,           // tag / memo / paymentId for particular currencies (XRP, XMR, ...)
+    'info': response,     // raw unparsed data as returned from the exchange
+}
+```
+
+With certain currencies, like AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XMR, XRP, an additional argument `tag` is usually required by exchanges. Other currencies will have the `tag` set to `undefined / None / null`. The tag is a memo or a message or a payment id that is attached to a withdrawal transaction. The tag is mandatory for those currencies and it identifies the recipient user account.
+
+Be careful when specifying the `tag` and the `address`. The `tag` is **NOT an arbitrary user-defined string** of your choice! You cannot send user messages and comments in the `tag`. The purpose of the `tag` field is to address your wallet properly, so it must be correct. You should only use the `tag` received from the exchange you're working with, otherwise your transaction might never arrive to its destination.
+
+**The `network` field is relatively new, it may be `undefined / None / null` or missing entirely in certain cases (with some exchanges), but will be added everywhere eventually. It is still in the process of unification.**
+
+## Transfers
+
+The `transfer` method makes internal transfers of funds between accounts on the same exchange. If an exchange is separated on CCXT into a spot and futures class (e.g. `binanceusdm`, `kucoinfutures`, ...), then the method `transferIn` may be available to transfer funds into the futures account, and the method `transferOut` may be available to transfer funds out of the futures account
+
+```Javascript
+transfer (code, amount, fromAccount, toAccount, params = {})
+```
+
+Parameters
+
+- **code** (String) Unified CCXT currency code (e.g. `"USDT"`)
+- **amount** (Float) The amount of currency to transfer (e.g. `10.5`)
+- **fromAccount** (String) The account to transfer funds from.
+- **toAccount** (String) The account to transfer funds to
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+**Account Types**
+
+Unified values for `fromAccount` and `toAccount` include
+
+- `funding` *For some exchanges `funding` and `spot` are the same account*
+- `spot`
+- `margin`
+- `future`
+
+You can retrieve all the account types by selecting the keys from `exchange.options['accountsByType']
+
+Returns
+
+- A [transfer structure](#transfer-structure)
+
+```Javascript
+transferIn (code, amount, params = {})
+transferOut (code, amount, params = {})
+```
+
+Parameters
+
+- **code** (String) Unified CCXT currency code (e.g. `"USDT"`)
+- **amount** (Float) The amount of currency to transfer (e.g. `10.5`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- A [transfer structure](#transfer-structure)
+
+```Javascript
+fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {})
+```
+
+Parameters
+
+- **code** (String) Unified CCXT currency code (e.g. `"USDT"`)
+- **since** (Integer) Timestamp (ms) of the earliest time to retrieve transfers for (e.g. `1646940314000`)
+- **limit** (Integer) The number of [transfer structures](#transfer-structure) to retrieve (e.g. `5`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- An array of [transfer structures](#transfer-structure)
+
+### Transfer Structure
+
+```JavaScript
+{
+    info: { ... },
+    id: "93920432048",
+    timestamp: 1646764072000,
+    datetime: "2022-03-08T18:27:52.000Z",
+    currency: "USDT",
+    amount: 11.31,
+    fromAccount: "spot",
+    toAccount: "future",
+    status: "ok"
+}
+```
 ## Fees
 
 **This section of the Unified CCXT API is under development.**
@@ -4059,7 +4628,9 @@ Because the fee structure can depend on the actual volume of currencies traded b
 
 ```Javascript
 fetchFees (params = {})
+fetchTradingFee (params = {})
 fetchTradingFees (params = {})
+fetchFundingFee (params = {})
 fetchFundingFees (params = {})
 ```
 
@@ -4172,11 +4743,35 @@ Also, some exchanges might not specify fees as percentage of volume, check the `
 
 #### Trading Fee Schedule
 
-Some exchanges have an endpoint for fetching the trading fee schedule, this is mapped to the unified method `fetchTradingFees`:
+Some exchanges have an endpoint for fetching the trading fee schedule, this is mapped to the unified methods `fetchTradingFees`, and `fetchTradingFee`
+
+```Javascript
+fetchTradingFee (symbol, params = {})
+```
+
+Parameters
+
+- **symbol** (String) *required* Unified market symbol (e.g. `"BTC/USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"currency": "quote"}`)
+
+Returns
+
+- A [trading fee structure](#trading-fee-structure)
 
 ```Javascript
 fetchTradingFees (params = {})
 ```
+
+Parameters
+
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"currency": "quote"}`)
+
+Returns
+
+- An array of [trading fee structures](#trading-fee-structure)
+
+
+##### Trading Fee Structure
 
 ```JavaScript
 {
@@ -4208,11 +4803,37 @@ exchange.currencies['BTC']['fee'] // tx/withdrawal fee rate for BTC
 
 #### Funding Fee Schedule
 
-Some exchanges have an endpoint for fetching the funding fee schedule, this is mapped to the unified method `fetchFundingFees`:
+Some exchanges have an endpoint for fetching the funding fee schedule, this is mapped to the unified methods
+
+- `fetchFundingFee ()` for a single funding fee schedule
+- `fetchFundingFees ()` for all funding fee schedules
+
+```Javascript
+fetchFundingFee (code, params = {})
+```
+
+Parameters
+
+- **code** (String) *required* Unified CCXT currency code, required (e.g. `"USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"type": "deposit"}`)
+
+Returns
+
+- A [funding fee structure](#funding-fee-structure)
 
 ```Javascript
 fetchFundingFees (params = {})
 ```
+
+Parameters
+
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"type": "deposit"}`)
+
+Returns
+
+- An array of [funding fee structures](#funding-fee-structure)
+
+##### Funding Fee Structure
 
 ```JavaScript
 {
@@ -4228,63 +4849,255 @@ fetchFundingFees (params = {})
 }
 ```
 
-## Ledger
+## Margin
 
-```UNDER CONSTRUCTION```
+*margin and contract only*
 
-Some exchanges provide additional endpoints for fetching the all-in-one ledger history. The ledger is simply the history of changes, actions done by the user or operations that altered the user's balance in any way, that is, the history of movements of all funds from/to all accounts of the user. That includes deposits and withdrawals (funding), amounts incoming and outcoming in result of a trade or an order, trading fees, transfers between accounts, rebates, cashbacks and other types of events that are subject to accounting.
+To increase or reduce your margin balance (collateral) in an open leveraged position, use `addMargin`  and `reduceMargin` respectively. This is kind of like adjusting the amount of leverage you're using with a position that's already open. 
 
-```JavaScript
-async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {})
+Some scenarios to use these methods include
+- if the trade is going against you, you can add margin to, reducing the risk of liquidation
+- if your trade is going well you can reduce your position's margin balance and take profits
+
+```Javascript
+addMargin (symbol, amount, params = {})
+reduceMargin (symbol, amount, params = {})
 ```
 
-Some exchanges don't allow to fetch all ledger entries for all assets at once, those require the `code` argument to be supplied to `fetchLedger` method.
+Parameters
 
-### Ledger Entry Structure
+- **symbol** (String) *required* Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`)
+- **amount** (String) *required* Amount of margin to add or reduce (e.g. `20`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"leverage": 5}`)
+
+Returns
+
+- a [margin structure](#margin-structure)
+
+### Margin Structure
 
 ```JavaScript
 {
-    'id': 'hqfl-f125f9l2c9',                // string id of the ledger entry, e.g. an order id
-    'direction': 'out',                     // or 'in'
-    'account': '06d4ab58-dfcd-468a',        // string id of the account if any
-    'referenceId': 'bf7a-d4441fb3fd31',     // string id of the trade, transaction, etc...
-    'referenceAccount': '3146-4286-bb71',   // string id of the opposite account (if any)
-    'type': 'trade',                        // string, reference type, see below
-    'currency': 'BTC',                      // string, unified currency code, 'ETH', 'USDT'...
-    'amount': 123.45,                       // absolute number, float (does not include the fee)
-    'timestamp': 1544582941735,             // milliseconds since epoch time in UTC
-    'datetime': "2018-12-12T02:49:01.735Z", // string of timestamp, ISO8601
-    'before': 0,                            // amount of currency on balance before
-    'after': 0,                             // amount of currency on balance after
-    'status': 'ok',                         // 'ok, 'pending', 'canceled'
-    'fee': {                                // object or or undefined
-        'cost': 54.321,                     // absolute number on top of the amount
-        'currency': 'ETH',                  // string, unified currency code, 'ETH', 'USDT'...
-    },
-    'info': { ... },                        // raw ledger entry as is from the exchange
+    info: { ... },
+    type: 'add',
+    amount: 1,
+    code: 'USDT',
+    symbol: 'XRP/USDT:USDT',
+    status: 'ok'
 }
 ```
 
-### Notes on Ledger Entry Structure
+## Margin Mode
 
-The type of the ledger entry is the type of the operation associated with it. If the amount comes due to a sell order, then it is associated with a corresponding trade type ledger entry, and the referenceId will contain associated trade id (if the exchange in question provides it). If the amount comes out due to a withdrawal, then is is associated with a corresponding transaction.
+*margin and contract only*
 
-- `trade`
-- `transaction`
-- `fee`
-- `rebate`
-- `cashback`
-- `referral`
-- `transfer`
-- `airdrop`
-- `whatever`
-- ...
+Updates the type of margin used to be either 
 
-The `referenceId` field holds the id of the corresponding event that was registered by adding a new item to the ledger.
+- `cross` One account is used to share collateral between markets. Margin is taken from total account balance to avoid liquidation when needed.
+- `isolated` Each market, keeps collateral in a separate account
 
-The `status` field is there to support for exchanges that include pending and canceled changes in the ledger. The ledger naturally represents the actual changes that have taken place, therefore the status is `'ok'` in most cases.
+```Javascript
+setMarginMode (marginType, symbol = undefined, params = {})
+```
 
-The ledger entry type can be associated with a regular trade or a funding transaction (deposit or withdrawal) or an internal `transfer` between two accounts of the same user. If the ledger entry is associated with an internal transfer, the `account` field will contain the id of the account that is being altered with the ledger entry in question. The `referenceAccount` field will contain the id of the opposite account the funds are transferred to/from, depending on the `direction` (`'in'` or `'out'`).
+Parameters
+
+- **marginType** (String) *required* the type of margin used 
+    **Unified margin types:**
+    - `"cross"`
+    - `"isolated"`
+- **symbol** (String) Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`) *required* on most exchanges. Is not required when the margin mode is not specific to a market
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"leverage": 5}`)
+
+Returns
+
+- response from the exchange
+
+### Exchanges without setMarginMode
+
+Common reasons for why an exchange might have 
+
+```JavaScript
+exchange.has['setMarginMode'] == false
+```
+
+include
+
+- the exchange does not offer leveraged trading
+- the exchange only offers one of `cross` or `isolated` margin modes, but does not offer both
+- margin mode must be set using an exchange specific parameter within `params` when using `createOrder`
+### Notes on suppressed errors for setMarginMode
+
+Some exchange apis return an error response when a request is sent to set the margin mode to the mode that it is already set to (e.g. Sending a request to set the margin mode to `cross` for the market `BTC/USDT:USDT` when the account already has `BTC/USDT:USDT` set to use cross margin). CCXT doesn't see this as an error because the end result is what the user wanted, so the error is suppressed and the error result is returned as an object.
+
+e.g.
+
+```JavaScript
+{ code: -4046, msg: 'No need to change margin type.' }
+```
+
+## Leverage
+
+*margin and contract only*
+
+```Javascript
+setLeverage (leverage, symbol = undefined, params = {})
+```
+
+Parameters
+
+- **leverage** (Integer) *required* The desired leverage
+- **symbol** (String) Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`) *required* on most exchanges. Is not required when leverage is not specific to a market (e.g. Not required on **FTX** because leverage is set for the account and not per market)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"marginMode": "cross"}`)
+
+Returns
+
+- response from the exchange
+
+## Contract trading
+
+This can include futures with a set expiry date, perpetual swaps with funding payments, and inverse futures or swaps.
+Information about the positions can be served from different endpoints depending on the exchange.
+In the case that there are multiple endpoints serving different types of derivatives CCXT will default to just loading the "linear" (as oppose to the "inverse") contracts or the "swap" (as opposed to the "future") contracts. 
+
+## Positions
+
+*contract only*
+
+To get information about positions currently held in contract markets, use
+
+- fetchPosition ()            // for a single market
+- fetchPositions ()           // for all positions
+- fetchAccountPositions ()    // TODO
+- fetchIsolatedPositions ()   // for positions in isolated margin mode only
+
+```JavaScript
+fetchPosition (symbol, params = {})                         // for a single market
+```
+
+Parameters
+
+- **symbol** (String) *required* Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- A [position structure](#position-structure)
+
+```JavaScript
+fetchPositions (symbols = undefined, params = {})
+fetchAccountPositions (symbols = undefined, params = {})
+fetchIsolatedPositions (symbols = undefined, params = {})
+```
+
+Parameters
+
+- **symbols** (\[String\]) Unified CCXT market symbols, do not set to retrieve all positions (e.g. `["BTC/USDT:USDT"]`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- An array of [position structures](#position-structure)
+
+### Position Structure
+
+```Javascript
+{
+   'info': { ... },             // json response returned from the exchange as is
+   'id': '1234323',             // string, position id to reference the position, similar to an order id
+   'symbol': 'BTC/USD',         // uppercase string literal of a pair of currencies
+   'timestamp': 1607723554607,  // integer unix time since 1st Jan 1970 in milliseconds
+   'datetime': '2020-12-11T21:52:34.607Z',  // ISO8601 representation of the unix time above
+   'isolated': true,            // boolean, whether or not the position is isolated, as opposed to cross where margin is added automatically
+   'hedged': false,             // boolean, whether or not the position is hedged, i.e. if trading in the opposite direction will close this position or make a new one
+   'side': 'long',              // string, long or short
+   'contracts': 5,              // float, number of contracts bought, aka the amount or size of the position
+   'contractSize': 100,         // float, the size of one contract in quote units
+   'entryPrice': 20000,         // float, the average entry price of the position
+   'markPrice': 20050,          // float, a price that is used for funding calculations
+   'notional': 100000,          // float, the value of the position in the settlement currency
+   'leverage': 100,             // float, the leverage of the position, related to how many contracts you can buy with a given amount of collateral
+   'collateral': 5300,          // float, the maximum amount of collateral that can be lost, affected by pnl
+   'initialMargin': 5000,       // float, the amount of collateral that is locked up in this position
+   'maintenanceMargin': 1000,   // float, the mininum amount of collateral needed to avoid being liquidated
+   'initialMarginPercentage': 0.05,      // float, the initialMargin as a percentage of the notional
+   'maintenanceMarginPercentage': 0.01,  // float, the maintenanceMargin as a percentage of the notional
+   'unrealizedPnl': 300,        // float, the difference between the market price and the entry price times the number of contracts, can be negative
+   'liquidationPrice': 19850,   // float, the price at which collateral becomes less than maintenanceMargin
+   'marginType': 'cross',       // string, can be cross or isolated
+   'percentage': 3.32,          // float, represents unrealizedPnl / initialMargin * 100
+}
+```
+Positions allow you to borrow money from an exchange to go long or short on an market. Some exchanges require you to pay a funding fee to keep the position open.
+
+When you go long on a position you are betting that the price will be higher in the future and that the price will never be less than the `liquidationPrice`.
+
+As the price of the underlying index changes so does the unrealisedPnl and as a consequence the amount of collateral you have left in the position (since you can only close it at market price or worse). At some price you will have zero collateral left, this is called the "bust" or "zero" price. Beyond this point, if the price goes in the opposite direction far enough, the collateral of the position will drop below the `maintenanceMargin`. The maintenanceMargin acts as a safety buffer between your position and negative collateral, a scenario where the exchange incurs losses on your behalf. To protect itself the exchange will swiftly liquidate your position if and when this happens. Even if the price returns back above the liquidationPrice you will not get your money back since the exchange sold all the `contracts` you bought at market. In other words the maintenanceMargin is a hidden fee to borrow money.
+
+It is recommended to use the `maintenanceMargin` and `initialMargin` instead of the `maintenanceMarginPercentage` and `initialMarginPercentage` since these tend to be more accurate. The maintenanceMargin might be calculated from other factors outside of the maintenanceMarginPercentage including the funding rate and taker fees, for example on [kucoin](https://futures.kucoin.com/contract/detail).
+
+An inverse contract will allow you to go long or short on BTC/USD by putting up BTC as collateral. Our API for inverse contracts is the same as for linear contracts. The amounts in an inverse contracts are quoted as if they were traded USD/BTC, however the price is still quoted terms of BTC/USD.  The formula for the profit and loss of a inverse contract is `(1/markPrice - 1/price) * contracts`. The profit and loss and collateral will now be quoted in BTC, and the number of contracts are quoted in USD.
+
+### Liquidation price
+
+It is the price at which the `initialMargin + unrealized = collateral = maintenanceMargin`. The price has gone in the opposite direction of your position to the point where the is only maintenanceMargin collateral left and if it goes any further the position will have negative collateral.
+
+```JavaScript
+// if long
+(liquidationPrice - price) * contracts = maintenanceMargin
+
+// if short
+(price - liquidationPrice) * contracts = maintenanceMargin
+// if inverse long
+(1/liquidationPrice - 1/price) * contracts = maintenanceMargin
+
+// if inverse short
+(1/price - 1/liquidationPrice) * contracts = maintenanceMargin
+```
+
+## Funding History
+
+*contract only*
+
+Perpetual swap (also known as perpetual future) contracts maintain a market price that mirrors the price of the asset they are based on because funding fees are exchanged between traders who hold positions in perpetual swap markets. 
+
+If the contract is being traded at a price that is higher than the price of the asset they represent, then traders in long positions pay a funding fee to traders in short positions at specific times of day, which encourages more traders to enter short positions prior to these times.
+
+If the contract is being traded at a price that is lower than the price of the asset they represent, then traders in short positions pay a funding fee to traders in long positions at specific times of day, which encourages more traders to enter long positions prior to these times.
+
+These fees are usually exchanged between traders with no commission going to the exchange
+
+The `fetchFundingHistory` method can be used to retrieve an accounts history of funding fees paid or received
+
+```Javascript
+fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {})
+```
+
+Parameters
+
+- **symbol** (String) Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`)
+- **since** (Integer) Timestamp (ms) of the earliest time to retrieve funding history for (e.g. `1646940314000`)
+- **limit** (Integer) The number of [funding history structures](#funding-history-structure) to retrieve (e.g. `5`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- An array of [funding history structures](#funding-history-structure)
+
+### Funding History Structure
+
+```JavaScript
+{
+    info: { ... },
+    symbol: "XRP/USDT:USDT",
+    code: "USDT",
+    timestamp: 1646954920000,
+    datetime: "2022-03-08T16:00:00.000Z",
+    id: "1520286109858180",
+    amount: -0.027722
+}
+```
+
 
 # Error Handling
 
