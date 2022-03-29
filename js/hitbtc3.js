@@ -1776,7 +1776,12 @@ module.exports = class hitbtc3 extends Exchange {
     async fetchPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
-        const response = await this.privateGetFuturesAccount (this.extend (request, params));
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchPositions', undefined, params);
+        const method = this.getSupportedMapping (marketType, {
+            'swap': 'privateGetFuturesAccount',
+            'margin': 'privateGetMarginAccount',
+        });
+        const response = await this[method] (this.extend (request, query));
         //
         //     [
         //         {
