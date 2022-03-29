@@ -2907,14 +2907,16 @@ class Exchange {
             
             $newNumPrecisionDigits = $numPrecisionDigitsP->decimals > 0 ? $numPrecisionDigitsP->decimals : 0;
             
-            $rationizerNumerator = max(-$xP->decimals + $numPrecisionDigitsP->decimals, 0);
+            $rationizerNumerator = -$xP->decimals + $numPrecisionDigitsP->decimals;
+            $rationizerNumerator = $rationizerNumerator > 0 ? $rationizerNumerator : 0;
             if ($rationizerNumerator > 0) {
                 $exponent = gmp_pow(Precise::$base, $rationizerNumerator);
                 $numerator = gmp_mul($xP->integer, $exponent);
             } else {
                 $numerator = $xP->integer;
             }
-            $rationizerDenominator = max(-$numPrecisionDigitsP->decimals + $xP->decimals, 0);
+            $rationizerDenominator = -$numPrecisionDigitsP->decimals + $xP->decimals;
+            $rationizerDenominator = $rationizerDenominator > 0 ? $rationizerDenominator : 0;
             if ($rationizerDenominator > 0) {
                 $exponent = gmp_pow(Precise::$base, $rationizerDenominator);
                 $denominator = gmp_mul($numPrecisionDigitsP->integer, $exponent);
@@ -3066,7 +3068,8 @@ class Exchange {
         if ($lastDigitPos+1<$pointIndex) {
             $x = substr($x,0,$lastDigitPos+1) . str_repeat('0',$pointIndex-$lastDigitPos-1) . substr($x,$pointIndex);
         }
-        $result = substr($x,0,max($pointIndex, $lastDigitPos+1));
+        $resultlen = $pointIndex >= $lastDigitPos ? $pointIndex : $lastDigitPos+1;
+        $result = substr($x, 0, $resultlen);
         $resultlen = strlen($result);
         $hasDot = $pointIndex < $resultlen;
         if ($paddingMode === NO_PADDING) {
