@@ -2924,30 +2924,23 @@ class Exchange {
             $remainderInteger = gmp_div_r($numerator, $denominator, GMP_ROUND_MINUSINF);
             
             if (gmp_cmp($remainderInteger, 0) != 0) {
+                $xP->integer = gmp_sub($numerator, $remainderInteger);
                 if ($roundingMode === ROUND) {
                     $doubleRemainderInteger = gmp_mul($remainderInteger, 2);
                     if (gmp_cmp($numerator,0)>0) {
                         if (gmp_cmp($doubleRemainderInteger,$denominator) >= 0) {
-                            $xP->integer = gmp_add($numerator, gmp_sub($denominator, $remainderInteger));
-                        } else {
-                            $xP->integer = gmp_sub($numerator, $remainderInteger);
+                            $xP->integer = gmp_add($xP->integer, $denominator);
                         }
                     } else {
                         if (gmp_cmp($doubleRemainderInteger,$denominator) > 0) {
-                            $xP->integer = gmp_add($numerator, gmp_sub($denominator, $remainderInteger));
-                        } else {
-                            $xP->integer = gmp_sub($numerator, $remainderInteger);
+                            $xP->integer = gmp_add($xP->integer, $denominator);
                         }
                     }
                 } elseif ($roundingMode === TRUNCATE) {
                     if (gmp_cmp($numerator,0)<0) {
                         if (gmp_cmp($remainderInteger,0)>0) {
-                            $xP->integer = gmp_add($numerator, gmp_sub($denominator, $remainderInteger));
-                        } else {
-                            $xP->integer = gmp_sub($numerator, $remainderInteger);
+                            $xP->integer = gmp_add($xP->integer, $denominator);
                         }
-                    } else {
-                        $xP->integer = gmp_sub($numerator, $remainderInteger);
                     }
                 }
                 $xP->decimals = $rationizerDenominator + $numPrecisionDigitsP->decimals;
