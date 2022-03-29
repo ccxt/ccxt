@@ -2683,6 +2683,7 @@ Parameters
 Returns
 
 - An array of [funding rate history structures](#funding-rate-history-structure)
+
 ### Funding Rate History Structure
 
 ```Javascript
