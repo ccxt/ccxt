@@ -1,7 +1,7 @@
 
-import { ROUND_UP, ROUND_DOWN } from './number'
+import { ROUND_UP, ROUND_DOWN } from './number.js'
 // const { NotSupported } = require ('../errors')
-import exceptions from '../errors'
+import exceptions from '../errors.js'
 const { NotSupported } = exceptions
 
 //-------------------------------------------------------------------------

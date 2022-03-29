@@ -1,7 +1,7 @@
 // ----------------------------------------------------------------------------
 
 
-import * as functions from './functions'
+import * as functions from './functions.js'
 const {
     isNode
     , keys
@@ -100,7 +100,7 @@ const {
     , NO_PADDING
 } = functions
 
-import exceptions from "./errors"
+import exceptions from "./errors.js"
 
  const { // eslint-disable-line object-curly-newline
     ExchangeError
@@ -113,8 +113,8 @@ import exceptions from "./errors"
     , ExchangeNotAvailable
     , RateLimitExceeded } = exceptions
 
-import BN from '../static_dependencies/BN/bn'
-import { Precise } from './Precise'
+import BN from '../static_dependencies/BN/bn.cjs'
+import { Precise } from './Precise.js'
 // ----------------------------------------------------------------------------
 
 export class Exchange {

@@ -4,6 +4,7 @@
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
+  "type": "module",
   "engines": {
     "node": ">=10.4.0"
   },
@@ -585,5 +586,8 @@
     "url": "https://opencollective.com/ccxt",
     "logo": "https://opencollective.com/ccxt/logo.txt"
   },
-  "ethereum": "0x26a3CB49578F07000575405a57888681249c35Fd"
+  "ethereum": "0x26a3CB49578F07000575405a57888681249c35Fd",
+  "dependencies": {
+    "replace-in-file": "^6.3.2"
+  }
 }

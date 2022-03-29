@@ -1,6 +1,4 @@
-// 'use strict';
-
-import { errorHierarchy } from './errorHierarchy'
+import { errorHierarchy } from './errorHierarchy.js'
 
 /*  ------------------------------------------------------------------------ */
 

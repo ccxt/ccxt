@@ -1,8 +1,8 @@
 /*  ------------------------------------------------------------------------ */
 
-import CryptoJS from '../../static_dependencies/crypto-js/crypto-js'
-import qs from'../../static_dependencies/qs/index'
-import BN from'../../static_dependencies/BN/bn'
+import CryptoJS from '../../static_dependencies/crypto-js/crypto-js.cjs'
+import qs from '../../static_dependencies/qs/index.cjs'
+import BN from '../../static_dependencies/BN/bn.cjs'
 
 
 /*  ------------------------------------------------------------------------ */

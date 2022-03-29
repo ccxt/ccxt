@@ -1,18 +1,18 @@
 
 /*  ------------------------------------------------------------------------ */
 
-import BN from '../../static_dependencies/BN/bn.js'
-import elliptic from './../../static_dependencies/elliptic/lib/elliptic'
-import NodeRSA from './../../static_dependencies/node-rsa/NodeRSA'
-import CryptoJS from '../../static_dependencies/crypto-js/crypto-js'
+import BN from '../../static_dependencies/BN/bn.cjs'
+import elliptic from '../../static_dependencies/elliptic/lib/elliptic.cjs'
+import NodeRSA from '../../static_dependencies/node-rsa/NodeRSA.cjs'
+import CryptoJS from '../../static_dependencies/crypto-js/crypto-js.cjs'
 
 
-import { capitalize } from './string'
-import { binaryToBase58, byteArrayToWordArray, urlencodeBase64, stringToBase64 } from './encode'
+import { capitalize } from './string.js'
+import { binaryToBase58, byteArrayToWordArray, urlencodeBase64, stringToBase64 } from './encode.js'
 const EC = elliptic.ec
 const EDDSA = elliptic.eddsa
-const { ArgumentsRequired, ExchangeError } = require ('./../errors')
-
+import errors from './../errors.js'
+const { ArgumentsRequired, ExchangeError } = errors
 /*  ------------------------------------------------------------------------ */
 
 const hash = (request, hash = 'md5', digest = 'hex') => {

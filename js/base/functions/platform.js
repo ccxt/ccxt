@@ -21,13 +21,12 @@ const isWebWorker = typeof WorkerGlobalScope !== 'undefined' && (self instanceof
 const isWindows = typeof process !== 'undefined' && process.platform === "win32"
 
 const isNode = !(isBrowser || isWebWorker)
-
-const defaultFetch = typeof (fetch) === "undefined" ? require ('../../static_dependencies/fetch-ponyfill/fetch-node') ().fetch : fetch
+const nodeFetch = await import ('../../static_dependencies/fetch-ponyfill/fetch-node.cjs');
+const defaultFetch = typeof (fetch) === "undefined" ? nodeFetch['default']() .fetch : fetch
 
 // ----------------------------------------------------------------------------
 
 export {
-
     isBrowser,
     isElectron,
     isWebWorker,

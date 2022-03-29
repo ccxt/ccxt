@@ -291,6 +291,9 @@ async function testExchange (exchange) {
         await exchange.signIn ()
     }
 
+    // tmp 
+    exchange['type'] = 'swap'
+
     // move to testnet/sandbox if possible before accessing the balance
     // if (exchange.urls['test'])
     //    exchange.urls['api'] = exchange.urls['test']

@@ -1,7 +1,7 @@
 
 // ----------------------------------------------------------------------------
 
-import { isObject, isNumber, isDictionary, isArray } from './type'
+import { isObject, isNumber, isDictionary, isArray } from './type.js'
 
 // ----------------------------------------------------------------------------
 
