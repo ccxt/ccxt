@@ -411,10 +411,10 @@ class ascendex extends \ccxt\async\ascendex {
             $quoteAccount['total'] = $this->safe_string($data, 'qtb');
             if ($market['contract']) {
                 $type = 'swap';
-                $result = $this->safe_value($this->balances, $type, array());
+                $result = $this->safe_value($this->balance, $type, array());
             } else {
                 $type = $market['type'];
-                $result = $this->safe_value($this->balances, $type, array());
+                $result = $this->safe_value($this->balance, $type, array());
             }
             $result[$market['base']] = $baseAccount;
             $result[$market['quote']] = $quoteAccount;
@@ -422,7 +422,7 @@ class ascendex extends \ccxt\async\ascendex {
             $accountType = $this->safe_string_lower_2($message, 'ac', 'at');
             $categoriesAccounts = $this->safe_value($this->options, 'categoriesAccount');
             $type = $this->safe_string($categoriesAccounts, $accountType, 'spot');
-            $result = $this->safe_value($this->balances, $type, array());
+            $result = $this->safe_value($this->balance, $type, array());
             $data = $this->safe_value($message, 'data');
             $balances = null;
             if ($data === null) {
@@ -596,7 +596,7 @@ class ascendex extends \ccxt\async\ascendex {
         $price = $this->safe_string($order, 'p');
         $amount = $this->safe_string($order, 'q');
         $average = $this->safe_string($order, 'ap');
-        $filled = $this->safe_string_2($order, 'cfq');
+        $filled = $this->safe_string($order, 'cfq');
         $id = $this->safe_string($order, 'orderId');
         $type = $this->safe_string_lower($order, 'ot');
         $side = $this->safe_string_lower($order, 'sd');
