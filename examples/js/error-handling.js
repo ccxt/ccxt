@@ -1,7 +1,8 @@
 
 
-const ccxt      = require ('../../ccxt.js')
-    , verbose   = process.argv.includes ('--verbose')
+import ccxt from '../../ccxt.js';
+
+const verbose   = process.argv.includes ('--verbose');
 
 //-----------------------------------------------------------------------------
 

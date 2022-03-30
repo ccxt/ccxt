@@ -1,12 +1,15 @@
 
 
-const ansi = require ('ansicolor').nice
-    , log = require ('ololog').noLocate
-    , asTable = require ('as-table').configure ({
+import { nice as ansi } from 'ansicolor';
+import { noLocate as log } from 'ololog';
+import asTable from 'as-table';
+
+import ccxt from '../../ccxt.js';
+
+const table = asTable.configure ({
         delimiter: ' | '.dim,
         right: true,
-    })
-    , ccxt = require ('../../ccxt.js')
+    });
 
 const exchange = new ccxt.coinone ({
     'enableRateLimit': true,
@@ -16,7 +19,7 @@ const exchange = new ccxt.coinone ({
 let printTickersAsTable = function (exchange, tickers) {
     log (exchange.id.green, exchange.iso8601 (exchange.milliseconds ()))
     log ('Fetched', Object.values (tickers).length.toString ().green, 'tickers:')
-    log (asTable (ccxt.sortBy (Object.values (tickers), 'symbol', false)))
+    log (table (ccxt.sortBy (Object.values (tickers), 'symbol', false)))
 }
 
 async function fetchAllAndPrint () {
@@ -42,7 +45,7 @@ async function fetchOneByOneAndPrint () {
     printTickersAsTable (exchange, tickers)
 }
 
-;(async () => {
+(async () => {
     await fetchAllAndPrint ()
     log ('\n')
     await fetchOneByOneAndPrint ()

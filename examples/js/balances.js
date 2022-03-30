@@ -1,7 +1,7 @@
 
 
-const ccxt      = require ('../../ccxt.js')
-const asTable   = require ('as-table')
+import ccxt from '../../ccxt.js';
+import asTable from 'as-table';
 const log       = require ('ololog').configure ({ locate: false })
 
 require ('ansicolor').nice

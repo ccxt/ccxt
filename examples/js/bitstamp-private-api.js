@@ -1,12 +1,15 @@
 
 
-const ccxt = require('../../ccxt.js')
-const asTable = require('as-table')
-const log = require('ololog').configure({ locate: false })
+import ccxt from '../../ccxt.js';
+import asTable from 'as-table';
+import ololog from 'ololog'
+import ansicolor from 'ansicolor';
 
-require('ansicolor').nice
+const log = ololog.configure({ locate: false })
 
-    ; (async () => {
+ansicolor.nice
+
+    ;(async () => {
         let apiUrl = 'https://www.bitstamp.net/api';
 
         // instantiate the exchange

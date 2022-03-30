@@ -1,7 +1,8 @@
-;
 
-const log  = require ('ololog').configure ({ locate: false })
-const ccxt = require('../../ccxt')
+import ccxt from '../../ccxt.js';
+import ololog from 'ololog'
+
+const log  = ololog.configure ({ locate: false })
 
 const binance = new ccxt['binance'] ()
 const recvWindow = binance.options.recvWindow

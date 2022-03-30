@@ -1,6 +1,6 @@
 
 
-const ccxt = require ('../../ccxt.js')
+import ccxt from '../../ccxt.js';
 
 
 async function fetchOHLCVSince (exchange, symbol, timeframe, since) {

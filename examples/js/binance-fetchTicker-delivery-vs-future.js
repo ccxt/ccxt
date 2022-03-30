@@ -1,6 +1,6 @@
 
 
-const ccxt = require ('../../ccxt.js')
+import ccxt from '../../ccxt.js';
 
 async function fetchTickers (exchange) {
     let tickers = undefined
@@ -13,7 +13,7 @@ async function fetchTickers (exchange) {
     return tickers
 }
 
-;(async () => {
+(async () => {
 
     const enableRateLimit = true
     const future   = new ccxt.binance ({ enableRateLimit, options: { defaultType: 'future' }})

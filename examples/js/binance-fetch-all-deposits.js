@@ -1,8 +1,8 @@
 
 
-const ccxt = require ('../../ccxt.js')
+import ccxt from '../../ccxt.js';
 
-;(async function main () {
+(async function main () {
 
     const exchange = new ccxt.binance ({
         'apiKey': 'YOUR_API_KEY',

@@ -1,12 +1,12 @@
 
 
-const csv = process.argv.includes ('--csv')
-    , delimiter = csv ? ',' : '|'
-    , ccxt = require ('../../ccxt.js')
-    , asTableConfig = { delimiter: ' ' + delimiter + ' ', /* print: require ('string.ify').noPretty  */ }
-    , asTable = require ('as-table').configure (asTableConfig)
-    , log = require ('ololog').noLocate
-    , ansi = require ('ansicolor').nice
+import ccxt from '../../ccxt.js';
+import { noLocate as log } from 'ololog';
+import ansicolor from 'ansicolor';
+
+ansicolor.nice
+
+const csv = process.argv.includes ('--csv'), delimiter = csv ? ',' : '|', asTableConfig = { delimiter: ' ' + delimiter + ' ', /* print: require ('string.ify').noPretty  */ }, asTable = require ('as-table').configure (asTableConfig);
 
 console.log (ccxt.iso8601 (ccxt.milliseconds ()))
 console.log ('CCXT v' + ccxt.version)

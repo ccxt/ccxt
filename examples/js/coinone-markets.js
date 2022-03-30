@@ -1,7 +1,7 @@
 
 
-const log = require ('ololog')
-    , ccxt = require ('../../ccxt.js')
+import log from 'ololog';
+import ccxt from '../../ccxt.js';
 
 const exchange = new ccxt.coinone ({
     'enableRateLimit': true,

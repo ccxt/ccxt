@@ -1,12 +1,14 @@
 
 
-const ccxt      = require ('../../ccxt.js')
-const asTable   = require ('as-table')
-const log       = require ('ololog').configure ({ locate: false })
-const config    = require ('../../keys')
+import ccxt from '../../ccxt.js';
+import asTable from 'as-table';
+import ololog from 'ololog'
+import config from '../../keys.json';
+import ansicolor from 'ansicolor';
 
+const log = ololog.configure ({ locate: false })
 
-require ('ansicolor').nice
+ansicolor.nice
 
 let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms))
 
