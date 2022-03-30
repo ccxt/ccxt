@@ -4,7 +4,7 @@ import ccxt from '../../ccxt.js';
 import asTable from 'as-table';
 import fs from 'fs';
 import ansicolor from 'ansicolor';
-import ololog from 'ololog'
+import ololog from 'ololog';
 
 const log = ololog.configure ({ locate: false }), verbose   = process.argv.includes ('--verbose'), keysGlobal = 'keys.json', keysLocal = 'keys.local.json', keysFile = fs.existsSync (keysLocal) ? keysLocal : (fs.existsSync (keysGlobal) ? keysGlobal : false), config = keysFile ? require ('../../' + keysFile) : {};
 
