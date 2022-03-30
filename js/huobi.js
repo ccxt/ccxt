@@ -846,33 +846,45 @@ module.exports = class huobi extends ccxt.huobi {
         params = this.omit (params, 'type');
         await this.loadMarkets ();
         let messageHash = undefined;
+        let channel = undefined;
         if (type === 'spot') {
             let mode = this.safeString2 (this.options, 'watchBalance', 'mode', '2');
             mode = this.safeString (params, 'mode', mode);
             messageHash = 'accounts.update' + '#' + mode;
+            channel = messageHash;
         } else {
             let prefix = 'accounts';
             if (subType === 'linear') {
+                const marginMode = this.safeString (params, 'margin', 'cross');
+                query = this.omit (params, 'maring');
+                prefix = (marginMode === 'cross') ? prefix + '_cross' : prefix;
+                messageHash = prefix;
                 const symbol = this.safeString (params, 'symbol');
                 if (symbol !== undefined) {
                     query = this.omit (params, 'symbol');
                     const market = this.market (symbol);
                     currencyCode = market['id'].toLowerCase ();
+                    messageHash += '.' + currencyCode;
                 }
-                const marginMode = this.safeString (params, 'margin', 'cross');
-                prefix = (marginMode === 'cross') ? prefix + '_cross' : prefix;
+                channel = prefix + '.' + currencyCode;
             }
+            messageHash = prefix;
             if (type === 'future') {
                 const currency = this.safeString (params, 'currency');
                 if (currency !== undefined) {
                     query = this.omit (params, 'currency');
                     currencyCode = this.currency (currency);
                     currencyCode = currencyCode['id'];
+                    messageHash += '.' + currencyCode;
                 }
+                channel = prefix + '.' + currencyCode;
             }
-            messageHash = prefix + '.' + currencyCode;
         }
-        return await this.subscribePrivate (messageHash, messageHash, type, subType, query);
+        // we are differentiating the channel from the messageHash for global subscriptions (*)
+        // because huobi returns a different topic than the topic sent. Example: we send
+        // "accounts.*" and "accounts" is returned so we're setting channel = "accounts.*" and
+        // messageHash = "accounts" allowing handleBalance to freely resolve the topic in the message
+        return await this.subscribePrivate (channel, messageHash, type, subType, query);
     }
 
     handleBalance (client, message) {
@@ -921,7 +933,7 @@ module.exports = class huobi extends ccxt.huobi {
         // usdt / swap
         // {
         //     "op":"notify",
-        //     "topic":"accounts.btc-usdt",
+        //     "topic":"accounts.btc-usdt", // or 'accounts' for global subscriptions
         //     "ts":1603711370689,
         //     "event":"order.open",
         //     "data":[
@@ -947,24 +959,34 @@ module.exports = class huobi extends ccxt.huobi {
         //         }
         //     ]
         //
-        const data = this.safeValue (message, 'data', []);
-        const topic = this.safeString (message, 'topic', '');
-        const topicParts = topic.split ('.');
-        const prefix = this.safeString (topicParts, 0);
-        const globalMessageHash = prefix + '.' + '*';
-        const messageHash = this.safeString (message, 'topic');
-        for (let i = 0; i < data.length; i++) {
-            const balance = data[i];
-            const currencyId = this.safeString (balance, 'currency');
+        const channel = this.safeString (message, 'ch');
+        if (channel !== undefined) {
+            // spot balance
+            const data = this.safeValue (message, 'data', {});
+            const currencyId = this.safeString (data, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeString (balance, 'available');
-            account['total'] = this.safeString (balance, 'balance');
+            account['free'] = this.safeString (data, 'available');
+            account['total'] = this.safeString (data, 'balance');
             this.balance[code] = account;
-            this.balance[code] = this.safeBalance (this.balance[code]);
+            this.balance = this.safeBalance (this.balance);
+            client.resolve (this.balance, channel);
+        } else {
+            // contract balance
+            const data = this.safeValue (message, 'data', []);
+            const messageHash = this.safeString (message, 'topic');
+            for (let i = 0; i < data.length; i++) {
+                const balance = data[i];
+                const currencyId = this.safeString (balance, 'symbol');
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['free'] = this.safeString2 (balance, 'margin_balance', 'margin_available');
+                account['used'] = this.safeString (balance, 'margin_frozen');
+                this.balance[code] = account;
+                this.balance = this.safeBalance (this.balance);
+            }
             client.resolve (this.balance, messageHash);
         }
-        client.resolve (this.balance, globalMessageHash);
     }
 
     handleSubscriptionStatus (client, message) {
@@ -1469,7 +1491,7 @@ module.exports = class huobi extends ccxt.huobi {
         if (type === 'spot') {
             request = {
                 'action': 'sub',
-                'ch': messageHash,
+                'ch': channel,
             };
         } else {
             request = {
