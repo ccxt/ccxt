@@ -16,7 +16,7 @@
   },
   "readme": "README.md",
   "scripts": {
-    "doc": "jsdoc --configure doc/config.jsdoc.json ccxt.js",
+    "doc": "node jsdoc2md.js",
     "docker": "docker-compose run --rm ccxt",
     "build": "npm run pre-transpile && npm run transpile && npm run post-transpile && npm run update-badges",
     "force-build": "npm run pre-transpile && npm run force-transpile && npm run post-transpile && npm run update-badges",
@@ -66,6 +66,7 @@
     "eslint": "^8.8.0",
     "eslint-config-airbnb-base": "15.0.0",
     "eslint-plugin-import": "2.25.4",
+    "jsdoc-to-markdown": "^7.1.1",
     "ololog": "1.1.155"
   },
   "author": {
