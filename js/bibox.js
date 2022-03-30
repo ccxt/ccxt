@@ -46,6 +46,7 @@ module.exports = class bibox extends Exchange {
                 'fetchTradingFees': false,
                 'fetchTransactionFees': true,
                 'fetchWithdrawals': true,
+                'transfer': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -214,9 +215,12 @@ module.exports = class bibox extends Exchange {
                             'user': 'v1',
                             'orderpending': 'v1',
                             'transfer': 'v1',
-                            'assets/transfer/spot': 'v2',
+                            'assets/transfer/spot': 'v3',
                         },
                     },
+                },
+                'transfer': {
+                    'fillResponseFromRequest': true,
                 },
             },
         });
@@ -1395,6 +1399,96 @@ module.exports = class bibox extends Exchange {
         };
     }
 
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        let method = undefined;
+        const request = {};
+        if (fromAccount === 'wallet' && toAccount === 'spot') {
+            method = 'privatePostAssetsTransferSpot';
+            request['type'] = 0;
+        } else if (fromAccount === 'spot' && toAccount === 'wallet') {
+            method = 'privatePostAssetsTransferSpot';
+            request['type'] = 1;
+        } else if (fromAccount === 'wallet' && toAccount === 'margin') {
+            method = 'privatePostCreditTransferAssetsBase2credit';
+        } else if (fromAccount === 'margin' && toAccount === 'wallet') {
+            method = 'privatePostCreditTransferAssetsCredit2base';
+        }
+        if (method === 'privatePostAssetsTransferSpot') {
+            request['symbol'] = currency['id'];
+            request['amount'] = this.currencyToPrecision (code, amount);
+        } else if (method === 'privatePostCreditTransferAssetsBase2credit' || method === 'privatePostCreditTransferAssetsCredit2base') {
+            request['coin_symbol'] = currency['id'];
+            request['amount'] = amount;
+            const symbol = this.safeString (params, 'symbol');
+            params = this.omit (params, 'symbol');
+            if (symbol === undefined) {
+                throw new ExchangeError ('to transfer to and from margin you must specify the `symbol` of the market for fixed margin');
+            }
+            const market = this.market (symbol);
+            request['pair'] = market['id'];
+        } else {
+            throw new ExchangeError ('this exchange only allows transfers between wallet and spot, and between wallet and margin');
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        //    privatePostAssetsTransferSpot
+        //    {
+        //        "state":0,
+        //        "id":"794509221218521088"
+        //    }
+        //
+        //    privatePostCreditTransferAssetsBase2credit && privatePostCreditTransferAssetsCredit2Base
+        //    {
+        //        "result":"1370000000204",
+        //        "cmd":"transferAssets/base2credit",
+        //        "state":0
+        //    }
+        //
+        const transfer = this.parseTransfer (response, currency);
+        const transferOptions = this.safeValue (this.options, 'transfer');
+        const fillResponseFromRequest = this.safeValue (transferOptions, 'fillResponseFromRequest');
+        if (fillResponseFromRequest) {
+            transfer['amount'] = amount;
+            transfer['fromAccount'] = fromAccount;
+            transfer['toAccount'] = toAccount;
+        }
+        return transfer;
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        //    privatePostAssetsTransferSpot
+        //    {
+        //        "state":0,
+        //        "id":"794509221218521088"
+        //    }
+        //
+        //    privatePostCreditTransferAssetsBase2credit
+        //    {
+        //        "result":"1370000000204",
+        //        "cmd":"transferAssets/base2credit",
+        //        "state":0
+        //    }
+        //
+        let id = this.safeString (transfer, 'id');
+        if (id === undefined) {
+            id = this.safeString (transfer, 'result');
+        }
+        return {
+            'info': transfer,
+            'id': id,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': this.safeCurrencyCode (undefined, currency),
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': undefined,
+        };
+    }
+
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
@@ -1511,7 +1605,10 @@ module.exports = class bibox extends Exchange {
             this.checkRequiredCredentials ();
             if (version === 'v3' || version === 'v3.1') {
                 const timestamp = this.milliseconds ();
-                const strToSign = '' + timestamp + this.json (json_params); // 3. This is the string that needs to be signed
+                let strToSign = '' + timestamp;
+                if (json_params !== '{}') {
+                    strToSign += json_params;
+                }
                 const sign = this.hmac (this.encode (strToSign), this.encode (this.secret), 'md5').toString ();
                 headers['bibox-api-key'] = this.apiKey;
                 headers['bibox-api-sign'] = sign;
@@ -1519,7 +1616,9 @@ module.exports = class bibox extends Exchange {
                 if (method === 'GET') {
                     url += '?' + this.urlencode (params);
                 } else {
-                    body = json_params;
+                    if (json_params !== '{}') {
+                        body = params;
+                    }
                 }
             } else {
                 const sign = this.hmac (this.encode (json_params), this.encode (this.secret), 'md5');
@@ -1543,6 +1642,12 @@ module.exports = class bibox extends Exchange {
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return;
+        }
+        if ('state' in response) {
+            if (this.safeNumber (response, 'state') !== 0) {
+                return;
+            }
+            throw new ExchangeError (this.id + ' ' + body);
         }
         if ('error' in response) {
             if ('code' in response['error']) {
