@@ -1,4 +1,4 @@
-"use strict";
+
 
 const ccxt      = require ('../../ccxt.js')
 const asTable   = require ('as-table')

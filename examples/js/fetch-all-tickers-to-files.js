@@ -1,4 +1,4 @@
-"use strict";
+
 
 const ccxt = require ('../../ccxt.js')
     , log  = require ('ololog').noLocate // npm install ololog

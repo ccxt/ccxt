@@ -1,4 +1,4 @@
-"use strict";
+
 
 const csv = process.argv.includes ('--csv')
     , delimiter = csv ? ',' : '|'

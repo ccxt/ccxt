@@ -1,4 +1,4 @@
-'use strict';
+;
 
 const { PAD_WITH_ZERO } = require('../../js/base/functions/number.js');
 

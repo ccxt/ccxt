@@ -1,4 +1,4 @@
-"use strict"
+
 
 const log = require ('ololog')
     , ccxt = require ('../../ccxt.js')

@@ -1,4 +1,4 @@
-'use strict';
+;
 
 const log  = require ('ololog').configure ({ locate: false })
 const ccxt = require('../../ccxt')

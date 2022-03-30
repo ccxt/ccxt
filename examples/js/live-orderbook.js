@@ -1,4 +1,4 @@
-"use strict";
+
 
 const asTable   = require ('as-table')
     , log       = require ('ololog').noLocate

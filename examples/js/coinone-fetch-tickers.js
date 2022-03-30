@@ -1,4 +1,4 @@
-"use strict"
+
 
 const ansi = require ('ansicolor').nice
     , log = require ('ololog').noLocate
