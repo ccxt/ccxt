@@ -38,8 +38,9 @@ module.exports = class hitbtc3 extends Exchange {
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': undefined,
-                'fetchLeverageTiers': undefined,
-                'fetchMarketLeverageTiers': undefined,
+                'fetchLeverage': true,
+                'fetchLeverageTiers': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': undefined,
                 'fetchMyTrades': true,
@@ -1969,6 +1970,51 @@ module.exports = class hitbtc3 extends Exchange {
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
         };
+    }
+
+    async fetchLeverage (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'privateGetMarginAccountIsolatedSymbol',
+            'margin': 'privateGetMarginAccountIsolatedSymbol',
+            'swap': 'privateGetFuturesAccountIsolatedSymbol',
+        });
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "type": "isolated",
+        //         "leverage": "12.00",
+        //         "created_at": "2022-03-29T22:31:29.067Z",
+        //         "updated_at": "2022-03-30T00:00:00.125Z",
+        //         "currencies": [
+        //             {
+        //                 "code": "USDT",
+        //                 "margin_balance": "20.824360374174",
+        //                 "reserved_orders": "0",
+        //                 "reserved_positions": "0.973330435000"
+        //             }
+        //         ],
+        //         "positions": [
+        //             {
+        //                 "id": 631301,
+        //                 "symbol": "BTCUSDT",
+        //                 "quantity": "0.00022",
+        //                 "price_entry": "47425.57",
+        //                 "price_margin_call": "",
+        //                 "price_liquidation": "0",
+        //                 "pnl": "0",
+        //                 "created_at": "2022-03-29T22:31:29.067Z",
+        //                 "updated_at": "2022-03-30T00:00:00.125Z"
+        //             }
+        //         ]
+        //     }
+        //
+        return this.safeNumber (response, 'leverage');
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
