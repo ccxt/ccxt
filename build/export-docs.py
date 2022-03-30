@@ -9,6 +9,7 @@ files = [
     'wiki/ccxt.pro.manual',
     'README',
 ]
+files.append(os.listdir('wiki/exchange-specific-docs/'))
 
 for file in files:
     with open(file + '.md', 'r') as f:
