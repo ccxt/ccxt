@@ -1,10 +1,9 @@
-"use strict"
 
-const { execSync } = require ('child_process')
-const log          = require ('ololog').noLocate
-const { groupBy }  = require ('../ccxt.js')
+import { execSync } from 'child_process';
+import { noLocate as log } from 'ololog';
+import { groupBy } from '../ccxt.js';
 const { values }   = Object
-const assert       = require ('assert')
+import assert from 'assert';
 
 function cleanupOldTags () {
 
@@ -89,6 +88,6 @@ if (require.main === module) {
 
 // ============================================================================
 
-module.exports = {
+export default {
     cleanupOldTags,
-}
+};

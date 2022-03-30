@@ -1,5 +1,3 @@
-'use strict'
-
 /*  ------------------------------------------------------------------------ */
 
 import { deepExtend, groupBy, filterBy, omit, sum, sortBy } from '../../../../ccxt.js'

@@ -24,11 +24,8 @@
 
 */
 
-
-"use strict"
-
-const { execSync } = require ('child_process')
-const log          = require ('ololog')
+import { execSync } from 'child_process';
+import log from 'ololog';
 
 let files = [
 

@@ -1,5 +1,3 @@
-'use strict'
-
 import { ccxt }  from '../../../../ccxt.js';
 import assert  from 'assert.js';
 import { ROUND_UP, ROUND_DOWN }  from '../../../base/functions/misc.js';
