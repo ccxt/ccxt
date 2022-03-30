@@ -36,6 +36,7 @@ timing = False
 # ----------------------------------------------------------------------------
 # Precise
 
+
 def testPrecise():
     w = '-1.123e-6'
     x = '0.00000002'
@@ -507,6 +508,7 @@ def runAllTests():
         print("{:.6f}, runAllTests".format(t.total_seconds() * 1000))
     else:
         print("PASS: runAllTests")
+
 
 parser = ArgumentParser()
 parser.add_argument('-t', dest='timing', action='store_const', const=True, default=False, help='measures timing information for each test function')
