@@ -593,8 +593,9 @@ module.exports = class huobi extends ccxt.huobi {
         if (type === undefined) {
             type = this.safeString2 (this.options, 'watchOrders', 'defaultType', 'spot');
             type = this.safeString (params, 'type', type);
-            query = this.omit (params, 'type');
             subType = this.safeString2 (this.options, 'watchOrders', 'subType', 'linear');
+            subType = this.safeString (params, 'subType', type);
+            query = this.omit (params, ['type', 'subtype']);
         }
         if (type !== 'spot' && symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol for non spot markets');
@@ -835,6 +836,42 @@ module.exports = class huobi extends ccxt.huobi {
         }, market);
     }
 
+    async watchBalance (params = {}) {
+        let type = this.safeString2 (this.options, 'watchOrders', 'defaultType', 'spot');
+        type = this.safeString (params, 'type', type);
+        let subType = this.safeString2 (this.options, 'watchOrders', 'subType', 'linear');
+        subType = this.safeString (params, 'subType', type);
+        let query = this.omit (params, ['type', 'subtype']);
+        let currencyCode = '*';
+        params = this.omit (params, 'type');
+        await this.loadMarkets ();
+        let messageHash = undefined;
+        if (type === 'spot') {
+            messageHash = 'accounts.update';
+        } else {
+            let prefix = 'accounts';
+            if (type === 'linear') {
+                const symbol = this.safeString (params, 'symbol');
+                if (symbol !== undefined) {
+                    query = this.omit (params, 'symbol');
+                    const market = this.market (symbol);
+                    currencyCode = market['id'].toLowerCase ();
+                }
+                const marginMode = this.safeString (params, 'margin', 'cross');
+                prefix = (marginMode === 'cross') ? prefix + '_cross' : prefix;
+            }
+            if (type === 'future') {
+                const currency = this.safeString (params, 'currency');
+                if (currency !== undefined) {
+                    query = this.omit (params, 'currency');
+                    currencyCode = this.currency (currency).toLowerCase ();
+                }
+            }
+            messageHash = prefix + '.' + currencyCode;
+        }
+        return await this.subscribePrivate (messageHash, messageHash, type, subType, query);
+    }
+
     handleSubscriptionStatus (client, message) {
         //
         //     {
@@ -974,7 +1011,7 @@ module.exports = class huobi extends ccxt.huobi {
             this.handleMyTrade (client, message);
             return;
         }
-        if (privateType === 'order') {
+        if (privateType === 'orders') {
             this.handleOrder (client, message);
             return;
         }
