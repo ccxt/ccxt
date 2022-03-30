@@ -1183,11 +1183,15 @@ module.exports = class liquid extends Exchange {
             }
         }
         const networks = this.safeValue (this.options, 'networks', {});
-        const paramsCwArray = this.safeValue (params, 'crypto_withdrawal', {});
-        let network = this.safeStringUpper (paramsCwArray, 'network'); // this line allows the user to specify either ERC20 or ETH
+        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        if (network === undefined) {
+            const paramsCwArray = this.safeValue (params, 'crypto_withdrawal', {});
+            network = this.safeStringUpper (paramsCwArray, 'network');
+        }
         network = this.safeString (networks, network, network); // handle ERC20>ETH alias
         if (network !== undefined) {
             request['crypto_withdrawal']['network'] = network;
+            params = this.omit (params, 'network');
             params['crypto_withdrawal'] = this.omit (params['crypto_withdrawal'], 'network');
         }
         const response = await this.privatePostCryptoWithdrawals (this.deepExtend (request, params));
