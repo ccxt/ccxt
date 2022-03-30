@@ -1,5 +1,3 @@
-"use strict";
-
 /*  ---------------------------------------------------------------------------
 
     A tests launcher. Runs tests for all languages and all exchanges, in
@@ -9,10 +7,11 @@
 
     --------------------------------------------------------------------------- */
 
-const fs = require ('fs')
-const log = require ('ololog')//.configure ({ indent: { pattern: '  ' }})
-const ansi = require ('ansicolor').nice
-
+import fs from 'fs'
+import ansi from 'ansicolor'
+import log from 'ololog'
+import ps from 'child_process'
+ansi.nice
 /*  --------------------------------------------------------------------------- */
 
 process.on ('uncaughtException',  e => { log.bright.red.error (e); process.exit (1) })
@@ -51,8 +50,9 @@ if (!exchanges.length) {
         log.bright.red ('\n\tNo', 'exchanges.json'.white, 'found, please run', 'npm run build'.white, 'to generate it!\n')
         process.exit (1)
     }
-
-    exchanges = require ('./exchanges.json').ids
+    let exchangesFile =  fs.readFileSync('./exchanges.json');
+    exchangesFile = JSON.parse(exchangesFile)
+    exchanges = exchangesFile.ids
 }
 
 /*  --------------------------------------------------------------------------- */
@@ -70,16 +70,16 @@ const exec = (bin, ...args) =>
 
     timeout (120, new Promise (return_ => {
 
-        const ps = require ('child_process').spawn (bin, args)
+        const psSpawn = ps.spawn (bin, args)
 
         let output = ''
         let stderr = ''
         let hasWarnings = false
 
-        ps.stdout.on ('data', data => { output += data.toString () })
-        ps.stderr.on ('data', data => { output += data.toString (); stderr += data.toString (); hasWarnings = true })
+        psSpawn.stdout.on ('data', data => { output += data.toString () })
+        psSpawn.stderr.on ('data', data => { output += data.toString (); stderr += data.toString (); hasWarnings = true })
 
-        ps.on ('exit', code => {
+        psSpawn.on ('exit', code => {
 
             output = ansi.strip (output.trim ())
             stderr = ansi.strip (stderr)
