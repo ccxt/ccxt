@@ -847,12 +847,8 @@ module.exports = class aax extends Exchange {
         //          ts: '1648338516932'
         //      }
         //
-        const data = this.safeValue (response, 'data', []);
-        const transfers = [];
-        for (let i = 0; i < data.length; i++) {
-            transfers.push (this.parseTransfer (data[i], currency));
-        }
-        return this.filterBySinceLimit (transfers, since, limit);
+        const transfers = this.safeValue (response, 'data', []);
+        return this.parseTransfers (transfers, currency, since, limit);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -2431,7 +2427,10 @@ module.exports = class aax extends Exchange {
         const toId = this.safeString (transfer, 'toPurse');
         const fromAccount = this.safeString (accounts, fromId);
         const toAccount = this.safeString (accounts, toId);
-        const currencyCode = this.safeString (currency, 'code');
+        let currencyCode = this.safeString (transfer, 'currency');
+        if (currencyCode === undefined) {
+            currencyCode = this.safeString (currency, 'code');
+        }
         return {
             'info': transfer,
             'id': id,
