@@ -606,7 +606,7 @@ module.exports = class huobi extends ccxt.huobi {
             channel = messageHash;
         } else {
             let orderType = this.safeString2 (this.options, 'watchOrders', 'orderType', 'orders');
-            orderType = this.safeString (params, 'orderType', type);
+            orderType = this.safeString (params, 'orderType', orderType);
             query = this.omit (params, 'orderType');
             const marketCode = market['id'].toLowerCase ();
             let prefix = orderType;
@@ -625,6 +625,211 @@ module.exports = class huobi extends ccxt.huobi {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (orders, since, limit);
+    }
+
+    handleOrder (client, message) {
+        //
+        // spot
+        //
+        // {
+        //     "action":"push",
+        //     "ch":"orders#btcusdt",
+        //     "data":
+        //      {
+        //          orderSource: 'spot-web',
+        //          orderCreateTime: 1645116048355,
+        //          accountId: 44234548,
+        //          orderPrice: '100',
+        //          orderSize: '0.05',
+        //          symbol: 'ethusdt',
+        //          type: 'buy-limit',
+        //          orderId: '478861479986886',
+        //          eventType: 'creation',
+        //          clientOrderId: '',
+        //          orderStatus: 'submitted'
+        //        }
+        // }
+        // non spot order
+        // {
+        //     "contract_type":"swap",
+        //     "pair":"BTC-USDT",
+        //     "business_type":"swap",
+        //     "op":"notify",
+        //     "topic":"orders_cross.btc-usdt",
+        //     "ts":1645205382242,
+        //     "symbol":"BTC",
+        //     "contract_code":"BTC-USDT",
+        //      (...)
+        // }
+        //
+        const messageHash = this.safeString2 (message, 'ch', 'topic');
+        const data = this.safeValue (message, 'data', message);
+        const parsed = this.parseWsOrder (data);
+        const symbol = this.safeString (parsed, 'symbol');
+        if (symbol !== undefined) {
+            if (this.orders === undefined) {
+                const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+                this.orders = new ArrayCacheBySymbolById (limit);
+            }
+            const cachedOrders = this.orders;
+            cachedOrders.append (parsed);
+            client.resolve (this.orders, messageHash);
+        }
+    }
+
+    parseWsOrder (order, market = undefined) {
+        // spot
+        // {
+        //     orderSource: 'spot-web',
+        //     orderCreateTime: 1645116048355, // creating only
+        //     accountId: 44234548,
+        //     orderPrice: '100',
+        //     orderSize: '0.05',
+        //     symbol: 'ethusdt',
+        //     type: 'buy-limit',
+        //     orderId: '478861479986886',
+        //     eventType: 'creation',
+        //     clientOrderId: '',
+        //     orderStatus: 'submitted'
+        //     lastActTime:1645118621810 // except creating
+        //     execAmt:'0'
+        //   }
+        // swap order
+        // {
+        //     "contract_type":"swap",
+        //     "pair":"BTC-USDT",
+        //     "business_type":"swap",
+        //     "op":"notify",
+        //     "topic":"orders_cross.btc-usdt",
+        //     "ts":1645205382242,
+        //     "symbol":"BTC",
+        //     "contract_code":"BTC-USDT",
+        //     "volume":5,
+        //     "price":1000,
+        //     "order_price_type":"limit",
+        //     "direction":"buy",
+        //     "offset":"open",
+        //     "status":7,
+        //     "lever_rate":5,
+        //     "order_id":"944404965718474752",
+        //     "order_id_str":"944404965718474752",
+        //     "client_order_id":null,
+        //     "order_source":"web",
+        //     "order_type":2,
+        //     "created_at":1645205290018,
+        //     "trade_volume":0,
+        //     "trade_turnover":0,
+        //     "fee":0,
+        //     "trade_avg_price":0,
+        //     "margin_frozen":0,
+        //     "profit":0,
+        //     "trade":[],
+        //     "canceled_at":1645205382236,
+        //     "fee_asset":"USDT",
+        //     "margin_asset":"USDT",
+        //     "uid":"359305390",
+        //     "liquidation_type":"0",
+        //     "margin_mode":"cross",
+        //     "margin_account":"USDT",
+        //     "is_tpsl":0,
+        //     "real_profit":0,
+        //     "trade_partition":"USDT"
+        //  }
+        // {
+        //     "op":"notify",
+        //     "topic":"orders.ada",
+        //     "ts":1604388667226,
+        //     "symbol":"ADA",
+        //     "contract_type":"quarter",
+        //     "contract_code":"ADA201225",
+        //     "volume":1,
+        //     "price":0.0905,
+        //     "order_price_type":"post_only",
+        //     "direction":"sell",
+        //     "offset":"open",
+        //     "status":6,
+        //     "lever_rate":20,
+        //     "order_id":773207641127878656,
+        //     "order_id_str":"773207641127878656",
+        //     "client_order_id":null,
+        //     "order_source":"web",
+        //     "order_type":1,
+        //     "created_at":1604388667146,
+        //     "trade_volume":1,
+        //     "trade_turnover":10,
+        //     "fee":-0.022099447513812154,
+        //     "trade_avg_price":0.0905,
+        //     "margin_frozen":0,
+        //     "profit":0,
+        //     "trade":[
+        //     ],
+        //     "canceled_at":0,
+        //     "fee_asset":"ADA",
+        //     "uid":"123456789",
+        //     "liquidation_type":"0",
+        //     "is_tpsl": 0,
+        //     "real_profit": 0
+        // }
+        //
+        const lastTradeTimestamp = this.safeInteger2 (order, 'lastActTime', 'ts');
+        const created = this.safeInteger (order, 'orderCreateTime');
+        const marketId = this.safeString2 (order, 'symbol', 'pair');
+        const symbol = this.safeSymbol (marketId, market);
+        const amount = this.safeString2 (order, 'orderSize', 'volume');
+        const status = this.parseOrderStatus (this.safeString2 (order, 'orderStatus', 'status'));
+        const id = this.safeString2 (order, 'orderId', 'order_id');
+        const clientOrderId = this.safeString2 (order, 'clientOrderId', 'client_order_id');
+        const price = this.safeString2 (order, 'orderPrice', 'price');
+        const filled = this.safeString (order, 'execAmt');
+        let typeSide = this.safeString (order, 'type');
+        const feeCost = this.safeString (order, 'fee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            const feeCurrencyId = this.safeString (order, 'fee_asset');
+            fee = {
+                'cost': feeCost,
+                'currency': this.safeCurrencyCode (feeCurrencyId),
+            };
+        }
+        const avgPrice = this.safeString (order, 'trade_avg_price');
+        const rawTrades = this.safeValue (order, 'trades');
+        let trades = [];
+        if (rawTrades !== undefined) {
+            trades = this.parseTrades (rawTrades, market);
+        }
+        if (typeSide !== undefined) {
+            typeSide = typeSide.split ('-');
+        }
+        let type = this.safeStringLower (typeSide, 1);
+        if (type === undefined) {
+            type = this.safeString (order, 'order_price_type');
+        }
+        let side = this.safeStringLower (typeSide, 0);
+        if (side === undefined) {
+            side = this.safeString (order, 'direction');
+        }
+        return this.safeOrder ({
+            'info': order,
+            'id': id,
+            'clientOrderId': clientOrderId,
+            'timestamp': created,
+            'datetime': this.iso8601 (created),
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'status': status,
+            'symbol': symbol,
+            'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'filled': filled,
+            'remaining': undefined,
+            'cost': undefined,
+            'fee': fee,
+            'average': avgPrice,
+            'trades': trades,
+        }, market);
     }
 
     handleSubscriptionStatus (client, message) {
@@ -716,6 +921,29 @@ module.exports = class huobi extends ccxt.huobi {
         //         "symbol":"ltcusdt",
         //           (...)
         //  }
+        // spot order
+        // {
+        //     "action":"push",
+        //     "ch":"orders#btcusdt",
+        //     "data":
+        //      {
+        //         "orderSide":"buy",
+        //         "lastActTime":1583853365586,
+        //         "clientOrderId":"abc123",
+        //         "orderStatus":"rejected",
+        //         "symbol":"btcusdt",
+        //         "eventType":"trigger",
+        //         "errCode": 2002,
+        //         "errMessage":"invalid.client.order.id (NT)"
+        //     }
+        // }
+        // contract order
+        // {
+        //     "op":"notify",
+        //     "topic":"orders.ada",
+        //     "ts":1604388667226,
+        //     (...)
+        //
         //
         const ch = this.safeValue (message, 'ch');
         const parts = ch.split ('.');
@@ -728,7 +956,6 @@ module.exports = class huobi extends ccxt.huobi {
                 'detail': this.handleTicker,
                 'trade': this.handleTrades,
                 'kline': this.handleOHLCV,
-                // ...
             };
             const method = this.safeValue (methods, methodName);
             if (method === undefined) {
@@ -742,6 +969,18 @@ module.exports = class huobi extends ccxt.huobi {
         const privateType = this.safeString (privateParts, 0);
         if (privateType === 'trade.clearing') {
             this.handleMyTrade (client, message);
+            return;
+        }
+        if (privateType === 'order') {
+            this.handleOrder (client, message);
+            return;
+        }
+        const op = this.safeString (message, 'op');
+        if (op === 'notify') {
+            const topic = this.safeString (message, 'topic', '');
+            if (topic.indexOf ('orders') !== -1) {
+                this.handleOrder (client, message);
+            }
         }
     }
 
@@ -894,6 +1133,25 @@ module.exports = class huobi extends ccxt.huobi {
                     return;
                 } else {
                     // route by channel aka topic aka subject
+                    this.handleSubject (client, message);
+                    return;
+                }
+            }
+            if ('op' in message) {
+                const op = this.safeString (message, 'op');
+                if (op === 'ping') {
+                    this.handlePing (client, message);
+                    return;
+                }
+                if (op === 'auth') {
+                    this.handleAuthenticate (client, message);
+                    return;
+                }
+                if (op === 'sub') {
+                    this.handleSubscriptionStatus (client, message);
+                    return;
+                }
+                if (op === 'notify') {
                     this.handleSubject (client, message);
                     return;
                 }
