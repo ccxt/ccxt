@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { ExchangeError, InvalidNonce, ArgumentsRequired } = require ('ccxt/js/base/errors');
+const { ExchangeError, InvalidNonce, ArgumentsRequired, BadRequest } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -18,7 +18,7 @@ module.exports = class huobi extends ccxt.huobi {
                 'watchTicker': true,
                 'watchTrades': true,
                 'watchMyTrades': true,
-                'watchBalance': false, // for now
+                'watchBalance': true, // for now
                 'watchOHLCV': true,
             },
             'urls': {
@@ -87,6 +87,11 @@ module.exports = class huobi extends ccxt.huobi {
                 'maxOrderBookSyncAttempts': 3,
                 'ws': {
                     'gunzip': true,
+                },
+            },
+            'exceptions': {
+                'exact': {
+                    '2021': BadRequest,
                 },
             },
         });
@@ -841,12 +846,13 @@ module.exports = class huobi extends ccxt.huobi {
         type = this.safeString (params, 'type', type);
         let subType = this.safeString2 (this.options, 'watchOrders', 'subType', 'linear');
         subType = this.safeString (params, 'subType', subType);
-        let query = this.omit (params, ['type', 'subType']);
+        params = this.omit (params, ['type', 'subType']);
         let currencyCode = '*';
         params = this.omit (params, 'type');
         await this.loadMarkets ();
         let messageHash = undefined;
         let channel = undefined;
+        let marginMode = undefined;
         if (type === 'spot') {
             let mode = this.safeString2 (this.options, 'watchBalance', 'mode', '2');
             mode = this.safeString (params, 'mode', mode);
@@ -854,25 +860,27 @@ module.exports = class huobi extends ccxt.huobi {
             channel = messageHash;
         } else {
             let prefix = 'accounts';
+            messageHash = prefix;
+            marginMode = this.safeString (params, 'margin', 'cross');
+            params = this.omit (params, 'margin');
             if (subType === 'linear') {
-                const marginMode = this.safeString (params, 'margin', 'cross');
-                query = this.omit (params, 'maring');
                 prefix = (marginMode === 'cross') ? prefix + '_cross' : prefix;
                 messageHash = prefix;
-                const symbol = this.safeString (params, 'symbol');
-                if (symbol !== undefined) {
-                    query = this.omit (params, 'symbol');
-                    const market = this.market (symbol);
-                    currencyCode = market['id'].toLowerCase ();
-                    messageHash += '.' + currencyCode;
+                if (marginMode === 'isolated') {
+                    const symbol = this.safeString (params, 'symbol');
+                    if (symbol !== undefined) {
+                        params = this.omit (params, 'symbol');
+                        const market = this.market (symbol);
+                        currencyCode = market['id'].toLowerCase ();
+                        messageHash += '.' + currencyCode;
+                    }
+                    channel = prefix + '.' + currencyCode;
                 }
-                channel = prefix + '.' + currencyCode;
             }
-            messageHash = prefix;
-            if (type === 'future') {
+            if (type === 'future' || marginMode === 'cross') {
                 const currency = this.safeString (params, 'currency');
                 if (currency !== undefined) {
-                    query = this.omit (params, 'currency');
+                    params = this.omit (params, 'currency');
                     currencyCode = this.currency (currency);
                     currencyCode = currencyCode['id'];
                     messageHash += '.' + currencyCode;
@@ -880,11 +888,16 @@ module.exports = class huobi extends ccxt.huobi {
                 channel = prefix + '.' + currencyCode;
             }
         }
+        const subParams = {
+            'type': type,
+            'subType': subType,
+            'margin': marginMode,
+        };
         // we are differentiating the channel from the messageHash for global subscriptions (*)
         // because huobi returns a different topic than the topic sent. Example: we send
         // "accounts.*" and "accounts" is returned so we're setting channel = "accounts.*" and
         // messageHash = "accounts" allowing handleBalance to freely resolve the topic in the message
-        return await this.subscribePrivate (channel, messageHash, type, subType, query);
+        return await this.subscribePrivate (channel, messageHash, type, subType, params, subParams);
     }
 
     handleBalance (client, message) {
@@ -930,34 +943,71 @@ module.exports = class huobi extends ccxt.huobi {
         //     "uid":"123456789"
         // }
         //
-        // usdt / swap
+        // usdt / linear future, swap
         // {
         //     "op":"notify",
         //     "topic":"accounts.btc-usdt", // or 'accounts' for global subscriptions
         //     "ts":1603711370689,
         //     "event":"order.open",
         //     "data":[
+        //       {
+        //        "margin_mode":"cross",
+        //        "margin_account":"USDT",
+        //        "margin_asset":"USDT",
+        //        "margin_balance":30.959342395,
+        //        "margin_static":30.959342395,
+        //        "margin_position":0,
+        //        "margin_frozen":10,
+        //        "profit_real":0,
+        //        "profit_unreal":0,
+        //        "withdraw_available":20.959342395,
+        //        "risk_rate":153.796711975,
+        //        "position_mode":"dual_side",
+        //        "contract_detail":[
+        //           {
+        //              "symbol":"LTC",
+        //              "contract_code":"LTC-USDT",
+        //              "margin_position":0,
+        //              "margin_frozen":0,
+        //              "margin_available":20.959342395,
+        //              "profit_unreal":0,
+        //              "liquidation_price":null,
+        //              "lever_rate":1,
+        //              "adjust_factor":0.01,
+        //              "contract_type":"swap",
+        //              "pair":"LTC-USDT",
+        //              "business_type":"swap",
+        //              "trade_partition":"USDT"
+        //           },
+        //        ],
+        //        "futures_contract_detail":[
+        //        ]
+        //
+        // inverse future
+        // {
+        //     "op":"notify",
+        //     "topic":"accounts.ada",
+        //     "ts":1604388667226,
+        //     "event":"order.match",
+        //     "data":[
         //         {
-        //             "symbol":"BTC",
-        //             "contract_code":"BTC-USDT",
-        //             "margin_balance":79.72434662,
-        //             "margin_static":79.79484662,
-        //             "margin_position":1.31303,
-        //             "margin_frozen":4.0662,
-        //             "margin_available":74.34511662,
-        //             "profit_real":0.03405608,
-        //             "profit_unreal":-0.0705,
-        //             "withdraw_available":74.34511662,
-        //             "risk_rate":14.745772976801512484,
-        //             "liquidation_price":92163.420962779156327543,
-        //             "lever_rate":10,
-        //             "adjust_factor":0.075,
-        //             "margin_asset":"USDT",
-        //             "margin_mode": "isolated",
-        //             "margin_account": "BTC-USDT",
-        //             "position_mode": "dual_side"
+        //             "symbol":"ADA",
+        //             "margin_balance":446.417641681222726716,
+        //             "margin_static":445.554085945257745136,
+        //             "margin_position":11.049723756906077348,
+        //             "margin_frozen":0,
+        //             "margin_available":435.367917924316649368,
+        //             "profit_real":21.627049781983019459,
+        //             "profit_unreal":0.86355573596498158,
+        //             "risk_rate":40.000796572150656768,
+        //             "liquidation_price":0.018674308027108984,
+        //             "withdraw_available":423.927036163274725677,
+        //             "lever_rate":20,
+        //             "adjust_factor":0.4
         //         }
-        //     ]
+        //     ],
+        //     "uid":"123456789"
+        // }
         //
         const channel = this.safeString (message, 'ch');
         if (channel !== undefined) {
@@ -974,16 +1024,71 @@ module.exports = class huobi extends ccxt.huobi {
         } else {
             // contract balance
             const data = this.safeValue (message, 'data', []);
-            const messageHash = this.safeString (message, 'topic');
-            for (let i = 0; i < data.length; i++) {
-                const balance = data[i];
-                const currencyId = this.safeString (balance, 'symbol');
-                const code = this.safeCurrencyCode (currencyId);
-                const account = this.account ();
-                account['free'] = this.safeString2 (balance, 'margin_balance', 'margin_available');
-                account['used'] = this.safeString (balance, 'margin_frozen');
-                this.balance[code] = account;
-                this.balance = this.safeBalance (this.balance);
+            const dataLength = data.length;
+            if (dataLength === 0) {
+                return;
+            }
+            const first = this.safeValue (data, 0, {});
+            let messageHash = this.safeString (message, 'topic');
+            let subscription = this.safeValue (client.subscriptions, messageHash);
+            if (subscription === undefined) {
+                // if subscription not found means that we subscribed to a specific currency/symbol
+                // and we use the first data entry to find it
+                // Example: topic = 'accounts'
+                // client.subscription hash = 'accounts.usdt'
+                // we do 'accounts' + '.' + marginAsset to get it
+                const marginAsset = this.safeString (first, 'margin_asset');
+                messageHash += '.' + marginAsset.toLowerCase ();
+                subscription = this.safeValue (client.subscriptions, messageHash);
+            }
+            const type = this.safeString (subscription, 'type');
+            const subType = this.safeString (subscription, 'subType');
+            if (subType === 'linear') {
+                const margin = this.safeString (subscription, 'margin');
+                if (margin === 'cross') {
+                    const fieldName = (type === 'future') ? 'futures_contract_detail' : 'contract_detail';
+                    const balances = this.safeValue (first, fieldName, []);
+                    const balancesLength = balances.length;
+                    if (balancesLength > 0) {
+                        for (let i = 0; i < balances.length; i++) {
+                            const balance = balances[i];
+                            const marketId = this.safeString2 (balance, 'contract_code', 'margin_account');
+                            const market = this.safeMarket (marketId);
+                            const account = this.account ();
+                            account['free'] = this.safeString (balance, 'margin_balance');
+                            account['used'] = this.safeString (balance, 'margin_frozen');
+                            const code = market['settle'];
+                            const accountsByCode = {};
+                            accountsByCode[code] = account;
+                            const symbol = market['symbol'];
+                            this.balance[symbol] = this.safeBalance (accountsByCode);
+                        }
+                    }
+                } else {
+                    // isolated margin
+                    for (let i = 0; i < data.length; i++) {
+                        const isolatedBalance = data[i];
+                        const account = this.account ();
+                        account['free'] = this.safeString (isolatedBalance, 'margin_balance', 'margin_available');
+                        account['used'] = this.safeString (isolatedBalance, 'margin_frozen');
+                        const currencyId = this.safeString2 (isolatedBalance, 'margin_asset', 'symbol');
+                        const code = this.safeCurrencyCode (currencyId);
+                        this.balance[code] = account;
+                        this.balance = this.safeBalance (this.balance);
+                    }
+                }
+            } else {
+                // inverse branch
+                for (let i = 0; i < data.length; i++) {
+                    const balance = data[i];
+                    const currencyId = this.safeString (balance, 'symbol');
+                    const code = this.safeCurrencyCode (currencyId);
+                    const account = this.account ();
+                    account['free'] = this.safeString (balance, 'margin_available');
+                    account['used'] = this.safeString (balance, 'margin_frozen');
+                    this.balance[code] = account;
+                    this.balance = this.safeBalance (this.balance);
+                }
             }
             client.resolve (this.balance, messageHash);
         }
@@ -1480,13 +1585,14 @@ module.exports = class huobi extends ccxt.huobi {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
     }
 
-    async subscribePrivate (channel, messageHash, type, subtype, params = {}) {
+    async subscribePrivate (channel, messageHash, type, subtype, params = {}, subParams = {}) {
         const requestId = this.nonce ();
         const subscription = {
             'id': requestId,
-            'messageHash': channel,
+            'messageHash': messageHash,
             'params': params,
         };
+        const extendedSubsription = this.extend (subscription, subParams);
         let request = undefined;
         if (type === 'spot') {
             request = {
@@ -1512,7 +1618,7 @@ module.exports = class huobi extends ccxt.huobi {
             this.options['ws']['gunzip'] = false;
         }
         await this.authenticate (authParams);
-        return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash, extendedSubsription);
     }
 
     async authenticate (params = {}) {
