@@ -1,13 +1,12 @@
-'use strict'
 
 // ----------------------------------------------------------------------------
 
-const assert = require ('assert')
-    , ccxt = require ('../../../ccxt.js')
+import assert from 'assert'
+import ccxt from'../../../ccxt.js'
 
 // ----------------------------------------------------------------------------
 
-module.exports = async (exchange, symbol) => {
+export default async (exchange, symbol) => {
 
     if (!exchange.has.createOrder) {
         console.log ('createOrder not supported')

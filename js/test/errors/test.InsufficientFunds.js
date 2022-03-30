@@ -1,15 +1,14 @@
-'use strict'
 
 // ----------------------------------------------------------------------------
 
-const assert = require ('assert')
-    , ccxt = require ('../../../ccxt.js')
+import assert from 'assert'
+import ccxt from'../../../ccxt.js'
 
 // ----------------------------------------------------------------------------
 // will try to place a buy order at the minimum price level on minimum amount possible
 // will skip if balance is positive or market limits are not set
 
-module.exports = async (exchange, symbol, balance) => {
+export default async (exchange, symbol, balance) => {
 
     if (!exchange.has.createOrder) {
         console.log ('createOrder not supported')
