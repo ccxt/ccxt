@@ -2762,6 +2762,7 @@ class Exchange(object):
         return rate
 
     def handle_market_type_and_params(self, method_name, market=None, params={}):
+        allowedTypes = ['spot', 'swap', 'future', 'delivery', 'option', 'margin', 'savings', 'funding', 'linear', 'inverse', 'exchange', 'derivatives', 'cross_margin', 'contract', 'account']  # [binance : savings & funding & linear & inverse] [bitfinex2: exchange, derivatives] [gateio: cross_margin] [kucoin: contract] [okcoin: account]
         default_type = self.safe_string_2(self.options, 'defaultType', 'type', 'spot')
         method_options = self.safe_value(self.options, method_name)
         method_type = default_type
@@ -2771,8 +2772,16 @@ class Exchange(object):
             else:
                 method_type = self.safe_string_2(method_options, 'defaultType', 'type', method_type)
         market_type = method_type if market is None else market['type']
-        type = self.safe_string_2(params, 'defaultType', 'type', market_type)
-        params = self.omit(params, ['defaultType', 'type'])
+        type = self.safe_string(params, 'defaultType')
+        if type is not None:
+            params = self.omit(params, 'defaultType')
+        else:
+            temptType = self.safe_string(params, 'type')
+            if (temptType is not None) and (type in allowedTypes):
+                type = temptType
+                params = self.omit(params, 'type')
+            else:
+                type = market_type
         return [type, params]
 
     def load_time_difference(self, params={}):

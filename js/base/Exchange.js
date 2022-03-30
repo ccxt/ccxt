@@ -2189,9 +2189,9 @@ module.exports = class Exchange {
         if (type !== undefined) {
             params = this.omit (params, 'defaultType');
         } else {
-            const temptType = this.safeString (params, 'type');
-            if ((temptType !== undefined) && allowedTypes.includes (type)) {
-                type = temptType;
+            const tempType = this.safeString (params, 'type');
+            if ((tempType !== undefined) && allowedTypes.includes (type)) {
+                type = tempType;
                 params = this.omit (params, 'type');
             } else {
                 type = marketType;
