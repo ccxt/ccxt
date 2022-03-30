@@ -1731,24 +1731,20 @@ module.exports = class ftx extends Exchange {
         params = this.omit (params, 'type');
         // Note, the below types use non-standard endpoints, look through the implementation to understand better (It might better to use `fetchOrders/fetchOpenOrder` to get your trigger order's details)
         if ((type === 'stop') || (type === 'trailingStop') || (type === 'takeProfit')) {
+            const orderStatusFlag = this.safeString (params, 'orderStatusFlag');
+            params = this.omit (params, 'orderStatusFlag');
             if (method === 'privateGetConditionalOrdersConditionalOrderIdTriggers') {
                 const order = await this.fetchConditionalTriggersHelper (id, params);
                 order['trigger_order_flag'] = true;
                 return this.extend (this.parseOrder (order, market), { 'id': id });
+            } else if ((method === 'privateGetConditionalOrders') && (orderStatusFlag === 'open') && (symbol !== undefined)) {
+                request['market'] = this.market (symbol);
+                request['type'] = type;
+                const response = await this.fetchOpenOrders (symbol, undefined, undefined, this.extend (request, params));
+                const parsedOrders = this.filterBy (response, 'id', id);
+                return this.safeValue (parsedOrders, 0);
             } else {
-                throw new ArgumentsRequired (this.id + ' fetchOrder() can access conditional orders endpoint if you set "method" param to "privateGetConditionalOrdersConditionalOrderIdTriggers"');
-                //
-                // TODO : can be migrated into 'fetchOpenOrder' and use 'open trigger orders' endpoint instead of 'all tirgger orders history'
-                //
-                // else {
-                //     if (symbol === undefined) {
-                //         throw new ArgumentsRequired (this.id + ' fetchOrder() for conditional orders require symbol argument');
-                //     }
-                //     request['market'] = this.market (symbol);
-                //     const response = await this.fetchOrders (symbol, undefined, undefined, this.extend (request, params));
-                //     const parsedOrders = this.filterBy (response, 'id', id);
-                //     return this.safeValue (parsedOrders, 0);
-                // }
+                throw new ArgumentsRequired (this.id + ' fetchOrder() (in addition to `type` param) for conditional order requires one of the following to be set: (A) set params["method"] to "privateGetConditionalOrdersConditionalOrderIdTriggers"; or (B) set symbol argument, with params["method"] to "privateGetConditionalOrders" and params["orderStatusFlag"] to "open"');
             }
         } else {
             const response = await this[method] (this.extend (request, params));
