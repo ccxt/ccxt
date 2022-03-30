@@ -1,10 +1,12 @@
 
 
-const ccxt      = require ('../../ccxt.js')
-const asTable   = require ('as-table')
-const log       = require ('ololog')
+import ccxt from '../../ccxt.js';
+import asTable from 'as-table';
+import log from 'ololog';
+import ansicolor from 'ansicolor';
 
-require ('ansicolor').nice
+
+ansicolor.nice
 
 let printUsage = function () {
     log ('Usage: node', process.argv[1], 'symbol'.green)

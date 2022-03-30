@@ -1,10 +1,12 @@
 
 
-const ccxt = require ('../../ccxt')
-const asTable = require ('as-table')
-const log = require ('ololog')
+import ccxt from '../../ccxt.js';
+import asTable from 'as-table';
+import log from 'ololog';
+import ansicolor from 'ansicolor';
 
-require ('ansicolor').nice
+
+ansicolor.nice
 
 const exchange = new ccxt.bittrex ({
     apiKey: "YOUR_API_KEY",

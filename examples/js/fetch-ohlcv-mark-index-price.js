@@ -1,5 +1,7 @@
-const ccxt = require('../../ccxt')
-    , asTable  = require ('as-table').configure ({ delimiter: ' | ' })
+import ccxt from '../../ccxt.js';
+import asTable from 'as-table';
+
+const table  = asTable.configure ({ delimiter: ' | ' });
 
 console.log ('CCXT Version:', ccxt.version)
 
@@ -17,7 +19,7 @@ async function main () {
     const params = { 'price': 'mark' }
     const response = await exchange.fetchOHLCV (symbol, timeframe, since, limit, params)
 
-    console.log (asTable (response))
+    console.log (table (response))
 
     // ------------------------------------------------------------------------
     // method 2 – use convenience shorthands
@@ -25,12 +27,12 @@ async function main () {
     const mark = await exchange.fetchMarkOHLCV (symbol, timeframe)
 
     console.log ('-----------------------------------------------------------')
-    console.log (asTable (mark))
+    console.log (table (mark))
 
     const index = await exchange.fetchIndexOHLCV (symbol, timeframe)
 
     console.log ('-----------------------------------------------------------')
-    console.log (asTable (index))
+    console.log (table (index))
 
 }
 

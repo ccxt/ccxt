@@ -1,8 +1,5 @@
-;
-
-
-const ccxt = require ('../../ccxt.js')
-    , log  = require ('ololog').noLocate
+import ccxt from '../../ccxt.js';
+import { noLocate as log } from 'ololog';
 
 const exchange = new ccxt.coinbasepro ({
     'enableRateLimit': true,  // required by the Manual
