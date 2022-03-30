@@ -2173,7 +2173,7 @@ module.exports = class Exchange {
     }
 
     handleMarketTypeAndParams (methodName, market = undefined, params = {}) {
-        const allowedTypes = ['spot', 'swap', 'future', 'option', 'margin'];
+        const allowedTypes = ['spot', 'swap', 'future', 'delivery', 'option', 'margin', 'savings', 'funding', 'linear', 'inverse', 'exchange', 'derivatives']; // [binance : savings & funding & linear & inverse ] [bitfinex2: exchange, derivatives]
         const defaultType = this.safeString2 (this.options, 'defaultType', 'type', 'spot');
         const methodOptions = this.safeValue (this.options, methodName);
         let methodType = defaultType;
