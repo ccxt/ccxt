@@ -1,8 +1,10 @@
-const ccxt = require ('../../ccxt.js')
-    , log  = require ('ololog')
-    , ansi = require ('ansicolor').nice
+import ccxt from '../../ccxt.js';
+import log from 'ololog';
+import ansicolor from 'ansicolor';
 
-;(async () => {
+ansicolor.nice
+
+(async () => {
 
     const exchange = new ccxt['okex']()
     exchange.enableRateLimit = true

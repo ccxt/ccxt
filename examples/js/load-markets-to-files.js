@@ -1,18 +1,21 @@
 
 
-const ccxt = require ('../../ccxt.js')
-    , path = require ('path')
-    , { writeFile } = require ('fs').promises
-    , enableRateLimit = true
-    , options = { enableRateLimit } // exchange defaults
-    // ------------------------------------------------------------------------
-    // path to your folder, for example '/myproject/markets' or 'C:/myproject/markets'
-    , folder = '' // writes to current working directory if left empty
-    // ------------------------------------------------------------------------
-    // use a reasonable value for maxConcurrency to avoid network congestion
-    // a burst of requests in a short period of time will cause
-    // excessive competition for networking resources within the application
-    , maxConcurrency = 7
+import ccxt from '../../ccxt.js';
+import path from 'path';
+import fs from 'fs';
+
+const enableRateLimit = true,
+      // exchange defaults
+      // ------------------------------------------------------------------------
+      // path to your folder, for example '/myproject/markets' or 'C:/myproject/markets'
+      options = { enableRateLimit },
+      // writes to current working directory if left empty
+      // ------------------------------------------------------------------------
+      // use a reasonable value for maxConcurrency to avoid network congestion
+      // a burst of requests in a short period of time will cause
+      // excessive competition for networking resources within the application
+      folder = '',
+      maxConcurrency = 7;
 
 async function main () {
 

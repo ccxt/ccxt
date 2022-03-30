@@ -1,12 +1,13 @@
 
 
-const ccxt      = require ('../../ccxt.js')
-    , fs        = require ('fs')
-    , asTable   = require ('as-table').configure ({ delimiter: ' | ' })
-    , log       = require ('ololog').noLocate
-    , ansicolor = require ('ansicolor').nice
-    , verbose   = process.argv.includes ('--verbose')
-    , debug     = process.argv.includes ('--debug')
+import ccxt from '../../ccxt.js';
+import fs from 'fs';
+import { noLocate as log } from 'ololog';
+import ansicolor from 'ansicolor';
+import asTable from 'as-table';
+
+ansicolor.nice
+const table = asTable.configure ({ delimiter: ' | ' }), verbose   = process.argv.includes ('--verbose'), debug     = process.argv.includes ('--debug');
 
 //-----------------------------------------------------------------------------
 
@@ -59,7 +60,7 @@ let printSymbols = async (id) => {
                 .map (market =>
                     ccxt.omit (market, [ 'info', 'limits', 'precision', 'fees' ]))
 
-        let table = asTable (marketsList)
+        let table = table (marketsList)
         log (table)
 
         log ("\n---------------------------------------------------------------")
@@ -73,7 +74,7 @@ let printSymbols = async (id) => {
                 .map (currency =>
                     ccxt.omit (currency, [ 'info', 'limits' ]))
 
-        const currenciesTable = asTable (currenciesList)
+        const currenciesTable = table (currenciesList)
         log (currenciesTable)
 
         log ("\n---------------------------------------------------------------")

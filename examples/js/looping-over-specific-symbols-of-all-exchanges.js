@@ -1,11 +1,13 @@
 
 
-const ccxt      = require ('../../ccxt.js')
-    , asTable   = require ('as-table')
-    , log       = require ('ololog').configure ({ locate: false })
-    , verbose   = process.argv.includes ('--verbose')
+import ccxt from '../../ccxt.js';
+import asTable from 'as-table';
+import ololog from 'ololog';
+import ansicolor from 'ansicolor';
 
-require ('ansicolor').nice
+const log       = ololog.configure ({ locate: false }), verbose   = process.argv.includes ('--verbose');
+
+ansicolor.nice
 
 //-----------------------------------------------------------------------------
 

@@ -1,6 +1,6 @@
 
 
-const ccxt = require ('../../ccxt')
+import ccxt from '../../ccxt.js';
 
 console.log ('CCXT Version:', ccxt.version)
 

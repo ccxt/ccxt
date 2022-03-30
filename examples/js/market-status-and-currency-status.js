@@ -1,10 +1,10 @@
 
 
-const ccxt = require ('../../ccxt')
-    , log = require ('ololog')
-    , asTable = require ('as-table')
+import ccxt from '../../ccxt.js';
+import log from 'ololog';
+import asTable from 'as-table';
 
-;(async function main () {
+(async function main () {
 
     let kraken = new ccxt.kraken ({ enableRateLimit: true })
     await kraken.loadMarkets ()
