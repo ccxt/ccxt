@@ -570,11 +570,57 @@ module.exports = class huobi extends ccxt.huobi {
             mode = this.safeString (params, 'mode', mode);
         }
         const messageHash = 'trade.clearing' + '#' + marketId + '#' + mode;
-        const trades = await this.subscribePrivate (messageHash, type, 'linear', params);
+        const trades = await this.subscribePrivate (messageHash, messageHash, type, 'linear', params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit);
+    }
+
+    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let type = undefined;
+        let subType = undefined;
+        let market = undefined;
+        let suffix = '*'; // wildcard
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            type = this.getUniformMarketType (market);
+            suffix = market['id'].toLowerCase ();
+            subType = market['linear'] ? 'linear' : 'inverse';
+        }
+        if (type === undefined) {
+            type = this.safeString2 (this.options, 'watchOrders', 'defaultType', 'spot');
+            type = this.safeString (params, 'type', type);
+            subType = this.safeString2 (this.options, 'watchOrders', 'subType', 'linear');
+        }
+        if (type !== 'spot' && symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol for non spot markets');
+        }
+        let messageHash = undefined;
+        let channel = undefined;
+        if (type === 'spot') {
+            messageHash = 'orders' + '#' + suffix;
+            channel = messageHash;
+        } else {
+            const orderType = this.getOrderType ('watchOrders', params);
+            const marketCode = market['id'].toLowerCase ();
+            let prefix = orderType;
+            if (subType === 'linear') {
+                const marginMode = this.safeString (params, 'margin', 'cross');
+                prefix = (marginMode === 'cross') ? prefix + '_cross' : prefix;
+                messageHash = prefix + '.' + marketCode;
+                channel = messageHash;
+            } else if (type === 'future') {
+                messageHash = prefix + '.' + market['baseId'].toLowerCase ();
+                channel = prefix + '.' + marketCode;
+            }
+        }
+        const orders = await this.subscribePrivate (channel, messageHash, type, subType, params);
+        if (this.newUpdates) {
+            limit = orders.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (orders, since, limit);
     }
 
     handleSubscriptionStatus (client, message) {
@@ -1007,11 +1053,11 @@ module.exports = class huobi extends ccxt.huobi {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
     }
 
-    async subscribePrivate (messageHash, type, subtype, params = {}) {
+    async subscribePrivate (channel, messageHash, type, subtype, params = {}) {
         const requestId = this.nonce ();
         const subscription = {
             'id': requestId,
-            'messageHash': messageHash,
+            'messageHash': channel,
             'params': params,
         };
         let request = undefined;
@@ -1023,7 +1069,7 @@ module.exports = class huobi extends ccxt.huobi {
         } else {
             request = {
                 'op': 'sub',
-                'topic': messageHash,
+                'topic': channel,
                 'cid': requestId,
             };
         }
