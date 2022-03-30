@@ -1644,7 +1644,7 @@ module.exports = class bibox extends Exchange {
             return;
         }
         if ('state' in response) {
-            if (this.safeNumber (response, 'state') !== 0) {
+            if (this.safeNumber (response, 'state') === 0) {
                 return;
             }
             throw new ExchangeError (this.id + ' ' + body);
