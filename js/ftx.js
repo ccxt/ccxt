@@ -1744,7 +1744,7 @@ module.exports = class ftx extends Exchange {
                 const parsedOrders = this.filterBy (response, 'id', id);
                 return this.safeValue (parsedOrders, 0);
             } else {
-                throw new ArgumentsRequired (this.id + ' fetchOrder() (in addition to `type` param) for conditional order requires one of the following to be set: (A) set params["method"] to "privateGetConditionalOrdersConditionalOrderIdTriggers"; or (B) set symbol argument, with params["method"] to "privateGetConditionalOrders" and params["orderStatusFlag"] to "open"');
+                throw new ArgumentsRequired (this.id + ' fetchOrder() for conditional order (in addition to `type` param) requires one of the following to be set: (A) set params["method"] to "privateGetConditionalOrdersConditionalOrderIdTriggers"; or (B) set symbol argument, with params["method"] to "privateGetConditionalOrders" and params["orderStatusFlag"] to "open"');
             }
         } else {
             const response = await this[method] (this.extend (request, params));
