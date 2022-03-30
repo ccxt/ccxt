@@ -1,6 +1,6 @@
 
 
-const ccxt = require ('../../ccxt')
+import ccxt from '../../ccxt.js';
 
 async function test () {
 
