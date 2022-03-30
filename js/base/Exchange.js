@@ -2173,6 +2173,7 @@ module.exports = class Exchange {
     }
 
     handleMarketTypeAndParams (methodName, market = undefined, params = {}) {
+        const allowedTypes = ['spot', 'swap', 'future', 'option', 'margin'];
         const defaultType = this.safeString2 (this.options, 'defaultType', 'type', 'spot');
         const methodOptions = this.safeValue (this.options, methodName);
         let methodType = defaultType;
@@ -2184,8 +2185,18 @@ module.exports = class Exchange {
             }
         }
         const marketType = (market === undefined) ? methodType : market['type'];
-        const type = this.safeString2 (params, 'defaultType', 'type', marketType);
-        params = this.omit (params, [ 'defaultType', 'type' ]);
+        let type = this.safeString (params, 'defaultType');
+        if (type !== undefined) {
+            params = this.omit (params, 'defaultType');
+        } else {
+            const temptType = this.safeString (params, 'type');
+            if ((temptType !== undefined) && allowedTypes.includes (type)) {
+                type = temptType;
+                params = this.omit (params, 'type');
+            } else {
+                type = marketType;
+            }
+        }
         return [ type, params ];
     }
 
