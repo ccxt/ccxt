@@ -1,11 +1,8 @@
-;
+import ccxt from '../../ccxt.js';
+import { writeFileSync } from 'fs';
+import path from 'path';
 
-const ccxt = require ('../../ccxt.js')
-    , { writeFileSync } = require ('fs')
-    , path = require ('path')
-    , enableRateLimit = true
-    , exchanges = {}
-    , tickers = {}
+const enableRateLimit = true, exchanges = {}, tickers = {};
 
 
 ccxt.exchanges.forEach (id => {
