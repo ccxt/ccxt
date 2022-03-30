@@ -59,7 +59,8 @@ properties
     .filter ((property) => fs.existsSync (__dirname + '/Exchange/test.' + property + '.js'))
     .forEach (async (property) => {
         // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-        tests[property] =  await import (__dirname + '/Exchange/test.' + property + '.js')
+        const test = await import (__dirname + '/Exchange/test.' + property + '.js')
+        tests[property] = test['default']
     })
 
 const errors = await import ('../base/errorHierarchy.js')
@@ -69,7 +70,8 @@ Object.keys (errors)
     .filter ((error) => fs.existsSync (__dirname + '/errors/test.' + error + '.js'))
     .forEach (async (error) => {
         // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-        tests[error] = await import (__dirname + '/errors/test.' + error + '.js')
+        const errorTest = await import (__dirname + '/errors/test.' + error + '.js')
+        tests[error] = errorTest['default']
     })
 
 //-----------------------------------------------------------------------------
