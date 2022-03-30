@@ -1,9 +1,25 @@
+// test_number.profile.js
+// This program tests all parts of Precise and decimal_to_precision API
+// which are available after merging decimalToPrecision_speedup.
+// This test is used to prove that the new implementation functions correctly,
+// including new features.
+//
+// To run the tests (runs each test once only):
+// [ccxt]$ node js/test/base/functions/test.number.profile.compare.js
+//
+// To run tests with timing measurements (runs each test many times for precision timing):
+// [ccxt]$ node js/test/base/functions/test.number.profile.compare.js -t
+// This will print out timing measurements for each test completed.
+
+
 //'use strict'
 
 const { numberToString, decimalToPrecision, ROUND, TRUNCATE, DECIMAL_PLACES, TICK_SIZE, NO_PADDING, PAD_WITH_ZERO, SIGNIFICANT_DIGITS } = require ('../../../../ccxt');
 const Precise = require ('../../../base/Precise')
 const assert = require ('assert');
 const { performance } = require('perf_hooks');
+
+var timing = false;
 
 function testPrecise () {
 	// ----------------------------------------------------------------------------
@@ -409,16 +425,21 @@ function getFunctionName (func) {
 }
 
 function runOneTest (testFunc) {
-	const numRepeats = 50000;
-	
-	const t0 = performance.now();
-	for (var i = 0; i < numRepeats; ++i ) {
+	if (timing) {
+		const numRepeats = 50000;
+		
+		const t0 = performance.now();
+		for (var i = 0; i < numRepeats; ++i ) {
+			testFunc ();
+		}
+		const t1 = performance.now();
+		const t = (t1-t0)/numRepeats;
+		const s = t.toFixed(6)
+		console.log (`${s}, ${getFunctionName(testFunc)}`)
+	} else {
 		testFunc ();
+		console.log (`PASS: ${getFunctionName(testFunc)}`)
 	}
-	const t1 = performance.now();
-	const t = (t1-t0)/numRepeats;
-	const s = t.toFixed(6)
-	console.log (`${s}, ${getFunctionName(testFunc)}`)
 }
 
 
@@ -426,7 +447,9 @@ function runAllTests () {
 	
 	const t0 = performance.now();
 	console.log('Testing JavaScript');
-	console.log('times in milliseconds');
+	if (timing) {
+		console.log('times in milliseconds');
+	}
 	runOneTest (testPrecise);
 	runOneTest (testNumberToString);
 	runOneTest (testDecimalToPrecisionTruncationToNDigitsAfterDot);
@@ -441,8 +464,26 @@ function runAllTests () {
 	runOneTest (testDecimaltoPrecisionNegativeSignificantDigits)
 	const t1 = performance.now();
 	const t = t1 - t0;
-	const s = t.toFixed (6)
-	console.log (`${s}, runAllTests`)
+	if (timing) {
+		const s = t.toFixed (6)
+		console.log (`${s}, runAllTests`)
+	} else {
+		console.log (`PASS: runAllTests`)
+	}
+}
+
+const myArgs = process.argv.slice(2);
+var i = 0;
+while (i<myArgs.length) {
+	switch (myArgs[i]) {
+		case '-t':
+			timing = true;
+			break;
+		default:
+			console.log ('Unknown argument %{myArgs[i]}',);
+			break;
+	}
+	i++;
 }
 
 runAllTests ()

@@ -2,6 +2,22 @@ import os
 import sys
 import datetime
 
+# test_decimal_to_precision.profile.py
+# This program tests only those parts of Precise and decimal_to_precision
+# which are compatible with the API prior to merging decimalToPrecision_speedup.
+# It also avoids testing defects of the old implementation.
+# The tests are the same as those in python/ccxt/test/test_decimal_to_precision.py,
+# but the tests have been reorganised into functions to support profiling.
+# This test is used to obtain comparable timing information
+# of the old and new implementations.
+#
+# To run the tests (runs each test once only):
+# [ccxt]$ python3 python/ccxt/test/test_decimal_to_precision.profile.compare.py
+#
+# To run tests with timing measurements (runs each test many times for precision timing):
+# [ccxt]$ python3 python/ccxt/test/test_decimal_to_precision.profile.compare.py -t
+# This will print out timing measurements for each test completed.
+
 root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(root)
 
@@ -16,7 +32,9 @@ from ccxt.base.decimal_to_precision import NO_PADDING            # noqa F401
 from ccxt.base.decimal_to_precision import number_to_string      # noqa F401
 from ccxt.base.exchange import Exchange                          # noqa F401
 from ccxt.base.precise import Precise                            # noqa F401
+from argparse import ArgumentParser
 
+timing = False
 
 # ----------------------------------------------------------------------------
 # Precise
@@ -404,21 +422,25 @@ def getFunctionName(func):
 
 
 def runOneTest(testFunc):
-    numRepeats = 50000
-    # numRepeats = 1
-    #
-    t0 = datetime.datetime.now()
-    for i in range(0, numRepeats):
+    if timing:
+        numRepeats = 50000
+        #
+        t0 = datetime.datetime.now()
+        for i in range(0, numRepeats):
+            testFunc()
+        t1 = datetime.datetime.now()
+        t = (t1 - t0) / numRepeats
+        print("{:.6f}, {:s}".format(t.total_seconds() * 1000, getFunctionName(testFunc)))
+    else:
         testFunc()
-    t1 = datetime.datetime.now()
-    t = (t1 - t0) / numRepeats
-    print("{:.6f}, {:s}".format(t.total_seconds() * 1000, getFunctionName(testFunc)))
+        print("PASS: ", getFunctionName(testFunc))
 
 
 def runAllTests():
     t0 = datetime.datetime.now()
     print('Testing Python')
-    print('times in milliseconds')
+    if timing:
+        print('times in milliseconds')
     runOneTest(testPrecise)
     runOneTest(testNumberToString)
     runOneTest(testDecimalToPrecisionTruncationToNDigitsAfterDot)
@@ -433,7 +455,14 @@ def runAllTests():
     # runOneTest (testDecimalToPrecisionNegativeSignificantDigits)
     t1 = datetime.datetime.now()
     t = t1 - t0
-    print("{:.6f}, runAllTests".format(t.total_seconds() * 1000))
+    if timing:
+        print("{:.6f}, runAllTests".format(t.total_seconds() * 1000))
+    else:
+        print("PASS: runAllTests")
 
+parser = ArgumentParser()
+parser.add_argument('-t', dest='timing', action='store_const', const=True, default=False, help='measures timing information for each test function')
+args = parser.parse_args()
+timing = args.timing
 
 runAllTests()

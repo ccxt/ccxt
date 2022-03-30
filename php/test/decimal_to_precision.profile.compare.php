@@ -3,6 +3,22 @@ namespace ccxt;
 include_once (__DIR__.'/../../ccxt.php');
 include_once (__DIR__.'/fail_on_all_errors.php');
 
+// decimal_to_precision.profile.compare.php
+// This program tests only those parts of Precise and Exchange::decimal_to_precision
+// which are compatible with the API prior to merging decimalToPrecision_speedup.
+// It also avoids testing defects of the old implementation.
+// The tests are the same as those in php/test/decimal_to_precision.php,
+// but the tests have been reorganised into functions to support profiling.
+// This test is used to obtain comparable timing information
+// of the old and new implementations.
+//
+// To run the tests (runs each test once only):
+// [ccxt]$ php php/test/decimal_to_precision.profile.compare.php
+//
+// To run tests with timing measurements (runs each test many times for precision timing):
+// [ccxt]$ php php/test/decimal_to_precision.profile.compare.php -t
+// This will print out timing measurements for each test completed.
+
 // testDecimalToPrecisionErrorHandling
 //
 // $this->expectException ('ccxt\\BaseError');
@@ -12,6 +28,8 @@ include_once (__DIR__.'/fail_on_all_errors.php');
 // $this->expectException ('ccxt\\BaseError');
 // $this->expectExceptionMessageRegExp ('/Invalid number/');
 // Exchange::decimalToPrecision ('foo');
+
+$timing = False;
 
 // ----------------------------------------------------------------------------
 
@@ -442,24 +460,32 @@ $testDecimalToPrecisionNegativeSignificantDigits = function() {
 // ----------------------------------------------------------------------------
 
 function runOneTest ($testFunc, $testName) {
-    $numRepeats = 50000;
-    //$numRepeats = 1;
+    global $timing;
+    if ($timing) {
+        $numRepeats = 50000;
     
-    $t0 = hrtime(true);
-    for ( $i = 0; $i < $numRepeats; ++$i ) {
+        $t0 = hrtime(true);
+        for ( $i = 0; $i < $numRepeats; ++$i ) {
+            $testFunc();
+        }
+        $t1 = hrtime(true);
+        $t = ($t1 - $t0) / $numRepeats;
+        // hrtime returns nanoseconds
+        print( number_format($t/1000000,6,'.','') . ', '. $testName . "\n" );
+    } else {
         $testFunc();
+        print( 'PASS: '. $testName . "\n" );
     }
-    $t1 = hrtime(true);
-    $t = ($t1 - $t0) / $numRepeats;
-    // hrtime returns nanoseconds
-    print( number_format($t/1000000,6,'.','') . ', '. $testName . "\n" );
 }
 
 function runAllTests () {
+    global $timing;
     
     $t0 = hrtime(true);
     print("Testing PHP\n");
-    print("times in milliseconds\n");
+    if ($timing) {
+        print("times in milliseconds\n");
+    }
     global $testPrecise;
     runOneTest ($testPrecise, "testPrecise");
     global $testNumberToString;
@@ -490,7 +516,14 @@ function runAllTests () {
     $t1 = hrtime(true);
     $t = $t1 - $t0;
     // hrtime returns nanoseconds
-    print( number_format($t/1000000,6,'.','') . ", runAllTests\n");
+    if ($timing) {
+        print( number_format($t/1000000,6,'.','') . ", runAllTests\n");
+    } else {
+        print( "PASS: runAllTests\n");
+    }
 }
+
+$options = getopt("t");
+$timing = array_key_exists("t", $options);
 
 runAllTests ();
