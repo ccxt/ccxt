@@ -3678,7 +3678,8 @@ class Exchange {
         return $rate;
     }
 
-    public function handle_market_type_and_params($method_name, $market=null, $params = array()) {
+    public function handle_market_type_and_params($method_name, $market = null, $params = array()) {
+        $allowedTypes = array( 'spot', 'swap', 'future', 'delivery', 'option', 'margin', 'savings', 'funding', 'linear', 'inverse', 'exchange', 'derivatives', 'cross_margin', 'contract', 'account' ); // [binance : savings & funding & linear & inverse ] [bitfinex2: exchange, derivatives] [gateio: cross_margin] [kucoin: contract] [okcoin: account]
         $default_type = $this->safe_string_2($this->options, 'defaultType', 'type', 'spot');
         $method_options = $this->safe_value($this->options, $method_name);
         $method_type = $default_type;
@@ -3690,9 +3691,19 @@ class Exchange {
             }
         }
         $market_type = isset($market) ? $market['type'] : $method_type;
-        $type = $this->safe_string_2($params, 'defaultType', 'type', $market_type);
-        $params = $this->omit($params, [ 'defaultType', 'type' ]);
-        return array($type, $params);
+        $type = $this->safe_string($params, 'defaultType');
+        if ($type !== null) {
+            $params = $this->omit($params, 'defaultType');
+        } else {
+            $tempType = $this->safe_string($params, 'type');
+            if (($tempType !== null) && in_array($type, $allowedTypes)) {
+                $type = $tempType;
+                $params = $this->omit($params, 'type');
+            } else {
+                $type = $market_type;
+            }
+        }
+        return array( $type, $params );
     }
 
     public function load_time_difference($params = array()) {
