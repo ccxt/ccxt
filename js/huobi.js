@@ -617,7 +617,7 @@ module.exports = class huobi extends ccxt.huobi {
                 channel = messageHash;
             } else if (type === 'future') {
                 messageHash = prefix + '.' + market['baseId'].toLowerCase ();
-                channel = prefix + '.' + marketCode;
+                channel = prefix + ':' + marketCode;
             }
         }
         const orders = await this.subscribePrivate (channel, messageHash, type, subType, query);
@@ -662,17 +662,20 @@ module.exports = class huobi extends ccxt.huobi {
         //      (...)
         // }
         //
-        const messageHash = this.safeString2 (message, 'ch', 'topic');
+        let messageHash = this.safeString2 (message, 'ch', 'topic');
         const data = this.safeValue (message, 'data', message);
         const parsed = this.parseWsOrder (data);
         const symbol = this.safeString (parsed, 'symbol');
         if (symbol !== undefined) {
+            const market = this.market (symbol);
             if (this.orders === undefined) {
                 const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
                 this.orders = new ArrayCacheBySymbolById (limit);
             }
             const cachedOrders = this.orders;
             cachedOrders.append (parsed);
+            client.resolve (this.orders, messageHash);
+            messageHash += ':' + market['id'];
             client.resolve (this.orders, messageHash);
         }
     }
