@@ -579,19 +579,21 @@ module.exports = class huobi extends ccxt.huobi {
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        let query = params;
         let type = undefined;
         let subType = undefined;
         let market = undefined;
         let suffix = '*'; // wildcard
         if (symbol !== undefined) {
             market = this.market (symbol);
-            type = this.getUniformMarketType (market);
+            type = market['type'];
             suffix = market['id'].toLowerCase ();
             subType = market['linear'] ? 'linear' : 'inverse';
         }
         if (type === undefined) {
             type = this.safeString2 (this.options, 'watchOrders', 'defaultType', 'spot');
             type = this.safeString (params, 'type', type);
+            query = this.omit (params, 'type');
             subType = this.safeString2 (this.options, 'watchOrders', 'subType', 'linear');
         }
         if (type !== 'spot' && symbol === undefined) {
@@ -603,7 +605,9 @@ module.exports = class huobi extends ccxt.huobi {
             messageHash = 'orders' + '#' + suffix;
             channel = messageHash;
         } else {
-            const orderType = this.getOrderType ('watchOrders', params);
+            let orderType = this.safeString2 (this.options, 'watchOrders', 'orderType', 'orders');
+            orderType = this.safeString (params, 'orderType', type);
+            query = this.omit (params, 'orderType');
             const marketCode = market['id'].toLowerCase ();
             let prefix = orderType;
             if (subType === 'linear') {
@@ -616,7 +620,7 @@ module.exports = class huobi extends ccxt.huobi {
                 channel = prefix + '.' + marketCode;
             }
         }
-        const orders = await this.subscribePrivate (channel, messageHash, type, subType, params);
+        const orders = await this.subscribePrivate (channel, messageHash, type, subType, query);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
