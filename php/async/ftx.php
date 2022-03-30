@@ -588,7 +588,7 @@ class ftx extends Exchange {
                 $type = 'future';
                 $expiry = $this->parse8601($expiryDatetime);
                 if ($expiry === null) {
-                    throw new BadResponse($this->id . " $symbol '" . $id . "' is a $future $contract but with invalid $expiry datetime => " . $expiryDatetime);
+                    throw new BadResponse($this->id . " $symbol '" . $id . "' is a $future $contract but with an invalid $expiry datetime.");
                 }
                 $parsedId = explode('-', $id);
                 $length = is_array($parsedId) ? count($parsedId) : 0;

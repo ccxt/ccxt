@@ -594,7 +594,7 @@ class ftx(Exchange):
                 type = 'future'
                 expiry = self.parse8601(expiryDatetime)
                 if expiry is None:
-                    raise BadResponse(self.id + " symbol '" + id + "' is a future contract but with invalid expiry datetime: " + expiryDatetime)
+                    raise BadResponse(self.id + " symbol '" + id + "' is a future contract but with an invalid expiry datetime.")
                 parsedId = id.split('-')
                 length = len(parsedId)
                 if length > 2:
