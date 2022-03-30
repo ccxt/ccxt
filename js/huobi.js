@@ -840,17 +840,19 @@ module.exports = class huobi extends ccxt.huobi {
         let type = this.safeString2 (this.options, 'watchOrders', 'defaultType', 'spot');
         type = this.safeString (params, 'type', type);
         let subType = this.safeString2 (this.options, 'watchOrders', 'subType', 'linear');
-        subType = this.safeString (params, 'subType', type);
-        let query = this.omit (params, ['type', 'subtype']);
+        subType = this.safeString (params, 'subType', subType);
+        let query = this.omit (params, ['type', 'subType']);
         let currencyCode = '*';
         params = this.omit (params, 'type');
         await this.loadMarkets ();
         let messageHash = undefined;
         if (type === 'spot') {
-            messageHash = 'accounts.update';
+            let mode = this.safeString2 (this.options, 'watchBalance', 'mode', '2');
+            mode = this.safeString (params, 'mode', mode);
+            messageHash = 'accounts.update' + '#' + mode;
         } else {
             let prefix = 'accounts';
-            if (type === 'linear') {
+            if (subType === 'linear') {
                 const symbol = this.safeString (params, 'symbol');
                 if (symbol !== undefined) {
                     query = this.omit (params, 'symbol');
@@ -864,12 +866,105 @@ module.exports = class huobi extends ccxt.huobi {
                 const currency = this.safeString (params, 'currency');
                 if (currency !== undefined) {
                     query = this.omit (params, 'currency');
-                    currencyCode = this.currency (currency).toLowerCase ();
+                    currencyCode = this.currency (currency);
+                    currencyCode = currencyCode['id'];
                 }
             }
             messageHash = prefix + '.' + currencyCode;
         }
         return await this.subscribePrivate (messageHash, messageHash, type, subType, query);
+    }
+
+    handleBalance (client, message) {
+        // spot
+        //
+        // {
+        //     "action": "push",
+        //     "ch": "accounts.update#0",
+        //     "data": {
+        //         "currency": "btc",
+        //         "accountId": 123456,
+        //         "balance": "23.111",
+        //         "available": "2028.699426619837209087",
+        //         "changeType": "transfer",
+        //         "accountType":"trade",
+        //         "seqNum": "86872993928",
+        //         "changeTime": 1568601800000
+        //     }
+        // }
+        // inverse future
+        // {
+        //     "op":"notify",
+        //     "topic":"accounts.ada",
+        //     "ts":1604388667226,
+        //     "event":"order.match",
+        //     "data":[
+        //         {
+        //             "symbol":"ADA",
+        //             "margin_balance":446.417641681222726716,
+        //             "margin_static":445.554085945257745136,
+        //             "margin_position":11.049723756906077348,
+        //             "margin_frozen":0,
+        //             "margin_available":435.367917924316649368,
+        //             "profit_real":21.627049781983019459,
+        //             "profit_unreal":0.86355573596498158,
+        //             "risk_rate":40.000796572150656768,
+        //             "liquidation_price":0.018674308027108984,
+        //             "withdraw_available":423.927036163274725677,
+        //             "lever_rate":20,
+        //             "adjust_factor":0.4
+        //         }
+        //     ],
+        //     "uid":"123456789"
+        // }
+        //
+        // usdt / swap
+        // {
+        //     "op":"notify",
+        //     "topic":"accounts.btc-usdt",
+        //     "ts":1603711370689,
+        //     "event":"order.open",
+        //     "data":[
+        //         {
+        //             "symbol":"BTC",
+        //             "contract_code":"BTC-USDT",
+        //             "margin_balance":79.72434662,
+        //             "margin_static":79.79484662,
+        //             "margin_position":1.31303,
+        //             "margin_frozen":4.0662,
+        //             "margin_available":74.34511662,
+        //             "profit_real":0.03405608,
+        //             "profit_unreal":-0.0705,
+        //             "withdraw_available":74.34511662,
+        //             "risk_rate":14.745772976801512484,
+        //             "liquidation_price":92163.420962779156327543,
+        //             "lever_rate":10,
+        //             "adjust_factor":0.075,
+        //             "margin_asset":"USDT",
+        //             "margin_mode": "isolated",
+        //             "margin_account": "BTC-USDT",
+        //             "position_mode": "dual_side"
+        //         }
+        //     ]
+        //
+        const data = this.safeValue (message, 'data', []);
+        const topic = this.safeString (message, 'topic', '');
+        const topicParts = topic.split ('.');
+        const prefix = this.safeString (topicParts, 0);
+        const globalMessageHash = prefix + '.' + '*';
+        const messageHash = this.safeString (message, 'topic');
+        for (let i = 0; i < data.length; i++) {
+            const balance = data[i];
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'available');
+            account['total'] = this.safeString (balance, 'balance');
+            this.balance[code] = account;
+            this.balance[code] = this.safeBalance (this.balance[code]);
+            client.resolve (this.balance, messageHash);
+        }
+        client.resolve (this.balance, globalMessageHash);
     }
 
     handleSubscriptionStatus (client, message) {
@@ -1004,22 +1099,30 @@ module.exports = class huobi extends ccxt.huobi {
                 return method.call (this, client, message);
             }
         }
-        // private subjects
+        // private spot subjects
         const privateParts = ch.split ('#');
         const privateType = this.safeString (privateParts, 0);
         if (privateType === 'trade.clearing') {
             this.handleMyTrade (client, message);
             return;
         }
+        if (privateType.indexOf ('accounts.update') !== -1) {
+            this.handleBalance (client, message);
+            return;
+        }
         if (privateType === 'orders') {
             this.handleOrder (client, message);
             return;
         }
+        // private contract subjects
         const op = this.safeString (message, 'op');
         if (op === 'notify') {
             const topic = this.safeString (message, 'topic', '');
             if (topic.indexOf ('orders') !== -1) {
                 this.handleOrder (client, message);
+            }
+            if (topic.indexOf ('account') !== -1) {
+                this.handleBalance (client, message);
             }
         }
     }
