@@ -616,8 +616,8 @@ module.exports = class huobi extends ccxt.huobi {
                 messageHash = prefix + '.' + marketCode;
                 channel = messageHash;
             } else if (type === 'future') {
-                messageHash = prefix + '.' + market['baseId'].toLowerCase ();
-                channel = prefix + ':' + marketCode;
+                channel = prefix + '.' + market['baseId'].toLowerCase ();
+                messageHash = channel + ':' + marketCode;
             }
         }
         const orders = await this.subscribePrivate (channel, messageHash, type, subType, query);
@@ -675,7 +675,7 @@ module.exports = class huobi extends ccxt.huobi {
             const cachedOrders = this.orders;
             cachedOrders.append (parsed);
             client.resolve (this.orders, messageHash);
-            messageHash += ':' + market['id'];
+            messageHash += ':' + market['id'].toLowerCase ();
             client.resolve (this.orders, messageHash);
         }
     }
@@ -776,7 +776,7 @@ module.exports = class huobi extends ccxt.huobi {
         //
         const lastTradeTimestamp = this.safeInteger2 (order, 'lastActTime', 'ts');
         const created = this.safeInteger (order, 'orderCreateTime');
-        const marketId = this.safeString2 (order, 'symbol', 'pair');
+        const marketId = this.safeString2 (order, 'contract_code', 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const amount = this.safeString2 (order, 'orderSize', 'volume');
         const status = this.parseOrderStatus (this.safeString2 (order, 'orderStatus', 'status'));
@@ -948,7 +948,7 @@ module.exports = class huobi extends ccxt.huobi {
         //     (...)
         //
         //
-        const ch = this.safeValue (message, 'ch');
+        const ch = this.safeValue (message, 'ch', '');
         const parts = ch.split ('.');
         const type = this.safeString (parts, 0);
         if (type === 'market') {
