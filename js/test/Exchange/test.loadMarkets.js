@@ -1,12 +1,12 @@
-'use strict'
+
 
 // ----------------------------------------------------------------------------
 
-const testMarket = require ('./test.market.js')
+import testMarket from './test.market.js'
 
 // ----------------------------------------------------------------------------
 
-module.exports = async (exchange) => {
+export default async (exchange) => {
 
     const skippedExchanges = [
         'bitforex',

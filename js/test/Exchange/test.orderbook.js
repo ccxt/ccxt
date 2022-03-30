@@ -1,12 +1,12 @@
-'use strict'
+
 
 // ----------------------------------------------------------------------------
 
-const assert = require ('assert')
+import assert from 'assert'
 
 // ----------------------------------------------------------------------------
 
-module.exports = (exchange, orderbook, method, symbol) => {
+export default (exchange, orderbook, method, symbol) => {
 
     const format = {
         // 'symbol': 'ETH/BTC', // reserved

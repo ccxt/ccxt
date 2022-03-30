@@ -1,6 +1,6 @@
-'use strict';
 
-const assert = require ('assert');
+
+import assert from 'assert';
 
 function testTrade (exchange, trade, symbol, now) {
     assert (trade);
@@ -65,4 +65,4 @@ function testTrade (exchange, trade, symbol, now) {
     assert (takerOrMaker === undefined || takerOrMaker === 'taker' || takerOrMaker === 'maker');
 }
 
-module.exports = testTrade;
+export default testTrade;

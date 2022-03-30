@@ -1,6 +1,6 @@
-'use strict'
 
-module.exports = async (exchange) => {
+
+export default async (exchange) => {
     const skippedExchanges = [
         'bibox', // fetchFundingFees should be rewritten to fetchFundingFee
     ]

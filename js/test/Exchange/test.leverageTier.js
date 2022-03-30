@@ -1,6 +1,6 @@
-'use strict';
 
-const assert = require ('assert');
+
+import assert from 'assert';
 
 function testLeverageTier (exchange, method, tier) {
     const format = {
@@ -30,4 +30,4 @@ function testLeverageTier (exchange, method, tier) {
     return tier;
 }
 
-module.exports = testLeverageTier;
+export default testLeverageTier;

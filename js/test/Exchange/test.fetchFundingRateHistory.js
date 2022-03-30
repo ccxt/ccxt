@@ -1,12 +1,12 @@
-'use strict'
+
 
 // ----------------------------------------------------------------------------
 
-const assert = require ('assert')
+import assert from 'assert'
 
 // ----------------------------------------------------------------------------
 
-module.exports = async (exchange) => {
+export default async (exchange) => {
 
     const format = {
         'currency': 'USDT',

@@ -1,13 +1,13 @@
-'use strict'
+
 
 // ----------------------------------------------------------------------------
 
-const assert = require ('assert')
-    , testTransaction = require ('./test.transaction.js')
+import assert from 'assert'
+import testTransaction  from './test.transaction.js'
 
 // ----------------------------------------------------------------------------
 
-module.exports = async (exchange, code) => {
+export default async (exchange, code) => {
 
     if (exchange.has.fetchDeposits) {
 

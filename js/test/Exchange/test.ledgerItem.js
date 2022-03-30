@@ -1,12 +1,12 @@
-'use strict'
+
 
 // ----------------------------------------------------------------------------
 
-const assert = require ('assert')
+import assert from 'assert'
 
 // ----------------------------------------------------------------------------
 
-module.exports = (exchange, item, code, now) => {
+export default (exchange, item, code, now) => {
     assert (typeof item === 'object')
     assert ('id' in item)
     assert (item['id'] === undefined || typeof item['id'] === 'string')

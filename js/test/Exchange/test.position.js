@@ -1,6 +1,6 @@
-'use strict';
 
-const assert = require ('assert');
+
+import assert from 'assert';
 
 function testPosition (exchange, position, symbol, now) {
     assert (position);
@@ -18,4 +18,4 @@ function testPosition (exchange, position, symbol, now) {
     assert (position['info']);
 }
 
-module.exports = testPosition;
+export default testPosition;

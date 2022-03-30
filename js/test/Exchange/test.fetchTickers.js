@@ -1,12 +1,12 @@
-'use strict'
+
 
 // ----------------------------------------------------------------------------
 
-const testTicker = require ('./test.ticker.js')
+import testTicker from './test.ticker.js'
 
 // ----------------------------------------------------------------------------
 
-module.exports = async (exchange, symbol) => {
+export default async (exchange, symbol) => {
 
     const skippedExchanges = [
         'binance',

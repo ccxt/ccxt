@@ -1,12 +1,12 @@
-'use strict'
+
 
 // ----------------------------------------------------------------------------
 
-const assert = require ('assert')
+import assert from 'assert'
 
 // ----------------------------------------------------------------------------
 
-module.exports = (exchange, currency, method) => {
+export default (exchange, currency, method) => {
 
     const format = {
         'id': 'btc', // string literal for referencing within an exchange

@@ -1,13 +1,13 @@
-'use strict'
+
 
 // ----------------------------------------------------------------------------
 
-const assert = require ('assert')
-    , testOrder = require ('./test.order.js')
+import assert from 'assert'
+import testOrder from './test.order.js'
 
 // ----------------------------------------------------------------------------
 
-module.exports = async (exchange, symbol) => {
+export default async (exchange, symbol) => {
 
     if (exchange.has.fetchClosedOrders) {
 

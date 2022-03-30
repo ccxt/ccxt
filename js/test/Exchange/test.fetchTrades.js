@@ -1,13 +1,13 @@
-'use strict'
+
 
 // ----------------------------------------------------------------------------
 
-const assert = require ('assert')
-    , testTrade = require ('./test.trade.js')
+import assert from 'assert'
+import testTrade from './test.trade.js'
 
 // ----------------------------------------------------------------------------
 
-module.exports = async (exchange, symbol) => {
+export default async (exchange, symbol) => {
 
     const skippedExchanges = []
 

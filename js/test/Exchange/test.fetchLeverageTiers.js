@@ -1,10 +1,10 @@
-'use strict';
-
-const assert = require ('assert')
-    , testLeverageTier = require ('./test.leverageTier.js')
 
 
-module.exports = async (exchange, symbol) => {
+import assert from 'assert'
+import testLeverageTier from './test.leverageTier.js'
+
+
+export default async (exchange, symbol) => {
     const method = 'fetchLeverageTiers';
     // const format = {
     //     'RAY/USDT': [

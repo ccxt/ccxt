@@ -1,6 +1,6 @@
-'use strict'
 
-const assert = require ('assert')
+
+import assert from 'assert'
 
 function testMarket (exchange, market, method) {
     const format = {
@@ -126,4 +126,4 @@ function testMarket (exchange, market, method) {
     // }
 }
 
-module.exports = testMarket;
+export default testMarket;

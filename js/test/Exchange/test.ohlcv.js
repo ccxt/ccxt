@@ -1,6 +1,6 @@
-'use strict';
 
-const assert = require ('assert');
+
+import assert from 'assert';
 
 function testOHLCV (exchange, ohlcv, symbol, now) {
 
@@ -30,4 +30,4 @@ function testOHLCV (exchange, ohlcv, symbol, now) {
     }
 }
 
-module.exports = testOHLCV;
+export default testOHLCV;

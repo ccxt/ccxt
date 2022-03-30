@@ -1,12 +1,12 @@
-'use strict'
+
 
 // ----------------------------------------------------------------------------
 
-const testCurrency = require ('./test.currency.js')
+import testCurrency from './test.currency.js'
 
 // ----------------------------------------------------------------------------
 
-module.exports = async (exchange) => {
+export default async (exchange) => {
 
     const skippedExchanges = []
 

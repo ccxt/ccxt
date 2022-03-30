@@ -1,8 +1,8 @@
-'use strict';
+
 
 // ----------------------------------------------------------------------------
 
-const assert = require ('assert');
+import assert from 'assert';
 
 //  ---------------------------------------------------------------------------
 
@@ -32,4 +32,4 @@ function testTransaction (exchange, transaction, code, now) {
     assert (transaction.info);
 }
 
-module.exports = testTransaction;
+export default testTransaction;

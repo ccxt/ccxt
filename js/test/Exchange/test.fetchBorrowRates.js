@@ -1,12 +1,12 @@
-'use strict'
+
 
 // ----------------------------------------------------------------------------
 
-const testBorrowRate = require ('./test.borrowRate.js')
+import testBorrowRate  from './test.borrowRate.js'
 
 // ----------------------------------------------------------------------------
 
-module.exports = async (exchange) => {
+export default async (exchange) => {
 
     if (exchange.has.fetchBorrowRates) {
 

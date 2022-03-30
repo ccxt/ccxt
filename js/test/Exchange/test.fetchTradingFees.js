@@ -1,6 +1,6 @@
-'use strict'
 
-module.exports = async (exchange) => {
+
+export default async (exchange) => {
     const skippedExchanges = []
     if (skippedExchanges.includes (exchange.id)) {
         console.log (exchange.id, 'found in ignored exchanges, skipping fetchTradingFees...')

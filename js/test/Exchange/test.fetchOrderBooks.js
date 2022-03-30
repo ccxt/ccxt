@@ -1,12 +1,12 @@
-'use strict'
+
 
 // ----------------------------------------------------------------------------
 
-const testOrderBook = require ('./test.orderbook.js')
+import testOrderBook from './test.orderbook.js'
 
 // ----------------------------------------------------------------------------
 
-module.exports = async (exchange) => {
+export default async (exchange) => {
 
     const randomSymbols = exchange.symbols.slice ().sort (() => 0.5 - Math.random ()).slice (0, 2)
     const customExchangeParams = ([

@@ -1,4 +1,4 @@
-'use strict'
+
 
 // ----------------------------------------------------------------------------
 
@@ -6,7 +6,7 @@ const testBalance = require ('./test.balance.js')
 
 // ----------------------------------------------------------------------------
 
-module.exports = async (exchange) => {
+export default async (exchange) => {
 
     if (!(exchange.has.fetchBalance)) {
         console.log (exchange.id, ' does not have fetchBalance')

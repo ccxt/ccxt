@@ -1,13 +1,13 @@
-'use strict'
+
 
 // ----------------------------------------------------------------------------
 
-const assert = require ('assert')
-    , testBorrowRate = require ('./test.borrowRate.js')
+import assert from 'assert'
+import testBorrowRate from './test.borrowRate.js'
 
 // ----------------------------------------------------------------------------
 
-module.exports = async (exchange, code) => {
+export default async (exchange, code) => {
 
     const method = 'fetchBorrowRate'
 

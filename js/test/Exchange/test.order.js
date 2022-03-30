@@ -1,6 +1,6 @@
-'use strict';
 
-const assert = require ('assert');
+
+import assert from 'assert';
 
 function testOrder (exchange, order, symbol, now) {
     assert (order);
@@ -59,4 +59,4 @@ function testOrder (exchange, order, symbol, now) {
     assert (order['info']);
 }
 
-module.exports = testOrder;
+export default testOrder;

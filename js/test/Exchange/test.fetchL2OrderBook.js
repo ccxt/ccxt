@@ -1,12 +1,12 @@
-'use strict'
+
 
 // ----------------------------------------------------------------------------
 
-const testOrderBook = require ('./test.orderbook.js')
+import testOrderBook from './test.orderbook.js'
 
 // ----------------------------------------------------------------------------
 
-module.exports = async (exchange, symbol) => {
+export default async (exchange, symbol) => {
 
     const method = 'fetchL2OrderBook'
 

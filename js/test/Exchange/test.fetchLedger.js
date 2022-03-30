@@ -1,13 +1,13 @@
-'use strict'
+
 
 // ----------------------------------------------------------------------------
 
-const assert = require ('assert')
-    , testLedgerItem = require ('./test.ledgerItem')
+import assert from 'assert'
+import testLedgerItem from './test.ledgerItem'
 
 // ----------------------------------------------------------------------------
 
-module.exports = async (exchange, code) => {
+export default async (exchange, code) => {
 
     if (exchange.has.fetchLedger) {
 
