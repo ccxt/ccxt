@@ -391,7 +391,8 @@ class ascendex extends Exchange {
             $id = $ids[$i];
             $currency = $dataById[$id];
             $code = $this->safe_currency_code($id);
-            $precision = $this->safe_string_2($currency, 'precisionScale', 'nativeScale');
+            $scale = $this->safe_string_2($currency, 'precisionScale', 'nativeScale');
+            $precision = $this->parse_number($this->parse_precision($scale));
             // why would the exchange API have different names for the same field
             $fee = $this->safe_number_2($currency, 'withdrawFee', 'withdrawalFee');
             $status = $this->safe_string_2($currency, 'status', 'statusCode');
@@ -408,10 +409,10 @@ class ascendex extends Exchange {
                 'deposit' => null,
                 'withdraw' => null,
                 'fee' => $fee,
-                'precision' => intval($precision),
+                'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => $this->parse_number($this->parse_precision($precision)),
+                        'min' => $precision,
                         'max' => null,
                     ),
                     'withdraw' => array(
