@@ -58,8 +58,9 @@ class hitbtc3(Exchange):
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': None,
-                'fetchLeverageTiers': None,
-                'fetchMarketLeverageTiers': None,
+                'fetchLeverage': True,
+                'fetchLeverageTiers': False,
+                'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': None,
                 'fetchMyTrades': True,
@@ -1868,6 +1869,50 @@ class hitbtc3(Exchange):
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
         }
+
+    def fetch_leverage(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        method = self.get_supported_mapping(market['type'], {
+            'spot': 'privateGetMarginAccountIsolatedSymbol',
+            'margin': 'privateGetMarginAccountIsolatedSymbol',
+            'swap': 'privateGetFuturesAccountIsolatedSymbol',
+        })
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        #     {
+        #         "symbol": "BTCUSDT",
+        #         "type": "isolated",
+        #         "leverage": "12.00",
+        #         "created_at": "2022-03-29T22:31:29.067Z",
+        #         "updated_at": "2022-03-30T00:00:00.125Z",
+        #         "currencies": [
+        #             {
+        #                 "code": "USDT",
+        #                 "margin_balance": "20.824360374174",
+        #                 "reserved_orders": "0",
+        #                 "reserved_positions": "0.973330435000"
+        #             }
+        #         ],
+        #         "positions": [
+        #             {
+        #                 "id": 631301,
+        #                 "symbol": "BTCUSDT",
+        #                 "quantity": "0.00022",
+        #                 "price_entry": "47425.57",
+        #                 "price_margin_call": "",
+        #                 "price_liquidation": "0",
+        #                 "pnl": "0",
+        #                 "created_at": "2022-03-29T22:31:29.067Z",
+        #                 "updated_at": "2022-03-30T00:00:00.125Z"
+        #             }
+        #         ]
+        #     }
+        #
+        return self.safe_number(response, 'leverage')
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         #

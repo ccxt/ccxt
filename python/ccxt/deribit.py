@@ -454,30 +454,75 @@ class deribit(Exchange):
             instrumentsResponse = self.publicGetGetInstruments(self.extend(request, params))
             #
             #     {
-            #         jsonrpc: '2.0',
-            #         result: [
+            #         "jsonrpc":"2.0",
+            #         "result":[
             #             {
-            #                 tick_size: 0.0005,
-            #                 taker_commission: 0.0004,
-            #                 strike: 300,
-            #                 settlement_period: 'week',
-            #                 quote_currency: 'USD',
-            #                 option_type: 'call',
-            #                 min_trade_amount: 1,
-            #                 maker_commission: 0.0004,
-            #                 kind: 'option',
-            #                 is_active: True,
-            #                 instrument_name: 'ETH-13MAR20-300-C',
-            #                 expiration_timestamp: 1584086400000,
-            #                 creation_timestamp: 1582790403000,
-            #                 contract_size: 1,
-            #                 base_currency: 'ETH'
+            #                 "tick_size":0.0005,
+            #                 "taker_commission":0.0003,
+            #                 "strike":52000.0,
+            #                 "settlement_period":"month",
+            #                 "settlement_currency":"BTC",
+            #                 "quote_currency":"BTC",
+            #                 "option_type":"put",  # put, call
+            #                 "min_trade_amount":0.1,
+            #                 "maker_commission":0.0003,
+            #                 "kind":"option",
+            #                 "is_active":true,
+            #                 "instrument_name":"BTC-24JUN22-52000-P",
+            #                 "expiration_timestamp":1656057600000,
+            #                 "creation_timestamp":1648199543000,
+            #                 "counter_currency":"USD",
+            #                 "contract_size":1.0,
+            #                 "block_trade_commission":0.0003,
+            #                 "base_currency":"BTC"
+            #             },
+            #             {
+            #                 "tick_size":0.5,
+            #                 "taker_commission":0.0005,
+            #                 "settlement_period":"month",  # month, week
+            #                 "settlement_currency":"BTC",
+            #                 "quote_currency":"USD",
+            #                 "min_trade_amount":10.0,
+            #                 "max_liquidation_commission":0.0075,
+            #                 "max_leverage":50,
+            #                 "maker_commission":0.0,
+            #                 "kind":"future",
+            #                 "is_active":true,
+            #                 "instrument_name":"BTC-27MAY22",
+            #                 "future_type":"reversed",
+            #                 "expiration_timestamp":1653638400000,
+            #                 "creation_timestamp":1648195209000,
+            #                 "counter_currency":"USD",
+            #                 "contract_size":10.0,
+            #                 "block_trade_commission":0.0001,
+            #                 "base_currency":"BTC"
+            #             },
+            #             {
+            #                 "tick_size":0.5,
+            #                 "taker_commission":0.0005,
+            #                 "settlement_period":"perpetual",
+            #                 "settlement_currency":"BTC",
+            #                 "quote_currency":"USD",
+            #                 "min_trade_amount":10.0,
+            #                 "max_liquidation_commission":0.0075,
+            #                 "max_leverage":50,
+            #                 "maker_commission":0.0,
+            #                 "kind":"future",
+            #                 "is_active":true,
+            #                 "instrument_name":"BTC-PERPETUAL",
+            #                 "future_type":"reversed",
+            #                 "expiration_timestamp":32503708800000,
+            #                 "creation_timestamp":1534242287000,
+            #                 "counter_currency":"USD",
+            #                 "contract_size":10.0,
+            #                 "block_trade_commission":0.0001,
+            #                 "base_currency":"BTC"
             #             },
             #         ],
-            #         usIn: 1583761889500586,
-            #         usOut: 1583761889505066,
-            #         usDiff: 4480,
-            #         testnet: False
+            #         "usIn":1648691472831791,
+            #         "usOut":1648691472831896,
+            #         "usDiff":105,
+            #         "testnet":false
             #     }
             #
             instrumentsResult = self.safe_value(instrumentsResponse, 'result', [])
@@ -485,8 +530,8 @@ class deribit(Exchange):
                 market = instrumentsResult[k]
                 id = self.safe_string(market, 'instrument_name')
                 baseId = self.safe_string(market, 'base_currency')
-                quoteId = self.safe_string(market, 'quote_currency')
-                settleId = quoteId
+                quoteId = self.safe_string(market, 'counter_currency')
+                settleId = self.safe_string(market, 'settlement_currency')
                 base = self.safe_currency_code(baseId)
                 quote = self.safe_currency_code(quoteId)
                 settle = self.safe_currency_code(settleId)

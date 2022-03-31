@@ -715,20 +715,17 @@ class probit(Exchange):
         side = self.safe_string(trade, 'side')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'quantity')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         orderId = self.safe_string(trade, 'order_id')
-        feeCost = self.safe_number(trade, 'fee_amount')
+        feeCostString = self.safe_string(trade, 'fee_amount')
         fee = None
-        if feeCost is not None:
+        if feeCostString is not None:
             feeCurrencyId = self.safe_string(trade, 'fee_currency_id')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             }
-        return {
+        return self.safe_trade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -738,11 +735,11 @@ class probit(Exchange):
             'type': None,
             'side': side,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': fee,
-        }
+        }, market)
 
     async def fetch_time(self, params={}):
         response = await self.publicGetTime(params)

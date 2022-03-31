@@ -197,7 +197,7 @@ class lbank(Exchange):
                         'max': None,
                     },
                     'amount': {
-                        'min': None,
+                        'min': self.safe_float(market, 'minTranQua'),
                         'max': None,
                     },
                     'price': {
