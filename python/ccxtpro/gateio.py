@@ -9,7 +9,9 @@ from ccxtpro.base.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByT
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import NotSupported
 
 
 class gateio(Exchange, ccxt.gateio):
@@ -41,6 +43,17 @@ class gateio(Exchange, ccxt.gateio):
                     },
                     'option': 'wss://op-ws.gateio.live/v4/ws',
                 },
+                'test': {
+                    'swap': {
+                        'usdt': 'wss://fx-ws-testnet.gateio.ws/v4/ws/usdt',
+                        'btc': 'wss://fx-ws-testnet.gateio.ws/v4/ws/btc',
+                    },
+                    'future': {
+                        'usdt': 'wss://fx-ws-testnet.gateio.ws/v4/ws/usdt',
+                        'btc': 'wss://fx-ws-testnet.gateio.ws/v4/ws/btc',
+                    },
+                    'option': 'wss://op-ws-testnet.gateio.live/v4/ws',
+                },
             },
             'options': {
                 'tradesLimit': 1000,
@@ -48,6 +61,16 @@ class gateio(Exchange, ccxt.gateio):
                 'watchTradesSubscriptions': {},
                 'watchTickerSubscriptions': {},
                 'watchOrderBookSubscriptions': {},
+            },
+            'exceptions': {
+                'ws': {
+                    'exact': {
+                        '2': BadRequest,
+                        '4': AuthenticationError,
+                        '6': AuthenticationError,
+                        '11': AuthenticationError,
+                    },
+                },
             },
         })
 
@@ -485,60 +508,85 @@ class gateio(Exchange, ccxt.gateio):
         client.resolve(self.balance, messageHash)
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
-        self.check_required_credentials()
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' watchOrders requires a symbol argument')
         await self.load_markets()
-        method = 'order.update'
+        market = self.market(symbol)
+        type = 'spot'
+        if market['future'] or market['swap']:
+            type = 'futures'
+        elif market['option']:
+            type = 'options'
+        method = type + '.orders'
         messageHash = method
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-            messageHash = method + ':' + market['id']
-        url = self.urls['api']['ws']
-        await self.authenticate()
-        requestId = self.nonce()
-        subscribeMessage = {
-            'id': requestId,
-            'method': 'order.subscribe',
-            'params': [],
-        }
-        subscription = {
-            'id': requestId,
-        }
-        orders = await self.watch(url, messageHash, subscribeMessage, method, subscription)
+        messageHash = method + ':' + market['id']
+        isSettleBtc = market['settleId'] == 'btc'
+        isBtcContract = True if (market['contract'] and isSettleBtc) else False
+        url = self.get_url_by_market_type(market['type'], isBtcContract)
+        payload = [market['id']]
+        # uid required for non spot markets
+        requiresUid = (type != 'spot')
+        orders = await self.subscribe_private(url, method, messageHash, payload, requiresUid)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_since_limit(orders, since, limit, 'timestamp', True)
 
     def handle_order(self, client, message):
-        method = self.safe_string(message, 'method')
-        params = self.safe_value(message, 'params')
-        event = self.safe_integer(params, 0)
-        order = self.safe_value(params, 1)
-        marketId = self.safe_string(order, 'market')
-        market = self.safe_market(marketId, None, '_')
-        parsed = self.parse_order(order, market)
-        if event == 1:
-            # put
-            parsed['status'] = 'open'
-        elif event == 2:
-            # update
-            parsed['status'] = 'open'
-        elif event == 3:
-            # finish
-            filled = self.safe_float(parsed, 'filled')
-            amount = self.safe_float(parsed, 'amount')
-            if (filled is not None) and (amount is not None):
-                parsed['status'] = 'closed' if (filled >= amount) else 'canceled'
-            else:
-                parsed['status'] = 'closed'
-        if self.orders is None:
+        #
+        # {
+        #     "time": 1605175506,
+        #     "channel": "spot.orders",
+        #     "event": "update",
+        #     "result": [
+        #       {
+        #         "id": "30784435",
+        #         "user": 123456,
+        #         "text": "t-abc",
+        #         "create_time": "1605175506",
+        #         "create_time_ms": "1605175506123",
+        #         "update_time": "1605175506",
+        #         "update_time_ms": "1605175506123",
+        #         "event": "put",
+        #         "currency_pair": "BTC_USDT",
+        #         "type": "limit",
+        #         "account": "spot",
+        #         "side": "sell",
+        #         "amount": "1",
+        #         "price": "10001",
+        #         "time_in_force": "gtc",
+        #         "left": "1",
+        #         "filled_total": "0",
+        #         "fee": "0",
+        #         "fee_currency": "USDT",
+        #         "point_fee": "0",
+        #         "gt_fee": "0",
+        #         "gt_discount": True,
+        #         "rebated_fee": "0",
+        #         "rebated_fee_currency": "USDT"
+        #       }
+        #     ]
+        # }
+        #
+        orders = self.safe_value(message, 'result', [])
+        channel = self.safe_string(message, 'channel')
+        ordersLength = len(orders)
+        if ordersLength > 0:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
-            self.orders = ArrayCacheBySymbolById(limit)
-        orders = self.orders
-        orders.append(parsed)
-        symbolSpecificMessageHash = method + ':' + marketId
-        client.resolve(orders, method)
-        client.resolve(orders, symbolSpecificMessageHash)
+            if self.orders is None:
+                self.orders = ArrayCacheBySymbolById(limit)
+            stored = self.orders
+            marketIds = {}
+            parsedOrders = self.parse_orders(orders)
+            for i in range(0, len(parsedOrders)):
+                parsed = parsedOrders[i]
+                stored.append(parsed)
+                symbol = parsed['symbol']
+                market = self.market(symbol)
+                marketIds[market['id']] = True
+            keys = list(marketIds.keys())
+            for i in range(0, len(keys)):
+                messageHash = channel + ':' + keys[i]
+                client.resolve(self.orders, messageHash)
 
     def handle_authentication_message(self, client, message, subscription):
         result = self.safe_value(message, 'result')
@@ -559,13 +607,37 @@ class gateio(Exchange, ccxt.gateio):
                 del client.subscriptions['server.sign']
 
     def handle_error_message(self, client, message):
-        # todo use error map here
+        # {
+        #     time: 1647274664,
+        #     channel: 'futures.orders',
+        #     event: 'subscribe',
+        #     error: {code: 2, message: 'unknown contract BTC_USDT_20220318'},
+        # }
+        # {
+        #     time: 1647276473,
+        #     channel: 'futures.orders',
+        #     event: 'subscribe',
+        #     error: {
+        #       code: 4,
+        #       message: '{"label":"INVALID_KEY","message":"Invalid key provided"}\n'
+        #     },
+        #     result: null
+        #   }
         error = self.safe_value(message, 'error', {})
         code = self.safe_integer(error, 'code')
-        if code == 11 or code == 6:
-            error = AuthenticationError('invalid credentials')
-            client.reject(error, message['id'])
-            client.reject(error, 'authenticated')
+        if code is not None:
+            id = self.safe_string(message, 'id')
+            subscriptionsById = self.index_by(client.subscriptions, 'id')
+            subscription = self.safe_value(subscriptionsById, id)
+            if subscription is not None:
+                try:
+                    self.throw_exactly_matched_exception(self.exceptions['ws']['exact'], code, self.json(message))
+                except Exception as e:
+                    messageHash = self.safe_string(subscription, 'messageHash')
+                    client.reject(e, messageHash)
+                    client.reject(e, id)
+                    if id in client.subscriptions:
+                        del client.subscriptions[id]
 
     def handle_balance_subscription(self, client, message, subscription):
         self.spawn(self.fetch_balance_snapshot)
@@ -581,6 +653,18 @@ class gateio(Exchange, ccxt.gateio):
             client.resolve(message, messageId)
 
     def handle_message(self, client, message):
+        # orders
+        # {
+        #     "time": 1630654851,
+        #     "channel": "options.orders", or futures.orders or spot.orders
+        #     "event": "update",
+        #     "result": [
+        #        {
+        #           "contract": "BTC_USDT-20211130-65000-C",
+        #           "create_time": 1637897000,
+        #             (...)
+        #     ]
+        # }
         self.handle_error_message(client, message)
         methods = {
             'depth.update': self.handle_order_book,
@@ -588,7 +672,6 @@ class gateio(Exchange, ccxt.gateio):
             'trades.update': self.handle_trades,
             'kline.update': self.handle_ohlcv,
             'balance.update': self.handle_balance,
-            'order.update': self.handle_order,
         }
         methodType = self.safe_string(message, 'method')
         method = self.safe_value(methods, methodType)
@@ -601,15 +684,23 @@ class gateio(Exchange, ccxt.gateio):
             if event == 'subscribe':
                 self.handle_subscription_status(client, message)
                 return
-            channel = self.safe_string(message, 'channel')
-            if channel == 'spot.usertrades':
+            channel = self.safe_string(message, 'channel', '')
+            channelParts = channel.split('.')
+            channelType = self.safe_value(channelParts, 1)
+            if channelType == 'usertrades':
                 self.handle_my_trades(client, message)
+                return
+            if channelType == 'orders':
+                self.handle_order(client, message)
         else:
             method(client, message)
 
     def get_url_by_market_type(self, type, isBtcContract=False):
         if type == 'spot':
-            return self.urls['api']['spot']
+            spotUrl = self.urls['api']['spot']
+            if spotUrl is None:
+                raise NotSupported(self.id + ' does not have a testnet for the ' + type + ' market type.')
+            return spotUrl
         if type == 'swap':
             baseUrl = self.urls['api']['swap']
             return baseUrl['btc'] if isBtcContract else baseUrl['usdt']
@@ -619,7 +710,14 @@ class gateio(Exchange, ccxt.gateio):
         if type == 'option':
             return self.urls['api']['option']
 
-    async def subscribe_private(self, url, channel, messageHash, payload, subscription):
+    async def subscribe_private(self, url, channel, messageHash, payload, requiresUid=False):
+        self.check_required_credentials()
+        # uid is required for some subscriptions only so it's not a part of required credentials
+        if requiresUid:
+            if self.uid is None or len(self.uid) == 0:
+                raise ArgumentsRequired(self.id + ' requires uid to subscribe')
+            idArray = [self.uid]
+            payload = self.array_concat(idArray, payload)
         time = self.seconds()
         event = 'subscribe'
         signaturePayload = 'channel=' + channel + '&event=' + event + '&time=' + str(time)
@@ -629,11 +727,17 @@ class gateio(Exchange, ccxt.gateio):
             'KEY': self.apiKey,
             'SIGN': signature,
         }
+        requestId = self.nonce()
         request = {
+            'id': requestId,
             'time': time,
             'channel': channel,
             'event': 'subscribe',
             'payload': payload,
             'auth': auth,
+        }
+        subscription = {
+            'id': requestId,
+            'messageHash': messageHash,
         }
         return await self.watch(url, messageHash, request, messageHash, subscription)

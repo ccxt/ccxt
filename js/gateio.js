@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { ExchangeError, AuthenticationError, BadRequest } = require ('ccxt/js/base/errors');
+const { ExchangeError, AuthenticationError, BadRequest, ArgumentsRequired, NotSupported } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -36,6 +36,17 @@ module.exports = class gateio extends ccxt.gateio {
                     },
                     'option': 'wss://op-ws.gateio.live/v4/ws',
                 },
+                'test': {
+                    'swap': {
+                        'usdt': 'wss://fx-ws-testnet.gateio.ws/v4/ws/usdt',
+                        'btc': 'wss://fx-ws-testnet.gateio.ws/v4/ws/btc',
+                    },
+                    'future': {
+                        'usdt': 'wss://fx-ws-testnet.gateio.ws/v4/ws/usdt',
+                        'btc': 'wss://fx-ws-testnet.gateio.ws/v4/ws/btc',
+                    },
+                    'option': 'wss://op-ws-testnet.gateio.live/v4/ws',
+                },
             },
             'options': {
                 'tradesLimit': 1000,
@@ -43,6 +54,16 @@ module.exports = class gateio extends ccxt.gateio {
                 'watchTradesSubscriptions': {},
                 'watchTickerSubscriptions': {},
                 'watchOrderBookSubscriptions': {},
+            },
+            'exceptions': {
+                'ws': {
+                    'exact': {
+                        '2': BadRequest,
+                        '4': AuthenticationError,
+                        '6': AuthenticationError,
+                        '11': AuthenticationError,
+                    },
+                },
             },
         });
     }
@@ -518,27 +539,27 @@ module.exports = class gateio extends ccxt.gateio {
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        this.checkRequiredCredentials ();
-        await this.loadMarkets ();
-        const method = 'order.update';
-        let messageHash = method;
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            messageHash = method + ':' + market['id'];
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol argument');
         }
-        const url = this.urls['api']['ws'];
-        await this.authenticate ();
-        const requestId = this.nonce ();
-        const subscribeMessage = {
-            'id': requestId,
-            'method': 'order.subscribe',
-            'params': [],
-        };
-        const subscription = {
-            'id': requestId,
-        };
-        const orders = await this.watch (url, messageHash, subscribeMessage, method, subscription);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let type = 'spot';
+        if (market['future'] || market['swap']) {
+            type = 'futures';
+        } else if (market['option']) {
+            type = 'options';
+        }
+        const method = type + '.orders';
+        let messageHash = method;
+        messageHash = method + ':' + market['id'];
+        const isSettleBtc = market['settleId'] === 'btc';
+        const isBtcContract = (market['contract'] && isSettleBtc) ? true : false;
+        const url = this.getUrlByMarketType (market['type'], isBtcContract);
+        const payload = [market['id']];
+        // uid required for non spot markets
+        const requiresUid = (type !== 'spot');
+        const orders = await this.subscribePrivate (url, method, messageHash, payload, requiresUid);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -546,38 +567,65 @@ module.exports = class gateio extends ccxt.gateio {
     }
 
     handleOrder (client, message) {
-        const method = this.safeString (message, 'method');
-        const params = this.safeValue (message, 'params');
-        const event = this.safeInteger (params, 0);
-        const order = this.safeValue (params, 1);
-        const marketId = this.safeString (order, 'market');
-        const market = this.safeMarket (marketId, undefined, '_');
-        const parsed = this.parseOrder (order, market);
-        if (event === 1) {
-            // put
-            parsed['status'] = 'open';
-        } else if (event === 2) {
-            // update
-            parsed['status'] = 'open';
-        } else if (event === 3) {
-            // finish
-            const filled = this.safeFloat (parsed, 'filled');
-            const amount = this.safeFloat (parsed, 'amount');
-            if ((filled !== undefined) && (amount !== undefined)) {
-                parsed['status'] = (filled >= amount) ? 'closed' : 'canceled';
-            } else {
-                parsed['status'] = 'closed';
+        //
+        // {
+        //     "time": 1605175506,
+        //     "channel": "spot.orders",
+        //     "event": "update",
+        //     "result": [
+        //       {
+        //         "id": "30784435",
+        //         "user": 123456,
+        //         "text": "t-abc",
+        //         "create_time": "1605175506",
+        //         "create_time_ms": "1605175506123",
+        //         "update_time": "1605175506",
+        //         "update_time_ms": "1605175506123",
+        //         "event": "put",
+        //         "currency_pair": "BTC_USDT",
+        //         "type": "limit",
+        //         "account": "spot",
+        //         "side": "sell",
+        //         "amount": "1",
+        //         "price": "10001",
+        //         "time_in_force": "gtc",
+        //         "left": "1",
+        //         "filled_total": "0",
+        //         "fee": "0",
+        //         "fee_currency": "USDT",
+        //         "point_fee": "0",
+        //         "gt_fee": "0",
+        //         "gt_discount": true,
+        //         "rebated_fee": "0",
+        //         "rebated_fee_currency": "USDT"
+        //       }
+        //     ]
+        // }
+        //
+        const orders = this.safeValue (message, 'result', []);
+        const channel = this.safeString (message, 'channel');
+        const ordersLength = orders.length;
+        if (ordersLength > 0) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            if (this.orders === undefined) {
+                this.orders = new ArrayCacheBySymbolById (limit);
+            }
+            const stored = this.orders;
+            const marketIds = {};
+            const parsedOrders = this.parseOrders (orders);
+            for (let i = 0; i < parsedOrders.length; i++) {
+                const parsed = parsedOrders[i];
+                stored.append (parsed);
+                const symbol = parsed['symbol'];
+                const market = this.market (symbol);
+                marketIds[market['id']] = true;
+            }
+            const keys = Object.keys (marketIds);
+            for (let i = 0; i < keys.length; i++) {
+                const messageHash = channel + ':' + keys[i];
+                client.resolve (this.orders, messageHash);
             }
         }
-        if (this.orders === undefined) {
-            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            this.orders = new ArrayCacheBySymbolById (limit);
-        }
-        const orders = this.orders;
-        orders.append (parsed);
-        const symbolSpecificMessageHash = method + ':' + marketId;
-        client.resolve (orders, method);
-        client.resolve (orders, symbolSpecificMessageHash);
     }
 
     handleAuthenticationMessage (client, message, subscription) {
@@ -603,13 +651,40 @@ module.exports = class gateio extends ccxt.gateio {
     }
 
     handleErrorMessage (client, message) {
-        // todo use error map here
+        // {
+        //     time: 1647274664,
+        //     channel: 'futures.orders',
+        //     event: 'subscribe',
+        //     error: { code: 2, message: 'unknown contract BTC_USDT_20220318' },
+        // }
+        // {
+        //     time: 1647276473,
+        //     channel: 'futures.orders',
+        //     event: 'subscribe',
+        //     error: {
+        //       code: 4,
+        //       message: '{"label":"INVALID_KEY","message":"Invalid key provided"}\n'
+        //     },
+        //     result: null
+        //   }
         const error = this.safeValue (message, 'error', {});
         const code = this.safeInteger (error, 'code');
-        if (code === 11 || code === 6) {
-            const error = new AuthenticationError ('invalid credentials');
-            client.reject (error, message['id']);
-            client.reject (error, 'authenticated');
+        if (code !== undefined) {
+            const id = this.safeString (message, 'id');
+            const subscriptionsById = this.indexBy (client.subscriptions, 'id');
+            const subscription = this.safeValue (subscriptionsById, id);
+            if (subscription !== undefined) {
+                try {
+                    this.throwExactlyMatchedException (this.exceptions['ws']['exact'], code, this.json (message));
+                } catch (e) {
+                    const messageHash = this.safeString (subscription, 'messageHash');
+                    client.reject (e, messageHash);
+                    client.reject (e, id);
+                    if (id in client.subscriptions) {
+                        delete client.subscriptions[id];
+                    }
+                }
+            }
         }
     }
 
@@ -631,6 +706,18 @@ module.exports = class gateio extends ccxt.gateio {
     }
 
     handleMessage (client, message) {
+        // orders
+        // {
+        //     "time": 1630654851,
+        //     "channel": "options.orders", or futures.orders or spot.orders
+        //     "event": "update",
+        //     "result": [
+        //        {
+        //           "contract": "BTC_USDT-20211130-65000-C",
+        //           "create_time": 1637897000,
+        //             (...)
+        //     ]
+        // }
         this.handleErrorMessage (client, message);
         const methods = {
             'depth.update': this.handleOrderBook,
@@ -638,7 +725,6 @@ module.exports = class gateio extends ccxt.gateio {
             'trades.update': this.handleTrades,
             'kline.update': this.handleOHLCV,
             'balance.update': this.handleBalance,
-            'order.update': this.handleOrder,
         };
         const methodType = this.safeString (message, 'method');
         const method = this.safeValue (methods, methodType);
@@ -653,9 +739,15 @@ module.exports = class gateio extends ccxt.gateio {
                 this.handleSubscriptionStatus (client, message);
                 return;
             }
-            const channel = this.safeString (message, 'channel');
-            if (channel === 'spot.usertrades') {
+            const channel = this.safeString (message, 'channel', '');
+            const channelParts = channel.split ('.');
+            const channelType = this.safeValue (channelParts, 1);
+            if (channelType === 'usertrades') {
                 this.handleMyTrades (client, message);
+                return;
+            }
+            if (channelType === 'orders') {
+                this.handleOrder (client, message);
             }
         } else {
             method.call (this, client, message);
@@ -664,7 +756,11 @@ module.exports = class gateio extends ccxt.gateio {
 
     getUrlByMarketType (type, isBtcContract = false) {
         if (type === 'spot') {
-            return this.urls['api']['spot'];
+            const spotUrl = this.urls['api']['spot'];
+            if (spotUrl === undefined) {
+                throw new NotSupported (this.id + ' does not have a testnet for the ' + type + ' market type.');
+            }
+            return spotUrl;
         }
         if (type === 'swap') {
             const baseUrl = this.urls['api']['swap'];
@@ -679,7 +775,16 @@ module.exports = class gateio extends ccxt.gateio {
         }
     }
 
-    async subscribePrivate (url, channel, messageHash, payload, subscription) {
+    async subscribePrivate (url, channel, messageHash, payload, requiresUid = false) {
+        this.checkRequiredCredentials ();
+        // uid is required for some subscriptions only so it's not a part of required credentials
+        if (requiresUid) {
+            if (this.uid === undefined || this.uid.length === 0) {
+                throw new ArgumentsRequired (this.id + ' requires uid to subscribe');
+            }
+            const idArray = [this.uid];
+            payload = this.arrayConcat (idArray, payload);
+        }
         const time = this.seconds ();
         const event = 'subscribe';
         const signaturePayload = 'channel=' + channel + '&event=' + event + '&time=' + time.toString ();
@@ -689,12 +794,18 @@ module.exports = class gateio extends ccxt.gateio {
             'KEY': this.apiKey,
             'SIGN': signature,
         };
+        const requestId = this.nonce ();
         const request = {
+            'id': requestId,
             'time': time,
             'channel': channel,
             'event': 'subscribe',
             'payload': payload,
             'auth': auth,
+        };
+        const subscription = {
+            'id': requestId,
+            'messageHash': messageHash,
         };
         return await this.watch (url, messageHash, request, messageHash, subscription);
     }
