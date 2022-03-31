@@ -22,9 +22,9 @@ module.exports = class ascendex extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined, // has but not fully inplemented
+                'margin': true,
                 'swap': true,
-                'future': false,
+                'future': true,
                 'option': false,
                 'addMargin': true,
                 'cancelAllOrders': true,
@@ -124,6 +124,7 @@ module.exports = class ascendex extends Exchange {
                             'futures/ref-px',
                             'futures/market-data',
                             'futures/funding-rates',
+                            'risk-limit-info',
                         ],
                     },
                     'private': {
