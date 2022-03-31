@@ -72,6 +72,8 @@ class ascendex(Exchange):
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchTransactions': True,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
                 'setLeverage': True,
