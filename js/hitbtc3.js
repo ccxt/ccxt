@@ -1860,10 +1860,12 @@ module.exports = class hitbtc3 extends Exchange {
         const positions = this.safeValue (position, 'positions', []);
         let liquidationPrice = undefined;
         let entryPrice = undefined;
+        let contracts = undefined;
         for (let i = 0; i < positions.length; i++) {
             const entry = positions[i];
             liquidationPrice = this.safeNumber (entry, 'price_liquidation');
             entryPrice = this.safeNumber (entry, 'price_entry');
+            contracts = this.safeNumber (entry, 'quantity');
         }
         const currencies = this.safeValue (position, 'currencies', []);
         let collateral = undefined;
@@ -1883,7 +1885,7 @@ module.exports = class hitbtc3 extends Exchange {
             'entryPrice': entryPrice,
             'unrealizedPnl': undefined,
             'percentage': undefined,
-            'contracts': undefined,
+            'contracts': contracts,
             'contractSize': undefined,
             'markPrice': undefined,
             'side': undefined,
