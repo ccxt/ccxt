@@ -63,7 +63,7 @@ module.exports = class hitbtc3 extends Exchange {
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
-                'setLeverage': undefined,
+                'setLeverage': true,
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'transfer': true,
@@ -2081,6 +2081,41 @@ module.exports = class hitbtc3 extends Exchange {
         //     }
         //
         return this.safeNumber (response, 'leverage');
+    }
+
+    async setLeverage (leverage, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
+        if (params['margin_balance'] === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a margin_balance parameter that will transfer margin to the specified trading pair');
+        }
+        const market = this.market (symbol);
+        const amount = this.safeNumber (params, 'margin_balance');
+        if (market['type'] !== 'swap') {
+            throw new BadSymbol (this.id + ' setLeverage() supports swap contracts only');
+        }
+        if (symbol === 'BTC/USDT:USDT') {
+            if ((leverage < 1) || (leverage > 100)) {
+                throw new BadRequest (this.id + ' setLeverage() leverage should be between 1 and 100 for ' + symbol);
+            }
+        } else if (symbol === 'ETH/USDT:USDT' || symbol === 'ADA/USDT:USDT' || symbol === 'SOL/USDT:USDT' || symbol === 'XRP/USDT:USDT') {
+            if ((leverage < 1) || (leverage > 75)) {
+                throw new BadRequest (this.id + ' setLeverage() leverage should be between 1 and 75 for ' + symbol);
+            }
+        } else {
+            if ((leverage < 1) || (leverage > 50)) {
+                throw new BadRequest (this.id + ' setLeverage() leverage should be between 1 and 50 for ' + symbol);
+            }
+        }
+        const request = {
+            'symbol': market['id'],
+            'leverage': leverage.toString (),
+            'margin_balance': this.amountToPrecision (symbol, amount),
+            // 'strict_validate': false,
+        };
+        return await this.privatePutFuturesAccountIsolatedSymbol (this.extend (request, params));
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
