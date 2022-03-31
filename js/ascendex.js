@@ -22,7 +22,7 @@ module.exports = class ascendex extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': true, // has but not fully inplemented
+                'margin': true,
                 'swap': true,
                 'future': true,
                 'option': false,
