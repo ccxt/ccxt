@@ -2427,10 +2427,8 @@ module.exports = class aax extends Exchange {
         const toId = this.safeString (transfer, 'toPurse');
         const fromAccount = this.safeString (accounts, fromId);
         const toAccount = this.safeString (accounts, toId);
-        let currencyCode = this.safeString (transfer, 'currency');
-        if (currencyCode === undefined) {
-            currencyCode = this.safeString (currency, 'code');
-        }
+        const currencyId = this.safeString (transfer, 'currency');
+        const currencyCode = this.safeCurrencyCode (currencyId, currency);
         return {
             'info': transfer,
             'id': id,
