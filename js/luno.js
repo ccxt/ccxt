@@ -14,7 +14,8 @@ module.exports = class luno extends Exchange {
             'id': 'luno',
             'name': 'luno',
             'countries': [ 'GB', 'SG', 'ZA' ],
-            'rateLimit': 1000,
+            // 300 calls per minute = 6 calls per second = 1000ms / 6 = 167ms between requests
+            'rateLimit': 167,
             'version': '1',
             'has': {
                 'CORS': undefined,
@@ -80,58 +81,58 @@ module.exports = class luno extends Exchange {
             },
             'api': {
                 'exchange': {
-                    'get': [
-                        'markets',
-                    ],
+                    'get': {
+                        'markets': 1,
+                    },
                 },
                 'public': {
-                    'get': [
-                        'orderbook',
-                        'orderbook_top',
-                        'ticker',
-                        'tickers',
-                        'trades',
-                    ],
+                    'get': {
+                        'orderbook': 1,
+                        'orderbook_top': 1,
+                        'ticker': 1,
+                        'tickers': 1,
+                        'trades': 1,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'accounts/{id}/pending',
-                        'accounts/{id}/transactions',
-                        'balance',
-                        'beneficiaries',
-                        'fee_info',
-                        'funding_address',
-                        'listorders',
-                        'listtrades',
-                        'orders/{id}',
-                        'quotes/{id}',
-                        'withdrawals',
-                        'withdrawals/{id}',
-                        'transfers',
+                    'get': {
+                        'accounts/{id}/pending': 1,
+                        'accounts/{id}/transactions': 1,
+                        'balance': 1,
+                        'beneficiaries': 1,
+                        'fee_info': 1,
+                        'funding_address': 1,
+                        'listorders': 1,
+                        'listtrades': 1,
+                        'orders/{id}': 1,
+                        'quotes/{id}': 1,
+                        'withdrawals': 1,
+                        'withdrawals/{id}': 1,
+                        'transfers': 1,
                         // GET /api/exchange/2/listorders
                         // GET /api/exchange/2/orders/{id}
                         // GET /api/exchange/3/order
-                    ],
-                    'post': [
-                        'accounts',
-                        'accounts/{id}/name',
-                        'postorder',
-                        'marketorder',
-                        'stoporder',
-                        'funding_address',
-                        'withdrawals',
-                        'send',
-                        'quotes',
-                        'oauth2/grant',
-                    ],
-                    'put': [
-                        'accounts/{id}/name',
-                        'quotes/{id}',
-                    ],
-                    'delete': [
-                        'quotes/{id}',
-                        'withdrawals/{id}',
-                    ],
+                    },
+                    'post': {
+                        'accounts': 1,
+                        'accounts/{id}/name': 1,
+                        'postorder': 1,
+                        'marketorder': 1,
+                        'stoporder': 1,
+                        'funding_address': 1,
+                        'withdrawals': 1,
+                        'send': 1,
+                        'quotes': 1,
+                        'oauth2/grant': 1,
+                    },
+                    'put': {
+                        'accounts/{id}/name': 1,
+                        'quotes/{id}': 1,
+                    },
+                    'delete': {
+                        'quotes/{id}': 1,
+                        'withdrawals/{id}': 1,
+                    },
                 },
             },
             'fees': {
