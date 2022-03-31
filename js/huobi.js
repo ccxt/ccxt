@@ -656,6 +656,28 @@ module.exports = class huobi extends ccxt.huobi {
         //          orderStatus: 'submitted'
         //        }
         // }
+        // spot wrapped trade
+        // {
+        //     action: 'push',
+        //     ch: 'orders#ltcusdt',
+        //     data: {
+        //       tradePrice: '130.01',
+        //       tradeVolume: '0.0385',
+        //       tradeTime: 1648714741525,
+        //       aggressor: true,
+        //       execAmt: '0.0385',
+        //       orderSource: 'spot-web',
+        //       orderSize: '0.0385',
+        //       remainAmt: '0',
+        //       tradeId: 101541578884,
+        //       symbol: 'ltcusdt',
+        //       type: 'sell-market',
+        //       eventType: 'trade',
+        //       clientOrderId: '',
+        //       orderStatus: 'filled',
+        //       orderId: 509835753860328
+        //     }
+        //   }
         // non spot order
         // {
         //     "contract_type":"swap",
@@ -669,10 +691,24 @@ module.exports = class huobi extends ccxt.huobi {
         //      (...)
         // }
         //
-        let messageHash = this.safeString2 (message, 'ch', 'topic');
+        let messageHash = this.safeString2 (message, 'ch', 'topic', '');
+        let messageParts = messageHash.split ('#');
+        const partsLength = messageParts.length;
+        if (partsLength < 2) {
+            messageParts = messageHash.split ('.');
+        }
+        const marketId = this.safeString (messageParts, 1);
+        const market = this.market (marketId);
         const data = this.safeValue (message, 'data', message);
-        const parsed = this.parseWsOrder (data);
-        const symbol = this.safeString (parsed, 'symbol');
+        const eventType = this.safeString (data, 'eventType');
+        let parsedOrder = undefined;
+        let parsedTrade = undefined;
+        if (eventType === 'trade') {
+            parsedTrade = this.parseOrderTrade (data, market);
+        } else {
+            parsedOrder = this.parseWsOrder (data, market);
+        }
+        const symbol = market['symbol'];
         if (symbol !== undefined) {
             const market = this.market (symbol);
             if (this.orders === undefined) {
@@ -680,6 +716,20 @@ module.exports = class huobi extends ccxt.huobi {
                 this.orders = new ArrayCacheBySymbolById (limit);
             }
             const cachedOrders = this.orders;
+            let parsed = undefined;
+            if (parsedTrade !== undefined) {
+                // inject trade in existing order by faking an order object
+                const orderId = this.safeString (parsedTrade, 'order');
+                const trades = [];
+                trades.push (parsedTrade);
+                const order = {
+                    'id': orderId,
+                    'trades': trades,
+                };
+                parsed = order;
+            } else {
+                parsed = parsedOrder;
+            }
             cachedOrders.append (parsed);
             client.resolve (this.orders, messageHash);
             messageHash += ':' + market['id'].toLowerCase ();
@@ -839,6 +889,61 @@ module.exports = class huobi extends ccxt.huobi {
             'fee': fee,
             'average': avgPrice,
             'trades': trades,
+        }, market);
+    }
+
+    parseOrderTrade (trade, market = undefined) {
+        // spot private wrapped trade
+        // {
+        //     tradePrice: '130.01',
+        //     tradeVolume: '0.0385',
+        //     tradeTime: 1648714741525,
+        //     aggressor: true,
+        //     execAmt: '0.0385',
+        //     orderSource: 'spot-web',
+        //     orderSize: '0.0385',
+        //     remainAmt: '0',
+        //     tradeId: 101541578884,
+        //     symbol: 'ltcusdt',
+        //     type: 'sell-market',
+        //     eventType: 'trade',
+        //     clientOrderId: '',
+        //     orderStatus: 'filled',
+        //     orderId: 509835753860328
+        // }
+        market = this.safeMarket (undefined, market);
+        const symbol = market['symbol'];
+        const tradeId = this.safeString (trade, 'tradeId');
+        const price = this.safeString (trade, 'tradePrice');
+        const amount = this.safeString (trade, 'tradeVolume');
+        const order = this.safeString (trade, 'orderId');
+        const timestamp = this.safeInteger (trade, 'tradeTime');
+        let type = this.safeString (trade, 'type');
+        let side = undefined;
+        if (type !== undefined) {
+            const typeParts = type.split ('-');
+            side = typeParts[0];
+            type = typeParts[1];
+        }
+        const aggressor = this.safeValue (trade, 'aggressor');
+        let takerOrMaker = undefined;
+        if (aggressor !== undefined) {
+            takerOrMaker = aggressor ? 'taker' : 'maker';
+        }
+        return this.safeTrade ({
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'id': tradeId,
+            'order': order,
+            'type': type,
+            'takerOrMaker': takerOrMaker,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': undefined,
+            'fee': undefined,
         }, market);
     }
 
