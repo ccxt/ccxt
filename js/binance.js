@@ -5337,10 +5337,10 @@ module.exports = class binance extends Exchange {
         const response = await this[method] (this.extend (request, params));
         //
         //     {
-        //       "code": 200,
-        //       "msg": "Successfully modify position margin.",
-        //       "amount": 0.001,
-        //       "type": 1
+        //         "code": 200,
+        //         "msg": "Successfully modify position margin.",
+        //         "amount": 0.001,
+        //         "type": 1
         //     }
         //
         const rawType = this.safeInteger (response, 'type');
@@ -5375,15 +5375,14 @@ module.exports = class binance extends Exchange {
         };
         const response = await this.sapiGetMarginInterestRateHistory (this.extend (request, params));
         //
-        // [
-        //     {
-        //         "asset": "USDT",
-        //         "timestamp": 1638230400000,
-        //         "dailyInterestRate": "0.0006",
-        //         "vipLevel": 0
-        //     },
-        //     ...
-        // ]
+        //     [
+        //         {
+        //             "asset": "USDT",
+        //             "timestamp": 1638230400000,
+        //             "dailyInterestRate": "0.0006",
+        //             "vipLevel": 0
+        //         },
+        //     ]
         //
         const rate = this.safeValue (response, 0);
         const timestamp = this.safeNumber (rate, 'timestamp');
@@ -5453,10 +5452,10 @@ module.exports = class binance extends Exchange {
         const response = await this.sapiPostGiftcardCreateCode (this.extend (request, params));
         //
         //     {
-        //       code: '000000',
-        //       message: 'success',
-        //       data: { referenceNo: '0033002404219823', code: 'AP6EXTLKNHM6CEX7' },
-        //       success: true
+        //         code: '000000',
+        //         message: 'success',
+        //         data: { referenceNo: '0033002404219823', code: 'AP6EXTLKNHM6CEX7' },
+        //         success: true
         //     }
         //
         const data = this.safeValue (response, 'data');
@@ -5478,13 +5477,13 @@ module.exports = class binance extends Exchange {
         const response = await this.sapiPostGiftcardRedeemCode (this.extend (request, params));
         //
         //     {
-        //       code: '000000',
-        //       message: 'success',
-        //       data: {
-        //         referenceNo: '0033002404219823',
-        //         identityNo: '10316431732801474560'
-        //       },
-        //       success: true
+        //         code: '000000',
+        //         message: 'success',
+        //         data: {
+        //             referenceNo: '0033002404219823',
+        //             identityNo: '10316431732801474560'
+        //         },
+        //         success: true
         //     }
         //
         return response;
@@ -5497,10 +5496,10 @@ module.exports = class binance extends Exchange {
         const response = await this.sapiGetGiftcardVerify (this.extend (request, params));
         //
         //     {
-        //       code: '000000',
-        //       message: 'success',
-        //       data: { valid: true },
-        //       success: true
+        //         code: '000000',
+        //         message: 'success',
+        //         data: { valid: true },
+        //         success: true
         //     }
         //
         return response;
@@ -5526,20 +5525,20 @@ module.exports = class binance extends Exchange {
         }
         const response = await this.sapiGetMarginInterestHistory (this.extend (request, params));
         //
-        // {
-        //     "rows":[
-        //         {
-        //             "isolatedSymbol": "BNBUSDT", // isolated symbol, will not be returned for crossed margin
-        //             "asset": "BNB",
-        //             "interest": "0.02414667",
-        //             "interestAccuredTime": 1566813600000,
-        //             "interestRate": "0.01600000",
-        //             "principal": "36.22000000",
-        //             "type": "ON_BORROW"
-        //         }
-        //     ],
-        //     "total": 1
-        // }
+        //     {
+        //         "rows":[
+        //             {
+        //                 "isolatedSymbol": "BNBUSDT", // isolated symbol, will not be returned for crossed margin
+        //                 "asset": "BNB",
+        //                 "interest": "0.02414667",
+        //                 "interestAccuredTime": 1566813600000,
+        //                 "interestRate": "0.01600000",
+        //                 "principal": "36.22000000",
+        //                 "type": "ON_BORROW"
+        //             }
+        //         ],
+        //         "total": 1
+        //     }
         //
         const rows = this.safeValue (response, 'rows');
         const interest = [];
