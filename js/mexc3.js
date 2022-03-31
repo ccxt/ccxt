@@ -567,7 +567,6 @@ module.exports = class mexc3 extends Exchange {
         } else if (marketType === 'swap') {
             return await this.fetchSwapMarkets (query);
         }
-        console.log(marketType);
     }
 
     async fetchSpotMarkets (params = {}) {
@@ -832,7 +831,8 @@ module.exports = class mexc3 extends Exchange {
             //     }
             //
             const data = this.safeValue (response, 'data');
-            orderbook = this.parseOrderBook (data, symbol);
+            const timestamp = this.safeValue (data, 'timestamp');
+            orderbook = this.parseOrderBook (data, symbol, timestamp);
             orderbook['nonce'] = this.safeInteger (data, 'version');
         }
         return orderbook;
