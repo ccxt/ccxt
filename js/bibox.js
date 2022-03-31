@@ -46,7 +46,7 @@ module.exports = class bibox extends Exchange {
                 'fetchTradingFees': false,
                 'fetchTransactionFees': true,
                 'fetchWithdrawals': true,
-                'transfer': true,
+                'transfer': undefined,
                 'withdraw': true,
             },
             'timeframes': {
@@ -68,7 +68,7 @@ module.exports = class bibox extends Exchange {
                 'www': 'https://www.bibox365.com',
                 'doc': [
                     'https://biboxcom.github.io/en/',
-                    'https://biboxcom.github.io/v3/spot/en/'
+                    'https://biboxcom.github.io/v3/spot/en/',
                 ],
                 'fees': 'https://bibox.zendesk.com/hc/en-us/articles/360002336133',
                 'referral': 'https://w2.bibox365.com/login/register?invite_code=05Kj3I',
@@ -219,9 +219,6 @@ module.exports = class bibox extends Exchange {
                             'assets/transfer/spot': 'v3',
                         },
                     },
-                },
-                'transfer': {
-                    'fillResponseFromRequest': true,
                 },
             },
         });
@@ -1397,96 +1394,6 @@ module.exports = class bibox extends Exchange {
             'tag': tag,
             'network': undefined,
             'info': response,
-        };
-    }
-
-    async transfer (code, amount, fromAccount, toAccount, params = {}) {
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        let method = undefined;
-        const request = {};
-        if (fromAccount === 'wallet' && toAccount === 'spot') {
-            method = 'privatePostAssetsTransferSpot';
-            request['type'] = 0;
-        } else if (fromAccount === 'spot' && toAccount === 'wallet') {
-            method = 'privatePostAssetsTransferSpot';
-            request['type'] = 1;
-        } else if (fromAccount === 'wallet' && toAccount === 'margin') {
-            method = 'privatePostCreditTransferAssetsBase2credit';
-        } else if (fromAccount === 'margin' && toAccount === 'wallet') {
-            method = 'privatePostCreditTransferAssetsCredit2base';
-        }
-        if (method === 'privatePostAssetsTransferSpot') {
-            request['symbol'] = currency['id'];
-            request['amount'] = this.currencyToPrecision (code, amount);
-        } else if (method === 'privatePostCreditTransferAssetsBase2credit' || method === 'privatePostCreditTransferAssetsCredit2base') {
-            request['coin_symbol'] = currency['id'];
-            request['amount'] = amount;
-            const symbol = this.safeString (params, 'symbol');
-            params = this.omit (params, 'symbol');
-            if (symbol === undefined) {
-                throw new ExchangeError ('to transfer to and from margin you must specify the `symbol` of the market for fixed margin');
-            }
-            const market = this.market (symbol);
-            request['pair'] = market['id'];
-        } else {
-            throw new ExchangeError ('this exchange only allows transfers between wallet and spot, and between wallet and margin');
-        }
-        const response = await this[method] (this.extend (request, params));
-        //
-        //    privatePostAssetsTransferSpot
-        //    {
-        //        "state":0,
-        //        "id":"794509221218521088"
-        //    }
-        //
-        //    privatePostCreditTransferAssetsBase2credit && privatePostCreditTransferAssetsCredit2Base
-        //    {
-        //        "result":"1370000000204",
-        //        "cmd":"transferAssets/base2credit",
-        //        "state":0
-        //    }
-        //
-        const transfer = this.parseTransfer (response, currency);
-        const transferOptions = this.safeValue (this.options, 'transfer');
-        const fillResponseFromRequest = this.safeValue (transferOptions, 'fillResponseFromRequest');
-        if (fillResponseFromRequest) {
-            transfer['amount'] = amount;
-            transfer['fromAccount'] = fromAccount;
-            transfer['toAccount'] = toAccount;
-        }
-        return transfer;
-    }
-
-    parseTransfer (transfer, currency = undefined) {
-        //
-        //    privatePostAssetsTransferSpot
-        //    {
-        //        "state":0,
-        //        "id":"794509221218521088"
-        //    }
-        //
-        //    privatePostCreditTransferAssetsBase2credit
-        //    {
-        //        "result":"1370000000204",
-        //        "cmd":"transferAssets/base2credit",
-        //        "state":0
-        //    }
-        //
-        let id = this.safeString (transfer, 'id');
-        if (id === undefined) {
-            id = this.safeString (transfer, 'result');
-        }
-        return {
-            'info': transfer,
-            'id': id,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'currency': this.safeCurrencyCode (undefined, currency),
-            'amount': undefined,
-            'fromAccount': undefined,
-            'toAccount': undefined,
-            'status': undefined,
         };
     }
 
