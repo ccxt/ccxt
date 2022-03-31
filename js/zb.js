@@ -19,7 +19,7 @@ module.exports = class zb extends ccxt.zb {
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://api.zb.work/websocket',
+                    'ws': 'wss://api.{hostname}/websocket',
                 },
             },
             'options': {
@@ -34,7 +34,7 @@ module.exports = class zb extends ccxt.zb {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const messageHash = market['baseId'] + market['quoteId'] + '_' + name;
-        const url = this.urls['api']['ws'];
+        const url = this.implodeHostname (this.urls['api']['ws']);
         const request = {
             'event': 'addChannel',
             'channel': messageHash,
