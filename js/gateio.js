@@ -615,11 +615,12 @@ module.exports = class gateio extends ccxt.gateio {
             const parsedOrders = this.parseOrders (orders);
             for (let i = 0; i < parsedOrders.length; i++) {
                 const parsed = parsedOrders[i];
+                // inject order status
                 const info = this.safeValue (parsed, 'info');
                 const event = this.safeString (info, 'event');
                 if (event === 'put') {
                     parsed['status'] = 'open';
-                } else if (event === 'finished') {
+                } else if (event === 'finish') {
                     parsed['status'] = 'closed';
                 }
                 stored.append (parsed);
