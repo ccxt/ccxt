@@ -383,17 +383,17 @@ class ascendex(Exchange, ccxt.ascendex):
             quoteAccount['total'] = self.safe_string(data, 'qtb')
             if market['contract']:
                 type = 'swap'
-                result = self.safe_value(self.balances, type, {})
+                result = self.safe_value(self.balance, type, {})
             else:
                 type = market['type']
-                result = self.safe_value(self.balances, type, {})
+                result = self.safe_value(self.balance, type, {})
             result[market['base']] = baseAccount
             result[market['quote']] = quoteAccount
         else:
             accountType = self.safe_string_lower_2(message, 'ac', 'at')
             categoriesAccounts = self.safe_value(self.options, 'categoriesAccount')
             type = self.safe_string(categoriesAccounts, accountType, 'spot')
-            result = self.safe_value(self.balances, type, {})
+            result = self.safe_value(self.balance, type, {})
             data = self.safe_value(message, 'data')
             balances = None
             if data is None:
@@ -556,7 +556,7 @@ class ascendex(Exchange, ccxt.ascendex):
         price = self.safe_string(order, 'p')
         amount = self.safe_string(order, 'q')
         average = self.safe_string(order, 'ap')
-        filled = self.safe_string_2(order, 'cfq')
+        filled = self.safe_string(order, 'cfq')
         id = self.safe_string(order, 'orderId')
         type = self.safe_string_lower(order, 'ot')
         side = self.safe_string_lower(order, 'sd')
