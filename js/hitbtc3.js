@@ -1979,7 +1979,7 @@ module.exports = class hitbtc3 extends Exchange {
         amount = this.amountToPrecision (symbol, amount);
         if (market['type'] === 'swap') {
             if (leverage === undefined) {
-                throw new ArgumentsRequired (this.id + ' modifyMarginHelper() requires a leverage argument in the params for addMargin on swap markets');
+                throw new ArgumentsRequired (this.id + ' modifyMarginHelper() requires a leverage parameter for swap markets');
             }
         }
         const request = {
