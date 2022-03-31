@@ -130,7 +130,7 @@ module.exports = class hollaex extends Exchange {
                         'user/withdrawal/fee': 1,
                         'user/trades': 1,
                         'orders': 1,
-                        'orders/{order_id}': 1,
+                        'order': 1,
                     },
                     'post': {
                         'user/request-withdrawal': 1,
@@ -761,7 +761,7 @@ module.exports = class hollaex extends Exchange {
         const request = {
             'order_id': id,
         };
-        const response = await this.privateGetOrdersOrderId (this.extend (request, params));
+        const response = await this.privateGetOrder(this.extend (request, params));
         //
         //     {
         //         "id": "string",
@@ -798,7 +798,7 @@ module.exports = class hollaex extends Exchange {
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const request = {
-            'status': 'filled',
+            'open': false,
         };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
@@ -808,11 +808,8 @@ module.exports = class hollaex extends Exchange {
         const request = {
             'order_id': id,
         };
-        const response = await this.privateGetOrders (this.extend (request, params));
-        //
-        //     {
-        //         "count": 1,
-        //         "data": [
+        const response = await this.privateGetOrder (this.extend (request, params));
+
         //             {
         //                 "id": "string",
         //                 "side": "sell",
@@ -835,11 +832,8 @@ module.exports = class hollaex extends Exchange {
         //                     "exchange_id": 176
         //                 }
         //             }
-        //         ]
-        //     }
-        //
-        const data = this.safeValue (response, 'data', []);
-        const order = this.safeValue (data, 0);
+
+        const order = response;
         if (order === undefined) {
             throw new OrderNotFound (this.id + ' fetchOrder() could not find order id ' + id);
         }
