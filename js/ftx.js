@@ -2451,19 +2451,14 @@ module.exports = class ftx extends Exchange {
 
     async fetchBorrowRates (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetSpotMarginBorrowRates ();
+        const response = await this.privateGetSpotMarginBorrowRates (params);
         //
-        // {
-        //     "success":true,
-        //     "result":[
-        //         {
-        //             "coin": "1INCH",
-        //             "previous": 0.0000462375,
-        //             "estimate": 0.0000462375
-        //         }
-        //         ...
-        //     ]
-        // }
+        //     {
+        //         "success":true,
+        //         "result":[
+        //             { "coin": "1INCH", "previous": 0.0000462375, "estimate": 0.0000462375 }
+        //         ]
+        //     }
         //
         const timestamp = this.milliseconds ();
         const result = this.safeValue (response, 'result');
