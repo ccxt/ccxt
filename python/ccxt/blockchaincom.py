@@ -60,9 +60,12 @@ class blockchaincom(Exchange):
                 'fetchTrades': False,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
                 'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
                 'fetchWithdrawalWhitelist': True,  # fetches exchange specific benficiary-ids needed for withdrawals
+                'transfer': False,
                 'withdraw': True,
             },
             'timeframes': None,
