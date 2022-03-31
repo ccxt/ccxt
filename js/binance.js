@@ -74,7 +74,7 @@ module.exports = class binance extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrderBooks': undefined,
+                'fetchOrderBooks': false,
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': undefined,
@@ -2858,6 +2858,14 @@ module.exports = class binance extends Exchange {
         const query = this.omit (params, [ 'type', 'clientOrderId', 'origClientOrderId' ]);
         const response = await this[method] (this.extend (request, query));
         return this.parseOrder (response, market);
+    }
+
+    async fetchOpenOrder (id, symbol = undefined, params = {}) {
+        const order = await this.fetchOrder (id, symbol, params);
+        const status = this.safeString (order, 'status');
+        if (status !== 'open') {
+            throw new BadRequest ('No open order with id ' + id);
+        }
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
