@@ -408,10 +408,10 @@ module.exports = class ascendex extends ccxt.ascendex {
             quoteAccount['total'] = this.safeString (data, 'qtb');
             if (market['contract']) {
                 type = 'swap';
-                result = this.safeValue (this.balances, type, {});
+                result = this.safeValue (this.balance, type, {});
             } else {
                 type = market['type'];
-                result = this.safeValue (this.balances, type, {});
+                result = this.safeValue (this.balance, type, {});
             }
             result[market['base']] = baseAccount;
             result[market['quote']] = quoteAccount;
@@ -419,7 +419,7 @@ module.exports = class ascendex extends ccxt.ascendex {
             const accountType = this.safeStringLower2 (message, 'ac', 'at');
             const categoriesAccounts = this.safeValue (this.options, 'categoriesAccount');
             type = this.safeString (categoriesAccounts, accountType, 'spot');
-            result = this.safeValue (this.balances, type, {});
+            result = this.safeValue (this.balance, type, {});
             const data = this.safeValue (message, 'data');
             let balances = undefined;
             if (data === undefined) {
@@ -593,7 +593,7 @@ module.exports = class ascendex extends ccxt.ascendex {
         const price = this.safeString (order, 'p');
         const amount = this.safeString (order, 'q');
         const average = this.safeString (order, 'ap');
-        const filled = this.safeString2 (order, 'cfq');
+        const filled = this.safeString (order, 'cfq');
         const id = this.safeString (order, 'orderId');
         const type = this.safeStringLower (order, 'ot');
         const side = this.safeStringLower (order, 'sd');
