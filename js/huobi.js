@@ -14,6 +14,7 @@ module.exports = class huobi extends ccxt.huobi {
             'has': {
                 'ws': true,
                 'watchOrderBook': true,
+                'watchOrders': true,
                 'watchTickers': false, // for now
                 'watchTicker': true,
                 'watchTrades': true,
@@ -1036,7 +1037,7 @@ module.exports = class huobi extends ccxt.huobi {
                 // and we use the first data entry to find it
                 // Example: topic = 'accounts'
                 // client.subscription hash = 'accounts.usdt'
-                // we do 'accounts' + '.' + marginAsset to get it
+                // we do 'accounts' + '.' + data[0]]['margin_asset'] to get it
                 const marginAsset = this.safeString (first, 'margin_asset');
                 messageHash += '.' + marginAsset.toLowerCase ();
                 subscription = this.safeValue (client.subscriptions, messageHash);
