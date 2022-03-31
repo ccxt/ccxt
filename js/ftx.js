@@ -2456,7 +2456,9 @@ module.exports = class ftx extends Exchange {
         //     {
         //         "success":true,
         //         "result":[
-        //             { "coin": "1INCH", "previous": 0.0000462375, "estimate": 0.0000462375 }
+        //             {"coin":"1INCH","previous":4.8763e-6,"estimate":4.8048e-6},
+        //             {"coin":"AAPL","previous":0.0000326469,"estimate":0.0000326469},
+        //             {"coin":"AAVE","previous":1.43e-6,"estimate":1.43e-6},
         //         ]
         //     }
         //
@@ -2554,18 +2556,14 @@ module.exports = class ftx extends Exchange {
         }
         const response = await this.privateGetSpotMarginBorrowHistory (this.extend (request, params));
         //
-        // {
-        //     "success": true,
-        //     "result": [
-        //       {
-        //         "coin": "BTC",
-        //         "cost": 0.00047864470072,
-        //         "rate": 1.961096e-05,
-        //         "size": 24.407,
-        //         "time": "2020-11-30T12:00:00+00:00"
-        //       }
-        //     ]
-        // }
+        //     {
+        //         "success":true,
+        //         "result":[
+        //             {"coin":"USDT","time":"2021-12-26T01:00:00+00:00","size":4593.74214725,"rate":3.3003e-6,"cost":0.0151607272085692,"feeUsd":0.0151683341034461},
+        //             {"coin":"USDT","time":"2021-12-26T00:00:00+00:00","size":4593.97110361,"rate":3.3003e-6,"cost":0.0151614828332441,"feeUsd":0.015169697173028324},
+        //             {"coin":"USDT","time":"2021-12-25T23:00:00+00:00","size":4594.20005922,"rate":3.3003e-6,"cost":0.0151622384554438,"feeUsd":0.015170200298479137},
+        //         ]
+        //     }
         //
         const result = this.safeValue (response, 'result');
         const interest = [];
