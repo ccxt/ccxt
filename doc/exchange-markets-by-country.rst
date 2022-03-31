@@ -1021,7 +1021,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - ascendex
      - `AscendEX <https://ascendex.com/en-us/register?inviteCode=EL6BXBQM>`__
      - .. image:: https://img.shields.io/badge/2-lightgray
-          :target: https://bitmax-exchange.github.io/bitmax-pro-api/#bitmax-pro-api-documentation
+          :target: https://ascendex.github.io/ascendex-pro-api/#ascendex-pro-api-documentation
           :alt: API Version 2
      
    * - Singapore

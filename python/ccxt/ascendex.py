@@ -103,7 +103,7 @@ class ascendex(Exchange):
                 },
                 'www': 'https://ascendex.com',
                 'doc': [
-                    'https://bitmax-exchange.github.io/bitmax-pro-api/#bitmax-pro-api-documentation',
+                    'https://ascendex.github.io/ascendex-pro-api/#ascendex-pro-api-documentation',
                 ],
                 'fees': 'https://ascendex.com/en/feerate/transactionfee-traderate',
                 'referral': {
