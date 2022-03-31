@@ -54,6 +54,7 @@ class ftx extends Exchange {
                 'createReduceOnlyOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => true,
                 'fetchBorrowRate' => true,
                 'fetchBorrowRateHistories' => true,
                 'fetchBorrowRateHistory' => true,
@@ -2454,19 +2455,16 @@ class ftx extends Exchange {
 
     public function fetch_borrow_rates($params = array ()) {
         $this->load_markets();
-        $response = $this->privateGetSpotMarginBorrowRates ();
+        $response = $this->privateGetSpotMarginBorrowRates ($params);
         //
-        // {
-        //     "success":true,
-        //     "result":array(
-        //         {
-        //             "coin" => "1INCH",
-        //             "previous" => 0.0000462375,
-        //             "estimate" => 0.0000462375
-        //         }
-        //         ...
-        //     )
-        // }
+        //     {
+        //         "success":true,
+        //         "result":array(
+        //             array("coin":"1INCH","previous":4.8763e-6,"estimate":4.8048e-6),
+        //             array("coin":"AAPL","previous":0.0000326469,"estimate":0.0000326469),
+        //             array("coin":"AAVE","previous":1.43e-6,"estimate":1.43e-6),
+        //         )
+        //     }
         //
         $timestamp = $this->milliseconds();
         $result = $this->safe_value($response, 'result');
@@ -2552,5 +2550,42 @@ class ftx extends Exchange {
         } else {
             return $borrowRateHistory;
         }
+    }
+
+    public function fetch_borrow_interest($code = null, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array();
+        if ($since !== null) {
+            $request['start_time'] = intval($since / 1000);
+        }
+        $response = $this->privateGetSpotMarginBorrowHistory (array_merge($request, $params));
+        //
+        //     {
+        //         "success":true,
+        //         "result":array(
+        //             array("coin":"USDT","time":"2021-12-26T01:00:00+00:00","size":4593.74214725,"rate":3.3003e-6,"cost":0.0151607272085692,"feeUsd":0.0151683341034461),
+        //             array("coin":"USDT","time":"2021-12-26T00:00:00+00:00","size":4593.97110361,"rate":3.3003e-6,"cost":0.0151614828332441,"feeUsd":0.015169697173028324),
+        //             array("coin":"USDT","time":"2021-12-25T23:00:00+00:00","size":4594.20005922,"rate":3.3003e-6,"cost":0.0151622384554438,"feeUsd":0.015170200298479137),
+        //         )
+        //     }
+        //
+        $result = $this->safe_value($response, 'result');
+        $interest = array();
+        for ($i = 0; $i < count($result); $i++) {
+            $payment = $result[$i];
+            $coin = $this->safe_string($payment, 'coin');
+            $datetime = $this->safe_string($payment, 'time');
+            $interest[] = array(
+                'account' => null,
+                'currency' => $this->safe_currency_code($coin),
+                'interest' => $this->safe_number($payment, 'cost'),
+                'interestRate' => $this->safe_number($payment, 'rate'),
+                'amountBorrowed' => $this->safe_number($payment, 'size'),
+                'timestamp' => $this->parse8601($datetime),
+                'datetime' => $datetime,
+                'info' => $payment,
+            );
+        }
+        return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
     }
 }
