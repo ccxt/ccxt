@@ -42,7 +42,7 @@ class hitbtc3(Exchange):
                 'swap': True,
                 'future': False,
                 'option': None,
-                'addMargin': None,
+                'addMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
@@ -82,7 +82,7 @@ class hitbtc3(Exchange):
                 'fetchTradingFees': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
-                'reduceMargin': None,
+                'reduceMargin': True,
                 'setLeverage': None,
                 'setMarginMode': False,
                 'setPositionMode': False,
@@ -1869,6 +1869,65 @@ class hitbtc3(Exchange):
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
         }
+
+    async def modify_margin_helper(self, symbol, amount, type, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        leverage = self.safe_string(params, 'leverage')
+        amount = self.amount_to_precision(symbol, amount)
+        if market['type'] == 'swap':
+            if leverage is None:
+                raise ArgumentsRequired(self.id + ' modifyMarginHelper() requires a leverage parameter for swap markets')
+        request = {
+            'symbol': market['id'],  # swap and margin
+            'margin_balance': amount,  # swap and margin
+            # 'leverage': '10',  # swap only required
+            # 'strict_validate': False,  # swap and margin
+        }
+        if leverage is not None:
+            request['leverage'] = leverage
+        marketType, query = self.handle_market_type_and_params('modifyMarginHelper', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'swap': 'privatePutFuturesAccountIsolatedSymbol',
+            'margin': 'privatePutMarginAccountIsolatedSymbol',
+        })
+        response = await getattr(self, method)(self.extend(request, query))
+        #
+        #     {
+        #         "symbol": "BTCUSDT_PERP",
+        #         "type": "isolated",
+        #         "leverage": "8.00",
+        #         "created_at": "2022-03-30T23:34:27.161Z",
+        #         "updated_at": "2022-03-30T23:34:27.161Z",
+        #         "currencies": [
+        #             {
+        #                 "code": "USDT",
+        #                 "margin_balance": "7.000000000000",
+        #                 "reserved_orders": "0",
+        #                 "reserved_positions": "0"
+        #             }
+        #         ],
+        #         "positions": null
+        #     }
+        #
+        currencies = self.safe_value(response, 'currencies', [])
+        data = self.safe_value(currencies, 0)
+        return {
+            'info': response,
+            'type': type,
+            'amount': amount,
+            'code': self.safe_string(data, 'code'),
+            'symbol': market['symbol'],
+            'status': None,
+        }
+
+    async def reduce_margin(self, symbol, amount, params={}):
+        if amount != 0:
+            raise BadRequest(self.id + ' reduceMargin() on hitbtc3 requires the amount to be 0 and that will remove the entire margin amount')
+        return await self.modify_margin_helper(symbol, amount, 'reduce', params)
+
+    async def add_margin(self, symbol, amount, params={}):
+        return await self.modify_margin_helper(symbol, amount, 'add', params)
 
     async def fetch_leverage(self, symbol, params={}):
         await self.load_markets()

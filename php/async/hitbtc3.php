@@ -33,7 +33,7 @@ class hitbtc3 extends Exchange {
                 'swap' => true,
                 'future' => false,
                 'option' => null,
-                'addMargin' => null,
+                'addMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
@@ -73,7 +73,7 @@ class hitbtc3 extends Exchange {
                 'fetchTradingFees' => true,
                 'fetchTransactions' => true,
                 'fetchWithdrawals' => true,
-                'reduceMargin' => null,
+                'reduceMargin' => true,
                 'setLeverage' => null,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
@@ -1981,6 +1981,72 @@ class hitbtc3 extends Exchange {
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
         );
+    }
+
+    public function modify_margin_helper($symbol, $amount, $type, $params = array ()) {
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $leverage = $this->safe_string($params, 'leverage');
+        $amount = $this->amount_to_precision($symbol, $amount);
+        if ($market['type'] === 'swap') {
+            if ($leverage === null) {
+                throw new ArgumentsRequired($this->id . ' modifyMarginHelper() requires a $leverage parameter for swap markets');
+            }
+        }
+        $request = array(
+            'symbol' => $market['id'], // swap and margin
+            'margin_balance' => $amount, // swap and margin
+            // 'leverage' => '10', // swap only required
+            // 'strict_validate' => false, // swap and margin
+        );
+        if ($leverage !== null) {
+            $request['leverage'] = $leverage;
+        }
+        list($marketType, $query) = $this->handle_market_type_and_params('modifyMarginHelper', $market, $params);
+        $method = $this->get_supported_mapping($marketType, array(
+            'swap' => 'privatePutFuturesAccountIsolatedSymbol',
+            'margin' => 'privatePutMarginAccountIsolatedSymbol',
+        ));
+        $response = yield $this->$method (array_merge($request, $query));
+        //
+        //     {
+        //         "symbol" => "BTCUSDT_PERP",
+        //         "type" => "isolated",
+        //         "leverage" => "8.00",
+        //         "created_at" => "2022-03-30T23:34:27.161Z",
+        //         "updated_at" => "2022-03-30T23:34:27.161Z",
+        //         "currencies" => array(
+        //             {
+        //                 "code" => "USDT",
+        //                 "margin_balance" => "7.000000000000",
+        //                 "reserved_orders" => "0",
+        //                 "reserved_positions" => "0"
+        //             }
+        //         ),
+        //         "positions" => null
+        //     }
+        //
+        $currencies = $this->safe_value($response, 'currencies', array());
+        $data = $this->safe_value($currencies, 0);
+        return array(
+            'info' => $response,
+            'type' => $type,
+            'amount' => $amount,
+            'code' => $this->safe_string($data, 'code'),
+            'symbol' => $market['symbol'],
+            'status' => null,
+        );
+    }
+
+    public function reduce_margin($symbol, $amount, $params = array ()) {
+        if ($amount !== 0) {
+            throw new BadRequest($this->id . ' reduceMargin() on hitbtc3 requires the $amount to be 0 and that will remove the entire margin amount');
+        }
+        return yield $this->modify_margin_helper($symbol, $amount, 'reduce', $params);
+    }
+
+    public function add_margin($symbol, $amount, $params = array ()) {
+        return yield $this->modify_margin_helper($symbol, $amount, 'add', $params);
     }
 
     public function fetch_leverage($symbol, $params = array ()) {
