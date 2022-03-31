@@ -318,8 +318,8 @@ async function testExchange (exchange) {
     await test ('fetchWithdrawals', exchange, code)
     await test ('fetchBorrowRate', exchange, code)
     await test ('fetchBorrowRates', exchange)
-    await test ('fetchBorrowInterestAccrued', exchange, code)
-    await test ('fetchBorrowInterestAccrued', exchange, code, symbol)
+    await test ('fetchBorrowInterest', exchange, code)
+    await test ('fetchBorrowInterest', exchange, code, symbol)
 
     if (exchange.extendedTest) {
 

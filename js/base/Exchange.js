@@ -83,7 +83,7 @@ module.exports = class Exchange {
                 'fetchAccounts': undefined,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
-                'fetchBorrowInterestAccrued': undefined,
+                'fetchBorrowInterest': undefined,
                 'fetchBorrowRate': undefined,
                 'fetchBorrowRateHistory': undefined,
                 'fetchBorrowRatesPerSymbol': undefined,

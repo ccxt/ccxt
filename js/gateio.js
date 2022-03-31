@@ -67,7 +67,7 @@ module.exports = class gateio extends Exchange {
                 'createMarketOrder': false,
                 'createOrder': true,
                 'fetchBalance': true,
-                'fetchBorrowInterestAccrued': true,
+                'fetchBorrowInterest': true,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
@@ -3833,7 +3833,7 @@ module.exports = class gateio extends Exchange {
         return tiers;
     }
 
-    async fetchBorrowInterestAccrued (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchBorrowInterest (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             'side': 'borrow',

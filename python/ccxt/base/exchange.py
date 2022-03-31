@@ -259,7 +259,7 @@ class Exchange(object):
         'fetchAccounts': None,
         'fetchBalance': True,
         'fetchBidsAsks': None,
-        'fetchBorrowInterestAccrued': None,
+        'fetchBorrowInterest': None,
         'fetchBorrowRate': None,
         'fetchBorrowRateHistory': None,
         'fetchBorrowRatesPerSymbol': None,

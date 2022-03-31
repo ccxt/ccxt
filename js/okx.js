@@ -4250,7 +4250,7 @@ module.exports = class okx extends Exchange {
         return tiers;
     }
 
-    async fetchBorrowInterestAccrued (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchBorrowInterest (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             'mgnMode': (symbol !== undefined) ? 'isolated' : 'cross',
