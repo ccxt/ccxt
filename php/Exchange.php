@@ -1395,7 +1395,7 @@ class Exchange {
                         $value;
             }
         }
-        $this->emulate_single_market_method('fetchPosition');
+        $this->emulate_single_market_method('fetchPosition', 'fetchPositions');
 
         $this->tokenBucket = array(
             'delay' => 0.001,
@@ -1631,10 +1631,7 @@ class Exchange {
         return (is_string($response_body) && $this->quoteJsonNumbers) ? preg_replace('/":([+.0-9eE-]+)([,}])/', '":"$1"$2', $response_body) : $response_body;
     }
 
-    public function emulate_single_market_method($emulated_method, $multi_market_method=null) {
-        if ($multi_market_method === null) {
-            $multi_market_method = $emulated_method . 's';
-        }
+    public function emulate_single_market_method($emulated_method, $multi_market_method) {
         if ($this->has[$multi_market_method] && $this->has[$emulated_method] === null) {
             $this->has[$emulated_method] = 'emulated';
         }
