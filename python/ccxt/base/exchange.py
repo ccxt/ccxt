@@ -2762,7 +2762,7 @@ class Exchange(object):
         return rate
 
     def handle_market_type_and_params(self, method_name, market=None, params={}):
-        allowedTypes = ['spot', 'swap', 'future', 'delivery', 'option', 'margin', 'savings', 'funding', 'linear', 'inverse', 'exchange', 'derivatives', 'cross_margin', 'contract', 'account']  # [binance : savings & funding & linear & inverse] [bitfinex2: exchange, derivatives] [gateio: cross_margin] [kucoin: contract] [okcoin: account]
+        allowedTypes = ['spot', 'swap', 'future', 'delivery', 'option', 'margin', 'savings', 'funding', 'linear', 'inverse', 'exchange', 'derivatives', 'cross_margin', 'contract', 'account']
         default_type = self.safe_string_2(self.options, 'defaultType', 'type', 'spot')
         method_options = self.safe_value(self.options, method_name)
         method_type = default_type
