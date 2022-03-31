@@ -692,12 +692,11 @@ module.exports = class huobi extends ccxt.huobi {
         // }
         //
         let messageHash = this.safeString2 (message, 'ch', 'topic', '');
-        let messageParts = messageHash.split ('#');
-        const partsLength = messageParts.length;
-        if (partsLength < 2) {
-            messageParts = messageHash.split ('.');
+        let marketId = this.safeString (message, 'contract_code');
+        if (marketId === undefined) {
+            const messageParts = messageHash.split ('#');
+            marketId = this.safeString (messageParts, 1);
         }
-        const marketId = this.safeString (messageParts, 1);
         const market = this.market (marketId);
         const data = this.safeValue (message, 'data', message);
         const eventType = this.safeString (data, 'eventType');
@@ -756,45 +755,60 @@ module.exports = class huobi extends ccxt.huobi {
         //   }
         // swap order
         // {
-        //     "contract_type":"swap",
-        //     "pair":"BTC-USDT",
-        //     "business_type":"swap",
-        //     "op":"notify",
-        //     "topic":"orders_cross.btc-usdt",
-        //     "ts":1645205382242,
-        //     "symbol":"BTC",
-        //     "contract_code":"BTC-USDT",
-        //     "volume":5,
-        //     "price":1000,
-        //     "order_price_type":"limit",
-        //     "direction":"buy",
-        //     "offset":"open",
-        //     "status":7,
-        //     "lever_rate":5,
-        //     "order_id":"944404965718474752",
-        //     "order_id_str":"944404965718474752",
-        //     "client_order_id":null,
-        //     "order_source":"web",
-        //     "order_type":2,
-        //     "created_at":1645205290018,
-        //     "trade_volume":0,
-        //     "trade_turnover":0,
-        //     "fee":0,
-        //     "trade_avg_price":0,
-        //     "margin_frozen":0,
-        //     "profit":0,
-        //     "trade":[],
-        //     "canceled_at":1645205382236,
-        //     "fee_asset":"USDT",
-        //     "margin_asset":"USDT",
-        //     "uid":"359305390",
-        //     "liquidation_type":"0",
-        //     "margin_mode":"cross",
-        //     "margin_account":"USDT",
-        //     "is_tpsl":0,
-        //     "real_profit":0,
-        //     "trade_partition":"USDT"
-        //  }
+        //     contract_type: 'swap',
+        //     pair: 'LTC-USDT',
+        //     business_type: 'swap',
+        //     op: 'notify',
+        //     topic: 'orders_cross.ltc-usdt',
+        //     ts: 1648717911384,
+        //     symbol: 'LTC',
+        //     contract_code: 'LTC-USDT',
+        //     volume: 1,
+        //     price: 129.13,
+        //     order_price_type: 'lightning',
+        //     direction: 'sell',
+        //     offset: 'close',
+        //     status: 6,
+        //     lever_rate: 5,
+        //     order_id: '959137967397068800',
+        //     order_id_str: '959137967397068800',
+        //     client_order_id: null,
+        //     order_source: 'web',
+        //     order_type: 1,
+        //     created_at: 1648717911344,
+        //     trade_volume: 1,
+        //     trade_turnover: 12.952,
+        //     fee: -0.006476,
+        //     trade_avg_price: 129.52,
+        //     margin_frozen: 0,
+        //     profit: -0.005,
+        //     trade: [
+        //       {
+        //         trade_fee: -0.006476,
+        //         fee_asset: 'USDT',
+        //         real_profit: -0.005,
+        //         profit: -0.005,
+        //         trade_id: 83619995370,
+        //         id: '83619995370-959137967397068800-1',
+        //         trade_volume: 1,
+        //         trade_price: 129.52,
+        //         trade_turnover: 12.952,
+        //         created_at: 1648717911352,
+        //         role: 'taker'
+        //       }
+        //     ],
+        //     canceled_at: 0,
+        //     fee_asset: 'USDT',
+        //     margin_asset: 'USDT',
+        //     uid: '359305390',
+        //     liquidation_type: '0',
+        //     margin_mode: 'cross',
+        //     margin_account: 'USDT',
+        //     is_tpsl: 0,
+        //     real_profit: -0.005,
+        //     trade_partition: 'USDT',
+        //     reduce_only: 1
+        //   }
         // {
         //     "op":"notify",
         //     "topic":"orders.ada",
@@ -852,7 +866,7 @@ module.exports = class huobi extends ccxt.huobi {
             };
         }
         const avgPrice = this.safeString (order, 'trade_avg_price');
-        const rawTrades = this.safeValue (order, 'trades');
+        const rawTrades = this.safeValue (order, 'trade');
         let trades = [];
         if (rawTrades !== undefined) {
             trades = this.parseTrades (rawTrades, market);
