@@ -463,7 +463,7 @@ module.exports = class blockchaincom extends Exchange {
         };
         const stopPrice = this.safeValue2 (params, 'stopPx', 'stopPrice');
         params = this.omit (params, [ 'stopPx', 'stopPrice' ]);
-        if (uppercaseOrderType === 'STOP' || uppercaseOrderType === 'LIMIT') {
+        if (uppercaseOrderType === 'STOP' || uppercaseOrderType === 'STOPLIMIT') {
             if (stopPrice === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPx or stopPrice param for a ' + uppercaseOrderType + ' order');
             }
