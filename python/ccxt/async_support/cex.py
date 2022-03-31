@@ -60,6 +60,9 @@ class cex(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
+                'transfer': False,
             },
             'timeframes': {
                 '1m': '1m',
