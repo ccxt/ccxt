@@ -340,7 +340,7 @@ module.exports = class Exchange {
                 this[property] = value
             }
         }
-        this.emulateSingleMarketMethod ('fetchPosition');
+        this.emulateSingleMarketMethod ('fetchPosition', 'fetchPositions');
 
         const agentOptions = {
             'keepAlive': true,
@@ -739,10 +739,7 @@ module.exports = class Exchange {
         return this.quoteJsonNumbers ? responseBody.replace (/":([+.0-9eE-]+)([,}])/g, '":"$1"$2') : responseBody;
     }
 
-    emulateSingleMarketMethod (emulatedMethod, multiMarketMethod = undefined) {
-        if (multiMarketMethod === undefined) {
-            multiMarketMethod = emulatedMethod + 's';
-        }
+    emulateSingleMarketMethod (emulatedMethod, multiMarketMethod) {
         if (this.has[multiMarketMethod] && this.has[emulatedMethod] === undefined) {
             this.has[emulatedMethod] = 'emulated';
         }

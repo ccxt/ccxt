@@ -610,10 +610,8 @@ class Exchange(object):
         else:
             return json.loads(response_body)
 
-    def emulate_single_market_method(self, emulated_method, multi_market_method=None):
-        if multi_market_method is None:
-            multi_market_method = emulated_method + 's'
-        if self.has[multi_market_method] and self.has[single_market_method] is None:
+    def emulate_single_market_method(self, emulated_method, multi_market_method):
+        if self.has[multi_market_method] and self.has[emulated_method] is None:
             self.has[emulated_method] = 'emulated'
 
     def fetch(self, url, method='GET', headers=None, body=None):
