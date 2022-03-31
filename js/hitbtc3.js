@@ -1974,8 +1974,13 @@ module.exports = class hitbtc3 extends Exchange {
     async modifyMarginHelper (symbol, amount, type, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        amount = this.amountToPrecision (symbol, amount);
         const leverage = this.safeString (params, 'leverage');
+        amount = this.amountToPrecision (symbol, amount);
+        if (market['type'] === 'swap') {
+            if (leverage === undefined) {
+                throw new ArgumentsRequired (this.id + ' modifyMarginHelper() requires a leverage argument in the params for addMargin on swap markets');
+            }
+        }
         const request = {
             'symbol': market['id'], // swap and margin
             'margin_balance': amount, // swap and margin
