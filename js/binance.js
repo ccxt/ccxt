@@ -37,7 +37,7 @@ module.exports = class binance extends Exchange {
                 'fetchAccounts': undefined,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
-                'fetchBorrowInterestHistory': true,
+                'fetchBorrowInterest': true,
                 'fetchBorrowRate': true,
                 'fetchBorrowRateHistories': true,
                 'fetchBorrowRateHistory': true,
@@ -5506,7 +5506,7 @@ module.exports = class binance extends Exchange {
         return response;
     }
 
-    async fetchBorrowInterestHistory (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchBorrowInterest (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
