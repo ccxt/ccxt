@@ -387,7 +387,8 @@ module.exports = class ascendex extends Exchange {
             const id = ids[i];
             const currency = dataById[id];
             const code = this.safeCurrencyCode (id);
-            const precision = this.safeString2 (currency, 'precisionScale', 'nativeScale');
+            const scale = this.safeString2 (currency, 'precisionScale', 'nativeScale');
+            const precision = this.parseNumber (this.parsePrecision (scale));
             // why would the exchange API have different names for the same field
             const fee = this.safeNumber2 (currency, 'withdrawFee', 'withdrawalFee');
             const status = this.safeString2 (currency, 'status', 'statusCode');
@@ -404,10 +405,10 @@ module.exports = class ascendex extends Exchange {
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': fee,
-                'precision': parseInt (precision),
+                'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': this.parseNumber (this.parsePrecision (precision)),
+                        'min': precision,
                         'max': undefined,
                     },
                     'withdraw': {
