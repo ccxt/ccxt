@@ -2027,12 +2027,13 @@ module.exports = class hitbtc3 extends Exchange {
     }
 
     async reduceMargin (symbol, amount, params = {}) {
-        // to reduce the amount must be 0 and that will remove the entire margin amount
+        if (amount !== 0) {
+            throw new BadRequest (this.id + ' reduceMargin() on hitbtc3 requires the amount to be 0 and that will remove the entire margin amount');
+        }
         return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
     }
 
     async addMargin (symbol, amount, params = {}) {
-        // to add margin the leverage parameter must be set for swap markets
         return await this.modifyMarginHelper (symbol, amount, 'add', params);
     }
 
