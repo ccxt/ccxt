@@ -761,7 +761,7 @@ module.exports = class hollaex extends Exchange {
         const request = {
             'order_id': id,
         };
-        const response = await this.privateGetOrder(this.extend (request, params));
+        const response = await this.privateGetOrder (this.extend (request, params));
         //
         //     {
         //         "id": "string",
@@ -809,7 +809,6 @@ module.exports = class hollaex extends Exchange {
             'order_id': id,
         };
         const response = await this.privateGetOrder (this.extend (request, params));
-
         //             {
         //                 "id": "string",
         //                 "side": "sell",
@@ -832,7 +831,6 @@ module.exports = class hollaex extends Exchange {
         //                     "exchange_id": 176
         //                 }
         //             }
-
         const order = response;
         if (order === undefined) {
             throw new OrderNotFound (this.id + ' fetchOrder() could not find order id ' + id);
