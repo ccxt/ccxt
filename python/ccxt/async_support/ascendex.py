@@ -31,9 +31,9 @@ class ascendex(Exchange):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': None,  # has but not fully inplemented
+                'margin': True,
                 'swap': True,
-                'future': False,
+                'future': True,
                 'option': False,
                 'addMargin': True,
                 'cancelAllOrders': True,
@@ -133,6 +133,7 @@ class ascendex(Exchange):
                             'futures/ref-px',
                             'futures/market-data',
                             'futures/funding-rates',
+                            'risk-limit-info',
                         ],
                     },
                     'private': {

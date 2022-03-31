@@ -27,9 +27,9 @@ class ascendex extends Exchange {
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
-                'margin' => null, // has but not fully inplemented
+                'margin' => true,
                 'swap' => true,
-                'future' => false,
+                'future' => true,
                 'option' => false,
                 'addMargin' => true,
                 'cancelAllOrders' => true,
@@ -129,6 +129,7 @@ class ascendex extends Exchange {
                             'futures/ref-px',
                             'futures/market-data',
                             'futures/funding-rates',
+                            'risk-limit-info',
                         ),
                     ),
                     'private' => array(
