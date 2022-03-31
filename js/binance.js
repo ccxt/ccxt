@@ -61,7 +61,7 @@ module.exports = class binance extends Exchange {
                 'fetchIsolatedPositions': undefined,
                 'fetchL3OrderBook': undefined,
                 'fetchLedger': undefined,
-                'fetchLeverage': undefined,
+                'fetchLeverage': 'emulated',
                 'fetchLeverageTiers': true,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
@@ -70,7 +70,7 @@ module.exports = class binance extends Exchange {
                 'fetchMySells': undefined,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
-                'fetchOpenOrder': undefined,
+                'fetchOpenOrder': 'emulated',
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -4880,6 +4880,10 @@ module.exports = class binance extends Exchange {
         } else {
             throw new NotSupported (this.id + '.options["fetchPositions"] = "' + defaultMethod + '" is invalid, please choose between "account" and "positionRisk"');
         }
+    }
+
+    async fetchLeverage (symbol, params = {}) {
+        return await this.safeString (this.fetchPositions ([ symbol ], params), 'leverage');
     }
 
     async fetchAccountPositions (symbols = undefined, params = {}) {
