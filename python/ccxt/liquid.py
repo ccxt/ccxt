@@ -50,6 +50,8 @@ class liquid(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchTradingFee': True,
+                'fetchTradingFees': True,
                 'fetchWithdrawals': True,
                 'withdraw': True,
             },
@@ -674,6 +676,162 @@ class liquid(Exchange):
         response = self.publicGetExecutions(self.extend(request, params))
         result = response if (since is not None) else response['models']
         return self.parse_trades(result, market, since, limit)
+
+    def fetch_trading_fee(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'id': market['id'],
+        }
+        response = self.publicGetProductsId(self.extend(request, params))
+        #
+        #     {
+        #         "id":"637",
+        #         "product_type":"CurrencyPair",
+        #         "code":"CASH",
+        #         "name":null,
+        #         "market_ask":"0.00000797",
+        #         "market_bid":"0.00000727",
+        #         "indicator":null,
+        #         "currency":"BTC",
+        #         "currency_pair_code":"TFTBTC",
+        #         "symbol":null,
+        #         "btc_minimum_withdraw":null,
+        #         "fiat_minimum_withdraw":null,
+        #         "pusher_channel":"product_cash_tftbtc_637",
+        #         "taker_fee":"0.0",
+        #         "maker_fee":"0.0",
+        #         "low_market_bid":"0.00000685",
+        #         "high_market_ask":"0.00000885",
+        #         "volume_24h":"3696.0755956",
+        #         "last_price_24h":"0.00000716",
+        #         "last_traded_price":"0.00000766",
+        #         "last_traded_quantity":"1748.0377978",
+        #         "average_price":null,
+        #         "quoted_currency":"BTC",
+        #         "base_currency":"TFT",
+        #         "tick_size":"0.00000001",
+        #         "disabled":false,
+        #         "margin_enabled":false,
+        #         "cfd_enabled":false,
+        #         "perpetual_enabled":false,
+        #         "last_event_timestamp":"1596962820.000797146",
+        #         "timestamp":"1596962820.000797146",
+        #         "multiplier_up":"9.0",
+        #         "multiplier_down":"0.1",
+        #         "average_time_interval":null
+        #     }
+        #
+        return self.parse_trading_fee(response, market)
+
+    def parse_trading_fee(self, fee, market=None):
+        marketId = self.safe_string(fee, 'id')
+        symbol = self.safe_symbol(marketId, market)
+        return {
+            'info': fee,
+            'symbol': symbol,
+            'maker': self.safe_number(fee, 'maker_fee'),
+            'taker': self.safe_number(fee, 'taker_fee'),
+            'percentage': True,
+            'tierBased': True,
+        }
+
+    def fetch_trading_fees(self, params={}):
+        self.load_markets()
+        spot = self.publicGetProducts(params)
+        #
+        #     [
+        #         {
+        #             "id":"637",
+        #             "product_type":"CurrencyPair",
+        #             "code":"CASH",
+        #             "name":null,
+        #             "market_ask":"0.00000797",
+        #             "market_bid":"0.00000727",
+        #             "indicator":null,
+        #             "currency":"BTC",
+        #             "currency_pair_code":"TFTBTC",
+        #             "symbol":null,
+        #             "btc_minimum_withdraw":null,
+        #             "fiat_minimum_withdraw":null,
+        #             "pusher_channel":"product_cash_tftbtc_637",
+        #             "taker_fee":"0.0",
+        #             "maker_fee":"0.0",
+        #             "low_market_bid":"0.00000685",
+        #             "high_market_ask":"0.00000885",
+        #             "volume_24h":"3696.0755956",
+        #             "last_price_24h":"0.00000716",
+        #             "last_traded_price":"0.00000766",
+        #             "last_traded_quantity":"1748.0377978",
+        #             "average_price":null,
+        #             "quoted_currency":"BTC",
+        #             "base_currency":"TFT",
+        #             "tick_size":"0.00000001",
+        #             "disabled":false,
+        #             "margin_enabled":false,
+        #             "cfd_enabled":false,
+        #             "perpetual_enabled":false,
+        #             "last_event_timestamp":"1596962820.000797146",
+        #             "timestamp":"1596962820.000797146",
+        #             "multiplier_up":"9.0",
+        #             "multiplier_down":"0.1",
+        #             "average_time_interval":null
+        #         },
+        #     ]
+        #
+        perpetual = self.publicGetProducts({'perpetual': '1'})
+        #
+        #     [
+        #         {
+        #             "id":"604",
+        #             "product_type":"Perpetual",
+        #             "code":"CASH",
+        #             "name":null,
+        #             "market_ask":"11721.5",
+        #             "market_bid":"11719.0",
+        #             "indicator":null,
+        #             "currency":"USD",
+        #             "currency_pair_code":"P-BTCUSD",
+        #             "symbol":"$",
+        #             "btc_minimum_withdraw":null,
+        #             "fiat_minimum_withdraw":null,
+        #             "pusher_channel":"product_cash_p-btcusd_604",
+        #             "taker_fee":"0.0012",
+        #             "maker_fee":"0.0",
+        #             "low_market_bid":"11624.5",
+        #             "high_market_ask":"11859.0",
+        #             "volume_24h":"0.271",
+        #             "last_price_24h":"11621.5",
+        #             "last_traded_price":"11771.5",
+        #             "last_traded_quantity":"0.09",
+        #             "average_price":"11771.5",
+        #             "quoted_currency":"USD",
+        #             "base_currency":"P-BTC",
+        #             "tick_size":"0.5",
+        #             "disabled":false,
+        #             "margin_enabled":false,
+        #             "cfd_enabled":false,
+        #             "perpetual_enabled":true,
+        #             "last_event_timestamp":"1596963309.418853092",
+        #             "timestamp":"1596963309.418853092",
+        #             "multiplier_up":null,
+        #             "multiplier_down":"0.1",
+        #             "average_time_interval":300,
+        #             "index_price":"11682.8124",
+        #             "mark_price":"11719.96781",
+        #             "funding_rate":"0.00273",
+        #             "fair_price":"11720.2745"
+        #         },
+        #     ]
+        #
+        markets = self.array_concat(spot, perpetual)
+        result = {}
+        for i in range(0, len(markets)):
+            market = markets[i]
+            marketId = self.safe_string(market, 'id')
+            symbol = self.safe_symbol(marketId, market)
+            result[symbol] = self.parse_trading_fee(market)
+        return result
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
