@@ -122,6 +122,7 @@ module.exports = class ascendex extends Exchange {
                             'futures/ref-px',
                             'futures/market-data',
                             'futures/funding-rates',
+                            'risk-limit-info', // the client's ip address to be checked if it is banned due to violation of risk limits.
                         ],
                     },
                     'private': {
