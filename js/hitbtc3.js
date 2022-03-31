@@ -22,7 +22,7 @@ module.exports = class hitbtc3 extends Exchange {
                 'swap': true,
                 'future': false,
                 'option': undefined,
-                'addMargin': undefined,
+                'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
@@ -62,7 +62,7 @@ module.exports = class hitbtc3 extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
-                'reduceMargin': undefined,
+                'reduceMargin': true,
                 'setLeverage': undefined,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -1970,6 +1970,72 @@ module.exports = class hitbtc3 extends Exchange {
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
         };
+    }
+
+    async modifyMarginHelper (symbol, amount, type, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const leverage = this.safeString (params, 'leverage');
+        amount = this.amountToPrecision (symbol, amount);
+        if (market['type'] === 'swap') {
+            if (leverage === undefined) {
+                throw new ArgumentsRequired (this.id + ' modifyMarginHelper() requires a leverage parameter for swap markets');
+            }
+        }
+        const request = {
+            'symbol': market['id'], // swap and margin
+            'margin_balance': amount, // swap and margin
+            // 'leverage': '10', // swap only required
+            // 'strict_validate': false, // swap and margin
+        };
+        if (leverage !== undefined) {
+            request['leverage'] = leverage;
+        }
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('modifyMarginHelper', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'swap': 'privatePutFuturesAccountIsolatedSymbol',
+            'margin': 'privatePutMarginAccountIsolatedSymbol',
+        });
+        const response = await this[method] (this.extend (request, query));
+        //
+        //     {
+        //         "symbol": "BTCUSDT_PERP",
+        //         "type": "isolated",
+        //         "leverage": "8.00",
+        //         "created_at": "2022-03-30T23:34:27.161Z",
+        //         "updated_at": "2022-03-30T23:34:27.161Z",
+        //         "currencies": [
+        //             {
+        //                 "code": "USDT",
+        //                 "margin_balance": "7.000000000000",
+        //                 "reserved_orders": "0",
+        //                 "reserved_positions": "0"
+        //             }
+        //         ],
+        //         "positions": null
+        //     }
+        //
+        const currencies = this.safeValue (response, 'currencies', []);
+        const data = this.safeValue (currencies, 0);
+        return {
+            'info': response,
+            'type': type,
+            'amount': amount,
+            'code': this.safeString (data, 'code'),
+            'symbol': market['symbol'],
+            'status': undefined,
+        };
+    }
+
+    async reduceMargin (symbol, amount, params = {}) {
+        if (amount !== 0) {
+            throw new BadRequest (this.id + ' reduceMargin() on hitbtc3 requires the amount to be 0 and that will remove the entire margin amount');
+        }
+        return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
+    }
+
+    async addMargin (symbol, amount, params = {}) {
+        return await this.modifyMarginHelper (symbol, amount, 'add', params);
     }
 
     async fetchLeverage (symbol, params = {}) {
