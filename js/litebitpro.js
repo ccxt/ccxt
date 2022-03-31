@@ -52,8 +52,8 @@ module.exports = class litebitpro extends Exchange {
                 // TODO
                 'logo': 'TODO',
                 'api': {
-                    'public': 'https://api.exchange.acc.litebit.cloud',
-                    'private': 'https://api.exchange.acc.litebit.cloud',
+                    'public': process.env.POD_NAMESPACE === 'prod' ? 'https://api.exchange.litebit.eu' : 'https://api.exchange.acc.litebit.cloud',
+                    'private': process.env.POD_NAMESPACE === 'prod' ? 'https://api.exchange.litebit.eu' : 'https://api.exchange.acc.litebit.cloud',
                 },
                 'www': 'https://pro.litebit.com/',
                 'doc': 'https://docs.pro.litebit.com/',
