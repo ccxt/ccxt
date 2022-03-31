@@ -68,6 +68,7 @@ module.exports = class bibox extends Exchange {
                 'www': 'https://www.bibox365.com',
                 'doc': [
                     'https://biboxcom.github.io/en/',
+                    'https://biboxcom.github.io/v3/spot/en/'
                 ],
                 'fees': 'https://bibox.zendesk.com/hc/en-us/articles/360002336133',
                 'referral': 'https://w2.bibox365.com/login/register?invite_code=05Kj3I',
@@ -1597,19 +1598,23 @@ module.exports = class bibox extends Exchange {
         headers = { 'content-type': 'application/json' };
         if (api === 'public') {
             if (method !== 'GET') {
-                body = v1 ? { 'cmds': json_params } : { 'body': json_params };
+                if (v1) {
+                    body = { 'cmds': json_params };
+                } else {
+                    body = { 'body': json_params };
+                }
             } else if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
         } else {
             this.checkRequiredCredentials ();
             if (version === 'v3' || version === 'v3.1') {
-                const timestamp = this.milliseconds ();
-                let strToSign = '' + timestamp;
+                const timestamp = this.numberToString (this.milliseconds ());
+                let strToSign = timestamp;
                 if (json_params !== '{}') {
                     strToSign += json_params;
                 }
-                const sign = this.hmac (this.encode (strToSign), this.encode (this.secret), 'md5').toString ();
+                const sign = this.hmac (this.encode (strToSign), this.encode (this.secret), 'md5');
                 headers['bibox-api-key'] = this.apiKey;
                 headers['bibox-api-sign'] = sign;
                 headers['bibox-timestamp'] = timestamp;
