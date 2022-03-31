@@ -2866,6 +2866,7 @@ module.exports = class binance extends Exchange {
         if (status !== 'open') {
             throw new BadRequest ('No open order with id ' + id);
         }
+        return order;
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
