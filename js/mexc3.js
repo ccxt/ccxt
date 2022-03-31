@@ -831,7 +831,7 @@ module.exports = class mexc3 extends Exchange {
             //     }
             //
             const data = this.safeValue (response, 'data');
-            const timestamp = this.safeValue (data, 'timestamp');
+            const timestamp = this.safeInteger (data, 'timestamp');
             orderbook = this.parseOrderBook (data, symbol, timestamp);
             orderbook['nonce'] = this.safeInteger (data, 'version');
         }
