@@ -57,9 +57,12 @@ class blockchaincom extends Exchange {
                 'fetchTrades' => false,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
+                'fetchTransfer' => false,
+                'fetchTransfers' => false,
                 'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
                 'fetchWithdrawalWhitelist' => true, // fetches exchange specific benficiary-ids needed for withdrawals
+                'transfer' => false,
                 'withdraw' => true,
             ),
             'timeframes' => null,

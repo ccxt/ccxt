@@ -1191,7 +1191,8 @@ class okx extends Exchange {
         $symbol = $market['symbol'];
         $last = $this->safe_string($ticker, 'last');
         $open = $this->safe_string($ticker, 'open24h');
-        $quoteVolume = $market['spot'] ? $this->safe_string($ticker, 'volCcy24h') : null;
+        $spot = $this->safe_value($market, 'spot', false);
+        $quoteVolume = $spot ? $this->safe_string($ticker, 'volCcy24h') : null;
         $baseVolume = $this->safe_string($ticker, 'vol24h');
         return $this->safe_ticker(array(
             'symbol' => $symbol,

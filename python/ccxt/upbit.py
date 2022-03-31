@@ -12,6 +12,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import AddressPending
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.precise import Precise
 
 
 class upbit(Exchange):
@@ -61,6 +62,8 @@ class upbit(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchTradingFee': True,
+                'fetchTradingFees': False,
                 'fetchTransactions': None,
                 'fetchWithdrawals': True,
                 'withdraw': True,
@@ -291,30 +294,36 @@ class upbit(Exchange):
         }
         response = self.privateGetOrdersChance(self.extend(request, params))
         #
-        #     {    bid_fee:   "0.0005",
-        #           ask_fee:   "0.0005",
-        #            market: {         id:   "KRW-BTC",
-        #                             name:   "BTC/KRW",
-        #                      order_types: ["limit"],
-        #                      order_sides: ["ask", "bid"],
-        #                              bid: {  currency: "KRW",
-        #                                     price_unit:  null,
-        #                                      min_total:  1000  },
-        #                              ask: {  currency: "BTC",
-        #                                     price_unit:  null,
-        #                                      min_total:  1000  },
-        #                        max_total:   "1000000000.0",
-        #                            state:   "active"              },
-        #       bid_account: {         currency: "KRW",
-        #                                balance: "0.0",
-        #                                 locked: "0.0",
-        #                      avg_krw_buy_price: "0",
-        #                               modified:  False},
-        #       ask_account: {         currency: "BTC",
-        #                                balance: "0.00780836",
-        #                                 locked: "0.0",
-        #                      avg_krw_buy_price: "6465564.67",
-        #                               modified:  False        }      }
+        #     {
+        #         "bid_fee": "0.0015",
+        #         "ask_fee": "0.0015",
+        #         "market": {
+        #             "id": "KRW-BTC",
+        #             "name": "BTC/KRW",
+        #             "order_types": ["limit"],
+        #             "order_sides": ["ask", "bid"],
+        #             "bid": {"currency": "KRW", "price_unit": null, "min_total": 1000},
+        #             "ask": {"currency": "BTC", "price_unit": null, "min_total": 1000},
+        #             "max_total": "100000000.0",
+        #             "state": "active",
+        #         },
+        #         "bid_account": {
+        #             "currency": "KRW",
+        #             "balance": "0.0",
+        #             "locked": "0.0",
+        #             "avg_buy_price": "0",
+        #             "avg_buy_price_modified": False,
+        #             "unit_currency": "KRW",
+        #         },
+        #         "ask_account": {
+        #             "currency": "BTC",
+        #             "balance": "10.0",
+        #             "locked": "0.0",
+        #             "avg_buy_price": "8042000",
+        #             "avg_buy_price_modified": False,
+        #             "unit_currency": "KRW",
+        #         }
+        #     }
         #
         marketInfo = self.safe_value(response, 'market')
         bid = self.safe_value(marketInfo, 'bid')
@@ -759,6 +768,62 @@ class upbit(Exchange):
         #              sequential_id:  15428917910540000}  ]
         #
         return self.parse_trades(response, market, since, limit)
+
+    def fetch_trading_fee(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'market': market['id'],
+        }
+        response = self.privateGetOrdersChance(self.extend(request, params))
+        #
+        #     {
+        #         "bid_fee": "0.0005",
+        #         "ask_fee": "0.0005",
+        #         "maker_bid_fee": "0.0005",
+        #         "maker_ask_fee": "0.0005",
+        #         "market": {
+        #             "id": "KRW-BTC",
+        #             "name": "BTC/KRW",
+        #             "order_types": ["limit"],
+        #             "order_sides": ["ask", "bid"],
+        #             "bid": {"currency": "KRW", "price_unit": null, "min_total": 5000},
+        #             "ask": {"currency": "BTC", "price_unit": null, "min_total": 5000},
+        #             "max_total": "1000000000.0",
+        #             "state": "active"
+        #         },
+        #         "bid_account": {
+        #             "currency": "KRW",
+        #             "balance": "0.34202414",
+        #             "locked": "4999.99999922",
+        #             "avg_buy_price": "0",
+        #             "avg_buy_price_modified": True,
+        #             "unit_currency": "KRW"
+        #         },
+        #         "ask_account": {
+        #             "currency": "BTC",
+        #             "balance": "0.00048",
+        #             "locked": "0.0",
+        #             "avg_buy_price": "20870000",
+        #             "avg_buy_price_modified": False,
+        #             "unit_currency": "KRW"
+        #         }
+        #     }
+        #
+        askFee = self.safe_string(response, 'ask_fee')
+        bidFee = self.safe_string(response, 'bid_fee')
+        taker = Precise.string_max(askFee, bidFee)
+        makerAskFee = self.safe_string(response, 'maker_ask_fee')
+        makerBidFee = self.safe_string(response, 'maker_bid_fee')
+        maker = Precise.string_max(makerAskFee, makerBidFee)
+        return {
+            'info': response,
+            'symbol': symbol,
+            'maker': self.parse_number(maker),
+            'taker': self.parse_number(taker),
+            'percentage': True,
+            'tierBased': False,
+        }
 
     def parse_ohlcv(self, ohlcv, market=None):
         #

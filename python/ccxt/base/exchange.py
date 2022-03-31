@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.77.6'
+__version__ = '1.77.63'
 
 # -----------------------------------------------------------------------------
 
@@ -259,6 +259,7 @@ class Exchange(object):
         'fetchAccounts': None,
         'fetchBalance': True,
         'fetchBidsAsks': None,
+        'fetchBorrowInterest': None,
         'fetchBorrowRate': None,
         'fetchBorrowRateHistory': None,
         'fetchBorrowRatesPerSymbol': None,
@@ -2147,6 +2148,8 @@ class Exchange(object):
     def market(self, symbol):
         if not self.markets:
             raise ExchangeError('Markets not loaded')
+        if not self.markets_by_id:
+            raise ExchangeError('Markets not loaded')
         if isinstance(symbol, str):
             if symbol in self.markets:
                 return self.markets[symbol]
@@ -2767,7 +2770,7 @@ class Exchange(object):
             if isinstance(method_options, str):
                 method_type = method_options
             else:
-                method_type = self.safe_string_2(method_options, 'defaultType', 'type')
+                method_type = self.safe_string_2(method_options, 'defaultType', 'type', method_type)
         market_type = method_type if market is None else market['type']
         type = self.safe_string_2(params, 'defaultType', 'type', market_type)
         params = self.omit(params, ['defaultType', 'type'])

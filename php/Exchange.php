@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.77.6';
+$version = '1.77.63';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.77.6';
+    const VERSION = '1.77.63';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -1212,6 +1212,7 @@ class Exchange {
             'fetchAccounts' => null,
             'fetchBalance' => true,
             'fetchBidsAsks' => null,
+            'fetchBorrowInterest' => null,
             'fetchBorrowRate' => null,
             'fetchBorrowRateHistory' => null,
             'fetchBorrowRatesPerSymbol' => null,
@@ -2754,10 +2755,13 @@ class Exchange {
         if (!isset($this->markets)) {
             throw new ExchangeError($this->id . ' markets not loaded');
         }
+        if (!isset($this->markets_by_id)) {
+            throw new ExchangeError($this->id . ' markets not loaded');
+        }
         if (gettype($symbol) === 'string') {
             if (isset($this->markets[$symbol])) {
                 return $this->markets[$symbol];
-            } elseif (isset($this->markets_by_id)) {
+            } elseif (isset($this->markets_by_id[$symbol])) {
                 return $this->markets_by_id[$symbol];
             }
         }
@@ -3683,7 +3687,7 @@ class Exchange {
             if (is_string($method_options)) {
                 $method_type = $method_options;
             } else {
-                $method_type = $this->safe_string_2($method_options, 'defaultType', 'type');
+                $method_type = $this->safe_string_2($method_options, 'defaultType', 'type', $method_type);
             }
         }
         $market_type = isset($market) ? $market['type'] : $method_type;

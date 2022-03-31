@@ -65,6 +65,7 @@ class ftx(Exchange):
                 'createReduceOnlyOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
+                'fetchBorrowInterest': True,
                 'fetchBorrowRate': True,
                 'fetchBorrowRateHistories': True,
                 'fetchBorrowRateHistory': True,
@@ -594,7 +595,7 @@ class ftx(Exchange):
                 type = 'future'
                 expiry = self.parse8601(expiryDatetime)
                 if expiry is None:
-                    raise BadResponse(self.id + " symbol '" + id + "' is a future contract but with invalid expiry datetime: " + expiryDatetime)
+                    raise BadResponse(self.id + " symbol '" + id + "' is a future contract but with an invalid expiry datetime.")
                 parsedId = id.split('-')
                 length = len(parsedId)
                 if length > 2:
@@ -2342,19 +2343,16 @@ class ftx(Exchange):
 
     async def fetch_borrow_rates(self, params={}):
         await self.load_markets()
-        response = await self.privateGetSpotMarginBorrowRates()
+        response = await self.privateGetSpotMarginBorrowRates(params)
         #
-        # {
-        #     "success":true,
-        #     "result":[
-        #         {
-        #             "coin": "1INCH",
-        #             "previous": 0.0000462375,
-        #             "estimate": 0.0000462375
-        #         }
-        #         ...
-        #     ]
-        # }
+        #     {
+        #         "success":true,
+        #         "result":[
+        #             {"coin":"1INCH","previous":4.8763e-6,"estimate":4.8048e-6},
+        #             {"coin":"AAPL","previous":0.0000326469,"estimate":0.0000326469},
+        #             {"coin":"AAVE","previous":1.43e-6,"estimate":1.43e-6},
+        #         ]
+        #     }
         #
         timestamp = self.milliseconds()
         result = self.safe_value(response, 'result')
@@ -2430,3 +2428,37 @@ class ftx(Exchange):
             raise BadRequest(self.id + '.fetchBorrowRateHistory returned no data for ' + code)
         else:
             return borrowRateHistory
+
+    async def fetch_borrow_interest(self, code=None, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        request = {}
+        if since is not None:
+            request['start_time'] = int(since / 1000)
+        response = await self.privateGetSpotMarginBorrowHistory(self.extend(request, params))
+        #
+        #     {
+        #         "success":true,
+        #         "result":[
+        #             {"coin":"USDT","time":"2021-12-26T01:00:00+00:00","size":4593.74214725,"rate":3.3003e-6,"cost":0.0151607272085692,"feeUsd":0.0151683341034461},
+        #             {"coin":"USDT","time":"2021-12-26T00:00:00+00:00","size":4593.97110361,"rate":3.3003e-6,"cost":0.0151614828332441,"feeUsd":0.015169697173028324},
+        #             {"coin":"USDT","time":"2021-12-25T23:00:00+00:00","size":4594.20005922,"rate":3.3003e-6,"cost":0.0151622384554438,"feeUsd":0.015170200298479137},
+        #         ]
+        #     }
+        #
+        result = self.safe_value(response, 'result')
+        interest = []
+        for i in range(0, len(result)):
+            payment = result[i]
+            coin = self.safe_string(payment, 'coin')
+            datetime = self.safe_string(payment, 'time')
+            interest.append({
+                'account': None,
+                'currency': self.safe_currency_code(coin),
+                'interest': self.safe_number(payment, 'cost'),
+                'interestRate': self.safe_number(payment, 'rate'),
+                'amountBorrowed': self.safe_number(payment, 'size'),
+                'timestamp': self.parse8601(datetime),
+                'datetime': datetime,
+                'info': payment,
+            })
+        return self.filter_by_currency_since_limit(interest, code, since, limit)

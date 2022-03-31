@@ -73,6 +73,8 @@ class phemex(Exchange):
                 'fetchTradingFees': False,
                 'fetchWithdrawals': True,
                 'setLeverage': True,
+                'transfer': True,
+                'withdraw': None,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg',
@@ -390,6 +392,10 @@ class phemex(Exchange):
                     'USDT': 'ETH',
                 },
                 'defaultSubType': 'linear',
+                'accountsByType': {
+                    'spot': 'spot',
+                    'future': 'future',
+                },
             },
         })
 
@@ -2669,6 +2675,96 @@ class phemex(Exchange):
             'leverage': leverage,
         }
         return self.privatePutPositionsLeverage(self.extend(request, params))
+
+    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        accountsByType = self.safe_value(self.options, 'accountsByType', {})
+        fromId = self.safe_string(accountsByType, fromAccount)
+        toId = self.safe_string(accountsByType, toAccount)
+        direction = None
+        if fromId is None:
+            keys = list(accountsByType.keys())
+            raise ExchangeError(self.id + ' fromAccount must be one of ' + ', '.join(keys))
+        if toId is None:
+            keys = list(accountsByType.keys())
+            raise ExchangeError(self.id + ' toAccount must be one of ' + ', '.join(keys))
+        if fromId == 'spot' and toId == 'future':
+            direction = 2
+        if fromId == 'future' and toId == 'spot':
+            direction = 1
+        if direction is None:
+            raise ExchangeError(self.id + ' transfer can only be down from future to spot or from spot to future')
+        scaledAmmount = self.to_ev(amount, currency)
+        request = {
+            'currency': currency['id'],
+            'moveOp': direction,
+            'amountEv': scaledAmmount,
+        }
+        response = self.privatePostAssetsTransfer(self.extend(request, params))
+        #
+        #     {
+        #         code: '0',
+        #         msg: 'OK',
+        #         data: {
+        #             linkKey: '8564eba4-c9ec-49d6-9b8c-2ec5001a0fb9',
+        #             userId: '4018340',
+        #             currency: 'USD',
+        #             amountEv: '10',
+        #             side: '2',
+        #             status: '10'
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_transfer(data, currency)
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        #     {
+        #         linkKey: '8564eba4-c9ec-49d6-9b8c-2ec5001a0fb9',
+        #         userId: '4018340',
+        #         currency: 'USD',
+        #         amountEv: '10',
+        #         side: '2',
+        #         status: '10'
+        #     }
+        #
+        id = self.safe_string(transfer, 'linkKey')
+        status = self.safe_string(transfer, 'status')
+        amountEv = self.safe_string(transfer, 'amountEv')
+        amountTransfered = self.from_ev(amountEv, currency)
+        currencyId = self.safe_string(transfer, 'currency')
+        code = self.safe_currency_code(currencyId, currency)
+        side = self.safe_integer(transfer, 'side')
+        fromId = None
+        toId = None
+        if side == 1:
+            fromId = 'future'
+            toId = 'spot'
+        elif side == 2:
+            fromId = 'spot'
+            toId = 'future'
+        return {
+            'info': transfer,
+            'id': id,
+            'timestamp': None,
+            'datetime': None,
+            'currency': code,
+            'amount': amountTransfered,
+            'fromAccount': fromId,
+            'toAccount': toId,
+            'status': self.parse_transfer_status(status),
+        }
+
+    def parse_transfer_status(self, status):
+        statuses = {
+            '3': 'rejected',  # 'Rejected',
+            '6': 'canceled',  # 'Got error and wait for recovery',
+            '10': 'ok',  # 'Success',
+            '11': 'failed',  # 'Failed',
+        }
+        return self.safe_string(statuses, status, 'pending')
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:

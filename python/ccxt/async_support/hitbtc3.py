@@ -42,7 +42,7 @@ class hitbtc3(Exchange):
                 'swap': True,
                 'future': False,
                 'option': None,
-                'addMargin': None,
+                'addMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
@@ -58,8 +58,9 @@ class hitbtc3(Exchange):
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': None,
-                'fetchLeverageTiers': None,
-                'fetchMarketLeverageTiers': None,
+                'fetchLeverage': True,
+                'fetchLeverageTiers': False,
+                'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': None,
                 'fetchMyTrades': True,
@@ -81,7 +82,7 @@ class hitbtc3(Exchange):
                 'fetchTradingFees': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
-                'reduceMargin': None,
+                'reduceMargin': True,
                 'setLeverage': None,
                 'setMarginMode': False,
                 'setPositionMode': False,
@@ -141,7 +142,9 @@ class hitbtc3(Exchange):
                         'margin/account/isolated/{symbol}': 15,
                         'margin/order': 15,
                         'margin/order/{client_order_id}': 15,
+                        'margin/history/clearing': 15,
                         'margin/history/order': 15,
+                        'margin/history/positions': 15,
                         'margin/history/trade': 15,
                         'futures/balance': 15,
                         'futures/account': 15,
@@ -150,7 +153,9 @@ class hitbtc3(Exchange):
                         'futures/order/{client_order_id}': 15,
                         'futures/fee': 15,
                         'futures/fee/{symbol}': 15,
+                        'futures/history/clearing': 15,
                         'futures/history/order': 15,
+                        'futures/history/positions': 15,
                         'futures/history/trade': 15,
                         'wallet/balance': 15,
                         'wallet/crypto/address': 15,
@@ -1151,6 +1156,7 @@ class hitbtc3(Exchange):
         method = self.get_supported_mapping(marketType, {
             'spot': 'privateGetSpotHistoryOrder',
             'swap': 'privateGetFuturesHistoryOrder',
+            'margin': 'privateGetMarginHistoryOrder',
         })
         response = await getattr(self, method)(self.extend(request, query))
         parsed = self.parse_orders(response, market, since, limit)
@@ -1165,6 +1171,7 @@ class hitbtc3(Exchange):
         method = self.get_supported_mapping(marketType, {
             'spot': 'privateGetSpotHistoryOrder',
             'swap': 'privateGetFuturesHistoryOrder',
+            'margin': 'privateGetMarginHistoryOrder',
         })
         request = {
             'client_order_id': id,
@@ -1310,6 +1317,7 @@ class hitbtc3(Exchange):
         method = self.get_supported_mapping(marketType, {
             'spot': 'privateDeleteSpotOrder',
             'swap': 'privateDeleteFuturesOrder',
+            'margin': 'privateDeleteMarginOrder',
         })
         response = await getattr(self, method)(self.extend(request, query))
         return self.parse_orders(response, market)
@@ -1326,6 +1334,7 @@ class hitbtc3(Exchange):
         method = self.get_supported_mapping(marketType, {
             'spot': 'privateDeleteSpotOrderClientOrderId',
             'swap': 'privateDeleteFuturesOrderClientOrderId',
+            'margin': 'privateDeleteMarginOrderClientOrderId',
         })
         response = await getattr(self, method)(self.extend(request, query))
         return self.parse_order(response, market)
@@ -1343,11 +1352,13 @@ class hitbtc3(Exchange):
             request['price'] = self.price_to_precision(symbol, price)
         if symbol is not None:
             market = self.market(symbol)
-        method = self.get_supported_mapping(market['type'], {
+        marketType, query = self.handle_market_type_and_params('editOrder', market, params)
+        method = self.get_supported_mapping(marketType, {
             'spot': 'privatePatchSpotOrderClientOrderId',
             'swap': 'privatePatchFuturesOrderClientOrderId',
+            'margin': 'privatePatchMarginOrderClientOrderId',
         })
-        response = await getattr(self, method)(self.extend(request, params))
+        response = await getattr(self, method)(self.extend(request, query))
         return self.parse_order(response, market)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -1389,11 +1400,13 @@ class hitbtc3(Exchange):
             if stopPrice is None:
                 raise ExchangeError(self.id + ' createOrder() requires a stopPrice parameter for stop-loss and take-profit orders')
             request['stop_price'] = self.price_to_precision(symbol, stopPrice)
-        method = self.get_supported_mapping(market['type'], {
+        marketType, query = self.handle_market_type_and_params('createOrder', market, params)
+        method = self.get_supported_mapping(marketType, {
             'spot': 'privatePostSpotOrder',
             'swap': 'privatePostFuturesOrder',
+            'margin': 'privatePostMarginOrder',
         })
-        response = await getattr(self, method)(self.extend(request, params))
+        response = await getattr(self, method)(self.extend(request, query))
         return self.parse_order(response, market)
 
     async def create_reduce_only_order(self, symbol, type, side, amount, price=None, params={}):
@@ -1856,6 +1869,109 @@ class hitbtc3(Exchange):
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
         }
+
+    async def modify_margin_helper(self, symbol, amount, type, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        leverage = self.safe_string(params, 'leverage')
+        amount = self.amount_to_precision(symbol, amount)
+        if market['type'] == 'swap':
+            if leverage is None:
+                raise ArgumentsRequired(self.id + ' modifyMarginHelper() requires a leverage parameter for swap markets')
+        request = {
+            'symbol': market['id'],  # swap and margin
+            'margin_balance': amount,  # swap and margin
+            # 'leverage': '10',  # swap only required
+            # 'strict_validate': False,  # swap and margin
+        }
+        if leverage is not None:
+            request['leverage'] = leverage
+        marketType, query = self.handle_market_type_and_params('modifyMarginHelper', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'swap': 'privatePutFuturesAccountIsolatedSymbol',
+            'margin': 'privatePutMarginAccountIsolatedSymbol',
+        })
+        response = await getattr(self, method)(self.extend(request, query))
+        #
+        #     {
+        #         "symbol": "BTCUSDT_PERP",
+        #         "type": "isolated",
+        #         "leverage": "8.00",
+        #         "created_at": "2022-03-30T23:34:27.161Z",
+        #         "updated_at": "2022-03-30T23:34:27.161Z",
+        #         "currencies": [
+        #             {
+        #                 "code": "USDT",
+        #                 "margin_balance": "7.000000000000",
+        #                 "reserved_orders": "0",
+        #                 "reserved_positions": "0"
+        #             }
+        #         ],
+        #         "positions": null
+        #     }
+        #
+        currencies = self.safe_value(response, 'currencies', [])
+        data = self.safe_value(currencies, 0)
+        return {
+            'info': response,
+            'type': type,
+            'amount': amount,
+            'code': self.safe_string(data, 'code'),
+            'symbol': market['symbol'],
+            'status': None,
+        }
+
+    async def reduce_margin(self, symbol, amount, params={}):
+        if amount != 0:
+            raise BadRequest(self.id + ' reduceMargin() on hitbtc3 requires the amount to be 0 and that will remove the entire margin amount')
+        return await self.modify_margin_helper(symbol, amount, 'reduce', params)
+
+    async def add_margin(self, symbol, amount, params={}):
+        return await self.modify_margin_helper(symbol, amount, 'add', params)
+
+    async def fetch_leverage(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        method = self.get_supported_mapping(market['type'], {
+            'spot': 'privateGetMarginAccountIsolatedSymbol',
+            'margin': 'privateGetMarginAccountIsolatedSymbol',
+            'swap': 'privateGetFuturesAccountIsolatedSymbol',
+        })
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        #     {
+        #         "symbol": "BTCUSDT",
+        #         "type": "isolated",
+        #         "leverage": "12.00",
+        #         "created_at": "2022-03-29T22:31:29.067Z",
+        #         "updated_at": "2022-03-30T00:00:00.125Z",
+        #         "currencies": [
+        #             {
+        #                 "code": "USDT",
+        #                 "margin_balance": "20.824360374174",
+        #                 "reserved_orders": "0",
+        #                 "reserved_positions": "0.973330435000"
+        #             }
+        #         ],
+        #         "positions": [
+        #             {
+        #                 "id": 631301,
+        #                 "symbol": "BTCUSDT",
+        #                 "quantity": "0.00022",
+        #                 "price_entry": "47425.57",
+        #                 "price_margin_call": "",
+        #                 "price_liquidation": "0",
+        #                 "pnl": "0",
+        #                 "created_at": "2022-03-29T22:31:29.067Z",
+        #                 "updated_at": "2022-03-30T00:00:00.125Z"
+        #             }
+        #         ]
+        #     }
+        #
+        return self.safe_number(response, 'leverage')
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         #

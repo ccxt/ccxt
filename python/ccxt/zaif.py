@@ -326,18 +326,27 @@ class zaif(Exchange):
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market=None):
+        #
+        # fetchTrades(public)
+        #
+        #      {
+        #          "date": 1648559414,
+        #          "price": 5880375.0,
+        #          "amount": 0.017,
+        #          "tid": 176126557,
+        #          "currency_pair": "btc_jpy",
+        #          "trade_type": "ask"
+        #      }
+        #
         side = self.safe_string(trade, 'trade_type')
         side = 'buy' if (side == 'bid') else 'sell'
         timestamp = self.safe_timestamp(trade, 'date')
         id = self.safe_string_2(trade, 'id', 'tid')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         marketId = self.safe_string(trade, 'currency_pair')
         symbol = self.safe_symbol(marketId, market, '_')
-        return {
+        return self.safe_trade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -347,11 +356,11 @@ class zaif(Exchange):
             'side': side,
             'order': None,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': None,
-        }
+        }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
@@ -360,6 +369,18 @@ class zaif(Exchange):
             'pair': market['id'],
         }
         response = self.publicGetTradesPair(self.extend(request, params))
+        #
+        #      [
+        #          {
+        #              "date": 1648559414,
+        #              "price": 5880375.0,
+        #              "amount": 0.017,
+        #              "tid": 176126557,
+        #              "currency_pair": "btc_jpy",
+        #              "trade_type": "ask"
+        #          }, ...
+        #      ]
+        #
         numTrades = len(response)
         if numTrades == 1:
             firstTrade = response[0]

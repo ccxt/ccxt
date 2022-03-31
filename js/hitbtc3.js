@@ -22,7 +22,7 @@ module.exports = class hitbtc3 extends Exchange {
                 'swap': true,
                 'future': false,
                 'option': undefined,
-                'addMargin': undefined,
+                'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
@@ -38,8 +38,9 @@ module.exports = class hitbtc3 extends Exchange {
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': undefined,
-                'fetchLeverageTiers': undefined,
-                'fetchMarketLeverageTiers': undefined,
+                'fetchLeverage': true,
+                'fetchLeverageTiers': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': undefined,
                 'fetchMyTrades': true,
@@ -61,7 +62,7 @@ module.exports = class hitbtc3 extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
-                'reduceMargin': undefined,
+                'reduceMargin': true,
                 'setLeverage': undefined,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -121,7 +122,9 @@ module.exports = class hitbtc3 extends Exchange {
                         'margin/account/isolated/{symbol}': 15,
                         'margin/order': 15,
                         'margin/order/{client_order_id}': 15,
+                        'margin/history/clearing': 15,
                         'margin/history/order': 15,
+                        'margin/history/positions': 15,
                         'margin/history/trade': 15,
                         'futures/balance': 15,
                         'futures/account': 15,
@@ -130,7 +133,9 @@ module.exports = class hitbtc3 extends Exchange {
                         'futures/order/{client_order_id}': 15,
                         'futures/fee': 15,
                         'futures/fee/{symbol}': 15,
+                        'futures/history/clearing': 15,
                         'futures/history/order': 15,
+                        'futures/history/positions': 15,
                         'futures/history/trade': 15,
                         'wallet/balance': 15,
                         'wallet/crypto/address': 15,
@@ -1196,6 +1201,7 @@ module.exports = class hitbtc3 extends Exchange {
         const method = this.getSupportedMapping (marketType, {
             'spot': 'privateGetSpotHistoryOrder',
             'swap': 'privateGetFuturesHistoryOrder',
+            'margin': 'privateGetMarginHistoryOrder',
         });
         const response = await this[method] (this.extend (request, query));
         const parsed = this.parseOrders (response, market, since, limit);
@@ -1212,6 +1218,7 @@ module.exports = class hitbtc3 extends Exchange {
         const method = this.getSupportedMapping (marketType, {
             'spot': 'privateGetSpotHistoryOrder',
             'swap': 'privateGetFuturesHistoryOrder',
+            'margin': 'privateGetMarginHistoryOrder',
         });
         const request = {
             'client_order_id': id,
@@ -1365,6 +1372,7 @@ module.exports = class hitbtc3 extends Exchange {
         const method = this.getSupportedMapping (marketType, {
             'spot': 'privateDeleteSpotOrder',
             'swap': 'privateDeleteFuturesOrder',
+            'margin': 'privateDeleteMarginOrder',
         });
         const response = await this[method] (this.extend (request, query));
         return this.parseOrders (response, market);
@@ -1383,6 +1391,7 @@ module.exports = class hitbtc3 extends Exchange {
         const method = this.getSupportedMapping (marketType, {
             'spot': 'privateDeleteSpotOrderClientOrderId',
             'swap': 'privateDeleteFuturesOrderClientOrderId',
+            'margin': 'privateDeleteMarginOrderClientOrderId',
         });
         const response = await this[method] (this.extend (request, query));
         return this.parseOrder (response, market);
@@ -1404,11 +1413,13 @@ module.exports = class hitbtc3 extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const method = this.getSupportedMapping (market['type'], {
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('editOrder', market, params);
+        const method = this.getSupportedMapping (marketType, {
             'spot': 'privatePatchSpotOrderClientOrderId',
             'swap': 'privatePatchFuturesOrderClientOrderId',
+            'margin': 'privatePatchMarginOrderClientOrderId',
         });
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
         return this.parseOrder (response, market);
     }
 
@@ -1459,11 +1470,13 @@ module.exports = class hitbtc3 extends Exchange {
             }
             request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
         }
-        const method = this.getSupportedMapping (market['type'], {
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('createOrder', market, params);
+        const method = this.getSupportedMapping (marketType, {
             'spot': 'privatePostSpotOrder',
             'swap': 'privatePostFuturesOrder',
+            'margin': 'privatePostMarginOrder',
         });
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
         return this.parseOrder (response, market);
     }
 
@@ -1957,6 +1970,117 @@ module.exports = class hitbtc3 extends Exchange {
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
         };
+    }
+
+    async modifyMarginHelper (symbol, amount, type, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const leverage = this.safeString (params, 'leverage');
+        amount = this.amountToPrecision (symbol, amount);
+        if (market['type'] === 'swap') {
+            if (leverage === undefined) {
+                throw new ArgumentsRequired (this.id + ' modifyMarginHelper() requires a leverage parameter for swap markets');
+            }
+        }
+        const request = {
+            'symbol': market['id'], // swap and margin
+            'margin_balance': amount, // swap and margin
+            // 'leverage': '10', // swap only required
+            // 'strict_validate': false, // swap and margin
+        };
+        if (leverage !== undefined) {
+            request['leverage'] = leverage;
+        }
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('modifyMarginHelper', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'swap': 'privatePutFuturesAccountIsolatedSymbol',
+            'margin': 'privatePutMarginAccountIsolatedSymbol',
+        });
+        const response = await this[method] (this.extend (request, query));
+        //
+        //     {
+        //         "symbol": "BTCUSDT_PERP",
+        //         "type": "isolated",
+        //         "leverage": "8.00",
+        //         "created_at": "2022-03-30T23:34:27.161Z",
+        //         "updated_at": "2022-03-30T23:34:27.161Z",
+        //         "currencies": [
+        //             {
+        //                 "code": "USDT",
+        //                 "margin_balance": "7.000000000000",
+        //                 "reserved_orders": "0",
+        //                 "reserved_positions": "0"
+        //             }
+        //         ],
+        //         "positions": null
+        //     }
+        //
+        const currencies = this.safeValue (response, 'currencies', []);
+        const data = this.safeValue (currencies, 0);
+        return {
+            'info': response,
+            'type': type,
+            'amount': amount,
+            'code': this.safeString (data, 'code'),
+            'symbol': market['symbol'],
+            'status': undefined,
+        };
+    }
+
+    async reduceMargin (symbol, amount, params = {}) {
+        if (amount !== 0) {
+            throw new BadRequest (this.id + ' reduceMargin() on hitbtc3 requires the amount to be 0 and that will remove the entire margin amount');
+        }
+        return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
+    }
+
+    async addMargin (symbol, amount, params = {}) {
+        return await this.modifyMarginHelper (symbol, amount, 'add', params);
+    }
+
+    async fetchLeverage (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'privateGetMarginAccountIsolatedSymbol',
+            'margin': 'privateGetMarginAccountIsolatedSymbol',
+            'swap': 'privateGetFuturesAccountIsolatedSymbol',
+        });
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "type": "isolated",
+        //         "leverage": "12.00",
+        //         "created_at": "2022-03-29T22:31:29.067Z",
+        //         "updated_at": "2022-03-30T00:00:00.125Z",
+        //         "currencies": [
+        //             {
+        //                 "code": "USDT",
+        //                 "margin_balance": "20.824360374174",
+        //                 "reserved_orders": "0",
+        //                 "reserved_positions": "0.973330435000"
+        //             }
+        //         ],
+        //         "positions": [
+        //             {
+        //                 "id": 631301,
+        //                 "symbol": "BTCUSDT",
+        //                 "quantity": "0.00022",
+        //                 "price_entry": "47425.57",
+        //                 "price_margin_call": "",
+        //                 "price_liquidation": "0",
+        //                 "pnl": "0",
+        //                 "created_at": "2022-03-29T22:31:29.067Z",
+        //                 "updated_at": "2022-03-30T00:00:00.125Z"
+        //             }
+        //         ]
+        //     }
+        //
+        return this.safeNumber (response, 'leverage');
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
