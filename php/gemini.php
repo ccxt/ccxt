@@ -169,8 +169,8 @@ class gemini extends Exchange {
             'precisionMode' => TICK_SIZE,
             'fees' => array(
                 'trading' => array(
-                    'taker' => 0.0035,
-                    'maker' => 0.001,
+                    'taker' => 0.004,
+                    'maker' => 0.002,
                 ),
             ),
             'httpExceptions' => array(
