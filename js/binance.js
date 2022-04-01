@@ -1230,7 +1230,7 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchTime (params = {}) {
-        const type = this.getDefaultType ('fetchTime', 'params')
+        const type = this.getDefaultType ('fetchTime', 'params');
         const query = this.omit (params, 'type');
         let method = 'publicGetTime';
         if (type === 'linear') {
