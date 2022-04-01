@@ -781,7 +781,7 @@ module.exports = class binance extends Exchange {
                 'fetchCurrencies': true, // this is a private call and it requires API keys
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
-                'defaultType': 'spot', // 'spot', 'future', 'margin', 'delivery'
+                'defaultType': 'spot', // 'spot', 'margin', 'linear', 'inverse'
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
                 // not an error
@@ -1411,19 +1411,24 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const types = this.safeValue (this.options, 'fetchMarkets', [ 'spot', 'linear', 'inverse' ]);
+        // params['type'] can be one of 'spot', 'margin', 'linear', 'inverse'
+        // otherwise default to loading all of the markets
+        let types = this.safeValue (this.options, 'fetchMarkets', [ 'spot', 'linear', 'inverse' ]);
+        if ('type' in params) {
+            types = [ this.getDefaultType (undefined, params) ];
+        }
+        const query = this.omit (params, 'type');
         let result = [];
         for (let i = 0; i < types.length; i++) {
             const type = types[i];
-            const response = await this.fetchMarketsByType (type, params);
+            const response = await this.fetchMarketsByType (type, query);
             result = this.arrayConcat (result, response);
         }
         return result;
     }
 
     async fetchMarketsByType (type, params = {}) {
-        const query = this.omit (params, 'type');
-        if ((type !== 'spot') && (type !== 'linear') && (type !== 'inverse')) {
+        if ((type !== 'spot') && (type !== 'margin') && (type !== 'linear') && (type !== 'inverse')) {
             throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot', 'margin', 'inverse' or 'linear'"); // eslint-disable-line quotes
         }
         let method = 'publicGetExchangeInfo';
@@ -1432,7 +1437,7 @@ module.exports = class binance extends Exchange {
         } else if (type === 'inverse') {
             method = 'dapiPublicGetExchangeInfo';
         }
-        const response = await this[method] (query);
+        const response = await this[method] (params);
         //
         // spot / margin
         //
@@ -3807,7 +3812,7 @@ module.exports = class binance extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const defaultType = this.getDefaultType ('fetchTransfers');
+        const defaultType = this.getDefaultType ('fetchTransfers', params);
         const fromAccount = this.safeString (params, 'fromAccount', defaultType);
         const defaultTo = (fromAccount === 'future') ? 'spot' : 'future';
         const toAccount = this.safeString (params, 'toAccount', defaultTo);
