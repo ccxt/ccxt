@@ -579,6 +579,13 @@ class gateio(Exchange, ccxt.gateio):
             parsedOrders = self.parse_orders(orders)
             for i in range(0, len(parsedOrders)):
                 parsed = parsedOrders[i]
+                # inject order status
+                info = self.safe_value(parsed, 'info')
+                event = self.safe_string(info, 'event')
+                if event == 'put':
+                    parsed['status'] = 'open'
+                elif event == 'finish':
+                    parsed['status'] = 'closed'
                 stored.append(parsed)
                 symbol = parsed['symbol']
                 market = self.market(symbol)
