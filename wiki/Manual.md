@@ -5098,6 +5098,42 @@ Returns
 }
 ```
 
+## Borrow Interest
+
+* margin only
+
+To trade with leverage in spot or margin markets, currency must be borrowed as a loan. This borrowed currency must be payed back with interest. To obtain the amount of interest that has accrued you can use the `fetchBorrowInterest` method
+
+```JavaScript
+fetchBorrowInterest (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {})
+```
+
+Parameters
+
+- **code** (String) The unified currency code for the currency of the interest (e.g. `"USDT"`)
+- **symbol** (String) The market symbol of an isolated margin market, if undefined, the interest for cross margin markets is returned (e.g. `"BTC/USDT:USDT"`)
+- **since** (Integer) Timestamp (ms) of the earliest time to receive interest records for (e.g. `1646940314000`)
+- **limit** (Integer) The number of [borrow interest structures](#borrow-interest-structure) to retrieve (e.g. `5`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- An array of [borrow interest structures](#borrow-interest-structure)
+
+### Borrow Interest Structure
+
+```JavaScript
+{
+    account: 'BTC/USDT',                    // The market that the interest was accrued in
+    currency: 'USDT',                       // The currency of the interest
+    interest: 0.00004842,                   // The amount of interest that was charged
+    interestRate: 0.0002,                   // The borrow interest rate
+    amountBorrowed: 5.81,                   // The amount of currency that was borrowed
+    timestamp: 1648699200000,               // The timestamp that the interest was charged
+    datetime: '2022-03-31T04:00:00.000Z',   // The datetime that the interest was charged
+    info: { ... }                           // Unparsed exchange response
+}
+```
 
 # Error Handling
 
