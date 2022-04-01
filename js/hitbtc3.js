@@ -2104,7 +2104,7 @@ module.exports = class hitbtc3 extends Exchange {
         const amount = this.safeNumber (params, 'margin_balance');
         const options = this.safeValue (this.options, 'setLeverage', {});
         const maxLeverages = this.safeValue (options, 'maxLeverage', {});
-        const maxLeverage = this.safeNumber (maxLeverages, symbol, 50);
+        const maxLeverage = this.safeInteger (maxLeverages, symbol, 50);
         if (market['type'] !== 'swap') {
             throw new BadSymbol (this.id + ' setLeverage() supports swap contracts only');
         }
