@@ -5396,13 +5396,15 @@ module.exports = class binance extends Exchange {
         };
         let method = undefined;
         let code = undefined;
-        if (market['inverse']) {
+        if (market['linear']) {
+            method = 'fapiPrivatePostPositionMargin';
+            code = market['quote'];
+        } else if (market['inverse']) {
             method = 'dapiPrivatePostPositionMargin';
             code = market['base'];
         } else {
-            // fallback to linear
-            method = 'fapiPrivatePostPositionMargin';
-            code = market['quote'];
+            const methodName = addOrReduce ? 'addMargin' : 'reduceMargin';
+            throw new NotSupported (this.id + ' ' + methodName + '() supports linear and inverse contracts only');
         }
         const response = await this[method] (this.extend (request, params));
         //
