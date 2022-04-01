@@ -5387,15 +5387,6 @@ module.exports = class binance extends Exchange {
 
     async modifyMarginHelper (symbol, amount, addOrReduce, params = {}) {
         // used to modify isolated positions
-        const methodName = addOrReduce ? 'addMargin' : 'reduceMargin';
-        let defaultType = this.getDefaultType (methodName, params);
-        if (defaultType === 'spot') {
-            defaultType = 'linear';
-        }
-        const type = this.safeString (params, 'type', defaultType);
-        if ((type === 'margin') || (type === 'spot')) {
-            throw new NotSupported (this.id + ' add / reduce margin only supported with type future or delivery');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -5405,12 +5396,13 @@ module.exports = class binance extends Exchange {
         };
         let method = undefined;
         let code = undefined;
-        if (type === 'linear') {
-            method = 'fapiPrivatePostPositionMargin';
-            code = market['quote'];
-        } else {
+        if (market['inverse']) {
             method = 'dapiPrivatePostPositionMargin';
             code = market['base'];
+        } else {
+            // fallback to linear
+            method = 'fapiPrivatePostPositionMargin';
+            code = market['quote'];
         }
         const response = await this[method] (this.extend (request, params));
         //
