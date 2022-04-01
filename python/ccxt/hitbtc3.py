@@ -83,7 +83,7 @@ class hitbtc3(Exchange):
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
-                'setLeverage': None,
+                'setLeverage': True,
                 'setMarginMode': False,
                 'setPositionMode': False,
                 'transfer': True,
@@ -1979,6 +1979,27 @@ class hitbtc3(Exchange):
         #     }
         #
         return self.safe_number(response, 'leverage')
+
+    def set_leverage(self, leverage, symbol=None, params={}):
+        self.load_markets()
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
+        if params['margin_balance'] is None:
+            raise ArgumentsRequired(self.id + ' setLeverage() requires a margin_balance parameter that will transfer margin to the specified trading pair')
+        market = self.market(symbol)
+        amount = self.safe_number(params, 'margin_balance')
+        maxLeverage = self.safe_integer(market['limits']['leverage'], 'max', 50)
+        if market['type'] != 'swap':
+            raise BadSymbol(self.id + ' setLeverage() supports swap contracts only')
+        if (leverage < 1) or (leverage > maxLeverage):
+            raise BadRequest(self.id + ' setLeverage() leverage should be between 1 and ' + str(maxLeverage) + ' for ' + symbol)
+        request = {
+            'symbol': market['id'],
+            'leverage': str(leverage),
+            'margin_balance': self.amount_to_precision(symbol, amount),
+            # 'strict_validate': False,
+        }
+        return self.privatePutFuturesAccountIsolatedSymbol(self.extend(request, params))
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         #

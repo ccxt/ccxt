@@ -74,7 +74,7 @@ class hitbtc3 extends Exchange {
                 'fetchTransactions' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
-                'setLeverage' => null,
+                'setLeverage' => true,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
                 'transfer' => true,
@@ -2099,6 +2099,32 @@ class hitbtc3 extends Exchange {
         //     }
         //
         return $this->safe_number($response, 'leverage');
+    }
+
+    public function set_leverage($leverage, $symbol = null, $params = array ()) {
+        yield $this->load_markets();
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+        }
+        if ($params['margin_balance'] === null) {
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a margin_balance parameter that will transfer margin to the specified trading pair');
+        }
+        $market = $this->market($symbol);
+        $amount = $this->safe_number($params, 'margin_balance');
+        $maxLeverage = $this->safe_integer($market['limits']['leverage'], 'max', 50);
+        if ($market['type'] !== 'swap') {
+            throw new BadSymbol($this->id . ' setLeverage() supports swap contracts only');
+        }
+        if (($leverage < 1) || ($leverage > $maxLeverage)) {
+            throw new BadRequest($this->id . ' setLeverage() $leverage should be between 1 and ' . (string) $maxLeverage . ' for ' . $symbol);
+        }
+        $request = array(
+            'symbol' => $market['id'],
+            'leverage' => (string) $leverage,
+            'margin_balance' => $this->amount_to_precision($symbol, $amount),
+            // 'strict_validate' => false,
+        );
+        return yield $this->privatePutFuturesAccountIsolatedSymbol (array_merge($request, $params));
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
