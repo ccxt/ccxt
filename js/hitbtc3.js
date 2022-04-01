@@ -1232,26 +1232,14 @@ module.exports = class hitbtc3 extends Exchange {
         //         "max": "45219.43"
         //     },
         //
-        const ohlcvLength = Object.keys (ohlcv).length;
-        if (ohlcvLength > 5) {
-            return [
-                this.parse8601 (this.safeString (ohlcv, 'timestamp')),
-                this.safeNumber (ohlcv, 'open'),
-                this.safeNumber (ohlcv, 'max'),
-                this.safeNumber (ohlcv, 'min'),
-                this.safeNumber (ohlcv, 'close'),
-                this.safeNumber (ohlcv, 'volume'),
-            ];
-        } else {
-            return [
-                this.parse8601 (this.safeString (ohlcv, 'timestamp')),
-                this.safeNumber (ohlcv, 'open'),
-                this.safeNumber (ohlcv, 'max'),
-                this.safeNumber (ohlcv, 'min'),
-                this.safeNumber (ohlcv, 'close'),
-                undefined,
-            ];
-        }
+        return [
+            this.parse8601 (this.safeString (ohlcv, 'timestamp')),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'max'),
+            this.safeNumber (ohlcv, 'min'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'volume'),
+        ];
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
