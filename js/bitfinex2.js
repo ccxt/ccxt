@@ -369,7 +369,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'ETHF0': 'ETH',
                 'EURF0': 'EUR',
                 'EUROPE50IXF0': 'EUROPE50IX',
-                'EUTF0': 'EUT',
+                'EUTF0': 'EURT',
                 'FILF0': 'FIL',
                 'FTMF0': 'FTM',
                 'GBPF0': 'GBP',
