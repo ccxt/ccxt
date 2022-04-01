@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { BadRequest, InvalidOrder, InvalidAddress, ExchangeError, ArgumentsRequired, InsufficientFunds } = require ('./base/errors');
+const { BadRequest, BadSymbol, InvalidOrder, InvalidAddress, ExchangeError, ArgumentsRequired, InsufficientFunds } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
@@ -368,16 +368,56 @@ module.exports = class mexc3 extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    // until mexc migrates fully to v3, it might be worth to note the version & market aside errors, not easily remove obsolete version's exceptions in future
                     '-1128': BadRequest,
                     '-2011': BadRequest,
+                    '-1121': BadSymbol,
+                    '2011': BadRequest,
                     '30004': InsufficientFunds,
+                    '1002': InvalidOrder,
                     '30019': BadRequest,
+                    '30005': InvalidOrder,
+                    '2003': InvalidOrder,
+                    '2005': InsufficientFunds,
+                    // below are old v2 codes, I am not sure if they still apply.
+                    // '400': BadRequest, // Invalid parameter
+                    // '401': AuthenticationError, // Invalid signature, fail to pass the validation
+                    // '403': PermissionDenied, // {"msg":"no permission to access the endpoint","code":403}
+                    // '429': RateLimitExceeded, // too many requests, rate limit rule is violated
+                    // '1000': AccountNotEnabled, // {"success":false,"code":1000,"message":"Please open contract account first!"}
+                    // '1002': InvalidOrder,
+                    // '10072': AuthenticationError, // Invalid access key
+                    // '10073': AuthenticationError, // Invalid request time
+                    // '10075': PermissionDenied, // {"msg":"IP [xxx.xxx.xxx.xxx] not in the ip white list","code":10075}
+                    // '10101': InsufficientFunds, // {"code":10101,"msg":"Insufficient balance"}
+                    // '10216': InvalidAddress, // {"code":10216,"msg":"No available deposit address"}
+                    // '10232': BadSymbol, // {"code":10232,"msg":"The currency not exist"}
+                    // '30000': BadSymbol, // Trading is suspended for the requested symbol
+                    // '30001': InvalidOrder, // Current trading type (bid or ask) is not allowed
+                    // '30002': InvalidOrder, // Invalid trading amount, smaller than the symbol minimum trading amount
+                    // '30003': InvalidOrder, // Invalid trading amount, greater than the symbol maximum trading amount
+                    // '30004': InsufficientFunds, // Insufficient balance
+                    // '30005': InvalidOrder, // Oversell error
+                    // '30010': InvalidOrder, // Price out of allowed range
+                    // '30016': BadSymbol, // Market is closed
+                    // '30019': InvalidOrder, // Orders count over limit for batch processing
+                    // '30020': BadSymbol, // Restricted symbol, API access is not allowed for the time being
+                    // '30021': BadSymbol, // Invalid symbol
+                    // '33333': BadSymbol, // {"code":33333,"msg":"currency can not be null"}
                 },
                 'broad': {
-                    'Combination of optional parameters invalid': BadRequest, // {"msg":"Combination of optional parameters invalid.","code":-1128,"_extend":null}
-                    'Insufficient position': InsufficientFunds,
-                    'Unknown order sent': BadRequest,
-                    'api market order is disabled': BadRequest,
+                    'Order quantity error, please try to modify.': BadRequest, // code:2011
+                    'Combination of optional parameters invalid': BadRequest, // code:-2011
+                    'api market order is disabled': BadRequest, //
+                    'Contract not allow place order!': InvalidOrder, // code:1002
+                    'Oversold': InvalidOrder, // code:30005
+                    'Insufficient position': InsufficientFunds, // code:30004
+                    'Insufficient balance!': InsufficientFunds, // code:2005
+                    'Bid price is great than max allow price': InvalidOrder, // code:2003
+                    'Invalid symbol.': BadSymbol, // code:-1121
+                    // below are v2
+                    // 'Insufficient balance': InsufficientFunds,
+                    // 'Unknown order sent': BadRequest,
                 },
             },
         });
@@ -1342,6 +1382,12 @@ module.exports = class mexc3 extends Exchange {
             ask = this.safeNumber (ticker, 'askPrice');
             bidVolume = this.safeNumber (ticker, 'bidQty');
             askVolume = this.safeNumber (ticker, 'askQty');
+            if (bidVolume === 0) {
+                bidVolume = undefined;
+            }
+            if (askVolume === 0) {
+                askVolume = undefined;
+            }
             baseVolume = this.safeString (ticker, 'volume');
             quoteVolume = this.safeString (ticker, 'quoteVolume');
             open = this.safeString (ticker, 'openPrice');
@@ -1393,7 +1439,7 @@ module.exports = class mexc3 extends Exchange {
             //     ]
             //
         } else if (marketType === 'swap') {
-            method = '';
+            throw new BadRequest (this.id + ' fetchBidsAsks() is not available for ' + marketType + ' markets');
         }
         const response = await this[method] (query);
         return this.parseTickers (response, symbols);
@@ -1445,9 +1491,9 @@ module.exports = class mexc3 extends Exchange {
         });
     }
 
-    async createSwapOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createSwapOrder (market, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const symbol = market['symbol'];
         const openType = this.safeInteger (params, 'openType');
         if (openType === undefined) {
             throw new ArgumentsRequired (this.id + ' createSwapOrder() requires an integer openType parameter, 1 for isolated margin, 2 for cross margin');
@@ -1525,74 +1571,8 @@ module.exports = class mexc3 extends Exchange {
         // Trigger
         //     {"success":true,"code":0,"data":259208506303929856}
         //
-        return this.parseOrder (response, market);
-    }
-
-    async cancelOrder (id, symbol = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const clientOrderId = this.safeString (params, 'clientOrderId');
-        if (clientOrderId !== undefined) {
-            params = this.omit (params, 'clientOrderId');
-            request['origClientOrderId'] = clientOrderId;
-        } else {
-            request['orderId'] = id;
-        }
-        const response = await this.spotPrivateDeleteOrder (this.extend (request, params));
-        //
-        // spot
-        //
-        //     {
-        //         "symbol": "BTCUSDT",
-        //         "orderId": "133734823834447872",
-        //         "price": "30000",
-        //         "origQty": "0.0002",
-        //         "type": "LIMIT",
-        //         "side": "BUY"
-        //     }
-        //
-        return this.parseOrder (response, market);
-    }
-
-    async cancelAllOrders (symbol = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const response = await this.spotPrivateDeleteOpenOrders (this.extend (request, params));
-        //
-        // spot
-        //
-        //     [
-        //         {
-        //             "symbol": "BTCUSDT",
-        //             "orderId": "133926492139692032",
-        //             "price": "30000",
-        //             "origQty": "0.0002",
-        //             "type": "LIMIT",
-        //             "side": "BUY"
-        //         },
-        //         {
-        //             "symbol": "BTCUSDT",
-        //             "orderId": "133926441921286144",
-        //             "price": "30000",
-        //             "origQty": "0.0002",
-        //             "type": "LIMIT",
-        //             "side": "BUY"
-        //         }
-        //     ]
-        //
-        return this.parseOrders (response, market);
+        const data = this.safeString (response, 'data');
+        return this.parseOrder (data, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -1604,39 +1584,76 @@ module.exports = class mexc3 extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const clientOrderId = this.safeString (params, 'clientOrderId');
-        if (clientOrderId !== undefined) {
-            params = this.omit (params, 'clientOrderId');
-            request['origClientOrderId'] = clientOrderId;
-        } else {
-            request['orderId'] = id;
+        let data = undefined;
+        if (market['spot']) {
+            const clientOrderId = this.safeString (params, 'clientOrderId');
+            if (clientOrderId !== undefined) {
+                params = this.omit (params, 'clientOrderId');
+                request['origClientOrderId'] = clientOrderId;
+            } else {
+                request['orderId'] = id;
+            }
+            data = await this.spotPrivateGetOrder (this.extend (request, params));
+            //
+            //     {
+            //         "symbol": "BTCUSDT",
+            //         "orderId": "133734823834147272",
+            //         "orderListId": "-1",
+            //         "clientOrderId": null,
+            //         "price": "30000",
+            //         "origQty": "0.0002",
+            //         "executedQty": "0",
+            //         "cummulativeQuoteQty": "0",
+            //         "status": "CANCELED",
+            //         "timeInForce": null,
+            //         "type": "LIMIT",
+            //         "side": "BUY",
+            //         "stopPrice": null,
+            //         "icebergQty": null,
+            //         "time": "1647667102000",
+            //         "updateTime": "1647708567000",
+            //         "isWorking": true,
+            //         "origQuoteOrderQty": "6"
+            //     }
+            //
+        } else if (market['swap']) {
+            request['order_id'] = id;
+            const response = await this.contractPrivateGetOrderGetOrderId (this.extend (request, params));
+            //
+            //     {
+            //         "success": true,
+            //         "code": "0",
+            //         "data": {
+            //             "orderId": "264995729269765120",
+            //             "symbol": "STEPN_USDT",
+            //             "positionId": "0",
+            //             "price": "2.2",
+            //             "vol": "20",
+            //             "leverage": "20",
+            //             "side": "1",
+            //             "category": "1",
+            //             "orderType": "1",
+            //             "dealAvgPrice": "0",
+            //             "dealVol": "0",
+            //             "orderMargin": "2.2528",
+            //             "takerFee": "0",
+            //             "makerFee": "0",
+            //             "profit": "0",
+            //             "feeCurrency": "USDT",
+            //             "openType": "1",
+            //             "state": "2",
+            //             "externalOid": "_m_0e9520c256744d64b942985189026d20",
+            //             "errorCode": "0",
+            //             "usedMargin": "0",
+            //             "createTime": "1648850305236",
+            //             "updateTime": "1648850305245",
+            //             "positionMode": "1"
+            //         }
+            //     }
+            //
+            data = this.safeValue (response, 'data');
         }
-        const response = await this.spotPrivateGetOrder (this.extend (request, params));
-        //
-        // spot
-        //
-        //     {
-        //         "symbol": "BTCUSDT",
-        //         "orderId": "133734823834147272",
-        //         "orderListId": "-1",
-        //         "clientOrderId": null,
-        //         "price": "30000",
-        //         "origQty": "0.0002",
-        //         "executedQty": "0",
-        //         "cummulativeQuoteQty": "0",
-        //         "status": "CANCELED",
-        //         "timeInForce": null,
-        //         "type": "LIMIT",
-        //         "side": "BUY",
-        //         "stopPrice": null,
-        //         "icebergQty": null,
-        //         "time": "1647667102000",
-        //         "updateTime": "1647708567000",
-        //         "isWorking": true,
-        //         "origQuoteOrderQty": "6"
-        //     }
-        //
-        return this.parseOrder (response, market);
+        return this.parseOrder (data, market);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1755,6 +1772,73 @@ module.exports = class mexc3 extends Exchange {
         return await this.fetchOrdersByState ('FILLED', symbol, since, limit, params);
     }
 
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            params = this.omit (params, 'clientOrderId');
+            request['origClientOrderId'] = clientOrderId;
+        } else {
+            request['orderId'] = id;
+        }
+        const response = await this.spotPrivateDeleteOrder (this.extend (request, params));
+        //
+        // spot
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "orderId": "133734823834447872",
+        //         "price": "30000",
+        //         "origQty": "0.0002",
+        //         "type": "LIMIT",
+        //         "side": "BUY"
+        //     }
+        //
+        return this.parseOrder (response, market);
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.spotPrivateDeleteOpenOrders (this.extend (request, params));
+        //
+        // spot
+        //
+        //     [
+        //         {
+        //             "symbol": "BTCUSDT",
+        //             "orderId": "133926492139692032",
+        //             "price": "30000",
+        //             "origQty": "0.0002",
+        //             "type": "LIMIT",
+        //             "side": "BUY"
+        //         },
+        //         {
+        //             "symbol": "BTCUSDT",
+        //             "orderId": "133926441921286144",
+        //             "price": "30000",
+        //             "origQty": "0.0002",
+        //             "type": "LIMIT",
+        //             "side": "BUY"
+        //         }
+        //     ]
+        //
+        return this.parseOrders (response, market);
+    }
+
     parseOrder (order, market = undefined) {
         //
         // spot: createOrder
@@ -1794,11 +1878,21 @@ module.exports = class mexc3 extends Exchange {
         //         "origQuoteOrderQty": "6"
         //     }
         //
+        // swap: createOrder
+        //
+        //     2ff3163e8617443cb9c6fc19d42b1ca4
+        //
+        let id = undefined;
+        if (typeof order === 'string') {
+            id = order;
+        } else {
+            id = this.safeString (order, 'orderId');
+        }
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (order, 'time');
         return this.safeOrder ({
-            'id': this.safeString (order, 'orderId'),
+            'id': id,
             'clientOrderId': this.safeString (order, 'clientOrderId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -2889,6 +2983,7 @@ module.exports = class mexc3 extends Exchange {
         }
         // spot
         //     {"code":-1128,"msg":"Combination of optional parameters invalid.","_extend":null}
+        //     {"success":false,"code":123456,"message":"Order quantity error...."}
         //
         // contract
         //
@@ -2902,9 +2997,8 @@ module.exports = class mexc3 extends Exchange {
         }
         const responseCode = this.safeString (response, 'code', undefined);
         if ((responseCode !== undefined) && (responseCode !== '200') && (responseCode !== '0')) {
-            const msg = this.safeString (response, 'msg');
+            // const msg = this.safeString2 (response, 'msg', 'message', '');
             const feedback = this.id + ' ' + body;
-            this.throwBroadlyMatchedException (this.exceptions['broad'], msg, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], responseCode, feedback);
             throw new ExchangeError (feedback);
