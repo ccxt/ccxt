@@ -1829,7 +1829,7 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchBalance (params = {}) {
-        // :param params.type: spot, margin, crossMargin, swap or future
+        // :param params.type: spot, margin, cross, swap or future
         // :param params.settle: Settle currency (usdt or btc) for perpetual swap and future
         await this.loadMarkets ();
         let type = undefined;
@@ -1839,6 +1839,8 @@ module.exports = class gateio extends Exchange {
         const method = this.getSupportedMapping (type, {
             'spot': 'privateSpotGetAccounts',
             'margin': 'privateMarginGetAccounts',
+            'cross': 'privateMarginGetCrossAccounts',
+            'funding': 'privateMarginGetFundingAccounts',
             'swap': 'privateFuturesGetSettleAccounts',
             'future': 'privateDeliveryGetSettleAccounts',
         });
@@ -1852,13 +1854,16 @@ module.exports = class gateio extends Exchange {
         } else {
             response = await this[method] (this.extend (request, params));
         }
-        // Spot
+        // Spot / margin funding
         //
         //     [
         //         {
         //             "currency": "DBC",
         //             "available": "0",
         //             "locked": "0"
+        //              "locked":"0", // margin funding only
+        //              "lent":"0", // margin funding only
+        //              "total_lent":"0" // margin funding only
         //         },
         //         ...
         //     ]
