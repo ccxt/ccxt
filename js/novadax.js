@@ -15,7 +15,9 @@ module.exports = class novadax extends Exchange {
             'id': 'novadax',
             'name': 'NovaDAX',
             'countries': [ 'BR' ], // Brazil
-            'rateLimit': 50,
+            // 60 requests per second = 1000ms / 60 = 16.6667ms between requests (public endpoints, limited by IP address)
+            // 50 requests per second => cost = 60 / 50 = 1.2 (private endpoints, limited by API Key)
+            'rateLimit': 16.6667,
             'version': 'v1',
             // new metainfo interface
             'has': {
@@ -99,35 +101,35 @@ module.exports = class novadax extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'common/symbol',
-                        'common/symbols',
-                        'common/timestamp',
-                        'market/tickers',
-                        'market/ticker',
-                        'market/depth',
-                        'market/trades',
-                        'market/kline/history',
-                    ],
+                    'get': {
+                        'common/symbol': 1.2,
+                        'common/symbols': 1.2,
+                        'common/timestamp': 1.2,
+                        'market/tickers': 1.2,
+                        'market/ticker': 1.2,
+                        'market/depth': 1.2,
+                        'market/trades': 1.2,
+                        'market/kline/history': 1.2,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'orders/get',
-                        'orders/list',
-                        'orders/fill',
-                        'orders/fills',
-                        'account/getBalance',
-                        'account/subs',
-                        'account/subs/balance',
-                        'account/subs/transfer/record',
-                        'wallet/query/deposit-withdraw',
-                    ],
-                    'post': [
-                        'orders/create',
-                        'orders/cancel',
-                        'account/withdraw/coin',
-                        'account/subs/transfer',
-                    ],
+                    'get': {
+                        'orders/get': 2,
+                        'orders/list': 2,
+                        'orders/fill': 2,
+                        'orders/fills': 2,
+                        'account/getBalance': 2,
+                        'account/subs': 2,
+                        'account/subs/balance': 2,
+                        'account/subs/transfer/record': 2,
+                        'wallet/query/deposit-withdraw': 2,
+                    },
+                    'post': {
+                        'orders/create': 2,
+                        'orders/cancel': 2,
+                        'account/withdraw/coin': 2,
+                        'account/subs/transfer': 2,
+                    },
                 },
             },
             'fees': {
