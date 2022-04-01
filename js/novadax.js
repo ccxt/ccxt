@@ -468,7 +468,6 @@ module.exports = class novadax extends Exchange {
         const side = this.safeStringLower (trade, 'side');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
-        const costString = this.safeString (trade, 'volume');
         const marketId = this.safeString (trade, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '_');
         const takerOrMaker = this.safeStringLower (trade, 'role');
@@ -492,7 +491,7 @@ module.exports = class novadax extends Exchange {
             'side': side,
             'price': priceString,
             'amount': amountString,
-            'cost': costString,
+            'cost': undefined,
             'takerOrMaker': takerOrMaker,
             'fee': fee,
             'info': trade,
