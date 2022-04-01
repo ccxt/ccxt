@@ -19,7 +19,8 @@ module.exports = class binancecoinm extends binance {
                 ],
             },
             'options': {
-                'defaultType': 'delivery',
+                'fetchMarkets': [ 'inverse' ],
+                'defaultSubType': 'inverse',
                 'leverageBrackets': undefined,
             },
         });
