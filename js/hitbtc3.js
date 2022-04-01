@@ -63,7 +63,7 @@ module.exports = class hitbtc3 extends Exchange {
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
-                'setLeverage': undefined,
+                'setLeverage': true,
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'transfer': true,
@@ -301,6 +301,15 @@ module.exports = class hitbtc3 extends Exchange {
                     'wallet': 'wallet',
                     'future': 'derivatives',
                     'derivatives': 'derivatives',
+                },
+                'setLeverage': {
+                    'maxLeverage': {
+                        'BTC/USDT:USDT': 100,
+                        'ETH/USDT:USDT': 75,
+                        'ADA/USDT:USDT': 75,
+                        'SOL/USDT:USDT': 75,
+                        'XRP/USDT:USDT': 75,
+                    },
                 },
             },
         });
@@ -2088,6 +2097,34 @@ module.exports = class hitbtc3 extends Exchange {
         //     }
         //
         return this.safeNumber (response, 'leverage');
+    }
+
+    async setLeverage (leverage, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
+        if (params['margin_balance'] === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a margin_balance parameter that will transfer margin to the specified trading pair');
+        }
+        const market = this.market (symbol);
+        const amount = this.safeNumber (params, 'margin_balance');
+        const options = this.safeValue (this.options, 'setLeverage', {});
+        const maxLeverages = this.safeValue (options, 'maxLeverage', {});
+        const maxLeverage = this.safeInteger (maxLeverages, symbol, 50);
+        if (market['type'] !== 'swap') {
+            throw new BadSymbol (this.id + ' setLeverage() supports swap contracts only');
+        }
+        if ((leverage < 1) || (leverage > maxLeverage)) {
+            throw new BadRequest (this.id + ' setLeverage() leverage should be between 1 and ' + maxLeverage.toString () + ' for ' + symbol);
+        }
+        const request = {
+            'symbol': market['id'],
+            'leverage': leverage.toString (),
+            'margin_balance': this.amountToPrecision (symbol, amount),
+            // 'strict_validate': false,
+        };
+        return await this.privatePutFuturesAccountIsolatedSymbol (this.extend (request, params));
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
