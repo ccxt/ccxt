@@ -1729,7 +1729,7 @@ module.exports = class ftx extends Exchange {
         }
         const type = this.safeValue (params, 'type');
         params = this.omit (params, 'type');
-        // Note, the below types use non-standard endpoints, look through the implementation to understand better (It might better to use `fetchOrders/fetchOpenOrder` to get your trigger order's details)
+        // Note, the below types use non-standard endpoints, look through the implementation to understand better (It might better to use `fetchOrders/fetchOpenOrders` to get your trigger order's details)
         if ((type === 'stop') || (type === 'trailingStop') || (type === 'takeProfit')) {
             const orderStatusFlag = this.safeString (params, 'orderStatusFlag');
             params = this.omit (params, 'orderStatusFlag');
