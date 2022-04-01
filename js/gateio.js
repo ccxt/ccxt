@@ -624,6 +624,20 @@ module.exports = class gateio extends Exchange {
         });
     }
 
+    constructor (userConfig = {}) {
+        /**
+         * @method
+         * @name gateio#constructor
+         * @description this.constructor
+         * @param {dict} userConfig config options
+         */
+        super (userConfig);
+        const type = this.safeString2 (this.options, 'type', 'defaultType');
+        if (type === 'swap' || type === 'future') {
+            this.has['createMarketOrder'] = true;
+        }
+    }
+
     async fetchMarkets (params = {}) {
         /**
          * @method
