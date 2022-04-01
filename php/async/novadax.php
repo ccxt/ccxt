@@ -9,7 +9,6 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\InvalidOrder;
-use \ccxt\Precise;
 
 class novadax extends Exchange {
 
@@ -436,33 +435,35 @@ class novadax extends Exchange {
         //
         // private fetchOrderTrades
         //
-        //     {
-        //         "id" => "608717046691139584",
-        //         "orderId" => "608716957545402368",
-        //         "symbol" => "BTC_BRL",
-        //         "side" => "BUY",
-        //         "amount" => "0.0988",
-        //         "price" => "45514.76",
-        //         "fee" => "0.0000988 BTC",
-        //         "role" => "MAKER",
-        //         "timestamp" => 1565171053345
-        //     }
+        //      {
+        //          "id" => "608717046691139584",
+        //          "orderId" => "608716957545402368",
+        //          "symbol" => "BTC_BRL",
+        //          "side" => "BUY",
+        //          "amount" => "0.0988",
+        //          "price" => "45514.76",
+        //          "fee" => "0.0000988 BTC",
+        //          "feeAmount" => "0.0000988",
+        //          "feeCurrency" => "BTC",
+        //          "role" => "MAKER",
+        //          "timestamp" => 1565171053345
+        //       }
         //
-        // private fetchMyTrades
+        // private fetchMyTrades (same endpoint as fetchOrderTrades)
         //
-        //     {
-        //         "id" => "608717046691139584",
-        //         "orderId" => "608716957545402368",
-        //         "symbol" => "BTC_BRL",
-        //         "side" => "BUY",
-        //         "amount" => "0.0988",
-        //         "price" => "45514.76",
-        //         "fee" => "0.0000988 BTC",
-        //         "feeAmount" => "0.0000988",
-        //         "feeCurrency" => "BTC",
-        //         "role" => "MAKER",
-        //         "timestamp" => 1565171053345
-        //     }
+        //      {
+        //          "id" => "608717046691139584",
+        //          "orderId" => "608716957545402368",
+        //          "symbol" => "BTC_BRL",
+        //          "side" => "BUY",
+        //          "amount" => "0.0988",
+        //          "price" => "45514.76",
+        //          "fee" => "0.0000988 BTC",
+        //          "feeAmount" => "0.0000988",
+        //          "feeCurrency" => "BTC",
+        //          "role" => "MAKER",
+        //          "timestamp" => 1565171053345
+        //       }
         //
         $id = $this->safe_string($trade, 'id');
         $orderId = $this->safe_string($trade, 'orderId');
@@ -470,27 +471,20 @@ class novadax extends Exchange {
         $side = $this->safe_string_lower($trade, 'side');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->safe_number($trade, 'volume');
-        if ($cost === null) {
-            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
-        }
         $marketId = $this->safe_string($trade, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $takerOrMaker = $this->safe_string_lower($trade, 'role');
         $feeString = $this->safe_string($trade, 'fee');
         $fee = null;
         if ($feeString !== null) {
-            $parts = explode(' ', $feeString);
-            $feeCurrencyId = $this->safe_string($parts, 1);
+            $feeCurrencyId = $this->safe_string($trade, 'feeCurrency');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array(
-                'cost' => $this->safe_number($parts, 0),
+                'cost' => $this->safe_string($trade, 'feeAmount'),
                 'currency' => $feeCurrencyCode,
             );
         }
-        return array(
+        return $this->safe_trade(array(
             'id' => $id,
             'order' => $orderId,
             'timestamp' => $timestamp,
@@ -498,13 +492,13 @@ class novadax extends Exchange {
             'symbol' => $symbol,
             'type' => null,
             'side' => $side,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'takerOrMaker' => $takerOrMaker,
             'fee' => $fee,
             'info' => $trade,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -851,23 +845,25 @@ class novadax extends Exchange {
         }
         $data = $this->safe_value($response, 'data', array());
         //
-        //     {
-        //         "code" => "A10000",
-        //         "data" => array(
-        //             array(
-        //                 "id" => "608717046691139584",
-        //                 "orderId" => "608716957545402368",
-        //                 "symbol" => "BTC_BRL",
-        //                 "side" => "BUY",
-        //                 "amount" => "0.0988",
-        //                 "price" => "45514.76",
-        //                 "fee" => "0.0000988 BTC",
-        //                 "role" => "MAKER",
-        //                 "timestamp" => 1565171053345
-        //             ),
-        //         ),
-        //         "message" => "Success"
-        //     }
+        //      {
+        //          "code" => "A10000",
+        //          "data" => array(
+        //              array(
+        //                  "id" => "608717046691139584",
+        //                  "orderId" => "608716957545402368",
+        //                  "symbol" => "BTC_BRL",
+        //                  "side" => "BUY",
+        //                  "amount" => "0.0988",
+        //                  "price" => "45514.76",
+        //                  "fee" => "0.0000988 BTC",
+        //                  "feeAmount" => "0.0000988",
+        //                  "feeCurrency" => "BTC",
+        //                  "role" => "MAKER",
+        //                  "timestamp" => 1565171053345
+        //              ),
+        //          ),
+        //          "message" => "Success"
+        //      }
         //
         return $this->parse_trades($data, $market, $since, $limit);
     }
@@ -1177,38 +1173,25 @@ class novadax extends Exchange {
         }
         $response = yield $this->privateGetOrdersFills (array_merge($request, $params));
         //
-        //     {
-        //         "code" => "A10000",
-        //         "data" => array(
-        //             array(
-        //                 "id" => "608717046691139584",
-        //                 "orderId" => "608716957545402368",
-        //                 "symbol" => "BTC_BRL",
-        //                 "side" => "BUY",
-        //                 "amount" => "0.0988",
-        //                 "price" => "45514.76",
-        //                 "fee" => "0.0000988 BTC",
-        //                 "feeAmount" => "0.0000988",
-        //                 "feeCurrency" => "BTC",
-        //                 "role" => "MAKER",
-        //                 "timestamp" => 1565171053345
-        //             ),
-        //             {
-        //                 "id" => "608717065729085441",
-        //                 "orderId" => "608716957545402368",
-        //                 "symbol" => "BTC_BRL",
-        //                 "side" => "BUY",
-        //                 "amount" => "0.0242",
-        //                 "price" => "45514.76",
-        //                 "fee" => "0.0000242 BTC",
-        //                 "feeAmount" => "0.0000988",
-        //                 "feeCurrency" => "BTC",
-        //                 "role" => "MAKER",
-        //                 "timestamp" => 1565171057882
-        //             }
-        //         ),
-        //         "message" => "Success"
-        //     }
+        //      {
+        //          "code" => "A10000",
+        //          "data" => array(
+        //              array(
+        //                  "id" => "608717046691139584",
+        //                  "orderId" => "608716957545402368",
+        //                  "symbol" => "BTC_BRL",
+        //                  "side" => "BUY",
+        //                  "amount" => "0.0988",
+        //                  "price" => "45514.76",
+        //                  "fee" => "0.0000988 BTC",
+        //                  "feeAmount" => "0.0000988",
+        //                  "feeCurrency" => "BTC",
+        //                  "role" => "MAKER",
+        //                  "timestamp" => 1565171053345
+        //              ),
+        //          ),
+        //          "message" => "Success"
+        //      }
         //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_trades($data, $market, $since, $limit);
