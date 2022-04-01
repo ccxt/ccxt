@@ -1204,11 +1204,11 @@ module.exports = class binance extends Exchange {
             }
         }
         const defaultSubType = this.safeString (this.options, 'defaultSubType');
-        if (defaultSubType !== undefined) {
-            return defaultSubType;
-        } else {
+        if (defaultSubType === undefined) {
             const defaultType = this.safeString (this.options, 'defaultType', 'spot');
             return this.safeString (legacyMapping, defaultType, defaultType);
+        } else {
+            return defaultSubType;
         }
     }
 
