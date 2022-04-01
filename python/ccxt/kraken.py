@@ -50,6 +50,7 @@ class kraken(Exchange):
                 'createDepositAddress': True,
                 'createOrder': True,
                 'fetchBalance': True,
+                'fetchBorrowInterest': False,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,

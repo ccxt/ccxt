@@ -83,6 +83,7 @@ module.exports = class Exchange {
                 'fetchAccounts': undefined,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
+                'fetchBorrowInterest': undefined,
                 'fetchBorrowRate': undefined,
                 'fetchBorrowRateHistory': undefined,
                 'fetchBorrowRatesPerSymbol': undefined,
@@ -2180,7 +2181,7 @@ module.exports = class Exchange {
             if (typeof methodOptions === 'string') {
                 methodType = methodOptions;
             } else {
-                methodType = this.safeString2 (methodOptions, 'defaultType', 'type');
+                methodType = this.safeString2 (methodOptions, 'defaultType', 'type', methodType);
             }
         }
         const marketType = (market === undefined) ? methodType : market['type'];

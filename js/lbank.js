@@ -194,7 +194,7 @@ module.exports = class lbank extends Exchange {
                         'max': undefined,
                     },
                     'amount': {
-                        'min': undefined,
+                        'min': this.safeFloat (market, 'minTranQua'),
                         'max': undefined,
                     },
                     'price': {

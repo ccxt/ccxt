@@ -37,26 +37,27 @@ class binance extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => null,
-                'createDepositAddress' => null,
+                'createDepositAddress' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => true,
-                'deposit' => null,
+                'deposit' => false,
                 'fetchAccounts' => null,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => true,
+                'fetchBorrowInterest' => true,
                 'fetchBorrowRate' => true,
                 'fetchBorrowRateHistories' => true,
                 'fetchBorrowRateHistory' => true,
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
-                'fetchCanceledOrders' => null,
+                'fetchCanceledOrders' => false,
                 'fetchClosedOrder' => null,
                 'fetchClosedOrders' => 'emulated',
                 'fetchCurrencies' => true,
-                'fetchDeposit' => null,
+                'fetchDeposit' => false,
                 'fetchDepositAddress' => true,
-                'fetchDepositAddresses' => null,
-                'fetchDepositAddressesByNetwork' => null,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchFundingFee' => null,
                 'fetchFundingFees' => true,
@@ -68,7 +69,7 @@ class binance extends Exchange {
                 'fetchIsolatedPositions' => null,
                 'fetchL3OrderBook' => null,
                 'fetchLedger' => null,
-                'fetchLeverage' => null,
+                'fetchLeverage' => false,
                 'fetchLeverageTiers' => true,
                 'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
@@ -77,11 +78,11 @@ class binance extends Exchange {
                 'fetchMySells' => null,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
-                'fetchOpenOrder' => null,
+                'fetchOpenOrder' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
-                'fetchOrderBooks' => null,
+                'fetchOrderBooks' => false,
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => null,
@@ -1339,7 +1340,7 @@ class binance extends Exchange {
                 $isWithdrawEnabled = $isWithdrawEnabled || $withdrawEnable;
                 $fees[$network] = $withdrawFee;
                 $isDefault = $this->safe_value($networkItem, 'isDefault');
-                if ($isDefault || $fee === null) {
+                if ($isDefault || ($fee === null)) {
                     $fee = $withdrawFee;
                 }
             }
@@ -5343,10 +5344,10 @@ class binance extends Exchange {
         $response = $this->$method (array_merge($request, $params));
         //
         //     {
-        //       "code" => 200,
-        //       "msg" => "Successfully modify position margin.",
-        //       "amount" => 0.001,
-        //       "type" => 1
+        //         "code" => 200,
+        //         "msg" => "Successfully modify position margin.",
+        //         "amount" => 0.001,
+        //         "type" => 1
         //     }
         //
         $rawType = $this->safe_integer($response, 'type');
@@ -5381,15 +5382,14 @@ class binance extends Exchange {
         );
         $response = $this->sapiGetMarginInterestRateHistory (array_merge($request, $params));
         //
-        // array(
         //     array(
-        //         "asset" => "USDT",
-        //         "timestamp" => 1638230400000,
-        //         "dailyInterestRate" => "0.0006",
-        //         "vipLevel" => 0
-        //     ),
-        //     ...
-        // )
+        //         array(
+        //             "asset" => "USDT",
+        //             "timestamp" => 1638230400000,
+        //             "dailyInterestRate" => "0.0006",
+        //             "vipLevel" => 0
+        //         ),
+        //     )
         //
         $rate = $this->safe_value($response, 0);
         $timestamp = $this->safe_number($rate, 'timestamp');
@@ -5459,10 +5459,10 @@ class binance extends Exchange {
         $response = $this->sapiPostGiftcardCreateCode (array_merge($request, $params));
         //
         //     {
-        //       $code => '000000',
-        //       message => 'success',
-        //       $data => array( referenceNo => '0033002404219823', $code => 'AP6EXTLKNHM6CEX7' ),
-        //       success => true
+        //         $code => '000000',
+        //         message => 'success',
+        //         $data => array( referenceNo => '0033002404219823', $code => 'AP6EXTLKNHM6CEX7' ),
+        //         success => true
         //     }
         //
         $data = $this->safe_value($response, 'data');
@@ -5484,13 +5484,13 @@ class binance extends Exchange {
         $response = $this->sapiPostGiftcardRedeemCode (array_merge($request, $params));
         //
         //     {
-        //       code => '000000',
-        //       message => 'success',
-        //       data => array(
-        //         referenceNo => '0033002404219823',
-        //         identityNo => '10316431732801474560'
-        //       ),
-        //       success => true
+        //         code => '000000',
+        //         message => 'success',
+        //         data => array(
+        //             referenceNo => '0033002404219823',
+        //             identityNo => '10316431732801474560'
+        //         ),
+        //         success => true
         //     }
         //
         return $response;
@@ -5503,12 +5503,67 @@ class binance extends Exchange {
         $response = $this->sapiGetGiftcardVerify (array_merge($request, $params));
         //
         //     {
-        //       code => '000000',
-        //       message => 'success',
-        //       data => array( valid => true ),
-        //       success => true
+        //         code => '000000',
+        //         message => 'success',
+        //         data => array( valid => true ),
+        //         success => true
         //     }
         //
         return $response;
+    }
+
+    public function fetch_borrow_interest($code = null, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array();
+        $market = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['asset'] = $currency['id'];
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
+            $request['size'] = $limit;
+        }
+        if ($symbol !== null) { // Isolated
+            $market = $this->market($symbol);
+            $request['isolatedSymbol'] = $market['id'];
+        }
+        $response = $this->sapiGetMarginInterestHistory (array_merge($request, $params));
+        //
+        //     {
+        //         "rows":array(
+        //             {
+        //                 "isolatedSymbol" => "BNBUSDT", // isolated $symbol, will not be returned for crossed margin
+        //                 "asset" => "BNB",
+        //                 "interest" => "0.02414667",
+        //                 "interestAccuredTime" => 1566813600000,
+        //                 "interestRate" => "0.01600000",
+        //                 "principal" => "36.22000000",
+        //                 "type" => "ON_BORROW"
+        //             }
+        //         ),
+        //         "total" => 1
+        //     }
+        //
+        $rows = $this->safe_value($response, 'rows');
+        $interest = array();
+        for ($i = 0; $i < count($rows); $i++) {
+            $row = $rows[$i];
+            $timestamp = $this->safe_number($row, 'interestAccuredTime');
+            $account = ($symbol === null) ? 'CROSS' : $symbol;
+            $interest[] = array(
+                'account' => $account,
+                'currency' => $this->safe_currency_code($this->safe_string($row, 'asset')),
+                'interest' => $this->safe_number($row, 'interest'),
+                'interestRate' => $this->safe_number($row, 'interestRate'),
+                'amountBorrowed' => $this->safe_number($row, 'principal'),
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+                'info' => $row,
+            );
+        }
+        return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
     }
 }

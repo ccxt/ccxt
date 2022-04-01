@@ -62,7 +62,10 @@ class exmo(Exchange):
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchTransactions': True,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
                 'fetchWithdrawals': True,
+                'transfer': False,
                 'withdraw': True,
             },
             'timeframes': {

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.77.16'
+__version__ = '1.77.77'
 
 # -----------------------------------------------------------------------------
 
@@ -259,6 +259,7 @@ class Exchange(object):
         'fetchAccounts': None,
         'fetchBalance': True,
         'fetchBidsAsks': None,
+        'fetchBorrowInterest': None,
         'fetchBorrowRate': None,
         'fetchBorrowRateHistory': None,
         'fetchBorrowRatesPerSymbol': None,
@@ -2769,7 +2770,7 @@ class Exchange(object):
             if isinstance(method_options, str):
                 method_type = method_options
             else:
-                method_type = self.safe_string_2(method_options, 'defaultType', 'type')
+                method_type = self.safe_string_2(method_options, 'defaultType', 'type', method_type)
         market_type = method_type if market is None else market['type']
         type = self.safe_string_2(params, 'defaultType', 'type', market_type)
         params = self.omit(params, ['defaultType', 'type'])

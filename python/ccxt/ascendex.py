@@ -31,9 +31,9 @@ class ascendex(Exchange):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': None,  # has but not fully inplemented
+                'margin': True,
                 'swap': True,
-                'future': False,
+                'future': True,
                 'option': False,
                 'addMargin': True,
                 'cancelAllOrders': True,
@@ -72,6 +72,8 @@ class ascendex(Exchange):
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchTransactions': True,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
                 'setLeverage': True,
@@ -103,7 +105,7 @@ class ascendex(Exchange):
                 },
                 'www': 'https://ascendex.com',
                 'doc': [
-                    'https://bitmax-exchange.github.io/bitmax-pro-api/#bitmax-pro-api-documentation',
+                    'https://ascendex.github.io/ascendex-pro-api/#ascendex-pro-api-documentation',
                 ],
                 'fees': 'https://ascendex.com/en/feerate/transactionfee-traderate',
                 'referral': {
@@ -131,6 +133,7 @@ class ascendex(Exchange):
                             'futures/ref-px',
                             'futures/market-data',
                             'futures/funding-rates',
+                            'risk-limit-info',
                         ],
                     },
                     'private': {
@@ -164,7 +167,6 @@ class ascendex(Exchange):
                                 'cash/balance',
                                 'margin/balance',
                                 'margin/risk',
-                                'transfer',
                                 'futures/collateral-balance',
                                 'futures/position',
                                 'futures/risk',
@@ -173,6 +175,7 @@ class ascendex(Exchange):
                                 'spot/fee',
                             ],
                             'post': [
+                                'transfer',
                                 'futures/transfer/deposit',
                                 'futures/transfer/withdraw',
                             ],
@@ -243,6 +246,9 @@ class ascendex(Exchange):
                     'spot': 'cash',
                     'swap': 'futures',
                     'margin': 'margin',
+                },
+                'transfer': {
+                    'fillResponseFromRequest': True,
                 },
             },
             'exceptions': {
@@ -394,7 +400,8 @@ class ascendex(Exchange):
             id = ids[i]
             currency = dataById[id]
             code = self.safe_currency_code(id)
-            precision = self.safe_string_2(currency, 'precisionScale', 'nativeScale')
+            scale = self.safe_string_2(currency, 'precisionScale', 'nativeScale')
+            precision = self.parse_number(self.parse_precision(scale))
             # why would the exchange API have different names for the same field
             fee = self.safe_number_2(currency, 'withdrawFee', 'withdrawalFee')
             status = self.safe_string_2(currency, 'status', 'statusCode')
@@ -411,10 +418,10 @@ class ascendex(Exchange):
                 'deposit': None,
                 'withdraw': None,
                 'fee': fee,
-                'precision': int(precision),
+                'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': self.parse_number(self.parse_precision(precision)),
+                        'min': precision,
                         'max': None,
                     },
                     'withdraw': {
@@ -2304,6 +2311,54 @@ class ascendex(Exchange):
                 'info': tier,
             })
         return tiers
+
+    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        self.load_markets()
+        self.load_accounts()
+        account = self.safe_value(self.accounts, 0, {})
+        accountGroup = self.safe_string(account, 'id')
+        currency = self.currency(code)
+        amount = self.currency_to_precision(code, amount)
+        accountCategories = self.safe_value(self.options, 'accountCategories', {})
+        fromId = self.safe_string(accountCategories, fromAccount)
+        toId = self.safe_string(accountCategories, toAccount)
+        if fromId is None:
+            keys = list(accountCategories.keys())
+            raise ExchangeError(self.id + ' fromAccount must be one of ' + ', '.join(keys))
+        if toId is None:
+            keys = list(accountCategories.keys())
+            raise ExchangeError(self.id + ' toAccount must be one of ' + ', '.join(keys))
+        if fromAccount != 'spot' and toAccount != 'spot':
+            raise ExchangeError('This exchange only supports direct balance transfer between spot and swap, spot and margin')
+        request = {
+            'account-group': accountGroup,
+            'amount': amount,
+            'asset': currency['id'],
+            'fromAccount': fromId,
+            'toAccount': toId,
+        }
+        response = self.v1PrivateAccountGroupPostTransfer(self.extend(request, params))
+        #
+        #    {code: '0'}
+        #
+        status = self.safe_integer(response, 'code')
+        transferOptions = self.safe_value(self.options, 'transfer', {})
+        fillResponseFromRequest = self.safe_value(transferOptions, 'fillResponseFromRequest', True)
+        transfer = {
+            'info': response,
+            'status': self.parse_transfer_status(status),
+        }
+        if fillResponseFromRequest:
+            transfer['fromAccount'] = fromAccount
+            transfer['toAccount'] = toAccount
+            transfer['amount'] = amount
+            transfer['currency'] = code
+        return transfer
+
+    def parse_transfer_status(self, status):
+        if status == 0:
+            return 'ok'
+        return 'failed'
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         version = api[0]

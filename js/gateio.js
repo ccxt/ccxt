@@ -81,6 +81,7 @@ module.exports = class gateio extends Exchange {
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': true,
+                'fetchLeverage': false,
                 'fetchLeverageTiers': true,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
@@ -101,6 +102,7 @@ module.exports = class gateio extends Exchange {
                 'fetchTradingFees': true,
                 'fetchWithdrawals': true,
                 'setLeverage': true,
+                'setMarginMode': false,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -671,10 +673,10 @@ module.exports = class gateio extends Exchange {
         //
         const result = [];
         for (let i = 0; i < spotMarketsResponse.length; i++) {
-            let market = spotMarketsResponse[i];
-            const id = this.safeString (market, 'id');
+            const spotMarket = spotMarketsResponse[i];
+            const id = this.safeString (spotMarket, 'id');
             const marginMarket = this.safeValue (marginMarkets, id);
-            market = this.deepExtend (marginMarket, market);
+            const market = this.deepExtend (marginMarket, spotMarket);
             const [ baseId, quoteId ] = id.split ('_');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
@@ -684,6 +686,7 @@ module.exports = class gateio extends Exchange {
             const pricePrecisionString = this.safeString (market, 'precision');
             const tradeStatus = this.safeString (market, 'trade_status');
             const leverage = this.safeNumber (market, 'leverage');
+            const defaultMinAmountLimit = this.parseNumber (this.parsePrecision (amountPrecisionString));
             const margin = leverage !== undefined;
             result.push ({
                 'id': id,
@@ -722,7 +725,7 @@ module.exports = class gateio extends Exchange {
                         'max': this.safeNumber (market, 'leverage', 1),
                     },
                     'amount': {
-                        'min': this.safeNumber (market, 'min_base_amount'),
+                        'min': this.safeNumber (spotMarket, 'min_base_amount', defaultMinAmountLimit),
                         'max': undefined,
                     },
                     'price': {
@@ -1436,14 +1439,7 @@ module.exports = class gateio extends Exchange {
         //       "futures_maker_fee": "0"
         //     }
         //
-        const taker = this.safeNumber (response, 'taker_fee');
-        const maker = this.safeNumber (response, 'maker_fee');
-        return {
-            'info': response,
-            'symbol': symbol,
-            'maker': maker,
-            'taker': taker,
-        };
+        return this.parseTradingFee (response, market);
     }
 
     async fetchTradingFees (params = {}) {
@@ -1463,19 +1459,43 @@ module.exports = class gateio extends Exchange {
         //       "futures_maker_fee": "0"
         //     }
         //
+        return this.parseTradingFees (response);
+    }
+
+    parseTradingFees (response) {
         const result = {};
-        const taker = this.safeNumber (response, 'taker_fee');
-        const maker = this.safeNumber (response, 'maker_fee');
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
-            result[symbol] = {
-                'maker': maker,
-                'taker': taker,
-                'info': response,
-                'symbol': symbol,
-            };
+            const market = this.market (symbol);
+            result[symbol] = this.parseTradingFee (response, market);
         }
         return result;
+    }
+
+    parseTradingFee (info, market = undefined) {
+        //
+        //     {
+        //       "user_id": 1486602,
+        //       "taker_fee": "0.002",
+        //       "maker_fee": "0.002",
+        //       "gt_discount": true,
+        //       "gt_taker_fee": "0.0015",
+        //       "gt_maker_fee": "0.0015",
+        //       "loan_fee": "0.18",
+        //       "point_type": "0",
+        //       "futures_taker_fee": "0.0005",
+        //       "futures_maker_fee": "0"
+        //     }
+        //
+        const contract = this.safeValue (market, 'contract');
+        const takerKey = contract ? 'futures_taker_fee' : 'taker_fee';
+        const makerKey = contract ? 'futures_maker_fee' : 'maker_fee';
+        return {
+            'info': info,
+            'symbol': this.safeString (market, 'symbol'),
+            'maker': this.safeNumber (info, makerKey),
+            'taker': this.safeNumber (info, takerKey),
+        };
     }
 
     async fetchFundingFees (params = {}) {
@@ -2904,13 +2924,13 @@ module.exports = class gateio extends Exchange {
         price = this.safeString (order, 'price', price);
         let remaining = this.safeString (order, 'left');
         let filled = Precise.stringSub (amount, remaining);
-        let cost = this.safeNumber (order, 'filled_total');
+        let cost = this.safeString (order, 'filled_total');
         let rawStatus = undefined;
         let average = undefined;
         if (put) {
             remaining = amount;
             filled = '0';
-            cost = this.parseNumber ('0');
+            cost = '0';
         }
         if (contract) {
             const isMarketOrder = Precise.stringEquals (price, '0') && (timeInForce === 'IOC');
@@ -2972,8 +2992,8 @@ module.exports = class gateio extends Exchange {
             'stopPrice': this.safeNumber (trigger, 'price'),
             'average': average,
             'amount': this.parseNumber (Precise.stringAbs (amount)),
-            'cost': cost,
-            'filled': this.parseNumber (filled),
+            'cost': Precise.stringAbs (cost),
+            'filled': this.parseNumber (Precise.stringAbs (filled)),
             'remaining': this.parseNumber (Precise.stringAbs (remaining)),
             'fee': multipleFeeCurrencies ? undefined : this.safeValue (fees, 0),
             'fees': multipleFeeCurrencies ? fees : [],

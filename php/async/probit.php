@@ -198,7 +198,9 @@ class probit extends Exchange {
                 'CHE' => 'Chellit',
                 'CLR' => 'Color Platform',
                 'CTK' => 'Cryptyk',
+                'CTT' => 'Castweet',
                 'DIP' => 'Dipper',
+                'DKT' => 'DAKOTA',
                 'EGC' => 'EcoG9coin',
                 'EPS' => 'Epanus',  // conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
                 'FX' => 'Fanzy',
@@ -209,8 +211,10 @@ class probit extends Exchange {
                 'GRB' => 'Global Reward Bank',
                 'HBC' => 'Hybrid Bank Cash',
                 'HUSL' => 'The Hustle App',
+                'LAND' => 'Landbox',
                 'LBK' => 'Legal Block',
                 'ORC' => 'Oracle System',
+                'PXP' => 'PIXSHOP COIN',
                 'PYE' => 'CreamPYE',
                 'ROOK' => 'Reckoon',
                 'SOC' => 'Soda Coin',
@@ -727,21 +731,18 @@ class probit extends Exchange {
         $side = $this->safe_string($trade, 'side');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'quantity');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $orderId = $this->safe_string($trade, 'order_id');
-        $feeCost = $this->safe_number($trade, 'fee_amount');
+        $feeCostString = $this->safe_string($trade, 'fee_amount');
         $fee = null;
-        if ($feeCost !== null) {
+        if ($feeCostString !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'fee_currency_id');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $feeCurrencyCode,
             );
         }
-        return array(
+        return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -751,11 +752,11 @@ class probit extends Exchange {
             'type' => null,
             'side' => $side,
             'takerOrMaker' => null,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_time($params = array ()) {

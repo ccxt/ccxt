@@ -22,9 +22,9 @@ module.exports = class ascendex extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined, // has but not fully inplemented
+                'margin': true,
                 'swap': true,
-                'future': false,
+                'future': true,
                 'option': false,
                 'addMargin': true,
                 'cancelAllOrders': true,
@@ -63,6 +63,8 @@ module.exports = class ascendex extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTransactions': true,
+                'fetchTransfer': false,
+                'fetchTransfers': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
                 'setLeverage': true,
@@ -94,7 +96,7 @@ module.exports = class ascendex extends Exchange {
                 },
                 'www': 'https://ascendex.com',
                 'doc': [
-                    'https://bitmax-exchange.github.io/bitmax-pro-api/#bitmax-pro-api-documentation',
+                    'https://ascendex.github.io/ascendex-pro-api/#ascendex-pro-api-documentation',
                 ],
                 'fees': 'https://ascendex.com/en/feerate/transactionfee-traderate',
                 'referral': {
@@ -122,6 +124,7 @@ module.exports = class ascendex extends Exchange {
                             'futures/ref-px',
                             'futures/market-data',
                             'futures/funding-rates',
+                            'risk-limit-info',
                         ],
                     },
                     'private': {
@@ -155,7 +158,6 @@ module.exports = class ascendex extends Exchange {
                                 'cash/balance',
                                 'margin/balance',
                                 'margin/risk',
-                                'transfer',
                                 'futures/collateral-balance',
                                 'futures/position',
                                 'futures/risk',
@@ -164,6 +166,7 @@ module.exports = class ascendex extends Exchange {
                                 'spot/fee',
                             ],
                             'post': [
+                                'transfer',
                                 'futures/transfer/deposit',
                                 'futures/transfer/withdraw',
                             ],
@@ -234,6 +237,9 @@ module.exports = class ascendex extends Exchange {
                     'spot': 'cash',
                     'swap': 'futures',
                     'margin': 'margin',
+                },
+                'transfer': {
+                    'fillResponseFromRequest': true,
                 },
             },
             'exceptions': {
@@ -387,7 +393,8 @@ module.exports = class ascendex extends Exchange {
             const id = ids[i];
             const currency = dataById[id];
             const code = this.safeCurrencyCode (id);
-            const precision = this.safeString2 (currency, 'precisionScale', 'nativeScale');
+            const scale = this.safeString2 (currency, 'precisionScale', 'nativeScale');
+            const precision = this.parseNumber (this.parsePrecision (scale));
             // why would the exchange API have different names for the same field
             const fee = this.safeNumber2 (currency, 'withdrawFee', 'withdrawalFee');
             const status = this.safeString2 (currency, 'status', 'statusCode');
@@ -404,10 +411,10 @@ module.exports = class ascendex extends Exchange {
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': fee,
-                'precision': parseInt (precision),
+                'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': this.parseNumber (this.parsePrecision (precision)),
+                        'min': precision,
                         'max': undefined,
                     },
                     'withdraw': {
@@ -2397,6 +2404,61 @@ module.exports = class ascendex extends Exchange {
             });
         }
         return tiers;
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        await this.loadMarkets ();
+        await this.loadAccounts ();
+        const account = this.safeValue (this.accounts, 0, {});
+        const accountGroup = this.safeString (account, 'id');
+        const currency = this.currency (code);
+        amount = this.currencyToPrecision (code, amount);
+        const accountCategories = this.safeValue (this.options, 'accountCategories', {});
+        const fromId = this.safeString (accountCategories, fromAccount);
+        const toId = this.safeString (accountCategories, toAccount);
+        if (fromId === undefined) {
+            const keys = Object.keys (accountCategories);
+            throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', '));
+        }
+        if (toId === undefined) {
+            const keys = Object.keys (accountCategories);
+            throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', '));
+        }
+        if (fromAccount !== 'spot' && toAccount !== 'spot') {
+            throw new ExchangeError ('This exchange only supports direct balance transfer between spot and swap, spot and margin');
+        }
+        const request = {
+            'account-group': accountGroup,
+            'amount': amount,
+            'asset': currency['id'],
+            'fromAccount': fromId,
+            'toAccount': toId,
+        };
+        const response = await this.v1PrivateAccountGroupPostTransfer (this.extend (request, params));
+        //
+        //    { code: '0' }
+        //
+        const status = this.safeInteger (response, 'code');
+        const transferOptions = this.safeValue (this.options, 'transfer', {});
+        const fillResponseFromRequest = this.safeValue (transferOptions, 'fillResponseFromRequest', true);
+        const transfer = {
+            'info': response,
+            'status': this.parseTransferStatus (status),
+        };
+        if (fillResponseFromRequest) {
+            transfer['fromAccount'] = fromAccount;
+            transfer['toAccount'] = toAccount;
+            transfer['amount'] = amount;
+            transfer['currency'] = code;
+        }
+        return transfer;
+    }
+
+    parseTransferStatus (status) {
+        if (status === 0) {
+            return 'ok';
+        }
+        return 'failed';
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

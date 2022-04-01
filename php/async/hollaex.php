@@ -132,7 +132,7 @@ class hollaex extends Exchange {
                         'user/withdrawal/fee' => 1,
                         'user/trades' => 1,
                         'orders' => 1,
-                        'orders/{order_id}' => 1,
+                        'order' => 1,
                     ),
                     'post' => array(
                         'user/request-withdrawal' => 1,
@@ -763,7 +763,7 @@ class hollaex extends Exchange {
         $request = array(
             'order_id' => $id,
         );
-        $response = yield $this->privateGetOrdersOrderId (array_merge($request, $params));
+        $response = yield $this->privateGetOrder (array_merge($request, $params));
         //
         //     {
         //         "id" => "string",
@@ -800,7 +800,7 @@ class hollaex extends Exchange {
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $request = array(
-            'status' => 'filled',
+            'open' => false,
         );
         return yield $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
@@ -810,11 +810,7 @@ class hollaex extends Exchange {
         $request = array(
             'order_id' => $id,
         );
-        $response = yield $this->privateGetOrders (array_merge($request, $params));
-        //
-        //     {
-        //         "count" => 1,
-        //         "data" => array(
+        $response = yield $this->privateGetOrder (array_merge($request, $params));
         //             {
         //                 "id" => "string",
         //                 "side" => "sell",
@@ -837,11 +833,7 @@ class hollaex extends Exchange {
         //                     "exchange_id" => 176
         //                 }
         //             }
-        //         )
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        $order = $this->safe_value($data, 0);
+        $order = $response;
         if ($order === null) {
             throw new OrderNotFound($this->id . ' fetchOrder() could not find $order $id ' . $id);
         }

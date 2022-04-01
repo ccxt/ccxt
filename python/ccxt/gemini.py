@@ -180,8 +180,8 @@ class gemini(Exchange):
             'precisionMode': TICK_SIZE,
             'fees': {
                 'trading': {
-                    'taker': 0.0035,
-                    'maker': 0.001,
+                    'taker': 0.004,
+                    'maker': 0.002,
                 },
             },
             'httpExceptions': {

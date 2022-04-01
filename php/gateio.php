@@ -87,6 +87,7 @@ class gateio extends Exchange {
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => true,
+                'fetchLeverage' => false,
                 'fetchLeverageTiers' => true,
                 'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
@@ -107,6 +108,7 @@ class gateio extends Exchange {
                 'fetchTradingFees' => true,
                 'fetchWithdrawals' => true,
                 'setLeverage' => true,
+                'setMarginMode' => false,
                 'transfer' => true,
                 'withdraw' => true,
             ),
@@ -677,10 +679,10 @@ class gateio extends Exchange {
         //
         $result = array();
         for ($i = 0; $i < count($spotMarketsResponse); $i++) {
-            $market = $spotMarketsResponse[$i];
-            $id = $this->safe_string($market, 'id');
+            $spotMarket = $spotMarketsResponse[$i];
+            $id = $this->safe_string($spotMarket, 'id');
             $marginMarket = $this->safe_value($marginMarkets, $id);
-            $market = $this->deep_extend($marginMarket, $market);
+            $market = $this->deep_extend($marginMarket, $spotMarket);
             list($baseId, $quoteId) = explode('_', $id);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
@@ -690,6 +692,7 @@ class gateio extends Exchange {
             $pricePrecisionString = $this->safe_string($market, 'precision');
             $tradeStatus = $this->safe_string($market, 'trade_status');
             $leverage = $this->safe_number($market, 'leverage');
+            $defaultMinAmountLimit = $this->parse_number($this->parse_precision($amountPrecisionString));
             $margin = $leverage !== null;
             $result[] = array(
                 'id' => $id,
@@ -728,7 +731,7 @@ class gateio extends Exchange {
                         'max' => $this->safe_number($market, 'leverage', 1),
                     ),
                     'amount' => array(
-                        'min' => $this->safe_number($market, 'min_base_amount'),
+                        'min' => $this->safe_number($spotMarket, 'min_base_amount', $defaultMinAmountLimit),
                         'max' => null,
                     ),
                     'price' => array(
@@ -1442,14 +1445,7 @@ class gateio extends Exchange {
         //       "futures_maker_fee" => "0"
         //     }
         //
-        $taker = $this->safe_number($response, 'taker_fee');
-        $maker = $this->safe_number($response, 'maker_fee');
-        return array(
-            'info' => $response,
-            'symbol' => $symbol,
-            'maker' => $maker,
-            'taker' => $taker,
-        );
+        return $this->parse_trading_fee($response, $market);
     }
 
     public function fetch_trading_fees($params = array ()) {
@@ -1469,19 +1465,43 @@ class gateio extends Exchange {
         //       "futures_maker_fee" => "0"
         //     }
         //
+        return $this->parse_trading_fees($response);
+    }
+
+    public function parse_trading_fees($response) {
         $result = array();
-        $taker = $this->safe_number($response, 'taker_fee');
-        $maker = $this->safe_number($response, 'maker_fee');
         for ($i = 0; $i < count($this->symbols); $i++) {
             $symbol = $this->symbols[$i];
-            $result[$symbol] = array(
-                'maker' => $maker,
-                'taker' => $taker,
-                'info' => $response,
-                'symbol' => $symbol,
-            );
+            $market = $this->market($symbol);
+            $result[$symbol] = $this->parse_trading_fee($response, $market);
         }
         return $result;
+    }
+
+    public function parse_trading_fee($info, $market = null) {
+        //
+        //     {
+        //       "user_id" => 1486602,
+        //       "taker_fee" => "0.002",
+        //       "maker_fee" => "0.002",
+        //       "gt_discount" => true,
+        //       "gt_taker_fee" => "0.0015",
+        //       "gt_maker_fee" => "0.0015",
+        //       "loan_fee" => "0.18",
+        //       "point_type" => "0",
+        //       "futures_taker_fee" => "0.0005",
+        //       "futures_maker_fee" => "0"
+        //     }
+        //
+        $contract = $this->safe_value($market, 'contract');
+        $takerKey = $contract ? 'futures_taker_fee' : 'taker_fee';
+        $makerKey = $contract ? 'futures_maker_fee' : 'maker_fee';
+        return array(
+            'info' => $info,
+            'symbol' => $this->safe_string($market, 'symbol'),
+            'maker' => $this->safe_number($info, $makerKey),
+            'taker' => $this->safe_number($info, $takerKey),
+        );
     }
 
     public function fetch_funding_fees($params = array ()) {
@@ -2910,13 +2930,13 @@ class gateio extends Exchange {
         $price = $this->safe_string($order, 'price', $price);
         $remaining = $this->safe_string($order, 'left');
         $filled = Precise::string_sub($amount, $remaining);
-        $cost = $this->safe_number($order, 'filled_total');
+        $cost = $this->safe_string($order, 'filled_total');
         $rawStatus = null;
         $average = null;
         if ($put) {
             $remaining = $amount;
             $filled = '0';
-            $cost = $this->parse_number('0');
+            $cost = '0';
         }
         if ($contract) {
             $isMarketOrder = Precise::string_equals($price, '0') && ($timeInForce === 'IOC');
@@ -2978,8 +2998,8 @@ class gateio extends Exchange {
             'stopPrice' => $this->safe_number($trigger, 'price'),
             'average' => $average,
             'amount' => $this->parse_number(Precise::string_abs($amount)),
-            'cost' => $cost,
-            'filled' => $this->parse_number($filled),
+            'cost' => Precise::string_abs($cost),
+            'filled' => $this->parse_number(Precise::string_abs($filled)),
             'remaining' => $this->parse_number(Precise::string_abs($remaining)),
             'fee' => $multipleFeeCurrencies ? null : $this->safe_value($fees, 0),
             'fees' => $multipleFeeCurrencies ? $fees : array(),

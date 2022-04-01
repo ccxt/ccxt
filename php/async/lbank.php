@@ -196,7 +196,7 @@ class lbank extends Exchange {
                         'max' => null,
                     ),
                     'amount' => array(
-                        'min' => null,
+                        'min' => $this->safe_float($market, 'minTranQua'),
                         'max' => null,
                     ),
                     'price' => array(

@@ -5,7 +5,6 @@
 const Exchange = require ('./base/Exchange');
 const { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, CancelPending, OrderNotFound, InsufficientFunds, RateLimitExceeded, InvalidOrder, AccountSuspended, BadSymbol, OnMaintenance, ArgumentsRequired } = require ('./base/errors');
 const { TRUNCATE } = require ('./base/functions/number');
-const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -433,33 +432,35 @@ module.exports = class novadax extends Exchange {
         //
         // private fetchOrderTrades
         //
-        //     {
-        //         "id": "608717046691139584",
-        //         "orderId": "608716957545402368",
-        //         "symbol": "BTC_BRL",
-        //         "side": "BUY",
-        //         "amount": "0.0988",
-        //         "price": "45514.76",
-        //         "fee": "0.0000988 BTC",
-        //         "role": "MAKER",
-        //         "timestamp": 1565171053345
-        //     }
+        //      {
+        //          "id": "608717046691139584",
+        //          "orderId": "608716957545402368",
+        //          "symbol": "BTC_BRL",
+        //          "side": "BUY",
+        //          "amount": "0.0988",
+        //          "price": "45514.76",
+        //          "fee": "0.0000988 BTC",
+        //          "feeAmount": "0.0000988",
+        //          "feeCurrency": "BTC",
+        //          "role": "MAKER",
+        //          "timestamp": 1565171053345
+        //       }
         //
-        // private fetchMyTrades
+        // private fetchMyTrades (same endpoint as fetchOrderTrades)
         //
-        //     {
-        //         "id": "608717046691139584",
-        //         "orderId": "608716957545402368",
-        //         "symbol": "BTC_BRL",
-        //         "side": "BUY",
-        //         "amount": "0.0988",
-        //         "price": "45514.76",
-        //         "fee": "0.0000988 BTC",
-        //         "feeAmount": "0.0000988",
-        //         "feeCurrency": "BTC",
-        //         "role": "MAKER",
-        //         "timestamp": 1565171053345
-        //     }
+        //      {
+        //          "id": "608717046691139584",
+        //          "orderId": "608716957545402368",
+        //          "symbol": "BTC_BRL",
+        //          "side": "BUY",
+        //          "amount": "0.0988",
+        //          "price": "45514.76",
+        //          "fee": "0.0000988 BTC",
+        //          "feeAmount": "0.0000988",
+        //          "feeCurrency": "BTC",
+        //          "role": "MAKER",
+        //          "timestamp": 1565171053345
+        //       }
         //
         const id = this.safeString (trade, 'id');
         const orderId = this.safeString (trade, 'orderId');
@@ -467,27 +468,20 @@ module.exports = class novadax extends Exchange {
         const side = this.safeStringLower (trade, 'side');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        let cost = this.safeNumber (trade, 'volume');
-        if (cost === undefined) {
-            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
-        }
         const marketId = this.safeString (trade, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '_');
         const takerOrMaker = this.safeStringLower (trade, 'role');
         const feeString = this.safeString (trade, 'fee');
         let fee = undefined;
         if (feeString !== undefined) {
-            const parts = feeString.split (' ');
-            const feeCurrencyId = this.safeString (parts, 1);
+            const feeCurrencyId = this.safeString (trade, 'feeCurrency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
-                'cost': this.safeNumber (parts, 0),
+                'cost': this.safeString (trade, 'feeAmount'),
                 'currency': feeCurrencyCode,
             };
         }
-        return {
+        return this.safeTrade ({
             'id': id,
             'order': orderId,
             'timestamp': timestamp,
@@ -495,13 +489,13 @@ module.exports = class novadax extends Exchange {
             'symbol': symbol,
             'type': undefined,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'takerOrMaker': takerOrMaker,
             'fee': fee,
             'info': trade,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -848,23 +842,25 @@ module.exports = class novadax extends Exchange {
         }
         const data = this.safeValue (response, 'data', []);
         //
-        //     {
-        //         "code": "A10000",
-        //         "data": [
-        //             {
-        //                 "id": "608717046691139584",
-        //                 "orderId": "608716957545402368",
-        //                 "symbol": "BTC_BRL",
-        //                 "side": "BUY",
-        //                 "amount": "0.0988",
-        //                 "price": "45514.76",
-        //                 "fee": "0.0000988 BTC",
-        //                 "role": "MAKER",
-        //                 "timestamp": 1565171053345
-        //             },
-        //         ],
-        //         "message": "Success"
-        //     }
+        //      {
+        //          "code": "A10000",
+        //          "data": [
+        //              {
+        //                  "id": "608717046691139584",
+        //                  "orderId": "608716957545402368",
+        //                  "symbol": "BTC_BRL",
+        //                  "side": "BUY",
+        //                  "amount": "0.0988",
+        //                  "price": "45514.76",
+        //                  "fee": "0.0000988 BTC",
+        //                  "feeAmount": "0.0000988",
+        //                  "feeCurrency": "BTC",
+        //                  "role": "MAKER",
+        //                  "timestamp": 1565171053345
+        //              },
+        //          ],
+        //          "message": "Success"
+        //      }
         //
         return this.parseTrades (data, market, since, limit);
     }
@@ -1174,38 +1170,25 @@ module.exports = class novadax extends Exchange {
         }
         const response = await this.privateGetOrdersFills (this.extend (request, params));
         //
-        //     {
-        //         "code": "A10000",
-        //         "data": [
-        //             {
-        //                 "id": "608717046691139584",
-        //                 "orderId": "608716957545402368",
-        //                 "symbol": "BTC_BRL",
-        //                 "side": "BUY",
-        //                 "amount": "0.0988",
-        //                 "price": "45514.76",
-        //                 "fee": "0.0000988 BTC",
-        //                 "feeAmount": "0.0000988",
-        //                 "feeCurrency": "BTC",
-        //                 "role": "MAKER",
-        //                 "timestamp": 1565171053345
-        //             },
-        //             {
-        //                 "id": "608717065729085441",
-        //                 "orderId": "608716957545402368",
-        //                 "symbol": "BTC_BRL",
-        //                 "side": "BUY",
-        //                 "amount": "0.0242",
-        //                 "price": "45514.76",
-        //                 "fee": "0.0000242 BTC",
-        //                 "feeAmount": "0.0000988",
-        //                 "feeCurrency": "BTC",
-        //                 "role": "MAKER",
-        //                 "timestamp": 1565171057882
-        //             }
-        //         ],
-        //         "message": "Success"
-        //     }
+        //      {
+        //          "code": "A10000",
+        //          "data": [
+        //              {
+        //                  "id": "608717046691139584",
+        //                  "orderId": "608716957545402368",
+        //                  "symbol": "BTC_BRL",
+        //                  "side": "BUY",
+        //                  "amount": "0.0988",
+        //                  "price": "45514.76",
+        //                  "fee": "0.0000988 BTC",
+        //                  "feeAmount": "0.0000988",
+        //                  "feeCurrency": "BTC",
+        //                  "role": "MAKER",
+        //                  "timestamp": 1565171053345
+        //              },
+        //          ],
+        //          "message": "Success"
+        //      }
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
