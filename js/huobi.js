@@ -62,7 +62,6 @@ module.exports = class huobi extends Exchange {
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': true,
-                'fetchIsolatedPositions': false,
                 'fetchL3OrderBook': undefined,
                 'fetchLedger': true,
                 'fetchLedgerEntry': undefined,

@@ -43,7 +43,6 @@ module.exports = class mexc extends Exchange {
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': true,
-                'fetchIsolatedPositions': undefined,
                 'fetchLeverage': undefined,
                 'fetchLeverageTiers': true,
                 'fetchMarketLeverageTiers': 'emulated',
