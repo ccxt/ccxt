@@ -51,7 +51,6 @@ class ascendex(Exchange):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': True,
                 'fetchIndexOHLCV': False,
-                'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': True,
                 'fetchMarketLeverageTiers': 'emulated',

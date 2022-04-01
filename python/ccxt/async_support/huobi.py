@@ -81,7 +81,6 @@ class huobi(Exchange):
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
                 'fetchIndexOHLCV': True,
-                'fetchIsolatedPositions': False,
                 'fetchL3OrderBook': None,
                 'fetchLedger': True,
                 'fetchLedgerEntry': None,

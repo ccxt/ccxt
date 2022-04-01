@@ -64,7 +64,6 @@ class kraken(Exchange):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
-                'fetchIsolatedPositions': False,
                 'fetchLedger': True,
                 'fetchLedgerEntry': True,
                 'fetchLeverageTiers': False,

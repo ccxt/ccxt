@@ -35,7 +35,6 @@ class kuna(Exchange):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
-                'fetchIsolatedPositions': False,
                 'fetchL3OrderBook': True,
                 'fetchLeverage': False,
                 'fetchMarkets': True,

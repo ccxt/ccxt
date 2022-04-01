@@ -55,7 +55,6 @@ class kraken extends Exchange {
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
-                'fetchIsolatedPositions' => false,
                 'fetchLedger' => true,
                 'fetchLedgerEntry' => true,
                 'fetchLeverageTiers' => false,

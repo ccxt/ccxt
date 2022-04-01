@@ -48,7 +48,6 @@ class cryptocom(Exchange):
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRates': False,
-                'fetchIsolatedPositions': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,

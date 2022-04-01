@@ -58,7 +58,6 @@ class mexc(Exchange):
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': True,
-                'fetchIsolatedPositions': None,
                 'fetchLeverage': None,
                 'fetchLeverageTiers': True,
                 'fetchMarketLeverageTiers': 'emulated',

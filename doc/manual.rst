@@ -6733,7 +6733,6 @@ To get information about positions currently held in contract markets, use
  * fetchPosition ()            // for a single market
  * fetchPositions ()           // for all positions
  * fetchAccountPositions ()    // TODO
- * fetchIsolatedPositions ()   // for positions in isolated margin mode only
 
 .. code-block:: JavaScript
 
@@ -6754,7 +6753,6 @@ Returns
 
    fetchPositions (symbols = undefined, params = {})
    fetchAccountPositions (symbols = undefined, params = {})
-   fetchIsolatedPositions (symbols = undefined, params = {})
 
 Parameters
 

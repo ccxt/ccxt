@@ -70,7 +70,6 @@ class huobi extends Exchange {
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => true,
-                'fetchIsolatedPositions' => false,
                 'fetchL3OrderBook' => null,
                 'fetchLedger' => true,
                 'fetchLedgerEntry' => null,
