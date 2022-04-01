@@ -1688,7 +1688,12 @@ class hitbtc3(Exchange):
     def fetch_positions(self, symbols=None, params={}):
         self.load_markets()
         request = {}
-        response = self.privateGetFuturesAccount(self.extend(request, params))
+        marketType, query = self.handle_market_type_and_params('fetchPositions', None, params)
+        method = self.get_supported_mapping(marketType, {
+            'swap': 'privateGetFuturesAccount',
+            'margin': 'privateGetMarginAccount',
+        })
+        response = getattr(self, method)(self.extend(request, query))
         #
         #     [
         #         {
@@ -1765,10 +1770,12 @@ class hitbtc3(Exchange):
         positions = self.safe_value(position, 'positions', [])
         liquidationPrice = None
         entryPrice = None
+        contracts = None
         for i in range(0, len(positions)):
             entry = positions[i]
             liquidationPrice = self.safe_number(entry, 'price_liquidation')
             entryPrice = self.safe_number(entry, 'price_entry')
+            contracts = self.safe_number(entry, 'quantity')
         currencies = self.safe_value(position, 'currencies', [])
         collateral = None
         for i in range(0, len(currencies)):
@@ -1786,7 +1793,7 @@ class hitbtc3(Exchange):
             'entryPrice': entryPrice,
             'unrealizedPnl': None,
             'percentage': None,
-            'contracts': None,
+            'contracts': contracts,
             'contractSize': None,
             'markPrice': None,
             'side': None,

@@ -1791,7 +1791,12 @@ class hitbtc3 extends Exchange {
     public function fetch_positions($symbols = null, $params = array ()) {
         $this->load_markets();
         $request = array();
-        $response = $this->privateGetFuturesAccount (array_merge($request, $params));
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchPositions', null, $params);
+        $method = $this->get_supported_mapping($marketType, array(
+            'swap' => 'privateGetFuturesAccount',
+            'margin' => 'privateGetMarginAccount',
+        ));
+        $response = $this->$method (array_merge($request, $query));
         //
         //     array(
         //         {
@@ -1870,10 +1875,12 @@ class hitbtc3 extends Exchange {
         $positions = $this->safe_value($position, 'positions', array());
         $liquidationPrice = null;
         $entryPrice = null;
+        $contracts = null;
         for ($i = 0; $i < count($positions); $i++) {
             $entry = $positions[$i];
             $liquidationPrice = $this->safe_number($entry, 'price_liquidation');
             $entryPrice = $this->safe_number($entry, 'price_entry');
+            $contracts = $this->safe_number($entry, 'quantity');
         }
         $currencies = $this->safe_value($position, 'currencies', array());
         $collateral = null;
@@ -1893,7 +1900,7 @@ class hitbtc3 extends Exchange {
             'entryPrice' => $entryPrice,
             'unrealizedPnl' => null,
             'percentage' => null,
-            'contracts' => null,
+            'contracts' => $contracts,
             'contractSize' => null,
             'markPrice' => null,
             'side' => null,

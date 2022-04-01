@@ -454,7 +454,7 @@ class blockchaincom(Exchange):
         }
         stopPrice = self.safe_value_2(params, 'stopPx', 'stopPrice')
         params = self.omit(params, ['stopPx', 'stopPrice'])
-        if uppercaseOrderType == 'STOP' or uppercaseOrderType == 'LIMIT':
+        if uppercaseOrderType == 'STOP' or uppercaseOrderType == 'STOPLIMIT':
             if stopPrice is None:
                 raise ArgumentsRequired(self.id + ' createOrder() requires a stopPx or stopPrice param for a ' + uppercaseOrderType + ' order')
         if stopPrice is not None:

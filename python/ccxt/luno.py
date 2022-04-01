@@ -476,10 +476,40 @@ class luno(Exchange):
         return self.parse_ticker(response, market)
 
     def parse_trade(self, trade, market):
+        #
+        # fetchTrades(public)
+        #
+        #      {
+        #          "sequence":276989,
+        #          "timestamp":1648651276949,
+        #          "price":"35773.20000000",
+        #          "volume":"0.00300000",
+        #          "is_buy":false
+        #      }
+        #
+        # fetchMyTrades(private)
+        #
+        #      {
+        #          "pair":"LTCXBT",
+        #          "sequence":3256813,
+        #          "order_id":"BXEX6XHHDT5EGW2",
+        #          "type":"ASK",
+        #          "timestamp":1648652135235,
+        #          "price":"0.002786",
+        #          "volume":"0.10",
+        #          "base":"0.10",
+        #          "counter":"0.0002786",
+        #          "fee_base":"0.0001",
+        #          "fee_counter":"0.00",
+        #          "is_buy":false,
+        #          "client_order_id":""
+        #      }
+        #
         # For public trade data(is_buy is True) indicates 'buy' side but for private trade data
         # is_buy indicates maker or taker. The value of "type"(ASK/BID) indicate sell/buy side.
         # Private trade data includes ID field which public trade data does not.
         orderId = self.safe_string(trade, 'order_id')
+        id = self.safe_string(trade, 'sequence')
         takerOrMaker = None
         side = None
         if orderId is not None:
@@ -496,22 +526,22 @@ class luno(Exchange):
                 takerOrMaker = 'taker'
         else:
             side = 'buy' if trade['is_buy'] else 'sell'
-        feeBase = self.safe_number(trade, 'fee_base')
-        feeCounter = self.safe_number(trade, 'fee_counter')
+        feeBaseString = self.safe_string(trade, 'fee_base')
+        feeCounterString = self.safe_string(trade, 'fee_counter')
         feeCurrency = None
         feeCost = None
-        if feeBase is not None:
-            if feeBase != 0.0:
+        if feeBaseString is not None:
+            if not Precise.string_equals(feeBaseString, '0.0'):
                 feeCurrency = market['base']
-                feeCost = feeBase
-        elif feeCounter is not None:
-            if feeCounter != 0.0:
+                feeCost = feeBaseString
+        elif feeCounterString is not None:
+            if not Precise.string_equals(feeCounterString, '0.0'):
                 feeCurrency = market['quote']
-                feeCost = feeCounter
+                feeCost = feeCounterString
         timestamp = self.safe_integer(trade, 'timestamp')
-        return {
+        return self.safe_trade({
             'info': trade,
-            'id': None,
+            'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
@@ -519,15 +549,15 @@ class luno(Exchange):
             'type': None,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': self.safe_number(trade, 'price'),
-            'amount': self.safe_number(trade, 'volume'),
+            'price': self.safe_string(trade, 'price'),
+            'amount': self.safe_string(trade, 'volume'),
             # Does not include potential fee costs
-            'cost': self.safe_number(trade, 'counter'),
+            'cost': self.safe_string(trade, 'counter'),
             'fee': {
                 'cost': feeCost,
                 'currency': feeCurrency,
             },
-        }
+        }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
@@ -538,6 +568,19 @@ class luno(Exchange):
         if since is not None:
             request['since'] = since
         response = self.publicGetTrades(self.extend(request, params))
+        #
+        #      {
+        #          "trades":[
+        #              {
+        #                  "sequence":276989,
+        #                  "timestamp":1648651276949,
+        #                  "price":"35773.20000000",
+        #                  "volume":"0.00300000",
+        #                  "is_buy":false
+        #              },...
+        #          ]
+        #      }
+        #
         trades = self.safe_value(response, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
@@ -554,6 +597,27 @@ class luno(Exchange):
         if limit is not None:
             request['limit'] = limit
         response = self.privateGetListtrades(self.extend(request, params))
+        #
+        #      {
+        #          "trades":[
+        #              {
+        #                  "pair":"LTCXBT",
+        #                  "sequence":3256813,
+        #                  "order_id":"BXEX6XHHDT5EGW2",
+        #                  "type":"ASK",
+        #                  "timestamp":1648652135235,
+        #                  "price":"0.002786",
+        #                  "volume":"0.10",
+        #                  "base":"0.10",
+        #                  "counter":"0.0002786",
+        #                  "fee_base":"0.0001",
+        #                  "fee_counter":"0.00",
+        #                  "is_buy":false,
+        #                  "client_order_id":""
+        #              },...
+        #          ]
+        #      }
+        #
         trades = self.safe_value(response, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 

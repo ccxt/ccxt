@@ -80,6 +80,8 @@ class ftx(Exchange):
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': True,
+                'fetchLeverageTiers': False,
+                'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,

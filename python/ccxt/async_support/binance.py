@@ -52,26 +52,27 @@ class binance(Exchange):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': None,
-                'createDepositAddress': None,
+                'createDepositAddress': False,
                 'createOrder': True,
                 'createReduceOnlyOrder': True,
-                'deposit': None,
+                'deposit': False,
                 'fetchAccounts': None,
                 'fetchBalance': True,
                 'fetchBidsAsks': True,
+                'fetchBorrowInterest': True,
                 'fetchBorrowRate': True,
                 'fetchBorrowRateHistories': True,
                 'fetchBorrowRateHistory': True,
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
-                'fetchCanceledOrders': None,
+                'fetchCanceledOrders': False,
                 'fetchClosedOrder': None,
                 'fetchClosedOrders': 'emulated',
                 'fetchCurrencies': True,
-                'fetchDeposit': None,
+                'fetchDeposit': False,
                 'fetchDepositAddress': True,
-                'fetchDepositAddresses': None,
-                'fetchDepositAddressesByNetwork': None,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
                 'fetchFundingFee': None,
                 'fetchFundingFees': True,
@@ -83,7 +84,7 @@ class binance(Exchange):
                 'fetchIsolatedPositions': None,
                 'fetchL3OrderBook': None,
                 'fetchLedger': None,
-                'fetchLeverage': None,
+                'fetchLeverage': False,
                 'fetchLeverageTiers': True,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': True,
@@ -92,11 +93,11 @@ class binance(Exchange):
                 'fetchMySells': None,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
-                'fetchOpenOrder': None,
+                'fetchOpenOrder': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrderBooks': None,
+                'fetchOrderBooks': False,
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
                 'fetchPosition': None,
@@ -1344,7 +1345,7 @@ class binance(Exchange):
                 isWithdrawEnabled = isWithdrawEnabled or withdrawEnable
                 fees[network] = withdrawFee
                 isDefault = self.safe_value(networkItem, 'isDefault')
-                if isDefault or fee is None:
+                if isDefault or (fee is None):
                     fee = withdrawFee
             trading = self.safe_value(entry, 'trading')
             active = (isWithdrawEnabled and isDepositEnabled and trading)
@@ -5027,10 +5028,10 @@ class binance(Exchange):
         response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
-        #       "code": 200,
-        #       "msg": "Successfully modify position margin.",
-        #       "amount": 0.001,
-        #       "type": 1
+        #         "code": 200,
+        #         "msg": "Successfully modify position margin.",
+        #         "amount": 0.001,
+        #         "type": 1
         #     }
         #
         rawType = self.safe_integer(response, 'type')
@@ -5062,15 +5063,14 @@ class binance(Exchange):
         }
         response = await self.sapiGetMarginInterestRateHistory(self.extend(request, params))
         #
-        # [
-        #     {
-        #         "asset": "USDT",
-        #         "timestamp": 1638230400000,
-        #         "dailyInterestRate": "0.0006",
-        #         "vipLevel": 0
-        #     },
-        #     ...
-        # ]
+        #     [
+        #         {
+        #             "asset": "USDT",
+        #             "timestamp": 1638230400000,
+        #             "dailyInterestRate": "0.0006",
+        #             "vipLevel": 0
+        #         },
+        #     ]
         #
         rate = self.safe_value(response, 0)
         timestamp = self.safe_number(rate, 'timestamp')
@@ -5135,10 +5135,10 @@ class binance(Exchange):
         response = await self.sapiPostGiftcardCreateCode(self.extend(request, params))
         #
         #     {
-        #       code: '000000',
-        #       message: 'success',
-        #       data: {referenceNo: '0033002404219823', code: 'AP6EXTLKNHM6CEX7'},
-        #       success: True
+        #         code: '000000',
+        #         message: 'success',
+        #         data: {referenceNo: '0033002404219823', code: 'AP6EXTLKNHM6CEX7'},
+        #         success: True
         #     }
         #
         data = self.safe_value(response, 'data')
@@ -5159,13 +5159,13 @@ class binance(Exchange):
         response = await self.sapiPostGiftcardRedeemCode(self.extend(request, params))
         #
         #     {
-        #       code: '000000',
-        #       message: 'success',
-        #       data: {
-        #         referenceNo: '0033002404219823',
-        #         identityNo: '10316431732801474560'
-        #       },
-        #       success: True
+        #         code: '000000',
+        #         message: 'success',
+        #         data: {
+        #             referenceNo: '0033002404219823',
+        #             identityNo: '10316431732801474560'
+        #         },
+        #         success: True
         #     }
         #
         return response
@@ -5177,10 +5177,59 @@ class binance(Exchange):
         response = await self.sapiGetGiftcardVerify(self.extend(request, params))
         #
         #     {
-        #       code: '000000',
-        #       message: 'success',
-        #       data: {valid: True},
-        #       success: True
+        #         code: '000000',
+        #         message: 'success',
+        #         data: {valid: True},
+        #         success: True
         #     }
         #
         return response
+
+    async def fetch_borrow_interest(self, code=None, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        request = {}
+        market = None
+        if code is not None:
+            currency = self.currency(code)
+            request['asset'] = currency['id']
+        if since is not None:
+            request['startTime'] = since
+        if limit is not None:
+            request['size'] = limit
+        if symbol is not None:  # Isolated
+            market = self.market(symbol)
+            request['isolatedSymbol'] = market['id']
+        response = await self.sapiGetMarginInterestHistory(self.extend(request, params))
+        #
+        #     {
+        #         "rows":[
+        #             {
+        #                 "isolatedSymbol": "BNBUSDT",  # isolated symbol, will not be returned for crossed margin
+        #                 "asset": "BNB",
+        #                 "interest": "0.02414667",
+        #                 "interestAccuredTime": 1566813600000,
+        #                 "interestRate": "0.01600000",
+        #                 "principal": "36.22000000",
+        #                 "type": "ON_BORROW"
+        #             }
+        #         ],
+        #         "total": 1
+        #     }
+        #
+        rows = self.safe_value(response, 'rows')
+        interest = []
+        for i in range(0, len(rows)):
+            row = rows[i]
+            timestamp = self.safe_number(row, 'interestAccuredTime')
+            account = 'CROSS' if (symbol is None) else symbol
+            interest.append({
+                'account': account,
+                'currency': self.safe_currency_code(self.safe_string(row, 'asset')),
+                'interest': self.safe_number(row, 'interest'),
+                'interestRate': self.safe_number(row, 'interestRate'),
+                'amountBorrowed': self.safe_number(row, 'principal'),
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+                'info': row,
+            })
+        return self.filter_by_currency_since_limit(interest, code, since, limit)

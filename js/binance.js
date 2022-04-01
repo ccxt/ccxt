@@ -30,26 +30,27 @@ module.exports = class binance extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': undefined,
-                'createDepositAddress': undefined,
+                'createDepositAddress': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
-                'deposit': undefined,
+                'deposit': false,
                 'fetchAccounts': undefined,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
+                'fetchBorrowInterest': true,
                 'fetchBorrowRate': true,
                 'fetchBorrowRateHistories': true,
                 'fetchBorrowRateHistory': true,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
-                'fetchCanceledOrders': undefined,
+                'fetchCanceledOrders': false,
                 'fetchClosedOrder': undefined,
                 'fetchClosedOrders': 'emulated',
                 'fetchCurrencies': true,
-                'fetchDeposit': undefined,
+                'fetchDeposit': false,
                 'fetchDepositAddress': true,
-                'fetchDepositAddresses': undefined,
-                'fetchDepositAddressesByNetwork': undefined,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchFundingFee': undefined,
                 'fetchFundingFees': true,
@@ -61,7 +62,7 @@ module.exports = class binance extends Exchange {
                 'fetchIsolatedPositions': undefined,
                 'fetchL3OrderBook': undefined,
                 'fetchLedger': undefined,
-                'fetchLeverage': undefined,
+                'fetchLeverage': false,
                 'fetchLeverageTiers': true,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
@@ -70,11 +71,11 @@ module.exports = class binance extends Exchange {
                 'fetchMySells': undefined,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
-                'fetchOpenOrder': undefined,
+                'fetchOpenOrder': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrderBooks': undefined,
+                'fetchOrderBooks': false,
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': undefined,
@@ -1332,7 +1333,7 @@ module.exports = class binance extends Exchange {
                 isWithdrawEnabled = isWithdrawEnabled || withdrawEnable;
                 fees[network] = withdrawFee;
                 const isDefault = this.safeValue (networkItem, 'isDefault');
-                if (isDefault || fee === undefined) {
+                if (isDefault || (fee === undefined)) {
                     fee = withdrawFee;
                 }
             }
@@ -5383,10 +5384,10 @@ module.exports = class binance extends Exchange {
         const response = await this[method] (this.extend (request, params));
         //
         //     {
-        //       "code": 200,
-        //       "msg": "Successfully modify position margin.",
-        //       "amount": 0.001,
-        //       "type": 1
+        //         "code": 200,
+        //         "msg": "Successfully modify position margin.",
+        //         "amount": 0.001,
+        //         "type": 1
         //     }
         //
         const rawType = this.safeInteger (response, 'type');
@@ -5421,15 +5422,14 @@ module.exports = class binance extends Exchange {
         };
         const response = await this.sapiGetMarginInterestRateHistory (this.extend (request, params));
         //
-        // [
-        //     {
-        //         "asset": "USDT",
-        //         "timestamp": 1638230400000,
-        //         "dailyInterestRate": "0.0006",
-        //         "vipLevel": 0
-        //     },
-        //     ...
-        // ]
+        //     [
+        //         {
+        //             "asset": "USDT",
+        //             "timestamp": 1638230400000,
+        //             "dailyInterestRate": "0.0006",
+        //             "vipLevel": 0
+        //         },
+        //     ]
         //
         const rate = this.safeValue (response, 0);
         const timestamp = this.safeNumber (rate, 'timestamp');
@@ -5499,10 +5499,10 @@ module.exports = class binance extends Exchange {
         const response = await this.sapiPostGiftcardCreateCode (this.extend (request, params));
         //
         //     {
-        //       code: '000000',
-        //       message: 'success',
-        //       data: { referenceNo: '0033002404219823', code: 'AP6EXTLKNHM6CEX7' },
-        //       success: true
+        //         code: '000000',
+        //         message: 'success',
+        //         data: { referenceNo: '0033002404219823', code: 'AP6EXTLKNHM6CEX7' },
+        //         success: true
         //     }
         //
         const data = this.safeValue (response, 'data');
@@ -5524,13 +5524,13 @@ module.exports = class binance extends Exchange {
         const response = await this.sapiPostGiftcardRedeemCode (this.extend (request, params));
         //
         //     {
-        //       code: '000000',
-        //       message: 'success',
-        //       data: {
-        //         referenceNo: '0033002404219823',
-        //         identityNo: '10316431732801474560'
-        //       },
-        //       success: true
+        //         code: '000000',
+        //         message: 'success',
+        //         data: {
+        //             referenceNo: '0033002404219823',
+        //             identityNo: '10316431732801474560'
+        //         },
+        //         success: true
         //     }
         //
         return response;
@@ -5543,12 +5543,67 @@ module.exports = class binance extends Exchange {
         const response = await this.sapiGetGiftcardVerify (this.extend (request, params));
         //
         //     {
-        //       code: '000000',
-        //       message: 'success',
-        //       data: { valid: true },
-        //       success: true
+        //         code: '000000',
+        //         message: 'success',
+        //         data: { valid: true },
+        //         success: true
         //     }
         //
         return response;
+    }
+
+    async fetchBorrowInterest (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (code !== undefined) {
+            const currency = this.currency (code);
+            request['asset'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        if (symbol !== undefined) { // Isolated
+            market = this.market (symbol);
+            request['isolatedSymbol'] = market['id'];
+        }
+        const response = await this.sapiGetMarginInterestHistory (this.extend (request, params));
+        //
+        //     {
+        //         "rows":[
+        //             {
+        //                 "isolatedSymbol": "BNBUSDT", // isolated symbol, will not be returned for crossed margin
+        //                 "asset": "BNB",
+        //                 "interest": "0.02414667",
+        //                 "interestAccuredTime": 1566813600000,
+        //                 "interestRate": "0.01600000",
+        //                 "principal": "36.22000000",
+        //                 "type": "ON_BORROW"
+        //             }
+        //         ],
+        //         "total": 1
+        //     }
+        //
+        const rows = this.safeValue (response, 'rows');
+        const interest = [];
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            const timestamp = this.safeNumber (row, 'interestAccuredTime');
+            const account = (symbol === undefined) ? 'CROSS' : symbol;
+            interest.push ({
+                'account': account,
+                'currency': this.safeCurrencyCode (this.safeString (row, 'asset')),
+                'interest': this.safeNumber (row, 'interest'),
+                'interestRate': this.safeNumber (row, 'interestRate'),
+                'amountBorrowed': this.safeNumber (row, 'principal'),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'info': row,
+            });
+        }
+        return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
 };
