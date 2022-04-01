@@ -19,7 +19,7 @@ module.exports = class btcex extends Exchange {
             'certified': false,
             'pro': false,
             'requiredCredentials': {
-                'clientId': true,
+                'apiKey': true,
                 'secret': true,
             },
             'urls': {
@@ -334,32 +334,45 @@ module.exports = class btcex extends Exchange {
             const market = markets[i];
             const id = this.safeString (market, 'instrument_name');
             const type = this.safeString (market, 'kind');
-            const contract = (type === 'future');
             const baseId = this.safeString (market, 'base_currency');
             let quoteId = this.safeString (market, 'quote_currency');
             const settlementPeriod = this.safeValue (market, 'settlement_period');
-            const margin = !contract;
-            const perpetual = (settlementPeriod === 'perpetual');
-            const swap = perpetual;
+            const swap = (settlementPeriod === 'perpetual');
             const spot = (type === 'spot');
+            const margin = false;
             const option = (type === 'option');
             const future = !swap && (type === 'future');
-            const expiry = this.safeInteger (market, 'expiration_timestamp');
-            const strike = this.safeString (market, 'strike');
-            const optionType = this.safeString (market, 'option_type');
+            const contract = swap || future || option;
+            let contractSize = undefined;
+            let expiry = undefined;
+            let settleId = undefined;
+            let settle = undefined;
+            if (swap || future) {
+                settleId = quoteId;
+                settle = this.safeCurrencyCode (settleId);
+                expiry = this.safeInteger (market, 'expiration_timestamp');
+            }
+            let optionType = undefined;
+            let strike = undefined;
+            if (option) {
+                optionType = this.safeString (market, 'option_type');
+                strike = this.safeString (market, 'strike');
+            }
             const base = this.safeCurrencyCode (baseId);
-            const settleId = quoteId;
-            const settle = this.safeCurrencyCode (settleId);
             if (!spot) {
                 quoteId = this.safeString (market, 'currency');
             }
             const quote = this.safeCurrencyCode (quoteId);
             let symbol = quote + '/' + base;
-            if (option || future) {
-                symbol = symbol + ':' + settle + '-' + this.yymmdd (expiry, '');
-                if (option) {
-                    const letter = (optionType === 'call') ? 'C' : 'P';
-                    symbol = symbol + ':' + this.numberToString (strike) + ':' + letter;
+            if (contract) {
+                contractSize = this.safeNumber (market, 'contract_size');
+                symbol = symbol + ':' + settle;
+                if (future || option) {
+                    symbol = symbol + '-' + this.yymmdd (expiry);
+                    if (option) {
+                        const letter = (optionType === 'call') ? 'C' : 'P';
+                        symbol = symbol + ':' + this.numberToString (strike) + ':' + letter;
+                    }
                 }
             }
             const minTradeAmount = this.safeString (market, 'min_trade_amount');
@@ -383,7 +396,7 @@ module.exports = class btcex extends Exchange {
                 'contract': contract,
                 'linear': contract ? true : undefined,
                 'inverse': contract ? false : undefined,
-                'contractSize': this.safeString (market, 'contract_size'),
+                'contractSize': contractSize,
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601 (expiry),
                 'strike': strike,
@@ -714,13 +727,13 @@ module.exports = class btcex extends Exchange {
         this.checkRequiredCredentials ();
         const request = {
             'grant_type': 'client_credentials', // client_signature || refresh_token
-            'client_id': this.clientId,
+            'client_id': this.apiKey,
             'client_secret': this.secret,
             // 'refresh_token': '', // Required for grant type refresh_token
             // 'signature': '', // Required for grant type client_signature
         };
         const response = await this.publicPostAuth (this.extend (request, params));
-        const result = this.safeString (response, 'result');
+        const result = this.safeValue (response, 'result');
         //
         //     {
         //         jsonrpc: '2.0',
