@@ -302,6 +302,15 @@ module.exports = class hitbtc3 extends Exchange {
                     'future': 'derivatives',
                     'derivatives': 'derivatives',
                 },
+                'setLeverage': {
+                    'maxLeverage': {
+                        'BTC/USDT:USDT': 100,
+                        'ETH/USDT:USDT': 75,
+                        'ADA/USDT:USDT': 75,
+                        'SOL/USDT:USDT': 75,
+                        'XRP/USDT:USDT': 75,
+                    },
+                },
             },
         });
     }
@@ -2093,21 +2102,14 @@ module.exports = class hitbtc3 extends Exchange {
         }
         const market = this.market (symbol);
         const amount = this.safeNumber (params, 'margin_balance');
+        const options = this.safeValue (this.options, 'setLeverage', {});
+        const maxLeverages = this.safeValue (options, 'maxLeverage', {});
+        const maxLeverage = this.safeNumber (maxLeverages, symbol, 50);
         if (market['type'] !== 'swap') {
             throw new BadSymbol (this.id + ' setLeverage() supports swap contracts only');
         }
-        if (symbol === 'BTC/USDT:USDT') {
-            if ((leverage < 1) || (leverage > 100)) {
-                throw new BadRequest (this.id + ' setLeverage() leverage should be between 1 and 100 for ' + symbol);
-            }
-        } else if (symbol === 'ETH/USDT:USDT' || symbol === 'ADA/USDT:USDT' || symbol === 'SOL/USDT:USDT' || symbol === 'XRP/USDT:USDT') {
-            if ((leverage < 1) || (leverage > 75)) {
-                throw new BadRequest (this.id + ' setLeverage() leverage should be between 1 and 75 for ' + symbol);
-            }
-        } else {
-            if ((leverage < 1) || (leverage > 50)) {
-                throw new BadRequest (this.id + ' setLeverage() leverage should be between 1 and 50 for ' + symbol);
-            }
+        if ((leverage < 1) || (leverage > maxLeverage)) {
+            throw new BadRequest (this.id + ' setLeverage() leverage should be between 1 and ' + maxLeverage.toString () + ' for ' + symbol);
         }
         const request = {
             'symbol': market['id'],
