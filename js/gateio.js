@@ -607,6 +607,7 @@ module.exports = class gateio extends Exchange {
                     'INTERNAL': ExchangeNotAvailable,
                     'SERVER_ERROR': ExchangeNotAvailable,
                     'TOO_BUSY': ExchangeNotAvailable,
+                    'CROSS_ACCOUNT_NOT_FOUND': ExchangeError,
                 },
             },
             'broad': {},
@@ -1823,7 +1824,11 @@ module.exports = class gateio extends Exchange {
 
     fetchBalanceHelper (entry) {
         const account = this.account ();
-        account['used'] = this.safeString2 (entry, 'locked', 'position_margin');
+        let used = this.safeString (entry, 'freeze');
+        if (used === undefined) {
+            used = this.safeString2 (entry, 'locked', 'position_margin');
+        }
+        account['used'] = used;
         account['free'] = this.safeString (entry, 'available');
         return account;
     }
@@ -1861,9 +1866,8 @@ module.exports = class gateio extends Exchange {
         //             "currency": "DBC",
         //             "available": "0",
         //             "locked": "0"
-        //              "locked":"0", // margin funding only
-        //              "lent":"0", // margin funding only
-        //              "total_lent":"0" // margin funding only
+        //             "lent":"0", // margin funding only
+        //             "total_lent":"0" // margin funding only
         //         },
         //         ...
         //     ]
@@ -1892,6 +1896,24 @@ module.exports = class gateio extends Exchange {
         //         },
         //         ...
         //    ]
+        //
+        // Cross margin
+        //    {
+        //        "user_id":10406147,
+        //        "locked":false,
+        //        "balances":{
+        //           "USDT":{
+        //              "available":"1",
+        //              "freeze":"0",
+        //              "borrowed":"0",
+        //              "interest":"0"
+        //           }
+        //        },
+        //        "total":"1",
+        //        "borrowed":"0",
+        //        "interest":"0",
+        //        "risk":"9999.99"
+        //     }
         //
         //  Perpetual Swap
         //
@@ -1948,8 +1970,23 @@ module.exports = class gateio extends Exchange {
         const result = {
             'info': response,
         };
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
+        let data = response;
+        if ('balances' in data) {
+            const flatBalances = [];
+            const balances = this.safeValue (data, 'balances', []);
+            // inject currency and create an artificial balance object
+            // so it can follow the existent flow
+            const keys = Object.keys (balances);
+            for (let i = 0; i < keys.length; i++) {
+                const currencyId = keys[i];
+                const content = balances[currencyId];
+                content['currency'] = currencyId;
+                flatBalances.push (content);
+            }
+            data = flatBalances;
+        }
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
             if (margin) {
                 const marketId = this.safeString (entry, 'currency_pair');
                 const symbol = this.safeSymbol (marketId, undefined, '_');
