@@ -423,6 +423,7 @@ module.exports = class huobi extends ccxt.huobi {
 
     handleOrderBookMessage (client, message, orderbook) {
         // spot markets
+        //
         //     {
         //         ch: "market.btcusdt.mbp.150",
         //         ts: 1583472025885,
@@ -441,26 +442,28 @@ module.exports = class huobi extends ccxt.huobi {
         //             ]
         //         }
         //     }
+        //
         // non-spot market
+        //
         //     {
         //         "ch":"market.BTC220218.depth.size_150.high_freq",
         //         "tick":{
-        //            "asks":[
-        //            ],
-        //            "bids":[
-        //               [43445.74,1],
-        //               [43444.48,0 ],
-        //               [40593.92,9]
+        //             "asks":[],
+        //             "bids":[
+        //                 [43445.74,1],
+        //                 [43444.48,0 ],
+        //                 [40593.92,9]
         //             ],
-        //            "ch":"market.BTC220218.depth.size_150.high_freq",
-        //            "event":"update",
-        //            "id":152727500274,
-        //            "mrid":152727500274,
-        //            "ts":1645023376098,
-        //            "version":37536690
+        //             "ch":"market.BTC220218.depth.size_150.high_freq",
+        //             "event":"update",
+        //             "id":152727500274,
+        //             "mrid":152727500274,
+        //             "ts":1645023376098,
+        //             "version":37536690
         //         },
         //         "ts":1645023376098
-        //      }
+        //     }
+        //
         const tick = this.safeValue (message, 'tick', {});
         const seqNum = this.safeInteger2 (tick, 'seqNum', 'id');
         const prevSeqNum = this.safeInteger (tick, 'prevSeqNum');
@@ -482,6 +485,7 @@ module.exports = class huobi extends ccxt.huobi {
         // deltas
         //
         // spot markets
+        //
         //     {
         //         ch: "market.btcusdt.mbp.150",
         //         ts: 1583472025885,
@@ -502,25 +506,26 @@ module.exports = class huobi extends ccxt.huobi {
         //     }
         //
         // non spot markets
+        //
         //     {
         //         "ch":"market.BTC220218.depth.size_150.high_freq",
         //         "tick":{
-        //            "asks":[
-        //            ],
-        //            "bids":[
-        //               [43445.74,1],
-        //               [43444.48,0 ],
-        //               [40593.92,9]
+        //             "asks":[],
+        //             "bids":[
+        //                 [43445.74,1],
+        //                 [43444.48,0 ],
+        //                 [40593.92,9]
         //             ],
-        //            "ch":"market.BTC220218.depth.size_150.high_freq",
-        //            "event":"update",
-        //            "id":152727500274,
-        //            "mrid":152727500274,
-        //            "ts":1645023376098,
-        //            "version":37536690
+        //             "ch":"market.BTC220218.depth.size_150.high_freq",
+        //             "event":"update",
+        //             "id":152727500274,
+        //             "mrid":152727500274,
+        //             "ts":1645023376098,
+        //             "version":37536690
         //         },
         //         "ts":1645023376098
-        //      }
+        //     }
+        //
         const messageHash = this.safeString (message, 'ch');
         const ch = this.safeValue (message, 'ch');
         const parts = ch.split ('.');
@@ -638,58 +643,60 @@ module.exports = class huobi extends ccxt.huobi {
         //
         // spot
         //
-        // {
-        //     "action":"push",
-        //     "ch":"orders#btcusdt",
-        //     "data":
-        //      {
-        //          orderSource: 'spot-web',
-        //          orderCreateTime: 1645116048355,
-        //          accountId: 44234548,
-        //          orderPrice: '100',
-        //          orderSize: '0.05',
-        //          symbol: 'ethusdt',
-        //          type: 'buy-limit',
-        //          orderId: '478861479986886',
-        //          eventType: 'creation',
-        //          clientOrderId: '',
-        //          orderStatus: 'submitted'
-        //        }
-        // }
-        // spot wrapped trade
-        // {
-        //     action: 'push',
-        //     ch: 'orders#ltcusdt',
-        //     data: {
-        //       tradePrice: '130.01',
-        //       tradeVolume: '0.0385',
-        //       tradeTime: 1648714741525,
-        //       aggressor: true,
-        //       execAmt: '0.0385',
-        //       orderSource: 'spot-web',
-        //       orderSize: '0.0385',
-        //       remainAmt: '0',
-        //       tradeId: 101541578884,
-        //       symbol: 'ltcusdt',
-        //       type: 'sell-market',
-        //       eventType: 'trade',
-        //       clientOrderId: '',
-        //       orderStatus: 'filled',
-        //       orderId: 509835753860328
+        //     {
+        //         "action":"push",
+        //         "ch":"orders#btcusdt",
+        //         "data": {
+        //             orderSource: 'spot-web',
+        //             orderCreateTime: 1645116048355,
+        //             accountId: 44234548,
+        //             orderPrice: '100',
+        //             orderSize: '0.05',
+        //             symbol: 'ethusdt',
+        //             type: 'buy-limit',
+        //             orderId: '478861479986886',
+        //             eventType: 'creation',
+        //             clientOrderId: '',
+        //             orderStatus: 'submitted'
+        //         }
         //     }
-        //   }
+        //
+        // spot wrapped trade
+        //
+        //     {
+        //         action: 'push',
+        //         ch: 'orders#ltcusdt',
+        //         data: {
+        //             tradePrice: '130.01',
+        //             tradeVolume: '0.0385',
+        //             tradeTime: 1648714741525,
+        //             aggressor: true,
+        //             execAmt: '0.0385',
+        //             orderSource: 'spot-web',
+        //             orderSize: '0.0385',
+        //             remainAmt: '0',
+        //             tradeId: 101541578884,
+        //             symbol: 'ltcusdt',
+        //             type: 'sell-market',
+        //             eventType: 'trade',
+        //             clientOrderId: '',
+        //             orderStatus: 'filled',
+        //             orderId: 509835753860328
+        //         }
+        //     }
+        //
         // non spot order
-        // {
-        //     "contract_type":"swap",
-        //     "pair":"BTC-USDT",
-        //     "business_type":"swap",
-        //     "op":"notify",
-        //     "topic":"orders_cross.btc-usdt",
-        //     "ts":1645205382242,
-        //     "symbol":"BTC",
-        //     "contract_code":"BTC-USDT",
-        //      (...)
-        // }
+        //
+        //     {
+        //         "contract_type":"swap",
+        //         "pair":"BTC-USDT",
+        //         "business_type":"swap",
+        //         "op":"notify",
+        //         "topic":"orders_cross.btc-usdt",
+        //         "ts":1645205382242,
+        //         "symbol":"BTC",
+        //         "contract_code":"BTC-USDT",
+        //     }
         //
         let messageHash = this.safeString2 (message, 'ch', 'topic', '');
         let marketId = this.safeString (message, 'contract_code');
@@ -737,113 +744,117 @@ module.exports = class huobi extends ccxt.huobi {
     }
 
     parseWsOrder (order, market = undefined) {
+        //
         // spot
-        // {
-        //     orderSource: 'spot-web',
-        //     orderCreateTime: 1645116048355, // creating only
-        //     accountId: 44234548,
-        //     orderPrice: '100',
-        //     orderSize: '0.05',
-        //     symbol: 'ethusdt',
-        //     type: 'buy-limit',
-        //     orderId: '478861479986886',
-        //     eventType: 'creation',
-        //     clientOrderId: '',
-        //     orderStatus: 'submitted'
-        //     lastActTime:1645118621810 // except creating
-        //     execAmt:'0'
-        //   }
+        //
+        //     {
+        //         orderSource: 'spot-web',
+        //         orderCreateTime: 1645116048355, // creating only
+        //         accountId: 44234548,
+        //         orderPrice: '100',
+        //         orderSize: '0.05',
+        //         symbol: 'ethusdt',
+        //         type: 'buy-limit',
+        //         orderId: '478861479986886',
+        //         eventType: 'creation',
+        //         clientOrderId: '',
+        //         orderStatus: 'submitted'
+        //         lastActTime:1645118621810 // except creating
+        //         execAmt:'0'
+        //     }
+        //
         // swap order
-        // {
-        //     contract_type: 'swap',
-        //     pair: 'LTC-USDT',
-        //     business_type: 'swap',
-        //     op: 'notify',
-        //     topic: 'orders_cross.ltc-usdt',
-        //     ts: 1648717911384,
-        //     symbol: 'LTC',
-        //     contract_code: 'LTC-USDT',
-        //     volume: 1,
-        //     price: 129.13,
-        //     order_price_type: 'lightning',
-        //     direction: 'sell',
-        //     offset: 'close',
-        //     status: 6,
-        //     lever_rate: 5,
-        //     order_id: '959137967397068800',
-        //     order_id_str: '959137967397068800',
-        //     client_order_id: null,
-        //     order_source: 'web',
-        //     order_type: 1,
-        //     created_at: 1648717911344,
-        //     trade_volume: 1,
-        //     trade_turnover: 12.952,
-        //     fee: -0.006476,
-        //     trade_avg_price: 129.52,
-        //     margin_frozen: 0,
-        //     profit: -0.005,
-        //     trade: [
-        //       {
-        //         trade_fee: -0.006476,
-        //         fee_asset: 'USDT',
-        //         real_profit: -0.005,
-        //         profit: -0.005,
-        //         trade_id: 83619995370,
-        //         id: '83619995370-959137967397068800-1',
+        //
+        //     {
+        //         contract_type: 'swap',
+        //         pair: 'LTC-USDT',
+        //         business_type: 'swap',
+        //         op: 'notify',
+        //         topic: 'orders_cross.ltc-usdt',
+        //         ts: 1648717911384,
+        //         symbol: 'LTC',
+        //         contract_code: 'LTC-USDT',
+        //         volume: 1,
+        //         price: 129.13,
+        //         order_price_type: 'lightning',
+        //         direction: 'sell',
+        //         offset: 'close',
+        //         status: 6,
+        //         lever_rate: 5,
+        //         order_id: '959137967397068800',
+        //         order_id_str: '959137967397068800',
+        //         client_order_id: null,
+        //         order_source: 'web',
+        //         order_type: 1,
+        //         created_at: 1648717911344,
         //         trade_volume: 1,
-        //         trade_price: 129.52,
         //         trade_turnover: 12.952,
-        //         created_at: 1648717911352,
-        //         role: 'taker'
-        //       }
-        //     ],
-        //     canceled_at: 0,
-        //     fee_asset: 'USDT',
-        //     margin_asset: 'USDT',
-        //     uid: '359305390',
-        //     liquidation_type: '0',
-        //     margin_mode: 'cross',
-        //     margin_account: 'USDT',
-        //     is_tpsl: 0,
-        //     real_profit: -0.005,
-        //     trade_partition: 'USDT',
-        //     reduce_only: 1
-        //   }
-        // {
-        //     "op":"notify",
-        //     "topic":"orders.ada",
-        //     "ts":1604388667226,
-        //     "symbol":"ADA",
-        //     "contract_type":"quarter",
-        //     "contract_code":"ADA201225",
-        //     "volume":1,
-        //     "price":0.0905,
-        //     "order_price_type":"post_only",
-        //     "direction":"sell",
-        //     "offset":"open",
-        //     "status":6,
-        //     "lever_rate":20,
-        //     "order_id":773207641127878656,
-        //     "order_id_str":"773207641127878656",
-        //     "client_order_id":null,
-        //     "order_source":"web",
-        //     "order_type":1,
-        //     "created_at":1604388667146,
-        //     "trade_volume":1,
-        //     "trade_turnover":10,
-        //     "fee":-0.022099447513812154,
-        //     "trade_avg_price":0.0905,
-        //     "margin_frozen":0,
-        //     "profit":0,
-        //     "trade":[
-        //     ],
-        //     "canceled_at":0,
-        //     "fee_asset":"ADA",
-        //     "uid":"123456789",
-        //     "liquidation_type":"0",
-        //     "is_tpsl": 0,
-        //     "real_profit": 0
-        // }
+        //         fee: -0.006476,
+        //         trade_avg_price: 129.52,
+        //         margin_frozen: 0,
+        //         profit: -0.005,
+        //         trade: [
+        //             {
+        //                 trade_fee: -0.006476,
+        //                 fee_asset: 'USDT',
+        //                 real_profit: -0.005,
+        //                 profit: -0.005,
+        //                 trade_id: 83619995370,
+        //                 id: '83619995370-959137967397068800-1',
+        //                 trade_volume: 1,
+        //                 trade_price: 129.52,
+        //                 trade_turnover: 12.952,
+        //                 created_at: 1648717911352,
+        //                 role: 'taker'
+        //             }
+        //         ],
+        //         canceled_at: 0,
+        //         fee_asset: 'USDT',
+        //         margin_asset: 'USDT',
+        //         uid: '359305390',
+        //         liquidation_type: '0',
+        //         margin_mode: 'cross',
+        //         margin_account: 'USDT',
+        //         is_tpsl: 0,
+        //         real_profit: -0.005,
+        //         trade_partition: 'USDT',
+        //         reduce_only: 1
+        //     }
+        //
+        //     {
+        //         "op":"notify",
+        //         "topic":"orders.ada",
+        //         "ts":1604388667226,
+        //         "symbol":"ADA",
+        //         "contract_type":"quarter",
+        //         "contract_code":"ADA201225",
+        //         "volume":1,
+        //         "price":0.0905,
+        //         "order_price_type":"post_only",
+        //         "direction":"sell",
+        //         "offset":"open",
+        //         "status":6,
+        //         "lever_rate":20,
+        //         "order_id":773207641127878656,
+        //         "order_id_str":"773207641127878656",
+        //         "client_order_id":null,
+        //         "order_source":"web",
+        //         "order_type":1,
+        //         "created_at":1604388667146,
+        //         "trade_volume":1,
+        //         "trade_turnover":10,
+        //         "fee":-0.022099447513812154,
+        //         "trade_avg_price":0.0905,
+        //         "margin_frozen":0,
+        //         "profit":0,
+        //         "trade":[],
+        //         "canceled_at":0,
+        //         "fee_asset":"ADA",
+        //         "uid":"123456789",
+        //         "liquidation_type":"0",
+        //         "is_tpsl": 0,
+        //         "real_profit": 0
+        //     }
         //
         const lastTradeTimestamp = this.safeInteger2 (order, 'lastActTime', 'ts');
         const created = this.safeInteger (order, 'orderCreateTime');
@@ -908,23 +919,25 @@ module.exports = class huobi extends ccxt.huobi {
 
     parseOrderTrade (trade, market = undefined) {
         // spot private wrapped trade
-        // {
-        //     tradePrice: '130.01',
-        //     tradeVolume: '0.0385',
-        //     tradeTime: 1648714741525,
-        //     aggressor: true,
-        //     execAmt: '0.0385',
-        //     orderSource: 'spot-web',
-        //     orderSize: '0.0385',
-        //     remainAmt: '0',
-        //     tradeId: 101541578884,
-        //     symbol: 'ltcusdt',
-        //     type: 'sell-market',
-        //     eventType: 'trade',
-        //     clientOrderId: '',
-        //     orderStatus: 'filled',
-        //     orderId: 509835753860328
-        // }
+        //
+        //     {
+        //         tradePrice: '130.01',
+        //         tradeVolume: '0.0385',
+        //         tradeTime: 1648714741525,
+        //         aggressor: true,
+        //         execAmt: '0.0385',
+        //         orderSource: 'spot-web',
+        //         orderSize: '0.0385',
+        //         remainAmt: '0',
+        //         tradeId: 101541578884,
+        //         symbol: 'ltcusdt',
+        //         type: 'sell-market',
+        //         eventType: 'trade',
+        //         clientOrderId: '',
+        //         orderStatus: 'filled',
+        //         orderId: 509835753860328
+        //     }
+        //
         market = this.safeMarket (undefined, market);
         const symbol = market['symbol'];
         const tradeId = this.safeString (trade, 'tradeId');
@@ -1023,111 +1036,117 @@ module.exports = class huobi extends ccxt.huobi {
     handleBalance (client, message) {
         // spot
         //
-        // {
-        //     "action": "push",
-        //     "ch": "accounts.update#0",
-        //     "data": {
-        //         "currency": "btc",
-        //         "accountId": 123456,
-        //         "balance": "23.111",
-        //         "available": "2028.699426619837209087",
-        //         "changeType": "transfer",
-        //         "accountType":"trade",
-        //         "seqNum": "86872993928",
-        //         "changeTime": 1568601800000
-        //     }
-        // }
-        // inverse future
-        // {
-        //     "op":"notify",
-        //     "topic":"accounts.ada",
-        //     "ts":1604388667226,
-        //     "event":"order.match",
-        //     "data":[
-        //         {
-        //             "symbol":"ADA",
-        //             "margin_balance":446.417641681222726716,
-        //             "margin_static":445.554085945257745136,
-        //             "margin_position":11.049723756906077348,
-        //             "margin_frozen":0,
-        //             "margin_available":435.367917924316649368,
-        //             "profit_real":21.627049781983019459,
-        //             "profit_unreal":0.86355573596498158,
-        //             "risk_rate":40.000796572150656768,
-        //             "liquidation_price":0.018674308027108984,
-        //             "withdraw_available":423.927036163274725677,
-        //             "lever_rate":20,
-        //             "adjust_factor":0.4
+        //     {
+        //         "action": "push",
+        //         "ch": "accounts.update#0",
+        //         "data": {
+        //             "currency": "btc",
+        //             "accountId": 123456,
+        //             "balance": "23.111",
+        //             "available": "2028.699426619837209087",
+        //             "changeType": "transfer",
+        //             "accountType":"trade",
+        //             "seqNum": "86872993928",
+        //             "changeTime": 1568601800000
         //         }
-        //     ],
-        //     "uid":"123456789"
-        // }
+        //     }
+        //
+        // inverse future
+        //
+        //     {
+        //         "op":"notify",
+        //         "topic":"accounts.ada",
+        //         "ts":1604388667226,
+        //         "event":"order.match",
+        //         "data":[
+        //             {
+        //                 "symbol":"ADA",
+        //                 "margin_balance":446.417641681222726716,
+        //                 "margin_static":445.554085945257745136,
+        //                 "margin_position":11.049723756906077348,
+        //                 "margin_frozen":0,
+        //                 "margin_available":435.367917924316649368,
+        //                 "profit_real":21.627049781983019459,
+        //                 "profit_unreal":0.86355573596498158,
+        //                 "risk_rate":40.000796572150656768,
+        //                 "liquidation_price":0.018674308027108984,
+        //                 "withdraw_available":423.927036163274725677,
+        //                 "lever_rate":20,
+        //                 "adjust_factor":0.4
+        //             }
+        //         ],
+        //         "uid":"123456789"
+        //     }
         //
         // usdt / linear future, swap
-        // {
-        //     "op":"notify",
-        //     "topic":"accounts.btc-usdt", // or 'accounts' for global subscriptions
-        //     "ts":1603711370689,
-        //     "event":"order.open",
-        //     "data":[
-        //       {
-        //        "margin_mode":"cross",
-        //        "margin_account":"USDT",
-        //        "margin_asset":"USDT",
-        //        "margin_balance":30.959342395,
-        //        "margin_static":30.959342395,
-        //        "margin_position":0,
-        //        "margin_frozen":10,
-        //        "profit_real":0,
-        //        "profit_unreal":0,
-        //        "withdraw_available":20.959342395,
-        //        "risk_rate":153.796711975,
-        //        "position_mode":"dual_side",
-        //        "contract_detail":[
-        //           {
-        //              "symbol":"LTC",
-        //              "contract_code":"LTC-USDT",
-        //              "margin_position":0,
-        //              "margin_frozen":0,
-        //              "margin_available":20.959342395,
-        //              "profit_unreal":0,
-        //              "liquidation_price":null,
-        //              "lever_rate":1,
-        //              "adjust_factor":0.01,
-        //              "contract_type":"swap",
-        //              "pair":"LTC-USDT",
-        //              "business_type":"swap",
-        //              "trade_partition":"USDT"
-        //           },
-        //        ],
-        //        "futures_contract_detail":[
-        //        ]
+        //
+        //     {
+        //         "op":"notify",
+        //         "topic":"accounts.btc-usdt", // or 'accounts' for global subscriptions
+        //         "ts":1603711370689,
+        //         "event":"order.open",
+        //         "data":[
+        //             {
+        //                 "margin_mode":"cross",
+        //                 "margin_account":"USDT",
+        //                 "margin_asset":"USDT",
+        //                 "margin_balance":30.959342395,
+        //                 "margin_static":30.959342395,
+        //                 "margin_position":0,
+        //                 "margin_frozen":10,
+        //                 "profit_real":0,
+        //                 "profit_unreal":0,
+        //                 "withdraw_available":20.959342395,
+        //                 "risk_rate":153.796711975,
+        //                 "position_mode":"dual_side",
+        //                 "contract_detail":[
+        //                     {
+        //                         "symbol":"LTC",
+        //                         "contract_code":"LTC-USDT",
+        //                         "margin_position":0,
+        //                         "margin_frozen":0,
+        //                         "margin_available":20.959342395,
+        //                         "profit_unreal":0,
+        //                         "liquidation_price":null,
+        //                         "lever_rate":1,
+        //                         "adjust_factor":0.01,
+        //                         "contract_type":"swap",
+        //                         "pair":"LTC-USDT",
+        //                         "business_type":"swap",
+        //                         "trade_partition":"USDT"
+        //                     },
+        //                 ],
+        //                 "futures_contract_detail":[],
+        //             }
+        //         ]
+        //     }
         //
         // inverse future
-        // {
-        //     "op":"notify",
-        //     "topic":"accounts.ada",
-        //     "ts":1604388667226,
-        //     "event":"order.match",
-        //     "data":[
-        //         {
-        //             "symbol":"ADA",
-        //             "margin_balance":446.417641681222726716,
-        //             "margin_static":445.554085945257745136,
-        //             "margin_position":11.049723756906077348,
-        //             "margin_frozen":0,
-        //             "margin_available":435.367917924316649368,
-        //             "profit_real":21.627049781983019459,
-        //             "profit_unreal":0.86355573596498158,
-        //             "risk_rate":40.000796572150656768,
-        //             "liquidation_price":0.018674308027108984,
-        //             "withdraw_available":423.927036163274725677,
-        //             "lever_rate":20,
-        //             "adjust_factor":0.4
-        //         }
-        //     ],
-        //     "uid":"123456789"
-        // }
+        //
+        //     {
+        //         "op":"notify",
+        //         "topic":"accounts.ada",
+        //         "ts":1604388667226,
+        //         "event":"order.match",
+        //         "data":[
+        //             {
+        //                 "symbol":"ADA",
+        //                 "margin_balance":446.417641681222726716,
+        //                 "margin_static":445.554085945257745136,
+        //                 "margin_position":11.049723756906077348,
+        //                 "margin_frozen":0,
+        //                 "margin_available":435.367917924316649368,
+        //                 "profit_real":21.627049781983019459,
+        //                 "profit_unreal":0.86355573596498158,
+        //                 "risk_rate":40.000796572150656768,
+        //                 "liquidation_price":0.018674308027108984,
+        //                 "withdraw_available":423.927036163274725677,
+        //                 "lever_rate":20,
+        //                 "adjust_factor":0.4
+        //             }
+        //         ],
+        //         "uid":"123456789"
+        //     }
         //
         const channel = this.safeString (message, 'ch');
         if (channel !== undefined) {
@@ -1274,58 +1293,63 @@ module.exports = class huobi extends ccxt.huobi {
         //         }
         //     }
         // non spot
+        //
         //     {
         //         "ch":"market.BTC220218.depth.size_150.high_freq",
         //         "tick":{
-        //            "asks":[
-        //            ],
-        //            "bids":[
-        //               [43445.74,1],
-        //               [43444.48,0 ],
-        //               [40593.92,9]
+        //             "asks":[],
+        //             "bids":[
+        //                 [43445.74,1],
+        //                 [43444.48,0 ],
+        //                 [40593.92,9]
         //             ],
-        //            "ch":"market.BTC220218.depth.size_150.high_freq",
-        //            "event":"update",
-        //            "id":152727500274,
-        //            "mrid":152727500274,
-        //            "ts":1645023376098,
-        //            "version":37536690
+        //             "ch":"market.BTC220218.depth.size_150.high_freq",
+        //             "event":"update",
+        //             "id":152727500274,
+        //             "mrid":152727500274,
+        //             "ts":1645023376098,
+        //             "version":37536690
         //         },
         //         "ts":1645023376098
-        //      }
+        //     }
+        //
         // spot private trade
         //
-        //  {
-        //      "action":"push",
-        //      "ch":"trade.clearing#ltcusdt#1",
-        //      "data":{
-        //         "eventType":"trade",
-        //         "symbol":"ltcusdt",
-        //           (...)
-        //  }
-        // spot order
-        // {
-        //     "action":"push",
-        //     "ch":"orders#btcusdt",
-        //     "data":
-        //      {
-        //         "orderSide":"buy",
-        //         "lastActTime":1583853365586,
-        //         "clientOrderId":"abc123",
-        //         "orderStatus":"rejected",
-        //         "symbol":"btcusdt",
-        //         "eventType":"trigger",
-        //         "errCode": 2002,
-        //         "errMessage":"invalid.client.order.id (NT)"
+        //     {
+        //         "action":"push",
+        //         "ch":"trade.clearing#ltcusdt#1",
+        //         "data":{
+        //             "eventType":"trade",
+        //             "symbol":"ltcusdt",
+        //             // ...
+        //         },
         //     }
-        // }
-        // contract order
-        // {
-        //     "op":"notify",
-        //     "topic":"orders.ada",
-        //     "ts":1604388667226,
-        //     (...)
         //
+        // spot order
+        //
+        //     {
+        //         "action":"push",
+        //         "ch":"orders#btcusdt",
+        //         "data": {
+        //             "orderSide":"buy",
+        //             "lastActTime":1583853365586,
+        //             "clientOrderId":"abc123",
+        //             "orderStatus":"rejected",
+        //             "symbol":"btcusdt",
+        //             "eventType":"trigger",
+        //             "errCode": 2002,
+        //             "errMessage":"invalid.client.order.id (NT)"
+        //         }
+        //     }
+        //
+        // contract order
+        //
+        //     {
+        //         "op":"notify",
+        //         "topic":"orders.ada",
+        //         "ts":1604388667226,
+        //         // ?
+        //     }
         //
         const ch = this.safeValue (message, 'ch', '');
         const parts = ch.split ('.');
@@ -1377,11 +1401,7 @@ module.exports = class huobi extends ccxt.huobi {
     async pong (client, message) {
         //
         //     { ping: 1583491673714 }
-        //
-        // or
         //     { action: 'ping', data: { ts: 1645108204665 } }
-        //
-        // or
         //     { op: 'ping', ts: '1645202800015' }
         //
         const ping = this.safeInteger (message, 'ping');
@@ -1408,14 +1428,18 @@ module.exports = class huobi extends ccxt.huobi {
     }
 
     handleAuthenticate (client, message) {
+        //
         // spot
-        // {
-        //     "action": "req",
-        //     "code": 200,
-        //     "ch": "auth",
-        //     "data": {}
-        // }
+        //
+        //     {
+        //         "action": "req",
+        //         "code": 200,
+        //         "ch": "auth",
+        //         "data": {}
+        //     }
+        //
         // non spot
+        //
         //    {
         //        op: 'auth',
         //        type: 'api',
@@ -1478,13 +1502,16 @@ module.exports = class huobi extends ccxt.huobi {
             //
             //
             // auth spot
+            //
             //     {
             //         "action": "req",
             //         "code": 200,
             //         "ch": "auth",
             //         "data": {}
             //     }
+            //
             // auth non spot
+            //
             //    {
             //        op: 'auth',
             //        type: 'api',
@@ -1492,15 +1519,17 @@ module.exports = class huobi extends ccxt.huobi {
             //        ts: 1645200307319,
             //        data: { 'user-id': '35930539' }
             //    }
+            //
             // trade
-            // {
-            //     "action":"push",
-            //     "ch":"trade.clearing#ltcusdt#1",
-            //     "data":{
-            //        "eventType":"trade",
-            //          (...)
+            //
+            //     {
+            //         "action":"push",
+            //         "ch":"trade.clearing#ltcusdt#1",
+            //         "data":{
+            //             "eventType":"trade",
+            //             // ?
+            //         }
             //     }
-            //  }
             //
             if ('id' in message) {
                 this.handleSubscriptionStatus (client, message);
@@ -1556,31 +1585,31 @@ module.exports = class huobi extends ccxt.huobi {
         //
         // spot
         //
-        // {
-        //     "action":"push",
-        //     "ch":"trade.clearing#ltcusdt#1",
-        //     "data":{
-        //        "eventType":"trade",
-        //        "symbol":"ltcusdt",
-        //        "orderId":"478862728954426",
-        //        "orderSide":"buy",
-        //        "orderType":"buy-market",
-        //        "accountId":44234548,
-        //        "source":"spot-web",
-        //        "orderValue":"5.01724137",
-        //        "orderCreateTime":1645124660365,
-        //        "orderStatus":"filled",
-        //        "feeCurrency":"ltc",
-        //        "tradePrice":"118.89",
-        //        "tradeVolume":"0.042200701236437042",
-        //        "aggressor":true,
-        //        "tradeId":101539740584,
-        //        "tradeTime":1645124660368,
-        //        "transactFee":"0.000041778694224073",
-        //        "feeDeduct":"0",
-        //        "feeDeductType":""
+        //     {
+        //         "action":"push",
+        //         "ch":"trade.clearing#ltcusdt#1",
+        //         "data":{
+        //             "eventType":"trade",
+        //             "symbol":"ltcusdt",
+        //             "orderId":"478862728954426",
+        //             "orderSide":"buy",
+        //             "orderType":"buy-market",
+        //             "accountId":44234548,
+        //             "source":"spot-web",
+        //             "orderValue":"5.01724137",
+        //             "orderCreateTime":1645124660365,
+        //             "orderStatus":"filled",
+        //             "feeCurrency":"ltc",
+        //             "tradePrice":"118.89",
+        //             "tradeVolume":"0.042200701236437042",
+        //             "aggressor":true,
+        //             "tradeId":101539740584,
+        //             "tradeTime":1645124660368,
+        //             "transactFee":"0.000041778694224073",
+        //             "feeDeduct":"0",
+        //             "feeDeductType":""
+        //         }
         //     }
-        //  }
         //
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -1602,27 +1631,28 @@ module.exports = class huobi extends ccxt.huobi {
     parseWsTrade (trade) {
         // spot private
         //
-        //   {
-        //        "eventType":"trade",
-        //        "symbol":"ltcusdt",
-        //        "orderId":"478862728954426",
-        //        "orderSide":"buy",
-        //        "orderType":"buy-market",
-        //        "accountId":44234548,
-        //        "source":"spot-web",
-        //        "orderValue":"5.01724137",
-        //        "orderCreateTime":1645124660365,
-        //        "orderStatus":"filled",
-        //        "feeCurrency":"ltc",
-        //        "tradePrice":"118.89",
-        //        "tradeVolume":"0.042200701236437042",
-        //        "aggressor":true,
-        //        "tradeId":101539740584,
-        //        "tradeTime":1645124660368,
-        //        "transactFee":"0.000041778694224073",
-        //        "feeDeduct":"0",
-        //        "feeDeductType":""
-        //  }
+        //     {
+        //         "eventType":"trade",
+        //         "symbol":"ltcusdt",
+        //         "orderId":"478862728954426",
+        //         "orderSide":"buy",
+        //         "orderType":"buy-market",
+        //         "accountId":44234548,
+        //         "source":"spot-web",
+        //         "orderValue":"5.01724137",
+        //         "orderCreateTime":1645124660365,
+        //         "orderStatus":"filled",
+        //         "feeCurrency":"ltc",
+        //         "tradePrice":"118.89",
+        //         "tradeVolume":"0.042200701236437042",
+        //         "aggressor":true,
+        //         "tradeId":101539740584,
+        //         "tradeTime":1645124660368,
+        //         "transactFee":"0.000041778694224073",
+        //         "feeDeduct":"0",
+        //         "feeDeductType":""
+        //     }
+        //
         const symbol = this.safeSymbol (this.safeString (trade, 'symbol'));
         const side = this.safeString2 (trade, 'side', 'orderSide');
         const tradeId = this.safeString (trade, 'tradeId');
