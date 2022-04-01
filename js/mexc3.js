@@ -379,6 +379,7 @@ module.exports = class mexc3 extends Exchange {
                     '30005': InvalidOrder,
                     '2003': InvalidOrder,
                     '2005': InsufficientFunds,
+                    '600': BadRequest,
                     // below are old v2 codes, I am not sure if they still apply.
                     // '400': BadRequest, // Invalid parameter
                     // '401': AuthenticationError, // Invalid signature, fail to pass the validation
@@ -415,6 +416,7 @@ module.exports = class mexc3 extends Exchange {
                     'Insufficient balance!': InsufficientFunds, // code:2005
                     'Bid price is great than max allow price': InvalidOrder, // code:2003
                     'Invalid symbol.': BadSymbol, // code:-1121
+                    'Param error!': BadRequest, // code:600
                     // below are v2
                     // 'Insufficient balance': InsufficientFunds,
                     // 'Unknown order sent': BadRequest,
@@ -1509,6 +1511,7 @@ module.exports = class mexc3 extends Exchange {
         } else if (type === 'market') {
             type = 6;
         }
+        // TODO: side not unified
         if ((side !== 1) && (side !== 2) && (side !== 3) && (side !== 4)) {
             throw new InvalidOrder (this.id + ' createSwapOrder() order side must be 1 open long, 2 close short, 3 open short or 4 close long');
         }
@@ -1628,7 +1631,7 @@ module.exports = class mexc3 extends Exchange {
             //             "symbol": "STEPN_USDT",
             //             "positionId": "0",
             //             "price": "2.2",
-            //             "vol": "20",
+            //             "vol": "15",
             //             "leverage": "20",
             //             "side": "1",
             //             "category": "1",
@@ -1778,30 +1781,37 @@ module.exports = class mexc3 extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const clientOrderId = this.safeString (params, 'clientOrderId');
-        if (clientOrderId !== undefined) {
-            params = this.omit (params, 'clientOrderId');
-            request['origClientOrderId'] = clientOrderId;
-        } else {
-            request['orderId'] = id;
+        let data = undefined;
+        if (market['spot']) {
+            const request = {
+                'symbol': market['id'],
+            };
+            const clientOrderId = this.safeString (params, 'clientOrderId');
+            if (clientOrderId !== undefined) {
+                params = this.omit (params, 'clientOrderId');
+                request['origClientOrderId'] = clientOrderId;
+            } else {
+                request['orderId'] = id;
+            }
+            data = await this.spotPrivateDeleteOrder (this.extend (request, params));
+            //
+            //     {
+            //         "symbol": "BTCUSDT",
+            //         "orderId": "133734823834447872",
+            //         "price": "30000",
+            //         "origQty": "0.0002",
+            //         "type": "LIMIT",
+            //         "side": "BUY"
+            //     }
+            //
+        } else if (market['swap']) {
+            const request = {
+                'None': id,
+            };
+            const response = await this.contractPrivatePostOrderCancel (this.extend (request, params));
+            data = response;
         }
-        const response = await this.spotPrivateDeleteOrder (this.extend (request, params));
-        //
-        // spot
-        //
-        //     {
-        //         "symbol": "BTCUSDT",
-        //         "orderId": "133734823834447872",
-        //         "price": "30000",
-        //         "origQty": "0.0002",
-        //         "type": "LIMIT",
-        //         "side": "BUY"
-        //     }
-        //
-        return this.parseOrder (response, market);
+        return this.parseOrder (data, market);
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
@@ -1882,6 +1892,35 @@ module.exports = class mexc3 extends Exchange {
         //
         //     2ff3163e8617443cb9c6fc19d42b1ca4
         //
+        // swap: fetchOrder
+        //
+        //     {
+        //         "orderId": "264995729269765120",
+        //         "symbol": "STEPN_USDT",
+        //         "positionId": "0",
+        //         "price": "2.2",
+        //         "vol": "15",
+        //         "leverage": "20",
+        //         "side": "1", // TODO: not unified
+        //         "category": "1",
+        //         "orderType": "1", // TODO: not unified
+        //         "dealAvgPrice": "0",
+        //         "dealVol": "0",
+        //         "orderMargin": "2.2528",
+        //         "takerFee": "0",
+        //         "makerFee": "0",
+        //         "profit": "0",
+        //         "feeCurrency": "USDT",
+        //         "openType": "1",
+        //         "state": "2", // TODO
+        //         "externalOid": "_m_0e9520c256744d64b942985189026d20",
+        //         "errorCode": "0",
+        //         "usedMargin": "0",
+        //         "createTime": "1648850305236",
+        //         "updateTime": "1648850305245",
+        //         "positionMode": "1"
+        //     }
+        //
         let id = undefined;
         if (typeof order === 'string') {
             id = order;
@@ -1890,26 +1929,37 @@ module.exports = class mexc3 extends Exchange {
         }
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
-        const timestamp = this.safeInteger (order, 'time');
+        const timestamp = this.safeInteger2 (order, 'time', 'createTime');
+        let fee = undefined;
+        const feeCurrency = this.safeString (order, 'feeCurrency');
+        if (feeCurrency !== undefined) {
+            const takerFee = this.safeString (order, 'takerFee');
+            const makerFee = this.safeString (order, 'makerFee');
+            const feeSum = Precise.stringAdd (takerFee, makerFee);
+            fee = {
+                'currency': feeCurrency,
+                'cost': this.parseNumber (feeSum),
+            };
+        }
         return this.safeOrder ({
             'id': id,
             'clientOrderId': this.safeString (order, 'clientOrderId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined, // note: this might be 'updateTime' if order-status is filled, otherwise cancellation time. needs to be checked
-            'status': this.parseOrderStatus (this.safeString (order, 'status')),
+            'status': this.parseOrderStatus (this.safeString2 (order, 'status', 'state')),
             'symbol': market['symbol'],
             'type': this.parseOrderType (this.safeString (order, 'type')),
             'timeInForce': this.parseOrderTimeInForce (this.safeString (order, 'timeInForce')),
             'side': this.parseOrderSide (this.safeString (order, 'side')),
             'price': this.safeNumber (order, 'price'),
             'stopPrice': this.safeNumber (order, 'stopPrice'),
-            'average': undefined,
-            'amount': this.safeNumber (order, 'origQty'),
+            'average': this.safeNumber (order, 'dealAvgPrice'),
+            'amount': this.safeNumber2 (order, 'origQty', 'vol'),
             'cost': this.safeNumber (order, 'cummulativeQuoteQty'),  // 'cummulativeQuoteQty' vs 'origQuoteOrderQty'
-            'filled': this.safeNumber (order, 'executedQty'),
+            'filled': this.safeNumber2 (order, 'executedQty', 'dealVol'),
             'remaining': undefined,
-            'fee': undefined,
+            'fee': fee,
             'trades': undefined,
             'info': order,
         }, market);
@@ -1919,8 +1969,7 @@ module.exports = class mexc3 extends Exchange {
         const statuses = {
             'BUY': 'buy',
             'SELL': 'sell',
-            '1': 'buy',
-            '2': 'sell',
+            // contracts v1 : TODO
         };
         return this.safeString (statuses, status, status);
     }
@@ -1939,6 +1988,12 @@ module.exports = class mexc3 extends Exchange {
             'NEW': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
+            // contracts v1
+            // '1': 'uninformed', // TODO: wt?
+            '2': 'open',
+            '3': 'closed',
+            '4': 'canceled',
+            // '5': 'invalid', //  TODO: wt?
         };
         return this.safeString (statuses, status, status);
     }
