@@ -14,8 +14,8 @@ module.exports = class luno extends Exchange {
             'id': 'luno',
             'name': 'luno',
             'countries': [ 'GB', 'SG', 'ZA' ],
-            // 300 calls per minute = 6 calls per second = 1000ms / 6 = 167ms between requests
-            'rateLimit': 167,
+            // 300 calls per minute = 5 calls per second = 1000ms / 5 = 200ms between requests
+            'rateLimit': 200,
             'version': '1',
             'has': {
                 'CORS': undefined,
