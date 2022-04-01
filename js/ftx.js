@@ -1926,6 +1926,11 @@ module.exports = class ftx extends Exchange {
         const statuses = {
             'complete': 'ok',
         };
+        const fromAccountStartIndex = notes.indexOf ('Transfer from ') + 14;
+        const fromAccountEndIndex = notes.indexOf (' to ');
+        const fromAccount = notes.slice (fromAccountStartIndex, fromAccountEndIndex);
+        const toAccountStartIndex = notes.indexOf (' to ') + 4;
+        const toAccount = notes.slice (toAccountStartIndex);
         return {
             'info': transfer,
             'id': this.safeString (transfer, 'id'),
@@ -1933,8 +1938,8 @@ module.exports = class ftx extends Exchange {
             'datetime': this.safeString (transfer, 'time'),
             'currency': this.safeCurrencyCode (currencyId, currency),
             'amount': this.safeNumber (transfer, 'size'),
-            'fromAccount': notes.slice ( notes.indexOf('Transfer from ') + 14, notes.indexOf (' to ')),
-            'toAccount': notes.slice (notes.indexOf(' to ') + 4),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
             'status': this.safeString (statuses, status),
         };
     }
