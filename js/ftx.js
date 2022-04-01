@@ -90,7 +90,7 @@ module.exports = class ftx extends Exchange {
                 'setLeverage': true,
                 'setMarginMode': false, // FTX only supports cross margin
                 'setPositionMode': false,
-                'transfers': false,
+                'transfer': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -1880,6 +1880,63 @@ module.exports = class ftx extends Exchange {
         //
         const trades = this.safeValue (response, 'result', []);
         return this.parseTrades (trades, market, since, limit);
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'coin': currency['id'],
+            'source': fromAccount,
+            'destination': toAccount,
+            'size': amount,
+        };
+        const response = await this.privatePostSubaccountsTransfer (this.extend (request, params));
+        //
+        //     {
+        //         success: true,
+        //         result: {
+        //             id: '31222278',
+        //             coin: 'USDT',
+        //             size: '1.0',
+        //             time: '2022-04-01T11:18:27.194188+00:00',
+        //             notes: 'Transfer from main account to testSubaccount',
+        //             status: 'complete'
+        //         }
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        return this.parseTransfer (result, currency);
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        //     {
+        //         id: '31222278',
+        //         coin: 'USDT',
+        //         size: '1.0',
+        //         time: '2022-04-01T11:18:27.194188+00:00',
+        //         notes: 'Transfer from main account to testSubaccount',
+        //         status: 'complete'
+        //     }
+        //
+        const currencyId = this.safeString (transfer, 'coin');
+        const notes = this.safeString (transfer, 'notes', '');
+        const status = this.safeString (transfer, 'status');
+        const statuses = {
+            'complete': 'ok',
+        };
+        return {
+            'info': transfer,
+            'id': this.safeString (transfer, 'id'),
+            'timestamp': undefined,
+            'datetime': this.safeString (transfer, 'time'),
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': this.safeNumber (transfer, 'size'),
+            'fromAccount': notes.slice ( notes.indexOf('Transfer from ') + 14, notes.indexOf (' to ')),
+            'toAccount': notes.slice (notes.indexOf(' to ') + 4),
+            'status': this.safeString (statuses, status),
+        };
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
