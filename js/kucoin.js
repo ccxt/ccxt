@@ -576,7 +576,8 @@ module.exports = class kucoin extends ccxt.kucoin {
         };
         let messageHash = topic;
         if (symbol !== undefined) {
-            messageHash = messageHash + ':' + symbol;
+            const market = this.market (symbol);
+            messageHash = messageHash + ':' + market['symbol'];
         }
         const orders = await this.subscribe (negotiation, topic, messageHash, undefined, undefined, this.extend (request, params));
         if (this.newUpdates) {
@@ -605,10 +606,7 @@ module.exports = class kucoin extends ccxt.kucoin {
         const amount = this.safeString (order, 'size');
         const rawType = this.safeString (order, 'type');
         const status = this.parseWsOrderStatus (rawType);
-        let timestamp = this.safeInteger (order, 'ts');
-        if (timestamp !== undefined) {
-            timestamp = parseInt (timestamp / 1000000);
-        }
+        const timestamp = this.safeIntegerProduct (order, 'time', 0.000001);
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
@@ -672,13 +670,14 @@ module.exports = class kucoin extends ccxt.kucoin {
     async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const negotiation = await this.negotiate ();
-        const topic = '/spotMarket/tradeOrders';
+        const topic = '/spot/tradeFills';
         const request = {
             'privateChannel': true,
         };
         let messageHash = topic;
         if (symbol !== undefined) {
-            messageHash = messageHash + ':' + symbol;
+            const market = this.market (symbol);
+            messageHash = messageHash + ':' + market['symbol'];
         }
         const trades = await this.subscribe (negotiation, topic, messageHash, undefined, undefined, this.extend (request, params));
         if (this.newUpdates) {
@@ -696,62 +695,46 @@ module.exports = class kucoin extends ccxt.kucoin {
         const data = this.safeValue (message, 'data');
         const parsed = this.parseWsTrade (data);
         trades.append (parsed);
-        const messageHash = 'myTrades';
+        const messageHash = '/spot/tradeFills';
         client.resolve (trades, messageHash);
         const symbolSpecificMessageHash = messageHash + ':' + parsed['symbol'];
         client.resolve (trades, symbolSpecificMessageHash);
     }
 
-    parseWsTrade (trade) {
+    parseWsTrade (trade, market = undefined) {
+        //
         // {
-        //     "type":"message",
-        //     "topic":"/spotMarket/tradeOrders",
-        //     "subject":"orderChange",
-        //     "channelType":"private",
-        //     "data":{
-        //         "symbol":"KCS-USDT",
-        //         "orderType":"limit",
-        //         "side":"sell",
-        //         "orderId":"5efab07953bdea00089965fa",
-        //         "liquidity":"taker",
-        //         "type":"match",
-        //         "orderTime":1593487482038606180,
-        //         "size":"0.1",
-        //         "filledSize":"0.1",
-        //         "price":"0.938",
-        //         "matchPrice":"0.96738",
-        //         "matchSize":"0.1",
-        //         "tradeId":"5efab07a4ee4c7000a82d6d9",
-        //         "clientOid":"1593487481000313",
-        //         "remainSize":"0",
-        //         "status":"match",
-        //         "ts":1593487482038606180
-        //     }
-        // }
-        const symbol = this.safeString (trade, 'symbol');
+        //     fee: 0.00262148,
+        //     feeCurrency: 'USDT',
+        //     feeRate: 0.001,
+        //     orderId: '62417436b29df8000183df2f',
+        //     orderType: 'market',
+        //     price: 131.074,
+        //     side: 'sell',
+        //     size: 0.02,
+        //     symbol: 'LTC-USDT',
+        //     time: '1648456758734571745',
+        //     tradeId: '624174362e113d2f467b3043'
+        //   }
+        //
+        const marketId = this.safeString (trade, 'symbol');
+        market = this.safeMarket (marketId, market, '-');
+        const symbol = market['symbol'];
         const type = this.safeString (trade, 'orderType');
         const side = this.safeString (trade, 'side');
-        const takerOrMaker = this.safeString (trade, 'liquidity');
         const tradeId = this.safeString (trade, 'tradeId');
-        const price = this.safeFloat (trade, 'matchPrice');
-        const amount = this.safeFloat (trade, 'matchSize');
+        const price = this.safeString (trade, 'price');
+        const amount = this.safeString (trade, 'size');
         const order = this.safeString (trade, 'orderId');
-        let timestamp = this.safeInteger (order, 'ts');
-        if (timestamp !== undefined) {
-            timestamp = parseInt (timestamp / 1000000);
-        }
-        let cost = undefined;
-        if ((price !== undefined) && (amount !== undefined)) {
-            cost = price * amount;
-        }
-        const market = this.market (symbol);
+        const timestamp = this.safeIntegerProduct (trade, 'time', 0.000001);
         const feeCurrency = market['quote'];
+        const feeRate = this.safeString (trade, 'feeRate');
         const fee = {
             'cost': undefined,
-            'rate': undefined,
+            'rate': feeRate,
             'currency': feeCurrency,
         };
-        return {
+        return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -759,13 +742,13 @@ module.exports = class kucoin extends ccxt.kucoin {
             'id': tradeId,
             'order': order,
             'type': type,
-            'takerOrMaker': takerOrMaker,
+            'takerOrMaker': undefined,
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'fee': fee,
-        };
+        }, market);
     }
 
     async watchBalance (params = {}) {
@@ -923,17 +906,10 @@ module.exports = class kucoin extends ccxt.kucoin {
             'trade.l3match': this.handleTrade,
             'trade.candles.update': this.handleOHLCV,
             'account.balance': this.handleBalance,
+            '/spot/tradeFills': this.handleMyTrade,
+            'orderChange': this.handleOrder,
         };
-        let method = this.safeValue (methods, subject);
-        if (subject === 'orderChange') {
-            const data = this.safeValue (message, 'data');
-            const type = this.safeString (data, 'type');
-            if (type === 'match') {
-                method = this.handleMyTrade;
-            } else {
-                method = this.handleOrder;
-            }
-        }
+        const method = this.safeValue (methods, subject);
         if (method === undefined) {
             return message;
         } else {
