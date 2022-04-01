@@ -2443,11 +2443,10 @@ module.exports = class aax extends Exchange {
     }
 
     parseTransferStatus (status) {
-        let parsedStatus = 'canceled';
-        if (status === '1') {
-            parsedStatus = 'ok';
-        }
-        return parsedStatus;
+        const statuses = {
+            '1': 'ok',
+        };
+        return this.safeString (statuses, status, 'canceled');
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
