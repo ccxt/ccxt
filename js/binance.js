@@ -1416,12 +1416,12 @@ module.exports = class binance extends Exchange {
         let types = this.safeValue (this.options, 'fetchMarkets', [ 'spot', 'linear', 'inverse' ]);
         if ('type' in params) {
             types = [ this.getDefaultType (undefined, params) ];
+            params = this.omit (params, 'type');
         }
-        const query = this.omit (params, 'type');
         let result = [];
         for (let i = 0; i < types.length; i++) {
             const type = types[i];
-            const response = await this.fetchMarketsByType (type, query);
+            const response = await this.fetchMarketsByType (type, params);
             result = this.arrayConcat (result, response);
         }
         return result;
