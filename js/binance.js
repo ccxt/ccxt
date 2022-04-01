@@ -1590,8 +1590,8 @@ module.exports = class binance extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const spot = (type === 'spot');
-            const linear = (type === 'linear');
-            const inverse = (type === 'inverse');
+            let linear = undefined;
+            let inverse = undefined;
             const id = this.safeString (market, 'symbol');
             const lowercaseId = this.safeStringLower (market, 'symbol');
             const baseId = this.safeString (market, 'baseAsset');
@@ -1620,6 +1620,8 @@ module.exports = class binance extends Exchange {
             let contractSize = undefined;
             let fees = this.fees;
             if (contract) {
+                linear = (type === 'linear');
+                inverse = (type === 'inverse');
                 contractSize = this.safeNumber (market, 'contractSize', this.parseNumber ('1'));
                 fees = this.fees[type];
                 if (swap) {
