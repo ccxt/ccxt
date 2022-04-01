@@ -302,15 +302,6 @@ module.exports = class hitbtc3 extends Exchange {
                     'future': 'derivatives',
                     'derivatives': 'derivatives',
                 },
-                'setLeverage': {
-                    'maxLeverage': {
-                        'BTC/USDT:USDT': 100,
-                        'ETH/USDT:USDT': 75,
-                        'ADA/USDT:USDT': 75,
-                        'SOL/USDT:USDT': 75,
-                        'XRP/USDT:USDT': 75,
-                    },
-                },
             },
         });
     }
@@ -2109,9 +2100,7 @@ module.exports = class hitbtc3 extends Exchange {
         }
         const market = this.market (symbol);
         const amount = this.safeNumber (params, 'margin_balance');
-        const options = this.safeValue (this.options, 'setLeverage', {});
-        const maxLeverages = this.safeValue (options, 'maxLeverage', {});
-        const maxLeverage = this.safeInteger (maxLeverages, symbol, 50);
+        const maxLeverage = this.safeInteger (market['limits']['leverage'], 'max', 50);
         if (market['type'] !== 'swap') {
             throw new BadSymbol (this.id + ' setLeverage() supports swap contracts only');
         }
