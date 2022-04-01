@@ -8,6 +8,15 @@ var utils = require ('../elliptic/utils.cjs')
 const ONE = CryptoJS.enc.Utf8.parse ('\x01')
 const ZERO = CryptoJS.enc.Utf8.parse ('\x00')
 
+
+function byteArrayToWordArray (ba) {
+  const wa = []
+  for (let i = 0; i < ba.length; i++) {
+      wa[(i / 4) | 0] |= ba[i] << (24 - 8 * i)
+  }
+  return CryptoJS.lib.WordArray.create (wa, ba.length)
+}
+
 function HmacDRBG(options) {
   if (!(this instanceof HmacDRBG))
     return new HmacDRBG(options);
@@ -22,7 +31,6 @@ function HmacDRBG(options) {
   this.K = null;
   this.V = null;
 
-  var { byteArrayToWordArray } = import('../../../../base/functions/encode');
   this.byteArrayToWordArray = byteArrayToWordArray;
 
   var entropy = options.entropy

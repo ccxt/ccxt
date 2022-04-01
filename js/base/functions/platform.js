@@ -10,6 +10,8 @@
 // - make sure it works with Angular.js
 // - make sure it does not break other possible usage scenarios
 
+import fetchNode from '../../static_dependencies/fetch-ponyfill/fetch-node.cjs'
+
 const isBrowser = typeof window !== 'undefined'
 
 const isElectron = typeof process !== 'undefined' &&
@@ -21,8 +23,7 @@ const isWebWorker = typeof WorkerGlobalScope !== 'undefined' && (self instanceof
 const isWindows = typeof process !== 'undefined' && process.platform === "win32"
 
 const isNode = !(isBrowser || isWebWorker)
-const nodeFetch = await import ('../../static_dependencies/fetch-ponyfill/fetch-node.cjs');
-const defaultFetch = typeof (fetch) === "undefined" ? nodeFetch['default']() .fetch : fetch
+const defaultFetch = typeof (fetch) === "undefined" ? fetchNode() .fetch : fetch
 
 // ----------------------------------------------------------------------------
 

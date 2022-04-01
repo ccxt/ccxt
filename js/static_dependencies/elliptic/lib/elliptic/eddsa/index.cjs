@@ -10,6 +10,14 @@ const BN = require ('../../../../BN/bn.cjs')
 const CryptoJS = require('../../../../crypto-js/crypto-js.cjs');
 
 
+function byteArrayToWordArray (ba) {
+  const wa = []
+  for (let i = 0; i < ba.length; i++) {
+      wa[(i / 4) | 0] |= ba[i] << (24 - 8 * i)
+  }
+  return CryptoJS.lib.WordArray.create (wa, ba.length)
+}
+
 function EDDSA(curveName) {
   assert(curveName === 'ed25519', 'only tested with ed25519 so far');
 
@@ -23,7 +31,6 @@ function EDDSA(curveName) {
 
   this.pointClass = curve.point().constructor;
   this.encodingLength = Math.ceil(curve.n.bitLength() / 8);
-  const { byteArrayToWordArray } = import ('../../../../../base/functions/encode')
   this.byteArrayToWordArray = byteArrayToWordArray;
   //this.hash = hash.sha512;
 }
