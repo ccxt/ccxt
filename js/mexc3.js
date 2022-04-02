@@ -86,7 +86,8 @@ module.exports = class mexc3 extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTradingLimits': undefined,
                 'fetchTransactions': undefined,
-                'fetchTransfers': undefined,
+                'fetchTransfer': true,
+                'fetchTransfers': true,
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': true,
                 'loadMarkets': undefined,
@@ -202,8 +203,8 @@ module.exports = class mexc3 extends Exchange {
                             'planorder/list/orders': 2,
                             'stoporder/list/orders': 2,
                             'stoporder/order_details/{stop_order_id}': 2,
-                            'account/risk_limit': 2,
-                            'account/tiered_fee_rate': 2,
+                            'account/risk_limit': 2, // TO_DO: gets max/min position size, allowed sides, leverage, maintenance margin, initial margin, etc...
+                            'account/tiered_fee_rate': 2, // TO_DO: taker/maker fees for account
                         },
                         'post': {
                             'position/change_margin': 2,
@@ -893,9 +894,8 @@ module.exports = class mexc3 extends Exchange {
         //     request['startTime'] = since; bug in api, waiting for fix
         // }
         let trades = undefined;
-        let method = undefined;
         if (market['spot']) {
-            method = this.safeString (this.options, 'fetchTradesMethod', 'spotPublicGetAggTrades');
+            let method = this.safeString (this.options, 'fetchTradesMethod', 'spotPublicGetAggTrades');
             method = this.safeString (params, 'method', method); // AggTrades, HistoricalTrades, Trades
             trades = await this[method] (this.extend (request, params));
             //
@@ -929,8 +929,7 @@ module.exports = class mexc3 extends Exchange {
             //     ]
             //
         } else if (market['swap']) {
-            method = 'contractPublicGetDealsSymbol';
-            const response = await this[method] (this.extend (request, params));
+            const response = await this.contractPublicGetDealsSymbol (this.extend (request, params));
             //
             //     {
             //         "success": true,
@@ -967,7 +966,7 @@ module.exports = class mexc3 extends Exchange {
         // if swap
         if ('v' in trade) {
             //
-            // fetchTrades
+            // spot: fetchTrades
             //
             //     {
             //         "p": 31199,
@@ -987,7 +986,7 @@ module.exports = class mexc3 extends Exchange {
             takerOrMaker = 'taker';
         } else {
             //
-            // fetchTrades (for aggTrades)
+            // spot: fetchTrades (for aggTrades)
             //
             //         {
             //             "a": null,
@@ -1000,7 +999,7 @@ module.exports = class mexc3 extends Exchange {
             //             "M": true
             //         }
             //
-            // fetchMyTrades, fetchOrderTrades
+            // spot: fetchMyTrades, fetchOrderTrades
             //
             //         {
             //             "symbol": "BTCUSDT",
@@ -1018,34 +1017,65 @@ module.exports = class mexc3 extends Exchange {
             //             "isBestMatch": true
             //         }
             //
-            timestamp = this.safeInteger2 (trade, 'time', 'T');
-            market = this.safeMarket (undefined, market);
-            symbol = market['symbol'];
-            priceString = this.safeString2 (trade, 'price', 'p');
-            amountString = this.safeString2 (trade, 'qty', 'q');
-            costString = this.safeString (trade, 'quoteQty');
-            const isBuyer = this.safeValue (trade, 'isBuyer');
-            const isMaker = this.safeValue (trade, 'isMaker');
-            const buyerMaker = this.safeString2 (trade, 'isBuyerMaker', 'm');
-            orderId = this.safeString (trade, 'orderId');
-            if (isMaker !== undefined) {
-                takerOrMaker = isMaker ? 'maker' : 'taker';
-            }
-            if (isBuyer !== undefined) {
-                side = isBuyer ? 'buy' : 'sell';
-            }
-            if (buyerMaker !== undefined) {
-                side = buyerMaker ? 'sell' : 'buy';
-                takerOrMaker = 'taker';
-            }
-            const feeAsset = this.safeString (trade, 'commissionAsset');
-            if (feeAsset !== undefined) {
-                fee = {
-                    'cost': this.safeString (trade, 'commission'),
-                    'currency': this.safeCurrencyCode (feeAsset),
-                };
-            }
+            // swap: fetchOrderTrades
+            //
+            //         {
+            //             "id": "299444585",
+            //             "symbol": "STEPN_USDT",
+            //             "side": "1",
+            //             "vol": "1",
+            //             "price": "2.45455",
+            //             "feeCurrency": "USDT",
+            //             "fee": "0.00147273",
+            //             "timestamp": "1648924557000",
+            //             "profit": "0",
+            //             "category": "1",
+            //             "orderId": "265307163526610432",
+            //             "positionMode": "1",
+            //             "taker": true
+            //         }
+            //
+            const marketId = this.safeString (trade, 'symbol');
+            market = this.safeMarket (marketId, market);
             id = this.safeString2 (trade, 'id', 'a');
+            priceString = this.safeString2 (trade, 'price', 'p');
+            orderId = this.safeString (trade, 'orderId');
+            // if swap
+            if ('positionMode' in trade) {
+                timestamp = this.safeInteger (trade, 'timestamp');
+                amountString = this.safeString (trade, 'vol');
+                side = this.parseOrderSide (this.safeString (trade, 'side'));
+                fee = {
+                    'cost': this.safeNumber (trade, 'fee'),
+                    'currency': this.safeCurrencyCode (this.safeString (trade, 'feeCurrency')),
+                };
+                takerOrMaker = this.safeValue (trade, 'taker') ? 'taker' : 'maker';
+            } else {
+                timestamp = this.safeInteger2 (trade, 'time', 'T');
+                symbol = market['symbol'];
+                amountString = this.safeString2 (trade, 'qty', 'q');
+                costString = this.safeString (trade, 'quoteQty');
+                const isBuyer = this.safeValue (trade, 'isBuyer');
+                const isMaker = this.safeValue (trade, 'isMaker');
+                const buyerMaker = this.safeString2 (trade, 'isBuyerMaker', 'm');
+                if (isMaker !== undefined) {
+                    takerOrMaker = isMaker ? 'maker' : 'taker';
+                }
+                if (isBuyer !== undefined) {
+                    side = isBuyer ? 'buy' : 'sell';
+                }
+                if (buyerMaker !== undefined) {
+                    side = buyerMaker ? 'sell' : 'buy';
+                    takerOrMaker = 'taker';
+                }
+                const feeAsset = this.safeString (trade, 'commissionAsset');
+                if (feeAsset !== undefined) {
+                    fee = {
+                        'cost': this.safeNumber (trade, 'commission'),
+                        'currency': this.safeCurrencyCode (feeAsset),
+                    };
+                }
+            }
         }
         if (id === undefined) {
             id = this.syntheticTradeId (market, timestamp, side, amountString, priceString, type, takerOrMaker);
@@ -1425,7 +1455,7 @@ module.exports = class mexc3 extends Exchange {
 
     async fetchBidsAsks (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBidsAsks', undefined, params);
         let method = undefined;
         if (marketType === 'spot') {
             method = 'spotPublicGetTickerBookTicker';
@@ -1761,7 +1791,7 @@ module.exports = class mexc3 extends Exchange {
             request['symbol'] = market['id'];
         }
         if (marketType === 'spot' || (market !== undefined && market['spot'])) {
-            throw new BadRequest (this.id + ' fetchOrdersByIds() is not supported for spot');
+            throw new BadRequest (this.id + ' fetchOrdersByIds() is not supported for ' + marketType);
         } else {
             request['order_ids'] = ids.join (',');
             const response = await this.contractPrivateGetOrderBatchQuery (this.extend (request, query));
@@ -1869,7 +1899,7 @@ module.exports = class mexc3 extends Exchange {
             request['symbol'] = market['id'];
         }
         if (marketType === 'spot' || (market && market['spot'])) {
-            throw new BadRequest (this.id + ' fetchOrdersByState() is not supported for spot');
+            throw new BadRequest (this.id + ' fetchOrdersByState() is not supported for ' + marketType);
         } else {
             query['states'] = state;
             return this.fetchOrders (symbol, since, limit, query);
@@ -1941,7 +1971,7 @@ module.exports = class mexc3 extends Exchange {
         await this.loadMarkets ();
         const market = symbol !== undefined ? this.market (symbol) : undefined;
         if (marketType === 'spot' || (market !== undefined && market['spot'])) {
-            throw new BadRequest (this.id + ' cancelOrders() is not supported for spot');
+            throw new BadRequest (this.id + ' cancelOrders() is not supported for ' + marketType);
         } else {
             const response = await this.contractPrivatePostOrderCancel (ids); // the request cannot be changed or extended. The only way to send.
             //
@@ -2162,49 +2192,71 @@ module.exports = class mexc3 extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async fetchAccountHelper (params) {
-        const response = await this.spotPrivateGetAccount (params);
-        //
-        // spot
-        //
-        //     {
-        //         "makerCommission": "20",
-        //         "takerCommission": "20",
-        //         "buyerCommission": "0",
-        //         "sellerCommission": "0",
-        //         "canTrade": true,
-        //         "canWithdraw": true,
-        //         "canDeposit": true,
-        //         "updateTime": null,
-        //         "accountType": "SPOT",
-        //         "balances": [
-        //             {
-        //                 "asset": "BTC",
-        //                 "free": "0.002",
-        //                 "locked": "0"
-        //             },
-        //             {
-        //                 "asset": "USDT",
-        //                 "free": "88.120131350620957006",
-        //                 "locked": "0"
-        //             },
-        //         ],
-        //         "permissions": [
-        //             "SPOT"
-        //         ]
-        //     }
-        //
-        return response;
+    async fetchAccountHelper (type, params) {
+        if (type === 'spot') {
+            return await this.spotPrivateGetAccount (params);
+            //
+            //     {
+            //         "makerCommission": "20",
+            //         "takerCommission": "20",
+            //         "buyerCommission": "0",
+            //         "sellerCommission": "0",
+            //         "canTrade": true,
+            //         "canWithdraw": true,
+            //         "canDeposit": true,
+            //         "updateTime": null,
+            //         "accountType": "SPOT",
+            //         "balances": [
+            //             {
+            //                 "asset": "BTC",
+            //                 "free": "0.002",
+            //                 "locked": "0"
+            //             },
+            //             {
+            //                 "asset": "USDT",
+            //                 "free": "88.120131350620957006",
+            //                 "locked": "0"
+            //             },
+            //         ],
+            //         "permissions": [
+            //             "SPOT"
+            //         ]
+            //     }
+            //
+        } else if (type === 'swap') {
+            const response = this.contractPrivateGetAccountAssets (params);
+            //
+            //     {
+            //         "success":true,
+            //         "code":0,
+            //         "data":[
+            //            {
+            //              "currency":"BSV",
+            //              "positionMargin":0,
+            //              "availableBalance":0,
+            //              "cashBalance":0,
+            //              "frozenBalance":0,
+            //              "equity":0,
+            //              "unrealized":0,
+            //              "bonus":0
+            //           },
+            //         ]
+            //     }
+            //
+            return this.safeValue (response, 'data');
+        }
     }
 
     async fetchAccounts (params = {}) {
-        // TODO: is this method suitable for endpoint response?
-        const response = await this.fetchAccountHelper (params);
+        // TODO: is the below endpoints suitable for fetchAccounts?
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchAccounts', undefined, params);
+        await this.loadMarkets ();
+        const response = await this.fetchAccountHelper (marketType, query);
         const data = this.safeValue (response, 'balances', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const account = data[i];
-            const currencyId = this.safeString (account, 'asset');
+            const currencyId = this.safeString2 (account, 'asset', 'currency');
             const code = this.safeCurrencyCode (currencyId);
             result.push ({
                 'id': this.safeString (account, 'id'),
@@ -2218,7 +2270,7 @@ module.exports = class mexc3 extends Exchange {
 
     async fetchTradingFees (params = {}) {
         await this.loadMarkets ();
-        const response = await this.fetchAccountHelper (params);
+        const response = await this.fetchAccountHelper ('spot', params);
         let makerFee = this.safeString (response, 'makerCommission');
         let takerFee = this.safeString (response, 'takerCommission');
         makerFee = Precise.stringDiv (makerFee, '1000');
@@ -2244,7 +2296,7 @@ module.exports = class mexc3 extends Exchange {
         const result = {};
         let response = undefined;
         if (marketType === 'spot') {
-            response = await this.fetchAccountHelper (query);
+            response = await this.fetchAccountHelper ('spot', query);
             const balances = this.safeValue (response, 'balances');
             for (let i = 0; i < balances.length; i++) {
                 const entry = balances[i];
@@ -2283,22 +2335,8 @@ module.exports = class mexc3 extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        if (since !== undefined) {
-            request['start_time'] = since;
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        const response = await this.spotPrivateGetMyTrades (this.extend (request, params));
+    async fetchSpotTradesHelper (market, since, limit, params) {
+        const response = await this.spotPrivateGetMyTrades (params);
         //
         // spot
         //
@@ -2324,11 +2362,49 @@ module.exports = class mexc3 extends Exchange {
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrderTrades() requires a symbol argument');
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrderTrades', undefined, params);
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
         }
-        params['orderId'] = id;
-        return await this.fetchMyTrades (symbol, since, limit, params);
+        if (marketType === 'spot' || (market && market['spot'])) {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchOrderTrades() requires a symbol argument');
+            }
+            request['orderId'] = id;
+            return this.fetchSpotTradesHelper (market, since, limit, this.extend (request, query));
+        } else {
+            request['order_id'] = id;
+            const response = await this.contractPrivateGetOrderDealDetailsOrderId (this.extend (request, query));
+            //
+            //     {
+            //         "success": true,
+            //         "code": "0",
+            //         "data": [
+            //             {
+            //                 "id": "299444585",
+            //                 "symbol": "STEPN_USDT",
+            //                 "side": "1",
+            //                 "vol": "1",
+            //                 "price": "2.45455",
+            //                 "feeCurrency": "USDT",
+            //                 "fee": "0.00147273",
+            //                 "timestamp": "1648924557000",
+            //                 "profit": "0",
+            //                 "category": "1",
+            //                 "orderId": "265307163526610432",
+            //                 "positionMode": "1",
+            //                 "taker": true
+            //             }
+            //         ]
+            //     }
+            //
+            const trades = this.safeValue (response, 'data');
+            return this.parseTrades (trades, market, since, limit, query);
+        }
     }
 
     async modifyMarginHelper (symbol, amount, addOrReduce, params = {}) {
@@ -2980,7 +3056,7 @@ module.exports = class mexc3 extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.fetchPositions (this.extend (request, params));
+        const response = await this.fetchPositions (undefined, this.extend (request, params));
         return this.safeValue (response, 0);
     }
 
@@ -3089,6 +3165,222 @@ module.exports = class mexc3 extends Exchange {
             result.push (this.parsePosition (positions[i]));
         }
         return result;
+    }
+
+    async fetchTransfer (id, since = undefined, limit = undefined, params = {}) {
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTransfer', undefined, params);
+        await this.loadMarkets ();
+        if (marketType === 'spot') {
+            const request = {
+                'transact_id': id,
+            };
+            const response = await this.spot2PrivateGetAssetInternalTransferInfo (this.extend (request, query));
+            //
+            //     {
+            //         code: '200',
+            //         data: {
+            //             currency: 'USDT',
+            //             amount: '1',
+            //             transact_id: '954877a2ef54499db9b28a7cf9ebcf41',
+            //             from: 'MAIN',
+            //             to: 'CONTRACT',
+            //             transact_state: 'SUCCESS'
+            //         }
+            //     }
+            //
+            const data = this.safeValue (response, 'data', {});
+            return this.parseTransfer (data);
+        } else if (marketType === 'swap') {
+            throw new BadRequest (this.id + ' fetchTransfer() is not supported for ' + marketType);
+        }
+    }
+
+    async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTransfer', undefined, params);
+        await this.loadMarkets ();
+        const request = {};
+        let currency = undefined;
+        let resultList = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        if (marketType === 'spot') {
+            if (since !== undefined) {
+                request['start_time'] = since;
+            }
+            if (limit !== undefined) {
+                if (limit > 50) {
+                    throw new ExchangeError ('This exchange supports a maximum limit of 50');
+                }
+                request['page-size'] = limit;
+            }
+            const response = await this.spot2PrivateGetAssetInternalTransferRecord (this.extend (request, query));
+            //
+            //     {
+            //         code: '200',
+            //         data: {
+            //             total_page: '1',
+            //             total_size: '5',
+            //             result_list: [{
+            //                     currency: 'USDT',
+            //                     amount: '1',
+            //                     transact_id: '954877a2ef54499db9b28a7cf9ebcf41',
+            //                     from: 'MAIN',
+            //                     to: 'CONTRACT',
+            //                     transact_state: 'SUCCESS'
+            //                 },
+            //                 ...
+            //             ]
+            //         }
+            //     }
+            //
+            const data = this.safeValue (response, 'data', {});
+            resultList = this.safeValue (data, 'result_list', []);
+        } else if (marketType === 'swap') {
+            if (limit !== undefined) {
+                request['page_size'] = limit;
+            }
+            const response = await this.contractPrivateGetAccountTransferRecord (this.extend (request, query));
+            const data = this.safeValue (response, 'data');
+            resultList = this.safeValue (data, 'resultList');
+            //
+            //     {
+            //         "success": true,
+            //         "code": "0",
+            //         "data": {
+            //             "pageSize": "20",
+            //             "totalCount": "10",
+            //             "totalPage": "1",
+            //             "currentPage": "1",
+            //             "resultList": [
+            //                 {
+            //                     "id": "2980812",
+            //                     "txid": "fa8a1e7bf05940a3b7025856dc48d025",
+            //                     "currency": "USDT",
+            //                     "amount": "22.90213135",
+            //                     "type": "IN",
+            //                     "state": "SUCCESS",
+            //                     "createTime": "1648849076000",
+            //                     "updateTime": "1648849076000"
+            //                 },
+            //             ]
+            //         }
+            //     }
+            //
+        }
+        return this.parseTransfers (resultList, currency, since, limit);
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const accounts = {
+            'spot': 'MAIN',
+            'swap': 'CONTRACT',
+        };
+        const fromId = this.safeString (accounts, fromAccount);
+        const toId = this.safeString (accounts, toAccount);
+        if (fromId === undefined) {
+            const keys = Object.keys (accounts);
+            throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', '));
+        }
+        if (toId === undefined) {
+            const keys = Object.keys (accounts);
+            throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', '));
+        }
+        const request = {
+            'currency': currency['id'],
+            'amount': amount,
+            'from': fromId,
+            'to': toId,
+        };
+        const response = await this.spot2PrivatePostAssetInternalTransfer (this.extend (request, params));
+        //
+        //     {
+        //         code: '200',
+        //         data: {
+        //             currency: 'USDT',
+        //             amount: '1',
+        //             transact_id: 'b60c1df8e7b24b268858003f374ecb75',
+        //             from: 'MAIN',
+        //             to: 'CONTRACT',
+        //             transact_state: 'WAIT'
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseTransfer (data, currency);
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        // spot:
+        //
+        //     {
+        //         currency: 'USDT',
+        //         amount: '1',
+        //         transact_id: 'b60c1df8e7b24b268858003f374ecb75',
+        //         from: 'MAIN',
+        //         to: 'CONTRACT',
+        //         transact_state: 'WAIT'
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "currency": "USDT",
+        //         "amount": "22.90213135",
+        //         "txid": "fa8a1e7bf05940a3b7025856dc48d025",
+        //         "id": "2980812",
+        //         "type": "IN",
+        //         "state": "SUCCESS",
+        //         "createTime": "1648849076000",
+        //         "updateTime": "1648849076000"
+        //     }
+        //
+        const currencyId = this.safeString (transfer, 'currency');
+        const id = this.safeString2 (transfer, 'transact_id', 'txid');
+        const timestamp = this.safeInteger (transfer, 'createTime');
+        const datetime = (timestamp !== undefined) ? this.iso8601 (timestamp) : undefined;
+        const direction = this.safeString (transfer, 'type');
+        let accountFrom = undefined;
+        let accountTo = undefined;
+        if (direction !== undefined) {
+            accountFrom = (direction === 'IN') ? 'MAIN' : 'CONTRACT';
+            accountTo = (direction === 'IN') ? 'CONTRACT' : 'MAIN';
+        } else {
+            accountFrom = this.safeString (transfer, 'from');
+            accountTo = this.safeString (transfer, 'to');
+        }
+        return {
+            'info': transfer,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': this.safeNumber (transfer, 'amount'),
+            'fromAccount': this.parseAccountId (accountFrom),
+            'toAccount': this.parseAccountId (accountTo),
+            'status': this.parseTransferStatus (this.safeString2 (transfer, 'transact_state', 'state')),
+        };
+    }
+
+    parseAccountId (status) {
+        const statuses = {
+            'MAIN': 'spot',
+            'CONTRACT': 'swap',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransferStatus (status) {
+        const statuses = {
+            'SUCCESS': 'ok',
+            'FAILED': 'failed',
+            'WAIT': 'pending',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
