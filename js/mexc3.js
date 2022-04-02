@@ -1017,7 +1017,7 @@ module.exports = class mexc3 extends Exchange {
             //             "isBestMatch": true
             //         }
             //
-            // swap: fetchOrderTrades
+            // swap: fetchMyTrades, fetchOrderTrades
             //
             //         {
             //             "id": "299444585",
@@ -2335,30 +2335,79 @@ module.exports = class mexc3 extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchSpotTradesHelper (market, since, limit, params) {
-        const response = await this.spotPrivateGetMyTrades (params);
-        //
-        // spot
-        //
-        //     [
-        //         {
-        //             "symbol": "BTCUSDT",
-        //             "id": "133948532984922113",
-        //             "orderId": "133948532531949568",
-        //             "orderListId": "-1",
-        //             "price": "41995.51",
-        //             "qty": "0.0002",
-        //             "quoteQty": "8.399102",
-        //             "commission": "0.016798204",
-        //             "commissionAsset": "USDT",
-        //             "time": "1647718055000",
-        //             "isBuyer": true,
-        //             "isMaker": false,
-        //             "isBestMatch": true
-        //         }
-        //     ]
-        //
-        return this.parseTrades (response, market, since, limit);
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+        }
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', undefined, params);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (since !== undefined) {
+            request['start_time'] = since;
+            request['end_time'] = since + 90 * 86400 * 1000 - 1;
+        }
+        let trades = undefined;
+        if (marketType === 'spot' || (market && market['spot'])) {
+            await this.loadMarkets ();
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+            trades = await this.spotPrivateGetMyTrades (this.extend (request, query));
+            //
+            // spot
+            //
+            //     [
+            //         {
+            //             "symbol": "BTCUSDT",
+            //             "id": "133948532984922113",
+            //             "orderId": "133948532531949568",
+            //             "orderListId": "-1",
+            //             "price": "41995.51",
+            //             "qty": "0.0002",
+            //             "quoteQty": "8.399102",
+            //             "commission": "0.016798204",
+            //             "commissionAsset": "USDT",
+            //             "time": "1647718055000",
+            //             "isBuyer": true,
+            //             "isMaker": false,
+            //             "isBestMatch": true
+            //         }
+            //     ]
+            //
+        } else {
+            if (limit !== undefined) {
+                request['page_size'] = limit;
+            }
+            const response = await this.contractPrivateGetOrderListOrderDeals (this.extend (request, query));
+            //
+            //     {
+            //         "success": true,
+            //         "code": "0",
+            //         "data": [
+            //             {
+            //                 "id": "299444585",
+            //                 "symbol": "STEPN_USDT",
+            //                 "side": "1",
+            //                 "vol": "1",
+            //                 "price": "2.45455",
+            //                 "feeCurrency": "USDT",
+            //                 "fee": "0.00147273",
+            //                 "timestamp": "1648924557000",
+            //                 "profit": "0",
+            //                 "category": "1",
+            //                 "orderId": "265307163526610432",
+            //                 "positionMode": "1",
+            //                 "taker": true
+            //             }
+            //         ]
+            //     }
+            //
+            trades = this.safeValue (response, 'data');
+        }
+        return this.parseTrades (trades, market, since, limit);
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2370,12 +2419,34 @@ module.exports = class mexc3 extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
+        let trades = undefined;
         if (marketType === 'spot' || (market && market['spot'])) {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchOrderTrades() requires a symbol argument');
             }
             request['orderId'] = id;
-            return this.fetchSpotTradesHelper (market, since, limit, this.extend (request, query));
+            trades = await this.spotPrivateGetMyTrades (this.extend (request, query));
+            //
+            // spot
+            //
+            //     [
+            //         {
+            //             "symbol": "BTCUSDT",
+            //             "id": "133948532984922113",
+            //             "orderId": "133948532531949568",
+            //             "orderListId": "-1",
+            //             "price": "41995.51",
+            //             "qty": "0.0002",
+            //             "quoteQty": "8.399102",
+            //             "commission": "0.016798204",
+            //             "commissionAsset": "USDT",
+            //             "time": "1647718055000",
+            //             "isBuyer": true,
+            //             "isMaker": false,
+            //             "isBestMatch": true
+            //         }
+            //     ]
+            //
         } else {
             request['order_id'] = id;
             const response = await this.contractPrivateGetOrderDealDetailsOrderId (this.extend (request, query));
@@ -2402,9 +2473,9 @@ module.exports = class mexc3 extends Exchange {
             //         ]
             //     }
             //
-            const trades = this.safeValue (response, 'data');
-            return this.parseTrades (trades, market, since, limit, query);
+            trades = this.safeValue (response, 'data');
         }
+        return this.parseTrades (trades, market, since, limit, query);
     }
 
     async modifyMarginHelper (symbol, amount, addOrReduce, params = {}) {
