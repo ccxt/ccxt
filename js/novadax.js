@@ -16,7 +16,7 @@ module.exports = class novadax extends Exchange {
             'name': 'NovaDAX',
             'countries': [ 'BR' ], // Brazil
             // 60 requests per second = 1000ms / 60 = 16.6667ms between requests (public endpoints, limited by IP address)
-            // 50 requests per second => cost = 60 / 50 = 1.2 (private endpoints, limited by API Key)
+            // 20 requests per second => cost = 60 / 20 = 3 (private endpoints, limited by API Key)
             'rateLimit': 16.6667,
             'version': 'v1',
             // new metainfo interface
@@ -114,21 +114,21 @@ module.exports = class novadax extends Exchange {
                 },
                 'private': {
                     'get': {
-                        'orders/get': 2,
-                        'orders/list': 2,
-                        'orders/fill': 2,
-                        'orders/fills': 2,
-                        'account/getBalance': 2,
-                        'account/subs': 2,
-                        'account/subs/balance': 2,
-                        'account/subs/transfer/record': 2,
-                        'wallet/query/deposit-withdraw': 2,
+                        'orders/get': 3,
+                        'orders/list': 3,
+                        'orders/fill': 3,
+                        'orders/fills': 3,
+                        'account/getBalance': 3,
+                        'account/subs': 3,
+                        'account/subs/balance': 3,
+                        'account/subs/transfer/record': 3,
+                        'wallet/query/deposit-withdraw': 3,
                     },
                     'post': {
-                        'orders/create': 2,
-                        'orders/cancel': 2,
-                        'account/withdraw/coin': 2,
-                        'account/subs/transfer': 2,
+                        'orders/create': 3,
+                        'orders/cancel': 3,
+                        'account/withdraw/coin': 3,
+                        'account/subs/transfer': 3,
                     },
                 },
             },
