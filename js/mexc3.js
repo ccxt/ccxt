@@ -1659,136 +1659,243 @@ module.exports = class mexc3 extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const response = await this.spotPrivateGetOpenOrders (this.extend (request, params));
-        //
-        // spot
-        //
-        //     [
-        //         {
-        //             "symbol": "BTCUSDT",
-        //             "orderId": "133949373632483328",
-        //             "orderListId": "-1",
-        //             "clientOrderId": "",
-        //             "price": "45000",
-        //             "origQty": "0.0002",
-        //             "executedQty": "0",
-        //             "cummulativeQuoteQty": "0",
-        //             "status": "NEW",
-        //             "timeInForce": null,
-        //             "type": "LIMIT",
-        //             "side": "SELL",
-        //             "stopPrice": null,
-        //             "icebergQty": null,
-        //             "time": "1647718255199",
-        //             "updateTime": null,
-        //             "isWorking": true,
-        //             "origQuoteOrderQty": "9"
-        //         }
-        //     ]
-        //
-        return this.parseOrders (response, market, since, limit);
-    }
-
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
-        }
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrders', undefined, params);
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        if (since !== undefined) {
-            request['startTime'] = since;
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
         }
-        if (limit !== undefined) {
-            request['limit'] = limit;
+        if (marketType === 'spot' || (market && market['spot'])) {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument for spot market');
+            }
+            if (since !== undefined) {
+                request['startTime'] = since;
+            }
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+            const response = await this.spotPrivateGetAllOrders (this.extend (request, query));
+            //
+            //     [
+            //         {
+            //             "symbol": "BTCUSDT",
+            //             "orderId": "133949373632483328",
+            //             "orderListId": "-1",
+            //             "clientOrderId": null,
+            //             "price": "45000",
+            //             "origQty": "0.0002",
+            //             "executedQty": "0",
+            //             "cummulativeQuoteQty": "0",
+            //             "status": "NEW",
+            //             "timeInForce": null,
+            //             "type": "LIMIT",
+            //             "side": "SELL",
+            //             "stopPrice": null,
+            //             "icebergQty": null,
+            //             "time": "1647718255000",
+            //             "updateTime": "1647718255000",
+            //             "isWorking": true,
+            //             "origQuoteOrderQty": "9"
+            //         },
+            //     ]
+            //
+            return this.parseOrders (response, market, since, limit);
+        } else {
+            if (since !== undefined) {
+                request['start_time'] = since;
+            }
+            if (limit !== undefined) {
+                request['page_size'] = limit;
+            }
+            const response = await this.contractPrivateGetOrderListHistoryOrders (this.extend (request, query));
+            //
+            //     {
+            //         "success": true,
+            //         "code": "0",
+            //         "data": [
+            //             {
+            //                 "orderId": "265230764677709315",
+            //                 "symbol": "STEPN_USDT",
+            //                 "positionId": "0",
+            //                 "price": "2.1",
+            //                 "vol": "102",
+            //                 "leverage": "20",
+            //                 "side": "1",
+            //                 "category": "1",
+            //                 "orderType": "1",
+            //                 "dealAvgPrice": "0",
+            //                 "dealVol": "0",
+            //                 "orderMargin": "10.96704",
+            //                 "takerFee": "0",
+            //                 "makerFee": "0",
+            //                 "profit": "0",
+            //                 "feeCurrency": "USDT",
+            //                 "openType": "1",
+            //                 "state": "2",
+            //                 "externalOid": "_m_7e42f8df6b324c869e4e200397e2b00f",
+            //                 "errorCode": "0",
+            //                 "usedMargin": "0",
+            //                 "createTime": "1648906342000",
+            //                 "updateTime": "1648906342000",
+            //                 "positionMode": "1"
+            //             },
+            //          ]
+            //     }
+            //
+            const data = this.safeValue (response, 'data');
+            return this.parseOrders (data, market, since, limit, params);
         }
-        const response = await this.spotPrivateGetAllOrders (this.extend (request, params));
-        //
-        // spot
-        //
-        //     [
-        //         {
-        //             "symbol": "BTCUSDT",
-        //             "orderId": "133949373632483328",
-        //             "orderListId": "-1",
-        //             "clientOrderId": null,
-        //             "price": "45000",
-        //             "origQty": "0.0002",
-        //             "executedQty": "0",
-        //             "cummulativeQuoteQty": "0",
-        //             "status": "NEW",
-        //             "timeInForce": null,
-        //             "type": "LIMIT",
-        //             "side": "SELL",
-        //             "stopPrice": null,
-        //             "icebergQty": null,
-        //             "time": "1647718255000",
-        //             "updateTime": "1647718255000",
-        //             "isWorking": true,
-        //             "origQuoteOrderQty": "9"
-        //         },
-        //     ]
-        //
-        return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOrdersByState (state, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrdersByState() requires a symbol argument');
-        }
+    async fetchOrdersByIds (ids, symbol = undefined, params = {}) {
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', undefined, params);
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-            // 'start_time': since, // default 7 days, max 30 days
-            // 'limit': limit, // default 50, max 1000
-            // 'trade_type': 'BID', // BID / ASK
-            'states': state, // NEW, FILLED, PARTIALLY_FILLED, CANCELED, PARTIALLY_CANCELED
-        };
-        if (limit !== undefined) {
-            request['limit'] = limit;
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
         }
-        if (since !== undefined) {
-            request['start_time'] = since;
+        if (marketType === 'spot' || (market !== undefined && market['spot'])) {
+            throw new BadRequest (this.id + ' fetchOrdersByIds() is not supported for spot');
+        } else {
+            request['order_ids'] = ids.join (',');
+            const response = await this.contractPrivateGetOrderBatchQuery (this.extend (request, query));
+            //
+            //     {
+            //         "success": true,
+            //         "code": "0",
+            //         "data": [
+            //             {
+            //                 "orderId": "265230764677709315",
+            //                 "symbol": "STEPN_USDT",
+            //                 "positionId": "0",
+            //                 "price": "2.1",
+            //                 "vol": "102",
+            //                 "leverage": "20",
+            //                 "side": "1",
+            //                 "category": "1",
+            //                 "orderType": "1",
+            //                 "dealAvgPrice": "0",
+            //                 "dealVol": "0",
+            //                 "orderMargin": "10.96704",
+            //                 "takerFee": "0",
+            //                 "makerFee": "0",
+            //                 "profit": "0",
+            //                 "feeCurrency": "USDT",
+            //                 "openType": "1",
+            //                 "state": "2",
+            //                 "externalOid": "_m_7e42f8df6b324c869e4e200397e2b00f",
+            //                 "errorCode": "0",
+            //                 "usedMargin": "0",
+            //                 "createTime": "1648906342000",
+            //                 "updateTime": "1648906342000",
+            //                 "positionMode": "1"
+            //             }
+            //         ]
+            //     }
+            //
+            const data = this.safeValue (response, 'data');
+            return this.parseOrders (data, market);
         }
-        const response = await this.spot2PrivateGetOrderList (this.extend (request, params));
-        const data = this.safeValue (response, 'data', []);
-        return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchOrdersByState ('CANCELED', symbol, since, limit, params);
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', undefined, params);
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (marketType === 'spot' || (market !== undefined && market['spot'])) {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument for spot market');
+            }
+            const response = await this.spotPrivateGetOpenOrders (this.extend (request, query));
+            //
+            // spot
+            //
+            //     [
+            //         {
+            //             "symbol": "BTCUSDT",
+            //             "orderId": "133949373632483328",
+            //             "orderListId": "-1",
+            //             "clientOrderId": "",
+            //             "price": "45000",
+            //             "origQty": "0.0002",
+            //             "executedQty": "0",
+            //             "cummulativeQuoteQty": "0",
+            //             "status": "NEW",
+            //             "timeInForce": null,
+            //             "type": "LIMIT",
+            //             "side": "SELL",
+            //             "stopPrice": null,
+            //             "icebergQty": null,
+            //             "time": "1647718255199",
+            //             "updateTime": null,
+            //             "isWorking": true,
+            //             "origQuoteOrderQty": "9"
+            //         }
+            //     ]
+            //
+            return this.parseOrders (response, market, since, limit);
+        } else {
+            // TO_DO: another possible way is through: open_orders/{symbol}, but as they have same ratelimits, and less granularity, i think historical orders are more convenient, as it supports more params (however, theoretically, open-orders endpoint might be sligthly fast)
+            return await this.fetchOrdersByState (2, symbol, since, limit, params);
+        }
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchOrdersByState ('FILLED', symbol, since, limit, params);
+        return await this.fetchOrdersByState (3, symbol, since, limit, params);
+    }
+
+    async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchOrdersByState (4, symbol, since, limit, params);
+    }
+
+    async fetchOrdersByState (state, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrdersByState', undefined, params);
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (marketType === 'spot' || (market && market['spot'])) {
+            throw new BadRequest (this.id + ' fetchOrdersByState() is not supported for spot');
+        } else {
+            query['states'] = state;
+            return this.fetchOrders (symbol, since, limit, query);
+        }
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
-        }
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrders', undefined, params);
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
         let data = undefined;
-        if (market['spot']) {
+        if (marketType === 'spot' || (market && market['spot'])) {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+            }
             const request = {
                 'symbol': market['id'],
             };
             const clientOrderId = this.safeString (params, 'clientOrderId');
             if (clientOrderId !== undefined) {
-                params = this.omit (params, 'clientOrderId');
+                params = this.omit (query, 'clientOrderId');
                 request['origClientOrderId'] = clientOrderId;
             } else {
                 request['orderId'] = id;
@@ -1805,48 +1912,96 @@ module.exports = class mexc3 extends Exchange {
             //     }
             //
         } else if (market['swap']) {
-            const request = {
-                'None': id,
-            };
-            const response = await this.contractPrivatePostOrderCancel (this.extend (request, params));
-            data = response;
+            const response = await this.contractPrivatePostOrderCancel ([ id ]); // the request cannot be changed or extended. This is the only way to send.
+            //
+            //     {
+            //         "success": true,
+            //         "code": "0",
+            //         "data": [
+            //             {
+            //                 "orderId": "264995729269765120",
+            //                 "errorCode": "0",         // if already canceled: "2041"
+            //                 "errorMsg": "success",    // if already canceled: "order state cannot be cancelled"
+            //             }
+            //         ]
+            //     }
+            //
+            data = this.safeValue (response, 'data');
+            const order = this.safeValue (data, 0);
+            const errorCode = this.safeValue (order, 'errorCode');
+            if (errorCode !== '0') {
+                throw new InvalidOrder (this.id + ' cancelOrder() the order with id ' + id + ' cannot be cancelled');
+            }
         }
         return this.parseOrder (data, market);
     }
 
-    async cancelAllOrders (symbol = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
-        }
+    async cancelOrders (ids, symbol = undefined, params = {}) {
+        const [ marketType ] = this.handleMarketTypeAndParams ('cancelOrders', undefined, params);
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const response = await this.spotPrivateDeleteOpenOrders (this.extend (request, params));
-        //
-        // spot
-        //
-        //     [
-        //         {
-        //             "symbol": "BTCUSDT",
-        //             "orderId": "133926492139692032",
-        //             "price": "30000",
-        //             "origQty": "0.0002",
-        //             "type": "LIMIT",
-        //             "side": "BUY"
-        //         },
-        //         {
-        //             "symbol": "BTCUSDT",
-        //             "orderId": "133926441921286144",
-        //             "price": "30000",
-        //             "origQty": "0.0002",
-        //             "type": "LIMIT",
-        //             "side": "BUY"
-        //         }
-        //     ]
-        //
-        return this.parseOrders (response, market);
+        const market = symbol !== undefined ? this.market (symbol) : undefined;
+        if (marketType === 'spot' || (market !== undefined && market['spot'])) {
+            throw new BadRequest (this.id + ' cancelOrders() is not supported for spot');
+        } else {
+            const response = await this.contractPrivatePostOrderCancel (ids); // the request cannot be changed or extended. The only way to send.
+            //
+            //     {
+            //         "success": true,
+            //         "code": "0",
+            //         "data": [
+            //             {
+            //                 "orderId": "264995729269765120",
+            //                 "errorCode": "0",         // if already canceled: "2041"
+            //                 "errorMsg": "success",    // if already canceled: "order state cannot be cancelled"
+            //             },
+            //         ]
+            //     }
+            //
+            const data = this.safeValue (response, 'data');
+            return this.parseOrders (data, market);
+        }
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelOrders', undefined, params);
+        await this.loadMarkets ();
+        const market = symbol !== undefined ? this.market (symbol) : undefined;
+        const request = {};
+        if (marketType === 'spot' || (market && market['spot'])) {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument on spot');
+            }
+            await this.loadMarkets ();
+            const market = this.market (symbol);
+            request['symbol'] = market['id'];
+            const response = await this.spotPrivateDeleteOpenOrders (this.extend (request, query));
+            //
+            //     [
+            //         {
+            //             "symbol": "BTCUSDT",
+            //             "orderId": "133926492139692032",
+            //             "price": "30000",
+            //             "origQty": "0.0002",
+            //             "type": "LIMIT",
+            //             "side": "BUY"
+            //         },
+            //     ]
+            //
+            return this.parseOrders (response, market);
+        } else {
+            if (symbol === undefined) {
+                request['symbol'] = market['id'];
+            }
+            const response = await this.contractPrivatePostOrderCancelAll (this.extend (request, query));
+            //
+            //     {
+            //         "success": true,
+            //         "code": "0"
+            //     }
+            //
+            const data = this.safeValue (response, 'data', []);
+            return this.parseOrders (data, market);
+        }
     }
 
     parseOrder (order, market = undefined) {
@@ -1892,7 +2047,7 @@ module.exports = class mexc3 extends Exchange {
         //
         //     2ff3163e8617443cb9c6fc19d42b1ca4
         //
-        // swap: fetchOrder
+        // swap: fetchOrder, fetchOrders
         //
         //     {
         //         "orderId": "264995729269765120",
