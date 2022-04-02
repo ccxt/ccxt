@@ -2068,7 +2068,7 @@ module.exports = class Exchange {
         }
         // support for market orders
         const orderType = this.safeValue (order, 'type');
-        const emptyPrice = (price === undefined) || Precise.stringEquals (price, '0');
+        const emptyPrice = (price === "market_price") || (price === undefined) || Precise.stringEquals (price, '0');
         if (emptyPrice && (orderType === 'market')) {
             price = average;
         }
