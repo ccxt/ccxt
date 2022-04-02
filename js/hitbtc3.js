@@ -37,12 +37,12 @@ module.exports = class hitbtc3 extends Exchange {
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
-                'fetchIndexOHLCV': undefined,
+                'fetchIndexOHLCV': true,
                 'fetchLeverage': true,
                 'fetchLeverageTiers': false,
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
-                'fetchMarkOHLCV': undefined,
+                'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrder': true,
@@ -54,7 +54,7 @@ module.exports = class hitbtc3 extends Exchange {
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
                 'fetchPositions': true,
-                'fetchPremiumIndexOHLCV': undefined,
+                'fetchPremiumIndexOHLCV': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
@@ -1141,27 +1141,76 @@ module.exports = class hitbtc3 extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetPublicCandles (this.extend (request, params));
+        const price = this.safeString (params, 'price');
+        params = this.omit (params, 'price');
+        let method = 'publicGetPublicCandles';
+        if (price === 'mark') {
+            method = 'publicGetPublicFuturesCandlesMarkPrice';
+        } else if (price === 'index') {
+            method = 'publicGetPublicFuturesCandlesIndexPrice';
+        } else if (price === 'premiumIndex') {
+            method = 'publicGetPublicFuturesCandlesPremiumIndex';
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // Spot and Swap
         //
         //     {
-        //       "ETHUSDT": [
-        //         {
-        //           "timestamp": "2021-10-25T07:38:00.000Z",
-        //           "open": "4173.391",
-        //           "close": "4170.923",
-        //           "min": "4170.923",
-        //           "max": "4173.986",
-        //           "volume": "0.1879",
-        //           "volume_quote": "784.2517846"
-        //         }
-        //       ]
+        //         "ETHUSDT": [
+        //             {
+        //                 "timestamp": "2021-10-25T07:38:00.000Z",
+        //                 "open": "4173.391",
+        //                 "close": "4170.923",
+        //                 "min": "4170.923",
+        //                 "max": "4173.986",
+        //                 "volume": "0.1879",
+        //                 "volume_quote": "784.2517846"
+        //             }
+        //         ]
+        //     }
+        //
+        // Mark, Index and Premium Index
+        //
+        //     {
+        //         "BTCUSDT_PERP": [
+        //             {
+        //                 "timestamp": "2022-04-01T01:28:00.000Z",
+        //                 "open": "45146.39",
+        //                 "close": "45219.43",
+        //                 "min": "45146.39",
+        //                 "max": "45219.43"
+        //             },
+        //         ]
         //     }
         //
         const ohlcvs = this.safeValue (response, market['id']);
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
+    async fetchMarkOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'price': 'mark',
+        };
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
+    }
+
+    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'price': 'index',
+        };
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
+    }
+
+    async fetchPremiumIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'price': 'premiumIndex',
+        };
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
+    }
+
     parseOHLCV (ohlcv, market = undefined) {
+        //
+        // Spot and Swap
         //
         //     {
         //         "timestamp":"2015-08-20T19:01:00.000Z",
@@ -1172,6 +1221,16 @@ module.exports = class hitbtc3 extends Exchange {
         //         "volume":"0.003",
         //         "volume_quote":"0.000018"
         //     }
+        //
+        // Mark, Index and Premium Index
+        //
+        //     {
+        //         "timestamp": "2022-04-01T01:28:00.000Z",
+        //         "open": "45146.39",
+        //         "close": "45219.43",
+        //         "min": "45146.39",
+        //         "max": "45219.43"
+        //     },
         //
         return [
             this.parse8601 (this.safeString (ohlcv, 'timestamp')),
