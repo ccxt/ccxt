@@ -2420,8 +2420,7 @@ module.exports = class aax extends Exchange {
         //     },
         const id = this.safeString (transfer, 'transferID');
         const amount = this.safeNumber (transfer, 'quantity');
-        const dateTime = this.safeString (transfer, 'transferTime');
-        const timestamp = this.parse8601 (dateTime);
+        const timestamp = this.parse8601 (this.safeString (transfer, 'transferTime'));
         const accounts = this.safeValue (this.options, 'accounts', {});
         const fromId = this.safeString (transfer, 'fromPurse');
         const toId = this.safeString (transfer, 'toPurse');
@@ -2433,7 +2432,7 @@ module.exports = class aax extends Exchange {
             'info': transfer,
             'id': id,
             'timestamp': timestamp,
-            'datetime': dateTime,
+            'datetime': this.iso8601 (timestamp),
             'currency': currencyCode,
             'amount': amount,
             'fromAccount': fromAccount,
