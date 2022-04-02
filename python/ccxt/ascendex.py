@@ -78,6 +78,7 @@ class ascendex(Exchange):
                 'setLeverage': True,
                 'setMarginMode': True,
                 'setPositionMode': False,
+                'transfer': True,
             },
             'timeframes': {
                 '1m': '1',
