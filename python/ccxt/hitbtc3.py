@@ -57,12 +57,12 @@ class hitbtc3(Exchange):
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
-                'fetchIndexOHLCV': None,
+                'fetchIndexOHLCV': True,
                 'fetchLeverage': True,
                 'fetchLeverageTiers': False,
                 'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
-                'fetchMarkOHLCV': None,
+                'fetchMarkOHLCV': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrder': True,
@@ -74,7 +74,7 @@ class hitbtc3(Exchange):
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
                 'fetchPositions': True,
-                'fetchPremiumIndexOHLCV': None,
+                'fetchPremiumIndexOHLCV': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
@@ -1101,26 +1101,71 @@ class hitbtc3(Exchange):
             request['from'] = self.iso8601(since)
         if limit is not None:
             request['limit'] = limit
-        response = self.publicGetPublicCandles(self.extend(request, params))
+        price = self.safe_string(params, 'price')
+        params = self.omit(params, 'price')
+        method = 'publicGetPublicCandles'
+        if price == 'mark':
+            method = 'publicGetPublicFuturesCandlesMarkPrice'
+        elif price == 'index':
+            method = 'publicGetPublicFuturesCandlesIndexPrice'
+        elif price == 'premiumIndex':
+            method = 'publicGetPublicFuturesCandlesPremiumIndex'
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        # Spot and Swap
         #
         #     {
-        #       "ETHUSDT": [
-        #         {
-        #           "timestamp": "2021-10-25T07:38:00.000Z",
-        #           "open": "4173.391",
-        #           "close": "4170.923",
-        #           "min": "4170.923",
-        #           "max": "4173.986",
-        #           "volume": "0.1879",
-        #           "volume_quote": "784.2517846"
-        #         }
-        #       ]
+        #         "ETHUSDT": [
+        #             {
+        #                 "timestamp": "2021-10-25T07:38:00.000Z",
+        #                 "open": "4173.391",
+        #                 "close": "4170.923",
+        #                 "min": "4170.923",
+        #                 "max": "4173.986",
+        #                 "volume": "0.1879",
+        #                 "volume_quote": "784.2517846"
+        #             }
+        #         ]
+        #     }
+        #
+        # Mark, Index and Premium Index
+        #
+        #     {
+        #         "BTCUSDT_PERP": [
+        #             {
+        #                 "timestamp": "2022-04-01T01:28:00.000Z",
+        #                 "open": "45146.39",
+        #                 "close": "45219.43",
+        #                 "min": "45146.39",
+        #                 "max": "45219.43"
+        #             },
+        #         ]
         #     }
         #
         ohlcvs = self.safe_value(response, market['id'])
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
+    def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        request = {
+            'price': 'mark',
+        }
+        return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
+
+    def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        request = {
+            'price': 'index',
+        }
+        return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
+
+    def fetch_premium_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        request = {
+            'price': 'premiumIndex',
+        }
+        return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
+
     def parse_ohlcv(self, ohlcv, market=None):
+        #
+        # Spot and Swap
         #
         #     {
         #         "timestamp":"2015-08-20T19:01:00.000Z",
@@ -1131,6 +1176,16 @@ class hitbtc3(Exchange):
         #         "volume":"0.003",
         #         "volume_quote":"0.000018"
         #     }
+        #
+        # Mark, Index and Premium Index
+        #
+        #     {
+        #         "timestamp": "2022-04-01T01:28:00.000Z",
+        #         "open": "45146.39",
+        #         "close": "45219.43",
+        #         "min": "45146.39",
+        #         "max": "45219.43"
+        #     },
         #
         return [
             self.parse8601(self.safe_string(ohlcv, 'timestamp')),
