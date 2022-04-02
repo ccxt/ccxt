@@ -72,7 +72,7 @@ class hitbtc3(Exchange):
                 'fetchOrderBooks': True,
                 'fetchOrders': False,
                 'fetchOrderTrades': True,
-                'fetchPosition': False,
+                'fetchPosition': True,
                 'fetchPositions': True,
                 'fetchPremiumIndexOHLCV': None,
                 'fetchTicker': True,
@@ -1730,6 +1730,52 @@ class hitbtc3(Exchange):
         for i in range(0, len(response)):
             result.append(self.parse_position(response[i]))
         return result
+
+    async def fetch_position(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        marketType, query = self.handle_market_type_and_params('fetchPosition', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'swap': 'privateGetFuturesAccountIsolatedSymbol',
+            'margin': 'privateGetMarginAccountIsolatedSymbol',
+        })
+        request = {
+            'symbol': market['id'],
+        }
+        response = await getattr(self, method)(self.extend(request, query))
+        #
+        #     [
+        #         {
+        #             "symbol": "ETHUSDT_PERP",
+        #             "type": "isolated",
+        #             "leverage": "10.00",
+        #             "created_at": "2022-03-19T07:54:35.24Z",
+        #             "updated_at": "2022-03-19T07:54:58.922Z",
+        #             currencies": [
+        #                 {
+        #                     "code": "USDT",
+        #                     "margin_balance": "7.478100643043",
+        #                     "reserved_orders": "0",
+        #                     "reserved_positions": "0.303530761300"
+        #                 }
+        #             ],
+        #             "positions": [
+        #                 {
+        #                     "id": 2470568,
+        #                     "symbol": "ETHUSDT_PERP",
+        #                     "quantity": "0.001",
+        #                     "price_entry": "2927.509",
+        #                     "price_margin_call": "0",
+        #                     "price_liquidation": "0",
+        #                     "pnl": "0",
+        #                     "created_at": "2022-03-19T07:54:35.24Z",
+        #                     "updated_at": "2022-03-19T07:54:58.922Z"
+        #                 }
+        #             ]
+        #         },
+        #     ]
+        #
+        return self.parse_position(response, market)
 
     def parse_position(self, position, market=None):
         #

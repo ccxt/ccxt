@@ -63,7 +63,7 @@ class hitbtc3 extends Exchange {
                 'fetchOrderBooks' => true,
                 'fetchOrders' => false,
                 'fetchOrderTrades' => true,
-                'fetchPosition' => false,
+                'fetchPosition' => true,
                 'fetchPositions' => true,
                 'fetchPremiumIndexOHLCV' => null,
                 'fetchTicker' => true,
@@ -1835,6 +1835,53 @@ class hitbtc3 extends Exchange {
             $result[] = $this->parse_position($response[$i]);
         }
         return $result;
+    }
+
+    public function fetch_position($symbol, $params = array ()) {
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchPosition', $market, $params);
+        $method = $this->get_supported_mapping($marketType, array(
+            'swap' => 'privateGetFuturesAccountIsolatedSymbol',
+            'margin' => 'privateGetMarginAccountIsolatedSymbol',
+        ));
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = yield $this->$method (array_merge($request, $query));
+        //
+        //     array(
+        //         {
+        //             "symbol" => "ETHUSDT_PERP",
+        //             "type" => "isolated",
+        //             "leverage" => "10.00",
+        //             "created_at" => "2022-03-19T07:54:35.24Z",
+        //             "updated_at" => "2022-03-19T07:54:58.922Z",
+        //             currencies" => array(
+        //                 {
+        //                     "code" => "USDT",
+        //                     "margin_balance" => "7.478100643043",
+        //                     "reserved_orders" => "0",
+        //                     "reserved_positions" => "0.303530761300"
+        //                 }
+        //             ),
+        //             "positions" => array(
+        //                 array(
+        //                     "id" => 2470568,
+        //                     "symbol" => "ETHUSDT_PERP",
+        //                     "quantity" => "0.001",
+        //                     "price_entry" => "2927.509",
+        //                     "price_margin_call" => "0",
+        //                     "price_liquidation" => "0",
+        //                     "pnl" => "0",
+        //                     "created_at" => "2022-03-19T07:54:35.24Z",
+        //                     "updated_at" => "2022-03-19T07:54:58.922Z"
+        //                 }
+        //             )
+        //         ),
+        //     )
+        //
+        return $this->parse_position($response, $market);
     }
 
     public function parse_position($position, $market = null) {
