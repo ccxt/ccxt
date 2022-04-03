@@ -1,5 +1,8 @@
 import { errorHierarchy } from './errorHierarchy.js'
 
+// Commented out since I'm not sure this is mandatory anymore
+// and does not work out of the box with esm
+
 // /*  ------------------------------------------------------------------------ */
 
 // function subclass (BaseClass, classes, namespace = {}) {
