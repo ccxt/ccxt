@@ -349,6 +349,7 @@ module.exports = class mexc3 extends Exchange {
                     'BEP20': 'BEP20(BSC)',
                 },
                 'recvWindow': 5 * 1000, // 5 sec, default
+                'maxTimeTillEnd': 90 * 86400 * 1000 - 1, // 90 days
             },
             'commonCurrencies': {
                 'BEYONDPROTOCOL': 'BEYOND',
@@ -1280,7 +1281,7 @@ module.exports = class mexc3 extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTicker', market, params);
         let ticker = undefined;
         if (marketType === 'spot') {
             ticker = await this.spotPublicGetTicker24hr (this.extend (request, query));
@@ -1737,11 +1738,15 @@ module.exports = class mexc3 extends Exchange {
         } else {
             if (since !== undefined) {
                 request['start_time'] = since;
+                const end = this.safeInteger (params, 'end_time');
+                if (end === undefined) {
+                    request['end_time'] = since + this.options['maxTimeTillEnd'];
+                }
             }
             if (limit !== undefined) {
                 request['page_size'] = limit;
             }
-            const response = await this.contractPrivateGetOrderListHistoryOrders (this.extend (request, query));
+            const responseOfRegular = await this.contractPrivateGetOrderListHistoryOrders (this.extend (request, query));
             //
             //     {
             //         "success": true,
@@ -1776,13 +1781,43 @@ module.exports = class mexc3 extends Exchange {
             //          ]
             //     }
             //
-            const data = this.safeValue (response, 'data');
-            return this.parseOrders (data, market, since, limit, params);
+            // (due to bug in their API, the Planorder endpoints works not only for stop-market orders, but also for STOP-LIMIT orders, which were supposed to have separate endpoint)
+            const responseOfStop = await this.contractPrivateGetPlanorderListOrders (this.extend (request, query));
+            //
+            //     {
+            //         "success": true,
+            //         "code": "0",
+            //         "data": [
+            //             {
+            //                 "symbol": "STEPN_USDT",
+            //                 "leverage": "20",
+            //                 "side": "1",
+            //                 "vol": "13",
+            //                 "openType": "1",
+            //                 "state": "1",
+            //                 "orderType": "1",
+            //                 "errorCode": "0",
+            //                 "createTime": "1648984276000",
+            //                 "updateTime": "1648984276000",
+            //                 "id": "265557643326564352",
+            //                 "triggerType": "1",
+            //                 "triggerPrice": "3",
+            //                 "price": "2.9", // not present in stop-market, but in stop-limit order
+            //                 "executeCycle": "87600",
+            //                 "trend": "1",
+            //             },
+            //         ]
+            //     }
+            //
+            const ordersOfRegular = this.safeValue (responseOfRegular, 'data');
+            const ordersOfStop = this.safeValue (responseOfStop, 'data');
+            const merged = this.arrayConcat (ordersOfStop, ordersOfRegular);
+            return this.parseOrders (merged, market, since, limit, params);
         }
     }
 
     async fetchOrdersByIds (ids, symbol = undefined, params = {}) {
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', undefined, params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrdersByIds', undefined, params);
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -1907,7 +1942,7 @@ module.exports = class mexc3 extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrders', undefined, params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelOrder', undefined, params);
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -1941,8 +1976,11 @@ module.exports = class mexc3 extends Exchange {
             //         "side": "BUY"
             //     }
             //
-        } else if (market['swap']) {
-            const response = await this.contractPrivatePostOrderCancel ([ id ]); // the request cannot be changed or extended. This is the only way to send.
+        } else {
+            // TODO: PlanorderCancel endpoint has bug atm. waiting for fix.
+            let method = this.safeString (this.options, 'cancelOrder', 'contractPrivatePostOrderCancel'); // contractPrivatePostOrderCancel, contractPrivatePostPlanorderCancel
+            method = this.safeString (query, 'method', method);
+            const response = await this[method] ([ id ]); // the request cannot be changed or extended. This is the only way to send.
             //
             //     {
             //         "success": true,
@@ -1950,17 +1988,17 @@ module.exports = class mexc3 extends Exchange {
             //         "data": [
             //             {
             //                 "orderId": "264995729269765120",
-            //                 "errorCode": "0",         // if already canceled: "2041"
-            //                 "errorMsg": "success",    // if already canceled: "order state cannot be cancelled"
+            //                 "errorCode": "0",         // if already canceled: "2041"; if doesn't exist: "2040"
+            //                 "errorMsg": "success",    // if already canceled: "order state cannot be cancelled"; if doesn't exist: "order not exist"
             //             }
             //         ]
             //     }
             //
             data = this.safeValue (response, 'data');
             const order = this.safeValue (data, 0);
-            const errorCode = this.safeValue (order, 'errorCode');
-            if (errorCode !== '0') {
-                throw new InvalidOrder (this.id + ' cancelOrder() the order with id ' + id + ' cannot be cancelled');
+            const errorMsg = this.safeValue (order, 'errorMsg', '');
+            if (errorMsg !== 'success') {
+                throw new InvalidOrder (this.id + ' cancelOrder() the order with id ' + id + ' cannot be cancelled: ' + errorMsg);
             }
         }
         return this.parseOrder (data, market);
@@ -1993,7 +2031,7 @@ module.exports = class mexc3 extends Exchange {
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelOrders', undefined, params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', undefined, params);
         await this.loadMarkets ();
         const market = symbol !== undefined ? this.market (symbol) : undefined;
         const request = {};
@@ -2019,10 +2057,14 @@ module.exports = class mexc3 extends Exchange {
             //
             return this.parseOrders (response, market);
         } else {
-            if (symbol === undefined) {
+            if (symbol !== undefined) {
                 request['symbol'] = market['id'];
             }
-            const response = await this.contractPrivatePostOrderCancelAll (this.extend (request, query));
+            // method can be either: contractPrivatePostOrderCancelAll or contractPrivatePostPlanorderCancelAll
+            // (due to bug in their API, the Planorder endpoints works not only for stop-market orders, but also for STOP-LIMIT orders, which were supposed to have separate endpoint)
+            let method = this.safeString (this.options, 'cancelAllOrders', 'contractPrivatePostOrderCancelAll');
+            method = this.safeString (query, 'method', method);
+            const response = await this[method] (this.extend (request, query));
             //
             //     {
             //         "success": true,
@@ -2079,6 +2121,7 @@ module.exports = class mexc3 extends Exchange {
         //
         // swap: fetchOrder, fetchOrders
         //
+        //     regular
         //     {
         //         "orderId": "264995729269765120",
         //         "symbol": "STEPN_USDT",
@@ -2106,11 +2149,32 @@ module.exports = class mexc3 extends Exchange {
         //         "positionMode": "1"
         //     }
         //
+        //     stop
+        //     {
+        //         "id": "265557643326564352",
+        //         "triggerType": "1",
+        //         "triggerPrice": "3",
+        //         "price": "2.9", // not present in stop-market, but in stop-limit order
+        //         "executeCycle": "87600",
+        //         "trend": "1",
+        //          // below keys are same as in regular order structure
+        //         "symbol": "STEPN_USDT",
+        //         "leverage": "20",
+        //         "side": "1",
+        //         "vol": "13",
+        //         "openType": "1",
+        //         "state": "1",
+        //         "orderType": "1",
+        //         "errorCode": "0",
+        //         "createTime": "1648984276000",
+        //         "updateTime": "1648984276000",
+        //     }
+        //
         let id = undefined;
         if (typeof order === 'string') {
             id = order;
         } else {
-            id = this.safeString (order, 'orderId');
+            id = this.safeString2 (order, 'orderId', 'id');
         }
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
@@ -2131,14 +2195,14 @@ module.exports = class mexc3 extends Exchange {
             'clientOrderId': this.safeString (order, 'clientOrderId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined, // note: this might be 'updateTime' if order-status is filled, otherwise cancellation time. needs to be checked
+            'lastTradeTimestamp': undefined, // TODO: this might be 'updateTime' if order-status is filled, otherwise cancellation time. needs to be checked
             'status': this.parseOrderStatus (this.safeString2 (order, 'status', 'state')),
             'symbol': market['symbol'],
             'type': this.parseOrderType (this.safeString (order, 'type')),
             'timeInForce': this.parseOrderTimeInForce (this.safeString (order, 'timeInForce')),
             'side': this.parseOrderSide (this.safeString (order, 'side')),
             'price': this.safeNumber (order, 'price'),
-            'stopPrice': this.safeNumber (order, 'stopPrice'),
+            'stopPrice': this.safeNumber2 (order, 'stopPrice', 'triggerPrice'),
             'average': this.safeNumber (order, 'dealAvgPrice'),
             'amount': this.safeNumber2 (order, 'origQty', 'vol'),
             'cost': this.safeNumber (order, 'cummulativeQuoteQty'),  // 'cummulativeQuoteQty' vs 'origQuoteOrderQty'
@@ -2345,13 +2409,11 @@ module.exports = class mexc3 extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        if (since !== undefined) {
-            request['start_time'] = since;
-            request['end_time'] = since + 90 * 86400 * 1000 - 1;
-        }
         let trades = undefined;
         if (marketType === 'spot' || (market && market['spot'])) {
-            await this.loadMarkets ();
+            if (since !== undefined) {
+                request['start_time'] = since;
+            }
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
@@ -2378,6 +2440,13 @@ module.exports = class mexc3 extends Exchange {
             //     ]
             //
         } else {
+            if (since !== undefined) {
+                request['start_time'] = since;
+                const end = this.safeInteger (params, 'end_time');
+                if (end === undefined) {
+                    request['end_time'] = since + this.options['maxTimeTillEnd'];
+                }
+            }
             if (limit !== undefined) {
                 request['page_size'] = limit;
             }
@@ -3267,7 +3336,7 @@ module.exports = class mexc3 extends Exchange {
     }
 
     async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTransfer', undefined, params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTransfers', undefined, params);
         await this.loadMarkets ();
         const request = {};
         let currency = undefined;
