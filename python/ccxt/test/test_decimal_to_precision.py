@@ -268,33 +268,55 @@ assert decimal_to_precision('1602000000000000000000', TRUNCATE, 3, SIGNIFICANT_D
 # ----------------------------------------------------------------------------
 
 w = '-1.123e-6'
+ws = Precise('-1.123e-6')
 x = '0.00000002'
+xs = Precise(x)
 y = '69696900000'
+ys = Precise(y)
 z = '0'
+zs = Precise('0')
 a = '1e8'
 
 assert Precise.string_mul(x, y) == '1393.938'
 assert Precise.string_mul(y, x) == '1393.938'
+assert ys * xs == '1393.938'
+assert xs * ys == '1393.938'
 assert Precise.string_add(x, y) == '69696900000.00000002'
 assert Precise.string_add(y, x) == '69696900000.00000002'
+assert ys + xs == '69696900000.00000002'
+assert xs + ys == '69696900000.00000002'
 assert Precise.string_sub(x, y) == '-69696899999.99999998'
 assert Precise.string_sub(y, x) == '69696899999.99999998'
+assert xs - ys == '-69696899999.99999998'
+assert ys - xs == '69696899999.99999998'
+
 assert Precise.string_div(x, y, 1) == '0'
 assert Precise.string_div(x, y) == '0'
+assert xs / ys == '0'
+
 assert Precise.string_div(x, y, 19) == '0.0000000000000000002'
 assert Precise.string_div(x, y, 20) == '0.00000000000000000028'
 assert Precise.string_div(x, y, 21) == '0.000000000000000000286'
 assert Precise.string_div(x, y, 22) == '0.0000000000000000002869'
 assert Precise.string_div(y, x) == '3484845000000000000'
+assert ys / xs == '3484845000000000000'
 
 assert Precise.string_mul(x, w) == '-0.00000000000002246'
 assert Precise.string_mul(w, x) == '-0.00000000000002246'
+assert ws * xs == '-0.00000000000002246'
+assert xs * ws == '-0.00000000000002246'
 assert Precise.string_add(x, w) == '-0.000001103'
 assert Precise.string_add(w, x) == '-0.000001103'
+assert ws + xs == '-0.000001103'
+assert xs + ws == '-0.000001103'
 assert Precise.string_sub(x, w) == '0.000001143'
 assert Precise.string_sub(w, x) == '-0.000001143'
+assert xs - ws == '0.000001143'
+assert xs - ws == '-0.000001143'
 assert Precise.string_div(x, w) == '-0.017809439002671415'
 assert Precise.string_div(w, x) == '-56.15'
+assert xs % w == '-0.017809439002671415'
+assert ws % x == '-56.15'
 
 assert Precise.string_mul(z, w) == '0'
 assert Precise.string_mul(z, x) == '0'
@@ -302,12 +324,24 @@ assert Precise.string_mul(z, y) == '0'
 assert Precise.string_mul(w, z) == '0'
 assert Precise.string_mul(x, z) == '0'
 assert Precise.string_mul(y, z) == '0'
+assert zs * ws == '0'
+assert zs * xs == '0'
+assert zs * ys == '0'
+assert ws * zs == '0'
+assert xs * zs == '0'
+assert ys * zs == '0'
 assert Precise.string_add(z, w) == '-0.000001123'
 assert Precise.string_add(z, x) == '0.00000002'
 assert Precise.string_add(z, y) == '69696900000'
 assert Precise.string_add(w, z) == '-0.000001123'
 assert Precise.string_add(x, z) == '0.00000002'
 assert Precise.string_add(y, z) == '69696900000'
+assert zs + ws == '-0.000001123'
+assert zs + xs == '0.00000002'
+assert zs + ys == '69696900000'
+assert ws + zs == '-0.000001123'
+assert xs + zs == '0.00000002'
+assert ys + zs == '69696900000'
 
 assert Precise.string_mul(x, a) == '2'
 assert Precise.string_mul(a, x) == '2'
@@ -323,41 +357,54 @@ assert Precise.string_div(a, y) == '0.001434784043479695'
 assert Precise.string_abs('0') == '0'
 assert Precise.string_abs('-0') == '0'
 assert Precise.string_abs('-500.1') == '500.1'
+assert abs(Precise('-500.1')) == '500.1'
 assert Precise.string_abs('213') == '213'
+assert abs(Precise('213')) == '213'
 
 assert Precise.string_neg('0') == '0'
 assert Precise.string_neg('-0') == '0'
 assert Precise.string_neg('-500.1') == '500.1'
+assert abs(Precise('-500.1')) == '500.1'
 assert Precise.string_neg('213') == '-213'
+assert -Precise('213') == '-213'
 
 assert Precise.string_mod('57.123', '10') == '7.123'
 assert Precise.string_mod('18', '6') == '0'
 assert Precise.string_mod('10.1', '0.5') == '0.1'
+assert Precise('10.1') % Precise('0.5') == '0.1'
 assert Precise.string_mod('10000000', '5555') == '1000'
 assert Precise.string_mod('5550', '120') == '30'
+assert Precise('5550') % Precise('120') == '30'
 
 assert Precise.string_equals('1.0000', '1')
 assert Precise.string_equals('-0.0', '0')
+assert Precise('-0.0') == Precise('0')
 assert Precise.string_equals('-0.0', '0.0')
 assert Precise.string_equals('5.534000', '5.5340')
+assert Precise('5.534000') == Precise('5.5340')
 
 assert Precise.string_min('1.0000', '2') == '1'
 assert Precise.string_min('2', '1.2345') == '1.2345'
 assert Precise.string_min('3.1415', '-2') == '-2'
 assert Precise.string_min('-3.1415', '-2') == '-3.1415'
+assert min(Precise('-3.1415'), Precise('-2')) == '-3.1415'
 assert Precise.string_min('0.000', '-0.0') == '0'
 
 assert Precise.string_max('1.0000', '2') == '2'
 assert Precise.string_max('2', '1.2345') == '2'
 assert Precise.string_max('3.1415', '-2') == '3.1415'
+assert max(Precise('3.1415'), Precise('-2')) == '3.1415'
 assert Precise.string_max('-3.1415', '-2') == '-2'
 assert Precise.string_max('0.000', '-0.0') == '0'
 
 assert not Precise.string_gt('1.0000', '2')
 assert Precise.string_gt('2', '1.2345')
+assert Precise('2') > Precise('1.2345')
 assert Precise.string_gt('3.1415', '-2')
 assert not Precise.string_gt('-3.1415', '-2')
+assert not Precise('-3.1415') > Precise('-2')
 assert not Precise.string_gt('3.1415', '3.1415')
+assert not Precise('3.1415') > Precise('3.1415')
 assert Precise.string_gt('3.14150000000000000000001', '3.1415')
 
 assert not Precise.string_ge('1.0000', '2')
@@ -365,13 +412,16 @@ assert Precise.string_ge('2', '1.2345')
 assert Precise.string_ge('3.1415', '-2')
 assert not Precise.string_ge('-3.1415', '-2')
 assert Precise.string_ge('3.1415', '3.1415')
+assert Precise('3.1415') >= Precise('3.1415')
 assert Precise.string_ge('3.14150000000000000000001', '3.1415')
+assert Precise('3.14150000000000000000001') >= Precise('3.1415')
 
 assert Precise.string_lt('1.0000', '2')
 assert not Precise.string_lt('2', '1.2345')
 assert not Precise.string_lt('3.1415', '-2')
 assert Precise.string_lt('-3.1415', '-2')
 assert not Precise.string_lt('3.1415', '3.1415')
+assert not Precise('3.1415') < Precise('3.1415')
 assert Precise.string_lt('3.1415', '3.14150000000000000000001')
 
 assert Precise.string_le('1.0000', '2')
@@ -379,4 +429,6 @@ assert not Precise.string_le('2', '1.2345')
 assert not Precise.string_le('3.1415', '-2')
 assert Precise.string_le('-3.1415', '-2')
 assert Precise.string_le('3.1415', '3.1415')
+assert Precise('3.1415') <= Precise('3.1415')
 assert Precise.string_le('3.1415', '3.14150000000000000000001')
+assert Precise('3.1415') <= Precise('3.14150000000000000000001')
