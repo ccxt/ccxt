@@ -139,7 +139,7 @@ module.exports = class lbank2 extends Exchange {
                         'withdraws': 2.5,
                         'supplement/user_info': 2.5,
                         'supplement/withdraw': 2.5, // TODO Withdraw (last)
-                        'supplement/deposit_history': 2.5, // TODO fetchDeposits
+                        'supplement/deposit_history': 2.5, // TODO fetchDeposits (in progress)
                         'supplement/withdraws': 2.5, // TODO fetchWithdrawals
                         'supplement/get_deposit_address': 2.5,
                         'supplement/asset_detail': 2.5,
@@ -1419,6 +1419,148 @@ module.exports = class lbank2 extends Exchange {
             'network': networkCode, // will be undefined if not specified in request
             'info': response,
         };
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        this.checkAddress (address);
+        await this.loadMarkets ();
+        const fee = this.safeString (params, 'fee');
+        params = this.omit (params, 'fee');
+        if (fee === undefined) {
+            throw new ArgumentsRequired (this.id + ' withdraw () requires a fee argument to be supplied in params, the relevant coin network fee can be found by calling fetchFundingFees (), note: if no network param is supplied then the default network will be used, this can also be found in fetchFundingFees ()');
+        }
+        const currency = this.currency (code);
+        const request = {
+            'address': address,
+            'coin': currency['id'],
+            'amount': amount,
+            'fee': fee, // the correct coin-network fee must be supplied, which can be found by calling fetchFundingFees (private)
+            // 'networkName': defaults to the defaultNetwork of the coin which can be found in the /supplement/user_info endpoint
+            // 'memo': memo: memo word of bts and dct
+            // 'mark': Withdrawal Notes
+            // 'name': Remarks of the address. After filling in this parameter, it will be added to the withdrawal address book of the currency.
+            // 'withdrawOrderId': withdrawOrderId
+            // 'type': type=1 is for intra-site transfer
+        };
+        if (tag !== undefined) {
+            request['memo'] = tag;
+        }
+        const network = this.safeStringUpper2 (params, 'network', 'networkName');
+        params = this.omit (params, [ 'network', 'networkName' ]);
+        const networks = this.safeValue (this.options, 'networks');
+        const networkId = this.safeString (networks, network, network);
+        if (networkId !== undefined) {
+            request['networkName'] = networkId;
+        }
+        const response = await this.privatePostSupplementWithdraw (this.extend (request, params));
+        //
+        //      {
+        //          "result":true,
+        //          "data": {
+        //              "fee":10.00000000000000000000,
+        //              "withdrawId":1900376
+        //              },
+        //          "error_code":0,
+        //          "ts":1648992501414
+        //      }
+        //
+        const result = this.safeValue (response, 'data', {});
+        return {
+            'info': result,
+            'id': this.safeString (result, 'withdrawId'),
+        };
+    }
+
+    parseTransaction (transaction) {
+        //
+        // fetchDeposits (private)
+        //
+        //      {
+        //          "assetCode":"usdt",
+        //          "address":"TAzsQ9Gx8eqFNFSKbeXrbi45CuVPHzA8wr",
+        //          "assetAmt":44.00000000000000000000,
+        //          "txid":"ff4c8fb6b0fa05c06bc1377323eb4fe7d2edc965eee727f7c72f97e8b5fa1803",
+        //          "time":1646245610000,
+        //          "netWork":"trc20"
+        //      }
+        //
+        // fetchWithdrawals (private)
+        //
+        //
+        //
+        return {
+            'info': transaction,    // the JSON response from the exchange as is
+            'id': undefined,    // exchange-specific transaction id, string
+            'txid': undefined,
+            'timestamp': undefined,             // timestamp in milliseconds
+            'datetime': undefined, // ISO8601 string of the timestamp
+            'addressFrom': undefined, // sender
+            'address': undefined, // "from" or "to"
+            'addressTo': undefined, // receiver
+            'tagFrom': undefined, // "tag" or "memo" or "payment_id" associated with the sender
+            'tag': undefined, // "tag" or "memo" or "payment_id" associated with the address
+            'tagTo': undefined, // "tag" or "memo" or "payment_id" associated with the receiver
+            'type': undefined,   // or 'withdrawal', string
+            'amount': undefined,     // float (does not include the fee)
+            'currency': undefined,       // a common unified currency code, string
+            'status': undefined,   // 'ok', 'failed', 'canceled', string
+            'updated': undefined,  // UTC timestamp of most recent status change in ms
+            'comment': 'a comment or message defined by the user if any',
+            'fee': {                 // the entire fee structure may be undefined
+                'currency': undefined,   // a unified fee currency code
+                'cost': undefined,      // float
+                'rate': undefined,   // approximately, fee['cost'] / amount, float
+            },
+        };
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // 'assetCode': currency id
+            // 'startTime': start time yyyy-MM-dd HH:mm:ss
+            // 'endTime': end time yyyy-MM-dd HH:mm:ss
+            // 'pageNo': current page（default: 1）
+            // 'pageSize': size of each page（default:20, max: 100）
+        };
+        since = this.safeString (params, 'startTime', since);
+        params = this.omit (params, 'startTime');
+        if (since !== undefined) {
+            request['startTime'] = this.ymdhms (since, ' ');
+        }
+        const response = await this.privatePostDepositHistory (this.extend (request, params));
+        //
+        //      {
+        //          "result":true,
+        //          "data":
+        //              {
+        //                  "total":1,
+        //                  "depositOrders":
+        //                      [
+        //                          {
+        //                              "assetCode":"usdt",
+        //                              "address":"TAzsQ9Gx8eqFNFSKbeXrbi45CuVPHzA8wr",
+        //                              "assetAmt":44.00000000000000000000,
+        //                              "txid":"ff4c8fb6b0fa05c06bc1377323eb4fe7d2edc965eee727f7c72f97e8b5fa1803",
+        //                              "time":1646245610000,
+        //                              "netWork":"trc20"
+        //                          }
+        //                      ],
+        //                  "page_length":20,
+        //                  "current_page":1
+        //              },
+        //          "error_code":0,
+        //          "ts":1648987768520
+        //      }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const result = this.safeValue (data, 'depositOrders', []);
+        return this.parseTransactions (result);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
     }
 
     async fetchFundingFees (params = {}) {
