@@ -2554,13 +2554,12 @@ module.exports = class gateio extends Exchange {
          * @param {integer} params.iceberg Amount to display for the iceberg order. Null or 0 for normal orders. Set to -1 to hide the order completely
          * @param {string} params.text User defined information. If not empty, must follow the rules below:
          * @param {string} params.account (spot and margin only) Account type. spot - use spot account; margin - use margin account; cross_margin - use cross margin account
+         * @param {boolean} params.auto_borrow (margin only) Used in margin or cross margin trading to allow automatic loan of insufficient amount if balance is not enough.
          * @param {string} params.settle (contract only) Unified Currency Code for settle currency
          * @param {boolean} params.reduceOnly (contract only) Indicates if this order is to reduce the size of a position
          * @param {boolean} params.close (contract only) Set as true to close the position, with size set to 0
-         * @param {boolean} params.auto_borrow (margin only) Used in margin or cross margin trading to allow automatic loan of insufficient amount if balance is not enough.
-         * @param {boolean} params.auto_borrow (margin only) Used in margin or cross margin trading to allow automatic loan of insufficient amount if balance is not enough.
          * @param {boolean} params.auto_size (contract only) Set side to close dual-mode position. close_long closes the long side; while close_short the short one. Note size also needs to be set to 0
-         * @returns An order structure
+         * @returns [An order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
