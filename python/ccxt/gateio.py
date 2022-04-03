@@ -2886,6 +2886,12 @@ class gateio(Exchange):
             'info': order,
         }, market)
 
+    def create_reduce_only_order(self, symbol, type, side, amount, price=None, params={}):
+        request = {
+            'reduceOnly': True,
+        }
+        return self.create_order(symbol, type, side, amount, price, self.extend(request, params))
+
     def fetch_order(self, id, symbol=None, params={}):
         '''
          * Retrieves information on an order

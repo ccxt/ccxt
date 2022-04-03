@@ -3008,6 +3008,13 @@ class gateio extends Exchange {
         ), $market);
     }
 
+    public function create_reduce_only_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $request = array(
+            'reduceOnly' => true,
+        );
+        return $this->create_order($symbol, $type, $side, $amount, $price, array_merge($request, $params));
+    }
+
     public function fetch_order($id, $symbol = null, $params = array ()) {
         /**
          * Retrieves information on an order
