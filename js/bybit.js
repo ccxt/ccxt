@@ -206,6 +206,7 @@ module.exports = class bybit extends Exchange {
                             'stop-order/list',
                             'stop-order',
                             'position/list',
+                            'position/fee-rate',
                             'execution/list',
                             'trade/closed-pnl/list',
                             'funding/prev-funding-rate',
