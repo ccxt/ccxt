@@ -597,6 +597,23 @@ module.exports = class kucoin extends ccxt.kucoin {
     }
 
     parseWsOrder (order, market = undefined) {
+        //
+        //     {
+        //         'symbol': 'XCAD-USDT',
+        //         'orderType': 'limit',
+        //         'side': 'buy',
+        //         'orderId': '6249167327218b000135e749',
+        //         'type': 'canceled',
+        //         'orderTime': 1648957043065280224,
+        //         'size': '100.452',
+        //         'filledSize': '0',
+        //         'price': '2.9635',
+        //         'clientOid': 'buy-XCAD-USDT-1648957043010159',
+        //         'remainSize': '0',
+        //         'status': 'done',
+        //         'ts': 1648957054031001037
+        //     }
+        //
         const id = this.safeString (order, 'orderId');
         const clientOrderId = this.safeString (order, 'clientOid');
         const orderType = this.safeStringLower (order, 'orderType');
@@ -605,7 +622,7 @@ module.exports = class kucoin extends ccxt.kucoin {
         const amount = this.safeString (order, 'size');
         const rawType = this.safeString (order, 'type');
         const status = this.parseWsOrderStatus (rawType);
-        let timestamp = this.safeInteger (order, 'ts');
+        let timestamp = this.safeInteger (order, 'orderTime');
         if (timestamp !== undefined) {
             timestamp = parseInt (timestamp / 1000000);
         }
