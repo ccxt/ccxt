@@ -2539,6 +2539,29 @@ module.exports = class gateio extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name gateio#createOrder
+         * @description Create an order on the exchange
+         * @param {string} symbol Unified CCXT market symbol
+         * @param {string} type "limit" or "market"(contract only)
+         * @param {string} side "buy" or "sell"
+         * @param {float} amount the amount of currency to trade
+         * @param {float} price the price at which the order is to be fullfilled at in units of the quote currency (ignored in market orders)
+         * @param {dict} params  Extra parameters specific to the exchange API endpoint
+         * @param {float} params.stopPrice The price at which a trigger order is triggered at
+         * @param {string} params.timeInForce gtc (GoodTillCancelled), ioc (ImmediateOrCancelled) or poc (PendingOrCancelled)
+         * @param {integer} params.iceberg Amount to display for the iceberg order. Null or 0 for normal orders. Set to -1 to hide the order completely
+         * @param {string} params.text User defined information. If not empty, must follow the rules below:
+         * @param {string} params.account (spot and margin only) Account type. spot - use spot account; margin - use margin account; cross_margin - use cross margin account
+         * @param {string} params.settle (contract only) Unified Currency Code for settle currency
+         * @param {boolean} params.reduceOnly (contract only) Indicates if this order is to reduce the size of a position
+         * @param {boolean} params.close (contract only) Set as true to close the position, with size set to 0
+         * @param {boolean} params.auto_borrow (margin only) Used in margin or cross margin trading to allow automatic loan of insufficient amount if balance is not enough.
+         * @param {boolean} params.auto_borrow (margin only) Used in margin or cross margin trading to allow automatic loan of insufficient amount if balance is not enough.
+         * @param {boolean} params.auto_size (contract only) Set side to close dual-mode position. close_long closes the long side; while close_short the short one. Note size also needs to be set to 0
+         * @returns An order structure
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const contract = market['contract'];
