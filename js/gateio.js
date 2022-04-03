@@ -3002,6 +3002,13 @@ module.exports = class gateio extends Exchange {
         }, market);
     }
 
+    async createReduceOnlyOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        const request = {
+            'reduceOnly': true,
+        };
+        return await this.createOrder (symbol, type, side, amount, price, this.extend (request, params));
+    }
+
     async fetchOrder (id, symbol = undefined, params = {}) {
         /**
          * Retrieves information on an order
