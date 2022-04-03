@@ -508,7 +508,7 @@ module.exports = class ftx extends Exchange {
         //     }
         //
         let allFuturesResponse = undefined;
-        if (this.has['future']) {
+        if (this.has['future'] && !(this.hostname === 'ftx.us')) {
             allFuturesResponse = await this.publicGetFutures ();
         }
         //
