@@ -622,6 +622,14 @@ class gateio extends \ccxt\async\gateio {
             $parsedOrders = $this->parse_orders($orders);
             for ($i = 0; $i < count($parsedOrders); $i++) {
                 $parsed = $parsedOrders[$i];
+                // inject order status
+                $info = $this->safe_value($parsed, 'info');
+                $event = $this->safe_string($info, 'event');
+                if ($event === 'put') {
+                    $parsed['status'] = 'open';
+                } else if ($event === 'finish') {
+                    $parsed['status'] = 'closed';
+                }
                 $stored->append ($parsed);
                 $symbol = $parsed['symbol'];
                 $market = $this->market($symbol);
