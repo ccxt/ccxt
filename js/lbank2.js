@@ -1536,27 +1536,26 @@ module.exports = class lbank2 extends Exchange {
                 'signature_method': signatureMethod,
                 'timestamp': timestamp,
             }, query)));
-            const hash = this.hash (auth).toUpperCase ();
+            const hash = this.hash (this.encode (auth));
+            const uppercaseHash = hash.toUpperCase ();
             let sign = undefined;
             if (signatureMethod === 'RSA') {
-                // TODO fix RSA signing
                 const cacheSecretAsPem = this.safeValue (this.options, 'cacheSecretAsPem', true);
                 let pem = undefined;
                 if (cacheSecretAsPem) {
                     pem = this.safeValue (this.options, 'pem');
                     if (pem === undefined) {
-                        pem = this.convertSecretToPem (this.secret);
+                        pem = this.convertSecretToPem (this.encode (this.secret));
                         this.options['pem'] = pem;
                     }
                 } else {
-                    pem = this.convertSecretToPem (this.secret);
+                    pem = this.convertSecretToPem (this.encode (this.secret));
                 }
-                sign = this.binaryToBase64 (this.rsa (hash, this.encode (pem), 'RS256'));
-                // TODO fix RSA signing
+                sign = this.binaryToBase64 (this.rsa (uppercaseHash, this.encode (pem), 'RS256'));
             } else if (signatureMethod === 'HmacSHA256') {
-                sign = this.hmac (this.encode (hash), this.secret);
-                query['sign'] = sign;
+                sign = this.hmac (this.encode (uppercaseHash), this.encode (this.secret));
             }
+            query['sign'] = sign;
             body = this.urlencode (this.keysort (query));
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
