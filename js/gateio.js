@@ -291,24 +291,16 @@ module.exports = class gateio extends ccxt.gateio {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['id'];
-        const uppercaseId = marketId.toUpperCase ();
-        const requestId = this.nonce ();
-        const url = this.urls['api']['ws'];
-        const interval = this.parseTimeframe (timeframe);
-        const subscribeMessage = {
-            'id': requestId,
-            'method': 'kline.subscribe',
-            'params': [ uppercaseId, interval ],
-        };
-        const subscription = {
-            'id': requestId,
-        };
-        // gateio sends candles without a timeframe identifier
-        // making it impossible to differentiate candles from
-        // two or more different timeframes within the same symbol
-        // thus the exchange API is limited to one timeframe per symbol
-        const messageHash = 'kline.update' + ':' + marketId;
-        const ohlcv = await this.watch (url, messageHash, subscribeMessage, messageHash, subscription);
+        const type = market['type'];
+        const isSettleBtc = market['settleId'] === 'btc';
+        const isBtcContract = (market['contract'] && isSettleBtc) ? true : false;
+        const interval = this.timeframes[timeframe];
+        const messageType = this.getUniformType (type);
+        const method = messageType + '.candlesticks';
+        const messageHash = method + ':' + interval + ':' + market['symbol'];
+        const url = this.getUrlByMarketType (type, isBtcContract);
+        const payload = [interval, marketId];
+        const ohlcv = await this.subscribePublic (url, method, messageHash, payload);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
