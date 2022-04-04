@@ -1081,7 +1081,7 @@ module.exports = class deribit extends Exchange {
 
     async fetchTradingFees (params = {}) {
         await this.loadMarkets ();
-        const code = this.codeFromOptions ('fetchBalance', params);
+        const code = this.codeFromOptions ('fetchTradingFees', params);
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
@@ -1169,16 +1169,22 @@ module.exports = class deribit extends Exchange {
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             const market = this.market (symbol);
+            let fee = {
+                'info': market,
+                'symbol': symbol,
+                'percentage': true,
+                'tierBased': true,
+                'maker': market['maker'],
+                'taker': market['taker'],
+            };
             if (market['swap']) {
-                parsedFees[symbol] = perpetualFee;
+                fee = this.extend (fee, perpetualFee);
             } else if (market['future']) {
-                parsedFees[symbol] = futureFee;
+                fee = this.extend (fee, futureFee);
             } else if (market['option']) {
-                parsedFees[symbol] = optionFee;
+                fee = this.extend (fee, optionFee);
             }
-            parsedFees[symbol]['symbol'] = symbol;
-            parsedFees[symbol]['percentage'] = true;
-            parsedFees[symbol]['tierBased'] = true;
+            parsedFees[symbol] = fee;
         }
         return parsedFees;
     }
