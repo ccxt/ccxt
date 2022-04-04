@@ -1,5 +1,3 @@
-
-
 import assert from 'assert';
 
 function testTrade (exchange, trade, symbol, now) {

@@ -1359,7 +1359,8 @@ class Transpiler {
         let js = fs.readFileSync (jsFile).toString ()
 
         js = this.regexAll (js, [
-            [ /[^\n]+require[^\n]+\n/g, '' ],
+            [ /[^\n]+from[^\n]+\n/g, '' ],
+            [ /^export default[^\n]+\n/g, '' ],
             [/^\/\*.*\s+/mg, ''],
         ])
 
@@ -1401,7 +1402,8 @@ class Transpiler {
 
         js = this.regexAll (js, [
             [ /\'use strict\';?\s+/g, '' ],
-            [ /[^\n]+require[^\n]+\n/g, '' ],
+            [ /[^\n]+from[^\n]+\n/g, '' ],
+            [ /^export default[^\n]+\n/g, '' ],
             [ /decimalToPrecision/g, 'decimal_to_precision' ],
             [ /numberToString/g, 'number_to_string' ],
         ])
@@ -1472,7 +1474,8 @@ class Transpiler {
 
         js = this.regexAll (js, [
             [ /\'use strict\';?\s+/g, '' ],
-            [ /[^\n]+require[^\n]+\n/g, '' ],
+            [ /[^\n]+from[^\n]+\n/g, '' ],
+            [ /^export default[^\n]+\n/g, '' ],
             [ /function equals \([\S\s]+?return true\n}\n/g, '' ],
         ])
 
@@ -1580,8 +1583,8 @@ class Transpiler {
 
         js = this.regexAll (js, [
             [ /\'use strict\';?\s+/g, '' ],
-            [ /[^\n]+require[^\n]+\n/g, '' ],
-            [ /module.exports\s+=\s+[^;]+;/g, '' ],
+            [ /[^\n]+from[^\n]+\n/g, '' ],
+            [ /export default\s+[^\n]+;*\n*/g, '' ],
         ])
 
         const pythonHeader = [

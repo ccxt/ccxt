@@ -1,5 +1,3 @@
-
-
 import assert from 'assert';
 
 function testOHLCV (exchange, ohlcv, symbol, now) {

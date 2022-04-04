@@ -1,5 +1,3 @@
-
-
 import assert from 'assert';
 
 function testOrder (exchange, order, symbol, now) {

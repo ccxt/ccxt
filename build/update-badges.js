@@ -6,7 +6,7 @@
 
 
 import fs from 'fs';
-import ccxt from '../ccxt';
+import ccxt from '../ccxt.js';
 import log from 'ololog';
 import ansicolor from 'ansicolor';
 
