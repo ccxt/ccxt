@@ -2558,6 +2558,22 @@ module.exports = class ftx extends Exchange {
         if (borrowRateHistory === undefined) {
             throw new BadRequest (this.id + '.fetchBorrowRateHistory returned no data for ' + code);
         } else {
+            const resultLength = borrowRateHistory.length;
+            if (resultLength === limit - 1) {
+                const hourLength = 3600000;
+                const recentHour = parseInt (this.milliseconds () / hourLength) * hourLength;
+                const penultimateHour = recentHour - hourLength;
+                const lastTimestamp = borrowRateHistory[0]['timestamp'];
+                if (lastTimestamp === penultimateHour) {
+                    borrowRateHistory.push ({
+                        'currency': code,
+                        'rate': undefined,
+                        'timestamp': recentHour,
+                        'datetime': this.iso8601 (recentHour),
+                        'info': {},
+                    });
+                }
+            }
             return borrowRateHistory;
         }
     }
