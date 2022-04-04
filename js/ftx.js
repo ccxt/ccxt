@@ -2485,10 +2485,9 @@ module.exports = class ftx extends Exchange {
     async fetchBorrowRateHistories (since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
-        const now = this.milliseconds ();
-        let endTime = this.safeNumber2 (params, 'till', 'end_time', now);
+        let endTime = this.safeNumber2 (params, 'till', 'end_time');
         if (limit > 48) {
-            throw new BadRequest (this.id + ' fetchBorrowRateHistories cannot exceed 48');
+            throw new BadRequest (this.id + ' fetchBorrowRateHistories limit cannot exceed 48');
         }
         if ((endTime - since) > 172800000) {
             throw new BadRequest ('The time between since and the end time be >= 48 hours using ' + this.id + ' fetchBorrowRateHistories');
@@ -2496,17 +2495,22 @@ module.exports = class ftx extends Exchange {
         if (since !== undefined) {
             request['start_time'] = since / 1000;
             if (endTime === undefined) {
-                const sinceLimit = (limit === undefined) ? 2 : limit;
                 const now = this.milliseconds ();
+                const sinceLimit = (limit === undefined) ? 2 : limit;
                 endTime = Math.min ((since + (3600000 * (sinceLimit - 1))), now);
             }
         } else {
             if (limit !== undefined) {
+                if (endTime === undefined) {
+                    endTime = this.milliseconds ();
+                }
                 const startTime = (endTime - (3600000 * limit)) + 1000;
                 request['start_time'] = startTime / 1000;
             }
         }
-        request['end_time'] = endTime / 1000;
+        if (endTime !== undefined) {
+            request['end_time'] = endTime / 1000;
+        }
         const response = await this.publicGetSpotMarginHistory (this.extend (request, params));
         //
         //    {
