@@ -60,6 +60,8 @@ module.exports = class deribit extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': true,
                 'fetchTransactions': undefined,
                 'fetchWithdrawals': true,
                 'withdraw': true,
@@ -1075,6 +1077,110 @@ module.exports = class deribit extends Exchange {
         const result = this.safeValue (response, 'result', {});
         const trades = this.safeValue (result, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
+    }
+
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const code = this.codeFromOptions ('fetchBalance', params);
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+            'extended': true,
+        };
+        const response = await this.privateGetGetAccountSummary (this.extend (request, params));
+        //
+        //     {
+        //         jsonrpc: '2.0',
+        //         result: {
+        //             total_pl: 0,
+        //             session_upl: 0,
+        //             session_rpl: 0,
+        //             session_funding: 0,
+        //             portfolio_margining_enabled: false,
+        //             options_vega: 0,
+        //             options_theta: 0,
+        //             options_session_upl: 0,
+        //             options_session_rpl: 0,
+        //             options_pl: 0,
+        //             options_gamma: 0,
+        //             options_delta: 0,
+        //             margin_balance: 0.00062359,
+        //             maintenance_margin: 0,
+        //             limits: {
+        //                 non_matching_engine_burst: 300,
+        //                 non_matching_engine: 200,
+        //                 matching_engine_burst: 20,
+        //                 matching_engine: 2
+        //             },
+        //             initial_margin: 0,
+        //             futures_session_upl: 0,
+        //             futures_session_rpl: 0,
+        //             futures_pl: 0,
+        //             equity: 0.00062359,
+        //             deposit_address: '13tUtNsJSZa1F5GeCmwBywVrymHpZispzw',
+        //             delta_total: 0,
+        //             currency: 'BTC',
+        //             balance: 0.00062359,
+        //             available_withdrawal_funds: 0.00062359,
+        //             available_funds: 0.00062359,
+        //             fees: [
+        //                 currency: '',
+        //                 instrument_type: 'perpetual',
+        //                 fee_type: 'relative',
+        //                 maker_fee: 0,
+        //                 taker_fee: 0,
+        //             ],
+        //         },
+        //         usIn: 1583775838115975,
+        //         usOut: 1583775838116520,
+        //         usDiff: 545,
+        //         testnet: false
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const fees = this.safeValue (result, 'fees', []);
+        let perpetualFee = {};
+        let futureFee = {};
+        let optionFee = {};
+        for (let i = 0; i < fees.length; i++) {
+            const fee = fees[i];
+            const instrumentType = this.safeString (fee, 'instrument_type');
+            if (instrumentType === 'future') {
+                futureFee = {
+                    'info': fee,
+                    'maker': this.safeNumber (fee, 'maker_fee'),
+                    'taker': this.safeNumber (fee, 'taker_fee'),
+                };
+            } else if (instrumentType === 'perpetual') {
+                perpetualFee = {
+                    'info': fee,
+                    'maker': this.safeNumber (fee, 'maker_fee'),
+                    'taker': this.safeNumber (fee, 'taker_fee'),
+                };
+            } else if (instrumentType === 'option') {
+                optionFee = {
+                    'info': fee,
+                    'maker': this.safeNumber (fee, 'maker_fee'),
+                    'taker': this.safeNumber (fee, 'taker_fee'),
+                };
+            }
+        }
+        const parsedFees = {};
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            const market = this.market (symbol);
+            if (market['swap']) {
+                parsedFees[symbol] = perpetualFee;
+            } else if (market['future']) {
+                parsedFees[symbol] = futureFee;
+            } else if (market['option']) {
+                parsedFees[symbol] = optionFee;
+            }
+            parsedFees[symbol]['symbol'] = symbol;
+            parsedFees[symbol]['percentage'] = true;
+            parsedFees[symbol]['tierBased'] = true;
+        }
+        return parsedFees;
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
