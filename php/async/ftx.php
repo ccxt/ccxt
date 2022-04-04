@@ -513,7 +513,7 @@ class ftx extends Exchange {
         //     }
         //
         $allFuturesResponse = null;
-        if ($this->has['future']) {
+        if ($this->has['future'] && !($this->hostname === 'ftx.us')) {
             $allFuturesResponse = yield $this->publicGetFutures ();
         }
         //
