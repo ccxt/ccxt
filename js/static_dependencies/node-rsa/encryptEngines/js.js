@@ -1,5 +1,5 @@
-var BigInteger = require('../libs/jsbn.js');
-var schemes = require('../schemes/schemes.js');
+var BigInteger = require('../libs/jsbn.cjs');
+var schemes = require('../schemes/schemes.cjs');
 
 module.exports = function (keyPair, options) {
     var pkcs1Scheme = schemes.pkcs1.makeScheme(keyPair, options);

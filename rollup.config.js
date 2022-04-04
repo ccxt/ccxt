@@ -9,17 +9,16 @@ export default {
   input: "ccxt.js",
   output: [
     {
-      file: "finalCCXT2.js",
+      file: "./ccxt/dist/ccxt.browser.js",
       format: "es",
     }
   ],
   plugins: [
     json(),
-    resolve({ browser: true, extensions: extensions }),
+    resolve({ browser: true, extensions: extensions, preferBuiltins:false }),
     commonjs({
-      include: ["**/static_dependencies/**/*", "**/static_dependencies/**/*.*", "**/js/static_dependencies/**/*.*",  "**/js/static_dependencies/fetch-ponyfill/fetch-node.cjs"],
       transformMixedEsModules: true,
-      dynamicRequireTargets: ["**/js/static_dependencies/**/*.*", "**/js/static_dependencies/fetch-ponyfill/fetch-node.cjs"]
+      dynamicRequireTargets: ["**/js/static_dependencies/**/*.*"]
     }),
   ]
 };
