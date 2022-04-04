@@ -520,7 +520,7 @@ class ftx(Exchange):
         #     }
         #
         allFuturesResponse = None
-        if self.has['future'] and not (self.hostname == 'ftx.us'):
+        if self.has['future'] and (self.hostname != 'ftx.us'):
             allFuturesResponse = self.publicGetFutures()
         #
         #    {
