@@ -40,129 +40,253 @@ Exchange.ccxtVersion = version
 
 //-----------------------------------------------------------------------------
 
+import aax from  './js/aax.js'
+import ascendex from  './js/ascendex.js'
+import bequant from  './js/bequant.js'
+import bibox from  './js/bibox.js'
+import bigone from  './js/bigone.js'
+import binance from  './js/binance.js'
+import binancecoinm from  './js/binancecoinm.js'
+import binanceus from  './js/binanceus.js'
+import binanceusdm from  './js/binanceusdm.js'
+import bit2c from  './js/bit2c.js'
+import bitbank from  './js/bitbank.js'
+import bitbay from  './js/bitbay.js'
+import bitbns from  './js/bitbns.js'
+import bitcoincom from  './js/bitcoincom.js'
+import bitfinex from  './js/bitfinex.js'
+import bitfinex2 from  './js/bitfinex2.js'
+import bitflyer from  './js/bitflyer.js'
+import bitforex from  './js/bitforex.js'
+import bitget from  './js/bitget.js'
+import bithumb from  './js/bithumb.js'
+import bitmart from  './js/bitmart.js'
+import bitmex from  './js/bitmex.js'
+import bitopro from  './js/bitopro.js'
+import bitpanda from  './js/bitpanda.js'
+import bitrue from  './js/bitrue.js'
+import bitso from  './js/bitso.js'
+import bitstamp from  './js/bitstamp.js'
+import bitstamp1 from  './js/bitstamp1.js'
+import bittrex from  './js/bittrex.js'
+import bitvavo from  './js/bitvavo.js'
+import bkex from  './js/bkex.js'
+import bl3p from  './js/bl3p.js'
+import blockchaincom from  './js/blockchaincom.js'
+import btcalpha from  './js/btcalpha.js'
+import btcbox from  './js/btcbox.js'
+import btcmarkets from  './js/btcmarkets.js'
+import btctradeua from  './js/btctradeua.js'
+import btcturk from  './js/btcturk.js'
+import buda from  './js/buda.js'
+import bw from  './js/bw.js'
+import bybit from  './js/bybit.js'
+import bytetrade from  './js/bytetrade.js'
+import cdax from  './js/cdax.js'
+import cex from  './js/cex.js'
+import coinbase from  './js/coinbase.js'
+import coinbaseprime from  './js/coinbaseprime.js'
+import coinbasepro from  './js/coinbasepro.js'
+import coincheck from  './js/coincheck.js'
+import coinex from  './js/coinex.js'
+import coinfalcon from  './js/coinfalcon.js'
+import coinmate from  './js/coinmate.js'
+import coinone from  './js/coinone.js'
+import coinspot from  './js/coinspot.js'
+import crex24 from  './js/crex24.js'
+import cryptocom from  './js/cryptocom.js'
+import currencycom from  './js/currencycom.js'
+import delta from  './js/delta.js'
+import deribit from  './js/deribit.js'
+import digifinex from  './js/digifinex.js'
+import eqonex from  './js/eqonex.js'
+import exmo from  './js/exmo.js'
+import flowbtc from  './js/flowbtc.js'
+import fmfwio from  './js/fmfwio.js'
+import ftx from  './js/ftx.js'
+import ftxus from  './js/ftxus.js'
+import gateio from  './js/gateio.js'
+import gemini from  './js/gemini.js'
+import hitbtc from  './js/hitbtc.js'
+import hitbtc3 from  './js/hitbtc3.js'
+import hollaex from  './js/hollaex.js'
+import huobi from  './js/huobi.js'
+import huobijp from  './js/huobijp.js'
+import huobipro from  './js/huobipro.js'
+import idex from  './js/idex.js'
+import independentreserve from  './js/independentreserve.js'
+import indodax from  './js/indodax.js'
+import itbit from  './js/itbit.js'
+import kraken from  './js/kraken.js'
+import kucoin from  './js/kucoin.js'
+import kucoinfutures from  './js/kucoinfutures.js'
+import kuna from  './js/kuna.js'
+import latoken from  './js/latoken.js'
+import lbank from  './js/lbank.js'
+import liquid from  './js/liquid.js'
+import luno from  './js/luno.js'
+import lykke from  './js/lykke.js'
+import mercado from  './js/mercado.js'
+import mexc from  './js/mexc.js'
+import ndax from  './js/ndax.js'
+import novadax from  './js/novadax.js'
+import oceanex from  './js/oceanex.js'
+import okcoin from  './js/okcoin.js'
+import okex from  './js/okex.js'
+import okex5 from  './js/okex5.js'
+import okx from  './js/okx.js'
+import paymium from  './js/paymium.js'
+import phemex from  './js/phemex.js'
+import poloniex from  './js/poloniex.js'
+import probit from  './js/probit.js'
+import qtrade from  './js/qtrade.js'
+import ripio from  './js/ripio.js'
+import stex from  './js/stex.js'
+import therock from  './js/therock.js'
+import tidebit from  './js/tidebit.js'
+import tidex from  './js/tidex.js'
+import timex from  './js/timex.js'
+import upbit from  './js/upbit.js'
+import vcc from  './js/vcc.js'
+import wavesexchange from  './js/wavesexchange.js'
+import wazirx from  './js/wazirx.js'
+import whitebit from  './js/whitebit.js'
+import woo from  './js/woo.js'
+import xena from  './js/xena.js'
+import yobit from  './js/yobit.js'
+import zaif from  './js/zaif.js'
+import zb from  './js/zb.js'
+import zipmex from  './js/zipmex.js'
+import zonda from  './js/zonda.js'
+
 const exchanges = {
-    'aax':                     await import ('./js/aax.js'),
-    'ascendex':                await import ('./js/ascendex.js'),
-    'bequant':                 await import ('./js/bequant.js'),
-    'bibox':                   await import ('./js/bibox.js'),
-    'bigone':                  await import ('./js/bigone.js'),
-    'binance':                 await import ('./js/binance.js'),
-    'binancecoinm':            await import ('./js/binancecoinm.js'),
-    'binanceus':               await import ('./js/binanceus.js'),
-    'binanceusdm':             await import ('./js/binanceusdm.js'),
-    'bit2c':                   await import ('./js/bit2c.js'),
-    'bitbank':                 await import ('./js/bitbank.js'),
-    'bitbay':                  await import ('./js/bitbay.js'),
-    'bitbns':                  await import ('./js/bitbns.js'),
-    'bitcoincom':              await import ('./js/bitcoincom.js'),
-    'bitfinex':                await import ('./js/bitfinex.js'),
-    'bitfinex2':               await import ('./js/bitfinex2.js'),
-    'bitflyer':                await import ('./js/bitflyer.js'),
-    'bitforex':                await import ('./js/bitforex.js'),
-    'bitget':                  await import ('./js/bitget.js'),
-    'bithumb':                 await import ('./js/bithumb.js'),
-    'bitmart':                 await import ('./js/bitmart.js'),
-    'bitmex':                  await import ('./js/bitmex.js'),
-    'bitopro':                 await import ('./js/bitopro.js'),
-    'bitpanda':                await import ('./js/bitpanda.js'),
-    'bitrue':                  await import ('./js/bitrue.js'),
-    'bitso':                   await import ('./js/bitso.js'),
-    'bitstamp':                await import ('./js/bitstamp.js'),
-    'bitstamp1':               await import ('./js/bitstamp1.js'),
-    'bittrex':                 await import ('./js/bittrex.js'),
-    'bitvavo':                 await import ('./js/bitvavo.js'),
-    'bkex':                    await import ('./js/bkex.js'),
-    'bl3p':                    await import ('./js/bl3p.js'),
-    'blockchaincom':           await import ('./js/blockchaincom.js'),
-    'btcalpha':                await import ('./js/btcalpha.js'),
-    'btcbox':                  await import ('./js/btcbox.js'),
-    'btcmarkets':              await import ('./js/btcmarkets.js'),
-    'btctradeua':              await import ('./js/btctradeua.js'),
-    'btcturk':                 await import ('./js/btcturk.js'),
-    'buda':                    await import ('./js/buda.js'),
-    'bw':                      await import ('./js/bw.js'),
-    'bybit':                   await import ('./js/bybit.js'),
-    'bytetrade':               await import ('./js/bytetrade.js'),
-    'cdax':                    await import ('./js/cdax.js'),
-    'cex':                     await import ('./js/cex.js'),
-    'coinbase':                await import ('./js/coinbase.js'),
-    'coinbaseprime':           await import ('./js/coinbaseprime.js'),
-    'coinbasepro':             await import ('./js/coinbasepro.js'),
-    'coincheck':               await import ('./js/coincheck.js'),
-    'coinex':                  await import ('./js/coinex.js'),
-    'coinfalcon':              await import ('./js/coinfalcon.js'),
-    'coinmate':                await import ('./js/coinmate.js'),
-    'coinone':                 await import ('./js/coinone.js'),
-    'coinspot':                await import ('./js/coinspot.js'),
-    'crex24':                  await import ('./js/crex24.js'),
-    'cryptocom':               await import ('./js/cryptocom.js'),
-    'currencycom':             await import ('./js/currencycom.js'),
-    'delta':                   await import ('./js/delta.js'),
-    'deribit':                 await import ('./js/deribit.js'),
-    'digifinex':               await import ('./js/digifinex.js'),
-    'eqonex':                  await import ('./js/eqonex.js'),
-    'exmo':                    await import ('./js/exmo.js'),
-    'flowbtc':                 await import ('./js/flowbtc.js'),
-    'fmfwio':                  await import ('./js/fmfwio.js'),
-    'ftx':                     await import ('./js/ftx.js'),
-    'ftxus':                   await import ('./js/ftxus.js'),
-    'gateio':                  await import ('./js/gateio.js'),
-    'gemini':                  await import ('./js/gemini.js'),
-    'hitbtc':                  await import ('./js/hitbtc.js'),
-    'hitbtc3':                 await import ('./js/hitbtc3.js'),
-    'hollaex':                 await import ('./js/hollaex.js'),
-    'huobi':                   await import ('./js/huobi.js'),
-    'huobijp':                 await import ('./js/huobijp.js'),
-    'huobipro':                await import ('./js/huobipro.js'),
-    'idex':                    await import ('./js/idex.js'),
-    'independentreserve':      await import ('./js/independentreserve.js'),
-    'indodax':                 await import ('./js/indodax.js'),
-    'itbit':                   await import ('./js/itbit.js'),
-    'kraken':                  await import ('./js/kraken.js'),
-    'kucoin':                  await import ('./js/kucoin.js'),
-    'kucoinfutures':           await import ('./js/kucoinfutures.js'),
-    'kuna':                    await import ('./js/kuna.js'),
-    'latoken':                 await import ('./js/latoken.js'),
-    'lbank':                   await import ('./js/lbank.js'),
-    'liquid':                  await import ('./js/liquid.js'),
-    'luno':                    await import ('./js/luno.js'),
-    'lykke':                   await import ('./js/lykke.js'),
-    'mercado':                 await import ('./js/mercado.js'),
-    'mexc':                    await import ('./js/mexc.js'),
-    'ndax':                    await import ('./js/ndax.js'),
-    'novadax':                 await import ('./js/novadax.js'),
-    'oceanex':                 await import ('./js/oceanex.js'),
-    'okcoin':                  await import ('./js/okcoin.js'),
-    'okex':                    await import ('./js/okex.js'),
-    'okex5':                   await import ('./js/okex5.js'),
-    'okx':                     await import ('./js/okx.js'),
-    'paymium':                 await import ('./js/paymium.js'),
-    'phemex':                  await import ('./js/phemex.js'),
-    'poloniex':                await import ('./js/poloniex.js'),
-    'probit':                  await import ('./js/probit.js'),
-    'qtrade':                  await import ('./js/qtrade.js'),
-    'ripio':                   await import ('./js/ripio.js'),
-    'stex':                    await import ('./js/stex.js'),
-    'therock':                 await import ('./js/therock.js'),
-    'tidebit':                 await import ('./js/tidebit.js'),
-    'tidex':                   await import ('./js/tidex.js'),
-    'timex':                   await import ('./js/timex.js'),
-    'upbit':                   await import ('./js/upbit.js'),
-    'vcc':                     await import ('./js/vcc.js'),
-    'wavesexchange':           await import ('./js/wavesexchange.js'),
-    'wazirx':                  await import ('./js/wazirx.js'),
-    'whitebit':                await import ('./js/whitebit.js'),
-    'woo':                     await import ('./js/woo.js'),
-    'xena':                    await import ('./js/xena.js'),
-    'yobit':                   await import ('./js/yobit.js'),
-    'zaif':                    await import ('./js/zaif.js'),
-    'zb':                      await import ('./js/zb.js'),
-    'zipmex':                  await import ('./js/zipmex.js'),
-    'zonda':                   await import ('./js/zonda.js'),    
+    'aax':                    aax,
+    'ascendex':               ascendex,
+    'bequant':                bequant,
+    'bibox':                  bibox,
+    'bigone':                 bigone,
+    'binance':                binance,
+    'binancecoinm':           binancecoinm,
+    'binanceus':              binanceus,
+    'binanceusdm':            binanceusdm,
+    'bit2c':                  bit2c,
+    'bitbank':                bitbank,
+    'bitbay':                 bitbay,
+    'bitbns':                 bitbns,
+    'bitcoincom':             bitcoincom,
+    'bitfinex':               bitfinex,
+    'bitfinex2':              bitfinex2,
+    'bitflyer':               bitflyer,
+    'bitforex':               bitforex,
+    'bitget':                 bitget,
+    'bithumb':                bithumb,
+    'bitmart':                bitmart,
+    'bitmex':                 bitmex,
+    'bitopro':                bitopro,
+    'bitpanda':               bitpanda,
+    'bitrue':                 bitrue,
+    'bitso':                  bitso,
+    'bitstamp':               bitstamp,
+    'bitstamp1':              bitstamp1,
+    'bittrex':                bittrex,
+    'bitvavo':                bitvavo,
+    'bkex':                   bkex,
+    'bl3p':                   bl3p,
+    'blockchaincom':          blockchaincom,
+    'btcalpha':               btcalpha,
+    'btcbox':                 btcbox,
+    'btcmarkets':             btcmarkets,
+    'btctradeua':             btctradeua,
+    'btcturk':                btcturk,
+    'buda':                   buda,
+    'bw':                     bw,
+    'bybit':                  bybit,
+    'bytetrade':              bytetrade,
+    'cdax':                   cdax,
+    'cex':                    cex,
+    'coinbase':               coinbase,
+    'coinbaseprime':          coinbaseprime,
+    'coinbasepro':            coinbasepro,
+    'coincheck':              coincheck,
+    'coinex':                 coinex,
+    'coinfalcon':             coinfalcon,
+    'coinmate':               coinmate,
+    'coinone':                coinone,
+    'coinspot':               coinspot,
+    'crex24':                 crex24,
+    'cryptocom':              cryptocom,
+    'currencycom':            currencycom,
+    'delta':                  delta,
+    'deribit':                deribit,
+    'digifinex':              digifinex,
+    'eqonex':                 eqonex,
+    'exmo':                   exmo,
+    'flowbtc':                flowbtc,
+    'fmfwio':                 fmfwio,
+    'ftx':                    ftx,
+    'ftxus':                  ftxus,
+    'gateio':                 gateio,
+    'gemini':                 gemini,
+    'hitbtc':                 hitbtc,
+    'hitbtc3':                hitbtc3,
+    'hollaex':                hollaex,
+    'huobi':                  huobi,
+    'huobijp':                huobijp,
+    'huobipro':               huobipro,
+    'idex':                   idex,
+    'independentreserve':     independentreserve,
+    'indodax':                indodax,
+    'itbit':                  itbit,
+    'kraken':                 kraken,
+    'kucoin':                 kucoin,
+    'kucoinfutures':          kucoinfutures,
+    'kuna':                   kuna,
+    'latoken':                latoken,
+    'lbank':                  lbank,
+    'liquid':                 liquid,
+    'luno':                   luno,
+    'lykke':                  lykke,
+    'mercado':                mercado,
+    'mexc':                   mexc,
+    'ndax':                   ndax,
+    'novadax':                novadax,
+    'oceanex':                oceanex,
+    'okcoin':                 okcoin,
+    'okex':                   okex,
+    'okex5':                  okex5,
+    'okx':                    okx,
+    'paymium':                paymium,
+    'phemex':                 phemex,
+    'poloniex':               poloniex,
+    'probit':                 probit,
+    'qtrade':                 qtrade,
+    'ripio':                  ripio,
+    'stex':                   stex,
+    'therock':                therock,
+    'tidebit':                tidebit,
+    'tidex':                  tidex,
+    'timex':                  timex,
+    'upbit':                  upbit,
+    'vcc':                    vcc,
+    'wavesexchange':          wavesexchange,
+    'wazirx':                 wazirx,
+    'whitebit':               whitebit,
+    'woo':                    woo,
+    'xena':                   xena,
+    'yobit':                  yobit,
+    'zaif':                   zaif,
+    'zb':                     zb,
+    'zipmex':                 zipmex,
+    'zonda':                  zonda,    
 }
 
 //-----------------------------------------------------------------------------
 
-export default Object.assign ({ version, Exchange, Precise, 'exchanges': Object.keys (exchanges) }, exchanges, functions, errors)
+const ccxt = Object.assign ({ version, Exchange, Precise, 'exchanges': Object.keys (exchanges) }, exchanges, functions, errors)
+
+export default ccxt;
+export {
+    ccxt
+}
 
 //-----------------------------------------------------------------------------

@@ -412,10 +412,24 @@ async function exportEverything () {
     flat.push ('error_hierarchy')
 
     const replacements = [
+        {   
+            // we have an arbitrary number of imports
+            // example: import x from x \n import y from y ...
+            // and we want to make sure we leave only one that can be replaced
+            // by the new stringified list, avoiding adding the new list per existent import
+            file: './ccxt.js',
+            regex:  /(import)\s+(\w+)\s+from\s+'.\/js\/(\2).js'\n(?=import\s\w+\s+from\s+)/g,
+            replacement: ''
+        },
+        {
+            file: './ccxt.js',
+            regex:  /(import)\s+(\w+)\s+from\s+'.\/js\/(\2).js'/g,
+            replacement: ids.map (id => "import " + id + ' from ' + " './js/" + id + ".js'").join("\n")
+        },
         {
             file: './ccxt.js',
             regex:  /(?:const|var)\s+exchanges\s+\=\s+\{[^\}]+\}/,
-            replacement: "const exchanges = {\n" + ids.map (id => ("    '" + id + "':").padEnd (30) + " await import ('./js/" + id + ".js'),").join ("\n") + "    \n}",
+            replacement: "const exchanges = {\n" + ids.map (id => ("    '" + id + "':").padEnd (30) + id + ',').join ("\n") + "    \n}",
         },
         {
             file: './python/ccxt/__init__.py',
