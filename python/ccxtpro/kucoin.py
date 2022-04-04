@@ -552,6 +552,23 @@ class kucoin(Exchange, ccxt.kucoin):
         return self.safe_string(statuses, status, status)
 
     def parse_ws_order(self, order, market=None):
+        #
+        #     {
+        #         'symbol': 'XCAD-USDT',
+        #         'orderType': 'limit',
+        #         'side': 'buy',
+        #         'orderId': '6249167327218b000135e749',
+        #         'type': 'canceled',
+        #         'orderTime': 1648957043065280224,
+        #         'size': '100.452',
+        #         'filledSize': '0',
+        #         'price': '2.9635',
+        #         'clientOid': 'buy-XCAD-USDT-1648957043010159',
+        #         'remainSize': '0',
+        #         'status': 'done',
+        #         'ts': 1648957054031001037
+        #     }
+        #
         id = self.safe_string(order, 'orderId')
         clientOrderId = self.safe_string(order, 'clientOid')
         orderType = self.safe_string_lower(order, 'orderType')
@@ -560,7 +577,7 @@ class kucoin(Exchange, ccxt.kucoin):
         amount = self.safe_string(order, 'size')
         rawType = self.safe_string(order, 'type')
         status = self.parse_ws_order_status(rawType)
-        timestamp = self.safe_integer_product(order, 'time', 0.000001)
+        timestamp = self.safe_integer_product(order, 'orderTime')
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']

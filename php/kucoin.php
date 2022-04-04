@@ -603,6 +603,23 @@ class kucoin extends \ccxt\async\kucoin {
     }
 
     public function parse_ws_order($order, $market = null) {
+        //
+        //     {
+        //         'symbol' => 'XCAD-USDT',
+        //         'orderType' => 'limit',
+        //         'side' => 'buy',
+        //         'orderId' => '6249167327218b000135e749',
+        //         'type' => 'canceled',
+        //         'orderTime' => 1648957043065280224,
+        //         'size' => '100.452',
+        //         'filledSize' => '0',
+        //         'price' => '2.9635',
+        //         'clientOid' => 'buy-XCAD-USDT-1648957043010159',
+        //         'remainSize' => '0',
+        //         'status' => 'done',
+        //         'ts' => 1648957054031001037
+        //     }
+        //
         $id = $this->safe_string($order, 'orderId');
         $clientOrderId = $this->safe_string($order, 'clientOid');
         $orderType = $this->safe_string_lower($order, 'orderType');
@@ -611,7 +628,7 @@ class kucoin extends \ccxt\async\kucoin {
         $amount = $this->safe_string($order, 'size');
         $rawType = $this->safe_string($order, 'type');
         $status = $this->parse_ws_order_status($rawType);
-        $timestamp = $this->safe_integer_product($order, 'time', 0.000001);
+        $timestamp = $this->safe_integer_product($order, 'orderTime');
         $marketId = $this->safe_string($order, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
