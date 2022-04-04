@@ -75,6 +75,8 @@ class deribit(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': True,
                 'fetchTransactions': None,
                 'fetchWithdrawals': True,
                 'withdraw': True,
@@ -1064,6 +1066,111 @@ class deribit(Exchange):
         result = self.safe_value(response, 'result', {})
         trades = self.safe_value(result, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
+
+    def fetch_trading_fees(self, params={}):
+        self.load_markets()
+        code = self.code_from_options('fetchTradingFees', params)
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+            'extended': True,
+        }
+        response = self.privateGetGetAccountSummary(self.extend(request, params))
+        #
+        #     {
+        #         jsonrpc: '2.0',
+        #         result: {
+        #             total_pl: 0,
+        #             session_upl: 0,
+        #             session_rpl: 0,
+        #             session_funding: 0,
+        #             portfolio_margining_enabled: False,
+        #             options_vega: 0,
+        #             options_theta: 0,
+        #             options_session_upl: 0,
+        #             options_session_rpl: 0,
+        #             options_pl: 0,
+        #             options_gamma: 0,
+        #             options_delta: 0,
+        #             margin_balance: 0.00062359,
+        #             maintenance_margin: 0,
+        #             limits: {
+        #                 non_matching_engine_burst: 300,
+        #                 non_matching_engine: 200,
+        #                 matching_engine_burst: 20,
+        #                 matching_engine: 2
+        #             },
+        #             initial_margin: 0,
+        #             futures_session_upl: 0,
+        #             futures_session_rpl: 0,
+        #             futures_pl: 0,
+        #             equity: 0.00062359,
+        #             deposit_address: '13tUtNsJSZa1F5GeCmwBywVrymHpZispzw',
+        #             delta_total: 0,
+        #             currency: 'BTC',
+        #             balance: 0.00062359,
+        #             available_withdrawal_funds: 0.00062359,
+        #             available_funds: 0.00062359,
+        #             fees: [
+        #                 currency: '',
+        #                 instrument_type: 'perpetual',
+        #                 fee_type: 'relative',
+        #                 maker_fee: 0,
+        #                 taker_fee: 0,
+        #             ],
+        #         },
+        #         usIn: 1583775838115975,
+        #         usOut: 1583775838116520,
+        #         usDiff: 545,
+        #         testnet: False
+        #     }
+        #
+        result = self.safe_value(response, 'result', {})
+        fees = self.safe_value(result, 'fees', [])
+        perpetualFee = {}
+        futureFee = {}
+        optionFee = {}
+        for i in range(0, len(fees)):
+            fee = fees[i]
+            instrumentType = self.safe_string(fee, 'instrument_type')
+            if instrumentType == 'future':
+                futureFee = {
+                    'info': fee,
+                    'maker': self.safe_number(fee, 'maker_fee'),
+                    'taker': self.safe_number(fee, 'taker_fee'),
+                }
+            elif instrumentType == 'perpetual':
+                perpetualFee = {
+                    'info': fee,
+                    'maker': self.safe_number(fee, 'maker_fee'),
+                    'taker': self.safe_number(fee, 'taker_fee'),
+                }
+            elif instrumentType == 'option':
+                optionFee = {
+                    'info': fee,
+                    'maker': self.safe_number(fee, 'maker_fee'),
+                    'taker': self.safe_number(fee, 'taker_fee'),
+                }
+        parsedFees = {}
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            market = self.market(symbol)
+            fee = {
+                'info': market,
+                'symbol': symbol,
+                'percentage': True,
+                'tierBased': True,
+                'maker': market['maker'],
+                'taker': market['taker'],
+            }
+            if market['swap']:
+                fee = self.extend(fee, perpetualFee)
+            elif market['future']:
+                fee = self.extend(fee, futureFee)
+            elif market['option']:
+                fee = self.extend(fee, optionFee)
+            parsedFees[symbol] = fee
+        return parsedFees
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
