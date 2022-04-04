@@ -783,6 +783,22 @@ module.exports = class gateio extends ccxt.gateio {
         }
     }
 
+    async subscribePublic (url, channel, messageHash, payload) {
+        const time = this.seconds ();
+        const request = {
+            'id': time,
+            'time': time,
+            'channel': channel,
+            'event': 'subscribe',
+            'payload': payload,
+        };
+        const subscription = {
+            'id': time,
+            'messageHash': messageHash,
+        };
+        return await this.watch (url, messageHash, request, messageHash, subscription);
+    }
+
     async subscribePrivate (url, channel, messageHash, payload, requiresUid = false) {
         this.checkRequiredCredentials ();
         // uid is required for some subscriptions only so it's not a part of required credentials
