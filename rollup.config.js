@@ -9,7 +9,7 @@ export default {
   input: "ccxt.js",
   output: [
     {
-      file: "./ccxt/dist/ccxt.browser.js",
+      file: "./dist/ccxt.browser.js",
       format: "es",
     }
   ],
@@ -18,7 +18,7 @@ export default {
     resolve({ browser: true, extensions: extensions, preferBuiltins:false }),
     commonjs({
       transformMixedEsModules: true,
-      dynamicRequireTargets: ["**/js/static_dependencies/**/*.*"]
+      dynamicRequireTargets: ["**/js/static_dependencies/**/*.cjs"]
     }),
   ]
 };
