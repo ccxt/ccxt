@@ -1841,7 +1841,7 @@ module.exports = class gateio extends Exchange {
         let method = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         if (type === 'margin') {
-            const defaultMarginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'default');
+            const defaultMarginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
             const marginType = this.safeString (params, 'marginType', defaultMarginType);
             params = this.omit (params, 'marginType');
             if (marginType === 'cross') {
