@@ -50,7 +50,10 @@ module.exports = class poloniex extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTransactions': true,
+                'fetchTransfer': false,
+                'fetchTransfers': false,
                 'fetchWithdrawals': true,
+                'transfer': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -201,6 +204,18 @@ module.exports = class poloniex extends Exchange {
                             'BUSD': 1.0,
                         },
                     },
+                },
+                'accountsByType': {
+                    'spot': 'exchange',
+                    'margin': 'margin',
+                    'future': 'futures',
+                    'lending': 'lending',
+                },
+                'accountsById': {
+                    'exchange': 'spot',
+                    'margin': 'margin',
+                    'futures': 'future',
+                    'lending': 'lending',
                 },
             },
             'exceptions': {
@@ -1281,6 +1296,71 @@ module.exports = class poloniex extends Exchange {
             'tag': tag,
             'network': undefined,
             'info': response,
+        };
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        amount = this.currencyToPrecision (code, amount);
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const fromId = this.safeString (accountsByType, fromAccount);
+        const toId = this.safeString (accountsByType, toAccount);
+        if (fromId === undefined) {
+            const keys = Object.keys (accountsByType);
+            throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', '));
+        }
+        if (toId === undefined) {
+            const keys = Object.keys (accountsByType);
+            throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', '));
+        }
+        const request = {
+            'amount': amount,
+            'currency': currency['id'],
+            'fromAccount': fromId,
+            'toAccount': toId,
+        };
+        const response = await this.privatePostTransferBalance (this.extend (request, params));
+        //
+        //    {
+        //        success: '1',
+        //        message: 'Transferred 1.00000000 USDT from exchange to lending account.'
+        //    }
+        //
+        return this.parseTransfer (response, currency);
+    }
+
+    parseTransferStatus (status) {
+        const statuses = {
+            '1': 'ok',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        //    {
+        //        success: '1',
+        //        message: 'Transferred 1.00000000 USDT from exchange to lending account.'
+        //    }
+        //
+        const message = this.safeString (transfer, 'message');
+        const words = message.split (' ');
+        const amount = this.safeNumber (words, 1);
+        const currencyId = this.safeString (words, 2);
+        const fromAccountId = this.safeString (words, 4);
+        const toAccountId = this.safeString (words, 6);
+        const accountsById = this.safeValue (this.options, 'accountsById', {});
+        return {
+            'info': transfer,
+            'id': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': amount,
+            'fromAccount': this.safeString (accountsById, fromAccountId),
+            'toAccount': this.safeString (accountsById, toAccountId),
+            'status': this.parseOrderStatus (this.safeString (transfer, 'success', 'failed')),
         };
     }
 
