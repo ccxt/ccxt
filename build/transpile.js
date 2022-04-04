@@ -193,12 +193,14 @@ class Transpiler {
             [ /\.handleMarketTypeAndParams\s/g, '.handle_market_type_and_params'],
             [ /\.checkOrderArguments\s/g, '.check_order_arguments'],
             [ /\.isPostOnly\s/g, '.is_post_only'],
+            [ /\.constructor/g, '\.__init__' ],
         ]
     }
 
     getPythonRegexes () {
 
         return [
+            [ /super \((.*)\);/g, 'super().__init__($1)' ],  // super constructor call
             [ /Array\.isArray\s*\(([^\)]+)\)/g, 'isinstance($1, list)' ],
             [ /([^\(\s]+)\s+instanceof\s+String/g, 'isinstance($1, str)' ],
             [ /([^\(\s]+)\s+instanceof\s+([^\)\s]+)/g, 'isinstance($1, $2)' ],
@@ -264,7 +266,6 @@ class Transpiler {
             [ /Precise\.stringGe\s/g, 'Precise.string_ge' ],
             [ /Precise\.stringLt\s/g, 'Precise.string_lt' ],
             [ /Precise\.stringLe\s/g, 'Precise.string_le' ],
-
         // insert common regexes in the middle (critical)
         ].concat (this.getCommonRegexes ()).concat ([
 
@@ -469,6 +470,8 @@ class Transpiler {
             [ /Precise\.stringGe\s/g, 'Precise::string_ge' ],
             [ /Precise\.stringLt\s/g, 'Precise::string_lt' ],
             [ /Precise\.stringLe\s/g, 'Precise::string_le' ],
+            [ /(\s+)constructor \((.*)\) \{/g, '$1public function __construct($2) {' ],
+            [ /super \((.*)\);/g, 'parent::_construct($1);' ],
 
         // insert common regexes in the middle (critical)
         ].concat (this.getCommonRegexes ()).concat ([
