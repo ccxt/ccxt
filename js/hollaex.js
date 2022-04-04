@@ -132,7 +132,7 @@ module.exports = class hollaex extends Exchange {
                         'order': 1,
                     },
                     'post': {
-                        'user/request-withdrawal': 1,
+                        'user/withdrawal': 1,
                         'order': 1,
                     },
                     'delete': {
@@ -1387,19 +1387,20 @@ module.exports = class hollaex extends Exchange {
             'currency': currency['id'],
             'amount': amount,
             'address': address,
+            'network': params.network
         };
-        // one time password
-        let otp = this.safeString (params, 'otp_code');
-        if ((otp !== undefined) || (this.twofa !== undefined)) {
-            if (otp === undefined) {
-                otp = this.oath ();
-            }
-            request['otp_code'] = otp;
-        }
-        const response = await this.privatePostUserRequestWithdrawal (this.extend (request, params));
+        const response = await this.privatePostUserWithdrawal (this.extend (request, params));
+        // {
+        //     message: 'Withdrawal request is in the queue and will be processed.',
+        //     transaction_id: '1d1683c3-576a-4d53-8ff5-27c93fd9758a',
+        //     amount: 1,
+        //     currency: 'xht',
+        //     fee: 0,
+        //     fee_coin: 'xht'
+        // }
         return {
             'info': response,
-            'id': undefined,
+            'id': id,
         };
     }
 
