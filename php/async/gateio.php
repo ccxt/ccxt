@@ -616,6 +616,7 @@ class gateio extends Exchange {
                     'INTERNAL' => '\\ccxt\\ExchangeNotAvailable',
                     'SERVER_ERROR' => '\\ccxt\\ExchangeNotAvailable',
                     'TOO_BUSY' => '\\ccxt\\ExchangeNotAvailable',
+                    'CROSS_ACCOUNT_NOT_FOUND' => '\\ccxt\\ExchangeError',
                 ),
             ),
             'broad' => array(),
@@ -1833,25 +1834,41 @@ class gateio extends Exchange {
 
     public function fetch_balance_helper($entry) {
         $account = $this->account();
-        $account['used'] = $this->safe_string_2($entry, 'locked', 'position_margin');
+        $used = $this->safe_string($entry, 'freeze');
+        if ($used === null) {
+            $used = $this->safe_string_2($entry, 'locked', 'position_margin');
+        }
+        $account['used'] = $used;
         $account['free'] = $this->safe_string($entry, 'available');
         return $account;
     }
 
     public function fetch_balance($params = array ()) {
-        // :param $params->type => spot, $margin, crossMargin, $swap or $future
+        // :param $params->type => spot, $margin, cross, $swap or $future
         // :param $params->settle => Settle currency (usdt or btc) for perpetual $swap and $future
         yield $this->load_markets();
         $type = null;
+        $method = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        if ($type === 'margin') {
+            $defaultMarginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', 'isolated');
+            $marginType = $this->safe_string($params, 'marginType', $defaultMarginType);
+            $params = $this->omit($params, 'marginType');
+            if ($marginType === 'cross') {
+                $method = 'privateMarginGetCrossAccounts';
+            } else {
+                $method = 'privateMarginGetAccounts';
+            }
+        } else {
+            $method = $this->get_supported_mapping($type, array(
+                'spot' => 'privateSpotGetAccounts',
+                'funding' => 'privateMarginGetFundingAccounts',
+                'swap' => 'privateFuturesGetSettleAccounts',
+                'future' => 'privateDeliveryGetSettleAccounts',
+            ));
+        }
         $swap = $type === 'swap';
         $future = $type === 'future';
-        $method = $this->get_supported_mapping($type, array(
-            'spot' => 'privateSpotGetAccounts',
-            'margin' => 'privateMarginGetAccounts',
-            'swap' => 'privateFuturesGetSettleAccounts',
-            'future' => 'privateDeliveryGetSettleAccounts',
-        ));
         $request = array();
         $response = array();
         if ($swap || $future) {
@@ -1862,13 +1879,15 @@ class gateio extends Exchange {
         } else {
             $response = yield $this->$method (array_merge($request, $params));
         }
-        // Spot
+        // Spot / $margin funding
         //
         //     array(
         //         array(
         //             "currency" => "DBC",
         //             "available" => "0",
         //             "locked" => "0"
+        //             "lent":"0", // $margin funding only
+        //             "total_lent":"0" // $margin funding only
         //         ),
         //         ...
         //     )
@@ -1897,6 +1916,24 @@ class gateio extends Exchange {
         //         ),
         //         ...
         //    )
+        //
+        // Cross $margin
+        //    {
+        //        "user_id":10406147,
+        //        "locked":false,
+        //        "balances":{
+        //           "USDT":array(
+        //              "available":"1",
+        //              "freeze":"0",
+        //              "borrowed":"0",
+        //              "interest":"0"
+        //           }
+        //        ),
+        //        "total":"1",
+        //        "borrowed":"0",
+        //        "interest":"0",
+        //        "risk":"9999.99"
+        //     }
         //
         //  Perpetual Swap
         //
@@ -1953,8 +1990,23 @@ class gateio extends Exchange {
         $result = array(
             'info' => $response,
         );
-        for ($i = 0; $i < count($response); $i++) {
-            $entry = $response[$i];
+        $data = $response;
+        if (is_array($data) && array_key_exists('balances', $data)) {
+            $flatBalances = array();
+            $balances = $this->safe_value($data, 'balances', array());
+            // inject currency and create an artificial balance object
+            // so it can follow the existent flow
+            $keys = is_array($balances) ? array_keys($balances) : array();
+            for ($i = 0; $i < count($keys); $i++) {
+                $currencyId = $keys[$i];
+                $content = $balances[$currencyId];
+                $content['currency'] = $currencyId;
+                $flatBalances[] = $content;
+            }
+            $data = $flatBalances;
+        }
+        for ($i = 0; $i < count($data); $i++) {
+            $entry = $data[$i];
             if ($margin) {
                 $marketId = $this->safe_string($entry, 'currency_pair');
                 $symbol = $this->safe_symbol($marketId, null, '_');
