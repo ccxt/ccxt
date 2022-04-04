@@ -1,27 +1,16 @@
 'use strict'
 
-// ----------------------------------------------------------------------------
-
 global.log = require ('ololog') // for easier debugging
 
-// ----------------------------------------------------------------------------
-
-const { Exchange, keys, values, unique, index, aggregate } = require ('../../../ccxt')
+const { Exchange, index, aggregate } = require ('../../../ccxt')
 const { strictEqual: equal, deepEqual } = require ('assert')
-
-// ----------------------------------------------------------------------------
-
 
 require ('./functions/test.generic')
 require ('./functions/test.time')
 require ('./functions/test.type')
-// Some test files are transpiled to other languages and must be kept very simple so we put `it` call externally to them
-// Some mocha reporters will swallow `assert` failures if they are outside of `it` clause so we must call `it`
 require ('./functions/test.number')
 require ('./functions/test.datetime')
 require ('./functions/test.crypto')
-
-// ------------------------------------------------------------------------
 
 function testCalculateFee() {
     const price  = 100.00
@@ -62,9 +51,7 @@ function testCalculateFee() {
     })
 }
 
-// ------------------------------------------------------------------------
-
-function testExchangeConfigExtension() {
+function testExchangeConfigExtension () {
 
 
     const cost = { 'min': 0.001, 'max': 1000 }
@@ -80,9 +67,7 @@ function testExchangeConfigExtension() {
     deepEqual (exchange.markets['ETH/BTC'].symbol, 'ETH/BTC')
 }
 
-// ------------------------------------------------------------------------
-
-function testAggregate() {
+function testAggregate () {
 
     const bids = [
         [ 789.1, 123.0 ],
@@ -113,9 +98,7 @@ function testAggregate() {
     deepEqual (aggregate ([]), [])
 }
 
-// ------------------------------------------------------------------------
-
-function testSafeBalance() {
+function testSafeBalance () {
 
     const exchange = new Exchange ({
         'markets': {
@@ -150,9 +133,7 @@ function testSafeBalance() {
     deepEqual (actual, expected)
 }
 
-// ------------------------------------------------------------------------
-
-function testCamelCasePropertyConversion() {
+function testCamelCasePropertyConversion () {
 
     const exchange = new Exchange ({ 'id': 'mock' })
 
@@ -176,18 +157,14 @@ function testCamelCasePropertyConversion() {
 
 }
 
-// ------------------------------------------------------------------------
-
-function testCamelCasePropertyConversion2() {
+function testCamelCasePropertyConversion2 () {
 
     class Derived extends Exchange {}
     const derived = new Derived ()
     equal (typeof derived.load_markets, 'function')
 }
 
-// ------------------------------------------------------------------------
-
-function testLegacyHasSomething() {
+function testLegacyHasSomething () {
 
     const exchange = new Exchange ({
         'id': 'mock',
@@ -205,12 +182,12 @@ function testLegacyHasSomething() {
 
 // ----------------------------------------------------------------------------
 
-function testBase() {
-	testCalculateFee()
-	// testExchangeConfigExtension() // skipped
-	testAggregate()
-	testSafeBalance()
-	testCamelCasePropertyConversion()
-	testCamelCasePropertyConversion2()
-	testLegacyHasSomething()
+function testBase () {
+	testCalculateFee ()
+	// testExchangeConfigExtension () // skipped
+	testAggregate ()
+	testSafeBalance ()
+	testCamelCasePropertyConversion ()
+	testCamelCasePropertyConversion2 ()
+	testLegacyHasSomething ()
 }
