@@ -1838,17 +1838,27 @@ module.exports = class gateio extends Exchange {
         // :param params.settle: Settle currency (usdt or btc) for perpetual swap and future
         await this.loadMarkets ();
         let type = undefined;
+        let method = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        if (type === 'margin') {
+            const defaultMarginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'default');
+            const marginType = this.safeString (params, 'marginType', defaultMarginType);
+            params = this.omit (params, 'marginType');
+            if (marginType === 'cross') {
+                method = 'privateMarginGetCrossAccounts';
+            } else {
+                method = 'privateMarginGetAccounts';
+            }
+        } else {
+            method = this.getSupportedMapping (type, {
+                'spot': 'privateSpotGetAccounts',
+                'funding': 'privateMarginGetFundingAccounts',
+                'swap': 'privateFuturesGetSettleAccounts',
+                'future': 'privateDeliveryGetSettleAccounts',
+            });
+        }
         const swap = type === 'swap';
         const future = type === 'future';
-        const method = this.getSupportedMapping (type, {
-            'spot': 'privateSpotGetAccounts',
-            'margin': 'privateMarginGetAccounts',
-            'cross': 'privateMarginGetCrossAccounts',
-            'funding': 'privateMarginGetFundingAccounts',
-            'swap': 'privateFuturesGetSettleAccounts',
-            'future': 'privateDeliveryGetSettleAccounts',
-        });
         const request = {};
         let response = [];
         if (swap || future) {
