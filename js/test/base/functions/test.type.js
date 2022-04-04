@@ -1,11 +1,7 @@
 'use strict'
 
-/*  ------------------------------------------------------------------------ */
-
 const { safeFloat, safeInteger, safeValue } = require ('../../../../ccxt')
-const { strictEqual: equal, deepEqual } = require ('assert')
-
-/*  ------------------------------------------------------------------------ */
+const { strictEqual: equal } = require ('assert')
 
 function testSafeFloatSafeInteger() {
 
@@ -40,8 +36,6 @@ function testSafeFloatSafeInteger() {
     equal (safeInteger ({ 'x': 1.59999999 }, 'x'), 1)
 }
 
-/*  ------------------------------------------------------------------------ */
-
 function testSafeValue() {
 
     equal (safeValue ({}, 'foo'), undefined)
@@ -51,11 +45,9 @@ function testSafeValue() {
     equal (safeValue ({ 'foo': 0 }, 'foo'), 0)
 }
 
-/*  ------------------------------------------------------------------------ */
+function testType () {
+    testSafeFloatSafeInteger ()
+    testSafeValue ()
+}
 
-function testType() {
-	testSafeFloatSafeInteger()
-	testSafeValue()
-} 
-
-testType()
+testType ()
