@@ -1746,72 +1746,79 @@ module.exports = class mexc3 extends Exchange {
             if (limit !== undefined) {
                 request['page_size'] = limit;
             }
-            const responseOfRegular = await this.contractPrivateGetOrderListHistoryOrders (this.extend (request, query));
-            //
-            //     {
-            //         "success": true,
-            //         "code": "0",
-            //         "data": [
-            //             {
-            //                 "orderId": "265230764677709315",
-            //                 "symbol": "STEPN_USDT",
-            //                 "positionId": "0",
-            //                 "price": "2.1",
-            //                 "vol": "102",
-            //                 "leverage": "20",
-            //                 "side": "1",
-            //                 "category": "1",
-            //                 "orderType": "1",
-            //                 "dealAvgPrice": "0",
-            //                 "dealVol": "0",
-            //                 "orderMargin": "10.96704",
-            //                 "takerFee": "0",
-            //                 "makerFee": "0",
-            //                 "profit": "0",
-            //                 "feeCurrency": "USDT",
-            //                 "openType": "1",
-            //                 "state": "2",
-            //                 "externalOid": "_m_7e42f8df6b324c869e4e200397e2b00f",
-            //                 "errorCode": "0",
-            //                 "usedMargin": "0",
-            //                 "createTime": "1648906342000",
-            //                 "updateTime": "1648906342000",
-            //                 "positionMode": "1"
-            //             },
-            //          ]
-            //     }
-            //
-            // (due to bug in their API, the Planorder endpoints works not only for stop-market orders, but also for STOP-LIMIT orders, which were supposed to have separate endpoint)
-            const responseOfStop = await this.contractPrivateGetPlanorderListOrders (this.extend (request, query));
-            //
-            //     {
-            //         "success": true,
-            //         "code": "0",
-            //         "data": [
-            //             {
-            //                 "symbol": "STEPN_USDT",
-            //                 "leverage": "20",
-            //                 "side": "1",
-            //                 "vol": "13",
-            //                 "openType": "1",
-            //                 "state": "1",
-            //                 "orderType": "1",
-            //                 "errorCode": "0",
-            //                 "createTime": "1648984276000",
-            //                 "updateTime": "1648984276000",
-            //                 "id": "265557643326564352",
-            //                 "triggerType": "1",
-            //                 "triggerPrice": "3",
-            //                 "price": "2.9", // not present in stop-market, but in stop-limit order
-            //                 "executeCycle": "87600",
-            //                 "trend": "1",
-            //             },
-            //         ]
-            //     }
-            //
-            const ordersOfRegular = this.safeValue (responseOfRegular, 'data');
-            const ordersOfStop = this.safeValue (responseOfStop, 'data');
-            const merged = this.arrayConcat (ordersOfStop, ordersOfRegular);
+            let method = this.safeString (this.options, 'cancelOrder', 'contractPrivateGetOrderListHistoryOrders'); // contractPrivatePostOrderCancel, contractPrivatePostPlanorderCancel
+            method = this.safeString (query, 'method', method);
+            let ordersOfRegular = [];
+            let ordersOfTrigger = [];
+            if (method === 'contractPrivateGetOrderListHistoryOrders') {
+                const response = await this.contractPrivateGetOrderListHistoryOrders (this.extend (request, query));
+                //
+                //     {
+                //         "success": true,
+                //         "code": "0",
+                //         "data": [
+                //             {
+                //                 "orderId": "265230764677709315",
+                //                 "symbol": "STEPN_USDT",
+                //                 "positionId": "0",
+                //                 "price": "2.1",
+                //                 "vol": "102",
+                //                 "leverage": "20",
+                //                 "side": "1",
+                //                 "category": "1",
+                //                 "orderType": "1",
+                //                 "dealAvgPrice": "0",
+                //                 "dealVol": "0",
+                //                 "orderMargin": "10.96704",
+                //                 "takerFee": "0",
+                //                 "makerFee": "0",
+                //                 "profit": "0",
+                //                 "feeCurrency": "USDT",
+                //                 "openType": "1",
+                //                 "state": "2",
+                //                 "externalOid": "_m_7e42f8df6b324c869e4e200397e2b00f",
+                //                 "errorCode": "0",
+                //                 "usedMargin": "0",
+                //                 "createTime": "1648906342000",
+                //                 "updateTime": "1648906342000",
+                //                 "positionMode": "1"
+                //             },
+                //          ]
+                //     }
+                //
+                ordersOfRegular = this.safeValue (response, 'data');
+            } else {
+                // (due to bug in their API, the Planorder endpoints works not only for stop-market orders, but also for STOP-LIMIT orders, which were supposed to have separate endpoint)
+                const response = await this.contractPrivateGetPlanorderListOrders (this.extend (request, query));
+                //
+                //     {
+                //         "success": true,
+                //         "code": "0",
+                //         "data": [
+                //             {
+                //                 "symbol": "STEPN_USDT",
+                //                 "leverage": "20",
+                //                 "side": "1",
+                //                 "vol": "13",
+                //                 "openType": "1",
+                //                 "state": "1",
+                //                 "orderType": "1",
+                //                 "errorCode": "0",
+                //                 "createTime": "1648984276000",
+                //                 "updateTime": "1648984276000",
+                //                 "id": "265557643326564352",
+                //                 "triggerType": "1",
+                //                 "triggerPrice": "3",
+                //                 "price": "2.9", // not present in stop-market, but in stop-limit order
+                //                 "executeCycle": "87600",
+                //                 "trend": "1",
+                //             },
+                //         ]
+                //     }
+                //
+                ordersOfTrigger = this.safeValue (response, 'data');
+            }
+            const merged = this.arrayConcat (ordersOfTrigger, ordersOfRegular);
             return this.parseOrders (merged, market, since, limit, params);
         }
     }
