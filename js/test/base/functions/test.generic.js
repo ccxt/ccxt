@@ -7,7 +7,7 @@ const { strictEqual: equal, deepEqual } = require ('assert')
 
 /*  ------------------------------------------------------------------------ */
 
-it ('deepExtend() works', () => {
+function testDeepExtend() {
 
     let count = 0
 
@@ -56,11 +56,11 @@ it ('deepExtend() works', () => {
     })
 
     deepEqual (deepExtend (undefined, undefined, {'foo': 'bar' }), { 'foo': 'bar' })
-})
+}
 
 /*  ------------------------------------------------------------------------ */
 
-it ('groupBy() works', () => {
+function testGroupBy() {
 
     const array = [
         { 'foo': 'a' },
@@ -76,11 +76,11 @@ it ('groupBy() works', () => {
         'b': [ { 'foo': 'b' }, { 'foo': 'b' } ],
         'c': [ { 'foo': 'c' }, { 'foo': 'c' }, { 'foo': 'c' } ],
     })
-})
+}
 
 /*  ------------------------------------------------------------------------ */
 
-it ('filterBy() works', () => {
+function testFilterBy() {
 
     const array = [
         { 'foo': 'a' },
@@ -99,11 +99,11 @@ it ('filterBy() works', () => {
         { 'foo': 'a' },
         { 'foo': 'a', 'bar': 'b' },
     ])
-})
+}
 
 /*  ------------------------------------------------------------------------ */
 
-it ('omit works', () => {
+function testOmit() {
 
     deepEqual (omit ({ }, 'foo'), {})
     deepEqual (omit ({ foo: 2 }, 'foo'), { })
@@ -114,21 +114,21 @@ it ('omit works', () => {
     deepEqual (omit ({ foo: 2, bar: 3 }, ['foo'], 'bar'), {})
     deepEqual (omit ({ 5: 2, bar: 3 }, [ 5 ]), { bar: 3 })
     deepEqual (omit ({ 5: 2, bar: 3 }, 5), { bar: 3 })
-})
+}
 
 /*  ------------------------------------------------------------------------ */
 
-it ('sum works', () => {
+function testSum() {
 
     equal (undefined, sum ())
     equal (2,   sum (2))
     equal (432, sum (2, 30, 400))
     equal (432, sum (2, undefined, [ 88 ], 30, '7', 400, null))
-})
+}
 
 /*  ------------------------------------------------------------------------ */
 
-it ('sortBy works', () => {
+function testSortBy() {
 
     const arr = [{ 'x': 5 }, { 'x': 2 }, { 'x': 4 }, { 'x': 0 }, { 'x': 1 }, { 'x': 3 }]
     sortBy (arr, 'x')
@@ -152,6 +152,19 @@ it ('sortBy works', () => {
     ])
 
     deepEqual (sortBy ([], 'x'), [])
-})
+}
 
 /*  ------------------------------------------------------------------------ */
+
+function testGeneric() {
+	testDeepExtend()
+	testGroupBy()
+	testFilterBy()
+	testOmit()
+	testSum()
+	testSortBy()
+}
+
+/*  ------------------------------------------------------------------------ */
+
+testGeneric()
