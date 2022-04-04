@@ -67,6 +67,7 @@ module.exports = class kraken extends Exchange {
                 'fetchWithdrawals': true,
                 'setLeverage': false,
                 'setMarginMode': false, // Kraken only supports cross margin
+                'transfer': undefined,
                 'withdraw': true,
             },
             'marketsByAltname': {},
@@ -87,17 +88,21 @@ module.exports = class kraken extends Exchange {
                     'public': 'https://api.kraken.com',
                     'private': 'https://api.kraken.com',
                     'zendesk': 'https://kraken.zendesk.com/api/v2/help_center/en-us/articles', // use the public zendesk api to receive article bodies and bypass new anti-spam protections
+                    'future': 'https://futures.kraken.com',
                 },
                 'www': 'https://www.kraken.com',
-                'doc': 'https://www.kraken.com/features/api',
+                'doc': [
+                    'https://www.kraken.com/features/api',
+                    'https://support.kraken.com/hc/en-us/sections/360012894412-Futures-API',
+                ],
                 'fees': 'https://www.kraken.com/en-us/features/fee-schedule',
             },
             'fees': {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    'taker': 0.26 / 100,
-                    'maker': 0.16 / 100,
+                    'taker': this.parseNumber ('0.0026'),
+                    'maker': this.parseNumber ('0.0016'),
                     'tiers': {
                         'taker': [
                             [ 0, 0.0026 ],
@@ -126,6 +131,73 @@ module.exports = class kraken extends Exchange {
             },
             'handleContentTypeApplicationZip': true,
             'api': {
+                'future': {
+                    'public': {
+                        'charts': {
+                            'v1': {
+                                'get': [
+                                    '{price_type}/{symbol}/{interval}',
+                                ],
+                            },
+                        },
+                        'history': {
+                            'v2': {
+                                'get': [
+                                    'market/{symbol}/executions',
+                                    'market/{symbol}/price',
+                                    'market/{symbol}/orders',
+                                ],
+                            },
+                        },
+                        'v3': {
+                            'get': [
+                                'feeschedules',
+                                'orderbook',
+                                'tickers',
+                                'instruments',
+                                'history',
+                            ],
+                        },
+                        'v4': {
+                            'get': [
+                                'historicalfundingrates',
+                            ],
+                        },
+                    },
+                    'private': {
+                        'history': {
+                            'v2': {
+                                'get': [
+                                    'accountLog',
+                                    'accountlogcsv',
+                                    'executions',
+                                    'orders',
+                                    'triggers',
+                                ],
+                            },
+                        },
+                        'v3': {
+                            'get': [
+                                'accounts',
+                                'feeschedules/volumes',
+                                'fills',
+                                'notifications',
+                                'openorders',
+                                'openpositions',
+                            ],
+                            'post': [
+                                'editorder',
+                                'sendorder',
+                                'cancelorder',
+                                'cancelallorders',
+                                'cancelallordersafter',
+                                'transfer',
+                                'batchorder',
+                                'withdrawal',
+                            ],
+                        },
+                    },
+                },
                 'zendesk': {
                     'get': [
                         // we should really refrain from putting fixed fee numbers and stop hardcoding
@@ -170,6 +242,7 @@ module.exports = class kraken extends Exchange {
                         'TradeBalance': 1,
                         'TradesHistory': 2,
                         'TradeVolume': 1,
+                        'WalletTransfer': 1,
                         'Withdraw': 1,
                         'WithdrawCancel': 1,
                         'WithdrawInfo': 1,
@@ -2096,8 +2169,47 @@ module.exports = class kraken extends Exchange {
             };
         } else {
             url = '/' + path;
+            if (Object.keys (params).length) {
+                url += '?' + this.urlencode (params);
+            }
         }
-        url = this.urls['api'][api] + url;
+        if (this.safeString (api, 0) === 'future') {
+            const isPrivate = this.safeValue (api, 1) === 'private';
+            url = '/api';
+            for (let i = 2; i < api.length; i++) {
+                url += '/' + api[i];
+            }
+            url += '/' + this.implodeParams (path, params);
+            const query = this.omit (params, this.extractParams (path));
+            if (!isPrivate) {
+                if (Object.keys (query).length) {
+                    url += '?' + this.urlencode (query);
+                }
+            }
+            if (isPrivate) {
+                this.checkRequiredCredentials ();
+                const nonce = this.nonce ().toString ();
+                const postData = this.urlencode (query);
+                const auth = postData + nonce + url;
+                const hash = this.hash (auth, 'sha256', 'binary');
+                const secret = this.base64ToBinary (this.secret);
+                const signature = this.hmac (hash, secret, 'sha512', 'base64');
+                headers = {
+                    'APIKey': this.apiKey,
+                    'Authent': signature,
+                    'Nonce': nonce,
+                    'Accept': 'application/json',
+                };
+            }
+            const subApi = this.safeString (api, 2);
+            if (subApi === 'v3' || subApi === 'v4') {
+                url = this.urls['api']['future'] + '/derivatives' + url;
+            } else {
+                url = this.urls['api']['future'] + url;
+            }
+        } else {
+            url = this.urls['api'][api] + url;
+        }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
