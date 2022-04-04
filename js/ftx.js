@@ -2485,12 +2485,23 @@ module.exports = class ftx extends Exchange {
     async fetchBorrowRateHistories (since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
-        const endTime = this.safeNumber2 (params, 'till', 'end_time');
+        let endTime = this.safeNumber2 (params, 'till', 'end_time');
+        if (limit > 48) {
+            throw new BadRequest (this.id + ' fetchBorrowRateHistories cannot exceed 48');
+        }
         if (since !== undefined) {
             request['start_time'] = since / 1000;
+            const since_limit = (limit === undefined) ? 2 : limit;
             if (endTime === undefined) {
-                request['end_time'] = this.milliseconds () / 1000;
+                endTime = since;
+                const now = this.milliseconds ();
+                for (let i = 0; (i < since_limit && endTime < now); i++) {
+                    endTime = Math.min (endTime + 3600000, now);
+                }
             }
+        }
+        if ((endTime - since) > 172800000) {
+            throw new BadRequest ('The time between since and the end time cannot exceed 48 hours using ' + this.id + ' fetchBorrowRateHistories');
         }
         if (endTime !== undefined) {
             request['end_time'] = endTime / 1000;
