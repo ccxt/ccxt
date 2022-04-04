@@ -1,11 +1,7 @@
 'use strict'
 
-/*  ------------------------------------------------------------------------ */
-
-const { deepExtend, groupBy, filterBy, omit, sum, sortBy } = require ('../../../../ccxt')
+const { deepExtend, groupBy, filterBy, omit, sum, sortBy } = require ('../../../base/functions/generic')
 const { strictEqual: equal, deepEqual } = require ('assert')
-
-/*  ------------------------------------------------------------------------ */
 
 function testDeepExtend() {
 
@@ -58,8 +54,6 @@ function testDeepExtend() {
     deepEqual (deepExtend (undefined, undefined, {'foo': 'bar' }), { 'foo': 'bar' })
 }
 
-/*  ------------------------------------------------------------------------ */
-
 function testGroupBy() {
 
     const array = [
@@ -77,8 +71,6 @@ function testGroupBy() {
         'c': [ { 'foo': 'c' }, { 'foo': 'c' }, { 'foo': 'c' } ],
     })
 }
-
-/*  ------------------------------------------------------------------------ */
 
 function testFilterBy() {
 
@@ -101,8 +93,6 @@ function testFilterBy() {
     ])
 }
 
-/*  ------------------------------------------------------------------------ */
-
 function testOmit() {
 
     deepEqual (omit ({ }, 'foo'), {})
@@ -116,8 +106,6 @@ function testOmit() {
     deepEqual (omit ({ 5: 2, bar: 3 }, 5), { bar: 3 })
 }
 
-/*  ------------------------------------------------------------------------ */
-
 function testSum() {
 
     equal (undefined, sum ())
@@ -125,8 +113,6 @@ function testSum() {
     equal (432, sum (2, 30, 400))
     equal (432, sum (2, undefined, [ 88 ], 30, '7', 400, null))
 }
-
-/*  ------------------------------------------------------------------------ */
 
 function testSortBy() {
 
@@ -154,8 +140,6 @@ function testSortBy() {
     deepEqual (sortBy ([], 'x'), [])
 }
 
-/*  ------------------------------------------------------------------------ */
-
 function testGeneric() {
 	testDeepExtend()
 	testGroupBy()
@@ -164,7 +148,5 @@ function testGeneric() {
 	testSum()
 	testSortBy()
 }
-
-/*  ------------------------------------------------------------------------ */
 
 testGeneric()
