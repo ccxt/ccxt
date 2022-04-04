@@ -348,6 +348,11 @@ class Transpiler {
     getPHPRegexes () {
         return [
             [ /\{([a-zA-Z0-9_-]+?)\}/g, '~$1~' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
+            [ /\[(.*)\]\{(@link .*)\}/g, '~$2 $1~' ], // docstring item with link
+            [ /\s+\* @method/g, '' ], // docstring @method
+            [ /(\s+)\* @description (.*)/g, '$1\* $2' ], // docstring description
+            [ /\s+\* @name .*/g, '' ], // docstring @name
+            [ /(\s+)\* @returns/g, '$1\* @return' ], // docstring return
             [ /\!Array\.isArray\s*\(([^\)]+)\)/g, "gettype($1) === 'array' && count(array_filter(array_keys($1), 'is_string')) != 0" ],
             [ /Array\.isArray\s*\(([^\)]+)\)/g, "gettype($1) === 'array' && count(array_filter(array_keys($1), 'is_string')) == 0" ],
             [ /([^\(\s]+)\s+instanceof\s+String/g, 'is_string($1)' ],
@@ -488,7 +493,7 @@ class Transpiler {
             [ /process\.exit/g, 'exit'],
             [ /super\./g, 'parent::'],
             [ /\sdelete\s([^\n]+)\;/g, ' unset($1);' ],
-            [ /\~([a-zA-Z0-9_-]+?)\~/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
+            [ /\~([@\.\s+\:\/#\-a-zA-Z0-9_-]+?)\~/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
         ])
     }
 
