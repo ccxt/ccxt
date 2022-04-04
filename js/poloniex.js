@@ -1330,6 +1330,13 @@ module.exports = class poloniex extends Exchange {
         return this.parseTransfer (response, currency);
     }
 
+    parseTransferStatus (status) {
+        const statuses = {
+            '1': 'ok',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseTransfer (transfer, currency = undefined) {
         //
         //    {
@@ -1337,10 +1344,6 @@ module.exports = class poloniex extends Exchange {
         //        message: 'Transferred 1.00000000 USDT from exchange to lending account.'
         //    }
         //
-        const success = this.safeString (transfer, 'success');
-        const statuses = {
-            '1': 'ok',
-        };
         const message = this.safeString (transfer, 'message');
         const words = message.split (' ');
         const amount = this.safeNumber (words, 1);
@@ -1357,7 +1360,7 @@ module.exports = class poloniex extends Exchange {
             'amount': amount,
             'fromAccount': this.safeString (accountsById, fromAccountId),
             'toAccount': this.safeString (accountsById, toAccountId),
-            'status': this.safeValue (statuses, success, 'failed'),
+            'status': this.parseOrderStatus (this.safeString (transfer, 'success', 'failed')),
         };
     }
 
