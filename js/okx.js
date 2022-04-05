@@ -616,6 +616,9 @@ module.exports = class okx extends Exchange {
                     'method': 'privateGetAccountBills', // privateGetAccountBillsArchive, privateGetAssetBills
                 },
                 // 1 = SPOT, 3 = FUTURES, 5 = MARGIN, 6 = FUNDING, 9 = SWAP, 12 = OPTION, 18 = Unified account
+                'cancelOrders': {
+                    'method': 'privatePostTradeCancelBatchOrders', // privatePostTradeCancelAlgos
+                },
                 'accountsByType': {
                     'spot': '1',
                     'future': '3',
@@ -1978,11 +1981,14 @@ module.exports = class okx extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = [];
+        const options = this.safeValue (this.options, 'cancelOrders', {});
+        const defaultMethod = this.safeString (options, 'method', 'privatePostTradeCancelBatchOrders');
+        let method = this.safeString (params, 'method', defaultMethod);
         const clientOrderId = this.safeValue2 (params, 'clOrdId', 'clientOrderId');
         const algoId = this.safeValue (params, 'algoId');
-        let method = 'privatePostTradeCancelBatchOrders';
+        const stop = this.safeValue (params, 'stop');
         if (clientOrderId === undefined) {
-            if (algoId !== undefined) {
+            if (stop || algoId !== undefined) {
                 method = 'privatePostTradeCancelAlgos';
                 if (Array.isArray (algoId)) {
                     for (let i = 0; i < algoId.length; i++) {
