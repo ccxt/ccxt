@@ -702,6 +702,21 @@ There is no strict guarantee on how much time it will take from the exchange to 
 
 Most people use WS to avoid any sorts of delays and have real-time data. So, in most cases it is much better to not wait for the exchange. Recalculating the 2nd order data from 1st order data on your own may be much faster and that can lower the unnecessary delays. Therefore it does not make much sense to use WS for watching just the OHLCV candles from the exchange. Developers would rather `watch_trades()` instead and recalculate the OHLCV candles using CCXT's built-in methods like `build_ohlcvc()`.
 
+```Python
+# Python
+if !exchange.has['watchOHLCV']:
+    while True:
+        try:
+            trades = await exchange.watch_trades(symbol, since = exchange.milliseconds() - 60 * 60 * 1000)
+            ohlcv = exchange.build_ohlcvc(trades)
+            print(ohlcv)
+
+        except Exception as e:
+            print(e)
+            # stop the loop on exception or leave it commented to retry
+            # raise e
+```
+
 That explains why some exchanges reasonably think that OHLCVs are not necessary in the WS context, cause users can calculate that information in the userland much faster having just a WS stream of realtime 1st-order trades.
 
 If your application is not very time-critical, you can still subscribe to OHLCV streams, for charting purposes. If the underlying `exchange.has['watchOHLCV']`, you can `watchOHLCV()/watch_ohlcv()` as shown below:
