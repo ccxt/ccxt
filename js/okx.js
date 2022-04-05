@@ -4250,6 +4250,16 @@ module.exports = class okx extends Exchange {
     }
 
     async fetchBorrowInterest (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * Obtain the amount of interest that has accrued for margin trading
+         * @param {string} code The unified currency code for the currency of the interest
+         * @param {string} symbol The market symbol of an isolated margin market, if undefined, the interest for cross margin markets is returned
+         * @param {integer} since Timestamp in ms of the earliest time to receive interest records for
+         * @param {integer} limit The number of [borrow interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure} to retrieve
+         * @param {dict} params Exchange specific parameters
+         * @param {integer} params.type Loan type 1 - VIP loans 2 - Market loans *Default is Market loans*
+         * @returns An array of [borrow interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'mgnMode': (symbol !== undefined) ? 'isolated' : 'cross',
@@ -4260,7 +4270,7 @@ module.exports = class okx extends Exchange {
             request['ccy'] = currency['id'];
         }
         if (since !== undefined) {
-            request['after'] = since;
+            request['before'] = since - 1;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
