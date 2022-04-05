@@ -1219,7 +1219,7 @@ module.exports = class huobi extends Exchange {
                     baseId = this.safeString (market, 'symbol');
                     lowercaseBaseId = baseId.toLowerCase ();
                     if (inverse) {
-                        quoteId = 'usd';
+                        quoteId = 'USD';
                         settleId = baseId;
                     } else {
                         const pair = this.safeString (market, 'pair');
