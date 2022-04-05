@@ -1204,15 +1204,20 @@ module.exports = class huobi extends Exchange {
             let quoteId = undefined;
             let settleId = undefined;
             let id = undefined;
+            let lowercaseId = undefined;
+            let lowercaseBaseId = undefined;
             if (contract) {
                 id = this.safeString (market, 'contract_code');
+                lowercaseId = id.toLowerCase ();
                 if (swap) {
                     const parts = id.split ('-');
                     baseId = this.safeString (market, 'symbol');
-                    quoteId = this.safeString (parts, 1);
+                    lowercaseBaseId = baseId.toLowerCase ();
+                    quoteId = this.safeStringLower (parts, 1);
                     settleId = inverse ? baseId : quoteId;
                 } else if (future) {
                     baseId = this.safeString (market, 'symbol');
+                    lowercaseBaseId = baseId.toLowerCase ();
                     if (inverse) {
                         quoteId = 'USD';
                         settleId = baseId;
@@ -1225,8 +1230,10 @@ module.exports = class huobi extends Exchange {
                 }
             } else {
                 baseId = this.safeString (market, 'base-currency');
+                lowercaseBaseId = baseId.toLowerCase ();
                 quoteId = this.safeString (market, 'quote-currency');
                 id = baseId + quoteId;
+                lowercaseId = id.toLowerCase ();
             }
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
@@ -1291,11 +1298,13 @@ module.exports = class huobi extends Exchange {
             // 9 Suspending of Trade
             result.push ({
                 'id': id,
+                'lowercaseId': lowercaseId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'settle': settle,
                 'baseId': baseId,
+                'lowercaseBaseId': lowercaseBaseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
                 'type': type,
