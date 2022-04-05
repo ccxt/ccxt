@@ -575,7 +575,7 @@ module.exports = class huobi extends ccxt.huobi {
             await this.loadMarkets ();
             const market = this.market (symbol);
             type = market['type'];
-            marketId = market['id'].toLowerCase ();
+            marketId = market['lowercaseId'];
         } else {
             [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', undefined, params);
         }
@@ -605,7 +605,7 @@ module.exports = class huobi extends ccxt.huobi {
         if (symbol !== undefined) {
             market = this.market (symbol);
             type = market['type'];
-            suffix = market['id'].toLowerCase ();
+            suffix = market['lowercaseId'];
             subType = market['linear'] ? 'linear' : 'inverse';
         }
         if (type === undefined) {
@@ -627,7 +627,7 @@ module.exports = class huobi extends ccxt.huobi {
             let orderType = this.safeString2 (this.options, 'watchOrders', 'orderType', 'orders'); // orders or matchOrders
             orderType = this.safeString (params, 'orderType', orderType);
             query = this.omit (params, 'orderType');
-            const marketCode = market['id'].toLowerCase ();
+            const marketCode = market['lowercaseId'];
             let prefix = orderType;
             if (subType === 'linear') {
                 // USDT Margined Contracts Example: LTC/USDT:USDT
@@ -637,7 +637,7 @@ module.exports = class huobi extends ccxt.huobi {
                 channel = messageHash;
             } else if (type === 'future') {
                 // inverse futures Example: BCH/USD:BCH-220408
-                channel = prefix + '.' + market['baseId'].toLowerCase ();
+                channel = prefix + '.' + market['lowercaseBaseId'];
                 messageHash = channel + ':' + marketCode;
             } else {
                 // inverse swaps: Example: BTC/USD:BTC
@@ -751,7 +751,7 @@ module.exports = class huobi extends ccxt.huobi {
             }
             cachedOrders.append (parsed);
             client.resolve (this.orders, messageHash);
-            messageHash += ':' + market['id'].toLowerCase ();
+            messageHash += ':' + market['lowercaseId'];
             client.resolve (this.orders, messageHash);
         }
     }
@@ -988,12 +988,11 @@ module.exports = class huobi extends ccxt.huobi {
     }
 
     async watchBalance (params = {}) {
-        let type = this.safeString2 (this.options, 'watchOrders', 'defaultType', 'spot');
+        let type = this.safeString2 (this.options, 'watchBalance', 'defaultType', 'spot');
         type = this.safeString (params, 'type', type);
-        let subType = this.safeString2 (this.options, 'watchOrders', 'subType', 'linear');
+        let subType = this.safeString2 (this.options, 'watchBalance', 'subType', 'linear');
         subType = this.safeString (params, 'subType', subType);
         params = this.omit (params, ['type', 'subType']);
-        let currencyCode = '*';
         params = this.omit (params, 'type');
         await this.loadMarkets ();
         let messageHash = undefined;
@@ -1005,33 +1004,55 @@ module.exports = class huobi extends ccxt.huobi {
             messageHash = 'accounts.update' + '#' + mode;
             channel = messageHash;
         } else {
+            const symbol = this.safeString (params, 'symbol');
+            const currency = this.safeString (params, 'currency');
+            const market = (symbol !== undefined) ? this.market (symbol) : undefined;
+            const currencyCode = (currency !== undefined) ? this.currency (currency) : undefined;
+            marginMode = this.safeString (params, 'margin', 'cross');
+            params = this.omit (params, ['currency', 'symbol', 'margin']);
             let prefix = 'accounts';
             messageHash = prefix;
-            marginMode = this.safeString (params, 'margin', 'cross');
-            params = this.omit (params, 'margin');
             if (subType === 'linear') {
+                // usdt contracts account
                 prefix = (marginMode === 'cross') ? prefix + '_cross' : prefix;
                 messageHash = prefix;
                 if (marginMode === 'isolated') {
-                    const symbol = this.safeString (params, 'symbol');
+                    // isolated margin only allows filtering by symbol3
                     if (symbol !== undefined) {
-                        params = this.omit (params, 'symbol');
-                        const market = this.market (symbol);
-                        currencyCode = market['id'].toLowerCase ();
-                        messageHash += '.' + currencyCode;
+                        messageHash += '.' + market['id'];
+                        channel = messageHash;
+                    } else {
+                        // subscribe to all
+                        channel = prefix + '.' + '*';
                     }
-                    channel = prefix + '.' + currencyCode;
+                } else {
+                    // cross margin
+                    if (currencyCode !== undefined) {
+                        channel = prefix + '.' + currencyCode['id'];
+                        messageHash = channel;
+                    } else {
+                        // subscribe to all
+                        channel = prefix + '.' + '*';
+                    }
                 }
-            }
-            if (type === 'future' || marginMode === 'cross') {
-                const currency = this.safeString (params, 'currency');
-                if (currency !== undefined) {
-                    params = this.omit (params, 'currency');
-                    currencyCode = this.currency (currency);
-                    currencyCode = currencyCode['id'];
-                    messageHash += '.' + currencyCode;
+            } else if (type === 'future') {
+                // inverse futures account
+                if (currencyCode !== undefined) {
+                    messageHash += '.' + currencyCode['id'];
+                    channel = messageHash;
+                } else {
+                    // subscribe to all
+                    channel = prefix + '.' + '*';
                 }
-                channel = prefix + '.' + currencyCode;
+            } else {
+                // inverse swaps account
+                if (market !== undefined) {
+                    messageHash += '.' + market['id'];
+                    channel = messageHash;
+                } else {
+                    // subscribe to all
+                    channel = prefix + '.' + '*';
+                }
             }
         }
         const subParams = {
