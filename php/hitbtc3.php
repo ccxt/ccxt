@@ -317,6 +317,29 @@ class hitbtc3 extends Exchange {
                     'derivatives' => 'derivatives',
                 ),
             ),
+            'commonCurrencies' => array(
+                'AUTO' => 'Cube',
+                'BCC' => 'BCC', // initial symbol for Bitcoin Cash, now inactive
+                'BDP' => 'BidiPass',
+                'BET' => 'DAO.Casino',
+                'BIT' => 'BitRewards',
+                'BOX' => 'BOX Token',
+                'CPT' => 'Cryptaur', // conflict with CPT = Contents Protocol https://github.com/ccxt/ccxt/issues/4920 and https://github.com/ccxt/ccxt/issues/6081
+                'GET' => 'Themis',
+                'GMT' => 'GMT Token',
+                'HSR' => 'HC',
+                'IQ' => 'IQ.Cash',
+                'LNC' => 'LinkerCoin',
+                'PLA' => 'PlayChip',
+                'PNT' => 'Penta',
+                'SBTC' => 'Super Bitcoin',
+                'STEPN' => 'GMT',
+                'STX' => 'STOX',
+                'TV' => 'Tokenville',
+                'USD' => 'USDT',
+                'XMT' => 'MTL',
+                'XPNT' => 'PNT',
+            ),
         ));
     }
 
