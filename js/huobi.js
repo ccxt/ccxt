@@ -1204,29 +1204,36 @@ module.exports = class huobi extends Exchange {
             let quoteId = undefined;
             let settleId = undefined;
             let id = undefined;
+            let lowercaseId = undefined;
+            let lowercaseBaseId = undefined;
             if (contract) {
-                id = this.safeStringLower (market, 'contract_code');
+                id = this.safeString (market, 'contract_code');
+                lowercaseId = id.toLowerCase ();
                 if (swap) {
                     const parts = id.split ('-');
-                    baseId = this.safeStringLower (market, 'symbol');
+                    baseId = this.safeString (market, 'symbol');
+                    lowercaseBaseId = baseId.toLowerCase ();
                     quoteId = this.safeStringLower (parts, 1);
                     settleId = inverse ? baseId : quoteId;
                 } else if (future) {
-                    baseId = this.safeStringLower (market, 'symbol');
+                    baseId = this.safeString (market, 'symbol');
+                    lowercaseBaseId = baseId.toLowerCase ();
                     if (inverse) {
                         quoteId = 'usd';
                         settleId = baseId;
                     } else {
-                        const pair = this.safeStringLower (market, 'pair');
+                        const pair = this.safeString (market, 'pair');
                         const parts = pair.split ('-');
                         quoteId = this.safeString (parts, 1);
                         settleId = quoteId;
                     }
                 }
             } else {
-                baseId = this.safeStringLower (market, 'base-currency');
-                quoteId = this.safeStringLower (market, 'quote-currency');
+                baseId = this.safeString (market, 'base-currency');
+                lowercaseBaseId = baseId.toLowerCase ();
+                quoteId = this.safeString (market, 'quote-currency');
                 id = baseId + quoteId;
+                lowercaseId = id.toLowerCase ();
             }
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
@@ -1291,11 +1298,13 @@ module.exports = class huobi extends Exchange {
             // 9 Suspending of Trade
             result.push ({
                 'id': id,
+                'lowercaseId': lowercaseId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'settle': settle,
                 'baseId': baseId,
+                'lowercaseBaseId': lowercaseBaseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
                 'type': type,
