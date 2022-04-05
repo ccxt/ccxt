@@ -95,7 +95,7 @@ module.exports = class zaif extends Exchange {
                 },
                 'ecapi': {
                     'post': {
-                        'createInvoice': 1, // testing
+                        'createInvoice': 1, // unverified
                         'getInvoice': 1,
                         'getInvoiceIdsByOrderNumber': 1,
                         'cancelInvoice': 1,
