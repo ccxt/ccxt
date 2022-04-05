@@ -5,6 +5,8 @@
 var BigInteger = require('../libs/jsbn.cjs');
 var CryptoJS = require('../../crypto-js/crypto-js.cjs');
 var constants = { RSA_NO_PADDING: 3 }
+var Buffer = require('buffer').Buffer;
+
 require('constants');
 var SIGN_INFO_HEAD = {
     md2: Buffer.from('3020300c06082a864886f70d020205000410', 'hex'),

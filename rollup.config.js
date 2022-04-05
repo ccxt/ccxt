@@ -1,24 +1,30 @@
 import commonjs from "@rollup/plugin-commonjs";
 import json from "@rollup/plugin-json";
 import resolve from "@rollup/plugin-node-resolve";
-
-const extensions = [".js", ".ts", ".cjs", ".mjs"];
+import nodePolyfills from 'rollup-plugin-polyfill-node';
 
 export default {
   inlineDynamicImports: true,
   input: "ccxt.js",
   output: [
     {
-      file: "./dist/ccxt.browser.js",
+      file: "./dist/ccxt.cjs",
+      format: "cjs",
+    },
+    {
+      file: "./dist/ccxt.browser.mjs",
       format: "es",
+      footer: "window.ccxt = ccxt;"
     }
   ],
   plugins: [
     json(),
-    resolve({ browser: true, extensions: extensions, preferBuiltins:false }),
     commonjs({
       transformMixedEsModules: true,
-      dynamicRequireTargets: ["**/js/static_dependencies/**/*.cjs"]
+      dynamicRequireTargets: ["**/js/static_dependencies/**/*.cjs"],
+      
     }),
+    nodePolyfills({ buffer:false }),
+    resolve({ preferBuiltins:false }),
   ]
 };
