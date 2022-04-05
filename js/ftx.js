@@ -1378,11 +1378,11 @@ module.exports = class ftx extends Exchange {
         //         "type":"limit"
         //     }
         //
-        // fetchOrder (condition-order)
+        // fetchOrder (with condition-order's id)
         //
         //     {
         //         "time": "2022-03-29T04:54:04.390665+00:00",
-        //         "orderId": 132144259673,  //this is not the same id used in fetchOrder, instead reference id
+        //         "orderId": 132144259673, // this is not the same conditional-order's id, instead reference id (which can be used to fetch the complete order object)
         //         "error": null,
         //         "orderSize": 0.1234,
         //         "filledSize": 0.1234
