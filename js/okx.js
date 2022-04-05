@@ -616,6 +616,17 @@ module.exports = class okx extends Exchange {
                     'method': 'privateGetAccountBills', // privateGetAccountBillsArchive, privateGetAssetBills
                 },
                 // 1 = SPOT, 3 = FUTURES, 5 = MARGIN, 6 = FUNDING, 9 = SWAP, 12 = OPTION, 18 = Unified account
+                'fetchOpenOrders': {
+                    'method': 'privateGetTradeOrdersPending', // privateGetTradeOrdersAlgoPending
+                    'algoOrderTypes': {
+                        'conditional': true,
+                        'trigger': true,
+                        'oco': true,
+                        'move_order_stop': true,
+                        'iceberg': true,
+                        'twap': true,
+                    },
+                },
                 'accountsByType': {
                     'spot': '1',
                     'future': '3',
@@ -2280,12 +2291,24 @@ module.exports = class okx extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+            * Returns orders that are still open
+            * @param {string} symbol Unified market symbol
+            * @param {integer} since Timestamp in ms of the earliest time to retrieve orders for
+            * @param {integer} limit Number of results per request. The maximum is 100; The default is 100
+            * @param {dict} params Extra and exchange specific parameters
+            * @param {integer} params.till Timestamp in ms of the latest time to retrieve orders for
+            * @param {boolean} params.stop True if fetching trigger orders
+            * @param {string} params.ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+            * @param {string} params.algoId Algo ID
+            * @returns [An order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+        */
         await this.loadMarkets ();
         const request = {
             // 'instType': 'SPOT', // SPOT, MARGIN, SWAP, FUTURES, OPTION
             // 'uly': currency['id'],
             // 'instId': market['id'],
-            // 'ordType': 'limit', // market, limit, post_only, fok, ioc, comma-separated
+            // 'ordType': 'limit', // market, limit, post_only, fok, ioc, comma-separated, stop orders: conditional, oco, trigger, move_order_stop, iceberg, or twap
             // 'state': 'live', // live, partially_filled
             // 'after': orderId,
             // 'before': orderId,
@@ -2299,12 +2322,17 @@ module.exports = class okx extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
         }
-        let method = 'privateGetTradeOrdersPending';
+        const options = this.safeValue (this.options, 'fetchOpenOrders', {});
+        const algoOrderTypes = this.safeValue (options, 'algoOrderTypes', {});
+        const defaultMethod = this.safeString (options, 'method', 'privateGetTradeOrdersPending');
+        let method = this.safeString (params, 'method', defaultMethod);
         const ordType = this.safeString (params, 'ordType');
-        if (ordType === 'trigger') {
+        const stop = this.safeValue (params, 'stop');
+        if (stop || ordType in algoOrderTypes) {
             method = 'privateGetTradeOrdersAlgoPending';
         }
-        const response = await this[method] (this.extend (request, params));
+        const query = this.omit (params, [ 'method', 'stop' ]);
+        const response = await this[method] (this.extend (request, query));
         //
         //     {
         //         "code":"0",
