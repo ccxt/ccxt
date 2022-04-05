@@ -723,7 +723,7 @@ module.exports = class huobi extends ccxt.huobi {
         //         "contract_code":"BTC-USDT",
         //     }
         //
-        let messageHash = this.safeString2 (message, 'ch', 'topic', '');
+        const messageHash = this.safeString2 (message, 'ch', 'topic', '');
         let marketId = this.safeString (message, 'contract_code');
         let market = undefined;
         if (marketId === undefined) {
@@ -768,8 +768,11 @@ module.exports = class huobi extends ccxt.huobi {
             }
             cachedOrders.append (parsed);
             client.resolve (this.orders, messageHash);
-            messageHash += ':' + market['lowercaseId'];
-            client.resolve (this.orders, messageHash);
+            // when we make a global subscription our message hash can't have a symbol/currency attached
+            // so we're removing it here
+            let genericMessageHash = messageHash.replace ('.' + market['lowercaseId'], '');
+            genericMessageHash = genericMessageHash.replace ('.' + market['lowercaseBaseId'], '');
+            client.resolve (this.orders, genericMessageHash);
         }
     }
 
