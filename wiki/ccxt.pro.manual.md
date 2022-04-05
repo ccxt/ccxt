@@ -704,13 +704,13 @@ Most people use WS to avoid any sorts of delays and have real-time data. So, in 
 
 ```Python
 # Python
+exchange = ccxtpro.binance()
 if not exchange.has['watchOHLCV']:
     while True:
         try:
-            trades = await exchange.watch_trades(symbol, since = exchange.milliseconds() - 60 * 60 * 1000)
-            ohlcv = exchange.build_ohlcvc(trades)
-            print(ohlcv)
-
+            trades = await exchange.watch_trades(symbol)
+            ohlcvc = exchange.build_ohlcvc(trades, '1m')
+            print(ohlcvc)
         except Exception as e:
             print(e)
             # stop the loop on exception or leave it commented to retry
