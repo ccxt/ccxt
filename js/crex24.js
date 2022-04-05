@@ -171,6 +171,7 @@ module.exports = class crex24 extends Exchange {
                 'FUND': 'FUNDChains',
                 'GHOST': 'GHOSTPRISM',
                 'GM': 'GM Holding',
+                'GMT': 'GMT Token',
                 'GTC': 'GastroCoin', // conflict with Gitcoin and Game.com
                 'IQ': 'IQ.Cash',
                 'ONE': 'One Hundred Coin',
