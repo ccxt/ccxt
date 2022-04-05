@@ -2489,7 +2489,9 @@ module.exports = class ftx extends Exchange {
         if (limit > 48) {
             throw new BadRequest (this.id + ' fetchBorrowRateHistories limit cannot exceed 48');
         }
-        if ((endTime - since) > 172800000) {
+        const millisecondsPerHour = 3600000;
+        const millisecondsPer2Days = 172800000;
+        if ((endTime - since) > millisecondsPer2Days) {
             throw new BadRequest ('The time between since and the end time be >= 48 hours using ' + this.id + ' fetchBorrowRateHistories');
         }
         if (since !== undefined) {
@@ -2497,14 +2499,17 @@ module.exports = class ftx extends Exchange {
             if (endTime === undefined) {
                 const now = this.milliseconds ();
                 const sinceLimit = (limit === undefined) ? 2 : limit;
-                endTime = Math.min ((since + (3600000 * (sinceLimit - 1))), now);
+                const timeBetween = millisecondsPerHour * (sinceLimit - 1);
+                endTime = since + timeBetween;
+                endTime = Math.min (endTime, now);
             }
         } else {
             if (limit !== undefined) {
                 if (endTime === undefined) {
                     endTime = this.milliseconds ();
                 }
-                const startTime = (endTime - (3600000 * limit)) + 1000;
+                const timeBetween = millisecondsPerHour * limit;
+                const startTime = (endTime - timeBetween) + 1000;
                 request['start_time'] = startTime / 1000;
             }
         }
@@ -2562,22 +2567,6 @@ module.exports = class ftx extends Exchange {
         if (borrowRateHistory === undefined) {
             throw new BadRequest (this.id + '.fetchBorrowRateHistory returned no data for ' + code);
         } else {
-            const resultLength = borrowRateHistory.length;
-            if (resultLength === limit - 1) {
-                const hourLength = 3600000;
-                const recentHour = parseInt (this.milliseconds () / hourLength) * hourLength;
-                const penultimateHour = recentHour - hourLength;
-                const lastTimestamp = borrowRateHistory[0]['timestamp'];
-                if (lastTimestamp === penultimateHour) {
-                    borrowRateHistory.push ({
-                        'currency': code,
-                        'rate': undefined,
-                        'timestamp': recentHour,
-                        'datetime': this.iso8601 (recentHour),
-                        'info': {},
-                    });
-                }
-            }
             return borrowRateHistory;
         }
     }
