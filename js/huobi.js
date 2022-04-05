@@ -615,9 +615,6 @@ module.exports = class huobi extends ccxt.huobi {
             subType = this.safeString (params, 'subType', type);
             query = this.omit (params, ['type', 'subtype']);
         }
-        if (type !== 'spot' && symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol for non spot markets');
-        }
         let messageHash = undefined;
         let channel = undefined;
         if (type === 'spot') {
@@ -673,7 +670,7 @@ module.exports = class huobi extends ccxt.huobi {
         //
         //     {
         //         "action":"push",
-        //         "ch":"orders#btcusdt",
+        //         "ch":"orders#btcusdt", // or 'orders#*' for global subscriptions
         //         "data": {
         //             orderSource: 'spot-web',
         //             orderCreateTime: 1645116048355,
@@ -728,21 +725,26 @@ module.exports = class huobi extends ccxt.huobi {
         //
         let messageHash = this.safeString2 (message, 'ch', 'topic', '');
         let marketId = this.safeString (message, 'contract_code');
+        let market = undefined;
         if (marketId === undefined) {
             const messageParts = messageHash.split ('#');
             marketId = this.safeString (messageParts, 1);
+            if ((marketId !== undefined) && (marketId !== '*')) {
+                market = this.market (marketId);
+            }
         }
-        const market = this.market (marketId);
         const data = this.safeValue (message, 'data', message);
         const eventType = this.safeString (data, 'eventType');
         let parsedOrder = undefined;
         let parsedTrade = undefined;
+        let symbol = undefined;
         if (eventType === 'trade') {
             parsedTrade = this.parseOrderTrade (data, market);
+            symbol = parsedTrade['symbol'];
         } else {
             parsedOrder = this.parseWsOrder (data, market);
+            symbol = parsedOrder['symbol'];
         }
-        const symbol = market['symbol'];
         if (symbol !== undefined) {
             const market = this.market (symbol);
             if (this.orders === undefined) {
