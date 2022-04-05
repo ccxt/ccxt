@@ -4290,28 +4290,37 @@ module.exports = class okx extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        const interest = [];
-        for (let i = 0; i < data.length; i++) {
-            const row = data[i];
-            const instId = this.safeString (row, 'instId');
-            let account = 'CROSS';
-            if (instId) {
-                market = this.market (instId);
-                account = market['symbol'];
-            }
-            const timestamp = this.safeNumber (row, 'ts');
-            interest.push ({
-                'account': account, // isolated symbol, will not be returned for crossed margin
-                'currency': this.safeCurrencyCode (this.safeString (row, 'ccy')),
-                'interest': this.safeNumber (row, 'interest'),
-                'interestRate': this.safeNumber (row, 'interestRate'),
-                'amountBorrowed': this.safeNumber (row, 'liab'),
-                'timestamp': timestamp, // Interest accrued time
-                'datetime': this.iso8601 (timestamp),
-                'info': row,
-            });
-        }
+        const interest = this.parseBorrowInterests (data);
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
+    }
+
+    parseBorrowInterests (response, market = undefined) {
+        const interest = [];
+        for (let i = 0; i < response.length; i++) {
+            const row = response[i];
+            interest.push (this.parseBorrowInterest (row, market));
+        }
+        return interest;
+    }
+
+    parseBorrowInterest (info, market = undefined) {
+        const instId = this.safeString (info, 'instId');
+        let account = 'CROSS';
+        if (instId) {
+            market = this.safeMarket (instId, market);
+            account = this.safeString (market, 'symbol');
+        }
+        const timestamp = this.safeNumber (info, 'ts');
+        return {
+            'account': account,  // isolated symbol, will not be returned for crossed margin
+            'currency': this.safeCurrencyCode (this.safeString (info, 'ccy')),
+            'interest': this.safeNumber (info, 'interest'),
+            'interestRate': this.safeNumber (info, 'interestRate'),
+            'amountBorrowed': this.safeNumber (info, 'liab'),
+            'timestamp': timestamp,  // Interest accrued time
+            'datetime': this.iso8601 (timestamp),
+            'info': info,
+        };
     }
 
     setSandboxMode (enable) {
