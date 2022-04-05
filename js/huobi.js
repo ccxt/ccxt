@@ -1205,27 +1205,27 @@ module.exports = class huobi extends Exchange {
             let settleId = undefined;
             let id = undefined;
             if (contract) {
-                id = this.safeString (market, 'contract_code');
+                id = this.safeStringLower (market, 'contract_code');
                 if (swap) {
                     const parts = id.split ('-');
-                    baseId = this.safeString (market, 'symbol');
-                    quoteId = this.safeString (parts, 1);
+                    baseId = this.safeStringLower (market, 'symbol');
+                    quoteId = this.safeStringLower (parts, 1);
                     settleId = inverse ? baseId : quoteId;
                 } else if (future) {
-                    baseId = this.safeString (market, 'symbol');
+                    baseId = this.safeStringLower (market, 'symbol');
                     if (inverse) {
-                        quoteId = 'USD';
+                        quoteId = 'usd';
                         settleId = baseId;
                     } else {
-                        const pair = this.safeString (market, 'pair');
+                        const pair = this.safeStringLower (market, 'pair');
                         const parts = pair.split ('-');
                         quoteId = this.safeString (parts, 1);
                         settleId = quoteId;
                     }
                 }
             } else {
-                baseId = this.safeString (market, 'base-currency');
-                quoteId = this.safeString (market, 'quote-currency');
+                baseId = this.safeStringLower (market, 'base-currency');
+                quoteId = this.safeStringLower (market, 'quote-currency');
                 id = baseId + quoteId;
             }
             const base = this.safeCurrencyCode (baseId);
