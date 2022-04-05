@@ -14,7 +14,8 @@ module.exports = class therock extends Exchange {
             'id': 'therock',
             'name': 'TheRockTrading',
             'countries': [ 'MT' ],
-            'rateLimit': 1000,
+            // 10 requests per second => 1000ms / 10 => 100 ms between requests (all endpoints)
+            'rateLimit': 100,
             'version': 'v1',
             'has': {
                 'CORS': undefined,
@@ -62,42 +63,43 @@ module.exports = class therock extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'funds',
-                        'funds/{id}',
-                        'funds/{id}/orderbook',
-                        'funds/{id}/ticker',
-                        'funds/{id}/trades',
-                        'funds/tickers',
-                    ],
+                    'get': {
+                        // weight of 1 errors
+                        'funds': 1.05,
+                        'funds/{id}': 1.05,
+                        'funds/{id}/orderbook': 1.05,
+                        'funds/{id}/ticker': 1.05,
+                        'funds/{id}/trades': 1.05,
+                        'funds/tickers': 1.05,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'balances',
-                        'balances/{id}',
-                        'discounts',
-                        'discounts/{id}',
-                        'funds',
-                        'funds/{id}',
-                        'funds/{id}/trades',
-                        'funds/{fund_id}/orders',
-                        'funds/{fund_id}/orders/{id}',
-                        'funds/{fund_id}/position_balances',
-                        'funds/{fund_id}/positions',
-                        'funds/{fund_id}/positions/{id}',
-                        'transactions',
-                        'transactions/{id}',
-                        'withdraw_limits/{id}',
-                        'withdraw_limits',
-                    ],
-                    'post': [
-                        'atms/withdraw',
-                        'funds/{fund_id}/orders',
-                    ],
-                    'delete': [
-                        'funds/{fund_id}/orders/{id}',
-                        'funds/{fund_id}/orders/remove_all',
-                    ],
+                    'get': {
+                        'balances': 1.05,
+                        'balances/{id}': 1.05,
+                        'discounts': 1.05,
+                        'discounts/{id}': 1.05,
+                        'funds': 1.05,
+                        'funds/{id}': 1.05,
+                        'funds/{id}/trades': 1.05,
+                        'funds/{fund_id}/orders': 1.05,
+                        'funds/{fund_id}/orders/{id}': 1.05,
+                        'funds/{fund_id}/position_balances': 1.05,
+                        'funds/{fund_id}/positions': 1.05,
+                        'funds/{fund_id}/positions/{id}': 1.05,
+                        'transactions': 1.05,
+                        'transactions/{id}': 1.05,
+                        'withdraw_limits/{id}': 1.05,
+                        'withdraw_limits': 1.05,
+                    },
+                    'post': {
+                        'atms/withdraw': 1.05,
+                        'funds/{fund_id}/orders': 1.05,
+                    },
+                    'delete': {
+                        'funds/{fund_id}/orders/{id}': 1.05,
+                        'funds/{fund_id}/orders/remove_all': 1.05,
+                    },
                 },
             },
             'fees': {
