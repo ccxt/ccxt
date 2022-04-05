@@ -37,7 +37,6 @@ export default class lbank extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
-                'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
                 'fetchMarkets': true,
@@ -119,8 +118,9 @@ export default class lbank extends Exchange {
                 },
             },
             'commonCurrencies': {
-                'VET_ERC20': 'VEN',
+                'GMT': 'GMT Token',
                 'PNT': 'Penta',
+                'VET_ERC20': 'VEN',
             },
             'options': {
                 'cacheSecretAsPem': true,
@@ -193,7 +193,7 @@ export default class lbank extends Exchange {
                         'max': undefined,
                     },
                     'amount': {
-                        'min': undefined,
+                        'min': this.safeFloat (market, 'minTranQua'),
                         'max': undefined,
                     },
                     'price': {

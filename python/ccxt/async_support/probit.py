@@ -57,7 +57,6 @@ class probit(Exchange):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
-                'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
                 'fetchMarkets': True,
@@ -206,7 +205,9 @@ class probit(Exchange):
                 'CHE': 'Chellit',
                 'CLR': 'Color Platform',
                 'CTK': 'Cryptyk',
+                'CTT': 'Castweet',
                 'DIP': 'Dipper',
+                'DKT': 'DAKOTA',
                 'EGC': 'EcoG9coin',
                 'EPS': 'Epanus',  # conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
                 'FX': 'Fanzy',
@@ -217,8 +218,10 @@ class probit(Exchange):
                 'GRB': 'Global Reward Bank',
                 'HBC': 'Hybrid Bank Cash',
                 'HUSL': 'The Hustle App',
+                'LAND': 'Landbox',
                 'LBK': 'Legal Block',
                 'ORC': 'Oracle System',
+                'PXP': 'PIXSHOP COIN',
                 'PYE': 'CreamPYE',
                 'ROOK': 'Reckoon',
                 'SOC': 'Soda Coin',
@@ -711,20 +714,17 @@ class probit(Exchange):
         side = self.safe_string(trade, 'side')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'quantity')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         orderId = self.safe_string(trade, 'order_id')
-        feeCost = self.safe_number(trade, 'fee_amount')
+        feeCostString = self.safe_string(trade, 'fee_amount')
         fee = None
-        if feeCost is not None:
+        if feeCostString is not None:
             feeCurrencyId = self.safe_string(trade, 'fee_currency_id')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             }
-        return {
+        return self.safe_trade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -734,11 +734,11 @@ class probit(Exchange):
             'type': None,
             'side': side,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': fee,
-        }
+        }, market)
 
     async def fetch_time(self, params={}):
         response = await self.publicGetTime(params)

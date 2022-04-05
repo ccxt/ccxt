@@ -1187,11 +1187,15 @@ class liquid extends Exchange {
             }
         }
         $networks = $this->safe_value($this->options, 'networks', array());
-        $paramsCwArray = $this->safe_value($params, 'crypto_withdrawal', array());
-        $network = $this->safe_string_upper($paramsCwArray, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        if ($network === null) {
+            $paramsCwArray = $this->safe_value($params, 'crypto_withdrawal', array());
+            $network = $this->safe_string_upper($paramsCwArray, 'network');
+        }
         $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
         if ($network !== null) {
             $request['crypto_withdrawal']['network'] = $network;
+            $params = $this->omit($params, 'network');
             $params['crypto_withdrawal'] = $this->omit($params['crypto_withdrawal'], 'network');
         }
         $response = $this->privatePostCryptoWithdrawals ($this->deep_extend($request, $params));

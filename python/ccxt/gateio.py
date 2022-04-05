@@ -98,6 +98,7 @@ class gateio(Exchange):
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
                 'fetchIndexOHLCV': True,
+                'fetchLeverage': False,
                 'fetchLeverageTiers': True,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': True,
@@ -118,6 +119,7 @@ class gateio(Exchange):
                 'fetchTradingFees': True,
                 'fetchWithdrawals': True,
                 'setLeverage': True,
+                'setMarginMode': False,
                 'transfer': True,
                 'withdraw': True,
             },
@@ -624,6 +626,7 @@ class gateio(Exchange):
                     'INTERNAL': ExchangeNotAvailable,
                     'SERVER_ERROR': ExchangeNotAvailable,
                     'TOO_BUSY': ExchangeNotAvailable,
+                    'CROSS_ACCOUNT_NOT_FOUND': ExchangeError,
                 },
             },
             'broad': {},
@@ -682,10 +685,10 @@ class gateio(Exchange):
         #
         result = []
         for i in range(0, len(spotMarketsResponse)):
-            market = spotMarketsResponse[i]
-            id = self.safe_string(market, 'id')
+            spotMarket = spotMarketsResponse[i]
+            id = self.safe_string(spotMarket, 'id')
             marginMarket = self.safe_value(marginMarkets, id)
-            market = self.deep_extend(marginMarket, market)
+            market = self.deep_extend(marginMarket, spotMarket)
             baseId, quoteId = id.split('_')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
@@ -695,6 +698,7 @@ class gateio(Exchange):
             pricePrecisionString = self.safe_string(market, 'precision')
             tradeStatus = self.safe_string(market, 'trade_status')
             leverage = self.safe_number(market, 'leverage')
+            defaultMinAmountLimit = self.parse_number(self.parse_precision(amountPrecisionString))
             margin = leverage is not None
             result.append({
                 'id': id,
@@ -733,7 +737,7 @@ class gateio(Exchange):
                         'max': self.safe_number(market, 'leverage', 1),
                     },
                     'amount': {
-                        'min': self.safe_number(market, 'min_base_amount'),
+                        'min': self.safe_number(spotMarket, 'min_base_amount', defaultMinAmountLimit),
                         'max': None,
                     },
                     'price': {
@@ -1779,24 +1783,37 @@ class gateio(Exchange):
 
     def fetch_balance_helper(self, entry):
         account = self.account()
-        account['used'] = self.safe_string_2(entry, 'locked', 'position_margin')
+        used = self.safe_string(entry, 'freeze')
+        if used is None:
+            used = self.safe_string_2(entry, 'locked', 'position_margin')
+        account['used'] = used
         account['free'] = self.safe_string(entry, 'available')
         return account
 
     def fetch_balance(self, params={}):
-        # :param params.type: spot, margin, crossMargin, swap or future
+        # :param params.type: spot, margin, cross, swap or future
         # :param params.settle: Settle currency(usdt or btc) for perpetual swap and future
         self.load_markets()
         type = None
+        method = None
         type, params = self.handle_market_type_and_params('fetchBalance', None, params)
+        if type == 'margin':
+            defaultMarginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', 'isolated')
+            marginType = self.safe_string(params, 'marginType', defaultMarginType)
+            params = self.omit(params, 'marginType')
+            if marginType == 'cross':
+                method = 'privateMarginGetCrossAccounts'
+            else:
+                method = 'privateMarginGetAccounts'
+        else:
+            method = self.get_supported_mapping(type, {
+                'spot': 'privateSpotGetAccounts',
+                'funding': 'privateMarginGetFundingAccounts',
+                'swap': 'privateFuturesGetSettleAccounts',
+                'future': 'privateDeliveryGetSettleAccounts',
+            })
         swap = type == 'swap'
         future = type == 'future'
-        method = self.get_supported_mapping(type, {
-            'spot': 'privateSpotGetAccounts',
-            'margin': 'privateMarginGetAccounts',
-            'swap': 'privateFuturesGetSettleAccounts',
-            'future': 'privateDeliveryGetSettleAccounts',
-        })
         request = {}
         response = []
         if swap or future:
@@ -1806,13 +1823,15 @@ class gateio(Exchange):
             response = [response_item]
         else:
             response = getattr(self, method)(self.extend(request, params))
-        # Spot
+        # Spot / margin funding
         #
         #     [
         #         {
         #             "currency": "DBC",
         #             "available": "0",
         #             "locked": "0"
+        #             "lent":"0",  # margin funding only
+        #             "total_lent":"0"  # margin funding only
         #         },
         #         ...
         #     ]
@@ -1841,6 +1860,24 @@ class gateio(Exchange):
         #         },
         #         ...
         #    ]
+        #
+        # Cross margin
+        #    {
+        #        "user_id":10406147,
+        #        "locked":false,
+        #        "balances":{
+        #           "USDT":{
+        #              "available":"1",
+        #              "freeze":"0",
+        #              "borrowed":"0",
+        #              "interest":"0"
+        #           }
+        #        },
+        #        "total":"1",
+        #        "borrowed":"0",
+        #        "interest":"0",
+        #        "risk":"9999.99"
+        #     }
         #
         #  Perpetual Swap
         #
@@ -1897,8 +1934,21 @@ class gateio(Exchange):
         result = {
             'info': response,
         }
-        for i in range(0, len(response)):
-            entry = response[i]
+        data = response
+        if 'balances' in data:
+            flatBalances = []
+            balances = self.safe_value(data, 'balances', [])
+            # inject currency and create an artificial balance object
+            # so it can follow the existent flow
+            keys = list(balances.keys())
+            for i in range(0, len(keys)):
+                currencyId = keys[i]
+                content = balances[currencyId]
+                content['currency'] = currencyId
+                flatBalances.append(content)
+            data = flatBalances
+        for i in range(0, len(data)):
+            entry = data[i]
             if margin:
                 marketId = self.safe_string(entry, 'currency_pair')
                 symbol = self.safe_symbol(marketId, None, '_')
@@ -2882,6 +2932,12 @@ class gateio(Exchange):
             'trades': None,
             'info': order,
         }, market)
+
+    def create_reduce_only_order(self, symbol, type, side, amount, price=None, params={}):
+        request = {
+            'reduceOnly': True,
+        }
+        return self.create_order(symbol, type, side, amount, price, self.extend(request, params))
 
     def fetch_order(self, id, symbol=None, params={}):
         '''

@@ -20,7 +20,6 @@ async function main () {
     let emulated = 0
 
     const certified = [
-        'aax',
         'ascendex',
         'binance',
         'binancecoinm',

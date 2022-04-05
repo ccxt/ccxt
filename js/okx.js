@@ -57,7 +57,6 @@ export default class okx extends Exchange {
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': true,
-                'fetchIsolatedPositions': undefined,
                 'fetchL3OrderBook': undefined,
                 'fetchLedger': true,
                 'fetchLedgerEntry': undefined,
@@ -1184,7 +1183,8 @@ export default class okx extends Exchange {
         const symbol = market['symbol'];
         const last = this.safeString (ticker, 'last');
         const open = this.safeString (ticker, 'open24h');
-        const quoteVolume = market['spot'] ? this.safeString (ticker, 'volCcy24h') : undefined;
+        const spot = this.safeValue (market, 'spot', false);
+        const quoteVolume = spot ? this.safeString (ticker, 'volCcy24h') : undefined;
         const baseVolume = this.safeString (ticker, 'vol24h');
         return this.safeTicker ({
             'symbol': symbol,

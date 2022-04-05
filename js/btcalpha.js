@@ -37,7 +37,6 @@ export default class btcalpha extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
-                'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,

@@ -1439,7 +1439,7 @@ class bitrue extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_transaction($data, $currency);
+        return $this->parse_transactions($data, $currency);
     }
 
     public function parse_transaction_status_by_type($status, $type = null) {

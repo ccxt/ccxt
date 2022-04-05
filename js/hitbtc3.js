@@ -18,30 +18,35 @@ export default class hitbtc3 extends Exchange {
             'has': {
                 'CORS': false,
                 'spot': true,
-                'margin': undefined, // has but not fully implemented
+                'margin': true,
                 'swap': true,
                 'future': false,
                 'option': undefined,
-                'addMargin': undefined,
+                'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
+                'fetchBorrowRate': undefined,
+                'fetchBorrowRateHistories': undefined,
+                'fetchBorrowRateHistory': undefined,
+                'fetchBorrowRates': undefined,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
-                'fetchFundingHistory': false,
+                'fetchFundingHistory': undefined,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
-                'fetchIndexOHLCV': undefined,
+                'fetchIndexOHLCV': true,
+                'fetchLeverage': true,
                 'fetchLeverageTiers': undefined,
                 'fetchMarketLeverageTiers': undefined,
                 'fetchMarkets': true,
-                'fetchMarkOHLCV': undefined,
+                'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrder': true,
@@ -51,9 +56,9 @@ export default class hitbtc3 extends Exchange {
                 'fetchOrderBooks': true,
                 'fetchOrders': false,
                 'fetchOrderTrades': true,
-                'fetchPosition': false,
+                'fetchPosition': true,
                 'fetchPositions': true,
-                'fetchPremiumIndexOHLCV': undefined,
+                'fetchPremiumIndexOHLCV': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
@@ -61,8 +66,8 @@ export default class hitbtc3 extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
-                'reduceMargin': undefined,
-                'setLeverage': undefined,
+                'reduceMargin': true,
+                'setLeverage': true,
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'transfer': true,
@@ -121,7 +126,9 @@ export default class hitbtc3 extends Exchange {
                         'margin/account/isolated/{symbol}': 15,
                         'margin/order': 15,
                         'margin/order/{client_order_id}': 15,
+                        'margin/history/clearing': 15,
                         'margin/history/order': 15,
+                        'margin/history/positions': 15,
                         'margin/history/trade': 15,
                         'futures/balance': 15,
                         'futures/account': 15,
@@ -130,7 +137,9 @@ export default class hitbtc3 extends Exchange {
                         'futures/order/{client_order_id}': 15,
                         'futures/fee': 15,
                         'futures/fee/{symbol}': 15,
+                        'futures/history/clearing': 15,
                         'futures/history/order': 15,
+                        'futures/history/positions': 15,
                         'futures/history/trade': 15,
                         'wallet/balance': 15,
                         'wallet/crypto/address': 15,
@@ -297,6 +306,29 @@ export default class hitbtc3 extends Exchange {
                     'future': 'derivatives',
                     'derivatives': 'derivatives',
                 },
+            },
+            'commonCurrencies': {
+                'AUTO': 'Cube',
+                'BCC': 'BCC', // initial symbol for Bitcoin Cash, now inactive
+                'BDP': 'BidiPass',
+                'BET': 'DAO.Casino',
+                'BIT': 'BitRewards',
+                'BOX': 'BOX Token',
+                'CPT': 'Cryptaur', // conflict with CPT = Contents Protocol https://github.com/ccxt/ccxt/issues/4920 and https://github.com/ccxt/ccxt/issues/6081
+                'GET': 'Themis',
+                'GMT': 'GMT Token',
+                'HSR': 'HC',
+                'IQ': 'IQ.Cash',
+                'LNC': 'LinkerCoin',
+                'PLA': 'PlayChip',
+                'PNT': 'Penta',
+                'SBTC': 'Super Bitcoin',
+                'STEPN': 'GMT',
+                'STX': 'STOX',
+                'TV': 'Tokenville',
+                'USD': 'USDT',
+                'XMT': 'MTL',
+                'XPNT': 'PNT',
             },
         });
     }
@@ -1136,27 +1168,76 @@ export default class hitbtc3 extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetPublicCandles (this.extend (request, params));
+        const price = this.safeString (params, 'price');
+        params = this.omit (params, 'price');
+        let method = 'publicGetPublicCandles';
+        if (price === 'mark') {
+            method = 'publicGetPublicFuturesCandlesMarkPrice';
+        } else if (price === 'index') {
+            method = 'publicGetPublicFuturesCandlesIndexPrice';
+        } else if (price === 'premiumIndex') {
+            method = 'publicGetPublicFuturesCandlesPremiumIndex';
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // Spot and Swap
         //
         //     {
-        //       "ETHUSDT": [
-        //         {
-        //           "timestamp": "2021-10-25T07:38:00.000Z",
-        //           "open": "4173.391",
-        //           "close": "4170.923",
-        //           "min": "4170.923",
-        //           "max": "4173.986",
-        //           "volume": "0.1879",
-        //           "volume_quote": "784.2517846"
-        //         }
-        //       ]
+        //         "ETHUSDT": [
+        //             {
+        //                 "timestamp": "2021-10-25T07:38:00.000Z",
+        //                 "open": "4173.391",
+        //                 "close": "4170.923",
+        //                 "min": "4170.923",
+        //                 "max": "4173.986",
+        //                 "volume": "0.1879",
+        //                 "volume_quote": "784.2517846"
+        //             }
+        //         ]
+        //     }
+        //
+        // Mark, Index and Premium Index
+        //
+        //     {
+        //         "BTCUSDT_PERP": [
+        //             {
+        //                 "timestamp": "2022-04-01T01:28:00.000Z",
+        //                 "open": "45146.39",
+        //                 "close": "45219.43",
+        //                 "min": "45146.39",
+        //                 "max": "45219.43"
+        //             },
+        //         ]
         //     }
         //
         const ohlcvs = this.safeValue (response, market['id']);
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
+    async fetchMarkOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'price': 'mark',
+        };
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
+    }
+
+    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'price': 'index',
+        };
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
+    }
+
+    async fetchPremiumIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'price': 'premiumIndex',
+        };
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
+    }
+
     parseOHLCV (ohlcv, market = undefined) {
+        //
+        // Spot and Swap
         //
         //     {
         //         "timestamp":"2015-08-20T19:01:00.000Z",
@@ -1167,6 +1248,16 @@ export default class hitbtc3 extends Exchange {
         //         "volume":"0.003",
         //         "volume_quote":"0.000018"
         //     }
+        //
+        // Mark, Index and Premium Index
+        //
+        //     {
+        //         "timestamp": "2022-04-01T01:28:00.000Z",
+        //         "open": "45146.39",
+        //         "close": "45219.43",
+        //         "min": "45146.39",
+        //         "max": "45219.43"
+        //     },
         //
         return [
             this.parse8601 (this.safeString (ohlcv, 'timestamp')),
@@ -1776,7 +1867,12 @@ export default class hitbtc3 extends Exchange {
     async fetchPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
-        const response = await this.privateGetFuturesAccount (this.extend (request, params));
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchPositions', undefined, params);
+        const method = this.getSupportedMapping (marketType, {
+            'swap': 'privateGetFuturesAccount',
+            'margin': 'privateGetMarginAccount',
+        });
+        const response = await this[method] (this.extend (request, query));
         //
         //     [
         //         {
@@ -1814,6 +1910,53 @@ export default class hitbtc3 extends Exchange {
             result.push (this.parsePosition (response[i]));
         }
         return result;
+    }
+
+    async fetchPosition (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchPosition', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'swap': 'privateGetFuturesAccountIsolatedSymbol',
+            'margin': 'privateGetMarginAccountIsolatedSymbol',
+        });
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this[method] (this.extend (request, query));
+        //
+        //     [
+        //         {
+        //             "symbol": "ETHUSDT_PERP",
+        //             "type": "isolated",
+        //             "leverage": "10.00",
+        //             "created_at": "2022-03-19T07:54:35.24Z",
+        //             "updated_at": "2022-03-19T07:54:58.922Z",
+        //             currencies": [
+        //                 {
+        //                     "code": "USDT",
+        //                     "margin_balance": "7.478100643043",
+        //                     "reserved_orders": "0",
+        //                     "reserved_positions": "0.303530761300"
+        //                 }
+        //             ],
+        //             "positions": [
+        //                 {
+        //                     "id": 2470568,
+        //                     "symbol": "ETHUSDT_PERP",
+        //                     "quantity": "0.001",
+        //                     "price_entry": "2927.509",
+        //                     "price_margin_call": "0",
+        //                     "price_liquidation": "0",
+        //                     "pnl": "0",
+        //                     "created_at": "2022-03-19T07:54:35.24Z",
+        //                     "updated_at": "2022-03-19T07:54:58.922Z"
+        //                 }
+        //             ]
+        //         },
+        //     ]
+        //
+        return this.parsePosition (response, market);
     }
 
     parsePosition (position, market = undefined) {
@@ -1855,10 +1998,12 @@ export default class hitbtc3 extends Exchange {
         const positions = this.safeValue (position, 'positions', []);
         let liquidationPrice = undefined;
         let entryPrice = undefined;
+        let contracts = undefined;
         for (let i = 0; i < positions.length; i++) {
             const entry = positions[i];
             liquidationPrice = this.safeNumber (entry, 'price_liquidation');
             entryPrice = this.safeNumber (entry, 'price_entry');
+            contracts = this.safeNumber (entry, 'quantity');
         }
         const currencies = this.safeValue (position, 'currencies', []);
         let collateral = undefined;
@@ -1878,7 +2023,7 @@ export default class hitbtc3 extends Exchange {
             'entryPrice': entryPrice,
             'unrealizedPnl': undefined,
             'percentage': undefined,
-            'contracts': undefined,
+            'contracts': contracts,
             'contractSize': undefined,
             'markPrice': undefined,
             'side': undefined,
@@ -1965,6 +2110,143 @@ export default class hitbtc3 extends Exchange {
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
         };
+    }
+
+    async modifyMarginHelper (symbol, amount, type, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const leverage = this.safeString (params, 'leverage');
+        amount = this.amountToPrecision (symbol, amount);
+        if (market['type'] === 'swap') {
+            if (leverage === undefined) {
+                throw new ArgumentsRequired (this.id + ' modifyMarginHelper() requires a leverage parameter for swap markets');
+            }
+        }
+        const request = {
+            'symbol': market['id'], // swap and margin
+            'margin_balance': amount, // swap and margin
+            // 'leverage': '10', // swap only required
+            // 'strict_validate': false, // swap and margin
+        };
+        if (leverage !== undefined) {
+            request['leverage'] = leverage;
+        }
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('modifyMarginHelper', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'swap': 'privatePutFuturesAccountIsolatedSymbol',
+            'margin': 'privatePutMarginAccountIsolatedSymbol',
+        });
+        const response = await this[method] (this.extend (request, query));
+        //
+        //     {
+        //         "symbol": "BTCUSDT_PERP",
+        //         "type": "isolated",
+        //         "leverage": "8.00",
+        //         "created_at": "2022-03-30T23:34:27.161Z",
+        //         "updated_at": "2022-03-30T23:34:27.161Z",
+        //         "currencies": [
+        //             {
+        //                 "code": "USDT",
+        //                 "margin_balance": "7.000000000000",
+        //                 "reserved_orders": "0",
+        //                 "reserved_positions": "0"
+        //             }
+        //         ],
+        //         "positions": null
+        //     }
+        //
+        const currencies = this.safeValue (response, 'currencies', []);
+        const data = this.safeValue (currencies, 0);
+        return {
+            'info': response,
+            'type': type,
+            'amount': amount,
+            'code': this.safeString (data, 'code'),
+            'symbol': market['symbol'],
+            'status': undefined,
+        };
+    }
+
+    async reduceMargin (symbol, amount, params = {}) {
+        if (amount !== 0) {
+            throw new BadRequest (this.id + ' reduceMargin() on hitbtc3 requires the amount to be 0 and that will remove the entire margin amount');
+        }
+        return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
+    }
+
+    async addMargin (symbol, amount, params = {}) {
+        return await this.modifyMarginHelper (symbol, amount, 'add', params);
+    }
+
+    async fetchLeverage (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'privateGetMarginAccountIsolatedSymbol',
+            'margin': 'privateGetMarginAccountIsolatedSymbol',
+            'swap': 'privateGetFuturesAccountIsolatedSymbol',
+        });
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "type": "isolated",
+        //         "leverage": "12.00",
+        //         "created_at": "2022-03-29T22:31:29.067Z",
+        //         "updated_at": "2022-03-30T00:00:00.125Z",
+        //         "currencies": [
+        //             {
+        //                 "code": "USDT",
+        //                 "margin_balance": "20.824360374174",
+        //                 "reserved_orders": "0",
+        //                 "reserved_positions": "0.973330435000"
+        //             }
+        //         ],
+        //         "positions": [
+        //             {
+        //                 "id": 631301,
+        //                 "symbol": "BTCUSDT",
+        //                 "quantity": "0.00022",
+        //                 "price_entry": "47425.57",
+        //                 "price_margin_call": "",
+        //                 "price_liquidation": "0",
+        //                 "pnl": "0",
+        //                 "created_at": "2022-03-29T22:31:29.067Z",
+        //                 "updated_at": "2022-03-30T00:00:00.125Z"
+        //             }
+        //         ]
+        //     }
+        //
+        return this.safeNumber (response, 'leverage');
+    }
+
+    async setLeverage (leverage, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
+        if (params['margin_balance'] === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a margin_balance parameter that will transfer margin to the specified trading pair');
+        }
+        const market = this.market (symbol);
+        const amount = this.safeNumber (params, 'margin_balance');
+        const maxLeverage = this.safeInteger (market['limits']['leverage'], 'max', 50);
+        if (market['type'] !== 'swap') {
+            throw new BadSymbol (this.id + ' setLeverage() supports swap contracts only');
+        }
+        if ((leverage < 1) || (leverage > maxLeverage)) {
+            throw new BadRequest (this.id + ' setLeverage() leverage should be between 1 and ' + maxLeverage.toString () + ' for ' + symbol);
+        }
+        const request = {
+            'symbol': market['id'],
+            'leverage': leverage.toString (),
+            'margin_balance': this.amountToPrecision (symbol, amount),
+            // 'strict_validate': false,
+        };
+        return await this.privatePutFuturesAccountIsolatedSymbol (this.extend (request, params));
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

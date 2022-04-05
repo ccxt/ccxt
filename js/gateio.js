@@ -80,6 +80,7 @@ export default class gateio extends Exchange {
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': true,
+                'fetchLeverage': false,
                 'fetchLeverageTiers': true,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
@@ -100,6 +101,7 @@ export default class gateio extends Exchange {
                 'fetchTradingFees': true,
                 'fetchWithdrawals': true,
                 'setLeverage': true,
+                'setMarginMode': false,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -606,6 +608,7 @@ export default class gateio extends Exchange {
                     'INTERNAL': ExchangeNotAvailable,
                     'SERVER_ERROR': ExchangeNotAvailable,
                     'TOO_BUSY': ExchangeNotAvailable,
+                    'CROSS_ACCOUNT_NOT_FOUND': ExchangeError,
                 },
             },
             'broad': {},
@@ -670,10 +673,10 @@ export default class gateio extends Exchange {
         //
         const result = [];
         for (let i = 0; i < spotMarketsResponse.length; i++) {
-            let market = spotMarketsResponse[i];
-            const id = this.safeString (market, 'id');
+            const spotMarket = spotMarketsResponse[i];
+            const id = this.safeString (spotMarket, 'id');
             const marginMarket = this.safeValue (marginMarkets, id);
-            market = this.deepExtend (marginMarket, market);
+            const market = this.deepExtend (marginMarket, spotMarket);
             const [ baseId, quoteId ] = id.split ('_');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
@@ -683,6 +686,7 @@ export default class gateio extends Exchange {
             const pricePrecisionString = this.safeString (market, 'precision');
             const tradeStatus = this.safeString (market, 'trade_status');
             const leverage = this.safeNumber (market, 'leverage');
+            const defaultMinAmountLimit = this.parseNumber (this.parsePrecision (amountPrecisionString));
             const margin = leverage !== undefined;
             result.push ({
                 'id': id,
@@ -721,7 +725,7 @@ export default class gateio extends Exchange {
                         'max': this.safeNumber (market, 'leverage', 1),
                     },
                     'amount': {
-                        'min': this.safeNumber (market, 'min_base_amount'),
+                        'min': this.safeNumber (spotMarket, 'min_base_amount', defaultMinAmountLimit),
                         'max': undefined,
                     },
                     'price': {
@@ -1822,25 +1826,41 @@ export default class gateio extends Exchange {
 
     fetchBalanceHelper (entry) {
         const account = this.account ();
-        account['used'] = this.safeString2 (entry, 'locked', 'position_margin');
+        let used = this.safeString (entry, 'freeze');
+        if (used === undefined) {
+            used = this.safeString2 (entry, 'locked', 'position_margin');
+        }
+        account['used'] = used;
         account['free'] = this.safeString (entry, 'available');
         return account;
     }
 
     async fetchBalance (params = {}) {
-        // :param params.type: spot, margin, crossMargin, swap or future
+        // :param params.type: spot, margin, cross, swap or future
         // :param params.settle: Settle currency (usdt or btc) for perpetual swap and future
         await this.loadMarkets ();
         let type = undefined;
+        let method = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        if (type === 'margin') {
+            const defaultMarginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
+            const marginType = this.safeString (params, 'marginType', defaultMarginType);
+            params = this.omit (params, 'marginType');
+            if (marginType === 'cross') {
+                method = 'privateMarginGetCrossAccounts';
+            } else {
+                method = 'privateMarginGetAccounts';
+            }
+        } else {
+            method = this.getSupportedMapping (type, {
+                'spot': 'privateSpotGetAccounts',
+                'funding': 'privateMarginGetFundingAccounts',
+                'swap': 'privateFuturesGetSettleAccounts',
+                'future': 'privateDeliveryGetSettleAccounts',
+            });
+        }
         const swap = type === 'swap';
         const future = type === 'future';
-        const method = this.getSupportedMapping (type, {
-            'spot': 'privateSpotGetAccounts',
-            'margin': 'privateMarginGetAccounts',
-            'swap': 'privateFuturesGetSettleAccounts',
-            'future': 'privateDeliveryGetSettleAccounts',
-        });
         const request = {};
         let response = [];
         if (swap || future) {
@@ -1851,13 +1871,15 @@ export default class gateio extends Exchange {
         } else {
             response = await this[method] (this.extend (request, params));
         }
-        // Spot
+        // Spot / margin funding
         //
         //     [
         //         {
         //             "currency": "DBC",
         //             "available": "0",
         //             "locked": "0"
+        //             "lent":"0", // margin funding only
+        //             "total_lent":"0" // margin funding only
         //         },
         //         ...
         //     ]
@@ -1886,6 +1908,24 @@ export default class gateio extends Exchange {
         //         },
         //         ...
         //    ]
+        //
+        // Cross margin
+        //    {
+        //        "user_id":10406147,
+        //        "locked":false,
+        //        "balances":{
+        //           "USDT":{
+        //              "available":"1",
+        //              "freeze":"0",
+        //              "borrowed":"0",
+        //              "interest":"0"
+        //           }
+        //        },
+        //        "total":"1",
+        //        "borrowed":"0",
+        //        "interest":"0",
+        //        "risk":"9999.99"
+        //     }
         //
         //  Perpetual Swap
         //
@@ -1942,8 +1982,23 @@ export default class gateio extends Exchange {
         const result = {
             'info': response,
         };
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
+        let data = response;
+        if ('balances' in data) {
+            const flatBalances = [];
+            const balances = this.safeValue (data, 'balances', []);
+            // inject currency and create an artificial balance object
+            // so it can follow the existent flow
+            const keys = Object.keys (balances);
+            for (let i = 0; i < keys.length; i++) {
+                const currencyId = keys[i];
+                const content = balances[currencyId];
+                content['currency'] = currencyId;
+                flatBalances.push (content);
+            }
+            data = flatBalances;
+        }
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
             if (margin) {
                 const marketId = this.safeString (entry, 'currency_pair');
                 const symbol = this.safeSymbol (marketId, undefined, '_');
@@ -2996,6 +3051,13 @@ export default class gateio extends Exchange {
             'trades': undefined,
             'info': order,
         }, market);
+    }
+
+    async createReduceOnlyOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        const request = {
+            'reduceOnly': true,
+        };
+        return await this.createOrder (symbol, type, side, amount, price, this.extend (request, params));
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

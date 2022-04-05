@@ -37,7 +37,6 @@ export default class bl3p extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
-                'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
                 'fetchMarkOHLCV': false,
                 'fetchOrderBook': true,

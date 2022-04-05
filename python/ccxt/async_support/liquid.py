@@ -1135,11 +1135,14 @@ class liquid(Exchange):
             else:
                 raise NotSupported(self.id + ' withdraw() only supports a tag along the address for XRP or XLM')
         networks = self.safe_value(self.options, 'networks', {})
-        paramsCwArray = self.safe_value(params, 'crypto_withdrawal', {})
-        network = self.safe_string_upper(paramsCwArray, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        if network is None:
+            paramsCwArray = self.safe_value(params, 'crypto_withdrawal', {})
+            network = self.safe_string_upper(paramsCwArray, 'network')
         network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
         if network is not None:
             request['crypto_withdrawal']['network'] = network
+            params = self.omit(params, 'network')
             params['crypto_withdrawal'] = self.omit(params['crypto_withdrawal'], 'network')
         response = await self.privatePostCryptoWithdrawals(self.deep_extend(request, params))
         #

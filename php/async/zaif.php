@@ -16,7 +16,8 @@ class zaif extends Exchange {
             'id' => 'zaif',
             'name' => 'Zaif',
             'countries' => array( 'JP' ),
-            'rateLimit' => 2000,
+            // 10 requests per second = 1000ms / 10 = 100ms between requests (public market endpoints)
+            'rateLimit' => 100,
             'version' => '1',
             'has' => array(
                 'CORS' => null,
@@ -69,56 +70,56 @@ class zaif extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'depth/{pair}',
-                        'currencies/{pair}',
-                        'currencies/all',
-                        'currency_pairs/{pair}',
-                        'currency_pairs/all',
-                        'last_price/{pair}',
-                        'ticker/{pair}',
-                        'trades/{pair}',
+                        'depth/{pair}' => 1,
+                        'currencies/{pair}' => 1,
+                        'currencies/all' => 1,
+                        'currency_pairs/{pair}' => 1,
+                        'currency_pairs/all' => 1,
+                        'last_price/{pair}' => 1,
+                        'ticker/{pair}' => 1,
+                        'trades/{pair}' => 1,
                     ),
                 ),
                 'private' => array(
                     'post' => array(
-                        'active_orders',
-                        'cancel_order',
-                        'deposit_history',
-                        'get_id_info',
-                        'get_info',
-                        'get_info2',
-                        'get_personal_info',
-                        'trade',
-                        'trade_history',
-                        'withdraw',
-                        'withdraw_history',
+                        'active_orders' => 5, // 10 in 5 seconds = 2 per second => cost = 10 / 2 = 5
+                        'cancel_order' => 5,
+                        'deposit_history' => 5,
+                        'get_id_info' => 5,
+                        'get_info' => 10, // 10 in 10 seconds = 1 per second => cost = 10 / 1 = 10
+                        'get_info2' => 5, // 20 in 10 seconds = 2 per second => cost = 10 / 2 = 5
+                        'get_personal_info' => 5,
+                        'trade' => 5,
+                        'trade_history' => 50, // 12 in 60 seconds = 0.2 per second => cost = 10 / 0.2 = 50
+                        'withdraw' => 5,
+                        'withdraw_history' => 5,
                     ),
                 ),
                 'ecapi' => array(
                     'post' => array(
-                        'createInvoice',
-                        'getInvoice',
-                        'getInvoiceIdsByOrderNumber',
-                        'cancelInvoice',
+                        'createInvoice' => 1, // unverified
+                        'getInvoice' => 1,
+                        'getInvoiceIdsByOrderNumber' => 1,
+                        'cancelInvoice' => 1,
                     ),
                 ),
                 'tlapi' => array(
                     'post' => array(
-                        'get_positions',
-                        'position_history',
-                        'active_positions',
-                        'create_position',
-                        'change_position',
-                        'cancel_position',
+                        'get_positions' => 66, // 10 in 60 seconds = 0.166 per second => cost = 10 / 0.166 = 66
+                        'position_history' => 66, // 10 in 60 seconds
+                        'active_positions' => 5, // 20 in 10 seconds
+                        'create_position' => 33, // 3 in 10 seconds = 0.3 per second => cost = 10 / 0.3 = 33
+                        'change_position' => 33, // 3 in 10 seconds
+                        'cancel_position' => 33, // 3 in 10 seconds
                     ),
                 ),
                 'fapi' => array(
                     'get' => array(
-                        'groups/{group_id}',
-                        'last_price/{group_id}/{pair}',
-                        'ticker/{group_id}/{pair}',
-                        'trades/{group_id}/{pair}',
-                        'depth/{group_id}/{pair}',
+                        'groups/{group_id}' => 1, // testing
+                        'last_price/{group_id}/{pair}' => 1,
+                        'ticker/{group_id}/{pair}' => 1,
+                        'trades/{group_id}/{pair}' => 1,
+                        'depth/{group_id}/{pair}' => 1,
                     ),
                 ),
             ),
@@ -336,18 +337,27 @@ class zaif extends Exchange {
     }
 
     public function parse_trade($trade, $market = null) {
+        //
+        // fetchTrades (public)
+        //
+        //      {
+        //          "date" => 1648559414,
+        //          "price" => 5880375.0,
+        //          "amount" => 0.017,
+        //          "tid" => 176126557,
+        //          "currency_pair" => "btc_jpy",
+        //          "trade_type" => "ask"
+        //      }
+        //
         $side = $this->safe_string($trade, 'trade_type');
         $side = ($side === 'bid') ? 'buy' : 'sell';
         $timestamp = $this->safe_timestamp($trade, 'date');
         $id = $this->safe_string_2($trade, 'id', 'tid');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $marketId = $this->safe_string($trade, 'currency_pair');
         $symbol = $this->safe_symbol($marketId, $market, '_');
-        return array(
+        return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -357,11 +367,11 @@ class zaif extends Exchange {
             'side' => $side,
             'order' => null,
             'takerOrMaker' => null,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'fee' => null,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -371,6 +381,18 @@ class zaif extends Exchange {
             'pair' => $market['id'],
         );
         $response = yield $this->publicGetTradesPair (array_merge($request, $params));
+        //
+        //      array(
+        //          array(
+        //              "date" => 1648559414,
+        //              "price" => 5880375.0,
+        //              "amount" => 0.017,
+        //              "tid" => 176126557,
+        //              "currency_pair" => "btc_jpy",
+        //              "trade_type" => "ask"
+        //          ), ...
+        //      )
+        //
         $numTrades = is_array($response) ? count($response) : 0;
         if ($numTrades === 1) {
             $firstTrade = $response[0];

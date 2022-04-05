@@ -48,7 +48,6 @@ export default class bittrex extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
-                'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
                 'fetchMarkets': true,
@@ -253,6 +252,7 @@ export default class bittrex extends Exchange {
             'commonCurrencies': {
                 'BIFI': 'Bifrost Finance',
                 'BTR': 'BTRIPS',
+                'GMT': 'GMT Token',
                 'MEME': 'Memetic', // conflict with Meme Inu
                 'MER': 'Mercury', // conflict with Mercurial Finance
                 'PROS': 'Pros.Finance',

@@ -42,7 +42,6 @@ export default class probit extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
-                'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
                 'fetchMarkets': true,
@@ -191,7 +190,9 @@ export default class probit extends Exchange {
                 'CHE': 'Chellit',
                 'CLR': 'Color Platform',
                 'CTK': 'Cryptyk',
+                'CTT': 'Castweet',
                 'DIP': 'Dipper',
+                'DKT': 'DAKOTA',
                 'EGC': 'EcoG9coin',
                 'EPS': 'Epanus',  // conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
                 'FX': 'Fanzy',
@@ -202,8 +203,10 @@ export default class probit extends Exchange {
                 'GRB': 'Global Reward Bank',
                 'HBC': 'Hybrid Bank Cash',
                 'HUSL': 'The Hustle App',
+                'LAND': 'Landbox',
                 'LBK': 'Legal Block',
                 'ORC': 'Oracle System',
+                'PXP': 'PIXSHOP COIN',
                 'PYE': 'CreamPYE',
                 'ROOK': 'Reckoon',
                 'SOC': 'Soda Coin',
@@ -720,21 +723,18 @@ export default class probit extends Exchange {
         const side = this.safeString (trade, 'side');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'quantity');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const orderId = this.safeString (trade, 'order_id');
-        const feeCost = this.safeNumber (trade, 'fee_amount');
+        const feeCostString = this.safeString (trade, 'fee_amount');
         let fee = undefined;
-        if (feeCost !== undefined) {
+        if (feeCostString !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fee_currency_id');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             };
         }
-        return {
+        return this.safeTrade ({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -744,11 +744,11 @@ export default class probit extends Exchange {
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchTime (params = {}) {

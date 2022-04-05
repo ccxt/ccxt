@@ -139,6 +139,7 @@ export default class latoken extends Exchange {
                 'GDX': 'GoldenX',
                 'GEC': 'Geco One',
                 'GEM': 'NFTmall',
+                'GMT': 'GMT Token',
                 'IMC': 'IMCoin',
                 'MT': 'Monarch',
                 'TPAY': 'Tetra Pay',

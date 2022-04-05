@@ -49,7 +49,6 @@ class mexc extends Exchange {
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => true,
-                'fetchIsolatedPositions' => null,
                 'fetchLeverage' => null,
                 'fetchLeverageTiers' => true,
                 'fetchMarketLeverageTiers' => 'emulated',
@@ -72,10 +71,13 @@ class mexc extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
+                'fetchTransfer' => true,
+                'fetchTransfers' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
                 'setLeverage' => true,
                 'setMarginMode' => false,
+                'transfer' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -257,6 +259,21 @@ class mexc extends Exchange {
                     'ERC20' => 'ERC-20',
                     'BEP20' => 'BEP20(BSC)',
                 ),
+                'transfer' => array(
+                    'accounts' => array(
+                        'spot' => 'MAIN',
+                        'swap' => 'CONTRACT',
+                    ),
+                    'accountsById' => array(
+                        'MAIN' => 'spot',
+                        'CONTRACT' => 'swap',
+                    ),
+                    'status' => array(
+                        'SUCCESS' => 'ok',
+                        'FAILED' => 'failed',
+                        'WAIT' => 'pending',
+                    ),
+                ),
             ),
             'commonCurrencies' => array(
                 'BEYONDPROTOCOL' => 'BEYOND',
@@ -270,10 +287,12 @@ class mexc extends Exchange {
                 'FLUX1' => 'FLUX', // switched places
                 'FLUX' => 'FLUX1', // switched places
                 'FREE' => 'FreeRossDAO', // conflict with FREE Coin
+                'GMT' => 'GMT Token',
                 'HERO' => 'Step Hero', // conflict with Metahero
                 'MIMO' => 'Mimosa',
                 'PROS' => 'Pros.Finance', // conflict with Prosper
                 'SIN' => 'Sin City Token',
+                'STEPN' => 'GMT',
             ),
             'exceptions' => array(
                 'exact' => array(
@@ -281,6 +300,7 @@ class mexc extends Exchange {
                     '401' => '\\ccxt\\AuthenticationError', // Invalid signature, fail to pass the validation
                     '403' => '\\ccxt\\PermissionDenied', // array("msg":"no permission to access the endpoint","code":403)
                     '429' => '\\ccxt\\RateLimitExceeded', // too many requests, rate limit rule is violated
+                    '703' => '\\ccxt\\PermissionDenied', // Require trade read permission!
                     '1000' => '\\ccxt\\AccountNotEnabled', // array("success":false,"code":1000,"message":"Please open contract account first!")
                     '1002' => '\\ccxt\\InvalidOrder', // array("success":false,"code":1002,"message":"Contract not allow place order!")
                     '10072' => '\\ccxt\\AuthenticationError', // Invalid access key
@@ -2244,6 +2264,143 @@ class mexc extends Exchange {
             'leverage' => $leverage,
         );
         return yield $this->contractPrivatePostPositionChangeLeverage (array_merge($request, $params));
+    }
+
+    public function fetch_transfer($id, $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'transact_id' => $id,
+        );
+        $response = yield $this->spotPrivateGetAssetInternalTransferInfo (array_merge($request, $params));
+        //
+        //     {
+        //         code => '200',
+        //         $data => {
+        //             currency => 'USDT',
+        //             amount => '1',
+        //             transact_id => '954877a2ef54499db9b28a7cf9ebcf41',
+        //             from => 'MAIN',
+        //             to => 'CONTRACT',
+        //             transact_state => 'SUCCESS'
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_transfer($data);
+    }
+
+    public function fetch_transfers($code = null, $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        $request = array();
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency'] = $currency['id'];
+        }
+        if ($since !== null) {
+            $request['start_time'] = $since;
+        }
+        if ($limit !== null) {
+            if ($limit > 50) {
+                throw new ExchangeError('This exchange supports a maximum $limit of 50');
+            }
+            $request['page-size'] = $limit;
+        }
+        $response = yield $this->spotPrivateGetAssetInternalTransferRecord (array_merge($request, $params));
+        //
+        //     {
+        //         $code => '200',
+        //         $data => {
+        //             total_page => '1',
+        //             total_size => '5',
+        //             result_list => [array(
+        //                     $currency => 'USDT',
+        //                     amount => '1',
+        //                     transact_id => '954877a2ef54499db9b28a7cf9ebcf41',
+        //                     from => 'MAIN',
+        //                     to => 'CONTRACT',
+        //                     transact_state => 'SUCCESS'
+        //                 ),
+        //                 ...
+        //             ]
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $resultList = $this->safe_value($data, 'result_list', array());
+        return $this->parse_transfers($resultList, $currency, $since, $limit);
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        yield $this->load_markets();
+        $currency = $this->currency($code);
+        $transferOptions = $this->safe_value($this->options, 'transfer', array());
+        $accounts = $this->safe_value($transferOptions, 'accounts', array());
+        $fromId = $this->safe_string($accounts, $fromAccount);
+        $toId = $this->safe_string($accounts, $toAccount);
+        if ($fromId === null) {
+            $keys = is_array($accounts) ? array_keys($accounts) : array();
+            throw new ExchangeError($this->id . ' $fromAccount must be one of ' . implode(', ', $keys));
+        }
+        if ($toId === null) {
+            $keys = is_array($accounts) ? array_keys($accounts) : array();
+            throw new ExchangeError($this->id . ' $toAccount must be one of ' . implode(', ', $keys));
+        }
+        $request = array(
+            'currency' => $currency['id'],
+            'amount' => $amount,
+            'from' => $fromId,
+            'to' => $toId,
+        );
+        $response = yield $this->spotPrivatePostAssetInternalTransfer (array_merge($request, $params));
+        //
+        //     {
+        //         $code => '200',
+        //         $data => {
+        //             $currency => 'USDT',
+        //             $amount => '1',
+        //             transact_id => 'b60c1df8e7b24b268858003f374ecb75',
+        //             from => 'MAIN',
+        //             to => 'CONTRACT',
+        //             transact_state => 'WAIT'
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_transfer($data, $currency);
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        //     {
+        //         $currency => 'USDT',
+        //         amount => '1',
+        //         transact_id => 'b60c1df8e7b24b268858003f374ecb75',
+        //         from => 'MAIN',
+        //         to => 'CONTRACT',
+        //         transact_state => 'WAIT'
+        //     }
+        //
+        $transferOptions = $this->safe_value($this->options, 'transfer', array());
+        $transferStatusById = $this->safe_value($transferOptions, 'status', array());
+        $currencyId = $this->safe_string($transfer, 'currency');
+        $id = $this->safe_string($transfer, 'transact_id');
+        $fromId = $this->safe_string($transfer, 'from');
+        $toId = $this->safe_string($transfer, 'to');
+        $accountsById = $this->safe_value($transferOptions, 'accountsById', array());
+        $fromAccount = $this->safe_string($accountsById, $fromId);
+        $toAccount = $this->safe_string($accountsById, $toId);
+        $statusId = $this->safe_string($transfer, 'transact_state');
+        return array(
+            'info' => $transfer,
+            'id' => $id,
+            'timestamp' => null,
+            'datetime' => null,
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'amount' => $this->safe_number($transfer, 'amount'),
+            'fromAccount' => $fromAccount,
+            'toAccount' => $toAccount,
+            'status' => $this->safe_string($transferStatusById, $statusId),
+        );
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {

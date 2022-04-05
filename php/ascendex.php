@@ -26,9 +26,9 @@ class ascendex extends Exchange {
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
-                'margin' => null, // has but not fully inplemented
+                'margin' => true,
                 'swap' => true,
-                'future' => false,
+                'future' => true,
                 'option' => false,
                 'addMargin' => true,
                 'cancelAllOrders' => true,
@@ -46,7 +46,6 @@ class ascendex extends Exchange {
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => false,
-                'fetchIsolatedPositions' => false,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => true,
                 'fetchMarketLeverageTiers' => 'emulated',
@@ -67,11 +66,14 @@ class ascendex extends Exchange {
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
                 'fetchTransactions' => true,
+                'fetchTransfer' => false,
+                'fetchTransfers' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
                 'setLeverage' => true,
                 'setMarginMode' => true,
                 'setPositionMode' => false,
+                'transfer' => true,
             ),
             'timeframes' => array(
                 '1m' => '1',
@@ -98,7 +100,7 @@ class ascendex extends Exchange {
                 ),
                 'www' => 'https://ascendex.com',
                 'doc' => array(
-                    'https://bitmax-exchange.github.io/bitmax-pro-api/#bitmax-pro-api-documentation',
+                    'https://ascendex.github.io/ascendex-pro-api/#ascendex-pro-api-documentation',
                 ),
                 'fees' => 'https://ascendex.com/en/feerate/transactionfee-traderate',
                 'referral' => array(
@@ -126,6 +128,7 @@ class ascendex extends Exchange {
                             'futures/ref-px',
                             'futures/market-data',
                             'futures/funding-rates',
+                            'risk-limit-info',
                         ),
                     ),
                     'private' => array(
@@ -159,7 +162,6 @@ class ascendex extends Exchange {
                                 'cash/balance',
                                 'margin/balance',
                                 'margin/risk',
-                                'transfer',
                                 'futures/collateral-balance',
                                 'futures/position',
                                 'futures/risk',
@@ -168,6 +170,7 @@ class ascendex extends Exchange {
                                 'spot/fee',
                             ),
                             'post' => array(
+                                'transfer',
                                 'futures/transfer/deposit',
                                 'futures/transfer/withdraw',
                             ),
@@ -238,6 +241,9 @@ class ascendex extends Exchange {
                     'spot' => 'cash',
                     'swap' => 'futures',
                     'margin' => 'margin',
+                ),
+                'transfer' => array(
+                    'fillResponseFromRequest' => true,
                 ),
             ),
             'exceptions' => array(
@@ -391,7 +397,8 @@ class ascendex extends Exchange {
             $id = $ids[$i];
             $currency = $dataById[$id];
             $code = $this->safe_currency_code($id);
-            $precision = $this->safe_string_2($currency, 'precisionScale', 'nativeScale');
+            $scale = $this->safe_string_2($currency, 'precisionScale', 'nativeScale');
+            $precision = $this->parse_number($this->parse_precision($scale));
             // why would the exchange API have different names for the same field
             $fee = $this->safe_number_2($currency, 'withdrawFee', 'withdrawalFee');
             $status = $this->safe_string_2($currency, 'status', 'statusCode');
@@ -408,10 +415,10 @@ class ascendex extends Exchange {
                 'deposit' => null,
                 'withdraw' => null,
                 'fee' => $fee,
-                'precision' => intval($precision),
+                'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => $this->parse_number($this->parse_precision($precision)),
+                        'min' => $precision,
                         'max' => null,
                     ),
                     'withdraw' => array(
@@ -2401,6 +2408,61 @@ class ascendex extends Exchange {
             );
         }
         return $tiers;
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        $this->load_markets();
+        $this->load_accounts();
+        $account = $this->safe_value($this->accounts, 0, array());
+        $accountGroup = $this->safe_string($account, 'id');
+        $currency = $this->currency($code);
+        $amount = $this->currency_to_precision($code, $amount);
+        $accountCategories = $this->safe_value($this->options, 'accountCategories', array());
+        $fromId = $this->safe_string($accountCategories, $fromAccount);
+        $toId = $this->safe_string($accountCategories, $toAccount);
+        if ($fromId === null) {
+            $keys = is_array($accountCategories) ? array_keys($accountCategories) : array();
+            throw new ExchangeError($this->id . ' $fromAccount must be one of ' . implode(', ', $keys));
+        }
+        if ($toId === null) {
+            $keys = is_array($accountCategories) ? array_keys($accountCategories) : array();
+            throw new ExchangeError($this->id . ' $toAccount must be one of ' . implode(', ', $keys));
+        }
+        if ($fromAccount !== 'spot' && $toAccount !== 'spot') {
+            throw new ExchangeError('This exchange only supports direct balance $transfer between spot and swap, spot and margin');
+        }
+        $request = array(
+            'account-group' => $accountGroup,
+            'amount' => $amount,
+            'asset' => $currency['id'],
+            'fromAccount' => $fromId,
+            'toAccount' => $toId,
+        );
+        $response = $this->v1PrivateAccountGroupPostTransfer (array_merge($request, $params));
+        //
+        //    array( $code => '0' )
+        //
+        $status = $this->safe_integer($response, 'code');
+        $transferOptions = $this->safe_value($this->options, 'transfer', array());
+        $fillResponseFromRequest = $this->safe_value($transferOptions, 'fillResponseFromRequest', true);
+        $transfer = array(
+            'info' => $response,
+            'status' => $this->parse_transfer_status($status),
+        );
+        if ($fillResponseFromRequest) {
+            $transfer['fromAccount'] = $fromAccount;
+            $transfer['toAccount'] = $toAccount;
+            $transfer['amount'] = $amount;
+            $transfer['currency'] = $code;
+        }
+        return $transfer;
+    }
+
+    public function parse_transfer_status($status) {
+        if ($status === 0) {
+            return 'ok';
+        }
+        return 'failed';
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

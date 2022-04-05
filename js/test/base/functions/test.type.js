@@ -5,7 +5,7 @@ import { equal, deepEqual } from 'assert.js'
 
 /*  ------------------------------------------------------------------------ */
 
-it ('safeFloat/safeInteger is robust', async () => {
+function testSafeFloatSafeInteger() {
 
     const $default = {}
 
@@ -36,17 +36,20 @@ it ('safeFloat/safeInteger is robust', async () => {
 
     equal (safeFloat   ({ 'x': 1.59999999 }, 'x'), 1.59999999)
     equal (safeInteger ({ 'x': 1.59999999 }, 'x'), 1)
-})
+}
 
-/*  ------------------------------------------------------------------------ */
-
-it ('safeValue works', () => {
+function testSafeValue() {
 
     equal (safeValue ({}, 'foo'), undefined)
     equal (safeValue ({}, 'foo', 'bar'), 'bar')
     equal (safeValue ({ 'foo': 'bar' }, 'foo'), 'bar')
     equal (safeValue ({ 'foo': '' }, 'foo'), '')
     equal (safeValue ({ 'foo': 0 }, 'foo'), 0)
-})
+}
 
-/*  ------------------------------------------------------------------------ */
+function testType () {
+    testSafeFloatSafeInteger ()
+    testSafeValue ()
+}
+
+testType ()

@@ -205,6 +205,7 @@ export default class bybit extends Exchange {
                             'stop-order/list',
                             'stop-order',
                             'position/list',
+                            'position/fee-rate',
                             'execution/list',
                             'trade/closed-pnl/list',
                             'funding/prev-funding-rate',
@@ -313,6 +314,7 @@ export default class bybit extends Exchange {
                         'v2/private/stop-order/list': 5,
                         'v2/private/stop-order': 1,
                         'v2/private/position/list': 25,
+                        'v2/private/position/fee-rate': 40,
                         'v2/private/execution/list': 25,
                         'v2/private/trade/closed-pnl/list': 1,
                         'v2/public/risk-limit/list': 1, // TODO check

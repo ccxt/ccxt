@@ -59,7 +59,6 @@ export default class aax extends Exchange {
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
-                'fetchIsolatedPositions': undefined,
                 'fetchL3OrderBook': undefined,
                 'fetchLedger': undefined,
                 'fetchLedgerEntry': undefined,
@@ -92,7 +91,8 @@ export default class aax extends Exchange {
                 'fetchTradingFees': false,
                 'fetchTradingLimits': undefined,
                 'fetchTransactions': undefined,
-                'fetchTransfers': undefined,
+                'fetchTransfer': false,
+                'fetchTransfers': true,
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': undefined,
@@ -175,6 +175,7 @@ export default class aax extends Exchange {
                         'account/balances', // Get Account Balances
                         'account/deposit/address', // undocumented
                         'account/deposits', // Get account deposits history
+                        'account/transfer',
                         'account/withdraws', // Get account withdrawals history
                         'spot/trades', // Retrieve trades details for a spot order
                         'spot/openOrders', // Retrieve spot open orders
@@ -814,6 +815,38 @@ export default class aax extends Exchange {
             'cost': undefined,
             'fee': fee,
         }, market);
+    }
+
+    async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let currency = undefined;
+        const request = {};
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const response = await this.privateGetAccountTransfer (this.extend (request, params));
+        //
+        //      {
+        //          code: '1',
+        //          data: [{
+        //                  quantity: '0.000010000000',
+        //                  transferID: '480975741034369024',
+        //                  transferTime: '2022-03-24T13:53:07.042Z',
+        //                  fromPurse: 'VLTP',
+        //                  toPurse: 'SPTP',
+        //                  currency: 'ETH'
+        //              },
+        //          ],
+        //          message: 'success',
+        //          ts: '1648338516932'
+        //      }
+        //
+        const transfers = this.safeValue (response, 'data', []);
+        return this.parseTransfers (transfers, currency, since, limit);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -2375,27 +2408,42 @@ export default class aax extends Exchange {
     }
 
     parseTransfer (transfer, currency = undefined) {
-        const data = this.safeValue (transfer, 'data', {});
-        const id = this.safeString (data, 'transferID');
-        const dateTime = this.safeString (data, 'transferTime');
-        const timestamp = this.safeNumber (transfer, 'ts');
-        const currencyCode = this.safeString (currency, 'code');
-        const responseCode = this.safeString (transfer, 'code');
-        let status = 'canceled';
-        if (responseCode === '1') {
-            status = 'ok';
-        }
+        //     {
+        //          quantity: '0.000010000000',
+        //          transferID: '480975741034369024',
+        //          transferTime: '2022-03-24T13:53:07.042Z',
+        //          fromPurse: 'VLTP',
+        //          toPurse: 'SPTP',
+        //          currency: 'ETH'
+        //     },
+        const id = this.safeString (transfer, 'transferID');
+        const amount = this.safeNumber (transfer, 'quantity');
+        const timestamp = this.parse8601 (this.safeString (transfer, 'transferTime'));
+        const accounts = this.safeValue (this.options, 'accounts', {});
+        const fromId = this.safeString (transfer, 'fromPurse');
+        const toId = this.safeString (transfer, 'toPurse');
+        const fromAccount = this.safeString (accounts, fromId);
+        const toAccount = this.safeString (accounts, toId);
+        const currencyId = this.safeString (transfer, 'currency');
+        const currencyCode = this.safeCurrencyCode (currencyId, currency);
         return {
             'info': transfer,
             'id': id,
             'timestamp': timestamp,
-            'datetime': dateTime,
+            'datetime': this.iso8601 (timestamp),
             'currency': currencyCode,
-            'amount': undefined,
-            'fromAccount': undefined,
-            'toAccount': undefined,
-            'status': status,
+            'amount': amount,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': undefined,
         };
+    }
+
+    parseTransferStatus (status) {
+        const statuses = {
+            '1': 'ok',
+        };
+        return this.safeString (statuses, status, 'canceled');
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
@@ -2430,17 +2478,23 @@ export default class aax extends Exchange {
         //         "ts": 1647962945151
         //     }
         //
-        const transfer = this.parseTransfer (response, currency);
+        const data = this.safeValue (response, 'data', {});
+        const transfer = this.parseTransfer (data, currency);
         const transferOptions = this.safeValue (this.options, 'transfer', {});
         const fillFromAccountToAccount = this.safeValue (transferOptions, 'fillFromAccountToAccount', true);
         const fillAmount = this.safeValue (transferOptions, 'fillAmount', true);
         if (fillFromAccountToAccount) {
-            transfer['fromAccount'] = fromAccount;
-            transfer['toAccount'] = toAccount;
+            if (transfer['fromAccount'] === undefined) {
+                transfer['fromAccount'] = fromAccount;
+            }
+            if (transfer['toAccount'] === undefined) {
+                transfer['toAccount'] = toAccount;
+            }
         }
-        if (fillAmount) {
+        if (fillAmount && transfer['amount'] === undefined) {
             transfer['amount'] = amount;
         }
+        transfer['status'] = this.parseTransferStatus (this.safeString (response, 'code'));
         return transfer;
     }
 

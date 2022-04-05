@@ -42,7 +42,6 @@ export default class mexc extends Exchange {
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': true,
-                'fetchIsolatedPositions': undefined,
                 'fetchLeverage': undefined,
                 'fetchLeverageTiers': true,
                 'fetchMarketLeverageTiers': 'emulated',
@@ -65,10 +64,13 @@ export default class mexc extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
+                'fetchTransfer': true,
+                'fetchTransfers': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
                 'setLeverage': true,
                 'setMarginMode': false,
+                'transfer': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -250,6 +252,21 @@ export default class mexc extends Exchange {
                     'ERC20': 'ERC-20',
                     'BEP20': 'BEP20(BSC)',
                 },
+                'transfer': {
+                    'accounts': {
+                        'spot': 'MAIN',
+                        'swap': 'CONTRACT',
+                    },
+                    'accountsById': {
+                        'MAIN': 'spot',
+                        'CONTRACT': 'swap',
+                    },
+                    'status': {
+                        'SUCCESS': 'ok',
+                        'FAILED': 'failed',
+                        'WAIT': 'pending',
+                    },
+                },
             },
             'commonCurrencies': {
                 'BEYONDPROTOCOL': 'BEYOND',
@@ -263,10 +280,12 @@ export default class mexc extends Exchange {
                 'FLUX1': 'FLUX', // switched places
                 'FLUX': 'FLUX1', // switched places
                 'FREE': 'FreeRossDAO', // conflict with FREE Coin
+                'GMT': 'GMT Token',
                 'HERO': 'Step Hero', // conflict with Metahero
                 'MIMO': 'Mimosa',
                 'PROS': 'Pros.Finance', // conflict with Prosper
                 'SIN': 'Sin City Token',
+                'STEPN': 'GMT',
             },
             'exceptions': {
                 'exact': {
@@ -274,6 +293,7 @@ export default class mexc extends Exchange {
                     '401': AuthenticationError, // Invalid signature, fail to pass the validation
                     '403': PermissionDenied, // {"msg":"no permission to access the endpoint","code":403}
                     '429': RateLimitExceeded, // too many requests, rate limit rule is violated
+                    '703': PermissionDenied, // Require trade read permission!
                     '1000': AccountNotEnabled, // {"success":false,"code":1000,"message":"Please open contract account first!"}
                     '1002': InvalidOrder, // {"success":false,"code":1002,"message":"Contract not allow place order!"}
                     '10072': AuthenticationError, // Invalid access key
@@ -2237,6 +2257,143 @@ export default class mexc extends Exchange {
             'leverage': leverage,
         };
         return await this.contractPrivatePostPositionChangeLeverage (this.extend (request, params));
+    }
+
+    async fetchTransfer (id, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'transact_id': id,
+        };
+        const response = await this.spotPrivateGetAssetInternalTransferInfo (this.extend (request, params));
+        //
+        //     {
+        //         code: '200',
+        //         data: {
+        //             currency: 'USDT',
+        //             amount: '1',
+        //             transact_id: '954877a2ef54499db9b28a7cf9ebcf41',
+        //             from: 'MAIN',
+        //             to: 'CONTRACT',
+        //             transact_state: 'SUCCESS'
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseTransfer (data);
+    }
+
+    async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['start_time'] = since;
+        }
+        if (limit !== undefined) {
+            if (limit > 50) {
+                throw new ExchangeError ('This exchange supports a maximum limit of 50');
+            }
+            request['page-size'] = limit;
+        }
+        const response = await this.spotPrivateGetAssetInternalTransferRecord (this.extend (request, params));
+        //
+        //     {
+        //         code: '200',
+        //         data: {
+        //             total_page: '1',
+        //             total_size: '5',
+        //             result_list: [{
+        //                     currency: 'USDT',
+        //                     amount: '1',
+        //                     transact_id: '954877a2ef54499db9b28a7cf9ebcf41',
+        //                     from: 'MAIN',
+        //                     to: 'CONTRACT',
+        //                     transact_state: 'SUCCESS'
+        //                 },
+        //                 ...
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const resultList = this.safeValue (data, 'result_list', []);
+        return this.parseTransfers (resultList, currency, since, limit);
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const transferOptions = this.safeValue (this.options, 'transfer', {});
+        const accounts = this.safeValue (transferOptions, 'accounts', {});
+        const fromId = this.safeString (accounts, fromAccount);
+        const toId = this.safeString (accounts, toAccount);
+        if (fromId === undefined) {
+            const keys = Object.keys (accounts);
+            throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', '));
+        }
+        if (toId === undefined) {
+            const keys = Object.keys (accounts);
+            throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', '));
+        }
+        const request = {
+            'currency': currency['id'],
+            'amount': amount,
+            'from': fromId,
+            'to': toId,
+        };
+        const response = await this.spotPrivatePostAssetInternalTransfer (this.extend (request, params));
+        //
+        //     {
+        //         code: '200',
+        //         data: {
+        //             currency: 'USDT',
+        //             amount: '1',
+        //             transact_id: 'b60c1df8e7b24b268858003f374ecb75',
+        //             from: 'MAIN',
+        //             to: 'CONTRACT',
+        //             transact_state: 'WAIT'
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseTransfer (data, currency);
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        //     {
+        //         currency: 'USDT',
+        //         amount: '1',
+        //         transact_id: 'b60c1df8e7b24b268858003f374ecb75',
+        //         from: 'MAIN',
+        //         to: 'CONTRACT',
+        //         transact_state: 'WAIT'
+        //     }
+        //
+        const transferOptions = this.safeValue (this.options, 'transfer', {});
+        const transferStatusById = this.safeValue (transferOptions, 'status', {});
+        const currencyId = this.safeString (transfer, 'currency');
+        const id = this.safeString (transfer, 'transact_id');
+        const fromId = this.safeString (transfer, 'from');
+        const toId = this.safeString (transfer, 'to');
+        const accountsById = this.safeValue (transferOptions, 'accountsById', {});
+        const fromAccount = this.safeString (accountsById, fromId);
+        const toAccount = this.safeString (accountsById, toId);
+        const statusId = this.safeString (transfer, 'transact_state');
+        return {
+            'info': transfer,
+            'id': id,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': this.safeNumber (transfer, 'amount'),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': this.safeString (transferStatusById, statusId),
+        };
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {

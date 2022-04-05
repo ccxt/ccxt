@@ -55,7 +55,6 @@ class coinbase(Exchange):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
-                'fetchIsolatedPositions': False,
                 'fetchL2OrderBook': False,
                 'fetchLedger': True,
                 'fetchLeverage': False,

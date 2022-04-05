@@ -3,7 +3,6 @@
 
 import { Exchange } from './base/Exchange.js';
 import { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, CancelPending, OrderNotFound, InsufficientFunds, RateLimitExceeded, InvalidOrder, AccountSuspended, BadSymbol, OnMaintenance, ArgumentsRequired } from './base/errors.js';
-import { Precise } from './base/Precise.js';
 import { TRUNCATE } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
@@ -14,7 +13,9 @@ export default class novadax extends Exchange {
             'id': 'novadax',
             'name': 'NovaDAX',
             'countries': [ 'BR' ], // Brazil
-            'rateLimit': 50,
+            // 60 requests per second = 1000ms / 60 = 16.6667ms between requests (public endpoints, limited by IP address)
+            // 20 requests per second => cost = 60 / 20 = 3 (private endpoints, limited by API Key)
+            'rateLimit': 16.6667,
             'version': 'v1',
             // new metainfo interface
             'has': {
@@ -43,7 +44,6 @@ export default class novadax extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
-                'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
                 'fetchMarkets': true,
@@ -98,35 +98,35 @@ export default class novadax extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'common/symbol',
-                        'common/symbols',
-                        'common/timestamp',
-                        'market/tickers',
-                        'market/ticker',
-                        'market/depth',
-                        'market/trades',
-                        'market/kline/history',
-                    ],
+                    'get': {
+                        'common/symbol': 1.2,
+                        'common/symbols': 1.2,
+                        'common/timestamp': 1.2,
+                        'market/tickers': 1.2,
+                        'market/ticker': 1.2,
+                        'market/depth': 1.2,
+                        'market/trades': 1.2,
+                        'market/kline/history': 1.2,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'orders/get',
-                        'orders/list',
-                        'orders/fill',
-                        'orders/fills',
-                        'account/getBalance',
-                        'account/subs',
-                        'account/subs/balance',
-                        'account/subs/transfer/record',
-                        'wallet/query/deposit-withdraw',
-                    ],
-                    'post': [
-                        'orders/create',
-                        'orders/cancel',
-                        'account/withdraw/coin',
-                        'account/subs/transfer',
-                    ],
+                    'get': {
+                        'orders/get': 3,
+                        'orders/list': 3,
+                        'orders/fill': 3,
+                        'orders/fills': 3,
+                        'account/getBalance': 3,
+                        'account/subs': 3,
+                        'account/subs/balance': 3,
+                        'account/subs/transfer/record': 3,
+                        'wallet/query/deposit-withdraw': 3,
+                    },
+                    'post': {
+                        'orders/create': 3,
+                        'orders/cancel': 3,
+                        'account/withdraw/coin': 3,
+                        'account/subs/transfer': 3,
+                    },
                 },
             },
             'fees': {
@@ -432,33 +432,35 @@ export default class novadax extends Exchange {
         //
         // private fetchOrderTrades
         //
-        //     {
-        //         "id": "608717046691139584",
-        //         "orderId": "608716957545402368",
-        //         "symbol": "BTC_BRL",
-        //         "side": "BUY",
-        //         "amount": "0.0988",
-        //         "price": "45514.76",
-        //         "fee": "0.0000988 BTC",
-        //         "role": "MAKER",
-        //         "timestamp": 1565171053345
-        //     }
+        //      {
+        //          "id": "608717046691139584",
+        //          "orderId": "608716957545402368",
+        //          "symbol": "BTC_BRL",
+        //          "side": "BUY",
+        //          "amount": "0.0988",
+        //          "price": "45514.76",
+        //          "fee": "0.0000988 BTC",
+        //          "feeAmount": "0.0000988",
+        //          "feeCurrency": "BTC",
+        //          "role": "MAKER",
+        //          "timestamp": 1565171053345
+        //       }
         //
-        // private fetchMyTrades
+        // private fetchMyTrades (same endpoint as fetchOrderTrades)
         //
-        //     {
-        //         "id": "608717046691139584",
-        //         "orderId": "608716957545402368",
-        //         "symbol": "BTC_BRL",
-        //         "side": "BUY",
-        //         "amount": "0.0988",
-        //         "price": "45514.76",
-        //         "fee": "0.0000988 BTC",
-        //         "feeAmount": "0.0000988",
-        //         "feeCurrency": "BTC",
-        //         "role": "MAKER",
-        //         "timestamp": 1565171053345
-        //     }
+        //      {
+        //          "id": "608717046691139584",
+        //          "orderId": "608716957545402368",
+        //          "symbol": "BTC_BRL",
+        //          "side": "BUY",
+        //          "amount": "0.0988",
+        //          "price": "45514.76",
+        //          "fee": "0.0000988 BTC",
+        //          "feeAmount": "0.0000988",
+        //          "feeCurrency": "BTC",
+        //          "role": "MAKER",
+        //          "timestamp": 1565171053345
+        //       }
         //
         const id = this.safeString (trade, 'id');
         const orderId = this.safeString (trade, 'orderId');
@@ -466,27 +468,20 @@ export default class novadax extends Exchange {
         const side = this.safeStringLower (trade, 'side');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        let cost = this.safeNumber (trade, 'volume');
-        if (cost === undefined) {
-            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
-        }
         const marketId = this.safeString (trade, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '_');
         const takerOrMaker = this.safeStringLower (trade, 'role');
         const feeString = this.safeString (trade, 'fee');
         let fee = undefined;
         if (feeString !== undefined) {
-            const parts = feeString.split (' ');
-            const feeCurrencyId = this.safeString (parts, 1);
+            const feeCurrencyId = this.safeString (trade, 'feeCurrency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
-                'cost': this.safeNumber (parts, 0),
+                'cost': this.safeString (trade, 'feeAmount'),
                 'currency': feeCurrencyCode,
             };
         }
-        return {
+        return this.safeTrade ({
             'id': id,
             'order': orderId,
             'timestamp': timestamp,
@@ -494,13 +489,13 @@ export default class novadax extends Exchange {
             'symbol': symbol,
             'type': undefined,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'takerOrMaker': takerOrMaker,
             'fee': fee,
             'info': trade,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -847,23 +842,25 @@ export default class novadax extends Exchange {
         }
         const data = this.safeValue (response, 'data', []);
         //
-        //     {
-        //         "code": "A10000",
-        //         "data": [
-        //             {
-        //                 "id": "608717046691139584",
-        //                 "orderId": "608716957545402368",
-        //                 "symbol": "BTC_BRL",
-        //                 "side": "BUY",
-        //                 "amount": "0.0988",
-        //                 "price": "45514.76",
-        //                 "fee": "0.0000988 BTC",
-        //                 "role": "MAKER",
-        //                 "timestamp": 1565171053345
-        //             },
-        //         ],
-        //         "message": "Success"
-        //     }
+        //      {
+        //          "code": "A10000",
+        //          "data": [
+        //              {
+        //                  "id": "608717046691139584",
+        //                  "orderId": "608716957545402368",
+        //                  "symbol": "BTC_BRL",
+        //                  "side": "BUY",
+        //                  "amount": "0.0988",
+        //                  "price": "45514.76",
+        //                  "fee": "0.0000988 BTC",
+        //                  "feeAmount": "0.0000988",
+        //                  "feeCurrency": "BTC",
+        //                  "role": "MAKER",
+        //                  "timestamp": 1565171053345
+        //              },
+        //          ],
+        //          "message": "Success"
+        //      }
         //
         return this.parseTrades (data, market, since, limit);
     }
@@ -1173,38 +1170,25 @@ export default class novadax extends Exchange {
         }
         const response = await this.privateGetOrdersFills (this.extend (request, params));
         //
-        //     {
-        //         "code": "A10000",
-        //         "data": [
-        //             {
-        //                 "id": "608717046691139584",
-        //                 "orderId": "608716957545402368",
-        //                 "symbol": "BTC_BRL",
-        //                 "side": "BUY",
-        //                 "amount": "0.0988",
-        //                 "price": "45514.76",
-        //                 "fee": "0.0000988 BTC",
-        //                 "feeAmount": "0.0000988",
-        //                 "feeCurrency": "BTC",
-        //                 "role": "MAKER",
-        //                 "timestamp": 1565171053345
-        //             },
-        //             {
-        //                 "id": "608717065729085441",
-        //                 "orderId": "608716957545402368",
-        //                 "symbol": "BTC_BRL",
-        //                 "side": "BUY",
-        //                 "amount": "0.0242",
-        //                 "price": "45514.76",
-        //                 "fee": "0.0000242 BTC",
-        //                 "feeAmount": "0.0000988",
-        //                 "feeCurrency": "BTC",
-        //                 "role": "MAKER",
-        //                 "timestamp": 1565171057882
-        //             }
-        //         ],
-        //         "message": "Success"
-        //     }
+        //      {
+        //          "code": "A10000",
+        //          "data": [
+        //              {
+        //                  "id": "608717046691139584",
+        //                  "orderId": "608716957545402368",
+        //                  "symbol": "BTC_BRL",
+        //                  "side": "BUY",
+        //                  "amount": "0.0988",
+        //                  "price": "45514.76",
+        //                  "fee": "0.0000988 BTC",
+        //                  "feeAmount": "0.0000988",
+        //                  "feeCurrency": "BTC",
+        //                  "role": "MAKER",
+        //                  "timestamp": 1565171053345
+        //              },
+        //          ],
+        //          "message": "Success"
+        //      }
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseTrades (data, market, since, limit);

@@ -53,9 +53,12 @@ export default class blockchaincom extends Exchange {
                 'fetchTrades': false,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
+                'fetchTransfer': false,
+                'fetchTransfers': false,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': true, // fetches exchange specific benficiary-ids needed for withdrawals
+                'transfer': false,
                 'withdraw': true,
             },
             'timeframes': undefined,
@@ -459,7 +462,7 @@ export default class blockchaincom extends Exchange {
         };
         const stopPrice = this.safeValue2 (params, 'stopPx', 'stopPrice');
         params = this.omit (params, [ 'stopPx', 'stopPrice' ]);
-        if (uppercaseOrderType === 'STOP' || uppercaseOrderType === 'LIMIT') {
+        if (uppercaseOrderType === 'STOP' || uppercaseOrderType === 'STOPLIMIT') {
             if (stopPrice === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPx or stopPrice param for a ' + uppercaseOrderType + ' order');
             }

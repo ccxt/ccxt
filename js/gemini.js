@@ -47,7 +47,6 @@ export default class gemini extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
-                'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
                 'fetchMarkets': true,
@@ -165,8 +164,8 @@ export default class gemini extends Exchange {
             'precisionMode': TICK_SIZE,
             'fees': {
                 'trading': {
-                    'taker': 0.0035,
-                    'maker': 0.001,
+                    'taker': 0.004,
+                    'maker': 0.002,
                 },
             },
             'httpExceptions': {

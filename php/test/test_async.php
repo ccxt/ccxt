@@ -52,6 +52,10 @@ $exchanges = null;
 // var_dump ($options);
 // exit ();
 
+# first we filter the args
+$verbose = count(array_filter($argv, function ($option) { return strstr($option, '--verbose') !== false; })) > 0;
+$args = array_values(array_filter($argv, function ($option) { return strstr($option, '--verbose') === false; }));
+
 //-----------------------------------------------------------------------------
 
 foreach (Exchange::$exchanges as $id) {
@@ -159,7 +163,7 @@ function test_positions($exchange, $symbol) {
             test_position($exchange, $position, null, time() * 1000);
         }
         dump(green($symbol), 'fetched', green(count($positions)), 'positions');
-        
+
         // with symbol
         dump(green($symbol), 'fetching positions...');
         $positions = yield $exchange->fetch_positions(array($symbol));
@@ -279,7 +283,9 @@ function test_symbol($exchange, $symbol, $code) {
 }
 
 function load_exchange($exchange) {
+    global $verbose;
     $markets = yield $exchange->load_markets();
+    $exchange->verbose = $verbose;
     // $exchange->verbose = true;
     $symbols = array_keys($markets);
     dump(green($exchange->id), green(count($symbols)), 'symbols:', implode(', ', $symbols));
@@ -444,10 +450,10 @@ $proxies = array(
     // 'https://crossorigin.me/',
 );
 
-$main = function() use ($argv, $exchanges, $proxies, $config) {
-    if (count($argv) > 1) {
-        if ($exchanges[$argv[1]]) {
-            $id = $argv[1];
+$main = function() use ($args, $exchanges, $proxies, $config) {
+    if (count($args) > 1) {
+        if ($exchanges[$args[1]]) {
+            $id = $args[1];
             $exchange = $exchanges[$id];
 
             $exchange_config = $exchange->safe_value($config, $id, array());
@@ -459,14 +465,15 @@ $main = function() use ($argv, $exchanges, $proxies, $config) {
 
             dump(green('EXCHANGE:'), green($exchange->id));
 
-            if (count($argv) > 2) {
+            if (count($args) > 2) {
                 yield load_exchange($exchange);
-                yield test_symbol($exchange, $argv[2]);
+                // var_dump($args);
+                yield test_symbol($exchange, $args[2]);
             } else {
                 yield try_all_proxies($exchange, $proxies);
             }
         } else {
-            echo $argv[1] . " not found.\n";
+            echo $args[1] . " not found.\n";
         }
     } else {
         foreach ($exchanges as $id => $exchange) {

@@ -80,7 +80,6 @@ class okx(Exchange):
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': True,
-                'fetchIsolatedPositions': None,
                 'fetchL3OrderBook': None,
                 'fetchLedger': True,
                 'fetchLedgerEntry': None,
@@ -1173,7 +1172,8 @@ class okx(Exchange):
         symbol = market['symbol']
         last = self.safe_string(ticker, 'last')
         open = self.safe_string(ticker, 'open24h')
-        quoteVolume = self.safe_string(ticker, 'volCcy24h') if market['spot'] else None
+        spot = self.safe_value(market, 'spot', False)
+        quoteVolume = self.safe_string(ticker, 'volCcy24h') if spot else None
         baseVolume = self.safe_string(ticker, 'vol24h')
         return self.safe_ticker({
             'symbol': symbol,

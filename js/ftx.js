@@ -49,6 +49,7 @@ export default class ftx extends Exchange {
                 'createReduceOnlyOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
+                'fetchBorrowInterest': true,
                 'fetchBorrowRate': true,
                 'fetchBorrowRateHistories': true,
                 'fetchBorrowRateHistory': true,
@@ -63,6 +64,8 @@ export default class ftx extends Exchange {
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': true,
+                'fetchLeverageTiers': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -504,7 +507,7 @@ export default class ftx extends Exchange {
         //     }
         //
         let allFuturesResponse = undefined;
-        if (this.has['future']) {
+        if (this.has['future'] && (this.hostname !== 'ftx.us')) {
             allFuturesResponse = await this.publicGetFutures ();
         }
         //
@@ -582,7 +585,7 @@ export default class ftx extends Exchange {
                 type = 'future';
                 expiry = this.parse8601 (expiryDatetime);
                 if (expiry === undefined) {
-                    throw new BadResponse (this.id + " symbol '" + id + "' is a future contract but with invalid expiry datetime: " + expiryDatetime);
+                    throw new BadResponse (this.id + " symbol '" + id + "' is a future contract but with an invalid expiry datetime.");
                 }
                 const parsedId = id.split ('-');
                 const length = parsedId.length;
@@ -2449,19 +2452,16 @@ export default class ftx extends Exchange {
 
     async fetchBorrowRates (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetSpotMarginBorrowRates ();
+        const response = await this.privateGetSpotMarginBorrowRates (params);
         //
-        // {
-        //     "success":true,
-        //     "result":[
-        //         {
-        //             "coin": "1INCH",
-        //             "previous": 0.0000462375,
-        //             "estimate": 0.0000462375
-        //         }
-        //         ...
-        //     ]
-        // }
+        //     {
+        //         "success":true,
+        //         "result":[
+        //             {"coin":"1INCH","previous":4.8763e-6,"estimate":4.8048e-6},
+        //             {"coin":"AAPL","previous":0.0000326469,"estimate":0.0000326469},
+        //             {"coin":"AAVE","previous":1.43e-6,"estimate":1.43e-6},
+        //         ]
+        //     }
         //
         const timestamp = this.milliseconds ();
         const result = this.safeValue (response, 'result');
@@ -2547,5 +2547,42 @@ export default class ftx extends Exchange {
         } else {
             return borrowRateHistory;
         }
+    }
+
+    async fetchBorrowInterest (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        if (since !== undefined) {
+            request['start_time'] = parseInt (since / 1000);
+        }
+        const response = await this.privateGetSpotMarginBorrowHistory (this.extend (request, params));
+        //
+        //     {
+        //         "success":true,
+        //         "result":[
+        //             {"coin":"USDT","time":"2021-12-26T01:00:00+00:00","size":4593.74214725,"rate":3.3003e-6,"cost":0.0151607272085692,"feeUsd":0.0151683341034461},
+        //             {"coin":"USDT","time":"2021-12-26T00:00:00+00:00","size":4593.97110361,"rate":3.3003e-6,"cost":0.0151614828332441,"feeUsd":0.015169697173028324},
+        //             {"coin":"USDT","time":"2021-12-25T23:00:00+00:00","size":4594.20005922,"rate":3.3003e-6,"cost":0.0151622384554438,"feeUsd":0.015170200298479137},
+        //         ]
+        //     }
+        //
+        const result = this.safeValue (response, 'result');
+        const interest = [];
+        for (let i = 0; i < result.length; i++) {
+            const payment = result[i];
+            const coin = this.safeString (payment, 'coin');
+            const datetime = this.safeString (payment, 'time');
+            interest.push ({
+                'account': undefined,
+                'currency': this.safeCurrencyCode (coin),
+                'interest': this.safeNumber (payment, 'cost'),
+                'interestRate': this.safeNumber (payment, 'rate'),
+                'amountBorrowed': this.safeNumber (payment, 'size'),
+                'timestamp': this.parse8601 (datetime),
+                'datetime': datetime,
+                'info': payment,
+            });
+        }
+        return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
 }

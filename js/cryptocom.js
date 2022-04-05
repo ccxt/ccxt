@@ -34,7 +34,6 @@ export default class cryptocom extends Exchange {
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRates': false,
-                'fetchIsolatedPositions': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,

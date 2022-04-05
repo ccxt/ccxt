@@ -1435,7 +1435,7 @@ export default class bitrue extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        return this.parseTransaction (data, currency);
+        return this.parseTransactions (data, currency);
     }
 
     parseTransactionStatusByType (status, type = undefined) {

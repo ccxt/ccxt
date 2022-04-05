@@ -58,7 +58,6 @@ class mexc(Exchange):
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': True,
-                'fetchIsolatedPositions': None,
                 'fetchLeverage': None,
                 'fetchLeverageTiers': True,
                 'fetchMarketLeverageTiers': 'emulated',
@@ -81,10 +80,13 @@ class mexc(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
+                'fetchTransfer': True,
+                'fetchTransfers': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
                 'setLeverage': True,
                 'setMarginMode': False,
+                'transfer': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -266,6 +268,21 @@ class mexc(Exchange):
                     'ERC20': 'ERC-20',
                     'BEP20': 'BEP20(BSC)',
                 },
+                'transfer': {
+                    'accounts': {
+                        'spot': 'MAIN',
+                        'swap': 'CONTRACT',
+                    },
+                    'accountsById': {
+                        'MAIN': 'spot',
+                        'CONTRACT': 'swap',
+                    },
+                    'status': {
+                        'SUCCESS': 'ok',
+                        'FAILED': 'failed',
+                        'WAIT': 'pending',
+                    },
+                },
             },
             'commonCurrencies': {
                 'BEYONDPROTOCOL': 'BEYOND',
@@ -279,10 +296,12 @@ class mexc(Exchange):
                 'FLUX1': 'FLUX',  # switched places
                 'FLUX': 'FLUX1',  # switched places
                 'FREE': 'FreeRossDAO',  # conflict with FREE Coin
+                'GMT': 'GMT Token',
                 'HERO': 'Step Hero',  # conflict with Metahero
                 'MIMO': 'Mimosa',
                 'PROS': 'Pros.Finance',  # conflict with Prosper
                 'SIN': 'Sin City Token',
+                'STEPN': 'GMT',
             },
             'exceptions': {
                 'exact': {
@@ -290,6 +309,7 @@ class mexc(Exchange):
                     '401': AuthenticationError,  # Invalid signature, fail to pass the validation
                     '403': PermissionDenied,  # {"msg":"no permission to access the endpoint","code":403}
                     '429': RateLimitExceeded,  # too many requests, rate limit rule is violated
+                    '703': PermissionDenied,  # Require trade read permission!
                     '1000': AccountNotEnabled,  # {"success":false,"code":1000,"message":"Please open contract account first!"}
                     '1002': InvalidOrder,  # {"success":false,"code":1002,"message":"Contract not allow place order!"}
                     '10072': AuthenticationError,  # Invalid access key
@@ -2122,6 +2142,133 @@ class mexc(Exchange):
             'leverage': leverage,
         }
         return self.contractPrivatePostPositionChangeLeverage(self.extend(request, params))
+
+    def fetch_transfer(self, id, since=None, limit=None, params={}):
+        request = {
+            'transact_id': id,
+        }
+        response = self.spotPrivateGetAssetInternalTransferInfo(self.extend(request, params))
+        #
+        #     {
+        #         code: '200',
+        #         data: {
+        #             currency: 'USDT',
+        #             amount: '1',
+        #             transact_id: '954877a2ef54499db9b28a7cf9ebcf41',
+        #             from: 'MAIN',
+        #             to: 'CONTRACT',
+        #             transact_state: 'SUCCESS'
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_transfer(data)
+
+    def fetch_transfers(self, code=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {}
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        if since is not None:
+            request['start_time'] = since
+        if limit is not None:
+            if limit > 50:
+                raise ExchangeError('This exchange supports a maximum limit of 50')
+            request['page-size'] = limit
+        response = self.spotPrivateGetAssetInternalTransferRecord(self.extend(request, params))
+        #
+        #     {
+        #         code: '200',
+        #         data: {
+        #             total_page: '1',
+        #             total_size: '5',
+        #             result_list: [{
+        #                     currency: 'USDT',
+        #                     amount: '1',
+        #                     transact_id: '954877a2ef54499db9b28a7cf9ebcf41',
+        #                     from: 'MAIN',
+        #                     to: 'CONTRACT',
+        #                     transact_state: 'SUCCESS'
+        #                 },
+        #                 ...
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        resultList = self.safe_value(data, 'result_list', [])
+        return self.parse_transfers(resultList, currency, since, limit)
+
+    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        transferOptions = self.safe_value(self.options, 'transfer', {})
+        accounts = self.safe_value(transferOptions, 'accounts', {})
+        fromId = self.safe_string(accounts, fromAccount)
+        toId = self.safe_string(accounts, toAccount)
+        if fromId is None:
+            keys = list(accounts.keys())
+            raise ExchangeError(self.id + ' fromAccount must be one of ' + ', '.join(keys))
+        if toId is None:
+            keys = list(accounts.keys())
+            raise ExchangeError(self.id + ' toAccount must be one of ' + ', '.join(keys))
+        request = {
+            'currency': currency['id'],
+            'amount': amount,
+            'from': fromId,
+            'to': toId,
+        }
+        response = self.spotPrivatePostAssetInternalTransfer(self.extend(request, params))
+        #
+        #     {
+        #         code: '200',
+        #         data: {
+        #             currency: 'USDT',
+        #             amount: '1',
+        #             transact_id: 'b60c1df8e7b24b268858003f374ecb75',
+        #             from: 'MAIN',
+        #             to: 'CONTRACT',
+        #             transact_state: 'WAIT'
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_transfer(data, currency)
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        #     {
+        #         currency: 'USDT',
+        #         amount: '1',
+        #         transact_id: 'b60c1df8e7b24b268858003f374ecb75',
+        #         from: 'MAIN',
+        #         to: 'CONTRACT',
+        #         transact_state: 'WAIT'
+        #     }
+        #
+        transferOptions = self.safe_value(self.options, 'transfer', {})
+        transferStatusById = self.safe_value(transferOptions, 'status', {})
+        currencyId = self.safe_string(transfer, 'currency')
+        id = self.safe_string(transfer, 'transact_id')
+        fromId = self.safe_string(transfer, 'from')
+        toId = self.safe_string(transfer, 'to')
+        accountsById = self.safe_value(transferOptions, 'accountsById', {})
+        fromAccount = self.safe_string(accountsById, fromId)
+        toAccount = self.safe_string(accountsById, toId)
+        statusId = self.safe_string(transfer, 'transact_state')
+        return {
+            'info': transfer,
+            'id': id,
+            'timestamp': None,
+            'datetime': None,
+            'currency': self.safe_currency_code(currencyId, currency),
+            'amount': self.safe_number(transfer, 'amount'),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': self.safe_string(transferStatusById, statusId),
+        }
 
     def withdraw(self, code, amount, address, tag=None, params={}):
         tag, params = self.handle_withdraw_tag_and_params(tag, params)

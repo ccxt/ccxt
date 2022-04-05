@@ -56,7 +56,6 @@ class hollaex(Exchange):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
-                'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
@@ -136,7 +135,7 @@ class hollaex(Exchange):
                         'user/withdrawal/fee': 1,
                         'user/trades': 1,
                         'orders': 1,
-                        'orders/{order_id}': 1,
+                        'order': 1,
                     },
                     'post': {
                         'user/request-withdrawal': 1,
@@ -741,7 +740,7 @@ class hollaex(Exchange):
         request = {
             'order_id': id,
         }
-        response = await self.privateGetOrdersOrderId(self.extend(request, params))
+        response = await self.privateGetOrder(self.extend(request, params))
         #
         #     {
         #         "id": "string",
@@ -776,7 +775,7 @@ class hollaex(Exchange):
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         request = {
-            'status': 'filled',
+            'open': False,
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
@@ -785,11 +784,7 @@ class hollaex(Exchange):
         request = {
             'order_id': id,
         }
-        response = await self.privateGetOrders(self.extend(request, params))
-        #
-        #     {
-        #         "count": 1,
-        #         "data": [
+        response = await self.privateGetOrder(self.extend(request, params))
         #             {
         #                 "id": "string",
         #                 "side": "sell",
@@ -812,11 +807,7 @@ class hollaex(Exchange):
         #                     "exchange_id": 176
         #                 }
         #             }
-        #         ]
-        #     }
-        #
-        data = self.safe_value(response, 'data', [])
-        order = self.safe_value(data, 0)
+        order = response
         if order is None:
             raise OrderNotFound(self.id + ' fetchOrder() could not find order id ' + id)
         return self.parse_order(order)

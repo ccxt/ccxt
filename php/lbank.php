@@ -39,7 +39,6 @@ class lbank extends Exchange {
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
-                'fetchIsolatedPositions' => false,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => false,
                 'fetchMarkets' => true,
@@ -121,8 +120,9 @@ class lbank extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
-                'VET_ERC20' => 'VEN',
+                'GMT' => 'GMT Token',
                 'PNT' => 'Penta',
+                'VET_ERC20' => 'VEN',
             ),
             'options' => array(
                 'cacheSecretAsPem' => true,
@@ -195,7 +195,7 @@ class lbank extends Exchange {
                         'max' => null,
                     ),
                     'amount' => array(
-                        'min' => null,
+                        'min' => $this->safe_float($market, 'minTranQua'),
                         'max' => null,
                     ),
                     'price' => array(
