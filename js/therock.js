@@ -397,27 +397,24 @@ module.exports = class therock extends Exchange {
         const side = this.safeString (trade, 'side');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         let fee = undefined;
-        let feeCost = undefined;
+        let feeCostString = undefined;
         const transactions = this.safeValue (trade, 'transactions', []);
         const transactionsByType = this.groupBy (transactions, 'type');
         const feeTransactions = this.safeValue (transactionsByType, 'paid_commission', []);
         for (let i = 0; i < feeTransactions.length; i++) {
-            if (feeCost === undefined) {
-                feeCost = 0;
+            if (feeCostString === undefined) {
+                feeCostString = '0.0';
             }
-            feeCost = this.sum (feeCost, this.safeNumber (feeTransactions[i], 'price'));
+            feeCostString = Precise.stringAdd (feeCostString, this.safeString (feeTransactions[i], 'price'));
         }
-        if (feeCost !== undefined) {
+        if (feeCostString !== undefined) {
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': market['quote'],
             };
         }
-        return {
+        return this.safeTrade ({
             'info': trade,
             'id': id,
             'order': orderId,
@@ -427,11 +424,11 @@ module.exports = class therock extends Exchange {
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': fee,
-        };
+        }, market);
     }
 
     parseLedgerEntryDirection (direction) {
@@ -1104,6 +1101,35 @@ module.exports = class therock extends Exchange {
             'fund_id': market['id'],
         };
         const response = await this.privateGetFundsFundIdOrdersId (this.extend (request, params));
+        //
+        //      {
+        //          "id": 4325578,
+        //          "fund_id":"BTCEUR",
+        //          "side":"buy",
+        //          "type":"limit",
+        //          "status":"executed",
+        //          "price":0.0102,
+        //          "amount": 50.0,
+        //          "amount_unfilled": 0.0,
+        //          "conditional_type": null,
+        //          "conditional_price": null,
+        //          "date":"2015-06-03T00:49:48.000Z",
+        //          "close_on": null,
+        //          "leverage": 1.0,
+        //          "position_id": null,
+        //          "trades": [
+        //              {
+        //              "id":237338,
+        //              "fund_id":"BTCEUR",
+        //              "amount":50,
+        //              "price":0.0102,
+        //              "side":"buy",
+        //              "dark":false,
+        //              "date":"2015-06-03T00:49:49.000Z"
+        //              }
+        //          ]
+        //      }
+        //
         return this.parseOrder (response);
     }
 
@@ -1148,38 +1174,62 @@ module.exports = class therock extends Exchange {
             request['after'] = this.iso8601 (since);
         }
         const response = await this.privateGetFundsIdTrades (this.extend (request, params));
-        //
-        //     { trades: [ {           id:    237338,
-        //                        fund_id:   "BTCEUR",
-        //                         amount:    0.348,
-        //                          price:    348,
-        //                           side:   "sell",
-        //                           dark:    false,
-        //                       order_id:    14920648,
-        //                           date:   "2015-06-03T00:49:49.000Z",
-        //                   transactions: [ {       id:  2770768,
-        //                                         date: "2015-06-03T00:49:49.000Z",
-        //                                         type: "sold_currency_to_fund",
-        //                                        price:  121.1,
-        //                                     currency: "EUR"                       },
-        //                                   {       id:  2770769,
-        //                                         date: "2015-06-03T00:49:49.000Z",
-        //                                         type: "released_currency_to_fund",
-        //                                        price:  0.348,
-        //                                     currency: "BTC"                        },
-        //                                   {       id:  2770772,
-        //                                         date: "2015-06-03T00:49:49.000Z",
-        //                                         type: "paid_commission",
-        //                                        price:  0.06,
-        //                                     currency: "EUR",
-        //                                     trade_id:  440492                     }   ] } ],
-        //         meta: { total_count:    31,
-        //                       first: { href: "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=1" },
-        //                    previous:    null,
-        //                     current: { href: "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=1" },
-        //                        next: { href: "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=2" },
-        //                        last: { href: "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=2" }  } }
-        //
+        //     {
+        //         "trades":
+        //             [
+        //                 {
+        //                     "id":237338,
+        //                     "fund_id":"BTCEUR",
+        //                     "amount":0.348,
+        //                     "price":348.0,
+        //                     "side":"sell",
+        //                     "dark": false,
+        //                     "order_id":14920648,
+        //                     "date":"2015-06-03T00:49:49.000Z",
+        //                     "transactions":
+        //                         [
+        //                             {
+        //                                 "id": 2770768,
+        //                                 "date": "2015-06-03T00:49:49.000Z",
+        //                                 "type": "sold_currency_to_fund",
+        //                                 "price": 121.1,
+        //                                 "currency": "EUR"
+        //                             },
+        //                             {
+        //                                 "id": 2770769,
+        //                                 "date": "2015-06-03T00:49:49.000Z",
+        //                                 "type": "released_currency_to_fund",
+        //                                 "price": 0.348,
+        //                                 "currency": "BTC"
+        //                             },
+        //                             {
+        //                                 "id": 2770772,
+        //                                 "date": "2015-06-03T00:49:49.000Z",
+        //                                 "type": "paid_commission",
+        //                                 "price": 0.06,
+        //                                 "currency": "EUR",
+        //                                 "trade_id": 440492
+        //                             },
+        //                         ]
+        //                 }
+        //             ],
+        //         "meta":{
+        //             "total_count":31,
+        //             "first":{
+        //                 "href":"https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=1"
+        //             },
+        //             "previous":null,
+        //             "current":{
+        //                 "href":"https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=1"
+        //             },
+        //             "next":{
+        //                 "href":"https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=2"
+        //             },
+        //             "last":{
+        //                 "href":"https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=2"
+        //                 }
+        //         }
+        //     };
         return this.parseTrades (response['trades'], market, since, limit);
     }
 
