@@ -1,12 +1,10 @@
-'use strict'
+// ----------------------------------------------------------------------------
+
+import assert from 'assert'
 
 // ----------------------------------------------------------------------------
 
-const assert = require ('assert')
-
-// ----------------------------------------------------------------------------
-
-module.exports = async (exchange, code, symbol) => {
+export default async (exchange, code, symbol) => {
 
     const method = 'fetchBorrowInterest'
 

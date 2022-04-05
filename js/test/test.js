@@ -3,7 +3,7 @@
 import fs from 'fs'
 import assert from 'assert'
 import { Agent } from 'https'
-import { ccxt } from '../../ccxt.js' // eslint-disable-line import/order
+import ccxt from '../../ccxt.js'
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 
