@@ -1382,10 +1382,10 @@ module.exports = class ftx extends Exchange {
         //
         //     {
         //         "time": "2022-03-29T04:54:04.390665+00:00",
-        //         "orderId": 132144259673, // this is not the same conditional-order's id, instead reference id (which can be used to fetch the complete order object)
+        //         "orderId": 132144259673, // see fetchOrder to find out more about this key
         //         "error": null,
         //         "orderSize": 0.1234,
-        //         "filledSize": 0.1234
+        //         "filledSize": 0.1200
         //     }
         //
         const id = this.safeString (order, 'id');
@@ -1393,15 +1393,6 @@ module.exports = class ftx extends Exchange {
         let status = this.parseOrderStatus (this.safeString (order, 'status'));
         const amount = this.safeString2 (order, 'size', 'orderSize');
         const filled = this.safeString (order, 'filledSize');
-        // if conditional order
-        if ('trigger_order_flag' in order) {
-            order = this.omit (order, 'trigger_order_flag');
-            if (('orderId' in order) && Precise.stringEq (amount, filled)) {
-                status = 'closed';
-            } else {
-                status = 'open';
-            }
-        }
         let remaining = this.safeString (order, 'remainingSize');
         if (Precise.stringEquals (remaining, '0')) {
             remaining = Precise.stringSub (amount, filled);
@@ -1735,7 +1726,6 @@ module.exports = class ftx extends Exchange {
             params = this.omit (params, 'orderStatusFlag');
             if (method === 'privateGetConditionalOrdersConditionalOrderIdTriggers') {
                 const order = await this.fetchConditionalTriggersHelper (id, params);
-                order['trigger_order_flag'] = true;
                 return this.extend (this.parseOrder (order, market), { 'id': id });
             } else if ((method === 'privateGetConditionalOrders') && (orderStatusFlag === 'open') && (symbol !== undefined)) {
                 request['market'] = this.market (symbol);
@@ -1788,7 +1778,7 @@ module.exports = class ftx extends Exchange {
         //     "result": [
         //         {
         //             "time": "2022-03-29T04:54:04.390665+00:00",
-        //             "orderId": 132144259673,
+        //             "orderId": 132144259673, // this is not the same conditional-order's id, instead reference id (which can be used to fetch the complete order object)
         //             "error": null,
         //             "orderSize": 0.1234,
         //             "filledSize": 0.1234
