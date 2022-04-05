@@ -1032,7 +1032,7 @@ module.exports = class bigone extends Exchange {
         const data = this.safeValue (response, 'data', []);
         const dataLength = data.length;
         if (dataLength < 1) {
-            throw new ExchangeError (this.id + 'fetchDepositAddress() returned empty address response');
+            throw new ExchangeError (this.id + ' fetchDepositAddress() returned empty address response');
         }
         const firstElement = data[0];
         const address = this.safeString (firstElement, 'value');
