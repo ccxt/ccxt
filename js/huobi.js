@@ -1041,24 +1041,27 @@ module.exports = class huobi extends Exchange {
         const options = this.safeValue (this.options, 'fetchMarkets', {});
         const types = this.safeValue (options, 'types', {});
         let allMarkets = [];
+        let promises = [];
         const keys = Object.keys (types);
         for (let i = 0; i < keys.length; i++) {
             const type = keys[i];
             const value = this.safeValue (types, type);
             if (value === true) {
-                const markets = await this.fetchMarketsByTypeAndSubType (type, undefined, params);
-                allMarkets = this.arrayConcat (allMarkets, markets);
+                promises.push (this.fetchMarketsByTypeAndSubType (type, undefined, params));
             } else {
                 const subKeys = Object.keys (value);
                 for (let j = 0; j < subKeys.length; j++) {
                     const subType = subKeys[j];
                     const subValue = this.safeValue (value, subType);
                     if (subValue) {
-                        const markets = await this.fetchMarketsByTypeAndSubType (type, subType, params);
-                        allMarkets = this.arrayConcat (allMarkets, markets);
+                        promises.push (this.fetchMarketsByTypeAndSubType (type, subType, params));
                     }
                 }
             }
+        }
+        promises = await Promise.all (promises);
+        for (let i = 0; i < promises.length; i++) {
+            allMarkets = this.arrayConcat (allMarkets, promises[i]);
         }
         return allMarkets;
     }

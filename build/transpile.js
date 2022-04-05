@@ -225,6 +225,7 @@ class Transpiler {
             [ /function\s*(\w+\s*\([^)]+\))\s*{/g, 'def $1:'],
             // [ /\.replaceAll\s*\(([^)]+)\)/g, '.replace($1)' ], // still not a part of the standard
             [ /assert\s*\((.+)\);/g, 'assert $1'],
+            [ /Promise\.all\s*\(([^\)]+)\)/g, 'asyncio.gather(*$1)' ],
             [ /Precise\.stringAdd\s/g, 'Precise.string_add' ],
             [ /Precise\.stringMul\s/g, 'Precise.string_mul' ],
             [ /Precise\.stringDiv\s/g, 'Precise.string_div' ],
@@ -332,12 +333,14 @@ class Transpiler {
 
     getPython2Regexes () {
         return [
+            [ /.+asyncio\.gather.+\n/g, '' ], // remove line entirely
             [ /(\s)await(\s)/g, '$1' ]
         ]
     }
 
     getSyncPHPRegexes () {
         return [
+            [ /.+Promise\\all.+\n/g, '' ], // delete line
             [ /\byield /g, '' ]
         ]
     }
@@ -385,6 +388,7 @@ class Transpiler {
             [ /this\.binaryToBase16\s/g, 'bin2hex' ],
             [ /this\.base64ToBinary\s/g, 'base64_decode' ],
             [ /this\.base64ToString\s/g, 'base64_decode' ],
+            [ /Promise\.all\s/g, 'Promise\\all' ],
             // deepExtend is commented for PHP because it does not overwrite linear arrays
             // a proper \ccxt\Exchange::deep_extend() base method is implemented instead
             // [ /this\.deepExtend\s/g, 'array_replace_recursive'],
@@ -646,8 +650,12 @@ class Transpiler {
         if (bodyAsString.match (/[\s(]Precise/)) {
             precisionImports.push ('from ccxt.base.precise import Precise')
         }
+        const asyncioImports = []
+        if (bodyAsString.match (/asyncio/)) {
+            asyncioImports.push ('import asyncio')
+        }
 
-        header = header.concat (libraries, errorImports, precisionImports)
+        header = header.concat (asyncioImports, libraries, errorImports, precisionImports)
 
         methods = methods.concat (this.getPythonBaseMethods ())
 
@@ -752,6 +760,11 @@ class Transpiler {
 
         if (async && bodyAsString.match (/[\s(]Precise/)) {
             precisionImports.push ('use \\ccxt\\Precise;')
+        }
+
+        const asyncImports = [];
+        if (async && bodyAsString.match (/Promise\\all/)) {
+            precisionImports.push ('use React\\Promise;')
         }
 
         header = header.concat (errorImports).concat (precisionImports)

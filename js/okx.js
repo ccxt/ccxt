@@ -777,10 +777,15 @@ module.exports = class okx extends Exchange {
 
     async fetchMarkets (params = {}) {
         const types = this.safeValue (this.options, 'fetchMarkets');
+        let promises = [];
         let result = [];
         for (let i = 0; i < types.length; i++) {
-            const markets = await this.fetchMarketsByType (types[i], params);
-            result = this.arrayConcat (result, markets);
+            promises.push (this.fetchMarketsByType (types[i], params));
+        }
+        // why not both ¯\_(ツ)_/¯
+        promises = await Promise.all (promises);
+        for (let i = 0; i < promises.length; i++) {
+            result = this.arrayConcat (result, promises[i]);
         }
         return result;
     }
