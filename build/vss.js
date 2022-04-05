@@ -10,9 +10,11 @@ import ansi from 'ansicolor'
 import { execSync } from 'child_process'
 import { copyFile } from './fsLocal.js'
 import { pathToFileURL } from 'url'
-import packageJson from '../package.json' assert { type: "json" };
+import { URL } from 'url'
 
 ansi.nice
+
+const __dirname = new URL('.', import.meta.url).pathname;
 
 //-----------------------------------------------------------------------------
 
@@ -28,8 +30,8 @@ function vss (filename, template, version) {
 // ----------------------------------------------------------------------------
 
 async function vssEverything () {
-
-    const version = packageJson['version']
+    const packageJSON = JSON.parse (fs.readFileSync (__dirname + '../package.json'))
+    const version = packageJSON['version']
 
     log.bright ('New version: '.cyan, version)
 
@@ -63,7 +65,8 @@ async function vssEverything () {
 let metaUrl = import.meta.url
 metaUrl = metaUrl.substring(0, metaUrl.lastIndexOf(".")) // remove extension
 const url = pathToFileURL(process.argv[1]);
-if (metaUrl === url.href) {
+const href = (url.href.indexOf('.') !== -1) ? url.href.substring(0, url.href.lastIndexOf(".")) : url.href;
+if (metaUrl === href) {
 
     // if called directly like `node module`
 
