@@ -704,7 +704,7 @@ Most people use WS to avoid any sorts of delays and have real-time data. So, in 
 
 ```Python
 # Python
-if !exchange.has['watchOHLCV']:
+if not exchange.has['watchOHLCV']:
     while True:
         try:
             trades = await exchange.watch_trades(symbol, since = exchange.milliseconds() - 60 * 60 * 1000)
