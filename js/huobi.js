@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { ExchangeError, InvalidNonce, ArgumentsRequired, BadRequest } = require ('ccxt/js/base/errors');
+const { ExchangeError, InvalidNonce, ArgumentsRequired, BadRequest, BadSymbol, AuthenticationError } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -91,8 +91,15 @@ module.exports = class huobi extends ccxt.huobi {
                 },
             },
             'exceptions': {
-                'exact': {
-                    '2021': BadRequest,
+                'ws': {
+                    'exact': {
+                        'bad-request': BadRequest, // {  ts: 1586323747018,  status: 'error',    'err-code': 'bad-request',  err-msg': 'invalid mbp.150.symbol linkusdt', id: '2'}
+                        '2002': AuthenticationError, // { action: 'sub', code: 2002, ch: 'accounts.update#2', message: 'invalid.auth.state' }
+                        '2021': BadRequest,
+                        '2001': BadSymbol, // { action: 'sub', code: 2001, ch: 'orders#2ltcusdt', message: 'invalid.symbol'}
+                        '2011': BadSymbol, // { op: 'sub', cid: '1649149285', topic: 'orders_cross.hereltc-usdt', 'err-code': 2011, 'err-msg': "Contract doesn't exist.", ts: 1649149287637 }
+                        '2040': BadRequest, // { op: 'sub', cid: '1649152947', 'err-code': 2040, 'err-msg': 'Missing required parameter.', ts: 1649152948684 }
+                    },
                 },
             },
         });
@@ -617,19 +624,25 @@ module.exports = class huobi extends ccxt.huobi {
             messageHash = 'orders' + '#' + suffix;
             channel = messageHash;
         } else {
-            let orderType = this.safeString2 (this.options, 'watchOrders', 'orderType', 'orders');
+            let orderType = this.safeString2 (this.options, 'watchOrders', 'orderType', 'orders'); // orders or matchOrders
             orderType = this.safeString (params, 'orderType', orderType);
             query = this.omit (params, 'orderType');
             const marketCode = market['id'].toLowerCase ();
             let prefix = orderType;
             if (subType === 'linear') {
+                // USDT Margined Contracts Example: LTC/USDT:USDT
                 const marginMode = this.safeString (params, 'margin', 'cross');
                 prefix = (marginMode === 'cross') ? prefix + '_cross' : prefix;
                 messageHash = prefix + '.' + marketCode;
                 channel = messageHash;
             } else if (type === 'future') {
+                // inverse futures Example: BCH/USD:BCH-220408
                 channel = prefix + '.' + market['baseId'].toLowerCase ();
                 messageHash = channel + ':' + marketCode;
+            } else {
+                // inverse swaps: Example: BTC/USD:BTC
+                channel = prefix + '.' + marketCode;
+                messageHash = channel;
             }
         }
         const orders = await this.subscribePrivate (channel, messageHash, type, subType, query);
@@ -1455,6 +1468,13 @@ module.exports = class huobi extends ccxt.huobi {
     handleErrorMessage (client, message) {
         //
         //     {
+        //         action: 'sub',
+        //         code: 2002,
+        //         ch: 'accounts.update#2',
+        //         message: 'invalid.auth.state'
+        //      }
+        //
+        //     {
         //         ts: 1586323747018,
         //         status: 'error',
         //         'err-code': 'bad-request',
@@ -1470,7 +1490,7 @@ module.exports = class huobi extends ccxt.huobi {
             if (subscription !== undefined) {
                 const errorCode = this.safeString (message, 'err-code');
                 try {
-                    this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, this.json (message));
+                    this.throwExactlyMatchedException (this.exceptions['ws']['exact'], errorCode, this.json (message));
                 } catch (e) {
                     const messageHash = this.safeString (subscription, 'messageHash');
                     client.reject (e, messageHash);
@@ -1481,6 +1501,24 @@ module.exports = class huobi extends ccxt.huobi {
                 }
             }
             return false;
+        }
+        const code = this.safeInteger (message, 'code');
+        if (code !== undefined && code !== 200) {
+            const feedback = this.id + ' ' + this.json (message);
+            try {
+                this.throwExactlyMatchedException (this.exceptions['ws']['exact'], code, feedback);
+            } catch (e) {
+                if (e instanceof AuthenticationError) {
+                    client.reject (e, 'auth');
+                    const method = 'auth';
+                    if (method in client.subscriptions) {
+                        delete client.subscriptions[method];
+                    }
+                    return false;
+                } else {
+                    client.reject (e);
+                }
+            }
         }
         return message;
     }
