@@ -358,8 +358,8 @@ class therock extends Exchange {
         //
         //     {      $id =>  4493548,
         //       fund_id => "ETHBTC",
-        //        $amount =>  0.203,
-        //         $price =>  0.02783576,
+        //        amount =>  0.203,
+        //         price =>  0.02783576,
         //          $side => "buy",
         //          dark =>  false,
         //          date => "2018-11-30T08:19:18.236Z" }
@@ -368,8 +368,8 @@ class therock extends Exchange {
         //
         //     {           $id =>    237338,
         //            fund_id =>   "BTCEUR",
-        //             $amount =>    0.348,
-        //              $price =>    348,
+        //             amount =>    0.348,
+        //              price =>    348,
         //               $side =>   "sell",
         //               dark =>    false,
         //           order_id =>    14920648,
@@ -377,17 +377,17 @@ class therock extends Exchange {
         //       $transactions => array( array(       $id =>  2770768,
         //                             date => "2015-06-03T00:49:49.000Z",
         //                             type => "sold_currency_to_fund",
-        //                            $price =>  121.1,
+        //                            price =>  121.1,
         //                         currency => "EUR"                       ),
         //                       array(       $id =>  2770769,
         //                             date => "2015-06-03T00:49:49.000Z",
         //                             type => "released_currency_to_fund",
-        //                            $price =>  0.348,
+        //                            price =>  0.348,
         //                         currency => "BTC"                        ),
         //                       {       $id =>  2770772,
         //                             date => "2015-06-03T00:49:49.000Z",
         //                             type => "paid_commission",
-        //                            $price =>  0.06,
+        //                            price =>  0.06,
         //                         currency => "EUR",
         //                         trade_id =>  440492                     }   ) }
         //
@@ -399,27 +399,24 @@ class therock extends Exchange {
         $side = $this->safe_string($trade, 'side');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $fee = null;
-        $feeCost = null;
+        $feeCostString = null;
         $transactions = $this->safe_value($trade, 'transactions', array());
         $transactionsByType = $this->group_by($transactions, 'type');
         $feeTransactions = $this->safe_value($transactionsByType, 'paid_commission', array());
         for ($i = 0; $i < count($feeTransactions); $i++) {
-            if ($feeCost === null) {
-                $feeCost = 0;
+            if ($feeCostString === null) {
+                $feeCostString = '0.0';
             }
-            $feeCost = $this->sum($feeCost, $this->safe_number($feeTransactions[$i], 'price'));
+            $feeCostString = Precise::string_add($feeCostString, $this->safe_string($feeTransactions[$i], 'price'));
         }
-        if ($feeCost !== null) {
+        if ($feeCostString !== null) {
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $market['quote'],
             );
         }
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
             'order' => $orderId,
@@ -429,11 +426,11 @@ class therock extends Exchange {
             'type' => null,
             'side' => $side,
             'takerOrMaker' => null,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function parse_ledger_entry_direction($direction) {
@@ -1106,6 +1103,35 @@ class therock extends Exchange {
             'fund_id' => $market['id'],
         );
         $response = $this->privateGetFundsFundIdOrdersId (array_merge($request, $params));
+        //
+        //     {
+        //         "id" => 4325578,
+        //         "fund_id":"BTCEUR",
+        //         "side":"buy",
+        //         "type":"limit",
+        //         "status":"executed",
+        //         "price":0.0102,
+        //         "amount" => 50.0,
+        //         "amount_unfilled" => 0.0,
+        //         "conditional_type" => null,
+        //         "conditional_price" => null,
+        //         "date":"2015-06-03T00:49:48.000Z",
+        //         "close_on" => null,
+        //         "leverage" => 1.0,
+        //         "position_id" => null,
+        //         "trades" => array(
+        //             {
+        //                 "id":237338,
+        //                 "fund_id":"BTCEUR",
+        //                 "amount":50,
+        //                 "price":0.0102,
+        //                 "side":"buy",
+        //                 "dark":false,
+        //                 "date":"2015-06-03T00:49:49.000Z"
+        //             }
+        //         )
+        //     }
+        //
         return $this->parse_order($response);
     }
 
@@ -1151,38 +1177,36 @@ class therock extends Exchange {
         }
         $response = $this->privateGetFundsIdTrades (array_merge($request, $params));
         //
-        //     { trades => array( {           id =>    237338,
-        //                        fund_id =>   "BTCEUR",
-        //                         amount =>    0.348,
-        //                          price =>    348,
-        //                           side =>   "sell",
-        //                           dark =>    false,
-        //                       order_id =>    14920648,
-        //                           date =>   "2015-06-03T00:49:49.000Z",
-        //                   transactions => array( array(       id =>  2770768,
-        //                                         date => "2015-06-03T00:49:49.000Z",
-        //                                         type => "sold_currency_to_fund",
-        //                                        price =>  121.1,
-        //                                     currency => "EUR"                       ),
-        //                                   array(       id =>  2770769,
-        //                                         date => "2015-06-03T00:49:49.000Z",
-        //                                         type => "released_currency_to_fund",
-        //                                        price =>  0.348,
-        //                                     currency => "BTC"                        ),
-        //                                   {       id =>  2770772,
-        //                                         date => "2015-06-03T00:49:49.000Z",
-        //                                         type => "paid_commission",
-        //                                        price =>  0.06,
-        //                                     currency => "EUR",
-        //                                     trade_id =>  440492                     }   ) } ),
-        //         meta => { total_count =>    31,
-        //                       first => array( href => "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=1" ),
-        //                    previous =>    null,
-        //                     current => array( href => "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=1" ),
-        //                        next => array( href => "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=2" ),
-        //                        last => array( href => "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=2" )  } }
+        //     {
+        //         "trades" => array(
+        //             {
+        //                 "id":237338,
+        //                 "fund_id":"BTCEUR",
+        //                 "amount":0.348,
+        //                 "price":348.0,
+        //                 "side":"sell",
+        //                 "dark" => false,
+        //                 "order_id":14920648,
+        //                 "date":"2015-06-03T00:49:49.000Z",
+        //                 "transactions" => array(
+        //                     array( "id" => 2770768, "date" => "2015-06-03T00:49:49.000Z", "type" => "sold_currency_to_fund", "price" => 121.1, "currency" => "EUR" ),
+        //                     array( "id" => 2770769, "date" => "2015-06-03T00:49:49.000Z", "type" => "released_currency_to_fund", "price" => 0.348, "currency" => "BTC" ),
+        //                     array( "id" => 2770772, "date" => "2015-06-03T00:49:49.000Z", "type" => "paid_commission", "price" => 0.06, "currency" => "EUR", "trade_id" => 440492 ),
+        //                 )
+        //             }
+        //         ),
+        //         "meta" => {
+        //             "total_count" => 31,
+        //             "first" => array( "href" => "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=1" ),
+        //             "previous" => null,
+        //             "current" => array( "href" => "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=1" ),
+        //             "next" => array( "href" => "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=2" ),
+        //             "last":array( "href":"https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=2" )
+        //         }
+        //     }
         //
-        return $this->parse_trades($response['trades'], $market, $since, $limit);
+        $trades = $this->safe_value($response, 'trades', array());
+        return $this->parse_trades($trades, $market, $since, $limit);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -1199,29 +1223,36 @@ class therock extends Exchange {
         }
         $response = $this->publicGetFundsIdTrades (array_merge($request, $params));
         //
-        //     { trades => array( array(      id =>  4493548,
-        //                   fund_id => "ETHBTC",
-        //                    amount =>  0.203,
-        //                     price =>  0.02783576,
-        //                      side => "buy",
-        //                      dark =>  false,
-        //                      date => "2018-11-30T08:19:18.236Z" ),
-        //                 {      id =>  4492926,
-        //                   fund_id => "ETHBTC",
-        //                    amount =>  0.04,
-        //                     price =>  0.02767034,
-        //                      side => "buy",
-        //                      dark =>  false,
-        //                      date => "2018-11-30T07:03:03.897Z" }  ),
-        //         meta => { total_count =>    null,
-        //                       first => array( page =>  1,
-        //                                href => "https://api.therocktrading.com/v1/funds/ETHBTC/trades?page=1" ),
-        //                    previous =>    null,
-        //                     current => array( page =>  1,
-        //                                href => "https://api.therocktrading.com/v1/funds/ETHBTC/trades?page=1" ),
-        //                        next => array( page =>  2,
-        //                                href => "https://api.therocktrading.com/v1/funds/ETHBTC/trades?page=2" ),
-        //                        last =>    null                                                                   } }
+        //     {
+        //         trades => array(
+        //             array(
+        //                 id =>  4493548,
+        //                 fund_id => "ETHBTC",
+        //                 amount =>  0.203,
+        //                 price =>  0.02783576,
+        //                 side => "buy",
+        //                 dark =>  false,
+        //                 date => "2018-11-30T08:19:18.236Z"
+        //             ),
+        //             {
+        //                 id =>  4492926,
+        //                 fund_id => "ETHBTC",
+        //                 amount =>  0.04,
+        //                 price =>  0.02767034,
+        //                 side => "buy",
+        //                 dark =>  false,
+        //                 date => "2018-11-30T07:03:03.897Z"
+        //             }
+        //         ),
+        //         meta => {
+        //             total_count => null,
+        //             first => array( page => 1, href => "https://api.therocktrading.com/v1/funds/ETHBTC/trades?page=1" ),
+        //             previous => null,
+        //             current => array( page =>  1, href => "https://api.therocktrading.com/v1/funds/ETHBTC/trades?page=1" ),
+        //             next => array( page =>  2, href => "https://api.therocktrading.com/v1/funds/ETHBTC/trades?page=2" ),
+        //             last => null
+        //         }
+        //     }
         //
         return $this->parse_trades($response['trades'], $market, $since, $limit);
     }

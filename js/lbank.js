@@ -38,7 +38,6 @@ module.exports = class lbank extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
-                'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
                 'fetchMarkets': true,
@@ -120,8 +119,9 @@ module.exports = class lbank extends Exchange {
                 },
             },
             'commonCurrencies': {
-                'VET_ERC20': 'VEN',
+                'GMT': 'GMT Token',
                 'PNT': 'Penta',
+                'VET_ERC20': 'VEN',
             },
             'options': {
                 'cacheSecretAsPem': true,

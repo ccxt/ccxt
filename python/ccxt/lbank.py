@@ -43,7 +43,6 @@ class lbank(Exchange):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
-                'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
                 'fetchMarkets': True,
@@ -125,8 +124,9 @@ class lbank(Exchange):
                 },
             },
             'commonCurrencies': {
-                'VET_ERC20': 'VEN',
+                'GMT': 'GMT Token',
                 'PNT': 'Penta',
+                'VET_ERC20': 'VEN',
             },
             'options': {
                 'cacheSecretAsPem': True,

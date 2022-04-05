@@ -81,7 +81,6 @@ class binance(Exchange):
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
                 'fetchIndexOHLCV': True,
-                'fetchIsolatedPositions': None,
                 'fetchL3OrderBook': None,
                 'fetchLedger': None,
                 'fetchLeverage': False,

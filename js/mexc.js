@@ -43,7 +43,6 @@ module.exports = class mexc extends Exchange {
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': true,
-                'fetchIsolatedPositions': undefined,
                 'fetchLeverage': undefined,
                 'fetchLeverageTiers': true,
                 'fetchMarketLeverageTiers': 'emulated',
@@ -282,10 +281,12 @@ module.exports = class mexc extends Exchange {
                 'FLUX1': 'FLUX', // switched places
                 'FLUX': 'FLUX1', // switched places
                 'FREE': 'FreeRossDAO', // conflict with FREE Coin
+                'GMT': 'GMT Token',
                 'HERO': 'Step Hero', // conflict with Metahero
                 'MIMO': 'Mimosa',
                 'PROS': 'Pros.Finance', // conflict with Prosper
                 'SIN': 'Sin City Token',
+                'STEPN': 'GMT',
             },
             'exceptions': {
                 'exact': {
@@ -293,6 +294,7 @@ module.exports = class mexc extends Exchange {
                     '401': AuthenticationError, // Invalid signature, fail to pass the validation
                     '403': PermissionDenied, // {"msg":"no permission to access the endpoint","code":403}
                     '429': RateLimitExceeded, // too many requests, rate limit rule is violated
+                    '703': PermissionDenied, // Require trade read permission!
                     '1000': AccountNotEnabled, // {"success":false,"code":1000,"message":"Please open contract account first!"}
                     '1002': InvalidOrder, // {"success":false,"code":1002,"message":"Contract not allow place order!"}
                     '10072': AuthenticationError, // Invalid access key

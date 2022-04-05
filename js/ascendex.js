@@ -42,7 +42,6 @@ module.exports = class ascendex extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
-                'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': true,
                 'fetchMarketLeverageTiers': 'emulated',
@@ -70,6 +69,7 @@ module.exports = class ascendex extends Exchange {
                 'setLeverage': true,
                 'setMarginMode': true,
                 'setPositionMode': false,
+                'transfer': true,
             },
             'timeframes': {
                 '1m': '1',

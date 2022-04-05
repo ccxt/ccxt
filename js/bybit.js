@@ -206,6 +206,7 @@ module.exports = class bybit extends Exchange {
                             'stop-order/list',
                             'stop-order',
                             'position/list',
+                            'position/fee-rate',
                             'execution/list',
                             'trade/closed-pnl/list',
                             'funding/prev-funding-rate',
@@ -314,6 +315,7 @@ module.exports = class bybit extends Exchange {
                         'v2/private/stop-order/list': 5,
                         'v2/private/stop-order': 1,
                         'v2/private/position/list': 25,
+                        'v2/private/position/fee-rate': 40,
                         'v2/private/execution/list': 25,
                         'v2/private/trade/closed-pnl/list': 1,
                         'v2/public/risk-limit/list': 1, // TODO check
@@ -2889,7 +2891,7 @@ module.exports = class bybit extends Exchange {
         //
         const leverage = this.safeValue (params, 'leverage');
         if (leverage === undefined) {
-            throw new ArgumentsRequired (this.id + '.setMarginMode requires a leverage parameter');
+            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a leverage parameter');
         }
         marginType = marginType.toUpperCase ();
         if (marginType === 'CROSSED') { // * Deprecated, use 'CROSS' instead
@@ -3115,7 +3117,7 @@ module.exports = class bybit extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
             if (market['spot']) {
-                throw new BadRequest (this.id + '.fetchLeverageTiers symbol supports contract markets only');
+                throw new BadRequest (this.id + ' fetchLeverageTiers() symbol supports contract markets only');
             }
             request['symbol'] = market['id'];
         }

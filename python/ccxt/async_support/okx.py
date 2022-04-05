@@ -80,7 +80,6 @@ class okx(Exchange):
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': True,
-                'fetchIsolatedPositions': None,
                 'fetchL3OrderBook': None,
                 'fetchLedger': True,
                 'fetchLedgerEntry': None,
@@ -3922,7 +3921,7 @@ class okx(Exchange):
         codeObject = json.loads('{"ccy": "' + code + '"}')
         histories = await self.fetch_borrow_rate_histories(since, limit, codeObject, params)
         if histories is None:
-            raise BadRequest(self.id + '.fetchBorrowRateHistory returned no data for ' + code)
+            raise BadRequest(self.id + ' fetchBorrowRateHistory() returned no data for ' + code)
         else:
             return histories
 

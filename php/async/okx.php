@@ -64,7 +64,6 @@ class okx extends Exchange {
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => true,
-                'fetchIsolatedPositions' => null,
                 'fetchL3OrderBook' => null,
                 'fetchLedger' => true,
                 'fetchLedgerEntry' => null,
@@ -4117,7 +4116,7 @@ class okx extends Exchange {
         $codeObject = json_decode('array("ccy" => "' . $code . '", $as_associative_array = true)');
         $histories = yield $this->fetch_borrow_rate_histories($since, $limit, $codeObject, $params);
         if ($histories === null) {
-            throw new BadRequest($this->id . '.fetchBorrowRateHistory returned no data for ' . $code);
+            throw new BadRequest($this->id . ' fetchBorrowRateHistory() returned no data for ' . $code);
         } else {
             return $histories;
         }

@@ -176,6 +176,9 @@ class exmo extends Exchange {
                     'method' => 'fetchPrivateTradingFees', // or 'fetchPublicTradingFees'
                 ),
             ),
+            'commonCurrencies' => array(
+                'GMT' => 'GMT Token',
+            ),
             'exceptions' => array(
                 'exact' => array(
                     '40005' => '\\ccxt\\AuthenticationError', // Authorization error, incorrect signature

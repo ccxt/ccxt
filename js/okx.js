@@ -58,7 +58,6 @@ module.exports = class okx extends Exchange {
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': true,
-                'fetchIsolatedPositions': undefined,
                 'fetchL3OrderBook': undefined,
                 'fetchLedger': true,
                 'fetchLedgerEntry': undefined,
@@ -4116,7 +4115,7 @@ module.exports = class okx extends Exchange {
         const codeObject = JSON.parse ('{"ccy": "' + code + '"}');
         const histories = await this.fetchBorrowRateHistories (since, limit, codeObject, params);
         if (histories === undefined) {
-            throw new BadRequest (this.id + '.fetchBorrowRateHistory returned no data for ' + code);
+            throw new BadRequest (this.id + ' fetchBorrowRateHistory() returned no data for ' + code);
         } else {
             return histories;
         }

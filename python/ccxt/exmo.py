@@ -183,6 +183,9 @@ class exmo(Exchange):
                     'method': 'fetchPrivateTradingFees',  # or 'fetchPublicTradingFees'
                 },
             },
+            'commonCurrencies': {
+                'GMT': 'GMT Token',
+            },
             'exceptions': {
                 'exact': {
                     '40005': AuthenticationError,  # Authorization error, incorrect signature

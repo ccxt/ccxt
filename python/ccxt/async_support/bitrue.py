@@ -1382,7 +1382,7 @@ class bitrue(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        return self.parse_transaction(data, currency)
+        return self.parse_transactions(data, currency)
 
     def parse_transaction_status_by_type(self, status, type=None):
         statusesByType = {

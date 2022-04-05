@@ -38,7 +38,7 @@ class hitbtc3(Exchange):
             'has': {
                 'CORS': False,
                 'spot': True,
-                'margin': None,  # has but not fully implemented
+                'margin': True,
                 'swap': True,
                 'future': False,
                 'option': None,
@@ -49,20 +49,24 @@ class hitbtc3(Exchange):
                 'createReduceOnlyOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
+                'fetchBorrowRate': None,
+                'fetchBorrowRateHistories': None,
+                'fetchBorrowRateHistory': None,
+                'fetchBorrowRates': None,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
-                'fetchFundingHistory': False,
+                'fetchFundingHistory': None,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
-                'fetchIndexOHLCV': None,
+                'fetchIndexOHLCV': True,
                 'fetchLeverage': True,
-                'fetchLeverageTiers': False,
-                'fetchMarketLeverageTiers': False,
+                'fetchLeverageTiers': None,
+                'fetchMarketLeverageTiers': None,
                 'fetchMarkets': True,
-                'fetchMarkOHLCV': None,
+                'fetchMarkOHLCV': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrder': True,
@@ -72,9 +76,9 @@ class hitbtc3(Exchange):
                 'fetchOrderBooks': True,
                 'fetchOrders': False,
                 'fetchOrderTrades': True,
-                'fetchPosition': False,
+                'fetchPosition': True,
                 'fetchPositions': True,
-                'fetchPremiumIndexOHLCV': None,
+                'fetchPremiumIndexOHLCV': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
@@ -83,7 +87,7 @@ class hitbtc3(Exchange):
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
-                'setLeverage': None,
+                'setLeverage': True,
                 'setMarginMode': False,
                 'setPositionMode': False,
                 'transfer': True,
@@ -322,6 +326,29 @@ class hitbtc3(Exchange):
                     'future': 'derivatives',
                     'derivatives': 'derivatives',
                 },
+            },
+            'commonCurrencies': {
+                'AUTO': 'Cube',
+                'BCC': 'BCC',  # initial symbol for Bitcoin Cash, now inactive
+                'BDP': 'BidiPass',
+                'BET': 'DAO.Casino',
+                'BIT': 'BitRewards',
+                'BOX': 'BOX Token',
+                'CPT': 'Cryptaur',  # conflict with CPT = Contents Protocol https://github.com/ccxt/ccxt/issues/4920 and https://github.com/ccxt/ccxt/issues/6081
+                'GET': 'Themis',
+                'GMT': 'GMT Token',
+                'HSR': 'HC',
+                'IQ': 'IQ.Cash',
+                'LNC': 'LinkerCoin',
+                'PLA': 'PlayChip',
+                'PNT': 'Penta',
+                'SBTC': 'Super Bitcoin',
+                'STEPN': 'GMT',
+                'STX': 'STOX',
+                'TV': 'Tokenville',
+                'USD': 'USDT',
+                'XMT': 'MTL',
+                'XPNT': 'PNT',
             },
         })
 
@@ -1101,26 +1128,71 @@ class hitbtc3(Exchange):
             request['from'] = self.iso8601(since)
         if limit is not None:
             request['limit'] = limit
-        response = await self.publicGetPublicCandles(self.extend(request, params))
+        price = self.safe_string(params, 'price')
+        params = self.omit(params, 'price')
+        method = 'publicGetPublicCandles'
+        if price == 'mark':
+            method = 'publicGetPublicFuturesCandlesMarkPrice'
+        elif price == 'index':
+            method = 'publicGetPublicFuturesCandlesIndexPrice'
+        elif price == 'premiumIndex':
+            method = 'publicGetPublicFuturesCandlesPremiumIndex'
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        # Spot and Swap
         #
         #     {
-        #       "ETHUSDT": [
-        #         {
-        #           "timestamp": "2021-10-25T07:38:00.000Z",
-        #           "open": "4173.391",
-        #           "close": "4170.923",
-        #           "min": "4170.923",
-        #           "max": "4173.986",
-        #           "volume": "0.1879",
-        #           "volume_quote": "784.2517846"
-        #         }
-        #       ]
+        #         "ETHUSDT": [
+        #             {
+        #                 "timestamp": "2021-10-25T07:38:00.000Z",
+        #                 "open": "4173.391",
+        #                 "close": "4170.923",
+        #                 "min": "4170.923",
+        #                 "max": "4173.986",
+        #                 "volume": "0.1879",
+        #                 "volume_quote": "784.2517846"
+        #             }
+        #         ]
+        #     }
+        #
+        # Mark, Index and Premium Index
+        #
+        #     {
+        #         "BTCUSDT_PERP": [
+        #             {
+        #                 "timestamp": "2022-04-01T01:28:00.000Z",
+        #                 "open": "45146.39",
+        #                 "close": "45219.43",
+        #                 "min": "45146.39",
+        #                 "max": "45219.43"
+        #             },
+        #         ]
         #     }
         #
         ohlcvs = self.safe_value(response, market['id'])
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
+    async def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        request = {
+            'price': 'mark',
+        }
+        return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
+
+    async def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        request = {
+            'price': 'index',
+        }
+        return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
+
+    async def fetch_premium_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        request = {
+            'price': 'premiumIndex',
+        }
+        return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
+
     def parse_ohlcv(self, ohlcv, market=None):
+        #
+        # Spot and Swap
         #
         #     {
         #         "timestamp":"2015-08-20T19:01:00.000Z",
@@ -1131,6 +1203,16 @@ class hitbtc3(Exchange):
         #         "volume":"0.003",
         #         "volume_quote":"0.000018"
         #     }
+        #
+        # Mark, Index and Premium Index
+        #
+        #     {
+        #         "timestamp": "2022-04-01T01:28:00.000Z",
+        #         "open": "45146.39",
+        #         "close": "45219.43",
+        #         "min": "45146.39",
+        #         "max": "45219.43"
+        #     },
         #
         return [
             self.parse8601(self.safe_string(ohlcv, 'timestamp')),
@@ -1731,6 +1813,52 @@ class hitbtc3(Exchange):
             result.append(self.parse_position(response[i]))
         return result
 
+    async def fetch_position(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        marketType, query = self.handle_market_type_and_params('fetchPosition', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'swap': 'privateGetFuturesAccountIsolatedSymbol',
+            'margin': 'privateGetMarginAccountIsolatedSymbol',
+        })
+        request = {
+            'symbol': market['id'],
+        }
+        response = await getattr(self, method)(self.extend(request, query))
+        #
+        #     [
+        #         {
+        #             "symbol": "ETHUSDT_PERP",
+        #             "type": "isolated",
+        #             "leverage": "10.00",
+        #             "created_at": "2022-03-19T07:54:35.24Z",
+        #             "updated_at": "2022-03-19T07:54:58.922Z",
+        #             currencies": [
+        #                 {
+        #                     "code": "USDT",
+        #                     "margin_balance": "7.478100643043",
+        #                     "reserved_orders": "0",
+        #                     "reserved_positions": "0.303530761300"
+        #                 }
+        #             ],
+        #             "positions": [
+        #                 {
+        #                     "id": 2470568,
+        #                     "symbol": "ETHUSDT_PERP",
+        #                     "quantity": "0.001",
+        #                     "price_entry": "2927.509",
+        #                     "price_margin_call": "0",
+        #                     "price_liquidation": "0",
+        #                     "pnl": "0",
+        #                     "created_at": "2022-03-19T07:54:35.24Z",
+        #                     "updated_at": "2022-03-19T07:54:58.922Z"
+        #                 }
+        #             ]
+        #         },
+        #     ]
+        #
+        return self.parse_position(response, market)
+
     def parse_position(self, position, market=None):
         #
         #     [
@@ -1979,6 +2107,27 @@ class hitbtc3(Exchange):
         #     }
         #
         return self.safe_number(response, 'leverage')
+
+    async def set_leverage(self, leverage, symbol=None, params={}):
+        await self.load_markets()
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
+        if params['margin_balance'] is None:
+            raise ArgumentsRequired(self.id + ' setLeverage() requires a margin_balance parameter that will transfer margin to the specified trading pair')
+        market = self.market(symbol)
+        amount = self.safe_number(params, 'margin_balance')
+        maxLeverage = self.safe_integer(market['limits']['leverage'], 'max', 50)
+        if market['type'] != 'swap':
+            raise BadSymbol(self.id + ' setLeverage() supports swap contracts only')
+        if (leverage < 1) or (leverage > maxLeverage):
+            raise BadRequest(self.id + ' setLeverage() leverage should be between 1 and ' + str(maxLeverage) + ' for ' + symbol)
+        request = {
+            'symbol': market['id'],
+            'leverage': str(leverage),
+            'margin_balance': self.amount_to_precision(symbol, amount),
+            # 'strict_validate': False,
+        }
+        return await self.privatePutFuturesAccountIsolatedSymbol(self.extend(request, params))
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         #

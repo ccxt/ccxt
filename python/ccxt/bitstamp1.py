@@ -41,7 +41,6 @@ class bitstamp1(Exchange):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
-                'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,

@@ -513,7 +513,7 @@ class ftx extends Exchange {
         //     }
         //
         $allFuturesResponse = null;
-        if ($this->has['future']) {
+        if ($this->has['future'] && ($this->hostname !== 'ftx.us')) {
             $allFuturesResponse = yield $this->publicGetFutures ();
         }
         //
@@ -2549,7 +2549,7 @@ class ftx extends Exchange {
         $histories = yield $this->fetch_borrow_rate_histories($since, $limit, $params);
         $borrowRateHistory = $this->safe_value($histories, $code);
         if ($borrowRateHistory === null) {
-            throw new BadRequest($this->id . '.fetchBorrowRateHistory returned no data for ' . $code);
+            throw new BadRequest($this->id . ' fetchBorrowRateHistory() returned no data for ' . $code);
         } else {
             return $borrowRateHistory;
         }

@@ -64,6 +64,8 @@ class deribit extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => true,
                 'fetchTransactions' => null,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
@@ -1079,6 +1081,116 @@ class deribit extends Exchange {
         $result = $this->safe_value($response, 'result', array());
         $trades = $this->safe_value($result, 'trades', array());
         return $this->parse_trades($trades, $market, $since, $limit);
+    }
+
+    public function fetch_trading_fees($params = array ()) {
+        yield $this->load_markets();
+        $code = $this->code_from_options('fetchTradingFees', $params);
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => $currency['id'],
+            'extended' => true,
+        );
+        $response = yield $this->privateGetGetAccountSummary (array_merge($request, $params));
+        //
+        //     {
+        //         jsonrpc => '2.0',
+        //         $result => array(
+        //             total_pl => 0,
+        //             session_upl => 0,
+        //             session_rpl => 0,
+        //             session_funding => 0,
+        //             portfolio_margining_enabled => false,
+        //             options_vega => 0,
+        //             options_theta => 0,
+        //             options_session_upl => 0,
+        //             options_session_rpl => 0,
+        //             options_pl => 0,
+        //             options_gamma => 0,
+        //             options_delta => 0,
+        //             margin_balance => 0.00062359,
+        //             maintenance_margin => 0,
+        //             limits => array(
+        //                 non_matching_engine_burst => 300,
+        //                 non_matching_engine => 200,
+        //                 matching_engine_burst => 20,
+        //                 matching_engine => 2
+        //             ),
+        //             initial_margin => 0,
+        //             futures_session_upl => 0,
+        //             futures_session_rpl => 0,
+        //             futures_pl => 0,
+        //             equity => 0.00062359,
+        //             deposit_address => '13tUtNsJSZa1F5GeCmwBywVrymHpZispzw',
+        //             delta_total => 0,
+        //             $currency => 'BTC',
+        //             balance => 0.00062359,
+        //             available_withdrawal_funds => 0.00062359,
+        //             available_funds => 0.00062359,
+        //             $fees => array(
+        //                 $currency => '',
+        //                 instrument_type => 'perpetual',
+        //                 fee_type => 'relative',
+        //                 maker_fee => 0,
+        //                 taker_fee => 0,
+        //             ),
+        //         ),
+        //         usIn => 1583775838115975,
+        //         usOut => 1583775838116520,
+        //         usDiff => 545,
+        //         testnet => false
+        //     }
+        //
+        $result = $this->safe_value($response, 'result', array());
+        $fees = $this->safe_value($result, 'fees', array());
+        $perpetualFee = array();
+        $futureFee = array();
+        $optionFee = array();
+        for ($i = 0; $i < count($fees); $i++) {
+            $fee = $fees[$i];
+            $instrumentType = $this->safe_string($fee, 'instrument_type');
+            if ($instrumentType === 'future') {
+                $futureFee = array(
+                    'info' => $fee,
+                    'maker' => $this->safe_number($fee, 'maker_fee'),
+                    'taker' => $this->safe_number($fee, 'taker_fee'),
+                );
+            } else if ($instrumentType === 'perpetual') {
+                $perpetualFee = array(
+                    'info' => $fee,
+                    'maker' => $this->safe_number($fee, 'maker_fee'),
+                    'taker' => $this->safe_number($fee, 'taker_fee'),
+                );
+            } else if ($instrumentType === 'option') {
+                $optionFee = array(
+                    'info' => $fee,
+                    'maker' => $this->safe_number($fee, 'maker_fee'),
+                    'taker' => $this->safe_number($fee, 'taker_fee'),
+                );
+            }
+        }
+        $parsedFees = array();
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
+            $market = $this->market($symbol);
+            $fee = array(
+                'info' => $market,
+                'symbol' => $symbol,
+                'percentage' => true,
+                'tierBased' => true,
+                'maker' => $market['maker'],
+                'taker' => $market['taker'],
+            );
+            if ($market['swap']) {
+                $fee = array_merge($fee, $perpetualFee);
+            } else if ($market['future']) {
+                $fee = array_merge($fee, $futureFee);
+            } else if ($market['option']) {
+                $fee = array_merge($fee, $optionFee);
+            }
+            $parsedFees[$symbol] = $fee;
+        }
+        return $parsedFees;
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

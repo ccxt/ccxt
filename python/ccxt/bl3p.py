@@ -40,7 +40,6 @@ class bl3p(Exchange):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
-                'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
                 'fetchMarkOHLCV': False,
                 'fetchOrderBook': True,

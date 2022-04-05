@@ -40,7 +40,6 @@ class btctradeua(Exchange):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
-                'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
                 'fetchMarkOHLCV': False,
                 'fetchOpenOrders': True,

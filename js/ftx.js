@@ -508,7 +508,7 @@ module.exports = class ftx extends Exchange {
         //     }
         //
         let allFuturesResponse = undefined;
-        if (this.has['future']) {
+        if (this.has['future'] && (this.hostname !== 'ftx.us')) {
             allFuturesResponse = await this.publicGetFutures ();
         }
         //
@@ -2544,7 +2544,7 @@ module.exports = class ftx extends Exchange {
         const histories = await this.fetchBorrowRateHistories (since, limit, params);
         const borrowRateHistory = this.safeValue (histories, code);
         if (borrowRateHistory === undefined) {
-            throw new BadRequest (this.id + '.fetchBorrowRateHistory returned no data for ' + code);
+            throw new BadRequest (this.id + ' fetchBorrowRateHistory() returned no data for ' + code);
         } else {
             return borrowRateHistory;
         }

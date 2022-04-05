@@ -1893,7 +1893,7 @@ class zb(Exchange):
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + 'fetchOrders() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         swap = market['swap']
@@ -1997,7 +1997,7 @@ class zb(Exchange):
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=10, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + 'fetchClosedOrders() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -2010,7 +2010,7 @@ class zb(Exchange):
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + 'fetchOpenOrders() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         swap = market['swap']

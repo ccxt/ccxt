@@ -62,7 +62,6 @@ class gemini(Exchange):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
-                'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
                 'fetchMarkets': True,
@@ -955,7 +954,7 @@ class gemini(Exchange):
         await self.load_markets()
         network = self.safe_string(params, 'network')
         if network is None:
-            raise ArgumentsRequired(self.id + 'fetchDepositAddressesByNetwork() requires a network parameter')
+            raise ArgumentsRequired(self.id + ' fetchDepositAddressesByNetwork() requires a network parameter')
         params = self.omit(params, 'network')
         networks = self.safe_value(self.options, 'networks', {})
         networkId = self.safe_string(networks, network, network)
