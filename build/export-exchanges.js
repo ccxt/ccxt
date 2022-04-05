@@ -73,7 +73,7 @@ function exportExchanges (replacements) {
 async function createExchanges (ids) {
 
     const module = await import('../ccxt.js')
-    const ccxt = module.ccxt
+    const ccxt = module.default
 
     const createExchange = (id) => {
         ccxt[id].prototype.checkRequiredDependencies = () => {} // suppress it
@@ -415,7 +415,7 @@ async function exportEverything () {
         {   
             // we have an arbitrary number of imports
             // example: import x from x \n import y from y ...
-            // and we want to make sure we leave only one that can be replaced
+            // and we want to make sure we remove all except one that can be replaced
             // by the new stringified list, avoiding adding the new list per existent import
             file: './ccxt.js',
             regex:  /(import)\s+(\w+)\s+from\s+'.\/js\/(\2).js'\n(?=import\s\w+\s+from\s+)/g,
@@ -430,6 +430,11 @@ async function exportEverything () {
             file: './ccxt.js',
             regex:  /(?:const|var)\s+exchanges\s+\=\s+\{[^\}]+\}/,
             replacement: "const exchanges = {\n" + ids.map (id => ("    '" + id + "':").padEnd (30) + id + ',').join ("\n") + "    \n}",
+        },
+        {
+            file: './ccxt.js',
+            regex:  /export\s+{\n[^\}]+\}/,
+            replacement: "export {\n" + ids.map (id => "    " + id + ',').join ("\n") + "    \n}",
         },
         {
             file: './python/ccxt/__init__.py',
