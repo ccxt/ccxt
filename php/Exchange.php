@@ -1207,7 +1207,6 @@ class Exchange {
             'createLimitOrder' => true,
             'createMarketOrder' => true,
             'createOrder' => true,
-            'deposit' => null,
             'editOrder' => 'emulated',
             'fetchAccounts' => null,
             'fetchBalance' => true,

@@ -254,7 +254,6 @@ class Exchange(object):
         'createLimitOrder': True,
         'createMarketOrder': True,
         'createOrder': True,
-        'deposit': None,
         'editOrder': 'emulated',
         'fetchAccounts': None,
         'fetchBalance': True,
