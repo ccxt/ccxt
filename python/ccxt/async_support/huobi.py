@@ -1202,15 +1202,20 @@ class huobi(Exchange):
             quoteId = None
             settleId = None
             id = None
+            lowercaseId = None
+            lowercaseBaseId = None
             if contract:
                 id = self.safe_string(market, 'contract_code')
+                lowercaseId = id.lower()
                 if swap:
                     parts = id.split('-')
                     baseId = self.safe_string(market, 'symbol')
-                    quoteId = self.safe_string(parts, 1)
+                    lowercaseBaseId = baseId.lower()
+                    quoteId = self.safe_string_lower(parts, 1)
                     settleId = baseId if inverse else quoteId
                 elif future:
                     baseId = self.safe_string(market, 'symbol')
+                    lowercaseBaseId = baseId.lower()
                     if inverse:
                         quoteId = 'USD'
                         settleId = baseId
@@ -1221,8 +1226,10 @@ class huobi(Exchange):
                         settleId = quoteId
             else:
                 baseId = self.safe_string(market, 'base-currency')
+                lowercaseBaseId = baseId.lower()
                 quoteId = self.safe_string(market, 'quote-currency')
                 id = baseId + quoteId
+                lowercaseId = id.lower()
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             settle = self.safe_currency_code(settleId)
@@ -1280,11 +1287,13 @@ class huobi(Exchange):
             # 9 Suspending of Trade
             result.append({
                 'id': id,
+                'lowercaseId': lowercaseId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'settle': settle,
                 'baseId': baseId,
+                'lowercaseBaseId': lowercaseBaseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
                 'type': type,

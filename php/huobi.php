@@ -1211,15 +1211,20 @@ class huobi extends Exchange {
             $quoteId = null;
             $settleId = null;
             $id = null;
+            $lowercaseId = null;
+            $lowercaseBaseId = null;
             if ($contract) {
                 $id = $this->safe_string($market, 'contract_code');
+                $lowercaseId = strtolower($id);
                 if ($swap) {
                     $parts = explode('-', $id);
                     $baseId = $this->safe_string($market, 'symbol');
-                    $quoteId = $this->safe_string($parts, 1);
+                    $lowercaseBaseId = strtolower($baseId);
+                    $quoteId = $this->safe_string_lower($parts, 1);
                     $settleId = $inverse ? $baseId : $quoteId;
                 } else if ($future) {
                     $baseId = $this->safe_string($market, 'symbol');
+                    $lowercaseBaseId = strtolower($baseId);
                     if ($inverse) {
                         $quoteId = 'USD';
                         $settleId = $baseId;
@@ -1232,8 +1237,10 @@ class huobi extends Exchange {
                 }
             } else {
                 $baseId = $this->safe_string($market, 'base-currency');
+                $lowercaseBaseId = strtolower($baseId);
                 $quoteId = $this->safe_string($market, 'quote-currency');
                 $id = $baseId . $quoteId;
+                $lowercaseId = strtolower($id);
             }
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
@@ -1298,11 +1305,13 @@ class huobi extends Exchange {
             // 9 Suspending of Trade
             $result[] = array(
                 'id' => $id,
+                'lowercaseId' => $lowercaseId,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
                 'settle' => $settle,
                 'baseId' => $baseId,
+                'lowercaseBaseId' => $lowercaseBaseId,
                 'quoteId' => $quoteId,
                 'settleId' => $settleId,
                 'type' => $type,
