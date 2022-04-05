@@ -4665,7 +4665,7 @@ module.exports = class huobi extends Exchange {
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
 
-    parseBorrowInterests (response, market) {
+    parseBorrowInterests (response, market = undefined) {
         const interest = [];
         for (let i = 0; i < response.length; i++) {
             const row = response[i];
@@ -4674,8 +4674,8 @@ module.exports = class huobi extends Exchange {
         return interest;
     }
 
-    parseBorrowInterest (info, market) {
-        const symbol = market['symbol'];
+    parseBorrowInterest (info, market = undefined) {
+        const symbol = this.safeString (market, 'symbol');
         const account = (symbol === undefined) ? 'CROSS' : symbol;
         const timestamp = this.safeNumber (info, 'accrued-at');
         return {
