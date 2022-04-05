@@ -1035,7 +1035,7 @@ class bigone extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $dataLength = is_array($data) ? count($data) : 0;
         if ($dataLength < 1) {
-            throw new ExchangeError($this->id . 'fetchDepositAddress() returned empty $address response');
+            throw new ExchangeError($this->id . ' fetchDepositAddress() returned empty $address response');
         }
         $firstElement = $data[0];
         $address = $this->safe_string($firstElement, 'value');

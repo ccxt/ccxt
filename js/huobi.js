@@ -3420,7 +3420,7 @@ module.exports = class huobi extends Exchange {
         if (stopPrice === undefined) {
             const stopOrderTypes = this.safeValue (options, 'stopOrderTypes', {});
             if (orderType in stopOrderTypes) {
-                throw new ArgumentsRequired (this.id + 'createOrder() requires a stopPrice or a stop-price parameter for a stop order');
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPrice or a stop-price parameter for a stop order');
             }
         } else {
             const stopOperator = this.safeString (params, 'operator');
@@ -3433,7 +3433,7 @@ module.exports = class huobi extends Exchange {
             if ((orderType === 'limit') || (orderType === 'limit-fok')) {
                 orderType = 'stop-' + orderType;
             } else if ((orderType !== 'stop-limit') && (orderType !== 'stop-limit-fok')) {
-                throw new NotSupported (this.id + 'createOrder() does not support ' + type + ' orders');
+                throw new NotSupported (this.id + ' createOrder() does not support ' + type + ' orders');
             }
         }
         const postOnly = this.safeValue (params, 'postOnly', false);
@@ -5494,7 +5494,7 @@ module.exports = class huobi extends Exchange {
         if (symbol !== undefined) {
             const market = this.market (symbol);
             if (!market['contract']) {
-                throw new BadRequest (this.id + '.fetchLeverageTiers symbol supports contract markets only');
+                throw new BadRequest (this.id + ' fetchLeverageTiers() symbol supports contract markets only');
             }
             request['contract_code'] = market['id'];
         }

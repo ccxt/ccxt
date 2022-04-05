@@ -785,7 +785,7 @@ class buda extends Exchange {
         $this->load_markets();
         $currency = $this->currency($code);
         if ($this->is_fiat($code)) {
-            throw new NotSupported($this->id . ' => fiat fetchDepositAddress() for ' . $code . ' is not supported');
+            throw new NotSupported($this->id . ' fetchDepositAddress() of fiat for ' . $code . ' is not supported');
         }
         $request = array(
             'currency' => $currency['id'],
@@ -853,7 +853,7 @@ class buda extends Exchange {
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' => fetchDeposits() requires a $currency $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchDeposits() requires a $currency $code argument');
         }
         $currency = $this->currency($code);
         $request = array(
@@ -868,7 +868,7 @@ class buda extends Exchange {
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' => fetchDeposits() requires a $currency $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchDeposits() requires a $currency $code argument');
         }
         $currency = $this->currency($code);
         $request = array(
