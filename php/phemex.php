@@ -368,6 +368,7 @@ class phemex extends Exchange {
                     'Failed to find api-key' => '\\ccxt\\AuthenticationError', // array("msg":"Failed to find api-key 1c5ec63fd-660d-43ea-847a-0d3ba69e106e","code":10500)
                     'Missing required parameter' => '\\ccxt\\BadRequest', // array("msg":"Missing required parameter","code":10500)
                     'API Signature verification failed' => '\\ccxt\\AuthenticationError', // array("msg":"API Signature verification failed.","code":10500)
+                    'Api key not found' => '\\ccxt\\AuthenticationError', // array("msg":"Api key not found 698dc9e3-6faa-4910-9476-12857e79e198","code":"10500")
                 ),
             ),
             'options' => array(
