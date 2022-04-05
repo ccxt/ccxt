@@ -4627,11 +4627,11 @@ module.exports = class huobi extends Exchange {
         }
         let market = undefined;
         let method = 'privateGetCrossMarginLoanOrders';
-        if (symbol !== undefined) { // Isolated
+        if (symbol !== undefined) {  // Isolated
             market = this.market (symbol);
             request['symbol'] = market['id'];
             method = 'privateGetMarginLoanOrders';
-        } else { // Cross
+        } else {  // Cross
             if (code !== undefined) {
                 const currency = this.currency (code);
                 request['currency'] = currency['id'];
@@ -4661,23 +4661,33 @@ module.exports = class huobi extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        const interest = [];
-        for (let i = 0; i < data.length; i++) {
-            const row = data[i];
-            const account = (symbol === undefined) ? 'CROSS' : symbol;
-            const timestamp = this.safeNumber (row, 'accrued-at');
-            interest.push ({
-                'account': account, // isolated symbol, will not be returned for crossed margin
-                'currency': this.safeCurrencyCode (this.safeString (row, 'currency')),
-                'interest': this.safeNumber (row, 'interest-amount'),
-                'interestRate': undefined,
-                'amountBorrowed': this.safeNumber (row, 'loan-amount'),
-                'timestamp': timestamp, // Interest accrued time
-                'datetime': this.iso8601 (timestamp),
-                'info': row,
-            });
-        }
+        const interest = this.parseBorrowInterests (data, market);
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
+    }
+
+    parseBorrowInterests (response, market) {
+        const interest = [];
+        for (let i = 0; i < response.length; i++) {
+            const row = response[i];
+            interest.push (this.parseBorrowInterest (row, market));
+        }
+        return interest;
+    }
+
+    parseBorrowInterest (info, market) {
+        const symbol = market['symbol'];
+        const account = (symbol === undefined) ? 'CROSS' : symbol;
+        const timestamp = this.safeNumber (info, 'accrued-at');
+        return {
+            'account': account,  // isolated symbol, will not be returned for crossed margin
+            'currency': this.safeCurrencyCode (this.safeString (info, 'currency')),
+            'interest': this.safeNumber (info, 'interest-amount'),
+            'interestRate': undefined,
+            'amountBorrowed': this.safeNumber (info, 'loan-amount'),
+            'timestamp': timestamp,  // Interest accrued time
+            'datetime': this.iso8601 (timestamp),
+            'info': info,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
