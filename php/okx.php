@@ -4115,7 +4115,7 @@ class okx extends Exchange {
         $codeObject = json_decode('array("ccy" => "' . $code . '", $as_associative_array = true)');
         $histories = $this->fetch_borrow_rate_histories($since, $limit, $codeObject, $params);
         if ($histories === null) {
-            throw new BadRequest($this->id . '.fetchBorrowRateHistory returned no data for ' . $code);
+            throw new BadRequest($this->id . ' fetchBorrowRateHistory() returned no data for ' . $code);
         } else {
             return $histories;
         }

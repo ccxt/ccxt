@@ -3427,7 +3427,7 @@ class huobi extends Exchange {
         if ($stopPrice === null) {
             $stopOrderTypes = $this->safe_value($options, 'stopOrderTypes', array());
             if (is_array($stopOrderTypes) && array_key_exists($orderType, $stopOrderTypes)) {
-                throw new ArgumentsRequired($this->id . 'createOrder() requires a $stopPrice or a stop-$price parameter for a stop order');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a $stopPrice or a stop-$price parameter for a stop order');
             }
         } else {
             $stopOperator = $this->safe_string($params, 'operator');
@@ -3440,7 +3440,7 @@ class huobi extends Exchange {
             if (($orderType === 'limit') || ($orderType === 'limit-fok')) {
                 $orderType = 'stop-' . $orderType;
             } else if (($orderType !== 'stop-limit') && ($orderType !== 'stop-limit-fok')) {
-                throw new NotSupported($this->id . 'createOrder() does not support ' . $type . ' orders');
+                throw new NotSupported($this->id . ' createOrder() does not support ' . $type . ' orders');
             }
         }
         $postOnly = $this->safe_value($params, 'postOnly', false);
@@ -5501,7 +5501,7 @@ class huobi extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             if (!$market['contract']) {
-                throw new BadRequest($this->id . '.fetchLeverageTiers $symbol supports contract markets only');
+                throw new BadRequest($this->id . ' fetchLeverageTiers() $symbol supports contract markets only');
             }
             $request['contract_code'] = $market['id'];
         }

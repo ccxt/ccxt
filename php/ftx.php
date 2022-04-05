@@ -2548,7 +2548,7 @@ class ftx extends Exchange {
         $histories = $this->fetch_borrow_rate_histories($since, $limit, $params);
         $borrowRateHistory = $this->safe_value($histories, $code);
         if ($borrowRateHistory === null) {
-            throw new BadRequest($this->id . '.fetchBorrowRateHistory returned no data for ' . $code);
+            throw new BadRequest($this->id . ' fetchBorrowRateHistory() returned no data for ' . $code);
         } else {
             return $borrowRateHistory;
         }
