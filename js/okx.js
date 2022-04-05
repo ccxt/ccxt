@@ -2088,6 +2088,53 @@ module.exports = class okx extends Exchange {
         //         "uTime":"1621910749815"
         //     }
         //
+        // fetchOpenOrders Stop order
+        //
+        //     {
+        //         "activePx": "",
+        //         "activePxType": "",
+        //         "actualPx": "",
+        //         "actualSide": "buy",
+        //         "actualSz": "0",
+        //         "algoId": "431375349042380800",
+        //         "cTime": "1649119897778",
+        //         "callbackRatio": "",
+        //         "callbackSpread": "",
+        //         "ccy": "",
+        //         "ctVal": "0.01",
+        //         "instId": "BTC-USDT-SWAP",
+        //         "instType": "SWAP",
+        //         "last": "46538.9",
+        //         "lever": "125",
+        //         "moveTriggerPx": "",
+        //         "notionalUsd": "467.059",
+        //         "ordId": "",
+        //         "ordPx": "50000",
+        //         "ordType": "trigger",
+        //         "posSide": "long",
+        //         "pxLimit": "",
+        //         "pxSpread": "",
+        //         "pxVar": "",
+        //         "side": "buy",
+        //         "slOrdPx": "",
+        //         "slTriggerPx": "",
+        //         "slTriggerPxType": "",
+        //         "state": "live",
+        //         "sz": "1",
+        //         "szLimit": "",
+        //         "tag": "",
+        //         "tdMode": "isolated",
+        //         "tgtCcy": "",
+        //         "timeInterval": "",
+        //         "tpOrdPx": "",
+        //         "tpTriggerPx": "",
+        //         "tpTriggerPxType": "",
+        //         "triggerPx": "50000",
+        //         "triggerPxType": "last",
+        //         "triggerTime": "",
+        //         "uly": "BTC-USDT"
+        //     }
+        //
         const id = this.safeString (order, 'ordId');
         const timestamp = this.safeInteger (order, 'cTime');
         const lastTradeTimestamp = this.safeInteger (order, 'fillTime');
@@ -2108,7 +2155,7 @@ module.exports = class okx extends Exchange {
         const marketId = this.safeString (order, 'instId');
         const symbol = this.safeSymbol (marketId, market, '-');
         const filled = this.safeString (order, 'accFillSz');
-        const price = this.safeString2 (order, 'px', 'slOrdPx');
+        const price = this.safeString2 (order, 'px', 'ordPx');
         const average = this.safeString (order, 'avgPx');
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
         const feeCostString = this.safeString (order, 'fee');
@@ -2140,7 +2187,7 @@ module.exports = class okx extends Exchange {
         if ((clientOrderId !== undefined) && (clientOrderId.length < 1)) {
             clientOrderId = undefined; // fix empty clientOrderId string
         }
-        const stopPrice = this.safeNumber (order, 'slTriggerPx');
+        const stopPrice = this.safeNumber2 (order, 'slTriggerPx', 'triggerPx');
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -2252,7 +2299,12 @@ module.exports = class okx extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
         }
-        const response = await this.privateGetTradeOrdersPending (this.extend (request, params));
+        let method = 'privateGetTradeOrdersPending';
+        const ordType = this.safeString (params, 'ordType');
+        if (ordType === 'trigger') {
+            method = 'privateGetTradeOrdersAlgoPending';
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "code":"0",
@@ -2293,6 +2345,59 @@ module.exports = class okx extends Exchange {
         //             }
         //         ],
         //         "msg":""
+        //     }
+        //
+        // Stop order
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "activePx": "",
+        //                 "activePxType": "",
+        //                 "actualPx": "",
+        //                 "actualSide": "buy",
+        //                 "actualSz": "0",
+        //                 "algoId": "431375349042380800",
+        //                 "cTime": "1649119897778",
+        //                 "callbackRatio": "",
+        //                 "callbackSpread": "",
+        //                 "ccy": "",
+        //                 "ctVal": "0.01",
+        //                 "instId": "BTC-USDT-SWAP",
+        //                 "instType": "SWAP",
+        //                 "last": "46538.9",
+        //                 "lever": "125",
+        //                 "moveTriggerPx": "",
+        //                 "notionalUsd": "467.059",
+        //                 "ordId": "",
+        //                 "ordPx": "50000",
+        //                 "ordType": "trigger",
+        //                 "posSide": "long",
+        //                 "pxLimit": "",
+        //                 "pxSpread": "",
+        //                 "pxVar": "",
+        //                 "side": "buy",
+        //                 "slOrdPx": "",
+        //                 "slTriggerPx": "",
+        //                 "slTriggerPxType": "",
+        //                 "state": "live",
+        //                 "sz": "1",
+        //                 "szLimit": "",
+        //                 "tag": "",
+        //                 "tdMode": "isolated",
+        //                 "tgtCcy": "",
+        //                 "timeInterval": "",
+        //                 "tpOrdPx": "",
+        //                 "tpTriggerPx": "",
+        //                 "tpTriggerPxType": "",
+        //                 "triggerPx": "50000",
+        //                 "triggerPxType": "last",
+        //                 "triggerTime": "",
+        //                 "uly": "BTC-USDT"
+        //             }
+        //         ],
+        //         "msg": ""
         //     }
         //
         const data = this.safeValue (response, 'data', []);
