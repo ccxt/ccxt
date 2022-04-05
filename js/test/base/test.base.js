@@ -192,3 +192,4 @@ function testBase () {
 	testCamelCasePropertyConversion2 ()
 	testLegacyHasSomething ()
 }
+*/
