@@ -627,22 +627,37 @@ module.exports = class huobi extends ccxt.huobi {
             let orderType = this.safeString2 (this.options, 'watchOrders', 'orderType', 'orders'); // orders or matchOrders
             orderType = this.safeString (params, 'orderType', orderType);
             query = this.omit (params, 'orderType');
-            const marketCode = market['lowercaseId'];
-            let prefix = orderType;
+            const marketCode = (market !== undefined) ? market['lowercaseId'] : undefined;
+            const baseId = (market !== undefined) ? market['lowercaseBaseId'] : undefined;
+            const prefix = orderType;
+            messageHash = prefix;
             if (subType === 'linear') {
                 // USDT Margined Contracts Example: LTC/USDT:USDT
                 const marginMode = this.safeString (params, 'margin', 'cross');
-                prefix = (marginMode === 'cross') ? prefix + '_cross' : prefix;
-                messageHash = prefix + '.' + marketCode;
-                channel = messageHash;
+                const marginPrefix = (marginMode === 'cross') ? prefix + '_cross' : prefix;
+                messageHash = marginPrefix;
+                if (marketCode !== undefined) {
+                    messageHash += '.' + marketCode;
+                    channel = messageHash;
+                } else {
+                    channel = marginPrefix + '.' + '*';
+                }
             } else if (type === 'future') {
                 // inverse futures Example: BCH/USD:BCH-220408
-                channel = prefix + '.' + market['lowercaseBaseId'];
-                messageHash = channel + ':' + marketCode;
+                if (baseId !== undefined) {
+                    channel = prefix + '.' + baseId;
+                    messageHash = channel;
+                } else {
+                    channel = prefix + '.' + '*';
+                }
             } else {
                 // inverse swaps: Example: BTC/USD:BTC
-                channel = prefix + '.' + marketCode;
-                messageHash = channel;
+                if (marketCode !== undefined) {
+                    channel = prefix + '.' + marketCode;
+                    messageHash = channel;
+                } else {
+                    channel = prefix + '.' + '*';
+                }
             }
         }
         const orders = await this.subscribePrivate (channel, messageHash, type, subType, query);
