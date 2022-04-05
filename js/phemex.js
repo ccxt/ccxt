@@ -365,6 +365,7 @@ module.exports = class phemex extends Exchange {
                     'Failed to find api-key': AuthenticationError, // {"msg":"Failed to find api-key 1c5ec63fd-660d-43ea-847a-0d3ba69e106e","code":10500}
                     'Missing required parameter': BadRequest, // {"msg":"Missing required parameter","code":10500}
                     'API Signature verification failed': AuthenticationError, // {"msg":"API Signature verification failed.","code":10500}
+                    'Api key not found': AuthenticationError, // {"msg":"Api key not found 698dc9e3-6faa-4910-9476-12857e79e198","code":"10500"}
                 },
             },
             'options': {
