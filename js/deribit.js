@@ -1297,7 +1297,11 @@ module.exports = class deribit extends Exchange {
         const timestamp = this.safeInteger (order, 'creation_timestamp');
         const lastUpdate = this.safeInteger (order, 'last_update_timestamp');
         const id = this.safeString (order, 'order_id');
-        const priceString = this.safeString (order, 'price');
+        let priceString = this.safeString (order, 'price');
+        if (priceString === 'market_price') {
+            // for market orders we get a literal 'market_price' string here
+            priceString = undefined;
+        }
         const averageString = this.safeString (order, 'average_price');
         const amountString = this.safeString (order, 'amount');
         const filledString = this.safeString (order, 'filled_amount');
