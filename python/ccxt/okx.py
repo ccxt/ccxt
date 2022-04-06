@@ -638,6 +638,9 @@ class okx(Exchange):
                     'method': 'privateGetAccountBills',  # privateGetAccountBillsArchive, privateGetAssetBills
                 },
                 # 1 = SPOT, 3 = FUTURES, 5 = MARGIN, 6 = FUNDING, 9 = SWAP, 12 = OPTION, 18 = Unified account
+                'cancelOrders': {
+                    'method': 'privatePostTradeCancelBatchOrders',  # privatePostTradeCancelAlgos
+                },
                 'accountsByType': {
                     'spot': '1',
                     'future': '3',
@@ -788,10 +791,13 @@ class okx(Exchange):
 
     def fetch_markets(self, params={}):
         types = self.safe_value(self.options, 'fetchMarkets')
+        promises = []
         result = []
         for i in range(0, len(types)):
-            markets = self.fetch_markets_by_type(types[i], params)
-            result = self.array_concat(result, markets)
+            promises.append(self.fetch_markets_by_type(types[i], params))
+        # why not both ¯\_(ツ)_/¯
+        for i in range(0, len(promises)):
+            result = self.array_concat(result, promises[i])
         return result
 
     def parse_markets(self, markets):
@@ -1907,25 +1913,44 @@ class okx(Exchange):
 
     def cancel_orders(self, ids, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' canelOrders() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = []
+        options = self.safe_value(self.options, 'cancelOrders', {})
+        defaultMethod = self.safe_string(options, 'method', 'privatePostTradeCancelBatchOrders')
+        method = self.safe_string(params, 'method', defaultMethod)
         clientOrderId = self.safe_value_2(params, 'clOrdId', 'clientOrderId')
+        algoId = self.safe_value(params, 'algoId')
+        stop = self.safe_value(params, 'stop')
         if clientOrderId is None:
-            if isinstance(ids, str):
-                orderIds = ids.split(',')
-                for i in range(0, len(orderIds)):
+            if stop or algoId is not None:
+                method = 'privatePostTradeCancelAlgos'
+                if isinstance(algoId, list):
+                    for i in range(0, len(algoId)):
+                        request.append({
+                            'instId': market['id'],
+                            'algoId': algoId[i],
+                        })
+                elif isinstance(algoId, str):
                     request.append({
                         'instId': market['id'],
-                        'ordId': orderIds[i],
+                        'algoId': algoId,
                     })
             else:
-                for i in range(0, len(ids)):
-                    request.append({
-                        'instId': market['id'],
-                        'ordId': ids[i],
-                    })
+                if isinstance(ids, str):
+                    orderIds = ids.split(',')
+                    for i in range(0, len(orderIds)):
+                        request.append({
+                            'instId': market['id'],
+                            'ordId': orderIds[i],
+                        })
+                else:
+                    for i in range(0, len(ids)):
+                        request.append({
+                            'instId': market['id'],
+                            'ordId': ids[i],
+                        })
         elif isinstance(clientOrderId, list):
             for i in range(0, len(clientOrderId)):
                 request.append({
@@ -1937,21 +1962,35 @@ class okx(Exchange):
                 'instId': market['id'],
                 'clOrdId': clientOrderId,
             })
-        response = self.privatePostTradeCancelBatchOrders(request)  # dont self.extend with params, otherwise ARRAY will be turned into OBJECT
+        response = getattr(self, method)(request)  # dont self.extend with params, otherwise ARRAY will be turned into OBJECT
         #
-        # {
-        #     "code": "0",
-        #     "data": [
-        #         {
-        #             "clOrdId": "e123456789ec4dBC1123456ba123b45e",
-        #             "ordId": "405071912345641543",
-        #             "sCode": "0",
-        #             "sMsg": ""
-        #         },
-        #         ...
-        #     ],
-        #     "msg": ""
-        # }
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             {
+        #                 "clOrdId": "e123456789ec4dBC1123456ba123b45e",
+        #                 "ordId": "405071912345641543",
+        #                 "sCode": "0",
+        #                 "sMsg": ""
+        #             },
+        #             ...
+        #         ],
+        #         "msg": ""
+        #     }
+        #
+        # Algo order
+        #
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             {
+        #                 "algoId": "431375349042380800",
+        #                 "sCode": "0",
+        #                 "sMsg": ""
+        #             }
+        #         ],
+        #         "msg": ""
+        #     }
         #
         ordersData = self.safe_value(response, 'data', [])
         return self.parse_orders(ordersData, market, None, None, params)

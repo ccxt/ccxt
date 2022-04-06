@@ -1047,24 +1047,26 @@ class huobi extends Exchange {
         $options = $this->safe_value($this->options, 'fetchMarkets', array());
         $types = $this->safe_value($options, 'types', array());
         $allMarkets = array();
+        $promises = array();
         $keys = is_array($types) ? array_keys($types) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $type = $keys[$i];
             $value = $this->safe_value($types, $type);
             if ($value === true) {
-                $markets = $this->fetch_markets_by_type_and_sub_type($type, null, $params);
-                $allMarkets = $this->array_concat($allMarkets, $markets);
+                $promises[] = $this->fetch_markets_by_type_and_sub_type($type, null, $params);
             } else {
                 $subKeys = is_array($value) ? array_keys($value) : array();
                 for ($j = 0; $j < count($subKeys); $j++) {
                     $subType = $subKeys[$j];
                     $subValue = $this->safe_value($value, $subType);
                     if ($subValue) {
-                        $markets = $this->fetch_markets_by_type_and_sub_type($type, $subType, $params);
-                        $allMarkets = $this->array_concat($allMarkets, $markets);
+                        $promises[] = $this->fetch_markets_by_type_and_sub_type($type, $subType, $params);
                     }
                 }
             }
+        }
+        for ($i = 0; $i < count($promises); $i++) {
+            $allMarkets = $this->array_concat($allMarkets, $promises[$i]);
         }
         return $allMarkets;
     }

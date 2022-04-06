@@ -622,6 +622,9 @@ class okx extends Exchange {
                     'method' => 'privateGetAccountBills', // privateGetAccountBillsArchive, privateGetAssetBills
                 ),
                 // 1 = SPOT, 3 = FUTURES, 5 = MARGIN, 6 = FUNDING, 9 = SWAP, 12 = OPTION, 18 = Unified account
+                'cancelOrders' => array(
+                    'method' => 'privatePostTradeCancelBatchOrders', // privatePostTradeCancelAlgos
+                ),
                 'accountsByType' => array(
                     'spot' => '1',
                     'future' => '3',
@@ -782,10 +785,15 @@ class okx extends Exchange {
 
     public function fetch_markets($params = array ()) {
         $types = $this->safe_value($this->options, 'fetchMarkets');
+        $promises = array();
         $result = array();
         for ($i = 0; $i < count($types); $i++) {
-            $markets = yield $this->fetch_markets_by_type($types[$i], $params);
-            $result = $this->array_concat($result, $markets);
+            $promises[] = $this->fetch_markets_by_type($types[$i], $params);
+        }
+        // why not both ¯\_(ツ)_/¯
+        $promises = yield $promises;
+        for ($i = 0; $i < count($promises); $i++) {
+            $result = $this->array_concat($result, $promises[$i]);
         }
         return $result;
     }
@@ -1979,27 +1987,49 @@ class okx extends Exchange {
 
     public function cancel_orders($ids, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' canelOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
         }
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array();
+        $options = $this->safe_value($this->options, 'cancelOrders', array());
+        $defaultMethod = $this->safe_string($options, 'method', 'privatePostTradeCancelBatchOrders');
+        $method = $this->safe_string($params, 'method', $defaultMethod);
         $clientOrderId = $this->safe_value_2($params, 'clOrdId', 'clientOrderId');
+        $algoId = $this->safe_value($params, 'algoId');
+        $stop = $this->safe_value($params, 'stop');
         if ($clientOrderId === null) {
-            if (gettype($ids) === 'string') {
-                $orderIds = explode(',', $ids);
-                for ($i = 0; $i < count($orderIds); $i++) {
+            if ($stop || $algoId !== null) {
+                $method = 'privatePostTradeCancelAlgos';
+                if (gettype($algoId) === 'array' && count(array_filter(array_keys($algoId), 'is_string')) == 0) {
+                    for ($i = 0; $i < count($algoId); $i++) {
+                        $request[] = array(
+                            'instId' => $market['id'],
+                            'algoId' => $algoId[$i],
+                        );
+                    }
+                } else if (gettype($algoId) === 'string') {
                     $request[] = array(
                         'instId' => $market['id'],
-                        'ordId' => $orderIds[$i],
+                        'algoId' => $algoId,
                     );
                 }
             } else {
-                for ($i = 0; $i < count($ids); $i++) {
-                    $request[] = array(
-                        'instId' => $market['id'],
-                        'ordId' => $ids[$i],
-                    );
+                if (gettype($ids) === 'string') {
+                    $orderIds = explode(',', $ids);
+                    for ($i = 0; $i < count($orderIds); $i++) {
+                        $request[] = array(
+                            'instId' => $market['id'],
+                            'ordId' => $orderIds[$i],
+                        );
+                    }
+                } else {
+                    for ($i = 0; $i < count($ids); $i++) {
+                        $request[] = array(
+                            'instId' => $market['id'],
+                            'ordId' => $ids[$i],
+                        );
+                    }
                 }
             }
         } else if (gettype($clientOrderId) === 'array' && count(array_filter(array_keys($clientOrderId), 'is_string')) == 0) {
@@ -2015,21 +2045,35 @@ class okx extends Exchange {
                 'clOrdId' => $clientOrderId,
             );
         }
-        $response = yield $this->privatePostTradeCancelBatchOrders ($request); // dont extend with $params, otherwise ARRAY will be turned into OBJECT
+        $response = yield $this->$method ($request); // dont extend with $params, otherwise ARRAY will be turned into OBJECT
         //
-        // {
-        //     "code" => "0",
-        //     "data" => array(
-        //         array(
-        //             "clOrdId" => "e123456789ec4dBC1123456ba123b45e",
-        //             "ordId" => "405071912345641543",
-        //             "sCode" => "0",
-        //             "sMsg" => ""
+        //     {
+        //         "code" => "0",
+        //         "data" => array(
+        //             array(
+        //                 "clOrdId" => "e123456789ec4dBC1123456ba123b45e",
+        //                 "ordId" => "405071912345641543",
+        //                 "sCode" => "0",
+        //                 "sMsg" => ""
+        //             ),
+        //             ...
         //         ),
-        //         ...
-        //     ),
-        //     "msg" => ""
-        // }
+        //         "msg" => ""
+        //     }
+        //
+        // Algo order
+        //
+        //     {
+        //         "code" => "0",
+        //         "data" => array(
+        //             {
+        //                 "algoId" => "431375349042380800",
+        //                 "sCode" => "0",
+        //                 "sMsg" => ""
+        //             }
+        //         ),
+        //         "msg" => ""
+        //     }
         //
         $ordersData = $this->safe_value($response, 'data', array());
         return $this->parse_orders($ordersData, $market, null, null, $params);

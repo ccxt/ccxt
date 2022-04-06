@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+import asyncio
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1048,21 +1049,23 @@ class huobi(Exchange):
         options = self.safe_value(self.options, 'fetchMarkets', {})
         types = self.safe_value(options, 'types', {})
         allMarkets = []
+        promises = []
         keys = list(types.keys())
         for i in range(0, len(keys)):
             type = keys[i]
             value = self.safe_value(types, type)
             if value is True:
-                markets = await self.fetch_markets_by_type_and_sub_type(type, None, params)
-                allMarkets = self.array_concat(allMarkets, markets)
+                promises.append(self.fetch_markets_by_type_and_sub_type(type, None, params))
             else:
                 subKeys = list(value.keys())
                 for j in range(0, len(subKeys)):
                     subType = subKeys[j]
                     subValue = self.safe_value(value, subType)
                     if subValue:
-                        markets = await self.fetch_markets_by_type_and_sub_type(type, subType, params)
-                        allMarkets = self.array_concat(allMarkets, markets)
+                        promises.append(self.fetch_markets_by_type_and_sub_type(type, subType, params))
+        promises = await asyncio.gather(*promises)
+        for i in range(0, len(promises)):
+            allMarkets = self.array_concat(allMarkets, promises[i])
         return allMarkets
 
     async def fetch_markets_by_type_and_sub_type(self, type, subType, params={}):
