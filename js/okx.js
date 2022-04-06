@@ -2372,7 +2372,7 @@ module.exports = class okx extends Exchange {
         let method = this.safeString (params, 'method', defaultMethod);
         const ordType = this.safeString (params, 'ordType');
         const stop = this.safeValue (params, 'stop');
-        if (stop || ordType in algoOrderTypes) {
+        if (stop || (ordType in algoOrderTypes)) {
             method = 'privateGetTradeOrdersAlgoPending';
         }
         const query = this.omit (params, [ 'method', 'stop' ]);
