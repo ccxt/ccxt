@@ -4249,6 +4249,90 @@ module.exports = class okx extends Exchange {
         return tiers;
     }
 
+    async fetchBorrowInterest (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * Obtain the amount of interest that has accrued for margin trading
+         * @param {string} code The unified currency code for the currency of the interest
+         * @param {string} symbol The market symbol of an isolated margin market, if undefined, the interest for cross margin markets is returned
+         * @param {integer} since Timestamp in ms of the earliest time to receive interest records for
+         * @param {integer} limit The number of [borrow interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure} to retrieve
+         * @param {dict} params Exchange specific parameters
+         * @param {integer} params.type Loan type 1 - VIP loans 2 - Market loans *Default is Market loans*
+         * @returns An array of [borrow interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure}
+         */
+        await this.loadMarkets ();
+        const request = {
+            'mgnMode': (symbol !== undefined) ? 'isolated' : 'cross',
+        };
+        let market = undefined;
+        if (code !== undefined) {
+            const currency = this.currency (code);
+            request['ccy'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['before'] = since - 1;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['instId'] = market['id'];
+        }
+        const response = await this.privateGetAccountInterestAccrued (this.extend (request, params));
+        //
+        //    {
+        //        "code": "0",
+        //        "data": [
+        //            {
+        //                "ccy": "USDT",
+        //                "instId": "",
+        //                "interest": "0.0003960833333334",
+        //                "interestRate": "0.0000040833333333",
+        //                "liab": "97",
+        //                "mgnMode": "",
+        //                "ts": "1637312400000",
+        //                "type": "1"
+        //            },
+        //            ...
+        //        ],
+        //        "msg": ""
+        //    }
+        //
+        const data = this.safeValue (response, 'data');
+        const interest = this.parseBorrowInterests (data);
+        return this.filterByCurrencySinceLimit (interest, code, since, limit);
+    }
+
+    parseBorrowInterests (response, market = undefined) {
+        const interest = [];
+        for (let i = 0; i < response.length; i++) {
+            const row = response[i];
+            interest.push (this.parseBorrowInterest (row, market));
+        }
+        return interest;
+    }
+
+    parseBorrowInterest (info, market = undefined) {
+        const instId = this.safeString (info, 'instId');
+        let account = 'CROSS';
+        if (instId) {
+            market = this.safeMarket (instId, market);
+            account = this.safeString (market, 'symbol');
+        }
+        const timestamp = this.safeNumber (info, 'ts');
+        return {
+            'account': account, // isolated symbol, will not be returned for crossed margin
+            'currency': this.safeCurrencyCode (this.safeString (info, 'ccy')),
+            'interest': this.safeNumber (info, 'interest'),
+            'interestRate': this.safeNumber (info, 'interestRate'),
+            'amountBorrowed': this.safeNumber (info, 'liab'),
+            'timestamp': timestamp,  // Interest accrued time
+            'datetime': this.iso8601 (timestamp),
+            'info': info,
+        };
+    }
+
     setSandboxMode (enable) {
         super.setSandboxMode (enable);
         if (enable) {
