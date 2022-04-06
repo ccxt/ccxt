@@ -2492,7 +2492,7 @@ module.exports = class ftx extends Exchange {
         const millisecondsPerHour = 3600000;
         const millisecondsPer2Days = 172800000;
         if ((endTime - since) > millisecondsPer2Days) {
-            throw new BadRequest ('The time between since and the end time be >= 48 hours using ' + this.id + ' fetchBorrowRateHistories');
+            throw new BadRequest (this.id + ' fetchBorrowRateHistories() requires the time range between the since time and the end time to be less than 48 hours');
         }
         if (since !== undefined) {
             request['start_time'] = since / 1000;
