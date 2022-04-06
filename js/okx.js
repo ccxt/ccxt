@@ -2099,7 +2099,7 @@ module.exports = class okx extends Exchange {
         //         "uTime":"1621910749815"
         //     }
         //
-        // fetchOpenOrders Stop order
+        // fetchOpenOrders Algo order
         //
         //     {
         //         "activePx": "",
@@ -2375,7 +2375,7 @@ module.exports = class okx extends Exchange {
         //         "msg":""
         //     }
         //
-        // Trigger order
+        // Algo order
         //
         //     {
         //         "code": "0",
