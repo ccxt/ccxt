@@ -3521,7 +3521,7 @@ class gateio(Exchange):
         settle = self.safe_string_lower(query, 'settle', defaultSettle)
         query['settle'] = settle
         if type != 'future' and type != 'swap':
-            raise BadRequest(self.id + '.' + methodName + ' only supports swap and future')
+            raise BadRequest(self.id + ' ' + methodName + '() only supports swap and future')
         method = self.get_supported_mapping(type, {
             'swap': 'publicFuturesGetSettleContracts',
             'future': 'publicDeliveryGetSettleContracts',

@@ -49,7 +49,7 @@ class huobi extends Exchange {
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,
-                'fetchBorrowRate' => true,
+                'fetchBorrowRate' => null,
                 'fetchBorrowRateHistories' => null,
                 'fetchBorrowRateHistory' => null,
                 'fetchBorrowRates' => true,
@@ -1048,24 +1048,27 @@ class huobi extends Exchange {
         $options = $this->safe_value($this->options, 'fetchMarkets', array());
         $types = $this->safe_value($options, 'types', array());
         $allMarkets = array();
+        $promises = array();
         $keys = is_array($types) ? array_keys($types) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $type = $keys[$i];
             $value = $this->safe_value($types, $type);
             if ($value === true) {
-                $markets = yield $this->fetch_markets_by_type_and_sub_type($type, null, $params);
-                $allMarkets = $this->array_concat($allMarkets, $markets);
+                $promises[] = $this->fetch_markets_by_type_and_sub_type($type, null, $params);
             } else {
                 $subKeys = is_array($value) ? array_keys($value) : array();
                 for ($j = 0; $j < count($subKeys); $j++) {
                     $subType = $subKeys[$j];
                     $subValue = $this->safe_value($value, $subType);
                     if ($subValue) {
-                        $markets = yield $this->fetch_markets_by_type_and_sub_type($type, $subType, $params);
-                        $allMarkets = $this->array_concat($allMarkets, $markets);
+                        $promises[] = $this->fetch_markets_by_type_and_sub_type($type, $subType, $params);
                     }
                 }
             }
+        }
+        $promises = yield $promises;
+        for ($i = 0; $i < count($promises); $i++) {
+            $allMarkets = $this->array_concat($allMarkets, $promises[$i]);
         }
         return $allMarkets;
     }
@@ -3428,7 +3431,7 @@ class huobi extends Exchange {
         if ($stopPrice === null) {
             $stopOrderTypes = $this->safe_value($options, 'stopOrderTypes', array());
             if (is_array($stopOrderTypes) && array_key_exists($orderType, $stopOrderTypes)) {
-                throw new ArgumentsRequired($this->id . 'createOrder() requires a $stopPrice or a stop-$price parameter for a stop order');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a $stopPrice or a stop-$price parameter for a stop order');
             }
         } else {
             $stopOperator = $this->safe_string($params, 'operator');
@@ -3441,7 +3444,7 @@ class huobi extends Exchange {
             if (($orderType === 'limit') || ($orderType === 'limit-fok')) {
                 $orderType = 'stop-' . $orderType;
             } else if (($orderType !== 'stop-limit') && ($orderType !== 'stop-limit-fok')) {
-                throw new NotSupported($this->id . 'createOrder() does not support ' . $type . ' orders');
+                throw new NotSupported($this->id . ' createOrder() does not support ' . $type . ' orders');
             }
         }
         $postOnly = $this->safe_value($params, 'postOnly', false);
@@ -5502,7 +5505,7 @@ class huobi extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             if (!$market['contract']) {
-                throw new BadRequest($this->id . '.fetchLeverageTiers $symbol supports contract markets only');
+                throw new BadRequest($this->id . ' fetchLeverageTiers() $symbol supports contract markets only');
             }
             $request['contract_code'] = $market['id'];
         }

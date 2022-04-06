@@ -995,7 +995,7 @@ class gemini extends Exchange {
         yield $this->load_markets();
         $network = $this->safe_string($params, 'network');
         if ($network === null) {
-            throw new ArgumentsRequired($this->id . 'fetchDepositAddressesByNetwork() requires a $network parameter');
+            throw new ArgumentsRequired($this->id . ' fetchDepositAddressesByNetwork() requires a $network parameter');
         }
         $params = $this->omit($params, 'network');
         $networks = $this->safe_value($this->options, 'networks', array());

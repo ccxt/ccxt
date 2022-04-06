@@ -3684,7 +3684,7 @@ class gateio extends Exchange {
         $settle = $this->safe_string_lower($query, 'settle', $defaultSettle);
         $query['settle'] = $settle;
         if ($type !== 'future' && $type !== 'swap') {
-            throw new BadRequest($this->id . '.' . $methodName . ' only supports $swap and future');
+            throw new BadRequest($this->id . ' ' . $methodName . '() only supports $swap and future');
         }
         $method = $this->get_supported_mapping($type, array(
             'swap' => 'publicFuturesGetSettleContracts',

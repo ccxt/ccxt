@@ -819,7 +819,7 @@ class whitebit extends Exchange {
             }
         }
         if ($method === null) {
-            throw new ArgumentsRequired($this->id . 'Invalid $type =>  createOrder() requires one of the following order types => $market, limit, stopLimit or stopMarket');
+            throw new ArgumentsRequired($this->id . ' Invalid $type =>  createOrder() requires one of the following order types => $market, limit, stopLimit or stopMarket');
         }
         $response = $this->$method (array_merge($request, $params));
         return $this->parse_order($response);

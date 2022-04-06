@@ -638,6 +638,9 @@ class okx(Exchange):
                     'method': 'privateGetAccountBills',  # privateGetAccountBillsArchive, privateGetAssetBills
                 },
                 # 1 = SPOT, 3 = FUTURES, 5 = MARGIN, 6 = FUNDING, 9 = SWAP, 12 = OPTION, 18 = Unified account
+                'cancelOrders': {
+                    'method': 'privatePostTradeCancelBatchOrders',  # privatePostTradeCancelAlgos
+                },
                 'accountsByType': {
                     'spot': '1',
                     'future': '3',
@@ -788,10 +791,13 @@ class okx(Exchange):
 
     def fetch_markets(self, params={}):
         types = self.safe_value(self.options, 'fetchMarkets')
+        promises = []
         result = []
         for i in range(0, len(types)):
-            markets = self.fetch_markets_by_type(types[i], params)
-            result = self.array_concat(result, markets)
+            promises.append(self.fetch_markets_by_type(types[i], params))
+        # why not both ¯\_(ツ)_/¯
+        for i in range(0, len(promises)):
+            result = self.array_concat(result, promises[i])
         return result
 
     def parse_markets(self, markets):
@@ -1907,25 +1913,44 @@ class okx(Exchange):
 
     def cancel_orders(self, ids, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' canelOrders() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = []
+        options = self.safe_value(self.options, 'cancelOrders', {})
+        defaultMethod = self.safe_string(options, 'method', 'privatePostTradeCancelBatchOrders')
+        method = self.safe_string(params, 'method', defaultMethod)
         clientOrderId = self.safe_value_2(params, 'clOrdId', 'clientOrderId')
+        algoId = self.safe_value(params, 'algoId')
+        stop = self.safe_value(params, 'stop')
         if clientOrderId is None:
-            if isinstance(ids, str):
-                orderIds = ids.split(',')
-                for i in range(0, len(orderIds)):
+            if stop or algoId is not None:
+                method = 'privatePostTradeCancelAlgos'
+                if isinstance(algoId, list):
+                    for i in range(0, len(algoId)):
+                        request.append({
+                            'instId': market['id'],
+                            'algoId': algoId[i],
+                        })
+                elif isinstance(algoId, str):
                     request.append({
                         'instId': market['id'],
-                        'ordId': orderIds[i],
+                        'algoId': algoId,
                     })
             else:
-                for i in range(0, len(ids)):
-                    request.append({
-                        'instId': market['id'],
-                        'ordId': ids[i],
-                    })
+                if isinstance(ids, str):
+                    orderIds = ids.split(',')
+                    for i in range(0, len(orderIds)):
+                        request.append({
+                            'instId': market['id'],
+                            'ordId': orderIds[i],
+                        })
+                else:
+                    for i in range(0, len(ids)):
+                        request.append({
+                            'instId': market['id'],
+                            'ordId': ids[i],
+                        })
         elif isinstance(clientOrderId, list):
             for i in range(0, len(clientOrderId)):
                 request.append({
@@ -1937,21 +1962,35 @@ class okx(Exchange):
                 'instId': market['id'],
                 'clOrdId': clientOrderId,
             })
-        response = self.privatePostTradeCancelBatchOrders(request)  # dont self.extend with params, otherwise ARRAY will be turned into OBJECT
+        response = getattr(self, method)(request)  # dont self.extend with params, otherwise ARRAY will be turned into OBJECT
         #
-        # {
-        #     "code": "0",
-        #     "data": [
-        #         {
-        #             "clOrdId": "e123456789ec4dBC1123456ba123b45e",
-        #             "ordId": "405071912345641543",
-        #             "sCode": "0",
-        #             "sMsg": ""
-        #         },
-        #         ...
-        #     ],
-        #     "msg": ""
-        # }
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             {
+        #                 "clOrdId": "e123456789ec4dBC1123456ba123b45e",
+        #                 "ordId": "405071912345641543",
+        #                 "sCode": "0",
+        #                 "sMsg": ""
+        #             },
+        #             ...
+        #         ],
+        #         "msg": ""
+        #     }
+        #
+        # Algo order
+        #
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             {
+        #                 "algoId": "431375349042380800",
+        #                 "sCode": "0",
+        #                 "sMsg": ""
+        #             }
+        #         ],
+        #         "msg": ""
+        #     }
         #
         ordersData = self.safe_value(response, 'data', [])
         return self.parse_orders(ordersData, market, None, None, params)
@@ -3921,7 +3960,7 @@ class okx(Exchange):
         codeObject = json.loads('{"ccy": "' + code + '"}')
         histories = self.fetch_borrow_rate_histories(since, limit, codeObject, params)
         if histories is None:
-            raise BadRequest(self.id + '.fetchBorrowRateHistory returned no data for ' + code)
+            raise BadRequest(self.id + ' fetchBorrowRateHistory() returned no data for ' + code)
         else:
             return histories
 
@@ -4049,6 +4088,81 @@ class okx(Exchange):
                 'info': tier,
             })
         return tiers
+
+    def fetch_borrow_interest(self, code=None, symbol=None, since=None, limit=None, params={}):
+        '''
+         * Obtain the amount of interest that has accrued for margin trading
+         * @param {string} code The unified currency code for the currency of the interest
+         * @param {string} symbol The market symbol of an isolated margin market, if None, the interest for cross margin markets is returned
+         * @param {integer} since Timestamp in ms of the earliest time to receive interest records for
+         * @param {integer} limit The number of [borrow interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure} to retrieve
+         * @param {dict} params Exchange specific parameters
+         * @param {integer} params.type Loan type 1 - VIP loans 2 - Market loans *Default is Market loans*
+         * @returns An array of [borrow interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure}
+        '''
+        self.load_markets()
+        request = {
+            'mgnMode': 'isolated' if (symbol is not None) else 'cross',
+        }
+        market = None
+        if code is not None:
+            currency = self.currency(code)
+            request['ccy'] = currency['id']
+        if since is not None:
+            request['before'] = since - 1
+        if limit is not None:
+            request['limit'] = limit
+        if symbol is not None:
+            market = self.market(symbol)
+            request['instId'] = market['id']
+        response = self.privateGetAccountInterestAccrued(self.extend(request, params))
+        #
+        #    {
+        #        "code": "0",
+        #        "data": [
+        #            {
+        #                "ccy": "USDT",
+        #                "instId": "",
+        #                "interest": "0.0003960833333334",
+        #                "interestRate": "0.0000040833333333",
+        #                "liab": "97",
+        #                "mgnMode": "",
+        #                "ts": "1637312400000",
+        #                "type": "1"
+        #            },
+        #            ...
+        #        ],
+        #        "msg": ""
+        #    }
+        #
+        data = self.safe_value(response, 'data')
+        interest = self.parse_borrow_interests(data)
+        return self.filter_by_currency_since_limit(interest, code, since, limit)
+
+    def parse_borrow_interests(self, response, market=None):
+        interest = []
+        for i in range(0, len(response)):
+            row = response[i]
+            interest.append(self.parse_borrow_interest(row, market))
+        return interest
+
+    def parse_borrow_interest(self, info, market=None):
+        instId = self.safe_string(info, 'instId')
+        account = 'CROSS'
+        if instId:
+            market = self.safe_market(instId, market)
+            account = self.safe_string(market, 'symbol')
+        timestamp = self.safe_number(info, 'ts')
+        return {
+            'account': account,  # isolated symbol, will not be returned for crossed margin
+            'currency': self.safe_currency_code(self.safe_string(info, 'ccy')),
+            'interest': self.safe_number(info, 'interest'),
+            'interestRate': self.safe_number(info, 'interestRate'),
+            'amountBorrowed': self.safe_number(info, 'liab'),
+            'timestamp': timestamp,  # Interest accrued time
+            'datetime': self.iso8601(timestamp),
+            'info': info,
+        }
 
     def set_sandbox_mode(self, enable):
         super(okx, self).set_sandbox_mode(enable)
