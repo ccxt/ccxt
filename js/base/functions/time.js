@@ -133,6 +133,11 @@ const parseDate = (x) => {
 
 const rfc2616 = (timestamp = undefined) => new Date (timestamp).toUTCString ();
 
+const getNow => {
+    var tzoffset = (new Date()).getTimezoneOffset() * 60000; //offset in milliseconds
+    return (new Date(Date.now() - tzoffset)).toISOString().slice(0, -1);
+}
+
 const mdy = (timestamp, infix = '-') => {
     infix = infix || ''
     const date = new Date (timestamp)
