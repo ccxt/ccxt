@@ -411,7 +411,7 @@ async function exportEverything () {
     const flat = flatten (errorHierarchy)
     flat.push ('error_hierarchy')
 
-    const staticExports = ['version', 'Exchange'] 
+    const staticExports = ['version', 'Exchange', 'exchanges', 'Precise', 'functions', 'errors'] 
 
     const fullExports  = staticExports.concat(ids)
 

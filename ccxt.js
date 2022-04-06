@@ -287,6 +287,10 @@ const ccxt = Object.assign ({ version, Exchange, Precise, 'exchanges': Object.ke
 export {
     version,
     Exchange,
+    exchanges,
+    Precise,
+    functions,
+    errors,
     aax,
     ascendex,
     bequant,
