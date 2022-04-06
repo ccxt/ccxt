@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.78.10'
+__version__ = '1.78.16'
 
 # -----------------------------------------------------------------------------
 
@@ -254,7 +254,6 @@ class Exchange(object):
         'createLimitOrder': True,
         'createMarketOrder': True,
         'createOrder': True,
-        'deposit': None,
         'editOrder': 'emulated',
         'fetchAccounts': None,
         'fetchBalance': True,

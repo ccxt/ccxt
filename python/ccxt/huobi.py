@@ -60,7 +60,7 @@ class huobi(Exchange):
                 'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': None,
-                'fetchBorrowRate': True,
+                'fetchBorrowRate': None,
                 'fetchBorrowRateHistories': None,
                 'fetchBorrowRateHistory': None,
                 'fetchBorrowRates': True,
@@ -1048,21 +1048,22 @@ class huobi(Exchange):
         options = self.safe_value(self.options, 'fetchMarkets', {})
         types = self.safe_value(options, 'types', {})
         allMarkets = []
+        promises = []
         keys = list(types.keys())
         for i in range(0, len(keys)):
             type = keys[i]
             value = self.safe_value(types, type)
             if value is True:
-                markets = self.fetch_markets_by_type_and_sub_type(type, None, params)
-                allMarkets = self.array_concat(allMarkets, markets)
+                promises.append(self.fetch_markets_by_type_and_sub_type(type, None, params))
             else:
                 subKeys = list(value.keys())
                 for j in range(0, len(subKeys)):
                     subType = subKeys[j]
                     subValue = self.safe_value(value, subType)
                     if subValue:
-                        markets = self.fetch_markets_by_type_and_sub_type(type, subType, params)
-                        allMarkets = self.array_concat(allMarkets, markets)
+                        promises.append(self.fetch_markets_by_type_and_sub_type(type, subType, params))
+        for i in range(0, len(promises)):
+            allMarkets = self.array_concat(allMarkets, promises[i])
         return allMarkets
 
     def fetch_markets_by_type_and_sub_type(self, type, subType, params={}):
@@ -3269,7 +3270,7 @@ class huobi(Exchange):
         if stopPrice is None:
             stopOrderTypes = self.safe_value(options, 'stopOrderTypes', {})
             if orderType in stopOrderTypes:
-                raise ArgumentsRequired(self.id + 'createOrder() requires a stopPrice or a stop-price parameter for a stop order')
+                raise ArgumentsRequired(self.id + ' createOrder() requires a stopPrice or a stop-price parameter for a stop order')
         else:
             stopOperator = self.safe_string(params, 'operator')
             if stopOperator is None:
@@ -3280,7 +3281,7 @@ class huobi(Exchange):
             if (orderType == 'limit') or (orderType == 'limit-fok'):
                 orderType = 'stop-' + orderType
             elif (orderType != 'stop-limit') and (orderType != 'stop-limit-fok'):
-                raise NotSupported(self.id + 'createOrder() does not support ' + type + ' orders')
+                raise NotSupported(self.id + ' createOrder() does not support ' + type + ' orders')
         postOnly = self.safe_value(params, 'postOnly', False)
         if postOnly:
             orderType = 'limit-maker'
@@ -5186,7 +5187,7 @@ class huobi(Exchange):
         if symbol is not None:
             market = self.market(symbol)
             if not market['contract']:
-                raise BadRequest(self.id + '.fetchLeverageTiers symbol supports contract markets only')
+                raise BadRequest(self.id + ' fetchLeverageTiers() symbol supports contract markets only')
             request['contract_code'] = market['id']
         response = self.contractPublicGetLinearSwapApiV1SwapAdjustfactor(self.extend(request, params))
         #

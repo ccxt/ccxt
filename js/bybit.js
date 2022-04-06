@@ -2890,7 +2890,7 @@ export default class bybit extends Exchange {
         //
         const leverage = this.safeValue (params, 'leverage');
         if (leverage === undefined) {
-            throw new ArgumentsRequired (this.id + '.setMarginMode requires a leverage parameter');
+            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a leverage parameter');
         }
         marginType = marginType.toUpperCase ();
         if (marginType === 'CROSSED') { // * Deprecated, use 'CROSS' instead
@@ -3116,7 +3116,7 @@ export default class bybit extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
             if (market['spot']) {
-                throw new BadRequest (this.id + '.fetchLeverageTiers symbol supports contract markets only');
+                throw new BadRequest (this.id + ' fetchLeverageTiers() symbol supports contract markets only');
             }
             request['symbol'] = market['id'];
         }

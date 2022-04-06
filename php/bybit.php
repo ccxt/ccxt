@@ -2893,7 +2893,7 @@ class bybit extends Exchange {
         //
         $leverage = $this->safe_value($params, 'leverage');
         if ($leverage === null) {
-            throw new ArgumentsRequired($this->id . '.setMarginMode requires a $leverage parameter');
+            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $leverage parameter');
         }
         $marginType = strtoupper($marginType);
         if ($marginType === 'CROSSED') { // * Deprecated, use 'CROSS' instead
@@ -3119,7 +3119,7 @@ class bybit extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             if ($market['spot']) {
-                throw new BadRequest($this->id . '.fetchLeverageTiers $symbol supports contract markets only');
+                throw new BadRequest($this->id . ' fetchLeverageTiers() $symbol supports contract markets only');
             }
             $request['symbol'] = $market['id'];
         }

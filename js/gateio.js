@@ -3677,7 +3677,7 @@ export default class gateio extends Exchange {
         const settle = this.safeStringLower (query, 'settle', defaultSettle);
         query['settle'] = settle;
         if (type !== 'future' && type !== 'swap') {
-            throw new BadRequest (this.id + '.' + methodName + ' only supports swap and future');
+            throw new BadRequest (this.id + ' ' + methodName + '() only supports swap and future');
         }
         const method = this.getSupportedMapping (type, {
             'swap': 'publicFuturesGetSettleContracts',

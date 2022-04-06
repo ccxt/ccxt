@@ -622,6 +622,9 @@ class okx extends Exchange {
                     'method' => 'privateGetAccountBills', // privateGetAccountBillsArchive, privateGetAssetBills
                 ),
                 // 1 = SPOT, 3 = FUTURES, 5 = MARGIN, 6 = FUNDING, 9 = SWAP, 12 = OPTION, 18 = Unified account
+                'cancelOrders' => array(
+                    'method' => 'privatePostTradeCancelBatchOrders', // privatePostTradeCancelAlgos
+                ),
                 'accountsByType' => array(
                     'spot' => '1',
                     'future' => '3',
@@ -782,10 +785,15 @@ class okx extends Exchange {
 
     public function fetch_markets($params = array ()) {
         $types = $this->safe_value($this->options, 'fetchMarkets');
+        $promises = array();
         $result = array();
         for ($i = 0; $i < count($types); $i++) {
-            $markets = yield $this->fetch_markets_by_type($types[$i], $params);
-            $result = $this->array_concat($result, $markets);
+            $promises[] = $this->fetch_markets_by_type($types[$i], $params);
+        }
+        // why not both ¯\_(ツ)_/¯
+        $promises = yield $promises;
+        for ($i = 0; $i < count($promises); $i++) {
+            $result = $this->array_concat($result, $promises[$i]);
         }
         return $result;
     }
@@ -1979,27 +1987,49 @@ class okx extends Exchange {
 
     public function cancel_orders($ids, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' canelOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
         }
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array();
+        $options = $this->safe_value($this->options, 'cancelOrders', array());
+        $defaultMethod = $this->safe_string($options, 'method', 'privatePostTradeCancelBatchOrders');
+        $method = $this->safe_string($params, 'method', $defaultMethod);
         $clientOrderId = $this->safe_value_2($params, 'clOrdId', 'clientOrderId');
+        $algoId = $this->safe_value($params, 'algoId');
+        $stop = $this->safe_value($params, 'stop');
         if ($clientOrderId === null) {
-            if (gettype($ids) === 'string') {
-                $orderIds = explode(',', $ids);
-                for ($i = 0; $i < count($orderIds); $i++) {
+            if ($stop || $algoId !== null) {
+                $method = 'privatePostTradeCancelAlgos';
+                if (gettype($algoId) === 'array' && count(array_filter(array_keys($algoId), 'is_string')) == 0) {
+                    for ($i = 0; $i < count($algoId); $i++) {
+                        $request[] = array(
+                            'instId' => $market['id'],
+                            'algoId' => $algoId[$i],
+                        );
+                    }
+                } else if (gettype($algoId) === 'string') {
                     $request[] = array(
                         'instId' => $market['id'],
-                        'ordId' => $orderIds[$i],
+                        'algoId' => $algoId,
                     );
                 }
             } else {
-                for ($i = 0; $i < count($ids); $i++) {
-                    $request[] = array(
-                        'instId' => $market['id'],
-                        'ordId' => $ids[$i],
-                    );
+                if (gettype($ids) === 'string') {
+                    $orderIds = explode(',', $ids);
+                    for ($i = 0; $i < count($orderIds); $i++) {
+                        $request[] = array(
+                            'instId' => $market['id'],
+                            'ordId' => $orderIds[$i],
+                        );
+                    }
+                } else {
+                    for ($i = 0; $i < count($ids); $i++) {
+                        $request[] = array(
+                            'instId' => $market['id'],
+                            'ordId' => $ids[$i],
+                        );
+                    }
                 }
             }
         } else if (gettype($clientOrderId) === 'array' && count(array_filter(array_keys($clientOrderId), 'is_string')) == 0) {
@@ -2015,21 +2045,35 @@ class okx extends Exchange {
                 'clOrdId' => $clientOrderId,
             );
         }
-        $response = yield $this->privatePostTradeCancelBatchOrders ($request); // dont extend with $params, otherwise ARRAY will be turned into OBJECT
+        $response = yield $this->$method ($request); // dont extend with $params, otherwise ARRAY will be turned into OBJECT
         //
-        // {
-        //     "code" => "0",
-        //     "data" => array(
-        //         array(
-        //             "clOrdId" => "e123456789ec4dBC1123456ba123b45e",
-        //             "ordId" => "405071912345641543",
-        //             "sCode" => "0",
-        //             "sMsg" => ""
+        //     {
+        //         "code" => "0",
+        //         "data" => array(
+        //             array(
+        //                 "clOrdId" => "e123456789ec4dBC1123456ba123b45e",
+        //                 "ordId" => "405071912345641543",
+        //                 "sCode" => "0",
+        //                 "sMsg" => ""
+        //             ),
+        //             ...
         //         ),
-        //         ...
-        //     ),
-        //     "msg" => ""
-        // }
+        //         "msg" => ""
+        //     }
+        //
+        // Algo order
+        //
+        //     {
+        //         "code" => "0",
+        //         "data" => array(
+        //             {
+        //                 "algoId" => "431375349042380800",
+        //                 "sCode" => "0",
+        //                 "sMsg" => ""
+        //             }
+        //         ),
+        //         "msg" => ""
+        //     }
         //
         $ordersData = $this->safe_value($response, 'data', array());
         return $this->parse_orders($ordersData, $market, null, null, $params);
@@ -4116,7 +4160,7 @@ class okx extends Exchange {
         $codeObject = json_decode('array("ccy" => "' . $code . '", $as_associative_array = true)');
         $histories = yield $this->fetch_borrow_rate_histories($since, $limit, $codeObject, $params);
         if ($histories === null) {
-            throw new BadRequest($this->id . '.fetchBorrowRateHistory returned no data for ' . $code);
+            throw new BadRequest($this->id . ' fetchBorrowRateHistory() returned no data for ' . $code);
         } else {
             return $histories;
         }
@@ -4253,6 +4297,90 @@ class okx extends Exchange {
             );
         }
         return $tiers;
+    }
+
+    public function fetch_borrow_interest($code = null, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * Obtain the amount of $interest that has accrued for margin trading
+         * @param {string} $code The unified $currency $code for the $currency of the $interest
+         * @param {string} $symbol The $market $symbol of an isolated margin $market, if null, the $interest for cross margin markets is returned
+         * @param {integer} $since Timestamp in ms of the earliest time to receive $interest records for
+         * @param {integer} $limit The number of [borrow $interest structures]array(@link https://docs.ccxt.com/en/latest/manual.html#borrow-$interest-structure) to retrieve
+         * @param {dict} $params Exchange specific parameters
+         * @param {integer} $params->type Loan type 1 - VIP loans 2 - Market loans *Default is Market loans*
+         * @returns An array of [borrow $interest structures]array(@link https://docs.ccxt.com/en/latest/manual.html#borrow-$interest-structure)
+         */
+        yield $this->load_markets();
+        $request = array(
+            'mgnMode' => ($symbol !== null) ? 'isolated' : 'cross',
+        );
+        $market = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['ccy'] = $currency['id'];
+        }
+        if ($since !== null) {
+            $request['before'] = $since - 1;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['instId'] = $market['id'];
+        }
+        $response = yield $this->privateGetAccountInterestAccrued (array_merge($request, $params));
+        //
+        //    {
+        //        "code" => "0",
+        //        "data" => array(
+        //            array(
+        //                "ccy" => "USDT",
+        //                "instId" => "",
+        //                "interest" => "0.0003960833333334",
+        //                "interestRate" => "0.0000040833333333",
+        //                "liab" => "97",
+        //                "mgnMode" => "",
+        //                "ts" => "1637312400000",
+        //                "type" => "1"
+        //            ),
+        //            ...
+        //        ),
+        //        "msg" => ""
+        //    }
+        //
+        $data = $this->safe_value($response, 'data');
+        $interest = $this->parse_borrow_interests($data);
+        return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
+    }
+
+    public function parse_borrow_interests($response, $market = null) {
+        $interest = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $row = $response[$i];
+            $interest[] = $this->parse_borrow_interest($row, $market);
+        }
+        return $interest;
+    }
+
+    public function parse_borrow_interest($info, $market = null) {
+        $instId = $this->safe_string($info, 'instId');
+        $account = 'CROSS';
+        if ($instId) {
+            $market = $this->safe_market($instId, $market);
+            $account = $this->safe_string($market, 'symbol');
+        }
+        $timestamp = $this->safe_number($info, 'ts');
+        return array(
+            'account' => $account, // isolated symbol, will not be returned for crossed margin
+            'currency' => $this->safe_currency_code($this->safe_string($info, 'ccy')),
+            'interest' => $this->safe_number($info, 'interest'),
+            'interestRate' => $this->safe_number($info, 'interestRate'),
+            'amountBorrowed' => $this->safe_number($info, 'liab'),
+            'timestamp' => $timestamp,  // Interest accrued time
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $info,
+        );
     }
 
     public function set_sandbox_mode($enable) {

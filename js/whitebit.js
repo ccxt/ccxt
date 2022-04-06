@@ -814,7 +814,7 @@ export default class whitebit extends Exchange {
             }
         }
         if (method === undefined) {
-            throw new ArgumentsRequired (this.id + 'Invalid type:  createOrder() requires one of the following order types: market, limit, stopLimit or stopMarket');
+            throw new ArgumentsRequired (this.id + ' Invalid type:  createOrder() requires one of the following order types: market, limit, stopLimit or stopMarket');
         }
         const response = await this[method] (this.extend (request, params));
         return this.parseOrder (response);

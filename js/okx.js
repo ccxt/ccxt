@@ -615,6 +615,9 @@ export default class okx extends Exchange {
                     'method': 'privateGetAccountBills', // privateGetAccountBillsArchive, privateGetAssetBills
                 },
                 // 1 = SPOT, 3 = FUTURES, 5 = MARGIN, 6 = FUNDING, 9 = SWAP, 12 = OPTION, 18 = Unified account
+                'cancelOrders': {
+                    'method': 'privatePostTradeCancelBatchOrders', // privatePostTradeCancelAlgos
+                },
                 'accountsByType': {
                     'spot': '1',
                     'future': '3',
@@ -775,10 +778,15 @@ export default class okx extends Exchange {
 
     async fetchMarkets (params = {}) {
         const types = this.safeValue (this.options, 'fetchMarkets');
+        let promises = [];
         let result = [];
         for (let i = 0; i < types.length; i++) {
-            const markets = await this.fetchMarketsByType (types[i], params);
-            result = this.arrayConcat (result, markets);
+            promises.push (this.fetchMarketsByType (types[i], params));
+        }
+        // why not both ¯\_(ツ)_/¯
+        promises = await Promise.all (promises);
+        for (let i = 0; i < promises.length; i++) {
+            result = this.arrayConcat (result, promises[i]);
         }
         return result;
     }
@@ -1972,27 +1980,49 @@ export default class okx extends Exchange {
 
     async cancelOrders (ids, symbol = undefined, params = {}) { // TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' canelOrders() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = [];
+        const options = this.safeValue (this.options, 'cancelOrders', {});
+        const defaultMethod = this.safeString (options, 'method', 'privatePostTradeCancelBatchOrders');
+        let method = this.safeString (params, 'method', defaultMethod);
         const clientOrderId = this.safeValue2 (params, 'clOrdId', 'clientOrderId');
+        const algoId = this.safeValue (params, 'algoId');
+        const stop = this.safeValue (params, 'stop');
         if (clientOrderId === undefined) {
-            if (typeof ids === 'string') {
-                const orderIds = ids.split (',');
-                for (let i = 0; i < orderIds.length; i++) {
+            if (stop || algoId !== undefined) {
+                method = 'privatePostTradeCancelAlgos';
+                if (Array.isArray (algoId)) {
+                    for (let i = 0; i < algoId.length; i++) {
+                        request.push ({
+                            'instId': market['id'],
+                            'algoId': algoId[i],
+                        });
+                    }
+                } else if (typeof algoId === 'string') {
                     request.push ({
                         'instId': market['id'],
-                        'ordId': orderIds[i],
+                        'algoId': algoId,
                     });
                 }
             } else {
-                for (let i = 0; i < ids.length; i++) {
-                    request.push ({
-                        'instId': market['id'],
-                        'ordId': ids[i],
-                    });
+                if (typeof ids === 'string') {
+                    const orderIds = ids.split (',');
+                    for (let i = 0; i < orderIds.length; i++) {
+                        request.push ({
+                            'instId': market['id'],
+                            'ordId': orderIds[i],
+                        });
+                    }
+                } else {
+                    for (let i = 0; i < ids.length; i++) {
+                        request.push ({
+                            'instId': market['id'],
+                            'ordId': ids[i],
+                        });
+                    }
                 }
             }
         } else if (Array.isArray (clientOrderId)) {
@@ -2008,21 +2038,35 @@ export default class okx extends Exchange {
                 'clOrdId': clientOrderId,
             });
         }
-        const response = await this.privatePostTradeCancelBatchOrders (request); // dont extend with params, otherwise ARRAY will be turned into OBJECT
+        const response = await this[method] (request); // dont extend with params, otherwise ARRAY will be turned into OBJECT
         //
-        // {
-        //     "code": "0",
-        //     "data": [
-        //         {
-        //             "clOrdId": "e123456789ec4dBC1123456ba123b45e",
-        //             "ordId": "405071912345641543",
-        //             "sCode": "0",
-        //             "sMsg": ""
-        //         },
-        //         ...
-        //     ],
-        //     "msg": ""
-        // }
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "clOrdId": "e123456789ec4dBC1123456ba123b45e",
+        //                 "ordId": "405071912345641543",
+        //                 "sCode": "0",
+        //                 "sMsg": ""
+        //             },
+        //             ...
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        // Algo order
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "algoId": "431375349042380800",
+        //                 "sCode": "0",
+        //                 "sMsg": ""
+        //             }
+        //         ],
+        //         "msg": ""
+        //     }
         //
         const ordersData = this.safeValue (response, 'data', []);
         return this.parseOrders (ordersData, market, undefined, undefined, params);
@@ -4109,7 +4153,7 @@ export default class okx extends Exchange {
         const codeObject = JSON.parse ('{"ccy": "' + code + '"}');
         const histories = await this.fetchBorrowRateHistories (since, limit, codeObject, params);
         if (histories === undefined) {
-            throw new BadRequest (this.id + '.fetchBorrowRateHistory returned no data for ' + code);
+            throw new BadRequest (this.id + ' fetchBorrowRateHistory() returned no data for ' + code);
         } else {
             return histories;
         }
@@ -4246,6 +4290,90 @@ export default class okx extends Exchange {
             });
         }
         return tiers;
+    }
+
+    async fetchBorrowInterest (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * Obtain the amount of interest that has accrued for margin trading
+         * @param {string} code The unified currency code for the currency of the interest
+         * @param {string} symbol The market symbol of an isolated margin market, if undefined, the interest for cross margin markets is returned
+         * @param {integer} since Timestamp in ms of the earliest time to receive interest records for
+         * @param {integer} limit The number of [borrow interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure} to retrieve
+         * @param {dict} params Exchange specific parameters
+         * @param {integer} params.type Loan type 1 - VIP loans 2 - Market loans *Default is Market loans*
+         * @returns An array of [borrow interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure}
+         */
+        await this.loadMarkets ();
+        const request = {
+            'mgnMode': (symbol !== undefined) ? 'isolated' : 'cross',
+        };
+        let market = undefined;
+        if (code !== undefined) {
+            const currency = this.currency (code);
+            request['ccy'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['before'] = since - 1;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['instId'] = market['id'];
+        }
+        const response = await this.privateGetAccountInterestAccrued (this.extend (request, params));
+        //
+        //    {
+        //        "code": "0",
+        //        "data": [
+        //            {
+        //                "ccy": "USDT",
+        //                "instId": "",
+        //                "interest": "0.0003960833333334",
+        //                "interestRate": "0.0000040833333333",
+        //                "liab": "97",
+        //                "mgnMode": "",
+        //                "ts": "1637312400000",
+        //                "type": "1"
+        //            },
+        //            ...
+        //        ],
+        //        "msg": ""
+        //    }
+        //
+        const data = this.safeValue (response, 'data');
+        const interest = this.parseBorrowInterests (data);
+        return this.filterByCurrencySinceLimit (interest, code, since, limit);
+    }
+
+    parseBorrowInterests (response, market = undefined) {
+        const interest = [];
+        for (let i = 0; i < response.length; i++) {
+            const row = response[i];
+            interest.push (this.parseBorrowInterest (row, market));
+        }
+        return interest;
+    }
+
+    parseBorrowInterest (info, market = undefined) {
+        const instId = this.safeString (info, 'instId');
+        let account = 'CROSS';
+        if (instId) {
+            market = this.safeMarket (instId, market);
+            account = this.safeString (market, 'symbol');
+        }
+        const timestamp = this.safeNumber (info, 'ts');
+        return {
+            'account': account, // isolated symbol, will not be returned for crossed margin
+            'currency': this.safeCurrencyCode (this.safeString (info, 'ccy')),
+            'interest': this.safeNumber (info, 'interest'),
+            'interestRate': this.safeNumber (info, 'interestRate'),
+            'amountBorrowed': this.safeNumber (info, 'liab'),
+            'timestamp': timestamp,  // Interest accrued time
+            'datetime': this.iso8601 (timestamp),
+            'info': info,
+        };
     }
 
     setSandboxMode (enable) {
