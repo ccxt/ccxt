@@ -411,6 +411,10 @@ async function exportEverything () {
     const flat = flatten (errorHierarchy)
     flat.push ('error_hierarchy')
 
+    const staticExports = ['version', 'Exchange'] 
+
+    const fullExports  = staticExports.concat(ids)
+
     const replacements = [
         {   
             // we have an arbitrary number of imports
@@ -434,7 +438,7 @@ async function exportEverything () {
         {
             file: './ccxt.js',
             regex:  /export\s+{\n[^\}]+\}/,
-            replacement: "export {\n" + ids.map (id => "    " + id + ',').join ("\n") + "    \n}",
+            replacement: "export {\n" + fullExports.map (id => "    " +id + ',').join ("\n") + "    \n}",
         },
         {
             file: './python/ccxt/__init__.py',
@@ -512,7 +516,8 @@ async function exportEverything () {
 let metaUrl = import.meta.url
 metaUrl = metaUrl.substring(0, metaUrl.lastIndexOf(".")) // remove extension
 const url = pathToFileURL(process.argv[1]);
-if (metaUrl === url.href) {
+const href = (url.href.indexOf('.') !== -1) ? url.href.substring(0, url.href.lastIndexOf(".")) : url.href;
+if (metaUrl === href) {
 
     // if called directly like `node module`
 

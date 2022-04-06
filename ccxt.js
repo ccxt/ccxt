@@ -284,9 +284,9 @@ const exchanges = {
 
 const ccxt = Object.assign ({ version, Exchange, Precise, 'exchanges': Object.keys (exchanges) }, exchanges, functions, errors)
 
-export default ccxt;
-
 export {
+    version,
+    Exchange,
     aax,
     ascendex,
     bequant,
@@ -406,5 +406,7 @@ export {
     zipmex,
     zonda,    
 }
+
+export default ccxt;
 
 //-----------------------------------------------------------------------------
