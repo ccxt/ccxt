@@ -2050,7 +2050,7 @@ module.exports = class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        // Trigger order
+        // Algo order
         //
         //     {
         //         "code": "0",
