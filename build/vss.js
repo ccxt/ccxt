@@ -11,11 +11,22 @@ import { execSync } from 'child_process'
 import { copyFile } from './fsLocal.js'
 import { pathToFileURL } from 'url'
 import { URL } from 'url'
-import { resolve } from 'path'
+import { join } from 'path'
+import { platform } from 'process'
 
 ansi.nice
 
-const __dirname = new URL('.', import.meta.url).pathname;
+let __dirname = new URL('.', import.meta.url).pathname;
+
+// this is necessary because for some reason
+// pathname keeps the first '/' for windows paths
+// making them invalid
+// example: /C:Users/user/Desktop/
+if (platform === 'win32') {
+    if (__dirname[0] === '/') {
+        __dirname = __dirname.substring(1)
+    }
+}
 
 //-----------------------------------------------------------------------------
 
@@ -31,7 +42,7 @@ function vss (filename, template, version) {
 // ----------------------------------------------------------------------------
 
 async function vssEverything () {
-    const packageJSON = JSON.parse (fs.readFileSync (resolve(__dirname, '..', 'package.json')))
+    const packageJSON = JSON.parse (fs.readFileSync (join(__dirname, '..', 'package.json')))
     const version = packageJSON['version']
 
     log.bright ('New version: '.cyan, version)

@@ -23,13 +23,15 @@
     executed on each client individually. Luckily, we can easily do it, hence that script.
 
 */
+"use strict"
 
-import { execSync } from 'child_process';
-import log from 'ololog';
+const { execSync } = require ('child_process')
+const log          = require ('ololog')
 
 let files = [
 
     'dist/ccxt.browser.js',
+    'dist/ccxt.bundle.cjs',
 
     'python/ccxt/test/test_decimal_to_precision.py',
     'php/test/decimal_to_precision.php',

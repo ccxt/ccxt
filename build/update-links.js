@@ -1,6 +1,6 @@
 
 import { readFileSync } from 'fs';
-import { overwriteFile } from './fs';
+import { overwriteFile } from './fsLocal.js';
 
 const manual = './wiki/Manual.md'
 let file = readFileSync (manual).toString ()
