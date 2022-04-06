@@ -621,6 +621,17 @@ class okx extends Exchange {
                     'method' => 'privateGetAccountBills', // privateGetAccountBillsArchive, privateGetAssetBills
                 ),
                 // 1 = SPOT, 3 = FUTURES, 5 = MARGIN, 6 = FUNDING, 9 = SWAP, 12 = OPTION, 18 = Unified account
+                'fetchOpenOrders' => array(
+                    'method' => 'privateGetTradeOrdersPending', // privateGetTradeOrdersAlgoPending
+                    'algoOrderTypes' => array(
+                        'conditional' => true,
+                        'trigger' => true,
+                        'oco' => true,
+                        'move_order_stop' => true,
+                        'iceberg' => true,
+                        'twap' => true,
+                    ),
+                ),
                 'cancelOrders' => array(
                     'method' => 'privatePostTradeCancelBatchOrders', // privatePostTradeCancelAlgos
                 ),
@@ -2136,6 +2147,53 @@ class okx extends Exchange {
         //         "uTime":"1621910749815"
         //     }
         //
+        // fetchOpenOrders Algo $order
+        //
+        //     {
+        //         "activePx" => "",
+        //         "activePxType" => "",
+        //         "actualPx" => "",
+        //         "actualSide" => "buy",
+        //         "actualSz" => "0",
+        //         "algoId" => "431375349042380800",
+        //         "cTime" => "1649119897778",
+        //         "callbackRatio" => "",
+        //         "callbackSpread" => "",
+        //         "ccy" => "",
+        //         "ctVal" => "0.01",
+        //         "instId" => "BTC-USDT-SWAP",
+        //         "instType" => "SWAP",
+        //         "last" => "46538.9",
+        //         "lever" => "125",
+        //         "moveTriggerPx" => "",
+        //         "notionalUsd" => "467.059",
+        //         "ordId" => "",
+        //         "ordPx" => "50000",
+        //         "ordType" => "trigger",
+        //         "posSide" => "long",
+        //         "pxLimit" => "",
+        //         "pxSpread" => "",
+        //         "pxVar" => "",
+        //         "side" => "buy",
+        //         "slOrdPx" => "",
+        //         "slTriggerPx" => "",
+        //         "slTriggerPxType" => "",
+        //         "state" => "live",
+        //         "sz" => "1",
+        //         "szLimit" => "",
+        //         "tag" => "",
+        //         "tdMode" => "isolated",
+        //         "tgtCcy" => "",
+        //         "timeInterval" => "",
+        //         "tpOrdPx" => "",
+        //         "tpTriggerPx" => "",
+        //         "tpTriggerPxType" => "",
+        //         "triggerPx" => "50000",
+        //         "triggerPxType" => "last",
+        //         "triggerTime" => "",
+        //         "uly" => "BTC-USDT"
+        //     }
+        //
         $id = $this->safe_string($order, 'ordId');
         $timestamp = $this->safe_integer($order, 'cTime');
         $lastTradeTimestamp = $this->safe_integer($order, 'fillTime');
@@ -2156,7 +2214,7 @@ class okx extends Exchange {
         $marketId = $this->safe_string($order, 'instId');
         $symbol = $this->safe_symbol($marketId, $market, '-');
         $filled = $this->safe_string($order, 'accFillSz');
-        $price = $this->safe_string_2($order, 'px', 'slOrdPx');
+        $price = $this->safe_string_2($order, 'px', 'ordPx');
         $average = $this->safe_string($order, 'avgPx');
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
         $feeCostString = $this->safe_string($order, 'fee');
@@ -2188,7 +2246,7 @@ class okx extends Exchange {
         if (($clientOrderId !== null) && (strlen($clientOrderId) < 1)) {
             $clientOrderId = null; // fix empty $clientOrderId string
         }
-        $stopPrice = $this->safe_number($order, 'slTriggerPx');
+        $stopPrice = $this->safe_number_2($order, 'slTriggerPx', 'triggerPx');
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -2281,12 +2339,24 @@ class okx extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+            * Returns orders that are still open
+            * @param {string} $symbol Unified $market $symbol
+            * @param {integer} $since Timestamp in ms of the earliest time to retrieve orders for
+            * @param {integer} $limit Number of results per $request-> The maximum is 100; The default is 100
+            * @param {dict} $params Extra and exchange specific parameters
+            * @param {integer} $params->till Timestamp in ms of the latest time to retrieve orders for
+            * @param {boolean} $params->stop True if fetching trigger orders
+            * @param {string} $params->ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+            * @param {string} $params->algoId Algo ID
+            * @returns [An order structure]array(@link https://docs.ccxt.com/en/latest/manual.html#order-structure)
+        */
         $this->load_markets();
         $request = array(
             // 'instType' => 'SPOT', // SPOT, MARGIN, SWAP, FUTURES, OPTION
             // 'uly' => currency['id'],
             // 'instId' => $market['id'],
-            // 'ordType' => 'limit', // $market, $limit, post_only, fok, ioc, comma-separated
+            // 'ordType' => 'limit', // $market, $limit, post_only, fok, ioc, comma-separated, $stop orders => conditional, oco, trigger, move_order_stop, iceberg, or twap
             // 'state' => 'live', // live, partially_filled
             // 'after' => orderId,
             // 'before' => orderId,
@@ -2300,7 +2370,17 @@ class okx extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 100
         }
-        $response = $this->privateGetTradeOrdersPending (array_merge($request, $params));
+        $options = $this->safe_value($this->options, 'fetchOpenOrders', array());
+        $algoOrderTypes = $this->safe_value($options, 'algoOrderTypes', array());
+        $defaultMethod = $this->safe_string($options, 'method', 'privateGetTradeOrdersPending');
+        $method = $this->safe_string($params, 'method', $defaultMethod);
+        $ordType = $this->safe_string($params, 'ordType');
+        $stop = $this->safe_value($params, 'stop');
+        if ($stop || (is_array($algoOrderTypes) && array_key_exists($ordType, $algoOrderTypes))) {
+            $method = 'privateGetTradeOrdersAlgoPending';
+        }
+        $query = $this->omit($params, array( 'method', 'stop' ));
+        $response = $this->$method (array_merge($request, $query));
         //
         //     {
         //         "code":"0",
@@ -2341,6 +2421,59 @@ class okx extends Exchange {
         //             }
         //         ),
         //         "msg":""
+        //     }
+        //
+        // Algo order
+        //
+        //     {
+        //         "code" => "0",
+        //         "data" => array(
+        //             {
+        //                 "activePx" => "",
+        //                 "activePxType" => "",
+        //                 "actualPx" => "",
+        //                 "actualSide" => "buy",
+        //                 "actualSz" => "0",
+        //                 "algoId" => "431375349042380800",
+        //                 "cTime" => "1649119897778",
+        //                 "callbackRatio" => "",
+        //                 "callbackSpread" => "",
+        //                 "ccy" => "",
+        //                 "ctVal" => "0.01",
+        //                 "instId" => "BTC-USDT-SWAP",
+        //                 "instType" => "SWAP",
+        //                 "last" => "46538.9",
+        //                 "lever" => "125",
+        //                 "moveTriggerPx" => "",
+        //                 "notionalUsd" => "467.059",
+        //                 "ordId" => "",
+        //                 "ordPx" => "50000",
+        //                 "ordType" => "trigger",
+        //                 "posSide" => "long",
+        //                 "pxLimit" => "",
+        //                 "pxSpread" => "",
+        //                 "pxVar" => "",
+        //                 "side" => "buy",
+        //                 "slOrdPx" => "",
+        //                 "slTriggerPx" => "",
+        //                 "slTriggerPxType" => "",
+        //                 "state" => "live",
+        //                 "sz" => "1",
+        //                 "szLimit" => "",
+        //                 "tag" => "",
+        //                 "tdMode" => "isolated",
+        //                 "tgtCcy" => "",
+        //                 "timeInterval" => "",
+        //                 "tpOrdPx" => "",
+        //                 "tpTriggerPx" => "",
+        //                 "tpTriggerPxType" => "",
+        //                 "triggerPx" => "50000",
+        //                 "triggerPxType" => "last",
+        //                 "triggerTime" => "",
+        //                 "uly" => "BTC-USDT"
+        //             }
+        //         ),
+        //         "msg" => ""
         //     }
         //
         $data = $this->safe_value($response, 'data', array());

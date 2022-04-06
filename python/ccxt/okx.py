@@ -638,6 +638,17 @@ class okx(Exchange):
                     'method': 'privateGetAccountBills',  # privateGetAccountBillsArchive, privateGetAssetBills
                 },
                 # 1 = SPOT, 3 = FUTURES, 5 = MARGIN, 6 = FUNDING, 9 = SWAP, 12 = OPTION, 18 = Unified account
+                'fetchOpenOrders': {
+                    'method': 'privateGetTradeOrdersPending',  # privateGetTradeOrdersAlgoPending
+                    'algoOrderTypes': {
+                        'conditional': True,
+                        'trigger': True,
+                        'oco': True,
+                        'move_order_stop': True,
+                        'iceberg': True,
+                        'twap': True,
+                    },
+                },
                 'cancelOrders': {
                     'method': 'privatePostTradeCancelBatchOrders',  # privatePostTradeCancelAlgos
                 },
@@ -2053,6 +2064,53 @@ class okx(Exchange):
         #         "uTime":"1621910749815"
         #     }
         #
+        # fetchOpenOrders Algo order
+        #
+        #     {
+        #         "activePx": "",
+        #         "activePxType": "",
+        #         "actualPx": "",
+        #         "actualSide": "buy",
+        #         "actualSz": "0",
+        #         "algoId": "431375349042380800",
+        #         "cTime": "1649119897778",
+        #         "callbackRatio": "",
+        #         "callbackSpread": "",
+        #         "ccy": "",
+        #         "ctVal": "0.01",
+        #         "instId": "BTC-USDT-SWAP",
+        #         "instType": "SWAP",
+        #         "last": "46538.9",
+        #         "lever": "125",
+        #         "moveTriggerPx": "",
+        #         "notionalUsd": "467.059",
+        #         "ordId": "",
+        #         "ordPx": "50000",
+        #         "ordType": "trigger",
+        #         "posSide": "long",
+        #         "pxLimit": "",
+        #         "pxSpread": "",
+        #         "pxVar": "",
+        #         "side": "buy",
+        #         "slOrdPx": "",
+        #         "slTriggerPx": "",
+        #         "slTriggerPxType": "",
+        #         "state": "live",
+        #         "sz": "1",
+        #         "szLimit": "",
+        #         "tag": "",
+        #         "tdMode": "isolated",
+        #         "tgtCcy": "",
+        #         "timeInterval": "",
+        #         "tpOrdPx": "",
+        #         "tpTriggerPx": "",
+        #         "tpTriggerPxType": "",
+        #         "triggerPx": "50000",
+        #         "triggerPxType": "last",
+        #         "triggerTime": "",
+        #         "uly": "BTC-USDT"
+        #     }
+        #
         id = self.safe_string(order, 'ordId')
         timestamp = self.safe_integer(order, 'cTime')
         lastTradeTimestamp = self.safe_integer(order, 'fillTime')
@@ -2072,7 +2130,7 @@ class okx(Exchange):
         marketId = self.safe_string(order, 'instId')
         symbol = self.safe_symbol(marketId, market, '-')
         filled = self.safe_string(order, 'accFillSz')
-        price = self.safe_string_2(order, 'px', 'slOrdPx')
+        price = self.safe_string_2(order, 'px', 'ordPx')
         average = self.safe_string(order, 'avgPx')
         status = self.parse_order_status(self.safe_string(order, 'state'))
         feeCostString = self.safe_string(order, 'fee')
@@ -2101,7 +2159,7 @@ class okx(Exchange):
         clientOrderId = self.safe_string(order, 'clOrdId')
         if (clientOrderId is not None) and (len(clientOrderId) < 1):
             clientOrderId = None  # fix empty clientOrderId string
-        stopPrice = self.safe_number(order, 'slTriggerPx')
+        stopPrice = self.safe_number_2(order, 'slTriggerPx', 'triggerPx')
         return self.safe_order({
             'info': order,
             'id': id,
@@ -2190,12 +2248,24 @@ class okx(Exchange):
         return self.parse_order(order, market)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        '''
+            * Returns orders that are still open
+            * @param {string} symbol Unified market symbol
+            * @param {integer} since Timestamp in ms of the earliest time to retrieve orders for
+            * @param {integer} limit Number of results per request. The maximum is 100; The default is 100
+            * @param {dict} params Extra and exchange specific parameters
+            * @param {integer} params.till Timestamp in ms of the latest time to retrieve orders for
+            * @param {boolean} params.stop True if fetching trigger orders
+            * @param {string} params.ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+            * @param {string} params.algoId Algo ID
+            * @returns [An order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+       '''
         self.load_markets()
         request = {
             # 'instType': 'SPOT',  # SPOT, MARGIN, SWAP, FUTURES, OPTION
             # 'uly': currency['id'],
             # 'instId': market['id'],
-            # 'ordType': 'limit',  # market, limit, post_only, fok, ioc, comma-separated
+            # 'ordType': 'limit',  # market, limit, post_only, fok, ioc, comma-separated, stop orders: conditional, oco, trigger, move_order_stop, iceberg, or twap
             # 'state': 'live',  # live, partially_filled
             # 'after': orderId,
             # 'before': orderId,
@@ -2207,7 +2277,16 @@ class okx(Exchange):
             request['instId'] = market['id']
         if limit is not None:
             request['limit'] = limit  # default 100, max 100
-        response = self.privateGetTradeOrdersPending(self.extend(request, params))
+        options = self.safe_value(self.options, 'fetchOpenOrders', {})
+        algoOrderTypes = self.safe_value(options, 'algoOrderTypes', {})
+        defaultMethod = self.safe_string(options, 'method', 'privateGetTradeOrdersPending')
+        method = self.safe_string(params, 'method', defaultMethod)
+        ordType = self.safe_string(params, 'ordType')
+        stop = self.safe_value(params, 'stop')
+        if stop or (ordType in algoOrderTypes):
+            method = 'privateGetTradeOrdersAlgoPending'
+        query = self.omit(params, ['method', 'stop'])
+        response = getattr(self, method)(self.extend(request, query))
         #
         #     {
         #         "code":"0",
@@ -2248,6 +2327,59 @@ class okx(Exchange):
         #             }
         #         ],
         #         "msg":""
+        #     }
+        #
+        # Algo order
+        #
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             {
+        #                 "activePx": "",
+        #                 "activePxType": "",
+        #                 "actualPx": "",
+        #                 "actualSide": "buy",
+        #                 "actualSz": "0",
+        #                 "algoId": "431375349042380800",
+        #                 "cTime": "1649119897778",
+        #                 "callbackRatio": "",
+        #                 "callbackSpread": "",
+        #                 "ccy": "",
+        #                 "ctVal": "0.01",
+        #                 "instId": "BTC-USDT-SWAP",
+        #                 "instType": "SWAP",
+        #                 "last": "46538.9",
+        #                 "lever": "125",
+        #                 "moveTriggerPx": "",
+        #                 "notionalUsd": "467.059",
+        #                 "ordId": "",
+        #                 "ordPx": "50000",
+        #                 "ordType": "trigger",
+        #                 "posSide": "long",
+        #                 "pxLimit": "",
+        #                 "pxSpread": "",
+        #                 "pxVar": "",
+        #                 "side": "buy",
+        #                 "slOrdPx": "",
+        #                 "slTriggerPx": "",
+        #                 "slTriggerPxType": "",
+        #                 "state": "live",
+        #                 "sz": "1",
+        #                 "szLimit": "",
+        #                 "tag": "",
+        #                 "tdMode": "isolated",
+        #                 "tgtCcy": "",
+        #                 "timeInterval": "",
+        #                 "tpOrdPx": "",
+        #                 "tpTriggerPx": "",
+        #                 "tpTriggerPxType": "",
+        #                 "triggerPx": "50000",
+        #                 "triggerPxType": "last",
+        #                 "triggerTime": "",
+        #                 "uly": "BTC-USDT"
+        #             }
+        #         ],
+        #         "msg": ""
         #     }
         #
         data = self.safe_value(response, 'data', [])
