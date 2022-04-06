@@ -1827,12 +1827,9 @@ module.exports = class gateio extends Exchange {
 
     fetchBalanceHelper (entry) {
         const account = this.account ();
-        let used = this.safeString (entry, 'freeze');
-        if (used === undefined) {
-            used = this.safeString2 (entry, 'locked', 'position_margin');
-        }
-        account['used'] = used;
+        account['used'] = this.safeString2 (entry, 'freeze', 'locked');
         account['free'] = this.safeString (entry, 'available');
+        account['total'] = this.safeString (entry, 'total');
         return account;
     }
 
@@ -1984,7 +1981,7 @@ module.exports = class gateio extends Exchange {
             'info': response,
         };
         let data = response;
-        if ('balances' in data) {
+        if ('balances' in data) { // True for cross_margin
             const flatBalances = [];
             const balances = this.safeValue (data, 'balances', []);
             // inject currency and create an artificial balance object
