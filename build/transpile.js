@@ -340,7 +340,7 @@ class Transpiler {
 
     getSyncPHPRegexes () {
         return [
-            [ /.+Promise\\all.+\n/g, '' ], // delete line
+            [ /.+(\$[a-zA-Z0-9_]+)\s*=\s*yield\s+\1;\n/g, '' ], // delete yield all promises line
             [ /\byield /g, '' ]
         ]
     }
