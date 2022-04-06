@@ -3216,11 +3216,13 @@ module.exports = class gateio extends Exchange {
         await this.loadMarkets ();
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', undefined, params);
-        if (symbol === undefined && (type === 'spot') || type === 'margin' || type === 'cross_margin') {
+        if (symbol === undefined && (type === 'spot') || (type === 'margin')) {
+            const defaultMarginType = this.safeString2 (this.options, 'marginType', 'defaultMarginType');
+            const marginType = this.safeString (params, 'marginType', defaultMarginType);
             const request = {
                 // 'page': 1,
                 // 'limit': limit,
-                'account': type, // spot/margin (default), cross_margin
+                'account': marginType === 'cross' ? 'cross_margin' : type,
             };
             if (limit !== undefined) {
                 request['limit'] = limit;
