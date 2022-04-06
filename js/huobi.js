@@ -37,7 +37,6 @@ module.exports = class huobi extends Exchange {
                 'createDepositAddress': undefined,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
-                'deposit': undefined,
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,

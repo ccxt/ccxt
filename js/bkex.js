@@ -31,7 +31,6 @@ module.exports = class bkex extends Exchange {
                 'createLimitOrder': undefined,
                 'createMarketOrder': undefined,
                 'createOrder': true,
-                'deposit': undefined,
                 'editOrder': undefined,
                 'fetchAccounts': undefined,
                 'fetchBalance': true,
