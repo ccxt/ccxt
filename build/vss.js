@@ -11,7 +11,7 @@ import { execSync } from 'child_process'
 import { copyFile } from './fsLocal.js'
 import { pathToFileURL } from 'url'
 import { URL } from 'url'
-import { join } from 'path'
+import { resolve } from 'path'
 
 ansi.nice
 
@@ -31,7 +31,7 @@ function vss (filename, template, version) {
 // ----------------------------------------------------------------------------
 
 async function vssEverything () {
-    const packageJSON = JSON.parse (fs.readFileSync (join(__dirname, '..', 'package.json')))
+    const packageJSON = JSON.parse (fs.readFileSync (resolve(__dirname, '..', 'package.json')))
     const version = packageJSON['version']
 
     log.bright ('New version: '.cyan, version)
