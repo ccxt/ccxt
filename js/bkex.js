@@ -464,12 +464,7 @@ module.exports = class bkex extends Exchange {
             }
         }
         if (symbols !== undefined) {
-            const marketIds = [];
-            for (let i = 0; i < symbols.length; i++) {
-                const market = this.market (symbols[i]);
-                marketIds.push (market['id']);
-            }
-            request['symbol'] = marketIds.join (',');
+            request['symbol'] = (this.marketIds (symbols)).join (',');
         }
         const response = await this.publicGetQTickers (this.extend (request, params));
         const tickers = this.safeValue (response, 'data');
