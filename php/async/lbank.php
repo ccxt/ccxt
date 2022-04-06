@@ -121,8 +121,9 @@ class lbank extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
-                'VET_ERC20' => 'VEN',
+                'GMT' => 'GMT Token',
                 'PNT' => 'Penta',
+                'VET_ERC20' => 'VEN',
             ),
             'options' => array(
                 'cacheSecretAsPem' => true,

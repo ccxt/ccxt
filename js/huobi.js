@@ -41,7 +41,7 @@ module.exports = class huobi extends Exchange {
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
-                'fetchBorrowRate': true,
+                'fetchBorrowRate': undefined,
                 'fetchBorrowRateHistories': undefined,
                 'fetchBorrowRateHistory': undefined,
                 'fetchBorrowRates': true,
@@ -1040,24 +1040,27 @@ module.exports = class huobi extends Exchange {
         const options = this.safeValue (this.options, 'fetchMarkets', {});
         const types = this.safeValue (options, 'types', {});
         let allMarkets = [];
+        let promises = [];
         const keys = Object.keys (types);
         for (let i = 0; i < keys.length; i++) {
             const type = keys[i];
             const value = this.safeValue (types, type);
             if (value === true) {
-                const markets = await this.fetchMarketsByTypeAndSubType (type, undefined, params);
-                allMarkets = this.arrayConcat (allMarkets, markets);
+                promises.push (this.fetchMarketsByTypeAndSubType (type, undefined, params));
             } else {
                 const subKeys = Object.keys (value);
                 for (let j = 0; j < subKeys.length; j++) {
                     const subType = subKeys[j];
                     const subValue = this.safeValue (value, subType);
                     if (subValue) {
-                        const markets = await this.fetchMarketsByTypeAndSubType (type, subType, params);
-                        allMarkets = this.arrayConcat (allMarkets, markets);
+                        promises.push (this.fetchMarketsByTypeAndSubType (type, subType, params));
                     }
                 }
             }
+        }
+        promises = await Promise.all (promises);
+        for (let i = 0; i < promises.length; i++) {
+            allMarkets = this.arrayConcat (allMarkets, promises[i]);
         }
         return allMarkets;
     }
@@ -1204,15 +1207,20 @@ module.exports = class huobi extends Exchange {
             let quoteId = undefined;
             let settleId = undefined;
             let id = undefined;
+            let lowercaseId = undefined;
+            let lowercaseBaseId = undefined;
             if (contract) {
                 id = this.safeString (market, 'contract_code');
+                lowercaseId = id.toLowerCase ();
                 if (swap) {
                     const parts = id.split ('-');
                     baseId = this.safeString (market, 'symbol');
-                    quoteId = this.safeString (parts, 1);
+                    lowercaseBaseId = baseId.toLowerCase ();
+                    quoteId = this.safeStringLower (parts, 1);
                     settleId = inverse ? baseId : quoteId;
                 } else if (future) {
                     baseId = this.safeString (market, 'symbol');
+                    lowercaseBaseId = baseId.toLowerCase ();
                     if (inverse) {
                         quoteId = 'USD';
                         settleId = baseId;
@@ -1225,8 +1233,10 @@ module.exports = class huobi extends Exchange {
                 }
             } else {
                 baseId = this.safeString (market, 'base-currency');
+                lowercaseBaseId = baseId.toLowerCase ();
                 quoteId = this.safeString (market, 'quote-currency');
                 id = baseId + quoteId;
+                lowercaseId = id.toLowerCase ();
             }
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
@@ -1291,11 +1301,13 @@ module.exports = class huobi extends Exchange {
             // 9 Suspending of Trade
             result.push ({
                 'id': id,
+                'lowercaseId': lowercaseId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'settle': settle,
                 'baseId': baseId,
+                'lowercaseBaseId': lowercaseBaseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
                 'type': type,
@@ -3411,7 +3423,7 @@ module.exports = class huobi extends Exchange {
         if (stopPrice === undefined) {
             const stopOrderTypes = this.safeValue (options, 'stopOrderTypes', {});
             if (orderType in stopOrderTypes) {
-                throw new ArgumentsRequired (this.id + 'createOrder() requires a stopPrice or a stop-price parameter for a stop order');
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPrice or a stop-price parameter for a stop order');
             }
         } else {
             const stopOperator = this.safeString (params, 'operator');
@@ -3424,7 +3436,7 @@ module.exports = class huobi extends Exchange {
             if ((orderType === 'limit') || (orderType === 'limit-fok')) {
                 orderType = 'stop-' + orderType;
             } else if ((orderType !== 'stop-limit') && (orderType !== 'stop-limit-fok')) {
-                throw new NotSupported (this.id + 'createOrder() does not support ' + type + ' orders');
+                throw new NotSupported (this.id + ' createOrder() does not support ' + type + ' orders');
             }
         }
         const postOnly = this.safeValue (params, 'postOnly', false);
@@ -5485,7 +5497,7 @@ module.exports = class huobi extends Exchange {
         if (symbol !== undefined) {
             const market = this.market (symbol);
             if (!market['contract']) {
-                throw new BadRequest (this.id + '.fetchLeverageTiers symbol supports contract markets only');
+                throw new BadRequest (this.id + ' fetchLeverageTiers() symbol supports contract markets only');
             }
             request['contract_code'] = market['id'];
         }

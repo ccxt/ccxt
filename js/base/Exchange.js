@@ -78,7 +78,6 @@ module.exports = class Exchange {
                 'createLimitOrder': true,
                 'createMarketOrder': true,
                 'createOrder': true,
-                'deposit': undefined,
                 'editOrder': 'emulated',
                 'fetchAccounts': undefined,
                 'fetchBalance': true,
@@ -2163,12 +2162,12 @@ module.exports = class Exchange {
     async fetchBorrowRate (code, params = {}) {
         await this.loadMarkets ();
         if (!this.has['fetchBorrowRates']) {
-            throw new NotSupported (this.id + 'fetchBorrowRate() is not supported yet')
+            throw new NotSupported (this.id + ' fetchBorrowRate() is not supported yet')
         }
         const borrowRates = await this.fetchBorrowRates (params);
         const rate = this.safeValue (borrowRates, code);
         if (rate === undefined) {
-            throw new ExchangeError (this.id + 'fetchBorrowRate() could not find the borrow rate for currency code ' + code);
+            throw new ExchangeError (this.id + ' fetchBorrowRate() could not find the borrow rate for currency code ' + code);
         }
         return rate;
     }
@@ -2225,7 +2224,7 @@ module.exports = class Exchange {
             const tiers = await this.fetchLeverageTiers ([ symbol ]);
             return this.safeValue (tiers, symbol);
         } else {
-            throw new NotSupported (this.id + 'fetchMarketLeverageTiers() is not supported yet');
+            throw new NotSupported (this.id + ' fetchMarketLeverageTiers() is not supported yet');
         }
 
     }
