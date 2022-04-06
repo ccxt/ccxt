@@ -134,7 +134,7 @@ const parseDate = (x) => {
 const rfc2616 = (timestamp = undefined) => new Date (timestamp).toUTCString ();
 
 const getNow => {
-    var tzoffset = (new Date()).getTimezoneOffset() * 60000; //offset in milliseconds
+    const tzoffset = (new Date()).getTimezoneOffset() * 60000; //offset in milliseconds
     return (new Date(Date.now() - tzoffset)).toISOString().slice(0, -1);
 }
 
@@ -189,6 +189,7 @@ module.exports = {
     , iso8601
     , parse8601
     , rfc2616
+    , getNow
     , uuidv1
     , parseDate
     , mdy
