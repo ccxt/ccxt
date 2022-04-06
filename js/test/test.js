@@ -54,25 +54,29 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const tests = {}
 const properties = Object.keys (exchange.has)
-properties
+const filtered = properties
     // eslint-disable-next-line no-path-concat
     .filter ((property) => fs.existsSync (__dirname + '/Exchange/test.' + property + '.js'))
-    .forEach (async (property) => {
-        // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-        const test = await import (__dirname + '/Exchange/test.' + property + '.js')
-        tests[property] = test['default']
-    })
 
-const errors = await import ('../base/errorHierarchy.js')
 
-Object.keys (errors)
-    // eslint-disable-next-line no-path-concat
-    .filter ((error) => fs.existsSync (__dirname + '/errors/test.' + error + '.js'))
-    .forEach (async (error) => {
-        // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-        const errorTest = await import (__dirname + '/errors/test.' + error + '.js')
-        tests[error] = errorTest['default']
-    })
+for (const property of filtered) {
+    const test = await import (__dirname + '/Exchange/test.' + property + '.js')
+    tests[property] = test['default']
+}
+
+// ToDO: check this out
+let errors = await import ('../base/errorHierarchy.js')
+errors = errors['errorHierarchy'];
+
+const filteredErrors = Object.keys (errors)
+                    // eslint-disable-next-line no-path-concat
+                    .filter ((error) => fs.existsSync (__dirname + '/errors/test.' + error + '.js'))
+
+for (const error of filteredErrors) {
+    // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
+    const errorTest = await import (__dirname + '/errors/test.' + error + '.js')
+    tests[error] = errorTest['default']
+}
 
 //-----------------------------------------------------------------------------
 
