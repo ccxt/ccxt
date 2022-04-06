@@ -1988,7 +1988,7 @@ module.exports = class mexc extends Exchange {
         const cost = this.safeString2 (order, 'deal_amount', 'dealAvgPrice');
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '_');
-        const sideCheck = this.safeNumber (order, 'side');
+        const sideCheck = this.safeInteger (order, 'side');
         let side = undefined;
         const bidOrAsk = this.safeString (order, 'type');
         if (bidOrAsk === 'BID') {
