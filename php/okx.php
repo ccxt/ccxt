@@ -4254,6 +4254,90 @@ class okx extends Exchange {
         return $tiers;
     }
 
+    public function fetch_borrow_interest($code = null, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * Obtain the amount of $interest that has accrued for margin trading
+         * @param {string} $code The unified $currency $code for the $currency of the $interest
+         * @param {string} $symbol The $market $symbol of an isolated margin $market, if null, the $interest for cross margin markets is returned
+         * @param {integer} $since Timestamp in ms of the earliest time to receive $interest records for
+         * @param {integer} $limit The number of [borrow $interest structures]array(@link https://docs.ccxt.com/en/latest/manual.html#borrow-$interest-structure) to retrieve
+         * @param {dict} $params Exchange specific parameters
+         * @param {integer} $params->type Loan type 1 - VIP loans 2 - Market loans *Default is Market loans*
+         * @returns An array of [borrow $interest structures]array(@link https://docs.ccxt.com/en/latest/manual.html#borrow-$interest-structure)
+         */
+        $this->load_markets();
+        $request = array(
+            'mgnMode' => ($symbol !== null) ? 'isolated' : 'cross',
+        );
+        $market = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['ccy'] = $currency['id'];
+        }
+        if ($since !== null) {
+            $request['before'] = $since - 1;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['instId'] = $market['id'];
+        }
+        $response = $this->privateGetAccountInterestAccrued (array_merge($request, $params));
+        //
+        //    {
+        //        "code" => "0",
+        //        "data" => array(
+        //            array(
+        //                "ccy" => "USDT",
+        //                "instId" => "",
+        //                "interest" => "0.0003960833333334",
+        //                "interestRate" => "0.0000040833333333",
+        //                "liab" => "97",
+        //                "mgnMode" => "",
+        //                "ts" => "1637312400000",
+        //                "type" => "1"
+        //            ),
+        //            ...
+        //        ),
+        //        "msg" => ""
+        //    }
+        //
+        $data = $this->safe_value($response, 'data');
+        $interest = $this->parse_borrow_interests($data);
+        return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
+    }
+
+    public function parse_borrow_interests($response, $market = null) {
+        $interest = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $row = $response[$i];
+            $interest[] = $this->parse_borrow_interest($row, $market);
+        }
+        return $interest;
+    }
+
+    public function parse_borrow_interest($info, $market = null) {
+        $instId = $this->safe_string($info, 'instId');
+        $account = 'CROSS';
+        if ($instId) {
+            $market = $this->safe_market($instId, $market);
+            $account = $this->safe_string($market, 'symbol');
+        }
+        $timestamp = $this->safe_number($info, 'ts');
+        return array(
+            'account' => $account, // isolated symbol, will not be returned for crossed margin
+            'currency' => $this->safe_currency_code($this->safe_string($info, 'ccy')),
+            'interest' => $this->safe_number($info, 'interest'),
+            'interestRate' => $this->safe_number($info, 'interestRate'),
+            'amountBorrowed' => $this->safe_number($info, 'liab'),
+            'timestamp' => $timestamp,  // Interest accrued time
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $info,
+        );
+    }
+
     public function set_sandbox_mode($enable) {
         parent::set_sandbox_mode($enable);
         if ($enable) {
