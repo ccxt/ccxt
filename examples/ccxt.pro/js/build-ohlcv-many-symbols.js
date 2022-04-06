@@ -12,7 +12,7 @@ async function loop (exchange, symbol, timeframe) {
             const trades = await exchange.watchTrades (symbol)
             if (trades.length >0) {
                 const ohlcvc = exchange.buildOHLCVC(trades, timeframe)
-                console.log("Symbol:", symbol, "timeframe", timeframe);
+                console.log("Symbol:", symbol, "timeframe:", timeframe);
                 console.log ('-----------------------------------------------------------')
                 console.log (asTable (ohlcvc))
                 console.log ('-----------------------------------------------------------')
@@ -27,7 +27,7 @@ async function loop (exchange, symbol, timeframe) {
 }
 
 async function main () {
-
+    // select the exchange
     const exchange = new ccxtpro.ftx ()
 
     if (exchange.has['watchTrades']) {
@@ -40,7 +40,7 @@ async function main () {
         // arbitrary n symbols
         const limit = 5;
         const selectedSymbols = allSymbols.slice(0, limit);
-        // you can also specify the symbols
+        // you can also specify the symbols manually
         // example:
         // const selectedSymbols = ['BTC/USDT', 'LTC/USDT']
 
