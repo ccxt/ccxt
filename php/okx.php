@@ -4513,14 +4513,14 @@ class okx extends Exchange {
 
     public function parse_borrow_interest($info, $market = null) {
         $instId = $this->safe_string($info, 'instId');
-        $account = 'CROSS';
-        if ($instId) {
+        $account = 'cross'; // todo rename it to margin/marginType and separate it from the symbol
+        if ($instId !== null) {
             $market = $this->safe_market($instId, $market);
             $account = $this->safe_string($market, 'symbol');
         }
         $timestamp = $this->safe_number($info, 'ts');
         return array(
-            'account' => $account, // isolated symbol, will not be returned for crossed margin
+            'account' => $account, // isolated symbol, will not be returned for cross margin
             'currency' => $this->safe_currency_code($this->safe_string($info, 'ccy')),
             'interest' => $this->safe_number($info, 'interest'),
             'interestRate' => $this->safe_number($info, 'interestRate'),

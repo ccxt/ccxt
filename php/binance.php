@@ -5552,7 +5552,7 @@ class binance extends Exchange {
         for ($i = 0; $i < count($rows); $i++) {
             $row = $rows[$i];
             $timestamp = $this->safe_number($row, 'interestAccuredTime');
-            $account = ($symbol === null) ? 'CROSS' : $symbol;
+            $account = ($symbol === null) ? 'cross' : $symbol;
             $interest[] = array(
                 'account' => $account,
                 'currency' => $this->safe_currency_code($this->safe_string($row, 'asset')),

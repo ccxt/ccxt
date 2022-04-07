@@ -5220,7 +5220,7 @@ class binance(Exchange):
         for i in range(0, len(rows)):
             row = rows[i]
             timestamp = self.safe_number(row, 'interestAccuredTime')
-            account = 'CROSS' if (symbol is None) else symbol
+            account = 'cross' if (symbol is None) else symbol
             interest.append({
                 'account': account,
                 'currency': self.safe_currency_code(self.safe_string(row, 'asset')),

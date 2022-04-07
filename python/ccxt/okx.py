@@ -4297,13 +4297,13 @@ class okx(Exchange):
 
     def parse_borrow_interest(self, info, market=None):
         instId = self.safe_string(info, 'instId')
-        account = 'CROSS'
-        if instId:
+        account = 'cross'  # todo rename it to margin/marginType and separate it from the symbol
+        if instId is not None:
             market = self.safe_market(instId, market)
             account = self.safe_string(market, 'symbol')
         timestamp = self.safe_number(info, 'ts')
         return {
-            'account': account,  # isolated symbol, will not be returned for crossed margin
+            'account': account,  # isolated symbol, will not be returned for cross margin
             'currency': self.safe_currency_code(self.safe_string(info, 'ccy')),
             'interest': self.safe_number(info, 'interest'),
             'interestRate': self.safe_number(info, 'interestRate'),
