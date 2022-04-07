@@ -19,11 +19,11 @@ class ftx extends Exchange {
             'id' => 'ftx',
             'name' => 'FTX',
             'countries' => array( 'BS' ), // Bahamas
-            // hard limit of 6 requests per 200ms => 30 requests per 1000ms => 1000ms / 30 = 33.3333 ms between requests
+            // hard limit of 7 requests per 200ms => 35 requests per 1000ms => 1000ms / 35 = 28.5714 ms between requests
             // 10 withdrawal requests per 30 seconds = (1000ms / rateLimit) / (1/3) = 90.1
             // cancels do not count towards rateLimit
             // only 'order-making' requests count towards ratelimit
-            'rateLimit' => 33.34,
+            'rateLimit' => 28.57,
             'certified' => true,
             'pro' => true,
             'hostname' => 'ftx.com', // or ftx.us
