@@ -164,46 +164,33 @@ module.exports = class gateio extends ccxt.gateio {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['id'];
-        const uppercaseId = marketId.toUpperCase ();
-        const requestId = this.nonce ();
-        const url = this.urls['api']['ws'];
-        const options = this.safeValue (this.options, 'watchTicker', {});
-        const subscriptions = this.safeValue (options, 'subscriptions', {});
-        subscriptions[uppercaseId] = true;
-        options['subscriptions'] = subscriptions;
-        this.options['watchTicker'] = options;
-        const subscribeMessage = {
-            'id': requestId,
-            'method': 'ticker.subscribe',
-            'params': Object.keys (subscriptions),
-        };
-        const subscription = {
-            'id': requestId,
-        };
-        const messageHash = 'ticker.update' + ':' + marketId;
-        return await this.watch (url, messageHash, subscribeMessage, messageHash, subscription);
+        const isBtcContract = this.isBtcContract (market);
+        const type = market['type'];
+        const messageType = this.getUniformType (type);
+        const messageHash = messageType + '.' + 'tickers';
+        const payload = [marketId];
+        const url = this.getUrlByMarketType (type, isBtcContract);
+        return await this.subscribePublic (url, messageHash, messageHash, payload);
     }
 
     handleTicker (client, message) {
-        //
-        //     {
-        //         'method': 'ticker.update',
-        //         'params': [
-        //             'BTC_USDT',
-        //             {
-        //                 'period': 86400, // 24 hours = 86400 seconds
-        //                 'open': '9027.96',
-        //                 'close': '9282.93',
-        //                 'high': '9428.57',
-        //                 'low': '8900',
-        //                 'last': '9282.93',
-        //                 'change': '2.8',
-        //                 'quoteVolume': '1838.9950613035',
-        //                 'baseVolume': '17032535.24172142379566994715'
-        //             }
-        //         ],
-        //         'id': null
-        //     }
+        // spot
+        //    {
+        //        time: 1649326221,
+        //        channel: 'spot.tickers',
+        //        event: 'update',
+        //        result: {
+        //          currency_pair: 'BTC_USDT',
+        //          last: '43444.82',
+        //          lowest_ask: '43444.82',
+        //          highest_bid: '43444.81',
+        //          change_percentage: '-4.0036',
+        //          base_volume: '5182.5412425462',
+        //          quote_volume: '227267634.93123952',
+        //          high_24h: '47698',
+        //          low_24h: '42721.03'
+        //        }
+        //    }
         //
         const params = this.safeValue (message, 'params', []);
         const marketId = this.safeString (params, 0);
@@ -764,6 +751,7 @@ module.exports = class gateio extends ccxt.gateio {
                 'usertrades': this.handleMyTrades,
                 'candlesticks': this.handleOHLCV,
                 'orders': this.handleOrder,
+                'tickers': this.handleTicker,
             };
             method = this.safeValue (v4Methods, channelType);
         }
@@ -817,6 +805,12 @@ module.exports = class gateio extends ccxt.gateio {
             'messageHash': messageHash,
         };
         return await this.watch (url, messageHash, request, messageHash, subscription);
+    }
+
+    isBtcContract (market) {
+        const isSettleBtc = market['settleId'] === 'btc';
+        const isBtcContract = (market['contract'] && isSettleBtc) ? true : false;
+        return isBtcContract;
     }
 
     async subscribePrivate (url, channel, messageHash, payload, requiresUid = false) {
