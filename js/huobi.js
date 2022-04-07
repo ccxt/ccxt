@@ -4678,6 +4678,30 @@ module.exports = class huobi extends Exchange {
     }
 
     parseBorrowInterest (info, market = undefined) {
+        //
+        // {
+        //     "interest-rate":"0.000040830000000000",
+        //     "user-id":35930539,
+        //     "account-id":48916071,
+        //     "updated-at":1649320794195,
+        //     "deduct-rate":"1",
+        //     "day-interest-rate":"0.000980000000000000",
+        //     "hour-interest-rate":"0.000040830000000000",
+        //     "loan-balance":"100.790000000000000000",
+        //     "interest-balance":"0.004115260000000000",
+        //     "loan-amount":"100.790000000000000000",
+        //     "paid-coin":"0.000000000000000000",
+        //     "accrued-at":1649320794148,
+        //     "created-at":1649320794148,
+        //     "interest-amount":"0.004115260000000000",
+        //     "deduct-amount":"0",
+        //     "deduct-currency":"",
+        //     "paid-point":"0.000000000000000000",
+        //     "currency":"usdt",
+        //     "symbol":"ltcusdt",
+        //     "id":20242721,
+        // }
+        //
         const symbol = this.safeString (market, 'symbol');
         const account = (symbol === undefined) ? 'CROSS' : symbol;
         const timestamp = this.safeNumber (info, 'accrued-at');
@@ -4685,7 +4709,7 @@ module.exports = class huobi extends Exchange {
             'account': account,  // isolated symbol, will not be returned for crossed margin
             'currency': this.safeCurrencyCode (this.safeString (info, 'currency')),
             'interest': this.safeNumber (info, 'interest-amount'),
-            'interestRate': undefined,
+            'interestRate': this.safeNumber (info, 'interest-rate'),
             'amountBorrowed': this.safeNumber (info, 'loan-amount'),
             'timestamp': timestamp,  // Interest accrued time
             'datetime': this.iso8601 (timestamp),
