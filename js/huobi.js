@@ -4727,10 +4727,10 @@ module.exports = class huobi extends Exchange {
         const marketId = this.safeString (info, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
+        const account = (marginType === 'cross') ? 'CROSS' : symbol;
         const timestamp = this.safeNumber (info, 'accrued-at');
         return {
-            'symbol': symbol,
-            'margin': marginType,
+            'account': account,  // isolated symbol, will not be returned for crossed margin
             'currency': this.safeCurrencyCode (this.safeString (info, 'currency')),
             'interest': this.safeNumber (info, 'interest-amount'),
             'interestRate': this.safeNumber (info, 'interest-rate'),
