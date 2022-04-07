@@ -22,7 +22,7 @@ exchange.load_markets()
 
 # exchange.verbose = True  # uncomment for debugging purposes if necessary
 
-symbol = 'BTC-PERP'
+symbol = 'BTC/USD:USD'
 type = 'stop'
 side = 'sell'
 amount = 1
