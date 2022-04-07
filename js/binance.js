@@ -5171,11 +5171,13 @@ module.exports = class binance extends Exchange {
         } else if ((api === 'private') || (api === 'sapi' && path !== 'system/status') || (api === 'wapi' && path !== 'systemStatus') || (api === 'dapiPrivate') || (api === 'dapiPrivateV2') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2')) {
             this.checkRequiredCredentials ();
             let query = undefined;
-            const recvWindow = this.safeInteger (this.options, 'recvWindow', 5000);
+            const recvWindow = this.safeInteger (this.options, 'recvWindow');
             const extendedParams = this.extend ({
                 'timestamp': this.nonce (),
-                'recvWindow': recvWindow,
             }, params);
+            if (recvWindow !== undefined) {
+                extendedParams['recvWindow'] = recvWindow;
+            }
             if ((api === 'sapi') && (path === 'asset/dust')) {
                 query = this.urlencodeWithArrayRepeat (extendedParams);
             } else if ((path === 'batchOrders') || (path.indexOf ('sub-account') >= 0) || (path === 'capital/withdraw/apply')) {
