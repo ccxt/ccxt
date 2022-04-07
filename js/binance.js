@@ -5545,7 +5545,7 @@ module.exports = class binance extends Exchange {
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
             const timestamp = this.safeNumber (row, 'interestAccuredTime');
-            const account = (symbol === undefined) ? 'CROSS' : symbol;
+            const account = (symbol === undefined) ? 'cross' : symbol;
             interest.push ({
                 'account': account,
                 'currency': this.safeCurrencyCode (this.safeString (row, 'asset')),
