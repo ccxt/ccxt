@@ -183,6 +183,9 @@ class Precise:
         integer_array.insert(index, item)
         return sign + ''.join(integer_array)
 
+    def __repr__(self):
+        return "Precise(" + str(self) + ")"
+
     @staticmethod
     def string_mul(string1, string2):
         if string1 is None or string2 is None:
