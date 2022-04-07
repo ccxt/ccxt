@@ -4893,11 +4893,12 @@ class binance(Exchange):
         elif (api == 'private') or (api == 'sapi' and path != 'system/status') or (api == 'wapi' and path != 'systemStatus') or (api == 'dapiPrivate') or (api == 'dapiPrivateV2') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2'):
             self.check_required_credentials()
             query = None
-            recvWindow = self.safe_integer(self.options, 'recvWindow', 5000)
+            recvWindow = self.safe_integer(self.options, 'recvWindow')
             extendedParams = self.extend({
                 'timestamp': self.nonce(),
-                'recvWindow': recvWindow,
             }, params)
+            if recvWindow is not None:
+                extendedParams['recvWindow'] = recvWindow
             if (api == 'sapi') and (path == 'asset/dust'):
                 query = self.urlencode_with_array_repeat(extendedParams)
             elif (path == 'batchOrders') or (path.find('sub-account') >= 0) or (path == 'capital/withdraw/apply'):

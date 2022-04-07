@@ -5179,11 +5179,13 @@ class binance extends Exchange {
         } else if (($api === 'private') || ($api === 'sapi' && $path !== 'system/status') || ($api === 'wapi' && $path !== 'systemStatus') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2')) {
             $this->check_required_credentials();
             $query = null;
-            $recvWindow = $this->safe_integer($this->options, 'recvWindow', 5000);
+            $recvWindow = $this->safe_integer($this->options, 'recvWindow');
             $extendedParams = array_merge(array(
                 'timestamp' => $this->nonce(),
-                'recvWindow' => $recvWindow,
             ), $params);
+            if ($recvWindow !== null) {
+                $extendedParams['recvWindow'] = $recvWindow;
+            }
             if (($api === 'sapi') && ($path === 'asset/dust')) {
                 $query = $this->urlencode_with_array_repeat($extendedParams);
             } else if (($path === 'batchOrders') || (mb_strpos($path, 'sub-account') !== false) || ($path === 'capital/withdraw/apply')) {
