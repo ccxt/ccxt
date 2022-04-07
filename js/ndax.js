@@ -15,11 +15,7 @@ module.exports = class ndax extends Exchange {
             'id': 'ndax',
             'name': 'NDAX',
             'countries': [ 'CA' ], // Canada
-            // 1000 calls per hour
-            // 1000 / 60 = 16.666 calls per second
-            // 16.666 / 60 = 0.277 calls per second
-            // 1000ms / 0.277 = 3600
-            'rateLimit': 3600,
+            'rateLimit': 1000,
             'pro': true,
             'has': {
                 'CORS': undefined,
