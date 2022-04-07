@@ -705,20 +705,20 @@ class okx extends Exchange {
         $response = yield $this->publicGetSystemStatus ($params);
         //
         //     {
-        //         "code":"0",
-        //         "data":array(
+        //         "code" => "0",
+        //         "data" => array(
         //             array(
-        //                 "begin":"1621328400000",
-        //                 "end":"1621329000000",
-        //                 "href":"https://www.okx.com/support/hc/en-us/articles/360060882172",
-        //                 "scheDesc":"",
-        //                 "serviceType":"1", // 0 WebSocket, 1 Spot/Margin, 2 Futures, 3 Perpetual, 4 Options, 5 Trading service
-        //                 "state":"scheduled", // ongoing, completed, canceled
-        //                 "system":"classic", // classic, unified
-        //                 "title":"Classic Spot System Upgrade"
+        //                 "begin" => "1621328400000",
+        //                 "end" => "1621329000000",
+        //                 "href" => "https://www.okx.com/support/hc/en-us/articles/360060882172",
+        //                 "scheDesc" => "",
+        //                 "serviceType" => "1", // 0 WebSocket, 1 Spot/Margin, 2 Futures, 3 Perpetual, 4 Options, 5 Trading service
+        //                 "state" => "scheduled", // ongoing, completed, canceled
+        //                 "system" => "classic", // classic, unified
+        //                 "title" => "Classic Spot System Upgrade"
         //             ),
         //         ),
-        //         "msg":""
+        //         "msg" => ""
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
@@ -745,11 +745,11 @@ class okx extends Exchange {
         $response = yield $this->publicGetPublicTime ($params);
         //
         //     {
-        //         "code":"0",
-        //         "data":array(
-        //             array("ts":"1621247923668")
+        //         "code" => "0",
+        //         "data" => array(
+        //             array("ts" => "1621247923668")
         //         ),
-        //         "msg":""
+        //         "msg" => ""
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
@@ -820,27 +820,27 @@ class okx extends Exchange {
     public function parse_market($market) {
         //
         //     {
-        //         "alias":"", // this_week, next_week, quarter, next_quarter
-        //         "baseCcy":"BTC",
-        //         "category":"1",
-        //         "ctMult":"",
-        //         "ctType":"", // inverse, linear
-        //         "ctVal":"",
-        //         "ctValCcy":"",
-        //         "expTime":"",
-        //         "instId":"BTC-USDT", // BTC-USD-210521, CSPR-USDT-SWAP, BTC-USD-210517-44000-C
-        //         "instType":"SPOT", // SPOT, FUTURES, SWAP, OPTION
-        //         "lever":"10",
-        //         "listTime":"1548133413000",
-        //         "lotSz":"0.00000001",
-        //         "minSz":"0.00001",
-        //         "optType":"",
-        //         "quoteCcy":"USDT",
-        //         "settleCcy":"",
-        //         "state":"live",
-        //         "stk":"",
-        //         "tickSz":"0.1",
-        //         "uly":""
+        //         "alias" => "", // this_week, next_week, quarter, next_quarter
+        //         "baseCcy" => "BTC",
+        //         "category" => "1",
+        //         "ctMult" => "",
+        //         "ctType" => "", // inverse, linear
+        //         "ctVal" => "",
+        //         "ctValCcy" => "",
+        //         "expTime" => "",
+        //         "instId" => "BTC-USDT", // BTC-USD-210521, CSPR-USDT-SWAP, BTC-USD-210517-44000-C
+        //         "instType" => "SPOT", // SPOT, FUTURES, SWAP, OPTION
+        //         "lever" => "10",
+        //         "listTime" => "1548133413000",
+        //         "lotSz" => "0.00000001",
+        //         "minSz" => "0.00001",
+        //         "optType" => "",
+        //         "quoteCcy" => "USDT",
+        //         "settleCcy" => "",
+        //         "state" => "live",
+        //         "stk" => "",
+        //         "tickSz" => "0.1",
+        //         "uly" => ""
         //     }
         //
         //     {
@@ -984,33 +984,33 @@ class okx extends Exchange {
         // spot, future, swap, option
         //
         //     {
-        //         "code":"0",
-        //         "data":array(
+        //         "code" => "0",
+        //         "data" => array(
         //             {
-        //                 "alias":"", // this_week, next_week, quarter, next_quarter
-        //                 "baseCcy":"BTC",
-        //                 "category":"1",
-        //                 "ctMult":"",
-        //                 "ctType":"", // inverse, linear
-        //                 "ctVal":"",
-        //                 "ctValCcy":"",
-        //                 "expTime":"",
-        //                 "instId":"BTC-USDT", // BTC-USD-210521, CSPR-USDT-SWAP, BTC-USD-210517-44000-C
-        //                 "instType":"SPOT", // SPOT, FUTURES, SWAP, OPTION
-        //                 "lever":"10",
-        //                 "listTime":"1548133413000",
-        //                 "lotSz":"0.00000001",
-        //                 "minSz":"0.00001",
-        //                 "optType":"",
-        //                 "quoteCcy":"USDT",
-        //                 "settleCcy":"",
-        //                 "state":"live",
-        //                 "stk":"",
-        //                 "tickSz":"0.1",
-        //                 "uly":""
+        //                 "alias" => "", // this_week, next_week, quarter, next_quarter
+        //                 "baseCcy" => "BTC",
+        //                 "category" => "1",
+        //                 "ctMult" => "",
+        //                 "ctType" => "", // inverse, linear
+        //                 "ctVal" => "",
+        //                 "ctValCcy" => "",
+        //                 "expTime" => "",
+        //                 "instId" => "BTC-USDT", // BTC-USD-210521, CSPR-USDT-SWAP, BTC-USD-210517-44000-C
+        //                 "instType" => "SPOT", // SPOT, FUTURES, SWAP, OPTION
+        //                 "lever" => "10",
+        //                 "listTime" => "1548133413000",
+        //                 "lotSz" => "0.00000001",
+        //                 "minSz" => "0.00001",
+        //                 "optType" => "",
+        //                 "quoteCcy" => "USDT",
+        //                 "settleCcy" => "",
+        //                 "state" => "live",
+        //                 "stk" => "",
+        //                 "tickSz" => "0.1",
+        //                 "uly" => ""
         //             }
         //         ),
-        //         "msg":""
+        //         "msg" => ""
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
@@ -1042,21 +1042,21 @@ class okx extends Exchange {
         $response = yield $this->privateGetAssetCurrencies ($params);
         //
         //     {
-        //         "code":"0",
-        //         "data":array(
+        //         "code" :"0",
+        //         "data" => array(
         //             {
-        //                 "canDep":true,
-        //                 "canInternal":true,
-        //                 "canWd":true,
-        //                 "ccy":"USDT",
-        //                 "chain":"USDT-ERC20",
-        //                 "maxFee":"40",
-        //                 "minFee":"20",
-        //                 "minWd":"2",
-        //                 "name":""
+        //                 "canDep" => true,
+        //                 "canInternal" => true,
+        //                 "canWd" => true,
+        //                 "ccy" => "USDT",
+        //                 "chain" => "USDT-ERC20",
+        //                 "maxFee" => "40",
+        //                 "minFee" => "20",
+        //                 "minWd" => "2",
+        //                 "name" => ""
         //             }
         //         ),
-        //         "msg":""
+        //         "msg" => ""
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
@@ -1157,21 +1157,21 @@ class okx extends Exchange {
         $response = yield $this->publicGetMarketBooks (array_merge($request, $params));
         //
         //     {
-        //         "code":"0",
-        //         "msg":"",
-        //         "data":[
+        //         "code" => "0",
+        //         "msg" => "",
+        //         "data" => [
         //             {
-        //                 "asks":[
+        //                 "asks" => [
         //                     ["0.07228","4.211619","0","2"], // price, amount, liquidated orders, total open orders
         //                     ["0.0723","299.880364","0","2"],
         //                     ["0.07231","3.72832","0","1"],
         //                 ],
-        //                 "bids":[
+        //                 "bids" => [
         //                     ["0.07221","18.5","0","1"],
         //                     ["0.0722","18.5","0","1"],
         //                     ["0.07219","0.505407","0","1"],
         //                 ],
-        //                 "ts":"1621438475342"
+        //                 "ts" => "1621438475342"
         //             }
         //         ]
         //     }
@@ -1185,22 +1185,22 @@ class okx extends Exchange {
     public function parse_ticker($ticker, $market = null) {
         //
         //     {
-        //         "instType":"SPOT",
-        //         "instId":"ETH-BTC",
-        //         "last":"0.07319",
-        //         "lastSz":"0.044378",
-        //         "askPx":"0.07322",
-        //         "askSz":"4.2",
-        //         "bidPx":"0.0732",
-        //         "bidSz":"6.050058",
-        //         "open24h":"0.07801",
-        //         "high24h":"0.07975",
-        //         "low24h":"0.06019",
-        //         "volCcy24h":"11788.887619",
-        //         "vol24h":"167493.829229",
-        //         "ts":"1621440583784",
-        //         "sodUtc0":"0.07872",
-        //         "sodUtc8":"0.07345"
+        //         "instType" => "SPOT",
+        //         "instId" => "ETH-BTC",
+        //         "last" => "0.07319",
+        //         "lastSz" => "0.044378",
+        //         "askPx" => "0.07322",
+        //         "askSz" => "4.2",
+        //         "bidPx" => "0.0732",
+        //         "bidSz" => "6.050058",
+        //         "open24h" => "0.07801",
+        //         "high24h" => "0.07975",
+        //         "low24h" => "0.06019",
+        //         "volCcy24h" => "11788.887619",
+        //         "vol24h" => "167493.829229",
+        //         "ts" => "1621440583784",
+        //         "sodUtc0" => "0.07872",
+        //         "sodUtc8" => "0.07345"
         //     }
         //
         $timestamp = $this->safe_integer($ticker, 'ts');
@@ -1245,26 +1245,26 @@ class okx extends Exchange {
         $response = yield $this->publicGetMarketTicker (array_merge($request, $params));
         //
         //     {
-        //         "code":"0",
-        //         "msg":"",
-        //         "data":array(
+        //         "code" => "0",
+        //         "msg" => "",
+        //         "data" => array(
         //             {
-        //                 "instType":"SPOT",
-        //                 "instId":"ETH-BTC",
-        //                 "last":"0.07319",
-        //                 "lastSz":"0.044378",
-        //                 "askPx":"0.07322",
-        //                 "askSz":"4.2",
-        //                 "bidPx":"0.0732",
-        //                 "bidSz":"6.050058",
-        //                 "open24h":"0.07801",
-        //                 "high24h":"0.07975",
-        //                 "low24h":"0.06019",
-        //                 "volCcy24h":"11788.887619",
-        //                 "vol24h":"167493.829229",
-        //                 "ts":"1621440583784",
-        //                 "sodUtc0":"0.07872",
-        //                 "sodUtc8":"0.07345"
+        //                 "instType" => "SPOT",
+        //                 "instId" => "ETH-BTC",
+        //                 "last" => "0.07319",
+        //                 "lastSz" => "0.044378",
+        //                 "askPx" => "0.07322",
+        //                 "askSz" => "4.2",
+        //                 "bidPx" => "0.0732",
+        //                 "bidSz" => "6.050058",
+        //                 "open24h" => "0.07801",
+        //                 "high24h" => "0.07975",
+        //                 "low24h" => "0.06019",
+        //                 "volCcy24h" => "11788.887619",
+        //                 "vol24h" => "167493.829229",
+        //                 "ts" => "1621440583784",
+        //                 "sodUtc0" => "0.07872",
+        //                 "sodUtc8" => "0.07345"
         //             }
         //         )
         //     }
@@ -1291,26 +1291,26 @@ class okx extends Exchange {
         $response = yield $this->publicGetMarketTickers (array_merge($request, $params));
         //
         //     {
-        //         "code":"0",
-        //         "msg":"",
-        //         "data":array(
+        //         "code" => "0",
+        //         "msg" => "",
+        //         "data" => array(
         //             array(
-        //                 "instType":"SPOT",
-        //                 "instId":"BCD-BTC",
-        //                 "last":"0.0000769",
-        //                 "lastSz":"5.4788",
-        //                 "askPx":"0.0000777",
-        //                 "askSz":"3.2197",
-        //                 "bidPx":"0.0000757",
-        //                 "bidSz":"4.7509",
-        //                 "open24h":"0.0000885",
-        //                 "high24h":"0.0000917",
-        //                 "low24h":"0.0000596",
-        //                 "volCcy24h":"9.2877",
-        //                 "vol24h":"124824.1985",
-        //                 "ts":"1621441741434",
-        //                 "sodUtc0":"0.0000905",
-        //                 "sodUtc8":"0.0000729"
+        //                 "instType" => "SPOT",
+        //                 "instId" => "BCD-BTC",
+        //                 "last" => "0.0000769",
+        //                 "lastSz" => "5.4788",
+        //                 "askPx" => "0.0000777",
+        //                 "askSz" => "3.2197",
+        //                 "bidPx" => "0.0000757",
+        //                 "bidSz" => "4.7509",
+        //                 "open24h" => "0.0000885",
+        //                 "high24h" => "0.0000917",
+        //                 "low24h" => "0.0000596",
+        //                 "volCcy24h" => "9.2877",
+        //                 "vol24h" => "124824.1985",
+        //                 "ts" => "1621441741434",
+        //                 "sodUtc0" => "0.0000905",
+        //                 "sodUtc8" => "0.0000729"
         //             ),
         //         )
         //     }
@@ -1329,32 +1329,32 @@ class okx extends Exchange {
         // public fetchTrades
         //
         //     {
-        //         "instId":"ETH-BTC",
-        //         "side":"sell",
-        //         "sz":"0.119501",
-        //         "px":"0.07065",
-        //         "tradeId":"15826757",
-        //         "ts":"1621446178316"
+        //         "instId" => "ETH-BTC",
+        //         "side" => "sell",
+        //         "sz" => "0.119501",
+        //         "px" => "0.07065",
+        //         "tradeId" => "15826757",
+        //         "ts" => "1621446178316"
         //     }
         //
         // private fetchMyTrades
         //
         //     {
-        //         "side":"buy",
-        //         "fillSz":"0.007533",
-        //         "fillPx":"2654.98",
-        //         "fee":"-0.000007533",
-        //         "ordId":"317321390244397056",
-        //         "instType":"SPOT",
-        //         "instId":"ETH-USDT",
-        //         "clOrdId":"",
-        //         "posSide":"net",
-        //         "billId":"317321390265368576",
-        //         "tag":"0",
-        //         "execType":"T",
-        //         "tradeId":"107601752",
-        //         "feeCcy":"ETH",
-        //         "ts":"1621927314985"
+        //         "side" => "buy",
+        //         "fillSz" => "0.007533",
+        //         "fillPx" => "2654.98",
+        //         "fee" => "-0.000007533",
+        //         "ordId" => "317321390244397056",
+        //         "instType" => "SPOT",
+        //         "instId" => "ETH-USDT",
+        //         "clOrdId" => "",
+        //         "posSide" => "net",
+        //         "billId" => "317321390265368576",
+        //         "tag" => "0",
+        //         "execType" => "T",
+        //         "tradeId" => "107601752",
+        //         "feeCcy" => "ETH",
+        //         "ts" => "1621927314985"
         //     }
         //
         $id = $this->safe_string($trade, 'tradeId');
@@ -1412,9 +1412,9 @@ class okx extends Exchange {
         $response = yield $this->publicGetMarketTrades (array_merge($request, $params));
         //
         //     {
-        //         "code":"0",
-        //         "msg":"",
-        //         "data":array(
+        //         "code" => "0",
+        //         "msg" => "",
+        //         "data" => array(
         //             array("instId":"ETH-BTC","side":"sell","sz":"0.119501","px":"0.07065","tradeId":"15826757","ts":"1621446178316"),
         //             array("instId":"ETH-BTC","side":"sell","sz":"0.03","px":"0.07068","tradeId":"15826756","ts":"1621446178066"),
         //             array("instId":"ETH-BTC","side":"buy","sz":"0.507","px":"0.07069","tradeId":"15826755","ts":"1621446175085"),
@@ -1487,9 +1487,9 @@ class okx extends Exchange {
         $response = yield $this->$method (array_merge($request, $params));
         //
         //     {
-        //         "code":"0",
-        //         "msg":"",
-        //         "data":[
+        //         "code" => "0",
+        //         "msg" => "",
+        //         "data" => [
         //             ["1621447080000","0.07073","0.07073","0.07064","0.07064","12.08863","0.854309"],
         //             ["1621447020000","0.0708","0.0709","0.0707","0.07072","58.517435","4.143309"],
         //             ["1621446960000","0.0707","0.07082","0.0707","0.07076","53.850841","3.810921"],
@@ -1624,14 +1624,14 @@ class okx extends Exchange {
     public function parse_trading_fee($fee, $market = null) {
         //
         //     {
-        //         "category":"1",
-        //         "delivery":"",
-        //         "exercise":"",
-        //         "instType":"SPOT",
-        //         "level":"Lv1",
-        //         "maker":"-0.0008",
-        //         "taker":"-0.001",
-        //         "ts":"1639043138472"
+        //         "category" => "1",
+        //         "delivery" => "",
+        //         "exercise" => "",
+        //         "instType" => "SPOT",
+        //         "level" => "Lv1",
+        //         "maker" => "-0.0008",
+        //         "taker" => "-0.001",
+        //         "ts" => "1639043138472"
         //     }
         //
         return array(
@@ -1661,20 +1661,20 @@ class okx extends Exchange {
         $response = yield $this->privateGetAccountTradeFee (array_merge($request, $params));
         //
         //     {
-        //         "code":"0",
-        //         "data":array(
+        //         "code" => "0",
+        //         "data" => array(
         //             {
-        //                 "category":"1",
-        //                 "delivery":"",
-        //                 "exercise":"",
-        //                 "instType":"SPOT",
-        //                 "level":"Lv1",
-        //                 "maker":"-0.0008",
-        //                 "taker":"-0.001",
-        //                 "ts":"1639043138472"
+        //                 "category" => "1",
+        //                 "delivery" => "",
+        //                 "exercise" => "",
+        //                 "instType" => "SPOT",
+        //                 "level" => "Lv1",
+        //                 "maker" => "-0.0008",
+        //                 "taker" => "-0.001",
+        //                 "ts" => "1639043138472"
         //             }
         //         ),
-        //         "msg":""
+        //         "msg" => ""
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
@@ -1697,104 +1697,104 @@ class okx extends Exchange {
         $response = yield $this->$method (array_merge($request, $query));
         //
         //     {
-        //         "code":"0",
-        //         "data":array(
+        //         "code" => "0",
+        //         "data" => array(
         //             {
-        //                 "adjEq":"",
-        //                 "details":array(
+        //                 "adjEq" => "",
+        //                 "details" => array(
         //                     {
-        //                         "availBal":"",
-        //                         "availEq":"28.21006347",
-        //                         "cashBal":"28.21006347",
-        //                         "ccy":"USDT",
-        //                         "crossLiab":"",
-        //                         "disEq":"28.2687404020176",
-        //                         "eq":"28.21006347",
-        //                         "eqUsd":"28.2687404020176",
-        //                         "frozenBal":"0",
-        //                         "interest":"",
-        //                         "isoEq":"0",
-        //                         "isoLiab":"",
-        //                         "liab":"",
-        //                         "maxLoan":"",
-        //                         "mgnRatio":"",
-        //                         "notionalLever":"0",
-        //                         "ordFrozen":"0",
-        //                         "twap":"0",
-        //                         "uTime":"1621556539861",
-        //                         "upl":"0",
-        //                         "uplLiab":""
+        //                         "availBal" => "",
+        //                         "availEq" => "28.21006347",
+        //                         "cashBal" => "28.21006347",
+        //                         "ccy" => "USDT",
+        //                         "crossLiab" => "",
+        //                         "disEq" => "28.2687404020176",
+        //                         "eq":"28 .21006347",
+        //                         "eqUsd" => "28.2687404020176",
+        //                         "frozenBal" => "0",
+        //                         "interest" => "",
+        //                         "isoEq" => "0",
+        //                         "isoLiab" => "",
+        //                         "liab" => "",
+        //                         "maxLoan" => "",
+        //                         "mgnRatio" => "",
+        //                         "notionalLever" => "0",
+        //                         "ordFrozen" => "0",
+        //                         "twap" => "0",
+        //                         "uTime" => "1621556539861",
+        //                         "upl" => "0",
+        //                         "uplLiab" => ""
         //                     }
         //                 ),
-        //                 "imr":"",
-        //                 "isoEq":"0",
-        //                 "mgnRatio":"",
-        //                 "mmr":"",
-        //                 "notionalUsd":"",
-        //                 "ordFroz":"",
-        //                 "totalEq":"28.2687404020176",
-        //                 "uTime":"1621556553510"
+        //                 "imr" => "",
+        //                 "isoEq" => "0",
+        //                 "mgnRatio" => "",
+        //                 "mmr" => "",
+        //                 "notionalUsd" => "",
+        //                 "ordFroz" => "",
+        //                 "totalEq" => "28.2687404020176",
+        //                 "uTime" => "1621556553510"
         //             }
         //         ),
-        //         "msg":""
+        //         "msg" => ""
         //     }
         //
         //     {
-        //         "code":"0",
-        //         "data":array(
+        //         "code" => "0",
+        //         "data" => array(
         //             {
-        //                 "adjEq":"",
-        //                 "details":array(
+        //                 "adjEq" => "",
+        //                 "details" => array(
         //                     {
-        //                         "availBal":"0.049",
-        //                         "availEq":"",
-        //                         "cashBal":"0.049",
-        //                         "ccy":"BTC",
-        //                         "crossLiab":"",
-        //                         "disEq":"1918.55678",
-        //                         "eq":"0.049",
-        //                         "eqUsd":"1918.55678",
-        //                         "frozenBal":"0",
-        //                         "interest":"",
-        //                         "isoEq":"",
-        //                         "isoLiab":"",
-        //                         "liab":"",
-        //                         "maxLoan":"",
-        //                         "mgnRatio":"",
-        //                         "notionalLever":"",
-        //                         "ordFrozen":"0",
-        //                         "twap":"0",
-        //                         "uTime":"1621973128591",
-        //                         "upl":"",
-        //                         "uplLiab":""
+        //                         "availBal" => "0.049",
+        //                         "availEq" => "",
+        //                         "cashBal" => "0.049",
+        //                         "ccy" => "BTC",
+        //                         "crossLiab" => "",
+        //                         "disEq" => "1918.55678",
+        //                         "eq" => "0.049",
+        //                         "eqUsd" => "1918.55678",
+        //                         "frozenBal" => "0",
+        //                         "interest" => "",
+        //                         "isoEq" => "",
+        //                         "isoLiab" => "",
+        //                         "liab" => "",
+        //                         "maxLoan" => "",
+        //                         "mgnRatio" => "",
+        //                         "notionalLever" => "",
+        //                         "ordFrozen" => "0",
+        //                         "twap" => "0",
+        //                         "uTime" => "1621973128591",
+        //                         "upl" => "",
+        //                         "uplLiab" => ""
         //                     }
         //                 ),
-        //                 "imr":"",
-        //                 "isoEq":"",
-        //                 "mgnRatio":"",
-        //                 "mmr":"",
-        //                 "notionalUsd":"",
-        //                 "ordFroz":"",
-        //                 "totalEq":"1918.55678",
-        //                 "uTime":"1622045126908"
+        //                 "imr" => "",
+        //                 "isoEq" => "",
+        //                 "mgnRatio" => "",
+        //                 "mmr" => "",
+        //                 "notionalUsd" => "",
+        //                 "ordFroz" => "",
+        //                 "totalEq" => "1918.55678",
+        //                 "uTime" => "1622045126908"
         //             }
         //         ),
-        //         "msg":""
+        //         "msg" => ""
         //     }
         //
         // funding
         //
         //     {
-        //         "code":"0",
-        //         "data":array(
+        //         "code" => "0",
+        //         "data" => array(
         //             {
-        //                 "availBal":"0.00005426",
-        //                 "bal":0.0000542600000000,
-        //                 "ccy":"BTC",
-        //                 "frozenBal":"0"
+        //                 "availBal" => "0.00005426",
+        //                 "bal" => 0.0000542600000000,
+        //                 "ccy" => "BTC",
+        //                 "frozenBal" => "0"
         //             }
         //         ),
-        //         "msg":""
+        //         "msg" => ""
         //     }
         //
         return $this->parse_balance_by_type($marketType, $response);
@@ -1848,6 +1848,7 @@ class okx extends Exchange {
             // 'triggerPx' => 10, // Stop $order trigger $price
             // 'orderPx' => 10, // Order $price if -1, the $order will be executed at the $market $price->
             // 'triggerPxType' => 'last', // Conditional default is last, mark or index
+            //
         );
         $tdMode = $this->safe_string_lower($params, 'tdMode');
         if ($market['spot']) {
@@ -2115,38 +2116,38 @@ class okx extends Exchange {
         // fetchOrder, fetchOpenOrders
         //
         //     {
-        //         "accFillSz":"0",
-        //         "avgPx":"",
-        //         "cTime":"1621910749815",
-        //         "category":"normal",
-        //         "ccy":"",
-        //         "clOrdId":"",
-        //         "fee":"0",
-        //         "feeCcy":"ETH",
-        //         "fillPx":"",
-        //         "fillSz":"0",
-        //         "fillTime":"",
-        //         "instId":"ETH-USDT",
-        //         "instType":"SPOT",
-        //         "lever":"",
-        //         "ordId":"317251910906576896",
-        //         "ordType":"limit",
-        //         "pnl":"0",
-        //         "posSide":"net",
-        //         "px":"2000",
-        //         "rebate":"0",
-        //         "rebateCcy":"USDT",
-        //         "side":"buy",
-        //         "slOrdPx":"",
-        //         "slTriggerPx":"",
-        //         "state":"live",
-        //         "sz":"0.001",
-        //         "tag":"",
-        //         "tdMode":"cash",
-        //         "tpOrdPx":"",
-        //         "tpTriggerPx":"",
-        //         "tradeId":"",
-        //         "uTime":"1621910749815"
+        //         "accFillSz" => "0",
+        //         "avgPx" => "",
+        //         "cTime" => "1621910749815",
+        //         "category" => "normal",
+        //         "ccy" => "",
+        //         "clOrdId" => "",
+        //         "fee" => "0",
+        //         "feeCcy" => "ETH",
+        //         "fillPx" => "",
+        //         "fillSz" => "0",
+        //         "fillTime" => "",
+        //         "instId" => "ETH-USDT",
+        //         "instType" => "SPOT",
+        //         "lever" => "",
+        //         "ordId" => "317251910906576896",
+        //         "ordType" => "limit",
+        //         "pnl" => "0",
+        //         "posSide" => "net",
+        //         "px" => "2000",
+        //         "rebate" => "0",
+        //         "rebateCcy" => "USDT",
+        //         "side" => "buy",
+        //         "slOrdPx" => "",
+        //         "slTriggerPx" => "",
+        //         "state" => "live",
+        //         "sz" => "0.001",
+        //         "tag" => "",
+        //         "tdMode" => "cash",
+        //         "tpOrdPx" => "",
+        //         "tpTriggerPx" => "",
+        //         "tradeId" => "",
+        //         "uTime" => "1621910749815"
         //     }
         //
         // fetchOpenOrders Algo $order
@@ -2295,44 +2296,44 @@ class okx extends Exchange {
         $response = yield $this->privateGetTradeOrder (array_merge($request, $query));
         //
         //     {
-        //         "code":"0",
-        //         "data":array(
+        //         "code" => "0",
+        //         "data" => array(
         //             {
-        //                 "accFillSz":"0",
-        //                 "avgPx":"",
-        //                 "cTime":"1621910749815",
-        //                 "category":"normal",
-        //                 "ccy":"",
-        //                 "clOrdId":"",
-        //                 "fee":"0",
-        //                 "feeCcy":"ETH",
-        //                 "fillPx":"",
-        //                 "fillSz":"0",
-        //                 "fillTime":"",
-        //                 "instId":"ETH-USDT",
-        //                 "instType":"SPOT",
-        //                 "lever":"",
-        //                 "ordId":"317251910906576896",
-        //                 "ordType":"limit",
-        //                 "pnl":"0",
-        //                 "posSide":"net",
-        //                 "px":"2000",
-        //                 "rebate":"0",
-        //                 "rebateCcy":"USDT",
-        //                 "side":"buy",
-        //                 "slOrdPx":"",
-        //                 "slTriggerPx":"",
-        //                 "state":"live",
-        //                 "sz":"0.001",
-        //                 "tag":"",
-        //                 "tdMode":"cash",
-        //                 "tpOrdPx":"",
-        //                 "tpTriggerPx":"",
-        //                 "tradeId":"",
-        //                 "uTime":"1621910749815"
+        //                 "accFillSz" => "0",
+        //                 "avgPx" => "",
+        //                 "cTime" => "1621910749815",
+        //                 "category" => "normal",
+        //                 "ccy" => "",
+        //                 "clOrdId" => "",
+        //                 "fee" => "0",
+        //                 "feeCcy" => "ETH",
+        //                 "fillPx" => "",
+        //                 "fillSz" => "0",
+        //                 "fillTime" => "",
+        //                 "instId" => "ETH-USDT",
+        //                 "instType" => "SPOT",
+        //                 "lever" => "",
+        //                 "ordId" => "317251910906576896",
+        //                 "ordType" => "limit",
+        //                 "pnl" => "0",
+        //                 "posSide" => "net",
+        //                 "px":"20 00",
+        //                 "rebate" => "0",
+        //                 "rebateCcy" => "USDT",
+        //                 "side" => "buy",
+        //                 "slOrdPx" => "",
+        //                 "slTriggerPx" => "",
+        //                 "state" => "live",
+        //                 "sz":"0. 001",
+        //                 "tag" => "",
+        //                 "tdMode" => "cash",
+        //                 "tpOrdPx" => "",
+        //                 "tpTriggerPx" => "",
+        //                 "tradeId" => "",
+        //                 "uTime" => "1621910749815"
         //             }
         //         ),
-        //         "msg":""
+        //         "msg" => ""
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
@@ -2342,16 +2343,18 @@ class okx extends Exchange {
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         /**
-            * Returns orders that are still open
-            * @param {string} $symbol Unified $market $symbol
-            * @param {integer} $since Timestamp in ms of the earliest time to retrieve orders for
-            * @param {integer} $limit Number of results per $request-> The maximum is 100; The default is 100
-            * @param {dict} $params Extra and exchange specific parameters
-            * @param {integer} $params->till Timestamp in ms of the latest time to retrieve orders for
-            * @param {boolean} $params->stop True if fetching trigger orders
-            * @param {string} $params->ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
-            * @param {string} $params->algoId Algo ID
-            * @returns [An order structure]array(@link https://docs.ccxt.com/en/latest/manual.html#order-structure)
+         * @$method
+         * @name okx#fetchOpenOrders
+         * @description Fetch orders that are still open
+         * @param {string} $symbol Unified $market $symbol
+         * @param {integer} $since Timestamp in ms of the earliest time to retrieve orders for
+         * @param {integer} $limit Number of results per $request-> The maximum is 100; The default is 100
+         * @param {dict} $params Extra and exchange specific parameters
+         * @param {integer} $params->till Timestamp in ms of the latest time to retrieve orders for
+         * @param {boolean} $params->stop True if fetching trigger orders
+         * @param {string} $params->ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+         * @param {string} $params->algoId Algo ID
+         * @returns [An order structure]array(@link https://docs.ccxt.com/en/latest/manual.html#order-structure)
         */
         yield $this->load_markets();
         $request = array(
@@ -2385,41 +2388,41 @@ class okx extends Exchange {
         $response = yield $this->$method (array_merge($request, $query));
         //
         //     {
-        //         "code":"0",
-        //         "data":array(
+        //         "code" => "0",
+        //         "data" => array(
         //             {
-        //                 "accFillSz":"0",
-        //                 "avgPx":"",
-        //                 "cTime":"1621910749815",
-        //                 "category":"normal",
-        //                 "ccy":"",
-        //                 "clOrdId":"",
-        //                 "fee":"0",
-        //                 "feeCcy":"ETH",
-        //                 "fillPx":"",
-        //                 "fillSz":"0",
-        //                 "fillTime":"",
-        //                 "instId":"ETH-USDT",
-        //                 "instType":"SPOT",
-        //                 "lever":"",
-        //                 "ordId":"317251910906576896",
-        //                 "ordType":"limit",
-        //                 "pnl":"0",
-        //                 "posSide":"net",
-        //                 "px":"2000",
-        //                 "rebate":"0",
-        //                 "rebateCcy":"USDT",
-        //                 "side":"buy",
-        //                 "slOrdPx":"",
-        //                 "slTriggerPx":"",
-        //                 "state":"live",
-        //                 "sz":"0.001",
-        //                 "tag":"",
-        //                 "tdMode":"cash",
-        //                 "tpOrdPx":"",
-        //                 "tpTriggerPx":"",
-        //                 "tradeId":"",
-        //                 "uTime":"1621910749815"
+        //                 "accFillSz" => "0",
+        //                 "avgPx" => "",
+        //                 "cTime" => "1621910749815",
+        //                 "category" => "normal",
+        //                 "ccy" => "",
+        //                 "clOrdId" => "",
+        //                 "fee" => "0",
+        //                 "feeCcy" => "ETH",
+        //                 "fillPx" => "",
+        //                 "fillSz" => "0",
+        //                 "fillTime" => "",
+        //                 "instId" => "ETH-USDT",
+        //                 "instType" => "SPOT",
+        //                 "lever" => "",
+        //                 "ordId" => "317251910906576896",
+        //                 "ordType" => "limit",
+        //                 "pnl" => "0",
+        //                 "posSide" => "net",
+        //                 "px":"20 00",
+        //                 "rebate" => "0",
+        //                 "rebateCcy" => "USDT",
+        //                 "side" => "buy",
+        //                 "slOrdPx" => "",
+        //                 "slTriggerPx" => "",
+        //                 "state" => "live",
+        //                 "sz":"0. 001",
+        //                 "tag" => "",
+        //                 "tdMode" => "cash",
+        //                 "tpOrdPx" => "",
+        //                 "tpTriggerPx" => "",
+        //                 "tradeId" => "",
+        //                 "uTime" => "1621910749815"
         //             }
         //         ),
         //         "msg":""
@@ -2584,44 +2587,44 @@ class okx extends Exchange {
         $response = yield $this->$method (array_merge($request, $query));
         //
         //     {
-        //         "code":"0",
-        //         "data":array(
+        //         "code" => "0",
+        //         "data" => array(
         //             {
-        //                 "accFillSz":"0",
-        //                 "avgPx":"",
-        //                 "cTime":"1621910749815",
-        //                 "category":"normal",
-        //                 "ccy":"",
-        //                 "clOrdId":"",
-        //                 "fee":"0",
-        //                 "feeCcy":"ETH",
-        //                 "fillPx":"",
-        //                 "fillSz":"0",
-        //                 "fillTime":"",
-        //                 "instId":"ETH-USDT",
-        //                 "instType":"SPOT",
-        //                 "lever":"",
-        //                 "ordId":"317251910906576896",
-        //                 "ordType":"limit",
-        //                 "pnl":"0",
-        //                 "posSide":"net",
-        //                 "px":"2000",
-        //                 "rebate":"0",
-        //                 "rebateCcy":"USDT",
-        //                 "side":"buy",
-        //                 "slOrdPx":"",
-        //                 "slTriggerPx":"",
-        //                 "state":"live",
-        //                 "sz":"0.001",
-        //                 "tag":"",
-        //                 "tdMode":"cash",
-        //                 "tpOrdPx":"",
-        //                 "tpTriggerPx":"",
-        //                 "tradeId":"",
-        //                 "uTime":"1621910749815"
+        //                 "accFillSz" => "0",
+        //                 "avgPx" => "",
+        //                 "cTime" => "1621910749815",
+        //                 "category" => "normal",
+        //                 "ccy" => "",
+        //                 "clOrdId" => "",
+        //                 "fee" => "0",
+        //                 "feeCcy" => "ETH",
+        //                 "fillPx" => "",
+        //                 "fillSz" => "0",
+        //                 "fillTime" => "",
+        //                 "instId" => "ETH-USDT",
+        //                 "instType" => "SPOT",
+        //                 "lever" => "",
+        //                 "ordId" => "317251910906576896",
+        //                 "ordType" => "limit",
+        //                 "pnl" => "0",
+        //                 "posSide" => "net",
+        //                 "px" => "2000",
+        //                 "rebate" => "0",
+        //                 "rebateCcy" => "USDT",
+        //                 "side" => "buy",
+        //                 "slOrdPx" => "",
+        //                 "slTriggerPx" => "",
+        //                 "state" => "live",
+        //                 "sz" => "0.001",
+        //                 "tag" => "",
+        //                 "tdMode" => "cash",
+        //                 "tpOrdPx" => "",
+        //                 "tpTriggerPx" => "",
+        //                 "tradeId" => "",
+        //                 "uTime" => "1621910749815"
         //             }
         //         ),
-        //         "msg":""
+        //         "msg" => ""
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
@@ -2652,27 +2655,27 @@ class okx extends Exchange {
         $response = yield $this->privateGetTradeFillsHistory (array_merge($request, $query));
         //
         //     {
-        //         "code":"0",
-        //         "data":array(
+        //         "code" => "0",
+        //         "data" => array(
         //             {
-        //                 "side":"buy",
-        //                 "fillSz":"0.007533",
-        //                 "fillPx":"2654.98",
-        //                 "fee":"-0.000007533",
-        //                 "ordId":"317321390244397056",
-        //                 "instType":"SPOT",
-        //                 "instId":"ETH-USDT",
-        //                 "clOrdId":"",
-        //                 "posSide":"net",
-        //                 "billId":"317321390265368576",
-        //                 "tag":"0",
-        //                 "execType":"T",
-        //                 "tradeId":"107601752",
-        //                 "feeCcy":"ETH",
-        //                 "ts":"1621927314985"
+        //                 "side" => "buy",
+        //                 "fillSz" => "0.007533",
+        //                 "fillPx" => "2654.98",
+        //                 "fee" => "-0.000007533",
+        //                 "ordId" => "317321390244397056",
+        //                 "instType" => "SPOT",
+        //                 "instId" => "ETH-USDT",
+        //                 "clOrdId" => "",
+        //                 "posSide" => "net",
+        //                 "billId" => "317321390265368576",
+        //                 "tag" => "0",
+        //                 "execType" => "T",
+        //                 "tradeId" => "107601752",
+        //                 "feeCcy" => "ETH",
+        //                 "ts" => "1621927314985"
         //             }
         //         ),
-        //         "msg":""
+        //         "msg" => ""
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
@@ -2942,12 +2945,12 @@ class okx extends Exchange {
         //     }
         //
         //     {
-        //       "chain" => "ETH-OKExChain",
-        //       "ctAddr" => "72315c",
-        //       "ccy" => "ETH",
-        //       "to" => "6",
-        //       "addr" => "0x1c9f2244d1ccaa060bd536827c18925db10db102",
-        //       "selected" => true
+        //        "chain" => "ETH-OKExChain",
+        //        "ctAddr" => "72315c",
+        //        "ccy" => "ETH",
+        //        "to" => "6",
+        //        "addr" => "0x1c9f2244d1ccaa060bd536827c18925db10db102",
+        //        "selected" => true
         //     }
         //
         $address = $this->safe_string($depositAddress, 'addr');
@@ -2965,35 +2968,40 @@ class okx extends Exchange {
         //
         // response from $address endpoint:
         //      {
-        //          "chain":"USDT-Polygon",
-        //          "ctAddr":"",
-        //          "ccy":"USDT",
-        //          "to":"6",
-        //          "addr":"0x1903441e386cc49d937f6302955b5feb4286dcfa",
-        //          "selected":true
+        //          "chain" => "USDT-Polygon",
+        //          "ctAddr" => "",
+        //          "ccy" => "USDT",
+        //          "to":"6" ,
+        //          "addr" => "0x1903441e386cc49d937f6302955b5feb4286dcfa",
+        //          "selected" => true
         //      }
         // $network information from $currency['networks'] field:
-        // Polygon => array(
-        //       info => array(
-        //         canDep => false,
-        //         canInternal => false,
-        //         canWd => false,
-        //         ccy => 'USDT',
-        //         $chain => 'USDT-Polygon-Bridge',
-        //         mainNet => false,
-        //         maxFee => '26.879528',
-        //         minFee => '13.439764',
-        //         minWd => '0.001',
-        //         name => ''
-        //       ),
-        //       id => 'USDT-Polygon-Bridge',
-        //       $network => 'Polygon',
-        //       active => false,
-        //       deposit => false,
-        //       withdraw => false,
-        //       fee => 13.439764,
-        //       precision => null,
-        //       limits => array( withdraw => array( min => 0.001, max => null ) )
+        // Polygon => {
+        //        info => array(
+        //            canDep => false,
+        //            canInternal => false,
+        //            canWd => false,
+        //            ccy => 'USDT',
+        //            $chain => 'USDT-Polygon-Bridge',
+        //            mainNet => false,
+        //            maxFee => '26.879528',
+        //            minFee => '13.439764',
+        //            minWd => '0.001',
+        //            name => ''
+        //        ),
+        //        id => 'USDT-Polygon-Bridge',
+        //        $network => 'Polygon',
+        //        active => false,
+        //        deposit => false,
+        //        withdraw => false,
+        //        fee => 13.439764,
+        //        precision => null,
+        //        limits => {
+        //            withdraw => array(
+        //                min => 0.001,
+        //                max => null
+        //            }
+        //        }
         //     ),
         //
         if ($chain === 'USDT-Polygon') {
@@ -3396,16 +3404,16 @@ class okx extends Exchange {
         $response = yield $this->privateGetAccountLeverageInfo (array_merge($request, $params));
         //
         //     {
-        //       "code" => "0",
-        //       "data" => array(
-        //         {
-        //           "instId" => "BTC-USDT-SWAP",
-        //           "lever" => "5.00000000",
-        //           "mgnMode" => "isolated",
-        //           "posSide" => "net"
-        //         }
-        //       ),
-        //       "msg" => ""
+        //        "code" => "0",
+        //        "data" => array(
+        //            {
+        //                "instId" => "BTC-USDT-SWAP",
+        //                "lever" => "5.00000000",
+        //                "mgnMode" => "isolated",
+        //                "posSide" => "net"
+        //            }
+        //        ),
+        //        "msg" => ""
         //     }
         //
         return $response;
@@ -3430,42 +3438,42 @@ class okx extends Exchange {
         //         "msg" => "",
         //         "data" => array(
         //             {
-        //                 "adl":"1",
-        //                 "availPos":"1",
-        //                 "avgPx":"2566.31",
-        //                 "cTime":"1619507758793",
-        //                 "ccy":"ETH",
-        //                 "deltaBS":"",
-        //                 "deltaPA":"",
-        //                 "gammaBS":"",
-        //                 "gammaPA":"",
-        //                 "imr":"",
-        //                 "instId":"ETH-USD-210430",
-        //                 "instType":"FUTURES",
-        //                 "interest":"0",
-        //                 "last":"2566.22",
-        //                 "lever":"10",
-        //                 "liab":"",
-        //                 "liabCcy":"",
-        //                 "liqPx":"2352.8496681818233",
-        //                 "margin":"0.0003896645377994",
-        //                 "mgnMode":"isolated",
-        //                 "mgnRatio":"11.731726509588816",
-        //                 "mmr":"0.0000311811092368",
-        //                 "optVal":"",
-        //                 "pTime":"1619507761462",
-        //                 "pos":"1",
-        //                 "posCcy":"",
-        //                 "posId":"307173036051017730",
-        //                 "posSide":"long",
-        //                 "thetaBS":"",
-        //                 "thetaPA":"",
-        //                 "tradeId":"109844",
-        //                 "uTime":"1619507761462",
-        //                 "upl":"-0.0000009932766034",
-        //                 "uplRatio":"-0.0025490556801078",
-        //                 "vegaBS":"",
-        //                 "vegaPA":""
+        //                 "adl" => "1",
+        //                 "availPos" => "1",
+        //                 "avgPx" => "2566.31",
+        //                 "cTime" => "1619507758793",
+        //                 "ccy" => "ETH",
+        //                 "deltaBS" => "",
+        //                 "deltaPA" => "",
+        //                 "gammaBS" => "",
+        //                 "gammaPA" => "",
+        //                 "imr" => "",
+        //                 "instId" => "ETH-USD-210430",
+        //                 "instType" => "FUTURES",
+        //                 "interest" => "0",
+        //                 "last" => "2566.22",
+        //                 "lever" => "10",
+        //                 "liab" => "",
+        //                 "liabCcy" => "",
+        //                 "liqPx" => "2352.8496681818233",
+        //                 "margin" => "0.0003896645377994",
+        //                 "mgnMode" => "isolated",
+        //                 "mgnRatio" => "11.731726509588816",
+        //                 "mmr" => "0.0000311811092368",
+        //                 "optVal" => "",
+        //                 "pTime" => "1619507761462",
+        //                 "pos" => "1",
+        //                 "posCcy" => "",
+        //                 "posId" => "307173036051017730",
+        //                 "posSide" => "long",
+        //                 "thetaBS" => "",
+        //                 "thetaPA" => "",
+        //                 "tradeId" => "109844",
+        //                 "uTime" => "1619507761462",
+        //                 "upl" => "-0.0000009932766034",
+        //                 "uplRatio" => "-0.0025490556801078",
+        //                 "vegaBS" => "",
+        //                 "vegaPA" => ""
         //             }
         //         )
         //     }
@@ -3500,42 +3508,42 @@ class okx extends Exchange {
         //         "msg" => "",
         //         "data" => array(
         //             {
-        //                 "adl":"1",
-        //                 "availPos":"1",
-        //                 "avgPx":"2566.31",
-        //                 "cTime":"1619507758793",
-        //                 "ccy":"ETH",
-        //                 "deltaBS":"",
-        //                 "deltaPA":"",
-        //                 "gammaBS":"",
-        //                 "gammaPA":"",
-        //                 "imr":"",
-        //                 "instId":"ETH-USD-210430",
-        //                 "instType":"FUTURES",
-        //                 "interest":"0",
-        //                 "last":"2566.22",
-        //                 "lever":"10",
-        //                 "liab":"",
-        //                 "liabCcy":"",
-        //                 "liqPx":"2352.8496681818233",
-        //                 "margin":"0.0003896645377994",
-        //                 "mgnMode":"isolated",
-        //                 "mgnRatio":"11.731726509588816",
-        //                 "mmr":"0.0000311811092368",
-        //                 "optVal":"",
-        //                 "pTime":"1619507761462",
-        //                 "pos":"1",
-        //                 "posCcy":"",
-        //                 "posId":"307173036051017730",
-        //                 "posSide":"long",
-        //                 "thetaBS":"",
-        //                 "thetaPA":"",
-        //                 "tradeId":"109844",
-        //                 "uTime":"1619507761462",
-        //                 "upl":"-0.0000009932766034",
-        //                 "uplRatio":"-0.0025490556801078",
-        //                 "vegaBS":"",
-        //                 "vegaPA":""
+        //                 "adl" => "1",
+        //                 "availPos" => "1",
+        //                 "avgPx" => "2566.31",
+        //                 "cTime" => "1619507758793",
+        //                 "ccy" => "ETH",
+        //                 "deltaBS" => "",
+        //                 "deltaPA" => "",
+        //                 "gammaBS" => "",
+        //                 "gammaPA" => "",
+        //                 "imr" => "",
+        //                 "instId" => "ETH-USD-210430",
+        //                 "instType" => "FUTURES",
+        //                 "interest" => "0",
+        //                 "last" => "2566.22",
+        //                 "lever" => "10",
+        //                 "liab" => "",
+        //                 "liabCcy" => "",
+        //                 "liqPx" => "2352.8496681818233",
+        //                 "margin" => "0.0003896645377994",
+        //                 "mgnMode" => "isolated",
+        //                 "mgnRatio" => "11.731726509588816",
+        //                 "mmr" => "0.0000311811092368",
+        //                 "optVal" => "",
+        //                 "pTime" => "1619507761462",
+        //                 "pos" => "1",
+        //                 "posCcy" => "",
+        //                 "posId" => "307173036051017730",
+        //                 "posSide" => "long",
+        //                 "thetaBS" => "",
+        //                 "thetaPA" => "",
+        //                 "tradeId" => "109844",
+        //                 "uTime" => "1619507761462",
+        //                 "upl" => "-0.0000009932766034",
+        //                 "uplRatio" => "-0.0025490556801078",
+        //                 "vegaBS" => "",
+        //                 "vegaPA" => ""
         //             }
         //         )
         //     }
@@ -3555,44 +3563,44 @@ class okx extends Exchange {
     public function parse_position($position, $market = null) {
         //
         //     {
-        //       "adl" => "3",
-        //       "availPos" => "1",
-        //       "avgPx" => "34131.1",
-        //       "cTime" => "1627227626502",
-        //       "ccy" => "USDT",
-        //       "deltaBS" => "",
-        //       "deltaPA" => "",
-        //       "gammaBS" => "",
-        //       "gammaPA" => "",
-        //       "imr" => "170.66093041794787",
-        //       "instId" => "BTC-USDT-SWAP",
-        //       "instType" => "SWAP",
-        //       "interest" => "0",
-        //       "last" => "34134.4",
-        //       "lever" => "2",
-        //       "liab" => "",
-        //       "liabCcy" => "",
-        //       "liqPx" => "12608.959083877446",
-        //       "markPx" => "4786.459271773621",
-        //       "margin" => "",
-        //       "mgnMode" => "cross",
-        //       "mgnRatio" => "140.49930117599155",
-        //       "mmr" => "1.3652874433435829",
-        //       "notionalUsd" => "341.5130010779638",
-        //       "optVal" => "",
-        //       "pos" => "1",
-        //       "posCcy" => "",
-        //       "posId" => "339552508062380036",
-        //       "posSide" => "long",
-        //       "thetaBS" => "",
-        //       "thetaPA" => "",
-        //       "tradeId" => "98617799",
-        //       "uTime" => "1627227626502",
-        //       "upl" => "0.0108608358957281",
-        //       "uplRatio" => "0.0000636418743944",
-        //       "vegaBS" => "",
-        //       "vegaPA" => ""
-        //     }
+        //        "adl" => "3",
+        //        "availPos" => "1",
+        //        "avgPx" => "34131.1",
+        //        "cTime" => "1627227626502",
+        //        "ccy" => "USDT",
+        //        "deltaBS" => "",
+        //        "deltaPA" => "",
+        //        "gammaBS" => "",
+        //        "gammaPA" => "",
+        //        "imr" => "170.66093041794787",
+        //        "instId" => "BTC-USDT-SWAP",
+        //        "instType" => "SWAP",
+        //        "interest" => "0",
+        //        "last" => "34134.4",
+        //        "lever" => "2",
+        //        "liab" => "",
+        //        "liabCcy" => "",
+        //        "liqPx" => "12608.959083877446",
+        //        "markPx" => "4786.459271773621",
+        //        "margin" => "",
+        //        "mgnMode" => "cross",
+        //        "mgnRatio" => "140.49930117599155",
+        //        "mmr" => "1.3652874433435829",
+        //        "notionalUsd" => "341.5130010779638",
+        //        "optVal" => "",
+        //        "pos" => "1",
+        //        "posCcy" => "",
+        //        "posId" => "339552508062380036",
+        //        "posSide" => "long",
+        //        "thetaBS" => "",
+        //        "thetaPA" => "",
+        //        "tradeId" => "98617799",
+        //        "uTime" => "1627227626502",
+        //        "upl" => "0.0108608358957281",
+        //        "uplRatio" => "0.0000636418743944",
+        //        "vegaBS" => "",
+        //        "vegaPA" => ""
+        //    }
         //
         $marketId = $this->safe_string($position, 'instId');
         $market = $this->safe_market($marketId, $market);
@@ -3850,14 +3858,14 @@ class okx extends Exchange {
 
     public function parse_funding_rate($fundingRate, $market = null) {
         //
-        //     {
-        //       "fundingRate" => "0.00027815",
-        //       "fundingTime" => "1634256000000",
-        //       "instId" => "BTC-USD-SWAP",
-        //       "instType" => "SWAP",
-        //       "nextFundingRate" => "0.00017",
-        //       "nextFundingTime" => "1634284800000"
-        //     }
+        //    {
+        //        "fundingRate" => "0.00027815",
+        //        "fundingTime" => "1634256000000",
+        //        "instId" => "BTC-USD-SWAP",
+        //        "instType" => "SWAP",
+        //        "nextFundingRate" => "0.00017",
+        //        "nextFundingTime" => "1634284800000"
+        //    }
         //
         // in the response above $nextFundingRate is actually two funding rates from now
         //
@@ -3900,20 +3908,20 @@ class okx extends Exchange {
         );
         $response = yield $this->publicGetPublicFundingRate (array_merge($request, $params));
         //
-        //     {
-        //       "code" => "0",
-        //       "data" => array(
-        //         {
-        //           "fundingRate" => "0.00027815",
-        //           "fundingTime" => "1634256000000",
-        //           "instId" => "BTC-USD-SWAP",
-        //           "instType" => "SWAP",
-        //           "nextFundingRate" => "0.00017",
-        //           "nextFundingTime" => "1634284800000"
-        //         }
-        //       ),
-        //       "msg" => ""
-        //     }
+        //    {
+        //        "code" => "0",
+        //        "data" => array(
+        //            {
+        //                "fundingRate" => "0.00027815",
+        //                "fundingTime" => "1634256000000",
+        //                "instId" => "BTC-USD-SWAP",
+        //                "instType" => "SWAP",
+        //                "nextFundingRate" => "0.00017",
+        //                "nextFundingTime" => "1634284800000"
+        //            }
+        //        ),
+        //        "msg" => ""
+        //    }
         //
         $data = $this->safe_value($response, 'data', array());
         $entry = $this->safe_value($data, 0, array());
@@ -4022,28 +4030,28 @@ class okx extends Exchange {
         // AccountBillsArchive has the same cost as AccountBills but supports three months of $data
         $response = yield $this->privateGetAccountBillsArchive (array_merge($request, $query));
         //
-        //     {
-        //       "bal" => "0.0242946200998573",
-        //       "balChg" => "0.0000148752712240",
-        //       "billId" => "377970609204146187",
-        //       "ccy" => "ETH",
-        //       "execType" => "",
-        //       "fee" => "0",
-        //       "from" => "",
-        //       "instId" => "ETH-USD-SWAP",
-        //       "instType" => "SWAP",
-        //       "mgnMode" => "isolated",
-        //       "notes" => "",
-        //       "ordId" => "",
-        //       "pnl" => "0.000014875271224",
-        //       "posBal" => "0",
-        //       "posBalChg" => "0",
-        //       "subType" => "174",
-        //       "sz" => "9",
-        //       "to" => "",
-        //       "ts" => "1636387215588",
-        //       "type" => "8"
-        //     }
+        //    {
+        //        "bal" => "0.0242946200998573",
+        //        "balChg" => "0.0000148752712240",
+        //        "billId" => "377970609204146187",
+        //        "ccy" => "ETH",
+        //        "execType" => "",
+        //        "fee" => "0",
+        //        "from" => "",
+        //        "instId" => "ETH-USD-SWAP",
+        //        "instType" => "SWAP",
+        //        "mgnMode" => "isolated",
+        //        "notes" => "",
+        //        "ordId" => "",
+        //        "pnl" => "0.000014875271224",
+        //        "posBal" => "0",
+        //        "posBalChg" => "0",
+        //        "subType" => "174",
+        //        "sz" => "9",
+        //        "to" => "",
+        //        "ts" => "1636387215588",
+        //        "type" => "8"
+        //    }
         //
         $data = $this->safe_value($response, 'data');
         $result = array();
@@ -4119,15 +4127,15 @@ class okx extends Exchange {
         );
         $response = yield $this->privatePostAccountSetPositionMode (array_merge($request, $params));
         //
-        //     {
-        //       "code" => "0",
-        //       "data" => array(
-        //         {
-        //           "posMode" => "net_mode"
-        //         }
-        //       ),
-        //       "msg" => ""
-        //     }
+        //    {
+        //        "code" => "0",
+        //        "data" => array(
+        //            {
+        //                "posMode" => "net_mode"
+        //            }
+        //        ),
+        //        "msg" => ""
+        //    }
         //
         return $response;
     }
@@ -4175,16 +4183,18 @@ class okx extends Exchange {
     public function fetch_borrow_rates($params = array ()) {
         yield $this->load_markets();
         $response = yield $this->privateGetAccountInterestRate ($params);
-        // {
-        //     "code" => "0",
-        //     "data" => array(
-        //         {
-        //             "ccy":"BTC",
-        //             "interestRate":"0.00000833"
-        //         }
-        //         ...
-        //     ),
-        // }
+        //
+        //    {
+        //        "code" => "0",
+        //        "data" => array(
+        //            {
+        //                "ccy" => "BTC",
+        //                "interestRate" => "0.00000833"
+        //            }
+        //            ...
+        //        ),
+        //    }
+        //
         $timestamp = $this->milliseconds();
         $data = $this->safe_value($response, 'data');
         $rates = array();
@@ -4210,17 +4220,19 @@ class okx extends Exchange {
             'ccy' => $currency['id'],
         );
         $response = yield $this->privateGetAccountInterestRate (array_merge($request, $params));
-        // {
-        //     "code" => "0",
-        //     "data":array(
-        //          {
-        //             "ccy":"USDT",
-        //             "interestRate":"0.00002065"
-        //          }
-        //          ...
-        //     ),
-        //     "msg":""
-        // }
+        //
+        //    {
+        //        "code" => "0",
+        //        "data" => array(
+        //             {
+        //                "ccy" => "USDT",
+        //                "interestRate" => "0.00002065"
+        //             }
+        //             ...
+        //        ),
+        //        "msg" => ""
+        //    }
+        //
         $timestamp = $this->milliseconds();
         $data = $this->safe_value($response, 'data');
         $rate = $this->safe_value($data, 0);
@@ -4397,25 +4409,29 @@ class okx extends Exchange {
 
     public function parse_market_leverage_tiers($info, $market = null) {
         /**
-            @param $info => Exchange response for 1 $market
-            array(
-                array(
-                    "baseMaxLoan" => "500",
-                    "imr" => "0.1",
-                    "instId" => "ETH-USDT",
-                    "maxLever" => "10",
-                    "maxSz" => "500",
-                    "minSz" => "0",
-                    "mmr" => "0.03",
-                    "optMgnFactor" => "0",
-                    "quoteMaxLoan" => "200000",
-                    "tier" => "1",
-                    "uly" => ""
-                ),
-                ...
-            )
-            @param $market => CCXT $market
+         * @ignore
+         * @method
+         * @param $info => Exchange response for 1 $market
+         * @param $market => CCXT $market
         */
+        //
+        //    array(
+        //        array(
+        //            "baseMaxLoan" => "500",
+        //            "imr" => "0.1",
+        //            "instId" => "ETH-USDT",
+        //            "maxLever" => "10",
+        //            "maxSz" => "500",
+        //            "minSz" => "0",
+        //            "mmr" => "0.03",
+        //            "optMgnFactor" => "0",
+        //            "quoteMaxLoan" => "200000",
+        //            "tier" => "1",
+        //            "uly" => ""
+        //        ),
+        //        ...
+        //    )
+        //
         $tiers = array();
         for ($i = 0; $i < count($info); $i++) {
             $tier = $info[$i];
@@ -4434,7 +4450,9 @@ class okx extends Exchange {
 
     public function fetch_borrow_interest($code = null, $symbol = null, $since = null, $limit = null, $params = array ()) {
         /**
-         * Obtain the amount of $interest that has accrued for margin trading
+         * @method
+         * @name okx#fetchBorrowInterest
+         * @description Obtain the amount of $interest that has accrued for margin trading
          * @param {string} $code The unified $currency $code for the $currency of the $interest
          * @param {string} $symbol The $market $symbol of an isolated margin $market, if null, the $interest for cross margin markets is returned
          * @param {integer} $since Timestamp in ms of the earliest time to receive $interest records for
@@ -4530,8 +4548,24 @@ class okx extends Exchange {
             return; // fallback to default $error handler
         }
         //
-        //     array("code":"1","data":[array("clOrdId":"","ordId":"","sCode":"51119","sMsg":"Order placement failed due to insufficient balance. ","tag":"")],"msg":"")
-        //     array("code":"58001","data":array(),"msg":"Incorrect trade password")
+        //    {
+        //        "code" => "1",
+        //        "data" => array(
+        //            array(
+        //                "clOrdId" => "",
+        //                "ordId" => "",
+        //                "sCode" => "51119",
+        //                "sMsg" => "Order placement failed due to insufficient balance. ",
+        //                "tag" => ""
+        //            }
+        //        ),
+        //        "msg" => ""
+        //    ),
+        //    {
+        //        "code" => "58001",
+        //        "data" => array(),
+        //        "msg" => "Incorrect trade password"
+        //    }
         //
         $code = $this->safe_string($response, 'code');
         if ($code !== '0') {
