@@ -4509,7 +4509,7 @@ module.exports = class okx extends Exchange {
 
     parseBorrowInterest (info, market = undefined) {
         const instId = this.safeString (info, 'instId');
-        let account = 'CROSS';
+        let account = 'cross';
         if (instId) {
             market = this.safeMarket (instId, market);
             account = this.safeString (market, 'symbol');
