@@ -291,24 +291,16 @@ module.exports = class gateio extends ccxt.gateio {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['id'];
-        const uppercaseId = marketId.toUpperCase ();
-        const requestId = this.nonce ();
-        const url = this.urls['api']['ws'];
-        const interval = this.parseTimeframe (timeframe);
-        const subscribeMessage = {
-            'id': requestId,
-            'method': 'kline.subscribe',
-            'params': [ uppercaseId, interval ],
-        };
-        const subscription = {
-            'id': requestId,
-        };
-        // gateio sends candles without a timeframe identifier
-        // making it impossible to differentiate candles from
-        // two or more different timeframes within the same symbol
-        // thus the exchange API is limited to one timeframe per symbol
-        const messageHash = 'kline.update' + ':' + marketId;
-        const ohlcv = await this.watch (url, messageHash, subscribeMessage, messageHash, subscription);
+        const type = market['type'];
+        const isSettleBtc = market['settleId'] === 'btc';
+        const isBtcContract = (market['contract'] && isSettleBtc) ? true : false;
+        const interval = this.timeframes[timeframe];
+        const messageType = this.getUniformType (type);
+        const method = messageType + '.candlesticks';
+        const messageHash = method + ':' + interval + ':' + market['symbol'];
+        const url = this.getUrlByMarketType (type, isBtcContract);
+        const payload = [interval, marketId];
+        const ohlcv = await this.subscribePublic (url, method, messageHash, payload);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
@@ -317,56 +309,55 @@ module.exports = class gateio extends ccxt.gateio {
 
     handleOHLCV (client, message) {
         //
-        //     {
-        //         method: 'kline.update',
-        //         params: [
-        //             [
-        //                 1580661060,
-        //                 '9432.37',
-        //                 '9435.77',
-        //                 '9435.77',
-        //                 '9429.93',
-        //                 '0.0879',
-        //                 '829.1875889352',
-        //                 'BTC_USDT'
-        //             ]
-        //         ],
-        //         id: null
+        // {
+        //     "time": 1606292600,
+        //     "channel": "spot.candlesticks",
+        //     "event": "update",
+        //     "result": {
+        //       "t": "1606292580", // total volume
+        //       "v": "2362.32035", // volume
+        //       "c": "19128.1", // close
+        //       "h": "19128.1", // high
+        //       "l": "19128.1", // low
+        //       "o": "19128.1", // open
+        //       "n": "1m_BTC_USDT" // sub
         //     }
+        //   }
         //
-        const params = this.safeValue (message, 'params', []);
-        const ohlcv = this.safeValue (params, 0, []);
-        const marketId = this.safeString (ohlcv, 7);
-        const parsed = [
-            this.safeTimestamp (ohlcv, 0), // t
-            this.safeNumber (ohlcv, 1), // o
-            this.safeNumber (ohlcv, 3), // h
-            this.safeNumber (ohlcv, 4), // l
-            this.safeNumber (ohlcv, 2), // c
-            this.safeNumber (ohlcv, 5), // v
-        ];
-        const symbol = this.safeSymbol (marketId, undefined, '_');
-        // gateio sends candles without a timeframe identifier
-        // making it impossible to differentiate candles from
-        // two or more different timeframes within the same symbol
-        // thus the exchange API is limited to one timeframe per symbol
-        // --------------------------------------------------------------------
-        // this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        // const stored = this.safeValue (this.ohlcvs[symbol], timeframe, []);
-        // --------------------------------------------------------------------
-        let stored = this.safeValue (this.ohlcvs, symbol);
-        if (stored === undefined) {
-            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol] = stored;
+        const channel = this.safeString (message, 'channel');
+        let result = this.safeValue (message, 'result');
+        const isArray = Array.isArray (result);
+        if (!isArray) {
+            result = [result];
         }
-        stored.append (parsed);
-        // --------------------------------------------------------------------
-        // this.ohlcvs[symbol][timeframe] = stored;
-        // --------------------------------------------------------------------
-        const methodType = message['method'];
-        const messageHash = methodType + ':' + marketId;
-        client.resolve (stored, messageHash);
+        const marketIds = {};
+        for (let i = 0; i < result.length; i++) {
+            const ohlcv = result[i];
+            const subscription = this.safeString (ohlcv, 'n', '');
+            const parts = subscription.split ('_');
+            const timeframe = this.safeString (parts, 0);
+            const prefix = timeframe + '_';
+            const marketId = subscription.replace (prefix, '');
+            const symbol = this.safeSymbol (marketId, undefined, '_');
+            const parsed = this.parseOHLCV (ohlcv);
+            let stored = this.safeValue (this.ohlcvs, symbol);
+            if (stored === undefined) {
+                const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+                stored = new ArrayCacheByTimestamp (limit);
+                this.ohlcvs[symbol] = stored;
+            }
+            stored.append (parsed);
+            marketIds[symbol] = timeframe;
+        }
+        const keys = Object.keys (marketIds);
+        for (let i = 0; i < keys.length; i++) {
+            const symbol = keys[i];
+            const timeframe = marketIds[symbol];
+            const interval = this.timeframes[timeframe];
+            const hash = channel + ':' + interval + ':' + symbol;
+            const stored = this.safeValue (this.ohlcvs, symbol);
+            client.resolve (stored, hash);
+        }
     }
 
     async authenticate (params = {}) {
@@ -714,6 +705,30 @@ module.exports = class gateio extends ccxt.gateio {
     }
 
     handleMessage (client, message) {
+        // subscribe
+        // {
+        //     time: 1649062304,
+        //     id: 1649062303,
+        //     channel: 'spot.candlesticks',
+        //     event: 'subscribe',
+        //     result: { status: 'success' }
+        // }
+        // candlestick
+        // {
+        //     time: 1649063328,
+        //     channel: 'spot.candlesticks',
+        //     event: 'update',
+        //     result: {
+        //       t: '1649063280',
+        //       v: '58932.23174896',
+        //       c: '45966.47',
+        //       h: '45997.24',
+        //       l: '45966.47',
+        //       o: '45975.18',
+        //       n: '1m_BTC_USDT',
+        //       a: '1.281699'
+        //     }
+        //  }
         // orders
         // {
         //     "time": 1630654851,
@@ -735,13 +750,8 @@ module.exports = class gateio extends ccxt.gateio {
             'balance.update': this.handleBalance,
         };
         const methodType = this.safeString (message, 'method');
-        const method = this.safeValue (methods, methodType);
+        let method = this.safeValue (methods, methodType);
         if (method === undefined) {
-            const messageId = this.safeInteger (message, 'id');
-            if (messageId !== undefined) {
-                this.handleSubscriptionStatus (client, message);
-                return;
-            }
             const event = this.safeString (message, 'event');
             if (event === 'subscribe') {
                 this.handleSubscriptionStatus (client, message);
@@ -750,16 +760,26 @@ module.exports = class gateio extends ccxt.gateio {
             const channel = this.safeString (message, 'channel', '');
             const channelParts = channel.split ('.');
             const channelType = this.safeValue (channelParts, 1);
-            if (channelType === 'usertrades') {
-                this.handleMyTrades (client, message);
-                return;
-            }
-            if (channelType === 'orders') {
-                this.handleOrder (client, message);
-            }
-        } else {
+            const v4Methods = {
+                'usertrades': this.handleMyTrades,
+                'candlesticks': this.handleOHLCV,
+                'orders': this.handleOrder,
+            };
+            method = this.safeValue (v4Methods, channelType);
+        }
+        if (method !== undefined) {
             method.call (this, client, message);
         }
+    }
+
+    getUniformType (type) {
+        let uniformType = 'spot';
+        if (type === 'future' || type === 'swap') {
+            uniformType = 'futures';
+        } else if (type === 'option') {
+            uniformType = 'options';
+        }
+        return uniformType;
     }
 
     getUrlByMarketType (type, isBtcContract = false) {
@@ -781,6 +801,22 @@ module.exports = class gateio extends ccxt.gateio {
         if (type === 'option') {
             return this.urls['api']['option'];
         }
+    }
+
+    async subscribePublic (url, channel, messageHash, payload) {
+        const time = this.seconds ();
+        const request = {
+            'id': time,
+            'time': time,
+            'channel': channel,
+            'event': 'subscribe',
+            'payload': payload,
+        };
+        const subscription = {
+            'id': time,
+            'messageHash': messageHash,
+        };
+        return await this.watch (url, messageHash, request, messageHash, subscription);
     }
 
     async subscribePrivate (url, channel, messageHash, payload, requiresUid = false) {
