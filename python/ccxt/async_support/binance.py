@@ -55,7 +55,6 @@ class binance(Exchange):
                 'createDepositAddress': False,
                 'createOrder': True,
                 'createReduceOnlyOrder': True,
-                'deposit': False,
                 'fetchAccounts': None,
                 'fetchBalance': True,
                 'fetchBidsAsks': True,

@@ -32,7 +32,6 @@ class whitebit extends Exchange {
                 'createLimitOrder' => null,
                 'createMarketOrder' => null,
                 'createOrder' => true,
-                'deposit' => null,
                 'editOrder' => null,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,

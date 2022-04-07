@@ -1785,7 +1785,6 @@ Here's an overview of generic exchange properties with values added for example:
            'cancelOrder': true,
            'createDepositAddress': false,
            'createOrder': true,
-           'deposit': false,
            'fetchBalance': true,
            'fetchCancelledOrders': false,
            'fetchClosedOrder': false,
@@ -1949,7 +1948,6 @@ Exchange Metadata
            'cancelOrder': true,
            'createDepositAddress': false,
            'createOrder': true,
-           'deposit': false,
            'fetchBalance': true,
            'fetchCancelledOrders': false,
            'fetchClosedOrder': false,
@@ -5849,26 +5847,7 @@ The ledger entry type can be associated with a regular trade or a funding transa
 Deposit
 -------
 
-In order to deposit funds to an exchange you must get an address from the exchange for the currency you want to deposit there. Most of exchanges will create and manage those addresses for the user. Some exchanges will also allow the user to create new addresses for deposits. Some of exchanges require a new deposit address to be created for each new deposit.
-
-.. code-block:: Javascript
-
-   deposit (code, amount, address, params = {})
-
-Parameters
-
-
- * **code** (String) *required* Unified CCXT currency code, required (e.g. ``"USDT"``\ )
- * **amount** (Float) *required* The amount of currency to send in the deposit (e.g. ``20``\ )
- * **address** (String) *required* The recipient address of the deposit (e.g. ``"TEY6qjnKDyyq5jDc3DJizWLCdUySrpQ4yp"``\ )
- * **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. ``{"network": "TRX"}``\ )
-
-Returns
-
-
- * A :ref:`transaction structure <transaction structure>`
-
-----
+In order to deposit funds to an exchange you must get an address from the exchange for the currency you want to deposit there. Most of exchanges will create and manage those addresses for the user.
 
 Data on deposits made to an account can be retrieved using
 

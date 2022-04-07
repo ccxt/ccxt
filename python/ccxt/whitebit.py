@@ -40,7 +40,6 @@ class whitebit(Exchange):
                 'createLimitOrder': None,
                 'createMarketOrder': None,
                 'createOrder': True,
-                'deposit': None,
                 'editOrder': None,
                 'fetchBalance': True,
                 'fetchBidsAsks': None,

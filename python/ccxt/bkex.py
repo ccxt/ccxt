@@ -37,7 +37,6 @@ class bkex(Exchange):
                 'createLimitOrder': None,
                 'createMarketOrder': None,
                 'createOrder': True,
-                'deposit': None,
                 'editOrder': None,
                 'fetchAccounts': None,
                 'fetchBalance': True,

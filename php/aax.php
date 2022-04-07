@@ -38,7 +38,6 @@ class aax extends Exchange {
                 'createDepositAddress' => null,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
-                'deposit' => null,
                 'editOrder' => true,
                 'fetchAccounts' => null,
                 'fetchBalance' => true,

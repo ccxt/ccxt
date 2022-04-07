@@ -46,7 +46,6 @@ class aax(Exchange):
                 'createDepositAddress': None,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
-                'deposit': None,
                 'editOrder': True,
                 'fetchAccounts': None,
                 'fetchBalance': True,

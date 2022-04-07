@@ -35,7 +35,6 @@ class bkex extends Exchange {
                 'createLimitOrder' => null,
                 'createMarketOrder' => null,
                 'createOrder' => true,
-                'deposit' => null,
                 'editOrder' => null,
                 'fetchAccounts' => null,
                 'fetchBalance' => true,

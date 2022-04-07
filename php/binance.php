@@ -40,7 +40,6 @@ class binance extends Exchange {
                 'createDepositAddress' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => true,
-                'deposit' => false,
                 'fetchAccounts' => null,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => true,
