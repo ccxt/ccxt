@@ -4509,14 +4509,14 @@ module.exports = class okx extends Exchange {
 
     parseBorrowInterest (info, market = undefined) {
         const instId = this.safeString (info, 'instId');
-        let account = 'cross';
-        if (instId) {
+        let account = 'cross'; // todo rename it to margin/marginType and separate it from the symbol
+        if (instId !== undefined) {
             market = this.safeMarket (instId, market);
             account = this.safeString (market, 'symbol');
         }
         const timestamp = this.safeNumber (info, 'ts');
         return {
-            'account': account, // isolated symbol, will not be returned for crossed margin
+            'account': account, // isolated symbol, will not be returned for cross margin
             'currency': this.safeCurrencyCode (this.safeString (info, 'ccy')),
             'interest': this.safeNumber (info, 'interest'),
             'interestRate': this.safeNumber (info, 'interestRate'),
