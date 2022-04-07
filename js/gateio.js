@@ -167,14 +167,15 @@ module.exports = class gateio extends ccxt.gateio {
         const isBtcContract = this.isBtcContract (market);
         const type = market['type'];
         const messageType = this.getUniformType (type);
-        const messageHash = messageType + '.' + 'tickers';
+        const channel = messageType + '.' + 'tickers';
+        const messageHash = channel + '.' + market['symbol'];
         const payload = [marketId];
         const url = this.getUrlByMarketType (type, isBtcContract);
-        return await this.subscribePublic (url, messageHash, messageHash, payload);
+        return await this.subscribePublic (url, channel, messageHash, payload);
     }
 
     handleTicker (client, message) {
-        // spot
+        //
         //    {
         //        time: 1649326221,
         //        channel: 'spot.tickers',
@@ -192,16 +193,20 @@ module.exports = class gateio extends ccxt.gateio {
         //        }
         //    }
         //
-        const params = this.safeValue (message, 'params', []);
-        const marketId = this.safeString (params, 0);
-        const market = this.safeMarket (marketId, undefined, '_');
-        const symbol = market['symbol'];
-        const ticker = this.safeValue (params, 1, {});
-        const result = this.parseTicker (ticker, market);
-        const methodType = message['method'];
-        const messageHash = methodType + ':' + marketId;
-        this.tickers[symbol] = result;
-        client.resolve (result, messageHash);
+        const channel = this.safeString (message, 'channel');
+        let result = this.safeValue (message, 'result');
+        const isArray = Array.isArray (result);
+        if (!isArray) {
+            result = [result];
+        }
+        for (let i = 0; i < result.length; i++) {
+            const ticker = result[i];
+            const parsed = this.parseTicker (ticker);
+            const symbol = parsed['symbol'];
+            this.tickers[symbol] = parsed;
+            const messageHash = channel + '.' + symbol;
+            client.resolve (this.tickers[symbol], messageHash);
+        }
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
