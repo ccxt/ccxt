@@ -1923,14 +1923,12 @@ module.exports = class ftx extends Exchange {
         const currencyId = this.safeString (transfer, 'coin');
         const notes = this.safeString (transfer, 'notes', '');
         const status = this.safeString (transfer, 'status');
-        const statuses = {
-            'complete': 'ok',
-        };
-        const fromAccountStartIndex = notes.indexOf ('Transfer from ') + 14;
-        const fromAccountEndIndex = notes.indexOf (' to ');
-        const fromAccount = notes.slice (fromAccountStartIndex, fromAccountEndIndex);
-        const toAccountStartIndex = notes.indexOf (' to ') + 4;
-        const toAccount = notes.slice (toAccountStartIndex);
+        const fromTo = notes.replace ('Transfer from ', '');
+        const parts = fromTo.split (' to ');
+        let fromAccount = this.safeString (parts, 0);
+        fromAccount = fromAccount.replace (' account', '');
+        let toAccount = this.safeString (parts, 1);
+        toAccount = toAccount.replace (' account', '');
         return {
             'info': transfer,
             'id': this.safeString (transfer, 'id'),
@@ -1940,8 +1938,15 @@ module.exports = class ftx extends Exchange {
             'amount': this.safeNumber (transfer, 'size'),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'status': this.safeString (statuses, status),
+            'status': this.parseTransferStatus (status),
         };
+    }
+
+    parseTransferStatus (status) {
+        const statuses = {
+            'complete': 'ok',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
