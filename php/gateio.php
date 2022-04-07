@@ -1834,12 +1834,9 @@ class gateio extends Exchange {
 
     public function fetch_balance_helper($entry) {
         $account = $this->account();
-        $used = $this->safe_string($entry, 'freeze');
-        if ($used === null) {
-            $used = $this->safe_string_2($entry, 'locked', 'position_margin');
-        }
-        $account['used'] = $used;
+        $account['used'] = $this->safe_string_2($entry, 'freeze', 'locked');
         $account['free'] = $this->safe_string($entry, 'available');
+        $account['total'] = $this->safe_string($entry, 'total');
         return $account;
     }
 
@@ -1991,7 +1988,7 @@ class gateio extends Exchange {
             'info' => $response,
         );
         $data = $response;
-        if (is_array($data) && array_key_exists('balances', $data)) {
+        if (is_array($data) && array_key_exists('balances', $data)) { // True for cross_margin
             $flatBalances = array();
             $balances = $this->safe_value($data, 'balances', array());
             // inject currency and create an artificial balance object

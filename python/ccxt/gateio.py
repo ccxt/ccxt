@@ -1784,11 +1784,9 @@ class gateio(Exchange):
 
     def fetch_balance_helper(self, entry):
         account = self.account()
-        used = self.safe_string(entry, 'freeze')
-        if used is None:
-            used = self.safe_string_2(entry, 'locked', 'position_margin')
-        account['used'] = used
+        account['used'] = self.safe_string_2(entry, 'freeze', 'locked')
         account['free'] = self.safe_string(entry, 'available')
+        account['total'] = self.safe_string(entry, 'total')
         return account
 
     def fetch_balance(self, params={}):
@@ -1936,7 +1934,7 @@ class gateio(Exchange):
             'info': response,
         }
         data = response
-        if 'balances' in data:
+        if 'balances' in data:  # True for cross_margin
             flatBalances = []
             balances = self.safe_value(data, 'balances', [])
             # inject currency and create an artificial balance object
