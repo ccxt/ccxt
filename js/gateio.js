@@ -164,7 +164,7 @@ module.exports = class gateio extends ccxt.gateio {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['id'];
-        const isBtcContract = this.isBtcContract (market);
+        const isBtcContract = this.isBtcContract (market['inverse'], market['contract']);
         const type = market['type'];
         const messageType = this.getUniformType (type);
         const channel = messageType + '.' + 'tickers';
@@ -284,8 +284,7 @@ module.exports = class gateio extends ccxt.gateio {
         const market = this.market (symbol);
         const marketId = market['id'];
         const type = market['type'];
-        const isSettleBtc = market['settleId'] === 'btc';
-        const isBtcContract = (market['contract'] && isSettleBtc) ? true : false;
+        const isBtcContract = this.isBtcContract (market['inverse'], market['contract']);
         const interval = this.timeframes[timeframe];
         const messageType = this.getUniformType (type);
         const method = messageType + '.candlesticks';
@@ -536,8 +535,7 @@ module.exports = class gateio extends ccxt.gateio {
         const method = type + '.orders';
         let messageHash = method;
         messageHash = method + ':' + market['id'];
-        const isSettleBtc = market['settleId'] === 'btc';
-        const isBtcContract = (market['contract'] && isSettleBtc) ? true : false;
+        const isBtcContract = this.isBtcContract (market['inverse'], market['contract']);
         const url = this.getUrlByMarketType (market['type'], isBtcContract);
         const payload = [market['id']];
         // uid required for non spot markets
@@ -812,9 +810,8 @@ module.exports = class gateio extends ccxt.gateio {
         return await this.watch (url, messageHash, request, messageHash, subscription);
     }
 
-    isBtcContract (market) {
-        const isSettleBtc = market['settleId'] === 'btc';
-        const isBtcContract = (market['contract'] && isSettleBtc) ? true : false;
+    isBtcContract (isInverse, isContract) {
+        const isBtcContract = (isContract && isInverse) ? true : false;
         return isBtcContract;
     }
 
