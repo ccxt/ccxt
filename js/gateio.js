@@ -2601,7 +2601,7 @@ module.exports = class gateio extends Exchange {
          * @param {float} price *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
          * @param {dict} params  Extra parameters specific to the exchange API endpoint
          * @param {float} params.stopPrice The price at which a trigger order is triggered at
-         * @param {string} params.timeInForce "gtc" for GoodTillCancelled, "ioc" for ImmediateOrCancelled or poc for PendingOrCancelled
+         * @param {string} params.timeInForce "gtc", "ioc", or "po"
          * @param {integer} params.iceberg Amount to display for the iceberg order, Null or 0 for normal orders, Set to -1 to hide the order completely
          * @param {string} params.text User defined information
          * @param {string} params.account *spot and margin only* "spot", "margin" or "cross_margin"
