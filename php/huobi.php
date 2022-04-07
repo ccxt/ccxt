@@ -47,6 +47,7 @@ class huobi extends Exchange {
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,
+                'fetchBorrowInterest' => true,
                 'fetchBorrowRate' => null,
                 'fetchBorrowRateHistories' => null,
                 'fetchBorrowRateHistory' => null,
@@ -4621,6 +4622,128 @@ class huobi extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $result = $this->parse_funding_rates($data);
         return $this->filter_by_array($result, 'symbol', $symbols);
+    }
+
+    public function fetch_borrow_interest($code = null, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $defaultMargin = $this->safe_string($params, 'marginType', 'cross'); // cross or isolated
+        $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', $defaultMargin);
+        $request = array();
+        if ($since !== null) {
+            $request['start-date'] = $this->yyyymmdd($since);
+        }
+        if ($limit !== null) {
+            $request['size'] = $limit;
+        }
+        $market = null;
+        $method = null;
+        if ($marginType === 'isolated') {
+            $method = 'privateGetMarginLoanOrders';
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['symbol'] = $market['id'];
+            }
+        } else {  // Cross
+            $method = 'privateGetCrossMarginLoanOrders';
+            if ($code !== null) {
+                $currency = $this->currency($code);
+                $request['currency'] = $currency['id'];
+            }
+        }
+        $response = $this->$method (array_merge($request, $params));
+        //
+        //    {
+        //        "status":"ok",
+        //        "data":array(
+        //            {
+        //                "loan-balance":"0.100000000000000000",
+        //                "interest-balance":"0.000200000000000000",
+        //                "loan-amount":"0.100000000000000000",
+        //                "accrued-at":1511169724531,
+        //                "interest-amount":"0.000200000000000000",
+        //                "filled-points":"0.2",
+        //                "filled-ht":"0.2",
+        //                "currency":"btc",
+        //                "id":394,
+        //                "state":"accrual",
+        //                "account-id":17747,
+        //                "user-id":119913,
+        //                "created-at":1511169724531
+        //            }
+        //        )
+        //    }
+        //
+        $data = $this->safe_value($response, 'data');
+        $interest = $this->parse_borrow_interests($data, $marginType, $market);
+        return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
+    }
+
+    public function parse_borrow_interests($response, $marginType, $market = null) {
+        $interest = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $row = $response[$i];
+            $interest[] = $this->parse_borrow_interest($row, $marginType, $market);
+        }
+        return $interest;
+    }
+
+    public function parse_borrow_interest($info, $marginType, $market = null) {
+        // isolated
+        //    {
+        //        "interest-rate":"0.000040830000000000",
+        //        "user-id":35930539,
+        //        "account-id":48916071,
+        //        "updated-at":1649320794195,
+        //        "deduct-rate":"1",
+        //        "day-interest-rate":"0.000980000000000000",
+        //        "hour-interest-rate":"0.000040830000000000",
+        //        "loan-balance":"100.790000000000000000",
+        //        "interest-balance":"0.004115260000000000",
+        //        "loan-amount":"100.790000000000000000",
+        //        "paid-coin":"0.000000000000000000",
+        //        "accrued-at":1649320794148,
+        //        "created-at":1649320794148,
+        //        "interest-amount":"0.004115260000000000",
+        //        "deduct-amount":"0",
+        //        "deduct-currency":"",
+        //        "paid-point":"0.000000000000000000",
+        //        "currency":"usdt",
+        //        "symbol":"ltcusdt",
+        //        "id":20242721,
+        //    }
+        //
+        // cross
+        //   {
+        //       "id":3416576,
+        //       "user-id":35930539,
+        //       "account-id":48956839,
+        //       "currency":"usdt",
+        //       "loan-amount":"102",
+        //       "loan-balance":"102",
+        //       "interest-amount":"0.00416466",
+        //       "interest-balance":"0.00416466",
+        //       "created-at":1649322735333,
+        //       "accrued-at":1649322735382,
+        //       "state":"accrual",
+        //       "filled-points":"0",
+        //       "filled-ht":"0"
+        //   }
+        //
+        $marketId = $this->safe_string($info, 'symbol');
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
+        $account = ($marginType === 'cross') ? $marginType : $symbol;
+        $timestamp = $this->safe_number($info, 'accrued-at');
+        return array(
+            'account' => $account,  // isolated $symbol, will not be returned for crossed margin
+            'currency' => $this->safe_currency_code($this->safe_string($info, 'currency')),
+            'interest' => $this->safe_number($info, 'interest-amount'),
+            'interestRate' => $this->safe_number($info, 'interest-rate'),
+            'amountBorrowed' => $this->safe_number($info, 'loan-amount'),
+            'timestamp' => $timestamp,  // Interest accrued time
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $info,
+        );
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
