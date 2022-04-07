@@ -577,7 +577,7 @@ class kucoin(Exchange, ccxt.kucoin):
         amount = self.safe_string(order, 'size')
         rawType = self.safe_string(order, 'type')
         status = self.parse_ws_order_status(rawType)
-        timestamp = self.safe_integer_product(order, 'orderTime')
+        timestamp = self.safe_integer_product(order, 'orderTime', 0.000001)
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
