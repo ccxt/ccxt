@@ -283,6 +283,9 @@ class mexc(Exchange):
                         'WAIT': 'pending',
                     },
                 },
+                'fetchOrdersByState': {
+                    'method': 'spotPrivateGetOrderList',  # contractPrivateGetPlanorderListOrders
+                },
             },
             'commonCurrencies': {
                 'BEYONDPROTOCOL': 'BEYOND',
@@ -1877,6 +1880,27 @@ class mexc(Exchange):
         #         "order_type":"MARKET_ORDER"  # LIMIT_ORDER
         #     }
         #
+        # trigger fetchClosedOrders, fetchCanceledOrders
+        #
+        #     {
+        #         "id": "266583973507973632",
+        #         "symbol": "BTC_USDT",
+        #         "leverage": 20,
+        #         "side": 1,
+        #         "triggerPrice": 30000,
+        #         "price": 31000,
+        #         "vol": 11,
+        #         "openType": 1,
+        #         "triggerType": 2,
+        #         "state": 2,
+        #         "executeCycle": 87600,
+        #         "trend": 1,
+        #         "orderType": 1,
+        #         "errorCode": 0,
+        #         "createTime": 1649228972000,
+        #         "updateTime": 1649230287000
+        #     }
+        #
         # cancelOrder
         #
         #     {"965245851c444078a11a7d771323613b":"success"}
@@ -2076,21 +2100,40 @@ class mexc(Exchange):
             # 'start_time': since,  # default 7 days, max 30 days
             # 'limit': limit,  # default 50, max 1000
             # 'trade_type': 'BID',  # BID / ASK
-            'states': state,  # NEW, FILLED, PARTIALLY_FILLED, CANCELED, PARTIALLY_CANCELED
+            'states': state,  # NEW, FILLED, PARTIALLY_FILLED, CANCELED, PARTIALLY_CANCELED, trigger orders: 1 untriggered, 2 cancelled, 3 executed, 4 invalid, 5 execution failed
+            # 'end_time': 1633988662000,  # trigger orders
+            # 'page_num': 1,  # trigger orders default is 1
+            # 'page_size': limit,  # trigger orders default 20 max 100
         }
+        stop = self.safe_value(params, 'stop')
+        limitRequest = 'page_size' if stop else 'limit'
         if limit is not None:
-            request['limit'] = limit
+            request[limitRequest] = limit
         if since is not None:
             request['start_time'] = since
-        response = self.spotPrivateGetOrderList(self.extend(request, params))
+        options = self.safe_value(self.options, 'fetchOrdersByState', {})
+        defaultMethod = self.safe_string(options, 'method', 'spotPrivateGetOrderList')
+        method = self.safe_string(params, 'method', defaultMethod)
+        if stop:
+            method = 'contractPrivateGetPlanorderListOrders'
+        query = self.omit(params, ['method', 'stop'])
+        response = getattr(self, method)(self.extend(request, query))
         data = self.safe_value(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
     def fetch_canceled_orders(self, symbol=None, since=None, limit=None, params={}):
-        return self.fetch_orders_by_state('CANCELED', symbol, since, limit, params)
+        stop = self.safe_value(params, 'stop')
+        state = 'CANCELED'
+        if stop:
+            state = '2'
+        return self.fetch_orders_by_state(state, symbol, since, limit, params)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        return self.fetch_orders_by_state('FILLED', symbol, since, limit, params)
+        stop = self.safe_value(params, 'stop')
+        state = 'FILLED'
+        if stop:
+            state = '3'
+        return self.fetch_orders_by_state(state, symbol, since, limit, params)
 
     def cancel_all_orders(self, symbol=None, params={}):
         self.load_markets()
