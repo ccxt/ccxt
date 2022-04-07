@@ -1182,19 +1182,32 @@ module.exports = class whitebit extends Exchange {
         //
         //    []
         //
+        const transfer = this.parseTransfer (response, currency);
         const transferOptions = this.safeValue (this.options, 'transfer', {});
         const fillTransferResponseFromRequest = this.safeValue (transferOptions, 'fillTransferResponseFromRequest', true);
-        const transfer = {
-            'info': response,
-            'status': 'pending',
-        };
         if (fillTransferResponseFromRequest) {
-            transfer['currency'] = code;
             transfer['amount'] = amount;
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
         }
         return transfer;
+    }
+
+    parseTransfer (transfer, currency) {
+        //
+        //    []
+        //
+        return {
+            'info': transfer,
+            'id': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': this.safeCurrencyCode (undefined, currency),
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': 'pending',
+        };
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
