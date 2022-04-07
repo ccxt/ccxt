@@ -2376,12 +2376,27 @@ class ftx(Exchange):
         self.load_markets()
         request = {}
         endTime = self.safe_number_2(params, 'till', 'end_time')
+        if limit > 48:
+            raise BadRequest(self.id + ' fetchBorrowRateHistories() limit cannot exceed 48')
+        millisecondsPerHour = 3600000
+        millisecondsPer2Days = 172800000
+        if (endTime - since) > millisecondsPer2Days:
+            raise BadRequest(self.id + ' fetchBorrowRateHistories() requires the time range between the since time and the end time to be less than 48 hours')
         if since is not None:
-            request['start_time'] = since / 1000
+            request['start_time'] = int(since / 1000)
             if endTime is None:
-                request['end_time'] = self.milliseconds() / 1000
+                now = self.milliseconds()
+                sinceLimit = 2 if (limit is None) else limit
+                endTime = self.sum(since, millisecondsPerHour * (sinceLimit - 1))
+                endTime = min(endTime, now)
+        else:
+            if limit is not None:
+                if endTime is None:
+                    endTime = self.milliseconds()
+                startTime = self.sum((endTime - millisecondsPerHour * limit), 1000)
+                request['start_time'] = int(startTime / 1000)
         if endTime is not None:
-            request['end_time'] = endTime / 1000
+            request['end_time'] = int(endTime / 1000)
         response = self.publicGetSpotMarginHistory(self.extend(request, params))
         #
         #    {

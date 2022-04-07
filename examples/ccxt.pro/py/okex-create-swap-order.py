@@ -22,7 +22,7 @@ async def main():
     # https://github.com/ccxt/ccxt/wiki/Manual#overriding-unified-params
     # https://www.okex.com/docs/en/#swap-swap---orders
 
-    symbol = 'BTC-USD-SWAP'
+    symbol = 'BTC/USDT:USDT'
     amount = 1  # how may contracts
     price = None  # or your limit price
     side = 'buy'  # or 'sell'

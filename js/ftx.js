@@ -2485,15 +2485,34 @@ module.exports = class ftx extends Exchange {
     async fetchBorrowRateHistories (since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
-        const endTime = this.safeNumber2 (params, 'till', 'end_time');
+        let endTime = this.safeNumber2 (params, 'till', 'end_time');
+        if (limit > 48) {
+            throw new BadRequest (this.id + ' fetchBorrowRateHistories() limit cannot exceed 48');
+        }
+        const millisecondsPerHour = 3600000;
+        const millisecondsPer2Days = 172800000;
+        if ((endTime - since) > millisecondsPer2Days) {
+            throw new BadRequest (this.id + ' fetchBorrowRateHistories() requires the time range between the since time and the end time to be less than 48 hours');
+        }
         if (since !== undefined) {
-            request['start_time'] = since / 1000;
+            request['start_time'] = parseInt (since / 1000);
             if (endTime === undefined) {
-                request['end_time'] = this.milliseconds () / 1000;
+                const now = this.milliseconds ();
+                const sinceLimit = (limit === undefined) ? 2 : limit;
+                endTime = this.sum (since, millisecondsPerHour * (sinceLimit - 1));
+                endTime = Math.min (endTime, now);
+            }
+        } else {
+            if (limit !== undefined) {
+                if (endTime === undefined) {
+                    endTime = this.milliseconds ();
+                }
+                const startTime = this.sum ((endTime - millisecondsPerHour * limit), 1000);
+                request['start_time'] = parseInt (startTime / 1000);
             }
         }
         if (endTime !== undefined) {
-            request['end_time'] = endTime / 1000;
+            request['end_time'] = parseInt (endTime / 1000);
         }
         const response = await this.publicGetSpotMarginHistory (this.extend (request, params));
         //

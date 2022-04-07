@@ -1446,7 +1446,7 @@ class bitstamp(Exchange):
                 direction = 'in' if (amount > 0) else 'out'
             elif ('currency' in parsedTransaction) and parsedTransaction['currency'] is not None:
                 code = parsedTransaction['currency']
-                currencyId = self.safe_string(self.currencies_by_id, code, code)
+                currencyId = self.safe_string_lower(self.currencies_by_id, code, code)
                 amount = self.safe_number(item, currencyId)
                 direction = 'in' if (amount > 0) else 'out'
             return {

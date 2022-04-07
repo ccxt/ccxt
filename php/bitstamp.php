@@ -1530,7 +1530,7 @@ class bitstamp extends Exchange {
                 $direction = ($amount > 0) ? 'in' : 'out';
             } else if ((is_array($parsedTransaction) && array_key_exists('currency', $parsedTransaction)) && $parsedTransaction['currency'] !== null) {
                 $code = $parsedTransaction['currency'];
-                $currencyId = $this->safe_string($this->currencies_by_id, $code, $code);
+                $currencyId = $this->safe_string_lower($this->currencies_by_id, $code, $code);
                 $amount = $this->safe_number($item, $currencyId);
                 $direction = ($amount > 0) ? 'in' : 'out';
             }

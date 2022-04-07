@@ -1650,6 +1650,72 @@ class wavesexchange(Exchange):
         }
         response = await self.publicGetTransactionsExchange(request)
         data = self.safe_value(response, 'data')
+        #
+        #      {
+        #          "__type":"list",
+        #          "isLastPage":true,
+        #          "lastCursor":"MzA2MjQ0MzAwMDI5OjpkZXNj",
+        #          "data": [
+        #              {
+        #                  "__type":"transaction",
+        #                  "data": {
+        #                      "id":"GbjPqco2wRP5QSrY5LimFrUyJaM535K9nhK5zaQ7J7Tx",
+        #                      "timestamp":"2022-04-06T19:56:31.479Z",
+        #                      "height":3062443,
+        #                      "type":7,
+        #                      "version":2,
+        #                      "proofs":[
+        #                          "57mYrANw61eiArCTv2eYwzXm71jYC2KpZ5AeM9zHEstuRaYSAWSuSE7njAJYJu8zap6DMCm3nzqc6es3wQFDpRCN"
+        #                      ],
+        #                      "fee":0.003,
+        #                      "applicationStatus":"succeeded",
+        #                      "sender":"3PEjHv3JGjcWNpYEEkif2w8NXV4kbhnoGgu",
+        #                      "senderPublicKey":"9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        #                      "buyMatcherFee":0,
+        #                      "sellMatcherFee":0.00141728,
+        #                      "price":215.7431,
+        #                      "amount":0.09,
+        #                      "order1": {
+        #                          "id":"49qiuQj5frdZ6zpTCEpMuKPMAh1EimwXpXWB4BeCw33h",
+        #                          "senderPublicKey":"CjUfoH3dsDZsf5UuAjqqzpWHXgvKzBZpVG9YixF7L48K",
+        #                          "matcherPublicKey":"9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        #                          "assetPair": {
+        #                              "amountAsset":"7TMu26hAs7B2oW6c5sfx45KSZT7GQA3TZNYuCav8Dcqt",
+        #                              "priceAsset":"DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p"
+        #                          },
+        #                          "orderType":"buy",
+        #                          "price":215.7431,
+        #                          "sender":"3PR9WmaHV5ueVw2Wr9xsiCG3t4ySXzkkGLy",
+        #                          "amount":0.36265477,
+        #                          "timestamp":"2022-04-06T19:55:06.832Z",
+        #                          "expiration":"2022-05-05T19:55:06.832Z",
+        #                          "matcherFee":3.000334,
+        #                          "signature":"2rBWhdeuRJNpQfXfTFtcR8x8Lpic8FUHPdLML9uxABRUuxe48YRJcZxbncwWAh9LWFCEUZiztv7RZBZfGMWfFxTs",
+        #                          "matcherFeeAssetId":"DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p"
+        #                      },
+        #                      "order2": {
+        #                          "id":"AkxiJqCuv6wm8K41TUSgFNwShZMnCbMDT78MqrcWpQ53",
+        #                          "senderPublicKey":"72o7qNKyne5hthB1Ww6famE7uHrk5vTVB2ZfUMBEqL3Y",
+        #                          "matcherPublicKey":"9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        #                          "assetPair": {
+        #                              "amountAsset":"7TMu26hAs7B2oW6c5sfx45KSZT7GQA3TZNYuCav8Dcqt",
+        #                              "priceAsset":"DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p"
+        #                          },
+        #                          "orderType":"sell",
+        #                          "price":210,
+        #                          "sender":"3P3CzbjGgiqEyUBeKZYfgZtyaZfMG8fjoUD",
+        #                          "amount":0.09,
+        #                          "timestamp":"2022-04-06T19:56:18.535Z",
+        #                          "expiration":"2022-05-04T19:56:18.535Z",
+        #                          "matcherFee":0.00141728,
+        #                          "signature":"5BZCjYn6QzVkMXBFDBnzcAUBdCZqhq9hQfRXFHfLUQCsbis4zeriw4sUqLa1BZRT2isC6iY4Z4HtekikPqZ461PT",
+        #                          "matcherFeeAssetId":"7TMu26hAs7B2oW6c5sfx45KSZT7GQA3TZNYuCav8Dcqt"
+        #                      }
+        #                  }
+        #              },...
+        #          ]
+        #      }
+        #
         return self.parse_trades(data, market, since, limit)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -1665,9 +1731,76 @@ class wavesexchange(Exchange):
             request['timeStart'] = since
         response = await self.publicGetTransactionsExchange(request)
         data = self.safe_value(response, 'data')
+        #
+        #      {
+        #          "__type":"list",
+        #          "isLastPage":false,
+        #          "lastCursor":"MzA2MjM2MTAwMDU0OjpkZXNj",
+        #          "data": [
+        #              {
+        #                  "__type":"transaction",
+        #                  "data": {
+        #                      "id":"F42WsvSsyEzvpPLFjVhQKkSNuopooP4zMkjSUs47NeML",
+        #                      "timestamp":"2022-04-06T18:39:49.145Z",
+        #                      "height":3062361,
+        #                      "type":7,
+        #                      "version":2,
+        #                      "proofs": [
+        #                          "39iJv82kFi4pyuBxYeZpP45NXXjbrCXdVsHPAAvj32UMLmTXLjMTfV43PcmZDSAuS93HKSDo1aKJrin8UvkeE9Bs"
+        #                      ],
+        #                      "fee":0.003,
+        #                      "applicationStatus":"succeeded",
+        #                      "sender":"3PEjHv3JGjcWNpYEEkif2w8NXV4kbhnoGgu",
+        #                      "senderPublicKey":"9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        #                      "buyMatcherFee":0.02314421,
+        #                      "sellMatcherFee":0,
+        #                      "price":217.3893,
+        #                      "amount":0.34523025,
+        #                      "order1": {
+        #                          "id":"HkM36PHGaeeZdDKT1mYgZXhaU9PRZ54RZiJc2K4YMT3Q",
+        #                          "senderPublicKey":"7wYCaDcc6GX1Jx2uS7QgLHBypBKvrezTS1HfiW6Xe4Bk",
+        #                          "matcherPublicKey":"9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        #                          "assetPair": {
+        #                              "amountAsset":"7TMu26hAs7B2oW6c5sfx45KSZT7GQA3TZNYuCav8Dcqt",
+        #                              "priceAsset":"DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p"
+        #                          },
+        #                          "orderType":"buy",
+        #                          "price":225.2693,
+        #                          "sender":"3PLPc8f4DGYaF9C9bwJ2uVmHqRv3NCjg5VQ",
+        #                          "amount":2.529,
+        #                          "timestamp":"2022-04-06T18:39:48.796Z",
+        #                          "expiration":"2022-05-05T18:39:48.796Z",
+        #                          "matcherFee":0.17584444,
+        #                          "signature":"2yQfJoomv86evQDw36fg1uiRkHvPDZtRp3qvxqTBWPvz4JLTHGQtEHJF5NGTvym6U93CtgNprngzmD9ecHBjxf6U",
+        #                          "matcherFeeAssetId":"Atqv59EYzjFGuitKVnMRk6H8FukjoV3ktPorbEys25on"
+        #                      },
+        #                      "order2": {
+        #                          "id":"F7HKmeuzwWdk3wKitHLnVx5MuD4wBWPpphQ8kUGx4tT9",
+        #                          "senderPublicKey":"CjUfoH3dsDZsf5UuAjqqzpWHXgvKzBZpVG9YixF7L48K",
+        #                          "matcherPublicKey":"9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        #                          "assetPair": {
+        #                              "amountAsset":"7TMu26hAs7B2oW6c5sfx45KSZT7GQA3TZNYuCav8Dcqt",
+        #                              "priceAsset":"DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p"
+        #                          },
+        #                          "orderType":"sell",
+        #                          "price":217.3893,
+        #                          "sender":"3PR9WmaHV5ueVw2Wr9xsiCG3t4ySXzkkGLy",
+        #                          "amount":0.35767793,
+        #                          "timestamp":"2022-04-06T18:32:01.390Z",
+        #                          "expiration":"2022-05-05T18:32:01.390Z",
+        #                          "matcherFee":0.0139168,
+        #                          "signature":"34HgWVLPgeYWkiSvAc5ChVepGTYDQDug2dMTSincs6idEyoM7AtaZuH3mqQ5RJG2fcxxH2QSB723Qq3dgLQwQmKf",
+        #                          "matcherFeeAssetId":"7TMu26hAs7B2oW6c5sfx45KSZT7GQA3TZNYuCav8Dcqt"
+        #                      }
+        #                  }
+        #              }, ...
+        #          ]
+        #      }
+        #
         return self.parse_trades(data, market, since, limit)
 
     def parse_trade(self, trade, market=None):
+        #
         # {__type: 'transaction',
         #   data:
         #    {id: 'HSdruioHqvYHeyn9hhyoHdRWPB2bFA8ujeCPZMK6992c',
@@ -1712,15 +1845,13 @@ class wavesexchange(Exchange):
         #         matcherFee: 0.003,
         #         signature: '3SFyrcqzou2ddZyNisnLYaGhLt5qRjKxH8Nw3s4T5U7CEKGX9DDo8dS27RgThPVGbYF1rYET1FwrWoQ2UFZ6SMTR',
         #         matcherFeeAssetId: null}}}
+        #
         data = self.safe_value(trade, 'data')
         datetime = self.safe_string(data, 'timestamp')
         timestamp = self.parse8601(datetime)
         id = self.safe_string(data, 'id')
         priceString = self.safe_string(data, 'price')
         amountString = self.safe_string(data, 'amount')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         order1 = self.safe_value(data, 'order1')
         order2 = self.safe_value(data, 'order2')
         order = None
@@ -1738,10 +1869,10 @@ class wavesexchange(Exchange):
         side = self.safe_string(order, 'orderType')
         orderId = self.safe_string(order, 'id')
         fee = {
-            'cost': self.safe_number(order, 'matcherFee'),
+            'cost': self.safe_string(order, 'matcherFee'),
             'currency': self.safe_currency_code(self.safe_string(order, 'matcherFeeAssetId', 'WAVES')),
         }
-        return {
+        return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
             'datetime': datetime,
@@ -1751,11 +1882,11 @@ class wavesexchange(Exchange):
             'type': None,
             'side': side,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': fee,
-        }
+        }, market)
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         errorCode = self.safe_string(response, 'error')

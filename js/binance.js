@@ -33,7 +33,6 @@ module.exports = class binance extends Exchange {
                 'createDepositAddress': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
-                'deposit': false,
                 'fetchAccounts': undefined,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
@@ -2353,10 +2352,11 @@ module.exports = class binance extends Exchange {
         id = this.safeString2 (trade, 'id', 'tradeId', id);
         let side = undefined;
         const orderId = this.safeString (trade, 'orderId');
-        if ('m' in trade) {
-            side = trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally
-        } else if ('isBuyerMaker' in trade) {
-            side = trade['isBuyerMaker'] ? 'sell' : 'buy';
+        const buyerMaker = this.safeValue (trade, 'm', 'isBuyerMaker');
+        let takerOrMaker = undefined;
+        if (buyerMaker !== undefined) {
+            side = buyerMaker ? 'sell' : 'buy'; // this is reversed intentionally
+            takerOrMaker = 'taker';
         } else if ('side' in trade) {
             side = this.safeStringLower (trade, 'side');
         } else {
@@ -2371,7 +2371,6 @@ module.exports = class binance extends Exchange {
                 'currency': this.safeCurrencyCode (this.safeString (trade, 'commissionAsset')),
             };
         }
-        let takerOrMaker = undefined;
         if ('isMaker' in trade) {
             takerOrMaker = trade['isMaker'] ? 'maker' : 'taker';
         }
@@ -5172,11 +5171,13 @@ module.exports = class binance extends Exchange {
         } else if ((api === 'private') || (api === 'sapi' && path !== 'system/status') || (api === 'wapi' && path !== 'systemStatus') || (api === 'dapiPrivate') || (api === 'dapiPrivateV2') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2')) {
             this.checkRequiredCredentials ();
             let query = undefined;
-            const recvWindow = this.safeInteger (this.options, 'recvWindow', 5000);
+            const recvWindow = this.safeInteger (this.options, 'recvWindow');
             const extendedParams = this.extend ({
                 'timestamp': this.nonce (),
-                'recvWindow': recvWindow,
             }, params);
+            if (recvWindow !== undefined) {
+                extendedParams['recvWindow'] = recvWindow;
+            }
             if ((api === 'sapi') && (path === 'asset/dust')) {
                 query = this.urlencodeWithArrayRepeat (extendedParams);
             } else if ((path === 'batchOrders') || (path.indexOf ('sub-account') >= 0) || (path === 'capital/withdraw/apply')) {
@@ -5544,7 +5545,7 @@ module.exports = class binance extends Exchange {
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
             const timestamp = this.safeNumber (row, 'interestAccuredTime');
-            const account = (symbol === undefined) ? 'CROSS' : symbol;
+            const account = (symbol === undefined) ? 'cross' : symbol;
             interest.push ({
                 'account': account,
                 'currency': this.safeCurrencyCode (this.safeString (row, 'asset')),

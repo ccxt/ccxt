@@ -410,7 +410,8 @@ class gateio extends Exchange {
                     'funding' => 'spot',
                     'spot' => 'spot',
                     'margin' => 'margin',
-                    'future' => 'futures',
+                    'swap' => 'futures',
+                    'future' => 'delivery',
                     'futures' => 'futures',
                     'delivery' => 'delivery',
                 ),
@@ -1834,12 +1835,9 @@ class gateio extends Exchange {
 
     public function fetch_balance_helper($entry) {
         $account = $this->account();
-        $used = $this->safe_string($entry, 'freeze');
-        if ($used === null) {
-            $used = $this->safe_string_2($entry, 'locked', 'position_margin');
-        }
-        $account['used'] = $used;
+        $account['used'] = $this->safe_string_2($entry, 'freeze', 'locked');
         $account['free'] = $this->safe_string($entry, 'available');
+        $account['total'] = $this->safe_string($entry, 'total');
         return $account;
     }
 
@@ -1991,7 +1989,7 @@ class gateio extends Exchange {
             'info' => $response,
         );
         $data = $response;
-        if (is_array($data) && array_key_exists('balances', $data)) {
+        if (is_array($data) && array_key_exists('balances', $data)) { // True for cross_margin
             $flatBalances = array();
             $balances = $this->safe_value($data, 'balances', array());
             // inject currency and create an artificial balance object
@@ -2598,6 +2596,28 @@ class gateio extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * @$method
+         * @name gateio#createOrder
+         * @description Create an order on the exchange
+         * @param {string} $symbol Unified CCXT $market $symbol
+         * @param {string} $type "limit" or "market" *"market" is $contract only*
+         * @param {string} $side "buy" or "sell"
+         * @param {float} $amount the $amount of currency to trade
+         * @param {float} $price *ignored in "market" orders* the $price at which the order is to be fullfilled at in units of the quote currency
+         * @param {dict} $params  Extra parameters specific to the exchange API endpoint
+         * @param {float} $params->stopPrice The $price at which a $trigger order is triggered at
+         * @param {string} $params->timeInForce "gtc" for GoodTillCancelled, "ioc" for ImmediateOrCancelled or poc for PendingOrCancelled
+         * @param {integer} $params->iceberg Amount to display for the iceberg order, Null or 0 for normal orders, Set to -1 to hide the order completely
+         * @param {string} $params->text User defined information
+         * @param {string} $params->account *spot and margin only* "spot", "margin" or "cross_margin"
+         * @param {boolean} $params->auto_borrow *margin only* Used in margin or cross margin trading to allow automatic loan of insufficient $amount if balance is not enough
+         * @param {string} $params->settle *$contract only* Unified Currency Code for settle currency
+         * @param {boolean} $params->reduceOnly *$contract only* Indicates if this order is to reduce the size of a position
+         * @param {boolean} $params->close *$contract only* Set as true to close the position, with size set to 0
+         * @param {boolean} $params->auto_size *$contract only* Set $side to close dual-mode position, close_long closes the long $side, while close_short the short one, size also needs to be set to 0
+         * @returns [An order structure]array(@link https://docs.ccxt.com/en/latest/manual.html#order-structure)
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $contract = $market['contract'];
