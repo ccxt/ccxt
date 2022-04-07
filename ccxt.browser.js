@@ -3,4 +3,7 @@
         browserify --debug ./ccxt.browser.js > ./dist/ccxt.browser.js
  */
 
-window.ccxt = require ('./ccxt')
+ccxt = require ('./ccxt')
+if (typeof window !== 'undefined') {
+        window.ccxt = ccxt
+}
