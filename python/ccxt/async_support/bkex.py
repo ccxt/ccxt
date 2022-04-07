@@ -456,10 +456,7 @@ class bkex(Exchange):
             if not isinstance(symbols, list):
                 raise BadRequest(self.id + ' fetchTickers() symbols argument should be an array')
         if symbols is not None:
-            marketIds = []
-            for i in range(0, len(symbols)):
-                market = self.market(symbols[i])
-                marketIds.append(market['id'])
+            marketIds = self.market_ids(symbols)
             request['symbol'] = ','.join(marketIds)
         response = await self.publicGetQTickers(self.extend(request, params))
         tickers = self.safe_value(response, 'data')

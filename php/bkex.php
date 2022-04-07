@@ -468,11 +468,7 @@ class bkex extends Exchange {
             }
         }
         if ($symbols !== null) {
-            $marketIds = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $market = $this->market($symbols[$i]);
-                $marketIds[] = $market['id'];
-            }
+            $marketIds = $this->market_ids($symbols);
             $request['symbol'] = implode(',', $marketIds);
         }
         $response = $this->publicGetQTickers (array_merge($request, $params));
