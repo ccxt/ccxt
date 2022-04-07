@@ -40,6 +40,7 @@ module.exports = class huobi extends Exchange {
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
+                'fetchBorrowInterest': true,
                 'fetchBorrowRate': undefined,
                 'fetchBorrowRateHistories': undefined,
                 'fetchBorrowRateHistory': undefined,
@@ -4615,6 +4616,128 @@ module.exports = class huobi extends Exchange {
         const data = this.safeValue (response, 'data', []);
         const result = this.parseFundingRates (data);
         return this.filterByArray (result, 'symbol', symbols);
+    }
+
+    async fetchBorrowInterest (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const defaultMargin = this.safeString (params, 'marginType', 'cross'); // cross or isolated
+        const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', defaultMargin);
+        const request = {};
+        if (since !== undefined) {
+            request['start-date'] = this.yyyymmdd (since);
+        }
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        let market = undefined;
+        let method = undefined;
+        if (marginType === 'isolated') {
+            method = 'privateGetMarginLoanOrders';
+            if (symbol !== undefined) {
+                market = this.market (symbol);
+                request['symbol'] = market['id'];
+            }
+        } else {  // Cross
+            method = 'privateGetCrossMarginLoanOrders';
+            if (code !== undefined) {
+                const currency = this.currency (code);
+                request['currency'] = currency['id'];
+            }
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        //    {
+        //        "status":"ok",
+        //        "data":[
+        //            {
+        //                "loan-balance":"0.100000000000000000",
+        //                "interest-balance":"0.000200000000000000",
+        //                "loan-amount":"0.100000000000000000",
+        //                "accrued-at":1511169724531,
+        //                "interest-amount":"0.000200000000000000",
+        //                "filled-points":"0.2",
+        //                "filled-ht":"0.2",
+        //                "currency":"btc",
+        //                "id":394,
+        //                "state":"accrual",
+        //                "account-id":17747,
+        //                "user-id":119913,
+        //                "created-at":1511169724531
+        //            }
+        //        ]
+        //    }
+        //
+        const data = this.safeValue (response, 'data');
+        const interest = this.parseBorrowInterests (data, marginType, market);
+        return this.filterByCurrencySinceLimit (interest, code, since, limit);
+    }
+
+    parseBorrowInterests (response, marginType, market = undefined) {
+        const interest = [];
+        for (let i = 0; i < response.length; i++) {
+            const row = response[i];
+            interest.push (this.parseBorrowInterest (row, marginType, market));
+        }
+        return interest;
+    }
+
+    parseBorrowInterest (info, marginType, market = undefined) {
+        // isolated
+        //    {
+        //        "interest-rate":"0.000040830000000000",
+        //        "user-id":35930539,
+        //        "account-id":48916071,
+        //        "updated-at":1649320794195,
+        //        "deduct-rate":"1",
+        //        "day-interest-rate":"0.000980000000000000",
+        //        "hour-interest-rate":"0.000040830000000000",
+        //        "loan-balance":"100.790000000000000000",
+        //        "interest-balance":"0.004115260000000000",
+        //        "loan-amount":"100.790000000000000000",
+        //        "paid-coin":"0.000000000000000000",
+        //        "accrued-at":1649320794148,
+        //        "created-at":1649320794148,
+        //        "interest-amount":"0.004115260000000000",
+        //        "deduct-amount":"0",
+        //        "deduct-currency":"",
+        //        "paid-point":"0.000000000000000000",
+        //        "currency":"usdt",
+        //        "symbol":"ltcusdt",
+        //        "id":20242721,
+        //    }
+        //
+        // cross
+        //   {
+        //       "id":3416576,
+        //       "user-id":35930539,
+        //       "account-id":48956839,
+        //       "currency":"usdt",
+        //       "loan-amount":"102",
+        //       "loan-balance":"102",
+        //       "interest-amount":"0.00416466",
+        //       "interest-balance":"0.00416466",
+        //       "created-at":1649322735333,
+        //       "accrued-at":1649322735382,
+        //       "state":"accrual",
+        //       "filled-points":"0",
+        //       "filled-ht":"0"
+        //   }
+        //
+        const marketId = this.safeString (info, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const account = (marginType === 'cross') ? marginType : symbol;
+        const timestamp = this.safeNumber (info, 'accrued-at');
+        return {
+            'account': account,  // isolated symbol, will not be returned for crossed margin
+            'currency': this.safeCurrencyCode (this.safeString (info, 'currency')),
+            'interest': this.safeNumber (info, 'interest-amount'),
+            'interestRate': this.safeNumber (info, 'interest-rate'),
+            'amountBorrowed': this.safeNumber (info, 'loan-amount'),
+            'timestamp': timestamp,  // Interest accrued time
+            'datetime': this.iso8601 (timestamp),
+            'info': info,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
