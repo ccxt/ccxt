@@ -31,7 +31,6 @@ module.exports = class bkex extends Exchange {
                 'createLimitOrder': undefined,
                 'createMarketOrder': undefined,
                 'createOrder': true,
-                'deposit': undefined,
                 'editOrder': undefined,
                 'fetchAccounts': undefined,
                 'fetchBalance': true,
@@ -464,11 +463,7 @@ module.exports = class bkex extends Exchange {
             }
         }
         if (symbols !== undefined) {
-            const marketIds = [];
-            for (let i = 0; i < symbols.length; i++) {
-                const market = this.market (symbols[i]);
-                marketIds.push (market['id']);
-            }
+            const marketIds = this.marketIds (symbols);
             request['symbol'] = marketIds.join (',');
         }
         const response = await this.publicGetQTickers (this.extend (request, params));

@@ -34,7 +34,6 @@ class coinbase extends Exchange {
                 'createDepositAddress' => true,
                 'createOrder' => null,
                 'createReduceOnlyOrder' => false,
-                'deposit' => null,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,

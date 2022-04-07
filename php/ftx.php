@@ -2490,14 +2490,33 @@ class ftx extends Exchange {
         $this->load_markets();
         $request = array();
         $endTime = $this->safe_number_2($params, 'till', 'end_time');
+        if ($limit > 48) {
+            throw new BadRequest($this->id . ' fetchBorrowRateHistories() $limit cannot exceed 48');
+        }
+        $millisecondsPerHour = 3600000;
+        $millisecondsPer2Days = 172800000;
+        if (($endTime - $since) > $millisecondsPer2Days) {
+            throw new BadRequest($this->id . ' fetchBorrowRateHistories() requires the time range between the $since time and the end time to be less than 48 hours');
+        }
         if ($since !== null) {
-            $request['start_time'] = $since / 1000;
+            $request['start_time'] = intval($since / 1000);
             if ($endTime === null) {
-                $request['end_time'] = $this->milliseconds() / 1000;
+                $now = $this->milliseconds();
+                $sinceLimit = ($limit === null) ? 2 : $limit;
+                $endTime = $this->sum($since, $millisecondsPerHour * ($sinceLimit - 1));
+                $endTime = min ($endTime, $now);
+            }
+        } else {
+            if ($limit !== null) {
+                if ($endTime === null) {
+                    $endTime = $this->milliseconds();
+                }
+                $startTime = $this->sum(($endTime - $millisecondsPerHour * $limit), 1000);
+                $request['start_time'] = intval($startTime / 1000);
             }
         }
         if ($endTime !== null) {
-            $request['end_time'] = $endTime / 1000;
+            $request['end_time'] = intval($endTime / 1000);
         }
         $response = $this->publicGetSpotMarginHistory (array_merge($request, $params));
         //

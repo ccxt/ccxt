@@ -36,7 +36,6 @@ class bw(Exchange):
                 'createLimitOrder': True,
                 'createMarketOrder': None,
                 'createOrder': True,
-                'deposit': None,
                 'editOrder': None,
                 'fetchBalance': True,
                 'fetchBidsAsks': None,
