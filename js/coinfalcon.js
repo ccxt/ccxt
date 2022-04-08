@@ -33,6 +33,8 @@ module.exports = class coinfalcon extends Exchange {
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
+                'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -61,6 +63,7 @@ module.exports = class coinfalcon extends Exchange {
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
+                'transfer': true,
                 'withdraw': true,
             },
             'urls': {
@@ -469,6 +472,39 @@ module.exports = class coinfalcon extends Exchange {
         await this.loadMarkets ();
         const response = await this.privateGetUserAccounts (params);
         return this.parseBalance (response);
+    }
+
+    parseDepositAddress (depositAddress, currency = undefined) {
+        //
+        //     {
+        //         "address":"0x77b5051f97efa9cc52c9ad5b023a53fc15c200d3",
+        //         "tag":"0"
+        //     }
+        //
+        const address = this.safeString (depositAddress, 'address');
+        const tag = this.safeString (depositAddress, 'tag');
+        this.checkAddress (address);
+        return {
+            'currency': this.safeCurrencyCode (undefined, currency),
+            'address': address,
+            'tag': tag,
+            'network': undefined,
+            'info': depositAddress,
+        };
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.safeCurrency (code);
+        const request = {
+            'currency': currency['id'].toLowerCase (),
+        };
+        const response = await this.privateGetAccountDepositAddress (this.extend (request, params));
+        //
+        //    {data: { address: '0x9918987bbe865a1a9301dc736cf6cf3205956694', tag:null } }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseDepositAddress (data, currency);
     }
 
     parseOrderStatus (status) {
