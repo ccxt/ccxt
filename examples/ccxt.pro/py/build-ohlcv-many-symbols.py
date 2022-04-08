@@ -27,12 +27,12 @@ async def loop(exchange, symbol, timeframe, complete_candles_only = False):
 
 async def main():
     # select the exchange
-    exchange = ccxtpro.binance()
+    exchange = ccxtpro.ftx()
     if exchange.has['watchTrades']:
         markets = await exchange.load_markets()
         # Change this value accordingly
         timeframe = '1m'
-        limit = 1
+        limit = 5
         marketList = [*markets]
         selected_symbols = marketList[:limit]
         # you can also specify the symbols manually
