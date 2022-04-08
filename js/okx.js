@@ -4865,12 +4865,13 @@ module.exports = class okx extends Exchange {
          * @param {str} code Unified CCXT currency code
          * @param {str} timeframe "5m", "1h", or "1d"
          * @param {int} since The time in ms of the earliest record to retrieve as a unix timestamp
-         * @param {int} limit Not used by okx
+         * @param {int} limit Not used by okx, but parsed internally by CCXT
          * @param {dict} params Exchange specific parameters
          * @param {int} params.till The time in ms of the latest record to retrieve as a unix timestamp
          * @returns An array of open interest structures
          */
-        if (timeframe !== '5m' && timeframe !== '1h' && timeframe !== '1d') {
+        timeframe = (timeframe === '5m') ? timeframe : timeframe.toUpperCase ();
+        if (timeframe !== '5m' && timeframe !== '1H' && timeframe !== '1D') {
             throw new BadRequest (this.id + ' fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe');
         }
         await this.loadMarkets ();
@@ -4902,7 +4903,7 @@ module.exports = class okx extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        return this.parseOpenInterests (data);
+        return this.parseOpenInterests (data, undefined, since, limit);
     }
 
     parseOpenInterest (interest, market = undefined) {
