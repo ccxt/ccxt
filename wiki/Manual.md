@@ -1875,6 +1875,7 @@ if ($exchange->has['fetchMyTrades']) {
 - [Funding Rate](#funding-rate)
 - [Funding Rate History](#funding-rate-history)
 - [Positions Risk](#positions-risk)
+- [Open Interest History](#open-interest-history)
 - [Borrow Rates](#borrow-rates)
 - [Borrow Rate History](#borrow-rate-history)
 
@@ -2691,6 +2692,47 @@ Returns
     fundingRate: -0.000068,
     timestamp: 1642953600000,
     datetime: "2022-01-23T16:00:00.000Z"
+}
+```
+
+## Open Interest History
+
+*contract only*
+
+Use the `fetchOpenInterestHistory` method to get a history of open interest for a symbol from the exchange.
+
+```JavaScript
+fetchOpenInterestHistory (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {})
+```
+
+Parameters
+
+- **symbol** (String) Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`)
+- **timeframe** (String) Check exchange.timeframes for available values
+- **since** (Integer) Timestamp for the earliest open interest record (e.g. `1645807945000`)
+- **limit** (Integer) The maximum number of [open interest structures](#open-interest-structures) to retrieve (e.g. `10`)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- An array of [open interest structures](#open-interest-structure)
+
+### Open Interest Structure
+
+```JavaScript
+{
+    symbol: 'BTC/USDT',
+    volume: 80872.801,
+    value: 3508262107.38,
+    valueCurrency: 'USDT',
+    timestamp: 1649379000000,
+    datetime: '2022-04-08T00:50:00.000Z',
+    info: {
+        symbol: 'BTCUSDT',
+        sumOpenInterest: '80872.80100000',
+        sumOpenInterestValue: '3508262107.38000000',
+        timestamp: '1649379000000'
+    }
 }
 ```
 
