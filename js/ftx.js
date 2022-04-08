@@ -362,6 +362,10 @@ module.exports = class ftx extends Exchange {
             'options': {
                 // support for canceling conditional orders
                 // https://github.com/ccxt/ccxt/issues/6669
+                'fetchMarkets': {
+                    // the expiry datetime may be undefined for expiring futures, https://github.com/ccxt/ccxt/pull/12692
+                    'throwOnUndefinedExpiry': false,
+                },
                 'cancelOrder': {
                     'method': 'privateDeleteOrdersOrderId', // privateDeleteConditionalOrdersOrderId
                 },
@@ -586,9 +590,14 @@ module.exports = class ftx extends Exchange {
                 type = 'future';
                 expiry = this.parse8601 (expiryDatetime);
                 if (expiry === undefined) {
-                    // It is likely a future that is expiring in this moment
-                    self.log (this.id + " symbol '" + id + "' is a future contract with an invalid expiry datetime.");
-                    continue;
+                    // it is likely a future that is expiring in this moment
+                    const options = this.safeValue (this.options, 'fetchMarkets', {});
+                    const throwOnUndefinedExpiry = this.safeValue (options, 'throwOnUndefinedExpiry', false);
+                    if (throwOnUndefinedExpiry) {
+                        throw new BadSymbol (this.id + " symbol '" + id + "' is a future contract with an invalid expiry datetime.");
+                    } else {
+                        continue;
+                    }
                 }
                 const parsedId = id.split ('-');
                 const length = parsedId.length;
