@@ -3,16 +3,22 @@
 import asyncio
 import ccxtpro
 
-async def loop(exchange, symbol, timeframe):
+async def loop(exchange, symbol, timeframe, complete_candles_only = False):
+    duration_in_seconds = exchange.parse_timeframe(timeframe)
+    duration_in_ms = duration_in_seconds * 1000
     while True:
         try:
             trades = await exchange.watch_trades(symbol)
             if len(trades) > 0:
+                current_minute = int(exchange.milliseconds() / duration_in_ms)
                 ohlcvc = exchange.build_ohlcvc(trades, timeframe)
-                print("Symbol:", symbol, "timeframe:", timeframe)
-                print ('-----------------------------------------------------------')
-                print (ohlcvc)
-                print ('-----------------------------------------------------------')
+                if complete_candles_only:
+                    ohlcvc = [candle for candle in ohlcvc if int( candle[0] / duration_in_ms ) < current_minute]
+                if (len(ohlcvc) > 0):
+                    print("Symbol:", symbol, "timeframe:", timeframe)
+                    print ('-----------------------------------------------------------')
+                    print (ohlcvc)
+                    print ('-----------------------------------------------------------')
 
         except Exception as e:
             print(str(e))
@@ -21,18 +27,21 @@ async def loop(exchange, symbol, timeframe):
 
 async def main():
     # select the exchange
-    exchange = ccxtpro.ftx()
+    exchange = ccxtpro.binance()
     if exchange.has['watchTrades']:
         markets = await exchange.load_markets()
         # Change this value accordingly
-        timeframe = '15m'
-        limit = 5
+        timeframe = '1m'
+        limit = 1
         marketList = [*markets]
         selected_symbols = marketList[:limit]
         # you can also specify the symbols manually
-        # example:
-        # selected_symbols = ['BTC/USDT', 'LTC/USDT']
-        await asyncio.gather(*[loop(exchange, symbol, timeframe) for symbol in selected_symbols])
+        # example: selected_symbols = ['BTC/USDT', 'ETH/USDT']
+
+        # Use this variable to choose if only complete candles 
+        # should be considered
+        complete_candles_only = True
+        await asyncio.gather(*[loop(exchange, symbol, timeframe, complete_candles_only) for symbol in selected_symbols])
         await exchange.close()
     else:
         print(exchange.id, 'does not support watchTrades yet')
