@@ -1387,8 +1387,11 @@ module.exports = class hollaex extends Exchange {
             'currency': currency['id'],
             'amount': amount,
             'address': address,
-            'network': params.network
         };
+        const network = this.safeString (params, 'network');
+        if (network !== undefined) {
+            request['network'] = network;
+        }
         const response = await this.privatePostUserWithdrawal (this.extend (request, params));
         // {
         //     message: 'Withdrawal request is in the queue and will be processed.',
