@@ -785,15 +785,12 @@ module.exports = class stex extends Exchange {
         const timestamp = this.safeTimestamp (trade, 'timestamp');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         let symbol = undefined;
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
         const side = this.safeStringLower2 (trade, 'type', 'trade_type');
-        return {
+        return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -803,11 +800,11 @@ module.exports = class stex extends Exchange {
             'type': undefined,
             'takerOrMaker': undefined,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': undefined,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
