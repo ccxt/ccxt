@@ -25,6 +25,7 @@ module.exports = class coinex extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchDeposits': true,
@@ -40,6 +41,7 @@ module.exports = class coinex extends Exchange {
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchWithdrawals': true,
+                'transfer': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -106,6 +108,8 @@ module.exports = class coinex extends Exchange {
                         'margin/account': 1,
                         'margin/config': 1,
                         'margin/loan/history': 1,
+                        'margin/market': 1,
+                        'margin/transfer': 1,
                         'margin/transfer/history': 1,
                         'order': 1,
                         'order/deals': 1,
@@ -223,6 +227,14 @@ module.exports = class coinex extends Exchange {
             },
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
+                'accountsByType': {
+                    'spot': 0,
+                    'margin': 'margin',
+                    'future': 'future',
+                },
+                'transfer': {
+                    'fillResponseFromRequest': true,
+                },
             },
             'commonCurrencies': {
                 'ACM': 'Actinium',
@@ -231,8 +243,12 @@ module.exports = class coinex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetMarketInfo (params);
+        let promises = [];
+        promises.push (this.publicGetMarketInfo (params));
+        promises.push (this.privateGetMarginConfig (params));
+        promises = await Promise.all (promises);
         //
+        //     publicGetMarketInfo
         //     {
         //         "code": 0,
         //         "data": {
@@ -246,10 +262,34 @@ module.exports = class coinex extends Exchange {
         //                 "trading_name": "WAVES",
         //                 "trading_decimal": 8
         //             }
+        //             ...
         //         }
         //     }
         //
-        const markets = this.safeValue (response, 'data', {});
+        //     privateGetMarginConfig
+        //     {
+        //         code: 0,
+        //         data: [
+        //             {
+        //                 market: 'BTCUSDT',
+        //                 leverage: 10,
+        //                 BTC: { min_amount: '0.002', max_amount: '100', day_rate: '0.001' },
+        //                 USDT: { min_amount: '50', max_amount: '5000000', day_rate: '0.001' }
+        //             },
+        //             ...
+        //         ],
+        //     }
+        //
+        const marketInfoResponse = this.safeValue (promises, 0, {});
+        const marginConfigResponse = this.safeValue (promises, 1, {});
+        const marginConfigData = this.safeValue (marginConfigResponse, 'data', []);
+        const leverages = {};
+        for (let i = 0; i < marginConfigData.length; i++) {
+            const config = marginConfigData[i];
+            const marketId = this.safeString (config, 'market');
+            leverages[marketId] = this.safeNumber (config, 'leverage');
+        }
+        const markets = this.safeValue (marketInfoResponse, 'data', {});
         const result = [];
         const keys = Object.keys (markets);
         for (let i = 0; i < keys.length; i++) {
@@ -265,6 +305,7 @@ module.exports = class coinex extends Exchange {
             if (tradingName === id) {
                 symbol = id;
             }
+            const leverage = this.safeNumber (leverages, id);
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -276,7 +317,7 @@ module.exports = class coinex extends Exchange {
                 'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'margin': undefined,
+                'margin': leverage !== undefined,
                 'swap': false,
                 'future': false,
                 'option': false,
@@ -297,8 +338,8 @@ module.exports = class coinex extends Exchange {
                 },
                 'limits': {
                     'leverage': {
-                        'min': undefined,
-                        'max': undefined,
+                        'min': this.parseNumber ('1'),
+                        'max': leverage,
                     },
                     'amount': {
                         'min': this.safeNumber (market, 'min_amount'),
@@ -988,6 +1029,100 @@ module.exports = class coinex extends Exchange {
         const data = this.safeValue (response, 'data');
         const trades = this.safeValue (data, 'data', []);
         return this.parseTrades (trades, market, since, limit);
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const fromId = this.safeNumber (accountsByType, fromAccount);
+        const toId = this.safeNumber (accountsByType, toAccount);
+        const request = {
+            'coin_type': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+        };
+        let method = undefined;
+        if (fromAccount === 'margin' || toAccount === 'margin') {
+            method = 'privatePostMarginTransfer';
+            const symbol = this.safeString (params, 'symbol');
+            if (symbol === undefined) {
+                throw new ExchangeError ('You must define in params what market you are transferring. e.g. {symbol: ETH/BTC}');
+            }
+            const market = this.market (symbol);
+            request['market'] = market['id'];
+            const marginMarkets = await this.publicGetMarginMarket (params);
+            //
+            //     {
+            //         "code": 0,
+            //         "data": {
+            //             "BTCUSDT": 1,
+            //             "BCHUSDT": 2,
+            //             ...
+            //         },
+            //         "message": "Ok"
+            //     }
+            //
+            const data = this.safeValue (marginMarkets, 'data', {});
+            const accountId = this.safeValue (data, market['id']);
+            if (fromAccount === 'margin') {
+                request['from_account'] = accountId;
+                request['to_account'] = toId;
+            } else if (toAccount === 'margin') {
+                request['from_account'] = fromId;
+                request['to_account'] = accountId;
+            }
+        } else if (fromAccount === 'future' && toAccount === 'spot') {
+            method = 'privatePostContractBalanceTransfer';
+            request['transfer_side'] = 'out';
+        } else if (fromAccount === 'spot' && toAccount === 'future') {
+            method = 'privatePostContractBalanceTransfer';
+            request['transfer_side'] = 'in';
+        } else if (fromAccount === 'main') {
+            method = 'privatePostSubAccountTransfer';
+            request['transfer_side'] = 'out';
+            request['transfer_account'] = toAccount;
+        } else if (toAccount === 'main') {
+            method = 'privatePostSubAccountTransfer';
+            request['transfer_side'] = 'in';
+            request['transfer_account'] = fromAccount;
+        } else {
+            throw new ExchangeError ('Only transfers between main account and sub accounts, between spot and future account and between spot and margin are allowed');
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     {"code": 0, "data": null, "message": "Success"}
+        //
+        const transfer = this.parseTransfer (response, currency);
+        const transferOptions = this.safeValue (this.options, 'transfer', {});
+        const fillResponseFromRequest = this.safeValue (transferOptions, 'fillResponseFromRequest', true);
+        if (fillResponseFromRequest) {
+            transfer['fromAccount'] = fromAccount;
+            transfer['toAccount'] = toAccount;
+            transfer['amount'] = amount;
+        }
+        return transfer;
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        const code = this.safeNumber (transfer, 'code');
+        return {
+            'info': transfer,
+            'id': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': this.safeCurrencyCode (undefined, currency),
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': this.parseTransferStatus (code),
+        };
+    }
+
+    parseTransferStatus (status) {
+        const statuses = {
+            '0': 'ok',
+        };
+        return this.safeString (statuses, status, 'failed');
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
