@@ -132,7 +132,7 @@ module.exports = class hollaex extends Exchange {
                         'order': 1,
                     },
                     'post': {
-                        'user/request-withdrawal': 1,
+                        'user/withdrawal': 1,
                         'order': 1,
                     },
                     'delete': {
@@ -1299,6 +1299,8 @@ module.exports = class hollaex extends Exchange {
 
     parseTransaction (transaction, currency = undefined) {
         //
+        // fetchWithdrawals, fetchDeposits
+        //
         //     {
         //         "id": 539,
         //         "amount": 20,
@@ -1314,6 +1316,17 @@ module.exports = class hollaex extends Exchange {
         //         "created_at": "2020-03-03T07:56:36.198Z",
         //         "updated_at": "2020-03-03T08:00:05.674Z",
         //         "user_id": 620
+        //     }
+        //
+        // withdraw
+        //
+        //     {
+        //         message: 'Withdrawal request is in the queue and will be processed.',
+        //         transaction_id: '1d1683c3-576a-4d53-8ff5-27c93fd9758a',
+        //         amount: 1,
+        //         currency: 'xht',
+        //         fee: 0,
+        //         fee_coin: 'xht'
         //     }
         //
         const id = this.safeString (transaction, 'id');
@@ -1336,7 +1349,7 @@ module.exports = class hollaex extends Exchange {
             tagTo = tag;
         }
         const currencyId = this.safeString (transaction, 'currency');
-        const code = this.safeCurrencyCode (currencyId);
+        currency = this.safeCurrency (currencyId, currency);
         let status = this.safeValue (transaction, 'status');
         const dismissed = this.safeValue (transaction, 'dismissed');
         const rejected = this.safeValue (transaction, 'rejected');
@@ -1349,8 +1362,10 @@ module.exports = class hollaex extends Exchange {
         } else {
             status = 'pending';
         }
+        const feeCurrencyId = this.safeString (transaction, 'fee_coin');
+        const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId, currency);
         const fee = {
-            'currency': code,
+            'currency': feeCurrencyCode,
             'cost': this.safeNumber (transaction, 'fee'),
         };
         return {
@@ -1368,7 +1383,7 @@ module.exports = class hollaex extends Exchange {
             'tagTo': tagTo,
             'type': type,
             'amount': amount,
-            'currency': code,
+            'currency': currency['code'],
             'status': status,
             'updated': updated,
             'fee': fee,
@@ -1388,19 +1403,22 @@ module.exports = class hollaex extends Exchange {
             'amount': amount,
             'address': address,
         };
-        // one time password
-        let otp = this.safeString (params, 'otp_code');
-        if ((otp !== undefined) || (this.twofa !== undefined)) {
-            if (otp === undefined) {
-                otp = this.oath ();
-            }
-            request['otp_code'] = otp;
+        const network = this.safeString (params, 'network');
+        if (network !== undefined) {
+            request['network'] = network;
         }
-        const response = await this.privatePostUserRequestWithdrawal (this.extend (request, params));
-        return {
-            'info': response,
-            'id': undefined,
-        };
+        const response = await this.privatePostUserWithdrawal (this.extend (request, params));
+        //
+        //     {
+        //         message: 'Withdrawal request is in the queue and will be processed.',
+        //         transaction_id: '1d1683c3-576a-4d53-8ff5-27c93fd9758a',
+        //         amount: 1,
+        //         currency: 'xht',
+        //         fee: 0,
+        //         fee_coin: 'xht'
+        //     }
+        //
+        return this.parseTransaction (response, currency);
     }
 
     normalizeNumberIfNeeded (number) {
