@@ -1797,14 +1797,22 @@ class mexc(Exchange):
         data = self.safe_value(response, 'data')
         return self.parse_order(data)
 
-    def parse_order_status(self, status):
-        statuses = {
-            'NEW': 'open',
-            'FILLED': 'closed',
-            'PARTIALLY_FILLED': 'open',
-            'CANCELED': 'canceled',
-            'PARTIALLY_CANCELED': 'canceled',
-        }
+    def parse_order_status(self, status, market=None):
+        statuses = {}
+        if market['type'] == 'spot':
+            statuses = {
+                'NEW': 'open',
+                'FILLED': 'closed',
+                'PARTIALLY_FILLED': 'open',
+                'CANCELED': 'canceled',
+                'PARTIALLY_CANCELED': 'canceled',
+            }
+        else:
+            statuses = {
+                '1': 'open',
+                '2': 'canceled',
+                '3': 'closed',
+            }
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
@@ -1880,7 +1888,7 @@ class mexc(Exchange):
         #         "order_type":"MARKET_ORDER"  # LIMIT_ORDER
         #     }
         #
-        # trigger fetchClosedOrders, fetchCanceledOrders
+        # trigger fetchClosedOrders, fetchCanceledOrders, fetchOpenOrders
         #
         #     {
         #         "id": "266583973507973632",
@@ -1937,7 +1945,7 @@ class mexc(Exchange):
             side = 'open short'
         elif side == 4:
             side = 'close long'
-        status = self.parse_order_status(state)
+        status = self.parse_order_status(state, market)
         clientOrderId = self.safe_string_2(order, 'client_order_id', 'orderId')
         if clientOrderId == '':
             clientOrderId = None
@@ -1979,12 +1987,16 @@ class mexc(Exchange):
             # 'trade_type': 'BID',  # spot BID / ASK
             # 'page_num': 1,  # swap required default 1
             # 'page_size': limit,  # swap required default 20 max 100
+            # 'end_time': 1633988662382,  # trigger order
         }
         marketType, query = self.handle_market_type_and_params('fetchOpenOrders', market, params)
         method = self.get_supported_mapping(marketType, {
             'spot': 'spotPrivateGetOrderOpenOrders',
             'swap': 'contractPrivateGetOrderListOpenOrdersSymbol',
         })
+        stop = self.safe_value(params, 'stop')
+        if stop:
+            return self.fetch_orders_by_state('1', symbol, since, limit, params)
         response = getattr(self, method)(self.extend(request, query))
         #
         # Spot
@@ -2005,19 +2017,6 @@ class mexc(Exchange):
         #                 "client_order_id":"",
         #                 "order_type":"LIMIT_ORDER"
         #             },
-        #             {
-        #                 "id":"2ff3163e8617443cb9c6fc19d42b1ca4",
-        #                 "symbol":"ETH_USDT",
-        #                 "price":"3420",
-        #                 "quantity":"0.01",
-        #                 "state":"NEW",
-        #                 "type":"BID",
-        #                 "remain_quantity":"0.01",
-        #                 "remain_amount":"34.2",
-        #                 "create_time":1633988662382,
-        #                 "client_order_id":"",
-        #                 "order_type":"LIMIT_ORDER"
-        #             }
         #         ]
         #     }
         #
@@ -2052,6 +2051,33 @@ class mexc(Exchange):
         #                 "createTime": 1649227612000,
         #                 "updateTime": 1649227611000,
         #                 "positionMode": 1
+        #             }
+        #         ]
+        #     }
+        #
+        # Trigger
+        #
+        #     {
+        #         "success": True,
+        #         "code": 0,
+        #         "data": [
+        #             {
+        #                 "id": "267198217203040768",
+        #                 "symbol": "BTC_USDT",
+        #                 "leverage": 20,
+        #                 "side": 1,
+        #                 "triggerPrice": 31111,
+        #                 "price": 31115,
+        #                 "vol": 2,
+        #                 "openType": 1,
+        #                 "triggerType": 2,
+        #                 "state": 1,
+        #                 "executeCycle": 87600,
+        #                 "trend": 1,
+        #                 "orderType": 1,
+        #                 "errorCode": 0,
+        #                 "createTime": 1649375419000,
+        #                 "updateTime": 1649375419000
         #             }
         #         ]
         #     }
