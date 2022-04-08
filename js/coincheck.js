@@ -40,6 +40,7 @@ module.exports = class coincheck extends Exchange {
                 'fetchLeverage': false,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrderBook': true,
                 'fetchPosition': false,

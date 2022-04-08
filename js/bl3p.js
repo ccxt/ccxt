@@ -40,6 +40,7 @@ module.exports = class bl3p extends Exchange {
                 'fetchIndexOHLCV': false,
                 'fetchLeverage': false,
                 'fetchMarkOHLCV': false,
+                'fetchOpenInterestHistory': false,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
                 'fetchPositions': false,

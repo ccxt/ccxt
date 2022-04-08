@@ -36,6 +36,7 @@ module.exports = class zaif extends Exchange {
                 'fetchIndexOHLCV': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrderBook': true,
                 'fetchPremiumIndexOHLCV': false,

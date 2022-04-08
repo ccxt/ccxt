@@ -44,6 +44,7 @@ module.exports = class upbit extends Exchange {
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': undefined,
                 'fetchOHLCV': true,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
