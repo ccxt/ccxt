@@ -41,6 +41,7 @@ module.exports = class bitstamp1 extends Exchange {
                 'fetchLeverage': false,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
+                'fetchOpenInterestHistory': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': false,

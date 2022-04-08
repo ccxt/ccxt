@@ -47,6 +47,7 @@ module.exports = class ripio extends Exchange {
                 'fetchLeverageTiers': false,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,

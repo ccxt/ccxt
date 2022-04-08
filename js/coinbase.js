@@ -59,6 +59,7 @@ module.exports = class coinbase extends Exchange {
                 'fetchMySells': true,
                 'fetchMyTrades': undefined,
                 'fetchOHLCV': false,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': undefined,
                 'fetchOrder': undefined,
                 'fetchOrderBook': false,

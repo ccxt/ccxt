@@ -38,6 +38,7 @@ module.exports = class exmo extends Exchange {
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': 'emulated',
                 'fetchOrderBook': true,
