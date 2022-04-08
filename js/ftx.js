@@ -586,7 +586,9 @@ module.exports = class ftx extends Exchange {
                 type = 'future';
                 expiry = this.parse8601 (expiryDatetime);
                 if (expiry === undefined) {
-                    throw new BadResponse (this.id + " symbol '" + id + "' is a future contract but with an invalid expiry datetime.");
+                    // It is likely a future that is expiring in this moment
+                    self.log (this.id + " symbol '" + id + "' is a future contract but with an invalid expiry datetime.");
+                    continue;
                 }
                 const parsedId = id.split ('-');
                 const length = parsedId.length;
