@@ -308,7 +308,6 @@ declare module 'ccxt' {
         countries: string[];
         // set by loadMarkets
         markets: Dictionary<Market>;
-        marketsById: Dictionary<Market>;
         currencies: Dictionary<Currency>;
         ids: string[];
         symbols: string[];
