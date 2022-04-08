@@ -1884,14 +1884,23 @@ module.exports = class mexc extends Exchange {
         return this.parseOrder (data);
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
-            'NEW': 'open',
-            'FILLED': 'closed',
-            'PARTIALLY_FILLED': 'open',
-            'CANCELED': 'canceled',
-            'PARTIALLY_CANCELED': 'canceled',
-        };
+    parseOrderStatus (status, market = undefined) {
+        let statuses = {};
+        if (market['type'] === 'spot') {
+            statuses = {
+                'NEW': 'open',
+                'FILLED': 'closed',
+                'PARTIALLY_FILLED': 'open',
+                'CANCELED': 'canceled',
+                'PARTIALLY_CANCELED': 'canceled',
+            };
+        } else {
+            statuses = {
+                '1': 'open',
+                '2': 'canceled',
+                '3': 'closed',
+            };
+        }
         return this.safeString (statuses, status, status);
     }
 
@@ -1968,7 +1977,7 @@ module.exports = class mexc extends Exchange {
         //         "order_type":"MARKET_ORDER" // LIMIT_ORDER
         //     }
         //
-        // trigger fetchClosedOrders, fetchCanceledOrders
+        // trigger fetchClosedOrders, fetchCanceledOrders, fetchOpenOrders
         //
         //     {
         //         "id": "266583973507973632",
@@ -2029,7 +2038,7 @@ module.exports = class mexc extends Exchange {
         } else if (side === 4) {
             side = 'close long';
         }
-        status = this.parseOrderStatus (state);
+        status = this.parseOrderStatus (state, market);
         let clientOrderId = this.safeString2 (order, 'client_order_id', 'orderId');
         if (clientOrderId === '') {
             clientOrderId = undefined;
@@ -2075,12 +2084,17 @@ module.exports = class mexc extends Exchange {
             // 'trade_type': 'BID', // spot BID / ASK
             // 'page_num': 1, // swap required default 1
             // 'page_size': limit, // swap required default 20 max 100
+            // 'end_time': 1633988662382, // trigger order
         };
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'spotPrivateGetOrderOpenOrders',
             'swap': 'contractPrivateGetOrderListOpenOrdersSymbol',
         });
+        const stop = this.safeValue (params, 'stop');
+        if (stop) {
+            return await this.fetchOrdersByState ('1', symbol, since, limit, params);
+        }
         const response = await this[method] (this.extend (request, query));
         //
         // Spot
@@ -2101,19 +2115,6 @@ module.exports = class mexc extends Exchange {
         //                 "client_order_id":"",
         //                 "order_type":"LIMIT_ORDER"
         //             },
-        //             {
-        //                 "id":"2ff3163e8617443cb9c6fc19d42b1ca4",
-        //                 "symbol":"ETH_USDT",
-        //                 "price":"3420",
-        //                 "quantity":"0.01",
-        //                 "state":"NEW",
-        //                 "type":"BID",
-        //                 "remain_quantity":"0.01",
-        //                 "remain_amount":"34.2",
-        //                 "create_time":1633988662382,
-        //                 "client_order_id":"",
-        //                 "order_type":"LIMIT_ORDER"
-        //             }
         //         ]
         //     }
         //
@@ -2148,6 +2149,33 @@ module.exports = class mexc extends Exchange {
         //                 "createTime": 1649227612000,
         //                 "updateTime": 1649227611000,
         //                 "positionMode": 1
+        //             }
+        //         ]
+        //     }
+        //
+        // Trigger
+        //
+        //     {
+        //         "success": true,
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "id": "267198217203040768",
+        //                 "symbol": "BTC_USDT",
+        //                 "leverage": 20,
+        //                 "side": 1,
+        //                 "triggerPrice": 31111,
+        //                 "price": 31115,
+        //                 "vol": 2,
+        //                 "openType": 1,
+        //                 "triggerType": 2,
+        //                 "state": 1,
+        //                 "executeCycle": 87600,
+        //                 "trend": 1,
+        //                 "orderType": 1,
+        //                 "errorCode": 0,
+        //                 "createTime": 1649375419000,
+        //                 "updateTime": 1649375419000
         //             }
         //         ]
         //     }
