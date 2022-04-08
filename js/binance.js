@@ -5562,6 +5562,18 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchOpenInterestHistory (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchOpenInterestHistory
+         * @description Retrieves the open intestest history of a currency
+         * @param {str} symbol Unified CCXT market symbol
+         * @param {str} timeframe "5m","15m","30m","1h","2h","4h","6h","12h", or "1d"
+         * @param {int} since The time(ms) of the earliest record to retrieve as a unix timestamp
+         * @param {int} limit default 30, max 500
+         * @param {dict} params Exchange specific parameters
+         * @param {int} params.till The time(ms) of the latest record to retrieve as a unix timestamp
+         * @returns An array of open interest structures
+         */
         if (timeframe === '1m') {
             throw new BadRequest (this.id + 'fetchOpenInterestHistory cannot use the 1m timeframe');
         }
