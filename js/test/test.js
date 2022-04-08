@@ -103,7 +103,7 @@ Object.assign (exchange, settings)
 
 if (settings && settings.skip) {
     console.log ('[Skipped]', { 'exchange': exchangeId, 'symbol': exchangeSymbol || 'all' })
-    process.exit ()
+    process.exit (0)
 }
 
 //-----------------------------------------------------------------------------
@@ -302,9 +302,6 @@ async function testExchange (exchange) {
         await exchange.signIn ()
     }
 
-    // tmp 
-    exchange['type'] = 'swap'
-
     // move to testnet/sandbox if possible before accessing the balance
     // if (exchange.urls['test'])
     //    exchange.urls['api'] = exchange.urls['test']
@@ -439,4 +436,4 @@ async function main () {
 
 }
 
-main ()
+await main ()
