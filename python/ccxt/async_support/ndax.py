@@ -11,7 +11,6 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.decimal_to_precision import TICK_SIZE
-from ccxt.base.precise import Precise
 
 
 class ndax(Exchange):
@@ -813,7 +812,7 @@ class ndax(Exchange):
         #
         priceString = None
         amountString = None
-        cost = None
+        costString = None
         timestamp = None
         id = None
         marketId = None
@@ -838,24 +837,20 @@ class ndax(Exchange):
             marketId = self.safe_string_2(trade, 'InstrumentId', 'Instrument')
             priceString = self.safe_string(trade, 'Price')
             amountString = self.safe_string(trade, 'Quantity')
-            cost = self.safe_number_2(trade, 'Value', 'GrossValueExecuted')
+            costString = self.safe_string_2(trade, 'Value', 'GrossValueExecuted')
             takerOrMaker = self.safe_string_lower(trade, 'MakerTaker')
             side = self.safe_string_lower(trade, 'Side')
             type = self.safe_string_lower(trade, 'OrderType')
-            feeCost = self.safe_number(trade, 'Fee')
-            if feeCost is not None:
+            feeCostString = self.safe_string(trade, 'Fee')
+            if feeCostString is not None:
                 feeCurrencyId = self.safe_string(trade, 'FeeProductId')
                 feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
                 fee = {
-                    'cost': feeCost,
+                    'cost': feeCostString,
                     'currency': feeCurrencyCode,
                 }
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        if cost is None:
-            cost = self.parse_number(Precise.string_mul(priceString, amountString))
         symbol = self.safe_symbol(marketId, market)
-        return {
+        return self.safe_trade({
             'info': trade,
             'id': id,
             'symbol': symbol,
@@ -865,11 +860,11 @@ class ndax(Exchange):
             'type': type,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': fee,
-        }
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         omsId = self.safe_integer(self.options, 'omsId', 1)
