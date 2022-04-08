@@ -2433,7 +2433,11 @@ class huobi extends Exchange {
             $request['account-id'] = $accountId;
             $method = 'spotPrivateGetV1AccountAccountsAccountIdBalance';
         } else if ($linear) {
-            $method = 'contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo';
+            if ($marginType === 'isolated') {
+                $method = 'contractPrivatePostLinearSwapApiV1SwapAccountInfo';
+            } else {
+                $method = 'contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo';
+            }
         } else if ($inverse) {
             if ($future) {
                 $method = 'contractPrivatePostApiV1ContractAccountInfo';
@@ -2576,10 +2580,8 @@ class huobi extends Exchange {
                 $code = $this->safe_currency_code($currencyId);
                 $result[$code] = $account;
             } else if ($isolated) {
-                $fieldName = $future ? 'futures_contract_detail' : 'contract_detail';
-                $balances = $this->safe_value($first, $fieldName, array());
-                for ($i = 0; $i < count($balances); $i++) {
-                    $balance = $balances[$i];
+                for ($i = 0; $i < count($data); $i++) {
+                    $balance = $data[$i];
                     $marketId = $this->safe_string_2($balance, 'contract_code', 'margin_account');
                     $market = $this->safe_market($marketId);
                     $account = $this->account();
