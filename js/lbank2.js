@@ -818,18 +818,6 @@ module.exports = class lbank2 extends Exchange {
         return result;
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
-            '-1': 'cancelled', // cancelled
-            '0': 'open', // not traded
-            '1': 'open', // partial deal
-            '2': 'closed', // complete deal
-            '3': 'closed', // filled partially and cancelled
-            '4': 'closed', // disposal processing
-        };
-        return this.safeString (statuses, status, status);
-    }
-
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -909,8 +897,19 @@ module.exports = class lbank2 extends Exchange {
         };
     }
 
+    parseOrderStatus (status) {
+        const statuses = {
+            '-1': 'cancelled', // cancelled
+            '0': 'open', // not traded
+            '1': 'open', // partial deal
+            '2': 'closed', // complete deal
+            '3': 'closed', // filled partially and cancelled
+            '4': 'closed', // disposal processing
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseOrder (order, market = undefined) {
-        // TODO unify
         //
         // fetchOrderSupplement (private)
         //
@@ -933,15 +932,15 @@ module.exports = class lbank2 extends Exchange {
         // fetchOrderDefault (private)
         //
         //      {
-        //          "symbol":"doge_usdt",
-        //          "amount":18,
-        //          "create_time":1647455223186,
-        //          "price":0,
-        //          "avg_price":0.113344,
-        //          "type":"sell_market",
-        //          "order_id":"d4ca1ddd-40d9-42c1-9717-5de435865bec",
-        //          "custom_id": "007" // field id only present if custom Id exists
-        //          "deal_amount":18,
+        //          "symbol":"shib_usdt",
+        //          "amount":1,
+        //          "create_time":1649367863356,
+        //          "price":0.0000246103,
+        //          "avg_price":0.00002466180000000104,
+        //          "type":"buy_market",
+        //          "order_id":"abe8b92d-86d9-4d6d-b71e-d14f5fb53ddf",
+        //          "custom_id": "007",                                 // field only present if user creates it at order time
+        //          "deal_amount":40548.54065802,
         //          "status":2
         //      }
         //
@@ -977,46 +976,53 @@ module.exports = class lbank2 extends Exchange {
         //          "status":-1
         //      }
         //
-        //
-        // cancelOrder (private)
-        //
-        //    {
-        //          "executedQty":0.0,
-        //          "price":0.05,
-        //          "origQty":100.0,
-        //          "tradeType":"buy",
-        //          "status":0
-        //     }
-        //
-        //
-        // cancelAllOrders (private)
-        //
-        //      {
-        //          "executedQty":0.00000000000000000000,
-        //          "orderId":"90f7ecff-906b-4aaf-9830-3cd6cfb572ba",
-        //          "price":0.05000000000000000000,
-        //          "origQty":100.00000000000000000000,
-        //          "tradeType":"buy",
-        //          "status":0
-        //      }
-        //
+        const id = this.safeString2 (order, 'orderId', 'order_id');
+        const clientOrderId = this.safeString2 (order, 'clientOrderId', 'custom_id');
+        const timestamp = this.safeString2 (order, 'time', 'create_time');
+        const rawStatus = this.safeString (order, 'status');
+        const marketId = this.safeString (order, 'symbol');
+        market = this.safeMarket (marketId, market);
+        let timeInForce = undefined;
+        let postOnly = false;
+        let type = 'limit';
+        let side = this.safeString (order, 'type'); // buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
+        const parts = side.split ('-');
+        side = this.safeString (parts, 0);
+        const typePart = this.safeString (parts, 1); // market, maker, ioc, fok or undefined (limit)
+        if (typePart === 'market') {
+            type = 'market';
+        }
+        if (typePart === 'maker') {
+            postOnly = true;
+            timeInForce = 'PO';
+        }
+        if (typePart === 'ioc') {
+            timeInForce = 'IOC';
+        }
+        if (typePart === 'fok') {
+            timeInForce = 'FOK';
+        }
+        const price = this.safeString (order, 'price');
+        const costString = this.safeString (order, 'cummulativeQuoteQty');
+        const amountString = this.safeString2 (order, 'origQty', 'amount');
+        const filledString = this.safeString2 (order, 'executedQty', 'deal_amount');
         return this.safeOrder ({
-            'id': undefined,
-            'clientOrderId': undefined,
-            'datetime': undefined,
-            'timestamp': undefined,
+            'id': id,
+            'clientOrderId': clientOrderId,
+            'datetime': this.iso8601 (timestamp),
+            'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
-            'status': undefined,
-            'symbol': undefined,
-            'type': undefined,
-            'timeInForce': undefined,
-            'postOnly': undefined,
-            'side': undefined,
-            'price': undefined,
+            'status': this.parseOrderStatus (rawStatus),
+            'symbol': market['symbol'],
+            'type': type,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
+            'side': side,
+            'price': price,
             'stopPrice': undefined,
-            'cost': undefined,
-            'amount': undefined,
-            'filled': undefined,
+            'cost': costString,
+            'amount': amountString,
+            'filled': filledString,
             'remaining': undefined,
             'trades': undefined,
             'fee': undefined,
@@ -1293,7 +1299,7 @@ module.exports = class lbank2 extends Exchange {
         //      "ts":1648501286196
         //  }
         const result = this.safeValue (response, 'data', {});
-        return this.parseOrder (result);
+        return result;
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
@@ -1324,7 +1330,7 @@ module.exports = class lbank2 extends Exchange {
         //      }
         //
         const result = this.safeValue (response, 'data', []);
-        return this.parseOrders (result, market);
+        return result;
     }
 
     async fetchDepositAddress (code, params = {}) {
