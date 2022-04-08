@@ -2992,6 +2992,17 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchOpenInterestHistory (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchOpenInterestHistory
+         * @description Gets the total amount of unsettled contracts. In other words, the total number of contracts held in open positions
+         * @param {str} symbol Unified market symbol
+         * @param {str} timeframe "5m", 15m, 30m, 1h, 4h, 1d
+         * @param {int} since Not used by Bybit
+         * @param {int} limit The number of open interest structures to return. Max 200, default 50
+         * @param {dict} params Exchange specific parameters
+         * @returns An array of open interest structures
+         */
         if (timeframe === '1m') {
             throw new BadRequest (this.id + 'fetchOpenInterestHistory cannot use the 1m timeframe');
         }
