@@ -31,7 +31,7 @@ class bitvavo(Exchange):
             'id': 'bitvavo',
             'name': 'Bitvavo',
             'countries': ['NL'],  # Netherlands
-            'rateLimit': 60.1,  # 1000 requests per second
+            'rateLimit': 60.1,  # 1000 requests per minute
             'version': 'v2',
             'certified': True,
             'pro': True,
