@@ -986,7 +986,7 @@ module.exports = class lbank2 extends Exchange {
         let postOnly = false;
         let type = 'limit';
         let side = this.safeString (order, 'type'); // buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
-        const parts = side.split ('-');
+        const parts = side.split ('_');
         side = this.safeString (parts, 0);
         const typePart = this.safeString (parts, 1); // market, maker, ioc, fok or undefined (limit)
         if (typePart === 'market') {
