@@ -25,7 +25,6 @@ module.exports = class coinex extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
-                'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchDeposits': true,
