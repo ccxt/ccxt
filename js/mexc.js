@@ -1923,8 +1923,7 @@ module.exports = class mexc extends Exchange {
         //         "order_type":"LIMIT_ORDER"
         //     }
         //
-        //
-        // fetchOpenOrders swap
+        // swap fetchOrder, fetchOpenOrders
         //
         //     {
         //         "orderId": "266578267438402048",
@@ -1987,35 +1986,6 @@ module.exports = class mexc extends Exchange {
         //         "errorCode": 0,
         //         "createTime": 1649228972000,
         //         "updateTime": 1649230287000
-        //     }
-        //
-        // swap fetchOrder
-        //
-        //     {
-        //         "orderId": "259208506647860224",
-        //         "symbol": "BTC_USDT",
-        //         "positionId": 0,
-        //         "price": 30000,
-        //         "vol": 10,
-        //         "leverage": 20,
-        //         "side": 1,
-        //         "category": 1,
-        //         "orderType": 1,
-        //         "dealAvgPrice": 0,
-        //         "dealVol": 0,
-        //         "orderMargin": 1.536,
-        //         "takerFee": 0,
-        //         "makerFee": 0,
-        //         "profit": 0,
-        //         "feeCurrency": "USDT",
-        //         "openType": 1,
-        //         "state": 4,
-        //         "externalOid": "planorder_279208506303929856_10",
-        //         "errorCode": 0,
-        //         "usedMargin": 0,
-        //         "createTime": 1647470524000,
-        //         "updateTime": 1647470540000,
-        //         "positionMode": 1
         //     }
         //
         // cancelOrder
@@ -2261,7 +2231,7 @@ module.exports = class mexc extends Exchange {
         if (firstOrder === undefined) {
             throw new OrderNotFound (this.id + ' fetchOrder() could not find the order id ' + id);
         }
-        return this.parseOrder (firstOrder);
+        return this.parseOrder (firstOrder, market);
     }
 
     async fetchOrdersByState (state, symbol = undefined, since = undefined, limit = undefined, params = {}) {
