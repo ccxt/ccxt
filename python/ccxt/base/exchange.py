@@ -2166,31 +2166,26 @@ class Exchange(object):
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]
         feeSide = self.safe_string(market, 'feeSide', 'quote')
-        key = 'quote'
-        cost = None
-        if feeSide == 'quote':
-            # the fee is always in quote currency
-            cost = amount * price
-        elif feeSide == 'base':
-            # the fee is always in base currency
-            cost = amount
-        elif feeSide == 'get':
+
+        if feeSide == 'get':
             # the fee is always in the currency you get
-            cost = amount
-            if side == 'sell':
-                cost *= price
-            else:
-                key = 'base'
+            useQuote = side == 'sell'
         elif feeSide == 'give':
             # the fee is always in the currency you give
+            useQuote = side == 'buy'
+        else:
+            # the fee is always in feeSide currency
+            useQuote = feeSide == 'quote'
+
+        if useQuote:
+            cost = amount * price
+            key = 'quote'
+        else:
             cost = amount
-            if side == 'buy':
-                cost *= price
-            else:
-                key = 'base'
+            key = 'base'
+
         rate = market[takerOrMaker]
-        if cost is not None:
-            cost *= rate
+        cost *= rate
         return {
             'type': takerOrMaker,
             'currency': market[key],
