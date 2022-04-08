@@ -377,6 +377,10 @@ class ftx(Exchange):
             'options': {
                 # support for canceling conditional orders
                 # https://github.com/ccxt/ccxt/issues/6669
+                'fetchMarkets': {
+                    # the expiry datetime may be None for expiring futures, https://github.com/ccxt/ccxt/pull/12692
+                    'throwOnUndefinedExpiry': False,
+                },
                 'cancelOrder': {
                     'method': 'privateDeleteOrdersOrderId',  # privateDeleteConditionalOrdersOrderId
                 },
@@ -597,7 +601,13 @@ class ftx(Exchange):
                 type = 'future'
                 expiry = self.parse8601(expiryDatetime)
                 if expiry is None:
-                    raise BadResponse(self.id + " symbol '" + id + "' is a future contract but with an invalid expiry datetime.")
+                    # it is likely a future that is expiring in self moment
+                    options = self.safe_value(self.options, 'fetchMarkets', {})
+                    throwOnUndefinedExpiry = self.safe_value(options, 'throwOnUndefinedExpiry', False)
+                    if throwOnUndefinedExpiry:
+                        raise BadResponse(self.id + " symbol '" + id + "' is a future contract with an invalid expiry datetime.")
+                    else:
+                        continue
                 parsedId = id.split('-')
                 length = len(parsedId)
                 if length > 2:

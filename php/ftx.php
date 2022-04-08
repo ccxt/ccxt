@@ -366,6 +366,10 @@ class ftx extends Exchange {
             'options' => array(
                 // support for canceling conditional orders
                 // https://github.com/ccxt/ccxt/issues/6669
+                'fetchMarkets' => array(
+                    // the expiry datetime may be null for expiring futures, https://github.com/ccxt/ccxt/pull/12692
+                    'throwOnUndefinedExpiry' => false,
+                ),
                 'cancelOrder' => array(
                     'method' => 'privateDeleteOrdersOrderId', // privateDeleteConditionalOrdersOrderId
                 ),
@@ -590,7 +594,14 @@ class ftx extends Exchange {
                 $type = 'future';
                 $expiry = $this->parse8601($expiryDatetime);
                 if ($expiry === null) {
-                    throw new BadResponse($this->id . " $symbol '" . $id . "' is a $future $contract but with an invalid $expiry datetime.");
+                    // it is likely a $future that is expiring in this moment
+                    $options = $this->safe_value($this->options, 'fetchMarkets', array());
+                    $throwOnUndefinedExpiry = $this->safe_value($options, 'throwOnUndefinedExpiry', false);
+                    if ($throwOnUndefinedExpiry) {
+                        throw new BadResponse($this->id . " $symbol '" . $id . "' is a $future $contract with an invalid $expiry datetime.");
+                    } else {
+                        continue;
+                    }
                 }
                 $parsedId = explode('-', $id);
                 $length = is_array($parsedId) ? count($parsedId) : 0;
