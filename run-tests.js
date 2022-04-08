@@ -99,7 +99,10 @@ const exec = (bin, ...args) =>
                     }
                 } while (match);
             }
-
+            // debug purposes only
+            log.bright ('\n Process return code:'.yellow, code.toString().yellow);
+            log.bright ('\n Process output'.yellow, output.red);
+            log.bright ('\n Process warning'.yellow, warnings.red);
             return_ ({
                 failed: code !== 0,
                 output,
