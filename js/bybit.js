@@ -4553,6 +4553,13 @@ module.exports = class bybit extends Exchange {
     }
 
     parseOpenInterest (interest, market = undefined) {
+        //
+        //    {
+        //        "open_interest": 805604444,
+        //        "timestamp": 1645056000,
+        //        "symbol": "BTCUSD"
+        //    }
+        //
         const id = this.safeString (interest, 'symbol');
         market = this.safeMarket (id, market);
         const timestamp = this.safeTimestamp (interest, 'timestamp');
