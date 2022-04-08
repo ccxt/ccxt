@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
-const { ExchangeError, InvalidOrder, BadRequest, InsufficientFunds, OrderNotFound, AuthenticationError, RateLimitExceeded, ExchangeNotAvailable, CancelPending, ArgumentsRequired, PermissionDenied, BadSymbol, DuplicateOrderId } = require ('./base/errors');
+const { ExchangeError, InvalidOrder, BadRequest, InsufficientFunds, OrderNotFound, AuthenticationError, RateLimitExceeded, ExchangeNotAvailable, CancelPending, ArgumentsRequired, PermissionDenied, BadSymbol, DuplicateOrderId, BadResponse } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -594,7 +594,7 @@ module.exports = class ftx extends Exchange {
                     const options = this.safeValue (this.options, 'fetchMarkets', {});
                     const throwOnUndefinedExpiry = this.safeValue (options, 'throwOnUndefinedExpiry', false);
                     if (throwOnUndefinedExpiry) {
-                        throw new BadSymbol (this.id + " symbol '" + id + "' is a future contract with an invalid expiry datetime.");
+                        throw new BadResponse (this.id + " symbol '" + id + "' is a future contract with an invalid expiry datetime.");
                     } else {
                         continue;
                     }
