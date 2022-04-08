@@ -12,7 +12,7 @@ $exchange = new \ccxt\bitmex (array (
     'enableRateLimit' => true,
 ));
 
-$symbol = 'XBTM18'; // bitcoin contract according to bitmex futures coding
+$symbol = 'BTC/USD:BTC-220624';
 $type = 'StopLimit'; // # or 'market', or 'Stop' or 'StopLimit'
 $side = 'sell'; // or 'buy'
 $amount = 1.0;

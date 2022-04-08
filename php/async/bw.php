@@ -32,7 +32,6 @@ class bw extends Exchange {
                 'createLimitOrder' => true,
                 'createMarketOrder' => null,
                 'createOrder' => true,
-                'deposit' => null,
                 'editOrder' => null,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,

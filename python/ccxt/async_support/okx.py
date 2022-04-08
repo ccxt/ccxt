@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+import asyncio
 import hashlib
 import json
 from ccxt.base.errors import ExchangeError
@@ -55,7 +56,6 @@ class okx(Exchange):
                 'createDepositAddress': None,
                 'createOrder': True,
                 'createReduceOnlyOrder': None,
-                'deposit': None,
                 'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': None,
@@ -638,6 +638,20 @@ class okx(Exchange):
                     'method': 'privateGetAccountBills',  # privateGetAccountBillsArchive, privateGetAssetBills
                 },
                 # 1 = SPOT, 3 = FUTURES, 5 = MARGIN, 6 = FUNDING, 9 = SWAP, 12 = OPTION, 18 = Unified account
+                'fetchOpenOrders': {
+                    'method': 'privateGetTradeOrdersPending',  # privateGetTradeOrdersAlgoPending
+                    'algoOrderTypes': {
+                        'conditional': True,
+                        'trigger': True,
+                        'oco': True,
+                        'move_order_stop': True,
+                        'iceberg': True,
+                        'twap': True,
+                    },
+                },
+                'cancelOrders': {
+                    'method': 'privatePostTradeCancelBatchOrders',  # privatePostTradeCancelAlgos
+                },
                 'accountsByType': {
                     'spot': '1',
                     'future': '3',
@@ -703,20 +717,20 @@ class okx(Exchange):
         response = await self.publicGetSystemStatus(params)
         #
         #     {
-        #         "code":"0",
-        #         "data":[
+        #         "code": "0",
+        #         "data": [
         #             {
-        #                 "begin":"1621328400000",
-        #                 "end":"1621329000000",
-        #                 "href":"https://www.okx.com/support/hc/en-us/articles/360060882172",
-        #                 "scheDesc":"",
-        #                 "serviceType":"1",  # 0 WebSocket, 1 Spot/Margin, 2 Futures, 3 Perpetual, 4 Options, 5 Trading service
-        #                 "state":"scheduled",  # ongoing, completed, canceled
-        #                 "system":"classic",  # classic, unified
-        #                 "title":"Classic Spot System Upgrade"
+        #                 "begin": "1621328400000",
+        #                 "end": "1621329000000",
+        #                 "href": "https://www.okx.com/support/hc/en-us/articles/360060882172",
+        #                 "scheDesc": "",
+        #                 "serviceType": "1",  # 0 WebSocket, 1 Spot/Margin, 2 Futures, 3 Perpetual, 4 Options, 5 Trading service
+        #                 "state": "scheduled",  # ongoing, completed, canceled
+        #                 "system": "classic",  # classic, unified
+        #                 "title": "Classic Spot System Upgrade"
         #             },
         #         ],
-        #         "msg":""
+        #         "msg": ""
         #     }
         #
         data = self.safe_value(response, 'data', [])
@@ -740,11 +754,11 @@ class okx(Exchange):
         response = await self.publicGetPublicTime(params)
         #
         #     {
-        #         "code":"0",
-        #         "data":[
-        #             {"ts":"1621247923668"}
+        #         "code": "0",
+        #         "data": [
+        #             {"ts": "1621247923668"}
         #         ],
-        #         "msg":""
+        #         "msg": ""
         #     }
         #
         data = self.safe_value(response, 'data', [])
@@ -788,10 +802,14 @@ class okx(Exchange):
 
     async def fetch_markets(self, params={}):
         types = self.safe_value(self.options, 'fetchMarkets')
+        promises = []
         result = []
         for i in range(0, len(types)):
-            markets = await self.fetch_markets_by_type(types[i], params)
-            result = self.array_concat(result, markets)
+            promises.append(self.fetch_markets_by_type(types[i], params))
+        # why not both ¯\_(ツ)_/¯
+        promises = await asyncio.gather(*promises)
+        for i in range(0, len(promises)):
+            result = self.array_concat(result, promises[i])
         return result
 
     def parse_markets(self, markets):
@@ -803,27 +821,27 @@ class okx(Exchange):
     def parse_market(self, market):
         #
         #     {
-        #         "alias":"",  # self_week, next_week, quarter, next_quarter
-        #         "baseCcy":"BTC",
-        #         "category":"1",
-        #         "ctMult":"",
-        #         "ctType":"",  # inverse, linear
-        #         "ctVal":"",
-        #         "ctValCcy":"",
-        #         "expTime":"",
-        #         "instId":"BTC-USDT",  # BTC-USD-210521, CSPR-USDT-SWAP, BTC-USD-210517-44000-C
-        #         "instType":"SPOT",  # SPOT, FUTURES, SWAP, OPTION
-        #         "lever":"10",
-        #         "listTime":"1548133413000",
-        #         "lotSz":"0.00000001",
-        #         "minSz":"0.00001",
-        #         "optType":"",
-        #         "quoteCcy":"USDT",
-        #         "settleCcy":"",
-        #         "state":"live",
-        #         "stk":"",
-        #         "tickSz":"0.1",
-        #         "uly":""
+        #         "alias": "",  # self_week, next_week, quarter, next_quarter
+        #         "baseCcy": "BTC",
+        #         "category": "1",
+        #         "ctMult": "",
+        #         "ctType": "",  # inverse, linear
+        #         "ctVal": "",
+        #         "ctValCcy": "",
+        #         "expTime": "",
+        #         "instId": "BTC-USDT",  # BTC-USD-210521, CSPR-USDT-SWAP, BTC-USD-210517-44000-C
+        #         "instType": "SPOT",  # SPOT, FUTURES, SWAP, OPTION
+        #         "lever": "10",
+        #         "listTime": "1548133413000",
+        #         "lotSz": "0.00000001",
+        #         "minSz": "0.00001",
+        #         "optType": "",
+        #         "quoteCcy": "USDT",
+        #         "settleCcy": "",
+        #         "state": "live",
+        #         "stk": "",
+        #         "tickSz": "0.1",
+        #         "uly": ""
         #     }
         #
         #     {
@@ -959,33 +977,33 @@ class okx(Exchange):
         # spot, future, swap, option
         #
         #     {
-        #         "code":"0",
-        #         "data":[
+        #         "code": "0",
+        #         "data": [
         #             {
-        #                 "alias":"",  # self_week, next_week, quarter, next_quarter
-        #                 "baseCcy":"BTC",
-        #                 "category":"1",
-        #                 "ctMult":"",
-        #                 "ctType":"",  # inverse, linear
-        #                 "ctVal":"",
-        #                 "ctValCcy":"",
-        #                 "expTime":"",
-        #                 "instId":"BTC-USDT",  # BTC-USD-210521, CSPR-USDT-SWAP, BTC-USD-210517-44000-C
-        #                 "instType":"SPOT",  # SPOT, FUTURES, SWAP, OPTION
-        #                 "lever":"10",
-        #                 "listTime":"1548133413000",
-        #                 "lotSz":"0.00000001",
-        #                 "minSz":"0.00001",
-        #                 "optType":"",
-        #                 "quoteCcy":"USDT",
-        #                 "settleCcy":"",
-        #                 "state":"live",
-        #                 "stk":"",
-        #                 "tickSz":"0.1",
-        #                 "uly":""
+        #                 "alias": "",  # self_week, next_week, quarter, next_quarter
+        #                 "baseCcy": "BTC",
+        #                 "category": "1",
+        #                 "ctMult": "",
+        #                 "ctType": "",  # inverse, linear
+        #                 "ctVal": "",
+        #                 "ctValCcy": "",
+        #                 "expTime": "",
+        #                 "instId": "BTC-USDT",  # BTC-USD-210521, CSPR-USDT-SWAP, BTC-USD-210517-44000-C
+        #                 "instType": "SPOT",  # SPOT, FUTURES, SWAP, OPTION
+        #                 "lever": "10",
+        #                 "listTime": "1548133413000",
+        #                 "lotSz": "0.00000001",
+        #                 "minSz": "0.00001",
+        #                 "optType": "",
+        #                 "quoteCcy": "USDT",
+        #                 "settleCcy": "",
+        #                 "state": "live",
+        #                 "stk": "",
+        #                 "tickSz": "0.1",
+        #                 "uly": ""
         #             }
         #         ],
-        #         "msg":""
+        #         "msg": ""
         #     }
         #
         data = self.safe_value(response, 'data', [])
@@ -1014,21 +1032,21 @@ class okx(Exchange):
         response = await self.privateGetAssetCurrencies(params)
         #
         #     {
-        #         "code":"0",
-        #         "data":[
+        #         "code" :"0",
+        #         "data": [
         #             {
-        #                 "canDep":true,
-        #                 "canInternal":true,
-        #                 "canWd":true,
-        #                 "ccy":"USDT",
-        #                 "chain":"USDT-ERC20",
-        #                 "maxFee":"40",
-        #                 "minFee":"20",
-        #                 "minWd":"2",
-        #                 "name":""
+        #                 "canDep": True,
+        #                 "canInternal": True,
+        #                 "canWd": True,
+        #                 "ccy": "USDT",
+        #                 "chain": "USDT-ERC20",
+        #                 "maxFee": "40",
+        #                 "minFee": "20",
+        #                 "minWd": "2",
+        #                 "name": ""
         #             }
         #         ],
-        #         "msg":""
+        #         "msg": ""
         #     }
         #
         data = self.safe_value(response, 'data', [])
@@ -1121,21 +1139,21 @@ class okx(Exchange):
         response = await self.publicGetMarketBooks(self.extend(request, params))
         #
         #     {
-        #         "code":"0",
-        #         "msg":"",
-        #         "data":[
+        #         "code": "0",
+        #         "msg": "",
+        #         "data": [
         #             {
-        #                 "asks":[
+        #                 "asks": [
         #                     ["0.07228","4.211619","0","2"],  # price, amount, liquidated orders, total open orders
         #                     ["0.0723","299.880364","0","2"],
         #                     ["0.07231","3.72832","0","1"],
         #                 ],
-        #                 "bids":[
+        #                 "bids": [
         #                     ["0.07221","18.5","0","1"],
         #                     ["0.0722","18.5","0","1"],
         #                     ["0.07219","0.505407","0","1"],
         #                 ],
-        #                 "ts":"1621438475342"
+        #                 "ts": "1621438475342"
         #             }
         #         ]
         #     }
@@ -1148,22 +1166,22 @@ class okx(Exchange):
     def parse_ticker(self, ticker, market=None):
         #
         #     {
-        #         "instType":"SPOT",
-        #         "instId":"ETH-BTC",
-        #         "last":"0.07319",
-        #         "lastSz":"0.044378",
-        #         "askPx":"0.07322",
-        #         "askSz":"4.2",
-        #         "bidPx":"0.0732",
-        #         "bidSz":"6.050058",
-        #         "open24h":"0.07801",
-        #         "high24h":"0.07975",
-        #         "low24h":"0.06019",
-        #         "volCcy24h":"11788.887619",
-        #         "vol24h":"167493.829229",
-        #         "ts":"1621440583784",
-        #         "sodUtc0":"0.07872",
-        #         "sodUtc8":"0.07345"
+        #         "instType": "SPOT",
+        #         "instId": "ETH-BTC",
+        #         "last": "0.07319",
+        #         "lastSz": "0.044378",
+        #         "askPx": "0.07322",
+        #         "askSz": "4.2",
+        #         "bidPx": "0.0732",
+        #         "bidSz": "6.050058",
+        #         "open24h": "0.07801",
+        #         "high24h": "0.07975",
+        #         "low24h": "0.06019",
+        #         "volCcy24h": "11788.887619",
+        #         "vol24h": "167493.829229",
+        #         "ts": "1621440583784",
+        #         "sodUtc0": "0.07872",
+        #         "sodUtc8": "0.07345"
         #     }
         #
         timestamp = self.safe_integer(ticker, 'ts')
@@ -1207,26 +1225,26 @@ class okx(Exchange):
         response = await self.publicGetMarketTicker(self.extend(request, params))
         #
         #     {
-        #         "code":"0",
-        #         "msg":"",
-        #         "data":[
+        #         "code": "0",
+        #         "msg": "",
+        #         "data": [
         #             {
-        #                 "instType":"SPOT",
-        #                 "instId":"ETH-BTC",
-        #                 "last":"0.07319",
-        #                 "lastSz":"0.044378",
-        #                 "askPx":"0.07322",
-        #                 "askSz":"4.2",
-        #                 "bidPx":"0.0732",
-        #                 "bidSz":"6.050058",
-        #                 "open24h":"0.07801",
-        #                 "high24h":"0.07975",
-        #                 "low24h":"0.06019",
-        #                 "volCcy24h":"11788.887619",
-        #                 "vol24h":"167493.829229",
-        #                 "ts":"1621440583784",
-        #                 "sodUtc0":"0.07872",
-        #                 "sodUtc8":"0.07345"
+        #                 "instType": "SPOT",
+        #                 "instId": "ETH-BTC",
+        #                 "last": "0.07319",
+        #                 "lastSz": "0.044378",
+        #                 "askPx": "0.07322",
+        #                 "askSz": "4.2",
+        #                 "bidPx": "0.0732",
+        #                 "bidSz": "6.050058",
+        #                 "open24h": "0.07801",
+        #                 "high24h": "0.07975",
+        #                 "low24h": "0.06019",
+        #                 "volCcy24h": "11788.887619",
+        #                 "vol24h": "167493.829229",
+        #                 "ts": "1621440583784",
+        #                 "sodUtc0": "0.07872",
+        #                 "sodUtc8": "0.07345"
         #             }
         #         ]
         #     }
@@ -1250,26 +1268,26 @@ class okx(Exchange):
         response = await self.publicGetMarketTickers(self.extend(request, params))
         #
         #     {
-        #         "code":"0",
-        #         "msg":"",
-        #         "data":[
+        #         "code": "0",
+        #         "msg": "",
+        #         "data": [
         #             {
-        #                 "instType":"SPOT",
-        #                 "instId":"BCD-BTC",
-        #                 "last":"0.0000769",
-        #                 "lastSz":"5.4788",
-        #                 "askPx":"0.0000777",
-        #                 "askSz":"3.2197",
-        #                 "bidPx":"0.0000757",
-        #                 "bidSz":"4.7509",
-        #                 "open24h":"0.0000885",
-        #                 "high24h":"0.0000917",
-        #                 "low24h":"0.0000596",
-        #                 "volCcy24h":"9.2877",
-        #                 "vol24h":"124824.1985",
-        #                 "ts":"1621441741434",
-        #                 "sodUtc0":"0.0000905",
-        #                 "sodUtc8":"0.0000729"
+        #                 "instType": "SPOT",
+        #                 "instId": "BCD-BTC",
+        #                 "last": "0.0000769",
+        #                 "lastSz": "5.4788",
+        #                 "askPx": "0.0000777",
+        #                 "askSz": "3.2197",
+        #                 "bidPx": "0.0000757",
+        #                 "bidSz": "4.7509",
+        #                 "open24h": "0.0000885",
+        #                 "high24h": "0.0000917",
+        #                 "low24h": "0.0000596",
+        #                 "volCcy24h": "9.2877",
+        #                 "vol24h": "124824.1985",
+        #                 "ts": "1621441741434",
+        #                 "sodUtc0": "0.0000905",
+        #                 "sodUtc8": "0.0000729"
         #             },
         #         ]
         #     }
@@ -1286,32 +1304,32 @@ class okx(Exchange):
         # public fetchTrades
         #
         #     {
-        #         "instId":"ETH-BTC",
-        #         "side":"sell",
-        #         "sz":"0.119501",
-        #         "px":"0.07065",
-        #         "tradeId":"15826757",
-        #         "ts":"1621446178316"
+        #         "instId": "ETH-BTC",
+        #         "side": "sell",
+        #         "sz": "0.119501",
+        #         "px": "0.07065",
+        #         "tradeId": "15826757",
+        #         "ts": "1621446178316"
         #     }
         #
         # private fetchMyTrades
         #
         #     {
-        #         "side":"buy",
-        #         "fillSz":"0.007533",
-        #         "fillPx":"2654.98",
-        #         "fee":"-0.000007533",
-        #         "ordId":"317321390244397056",
-        #         "instType":"SPOT",
-        #         "instId":"ETH-USDT",
-        #         "clOrdId":"",
-        #         "posSide":"net",
-        #         "billId":"317321390265368576",
-        #         "tag":"0",
-        #         "execType":"T",
-        #         "tradeId":"107601752",
-        #         "feeCcy":"ETH",
-        #         "ts":"1621927314985"
+        #         "side": "buy",
+        #         "fillSz": "0.007533",
+        #         "fillPx": "2654.98",
+        #         "fee": "-0.000007533",
+        #         "ordId": "317321390244397056",
+        #         "instType": "SPOT",
+        #         "instId": "ETH-USDT",
+        #         "clOrdId": "",
+        #         "posSide": "net",
+        #         "billId": "317321390265368576",
+        #         "tag": "0",
+        #         "execType": "T",
+        #         "tradeId": "107601752",
+        #         "feeCcy": "ETH",
+        #         "ts": "1621927314985"
         #     }
         #
         id = self.safe_string(trade, 'tradeId')
@@ -1365,9 +1383,9 @@ class okx(Exchange):
         response = await self.publicGetMarketTrades(self.extend(request, params))
         #
         #     {
-        #         "code":"0",
-        #         "msg":"",
-        #         "data":[
+        #         "code": "0",
+        #         "msg": "",
+        #         "data": [
         #             {"instId":"ETH-BTC","side":"sell","sz":"0.119501","px":"0.07065","tradeId":"15826757","ts":"1621446178316"},
         #             {"instId":"ETH-BTC","side":"sell","sz":"0.03","px":"0.07068","tradeId":"15826756","ts":"1621446178066"},
         #             {"instId":"ETH-BTC","side":"buy","sz":"0.507","px":"0.07069","tradeId":"15826755","ts":"1621446175085"},
@@ -1434,9 +1452,9 @@ class okx(Exchange):
         response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
-        #         "code":"0",
-        #         "msg":"",
-        #         "data":[
+        #         "code": "0",
+        #         "msg": "",
+        #         "data": [
         #             ["1621447080000","0.07073","0.07073","0.07064","0.07064","12.08863","0.854309"],
         #             ["1621447020000","0.0708","0.0709","0.0707","0.07072","58.517435","4.143309"],
         #             ["1621446960000","0.0707","0.07082","0.0707","0.07076","53.850841","3.810921"],
@@ -1556,14 +1574,14 @@ class okx(Exchange):
     def parse_trading_fee(self, fee, market=None):
         #
         #     {
-        #         "category":"1",
-        #         "delivery":"",
-        #         "exercise":"",
-        #         "instType":"SPOT",
-        #         "level":"Lv1",
-        #         "maker":"-0.0008",
-        #         "taker":"-0.001",
-        #         "ts":"1639043138472"
+        #         "category": "1",
+        #         "delivery": "",
+        #         "exercise": "",
+        #         "instType": "SPOT",
+        #         "level": "Lv1",
+        #         "maker": "-0.0008",
+        #         "taker": "-0.001",
+        #         "ts": "1639043138472"
         #     }
         #
         return {
@@ -1591,20 +1609,20 @@ class okx(Exchange):
         response = await self.privateGetAccountTradeFee(self.extend(request, params))
         #
         #     {
-        #         "code":"0",
-        #         "data":[
+        #         "code": "0",
+        #         "data": [
         #             {
-        #                 "category":"1",
-        #                 "delivery":"",
-        #                 "exercise":"",
-        #                 "instType":"SPOT",
-        #                 "level":"Lv1",
-        #                 "maker":"-0.0008",
-        #                 "taker":"-0.001",
-        #                 "ts":"1639043138472"
+        #                 "category": "1",
+        #                 "delivery": "",
+        #                 "exercise": "",
+        #                 "instType": "SPOT",
+        #                 "level": "Lv1",
+        #                 "maker": "-0.0008",
+        #                 "taker": "-0.001",
+        #                 "ts": "1639043138472"
         #             }
         #         ],
-        #         "msg":""
+        #         "msg": ""
         #     }
         #
         data = self.safe_value(response, 'data', [])
@@ -1625,104 +1643,104 @@ class okx(Exchange):
         response = await getattr(self, method)(self.extend(request, query))
         #
         #     {
-        #         "code":"0",
-        #         "data":[
+        #         "code": "0",
+        #         "data": [
         #             {
-        #                 "adjEq":"",
-        #                 "details":[
+        #                 "adjEq": "",
+        #                 "details": [
         #                     {
-        #                         "availBal":"",
-        #                         "availEq":"28.21006347",
-        #                         "cashBal":"28.21006347",
-        #                         "ccy":"USDT",
-        #                         "crossLiab":"",
-        #                         "disEq":"28.2687404020176",
-        #                         "eq":"28.21006347",
-        #                         "eqUsd":"28.2687404020176",
-        #                         "frozenBal":"0",
-        #                         "interest":"",
-        #                         "isoEq":"0",
-        #                         "isoLiab":"",
-        #                         "liab":"",
-        #                         "maxLoan":"",
-        #                         "mgnRatio":"",
-        #                         "notionalLever":"0",
-        #                         "ordFrozen":"0",
-        #                         "twap":"0",
-        #                         "uTime":"1621556539861",
-        #                         "upl":"0",
-        #                         "uplLiab":""
+        #                         "availBal": "",
+        #                         "availEq": "28.21006347",
+        #                         "cashBal": "28.21006347",
+        #                         "ccy": "USDT",
+        #                         "crossLiab": "",
+        #                         "disEq": "28.2687404020176",
+        #                         "eq":"28 .21006347",
+        #                         "eqUsd": "28.2687404020176",
+        #                         "frozenBal": "0",
+        #                         "interest": "",
+        #                         "isoEq": "0",
+        #                         "isoLiab": "",
+        #                         "liab": "",
+        #                         "maxLoan": "",
+        #                         "mgnRatio": "",
+        #                         "notionalLever": "0",
+        #                         "ordFrozen": "0",
+        #                         "twap": "0",
+        #                         "uTime": "1621556539861",
+        #                         "upl": "0",
+        #                         "uplLiab": ""
         #                     }
         #                 ],
-        #                 "imr":"",
-        #                 "isoEq":"0",
-        #                 "mgnRatio":"",
-        #                 "mmr":"",
-        #                 "notionalUsd":"",
-        #                 "ordFroz":"",
-        #                 "totalEq":"28.2687404020176",
-        #                 "uTime":"1621556553510"
+        #                 "imr": "",
+        #                 "isoEq": "0",
+        #                 "mgnRatio": "",
+        #                 "mmr": "",
+        #                 "notionalUsd": "",
+        #                 "ordFroz": "",
+        #                 "totalEq": "28.2687404020176",
+        #                 "uTime": "1621556553510"
         #             }
         #         ],
-        #         "msg":""
+        #         "msg": ""
         #     }
         #
         #     {
-        #         "code":"0",
-        #         "data":[
+        #         "code": "0",
+        #         "data": [
         #             {
-        #                 "adjEq":"",
-        #                 "details":[
+        #                 "adjEq": "",
+        #                 "details": [
         #                     {
-        #                         "availBal":"0.049",
-        #                         "availEq":"",
-        #                         "cashBal":"0.049",
-        #                         "ccy":"BTC",
-        #                         "crossLiab":"",
-        #                         "disEq":"1918.55678",
-        #                         "eq":"0.049",
-        #                         "eqUsd":"1918.55678",
-        #                         "frozenBal":"0",
-        #                         "interest":"",
-        #                         "isoEq":"",
-        #                         "isoLiab":"",
-        #                         "liab":"",
-        #                         "maxLoan":"",
-        #                         "mgnRatio":"",
-        #                         "notionalLever":"",
-        #                         "ordFrozen":"0",
-        #                         "twap":"0",
-        #                         "uTime":"1621973128591",
-        #                         "upl":"",
-        #                         "uplLiab":""
+        #                         "availBal": "0.049",
+        #                         "availEq": "",
+        #                         "cashBal": "0.049",
+        #                         "ccy": "BTC",
+        #                         "crossLiab": "",
+        #                         "disEq": "1918.55678",
+        #                         "eq": "0.049",
+        #                         "eqUsd": "1918.55678",
+        #                         "frozenBal": "0",
+        #                         "interest": "",
+        #                         "isoEq": "",
+        #                         "isoLiab": "",
+        #                         "liab": "",
+        #                         "maxLoan": "",
+        #                         "mgnRatio": "",
+        #                         "notionalLever": "",
+        #                         "ordFrozen": "0",
+        #                         "twap": "0",
+        #                         "uTime": "1621973128591",
+        #                         "upl": "",
+        #                         "uplLiab": ""
         #                     }
         #                 ],
-        #                 "imr":"",
-        #                 "isoEq":"",
-        #                 "mgnRatio":"",
-        #                 "mmr":"",
-        #                 "notionalUsd":"",
-        #                 "ordFroz":"",
-        #                 "totalEq":"1918.55678",
-        #                 "uTime":"1622045126908"
+        #                 "imr": "",
+        #                 "isoEq": "",
+        #                 "mgnRatio": "",
+        #                 "mmr": "",
+        #                 "notionalUsd": "",
+        #                 "ordFroz": "",
+        #                 "totalEq": "1918.55678",
+        #                 "uTime": "1622045126908"
         #             }
         #         ],
-        #         "msg":""
+        #         "msg": ""
         #     }
         #
         # funding
         #
         #     {
-        #         "code":"0",
-        #         "data":[
+        #         "code": "0",
+        #         "data": [
         #             {
-        #                 "availBal":"0.00005426",
-        #                 "bal":0.0000542600000000,
-        #                 "ccy":"BTC",
-        #                 "frozenBal":"0"
+        #                 "availBal": "0.00005426",
+        #                 "bal": 0.0000542600000000,
+        #                 "ccy": "BTC",
+        #                 "frozenBal": "0"
         #             }
         #         ],
-        #         "msg":""
+        #         "msg": ""
         #     }
         #
         return self.parse_balance_by_type(marketType, response)
@@ -1775,6 +1793,7 @@ class okx(Exchange):
             # 'triggerPx': 10,  # Stop order trigger price
             # 'orderPx': 10,  # Order price if -1, the order will be executed at the market price.
             # 'triggerPxType': 'last',  # Conditional default is last, mark or index
+            #
         }
         tdMode = self.safe_string_lower(params, 'tdMode')
         if market['spot']:
@@ -1907,25 +1926,44 @@ class okx(Exchange):
 
     async def cancel_orders(self, ids, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' canelOrders() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = []
+        options = self.safe_value(self.options, 'cancelOrders', {})
+        defaultMethod = self.safe_string(options, 'method', 'privatePostTradeCancelBatchOrders')
+        method = self.safe_string(params, 'method', defaultMethod)
         clientOrderId = self.safe_value_2(params, 'clOrdId', 'clientOrderId')
+        algoId = self.safe_value(params, 'algoId')
+        stop = self.safe_value(params, 'stop')
         if clientOrderId is None:
-            if isinstance(ids, str):
-                orderIds = ids.split(',')
-                for i in range(0, len(orderIds)):
+            if stop or algoId is not None:
+                method = 'privatePostTradeCancelAlgos'
+                if isinstance(algoId, list):
+                    for i in range(0, len(algoId)):
+                        request.append({
+                            'instId': market['id'],
+                            'algoId': algoId[i],
+                        })
+                elif isinstance(algoId, str):
                     request.append({
                         'instId': market['id'],
-                        'ordId': orderIds[i],
+                        'algoId': algoId,
                     })
             else:
-                for i in range(0, len(ids)):
-                    request.append({
-                        'instId': market['id'],
-                        'ordId': ids[i],
-                    })
+                if isinstance(ids, str):
+                    orderIds = ids.split(',')
+                    for i in range(0, len(orderIds)):
+                        request.append({
+                            'instId': market['id'],
+                            'ordId': orderIds[i],
+                        })
+                else:
+                    for i in range(0, len(ids)):
+                        request.append({
+                            'instId': market['id'],
+                            'ordId': ids[i],
+                        })
         elif isinstance(clientOrderId, list):
             for i in range(0, len(clientOrderId)):
                 request.append({
@@ -1937,21 +1975,35 @@ class okx(Exchange):
                 'instId': market['id'],
                 'clOrdId': clientOrderId,
             })
-        response = await self.privatePostTradeCancelBatchOrders(request)  # dont self.extend with params, otherwise ARRAY will be turned into OBJECT
+        response = await getattr(self, method)(request)  # dont self.extend with params, otherwise ARRAY will be turned into OBJECT
         #
-        # {
-        #     "code": "0",
-        #     "data": [
-        #         {
-        #             "clOrdId": "e123456789ec4dBC1123456ba123b45e",
-        #             "ordId": "405071912345641543",
-        #             "sCode": "0",
-        #             "sMsg": ""
-        #         },
-        #         ...
-        #     ],
-        #     "msg": ""
-        # }
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             {
+        #                 "clOrdId": "e123456789ec4dBC1123456ba123b45e",
+        #                 "ordId": "405071912345641543",
+        #                 "sCode": "0",
+        #                 "sMsg": ""
+        #             },
+        #             ...
+        #         ],
+        #         "msg": ""
+        #     }
+        #
+        # Algo order
+        #
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             {
+        #                 "algoId": "431375349042380800",
+        #                 "sCode": "0",
+        #                 "sMsg": ""
+        #             }
+        #         ],
+        #         "msg": ""
+        #     }
         #
         ordersData = self.safe_value(response, 'data', [])
         return self.parse_orders(ordersData, market, None, None, params)
@@ -1980,38 +2032,85 @@ class okx(Exchange):
         # fetchOrder, fetchOpenOrders
         #
         #     {
-        #         "accFillSz":"0",
-        #         "avgPx":"",
-        #         "cTime":"1621910749815",
-        #         "category":"normal",
-        #         "ccy":"",
-        #         "clOrdId":"",
-        #         "fee":"0",
-        #         "feeCcy":"ETH",
-        #         "fillPx":"",
-        #         "fillSz":"0",
-        #         "fillTime":"",
-        #         "instId":"ETH-USDT",
-        #         "instType":"SPOT",
-        #         "lever":"",
-        #         "ordId":"317251910906576896",
-        #         "ordType":"limit",
-        #         "pnl":"0",
-        #         "posSide":"net",
-        #         "px":"2000",
-        #         "rebate":"0",
-        #         "rebateCcy":"USDT",
-        #         "side":"buy",
-        #         "slOrdPx":"",
-        #         "slTriggerPx":"",
-        #         "state":"live",
-        #         "sz":"0.001",
-        #         "tag":"",
-        #         "tdMode":"cash",
-        #         "tpOrdPx":"",
-        #         "tpTriggerPx":"",
-        #         "tradeId":"",
-        #         "uTime":"1621910749815"
+        #         "accFillSz": "0",
+        #         "avgPx": "",
+        #         "cTime": "1621910749815",
+        #         "category": "normal",
+        #         "ccy": "",
+        #         "clOrdId": "",
+        #         "fee": "0",
+        #         "feeCcy": "ETH",
+        #         "fillPx": "",
+        #         "fillSz": "0",
+        #         "fillTime": "",
+        #         "instId": "ETH-USDT",
+        #         "instType": "SPOT",
+        #         "lever": "",
+        #         "ordId": "317251910906576896",
+        #         "ordType": "limit",
+        #         "pnl": "0",
+        #         "posSide": "net",
+        #         "px": "2000",
+        #         "rebate": "0",
+        #         "rebateCcy": "USDT",
+        #         "side": "buy",
+        #         "slOrdPx": "",
+        #         "slTriggerPx": "",
+        #         "state": "live",
+        #         "sz": "0.001",
+        #         "tag": "",
+        #         "tdMode": "cash",
+        #         "tpOrdPx": "",
+        #         "tpTriggerPx": "",
+        #         "tradeId": "",
+        #         "uTime": "1621910749815"
+        #     }
+        #
+        # fetchOpenOrders Algo order
+        #
+        #     {
+        #         "activePx": "",
+        #         "activePxType": "",
+        #         "actualPx": "",
+        #         "actualSide": "buy",
+        #         "actualSz": "0",
+        #         "algoId": "431375349042380800",
+        #         "cTime": "1649119897778",
+        #         "callbackRatio": "",
+        #         "callbackSpread": "",
+        #         "ccy": "",
+        #         "ctVal": "0.01",
+        #         "instId": "BTC-USDT-SWAP",
+        #         "instType": "SWAP",
+        #         "last": "46538.9",
+        #         "lever": "125",
+        #         "moveTriggerPx": "",
+        #         "notionalUsd": "467.059",
+        #         "ordId": "",
+        #         "ordPx": "50000",
+        #         "ordType": "trigger",
+        #         "posSide": "long",
+        #         "pxLimit": "",
+        #         "pxSpread": "",
+        #         "pxVar": "",
+        #         "side": "buy",
+        #         "slOrdPx": "",
+        #         "slTriggerPx": "",
+        #         "slTriggerPxType": "",
+        #         "state": "live",
+        #         "sz": "1",
+        #         "szLimit": "",
+        #         "tag": "",
+        #         "tdMode": "isolated",
+        #         "tgtCcy": "",
+        #         "timeInterval": "",
+        #         "tpOrdPx": "",
+        #         "tpTriggerPx": "",
+        #         "tpTriggerPxType": "",
+        #         "triggerPx": "50000",
+        #         "triggerPxType": "last",
+        #         "triggerTime": "",
+        #         "uly": "BTC-USDT"
         #     }
         #
         id = self.safe_string(order, 'ordId')
@@ -2033,7 +2132,7 @@ class okx(Exchange):
         marketId = self.safe_string(order, 'instId')
         symbol = self.safe_symbol(marketId, market, '-')
         filled = self.safe_string(order, 'accFillSz')
-        price = self.safe_string_2(order, 'px', 'slOrdPx')
+        price = self.safe_string_2(order, 'px', 'ordPx')
         average = self.safe_string(order, 'avgPx')
         status = self.parse_order_status(self.safe_string(order, 'state'))
         feeCostString = self.safe_string(order, 'fee')
@@ -2062,7 +2161,7 @@ class okx(Exchange):
         clientOrderId = self.safe_string(order, 'clOrdId')
         if (clientOrderId is not None) and (len(clientOrderId) < 1):
             clientOrderId = None  # fix empty clientOrderId string
-        stopPrice = self.safe_number(order, 'slTriggerPx')
+        stopPrice = self.safe_number_2(order, 'slTriggerPx', 'triggerPx')
         return self.safe_order({
             'info': order,
             'id': id,
@@ -2106,44 +2205,44 @@ class okx(Exchange):
         response = await self.privateGetTradeOrder(self.extend(request, query))
         #
         #     {
-        #         "code":"0",
-        #         "data":[
+        #         "code": "0",
+        #         "data": [
         #             {
-        #                 "accFillSz":"0",
-        #                 "avgPx":"",
-        #                 "cTime":"1621910749815",
-        #                 "category":"normal",
-        #                 "ccy":"",
-        #                 "clOrdId":"",
-        #                 "fee":"0",
-        #                 "feeCcy":"ETH",
-        #                 "fillPx":"",
-        #                 "fillSz":"0",
-        #                 "fillTime":"",
-        #                 "instId":"ETH-USDT",
-        #                 "instType":"SPOT",
-        #                 "lever":"",
-        #                 "ordId":"317251910906576896",
-        #                 "ordType":"limit",
-        #                 "pnl":"0",
-        #                 "posSide":"net",
-        #                 "px":"2000",
-        #                 "rebate":"0",
-        #                 "rebateCcy":"USDT",
-        #                 "side":"buy",
-        #                 "slOrdPx":"",
-        #                 "slTriggerPx":"",
-        #                 "state":"live",
-        #                 "sz":"0.001",
-        #                 "tag":"",
-        #                 "tdMode":"cash",
-        #                 "tpOrdPx":"",
-        #                 "tpTriggerPx":"",
-        #                 "tradeId":"",
-        #                 "uTime":"1621910749815"
+        #                 "accFillSz": "0",
+        #                 "avgPx": "",
+        #                 "cTime": "1621910749815",
+        #                 "category": "normal",
+        #                 "ccy": "",
+        #                 "clOrdId": "",
+        #                 "fee": "0",
+        #                 "feeCcy": "ETH",
+        #                 "fillPx": "",
+        #                 "fillSz": "0",
+        #                 "fillTime": "",
+        #                 "instId": "ETH-USDT",
+        #                 "instType": "SPOT",
+        #                 "lever": "",
+        #                 "ordId": "317251910906576896",
+        #                 "ordType": "limit",
+        #                 "pnl": "0",
+        #                 "posSide": "net",
+        #                 "px":"20 00",
+        #                 "rebate": "0",
+        #                 "rebateCcy": "USDT",
+        #                 "side": "buy",
+        #                 "slOrdPx": "",
+        #                 "slTriggerPx": "",
+        #                 "state": "live",
+        #                 "sz":"0. 001",
+        #                 "tag": "",
+        #                 "tdMode": "cash",
+        #                 "tpOrdPx": "",
+        #                 "tpTriggerPx": "",
+        #                 "tradeId": "",
+        #                 "uTime": "1621910749815"
         #             }
         #         ],
-        #         "msg":""
+        #         "msg": ""
         #     }
         #
         data = self.safe_value(response, 'data', [])
@@ -2151,12 +2250,26 @@ class okx(Exchange):
         return self.parse_order(order, market)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        '''
+         * @method
+         * @name okx#fetchOpenOrders
+         * @description Fetch orders that are still open
+         * @param {string} symbol Unified market symbol
+         * @param {integer} since Timestamp in ms of the earliest time to retrieve orders for
+         * @param {integer} limit Number of results per request. The maximum is 100; The default is 100
+         * @param {dict} params Extra and exchange specific parameters
+         * @param {integer} params.till Timestamp in ms of the latest time to retrieve orders for
+         * @param {boolean} params.stop True if fetching trigger orders
+         * @param {string} params.ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+         * @param {string} params.algoId Algo ID
+         * @returns [An order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+       '''
         await self.load_markets()
         request = {
             # 'instType': 'SPOT',  # SPOT, MARGIN, SWAP, FUTURES, OPTION
             # 'uly': currency['id'],
             # 'instId': market['id'],
-            # 'ordType': 'limit',  # market, limit, post_only, fok, ioc, comma-separated
+            # 'ordType': 'limit',  # market, limit, post_only, fok, ioc, comma-separated, stop orders: conditional, oco, trigger, move_order_stop, iceberg, or twap
             # 'state': 'live',  # live, partially_filled
             # 'after': orderId,
             # 'before': orderId,
@@ -2168,47 +2281,109 @@ class okx(Exchange):
             request['instId'] = market['id']
         if limit is not None:
             request['limit'] = limit  # default 100, max 100
-        response = await self.privateGetTradeOrdersPending(self.extend(request, params))
+        options = self.safe_value(self.options, 'fetchOpenOrders', {})
+        algoOrderTypes = self.safe_value(options, 'algoOrderTypes', {})
+        defaultMethod = self.safe_string(options, 'method', 'privateGetTradeOrdersPending')
+        method = self.safe_string(params, 'method', defaultMethod)
+        ordType = self.safe_string(params, 'ordType')
+        stop = self.safe_value(params, 'stop')
+        if stop or (ordType in algoOrderTypes):
+            method = 'privateGetTradeOrdersAlgoPending'
+        query = self.omit(params, ['method', 'stop'])
+        response = await getattr(self, method)(self.extend(request, query))
         #
         #     {
-        #         "code":"0",
-        #         "data":[
+        #         "code": "0",
+        #         "data": [
         #             {
-        #                 "accFillSz":"0",
-        #                 "avgPx":"",
-        #                 "cTime":"1621910749815",
-        #                 "category":"normal",
-        #                 "ccy":"",
-        #                 "clOrdId":"",
-        #                 "fee":"0",
-        #                 "feeCcy":"ETH",
-        #                 "fillPx":"",
-        #                 "fillSz":"0",
-        #                 "fillTime":"",
-        #                 "instId":"ETH-USDT",
-        #                 "instType":"SPOT",
-        #                 "lever":"",
-        #                 "ordId":"317251910906576896",
-        #                 "ordType":"limit",
-        #                 "pnl":"0",
-        #                 "posSide":"net",
-        #                 "px":"2000",
-        #                 "rebate":"0",
-        #                 "rebateCcy":"USDT",
-        #                 "side":"buy",
-        #                 "slOrdPx":"",
-        #                 "slTriggerPx":"",
-        #                 "state":"live",
-        #                 "sz":"0.001",
-        #                 "tag":"",
-        #                 "tdMode":"cash",
-        #                 "tpOrdPx":"",
-        #                 "tpTriggerPx":"",
-        #                 "tradeId":"",
-        #                 "uTime":"1621910749815"
+        #                 "accFillSz": "0",
+        #                 "avgPx": "",
+        #                 "cTime": "1621910749815",
+        #                 "category": "normal",
+        #                 "ccy": "",
+        #                 "clOrdId": "",
+        #                 "fee": "0",
+        #                 "feeCcy": "ETH",
+        #                 "fillPx": "",
+        #                 "fillSz": "0",
+        #                 "fillTime": "",
+        #                 "instId": "ETH-USDT",
+        #                 "instType": "SPOT",
+        #                 "lever": "",
+        #                 "ordId": "317251910906576896",
+        #                 "ordType": "limit",
+        #                 "pnl": "0",
+        #                 "posSide": "net",
+        #                 "px":"20 00",
+        #                 "rebate": "0",
+        #                 "rebateCcy": "USDT",
+        #                 "side": "buy",
+        #                 "slOrdPx": "",
+        #                 "slTriggerPx": "",
+        #                 "state": "live",
+        #                 "sz":"0. 001",
+        #                 "tag": "",
+        #                 "tdMode": "cash",
+        #                 "tpOrdPx": "",
+        #                 "tpTriggerPx": "",
+        #                 "tradeId": "",
+        #                 "uTime": "1621910749815"
         #             }
         #         ],
         #         "msg":""
+        #     }
+        #
+        # Algo order
+        #
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             {
+        #                 "activePx": "",
+        #                 "activePxType": "",
+        #                 "actualPx": "",
+        #                 "actualSide": "buy",
+        #                 "actualSz": "0",
+        #                 "algoId": "431375349042380800",
+        #                 "cTime": "1649119897778",
+        #                 "callbackRatio": "",
+        #                 "callbackSpread": "",
+        #                 "ccy": "",
+        #                 "ctVal": "0.01",
+        #                 "instId": "BTC-USDT-SWAP",
+        #                 "instType": "SWAP",
+        #                 "last": "46538.9",
+        #                 "lever": "125",
+        #                 "moveTriggerPx": "",
+        #                 "notionalUsd": "467.059",
+        #                 "ordId": "",
+        #                 "ordPx": "50000",
+        #                 "ordType": "trigger",
+        #                 "posSide": "long",
+        #                 "pxLimit": "",
+        #                 "pxSpread": "",
+        #                 "pxVar": "",
+        #                 "side": "buy",
+        #                 "slOrdPx": "",
+        #                 "slTriggerPx": "",
+        #                 "slTriggerPxType": "",
+        #                 "state": "live",
+        #                 "sz": "1",
+        #                 "szLimit": "",
+        #                 "tag": "",
+        #                 "tdMode": "isolated",
+        #                 "tgtCcy": "",
+        #                 "timeInterval": "",
+        #                 "tpOrdPx": "",
+        #                 "tpTriggerPx": "",
+        #                 "tpTriggerPxType": "",
+        #                 "triggerPx": "50000",
+        #                 "triggerPxType": "last",
+        #                 "triggerTime": "",
+        #                 "uly": "BTC-USDT"
+        #             }
+        #         ],
+        #         "msg": ""
         #     }
         #
         data = self.safe_value(response, 'data', [])
@@ -2311,44 +2486,44 @@ class okx(Exchange):
         response = await getattr(self, method)(self.extend(request, query))
         #
         #     {
-        #         "code":"0",
-        #         "data":[
+        #         "code": "0",
+        #         "data": [
         #             {
-        #                 "accFillSz":"0",
-        #                 "avgPx":"",
-        #                 "cTime":"1621910749815",
-        #                 "category":"normal",
-        #                 "ccy":"",
-        #                 "clOrdId":"",
-        #                 "fee":"0",
-        #                 "feeCcy":"ETH",
-        #                 "fillPx":"",
-        #                 "fillSz":"0",
-        #                 "fillTime":"",
-        #                 "instId":"ETH-USDT",
-        #                 "instType":"SPOT",
-        #                 "lever":"",
-        #                 "ordId":"317251910906576896",
-        #                 "ordType":"limit",
-        #                 "pnl":"0",
-        #                 "posSide":"net",
-        #                 "px":"2000",
-        #                 "rebate":"0",
-        #                 "rebateCcy":"USDT",
-        #                 "side":"buy",
-        #                 "slOrdPx":"",
-        #                 "slTriggerPx":"",
-        #                 "state":"live",
-        #                 "sz":"0.001",
-        #                 "tag":"",
-        #                 "tdMode":"cash",
-        #                 "tpOrdPx":"",
-        #                 "tpTriggerPx":"",
-        #                 "tradeId":"",
-        #                 "uTime":"1621910749815"
+        #                 "accFillSz": "0",
+        #                 "avgPx": "",
+        #                 "cTime": "1621910749815",
+        #                 "category": "normal",
+        #                 "ccy": "",
+        #                 "clOrdId": "",
+        #                 "fee": "0",
+        #                 "feeCcy": "ETH",
+        #                 "fillPx": "",
+        #                 "fillSz": "0",
+        #                 "fillTime": "",
+        #                 "instId": "ETH-USDT",
+        #                 "instType": "SPOT",
+        #                 "lever": "",
+        #                 "ordId": "317251910906576896",
+        #                 "ordType": "limit",
+        #                 "pnl": "0",
+        #                 "posSide": "net",
+        #                 "px": "2000",
+        #                 "rebate": "0",
+        #                 "rebateCcy": "USDT",
+        #                 "side": "buy",
+        #                 "slOrdPx": "",
+        #                 "slTriggerPx": "",
+        #                 "state": "live",
+        #                 "sz": "0.001",
+        #                 "tag": "",
+        #                 "tdMode": "cash",
+        #                 "tpOrdPx": "",
+        #                 "tpTriggerPx": "",
+        #                 "tradeId": "",
+        #                 "uTime": "1621910749815"
         #             }
         #         ],
-        #         "msg":""
+        #         "msg": ""
         #     }
         #
         data = self.safe_value(response, 'data', [])
@@ -2376,27 +2551,27 @@ class okx(Exchange):
         response = await self.privateGetTradeFillsHistory(self.extend(request, query))
         #
         #     {
-        #         "code":"0",
-        #         "data":[
+        #         "code": "0",
+        #         "data": [
         #             {
-        #                 "side":"buy",
-        #                 "fillSz":"0.007533",
-        #                 "fillPx":"2654.98",
-        #                 "fee":"-0.000007533",
-        #                 "ordId":"317321390244397056",
-        #                 "instType":"SPOT",
-        #                 "instId":"ETH-USDT",
-        #                 "clOrdId":"",
-        #                 "posSide":"net",
-        #                 "billId":"317321390265368576",
-        #                 "tag":"0",
-        #                 "execType":"T",
-        #                 "tradeId":"107601752",
-        #                 "feeCcy":"ETH",
-        #                 "ts":"1621927314985"
+        #                 "side": "buy",
+        #                 "fillSz": "0.007533",
+        #                 "fillPx": "2654.98",
+        #                 "fee": "-0.000007533",
+        #                 "ordId": "317321390244397056",
+        #                 "instType": "SPOT",
+        #                 "instId": "ETH-USDT",
+        #                 "clOrdId": "",
+        #                 "posSide": "net",
+        #                 "billId": "317321390265368576",
+        #                 "tag": "0",
+        #                 "execType": "T",
+        #                 "tradeId": "107601752",
+        #                 "feeCcy": "ETH",
+        #                 "ts": "1621927314985"
         #             }
         #         ],
-        #         "msg":""
+        #         "msg": ""
         #     }
         #
         data = self.safe_value(response, 'data', [])
@@ -2656,12 +2831,12 @@ class okx(Exchange):
         #     }
         #
         #     {
-        #       "chain": "ETH-OKExChain",
-        #       "ctAddr": "72315c",
-        #       "ccy": "ETH",
-        #       "to": "6",
-        #       "addr": "0x1c9f2244d1ccaa060bd536827c18925db10db102",
-        #       "selected": True
+        #        "chain": "ETH-OKExChain",
+        #        "ctAddr": "72315c",
+        #        "ccy": "ETH",
+        #        "to": "6",
+        #        "addr": "0x1c9f2244d1ccaa060bd536827c18925db10db102",
+        #        "selected": True
         #     }
         #
         address = self.safe_string(depositAddress, 'addr')
@@ -2679,35 +2854,40 @@ class okx(Exchange):
         #
         # response from address endpoint:
         #      {
-        #          "chain":"USDT-Polygon",
-        #          "ctAddr":"",
-        #          "ccy":"USDT",
-        #          "to":"6",
-        #          "addr":"0x1903441e386cc49d937f6302955b5feb4286dcfa",
-        #          "selected":true
+        #          "chain": "USDT-Polygon",
+        #          "ctAddr": "",
+        #          "ccy": "USDT",
+        #          "to":"6" ,
+        #          "addr": "0x1903441e386cc49d937f6302955b5feb4286dcfa",
+        #          "selected": True
         #      }
         # network information from currency['networks'] field:
         # Polygon: {
-        #       info: {
-        #         canDep: False,
-        #         canInternal: False,
-        #         canWd: False,
-        #         ccy: 'USDT',
-        #         chain: 'USDT-Polygon-Bridge',
-        #         mainNet: False,
-        #         maxFee: '26.879528',
-        #         minFee: '13.439764',
-        #         minWd: '0.001',
-        #         name: ''
-        #       },
-        #       id: 'USDT-Polygon-Bridge',
-        #       network: 'Polygon',
-        #       active: False,
-        #       deposit: False,
-        #       withdraw: False,
-        #       fee: 13.439764,
-        #       precision: None,
-        #       limits: {withdraw: {min: 0.001, max: None}}
+        #        info: {
+        #            canDep: False,
+        #            canInternal: False,
+        #            canWd: False,
+        #            ccy: 'USDT',
+        #            chain: 'USDT-Polygon-Bridge',
+        #            mainNet: False,
+        #            maxFee: '26.879528',
+        #            minFee: '13.439764',
+        #            minWd: '0.001',
+        #            name: ''
+        #        },
+        #        id: 'USDT-Polygon-Bridge',
+        #        network: 'Polygon',
+        #        active: False,
+        #        deposit: False,
+        #        withdraw: False,
+        #        fee: 13.439764,
+        #        precision: None,
+        #        limits: {
+        #            withdraw: {
+        #                min: 0.001,
+        #                max: None
+        #            }
+        #        }
         #     },
         #
         if chain == 'USDT-Polygon':
@@ -3081,16 +3261,16 @@ class okx(Exchange):
         response = await self.privateGetAccountLeverageInfo(self.extend(request, params))
         #
         #     {
-        #       "code": "0",
-        #       "data": [
-        #         {
-        #           "instId": "BTC-USDT-SWAP",
-        #           "lever": "5.00000000",
-        #           "mgnMode": "isolated",
-        #           "posSide": "net"
-        #         }
-        #       ],
-        #       "msg": ""
+        #        "code": "0",
+        #        "data": [
+        #            {
+        #                "instId": "BTC-USDT-SWAP",
+        #                "lever": "5.00000000",
+        #                "mgnMode": "isolated",
+        #                "posSide": "net"
+        #            }
+        #        ],
+        #        "msg": ""
         #     }
         #
         return response
@@ -3113,42 +3293,42 @@ class okx(Exchange):
         #         "msg": "",
         #         "data": [
         #             {
-        #                 "adl":"1",
-        #                 "availPos":"1",
-        #                 "avgPx":"2566.31",
-        #                 "cTime":"1619507758793",
-        #                 "ccy":"ETH",
-        #                 "deltaBS":"",
-        #                 "deltaPA":"",
-        #                 "gammaBS":"",
-        #                 "gammaPA":"",
-        #                 "imr":"",
-        #                 "instId":"ETH-USD-210430",
-        #                 "instType":"FUTURES",
-        #                 "interest":"0",
-        #                 "last":"2566.22",
-        #                 "lever":"10",
-        #                 "liab":"",
-        #                 "liabCcy":"",
-        #                 "liqPx":"2352.8496681818233",
-        #                 "margin":"0.0003896645377994",
-        #                 "mgnMode":"isolated",
-        #                 "mgnRatio":"11.731726509588816",
-        #                 "mmr":"0.0000311811092368",
-        #                 "optVal":"",
-        #                 "pTime":"1619507761462",
-        #                 "pos":"1",
-        #                 "posCcy":"",
-        #                 "posId":"307173036051017730",
-        #                 "posSide":"long",
-        #                 "thetaBS":"",
-        #                 "thetaPA":"",
-        #                 "tradeId":"109844",
-        #                 "uTime":"1619507761462",
-        #                 "upl":"-0.0000009932766034",
-        #                 "uplRatio":"-0.0025490556801078",
-        #                 "vegaBS":"",
-        #                 "vegaPA":""
+        #                 "adl": "1",
+        #                 "availPos": "1",
+        #                 "avgPx": "2566.31",
+        #                 "cTime": "1619507758793",
+        #                 "ccy": "ETH",
+        #                 "deltaBS": "",
+        #                 "deltaPA": "",
+        #                 "gammaBS": "",
+        #                 "gammaPA": "",
+        #                 "imr": "",
+        #                 "instId": "ETH-USD-210430",
+        #                 "instType": "FUTURES",
+        #                 "interest": "0",
+        #                 "last": "2566.22",
+        #                 "lever": "10",
+        #                 "liab": "",
+        #                 "liabCcy": "",
+        #                 "liqPx": "2352.8496681818233",
+        #                 "margin": "0.0003896645377994",
+        #                 "mgnMode": "isolated",
+        #                 "mgnRatio": "11.731726509588816",
+        #                 "mmr": "0.0000311811092368",
+        #                 "optVal": "",
+        #                 "pTime": "1619507761462",
+        #                 "pos": "1",
+        #                 "posCcy": "",
+        #                 "posId": "307173036051017730",
+        #                 "posSide": "long",
+        #                 "thetaBS": "",
+        #                 "thetaPA": "",
+        #                 "tradeId": "109844",
+        #                 "uTime": "1619507761462",
+        #                 "upl": "-0.0000009932766034",
+        #                 "uplRatio": "-0.0025490556801078",
+        #                 "vegaBS": "",
+        #                 "vegaPA": ""
         #             }
         #         ]
         #     }
@@ -3179,42 +3359,42 @@ class okx(Exchange):
         #         "msg": "",
         #         "data": [
         #             {
-        #                 "adl":"1",
-        #                 "availPos":"1",
-        #                 "avgPx":"2566.31",
-        #                 "cTime":"1619507758793",
-        #                 "ccy":"ETH",
-        #                 "deltaBS":"",
-        #                 "deltaPA":"",
-        #                 "gammaBS":"",
-        #                 "gammaPA":"",
-        #                 "imr":"",
-        #                 "instId":"ETH-USD-210430",
-        #                 "instType":"FUTURES",
-        #                 "interest":"0",
-        #                 "last":"2566.22",
-        #                 "lever":"10",
-        #                 "liab":"",
-        #                 "liabCcy":"",
-        #                 "liqPx":"2352.8496681818233",
-        #                 "margin":"0.0003896645377994",
-        #                 "mgnMode":"isolated",
-        #                 "mgnRatio":"11.731726509588816",
-        #                 "mmr":"0.0000311811092368",
-        #                 "optVal":"",
-        #                 "pTime":"1619507761462",
-        #                 "pos":"1",
-        #                 "posCcy":"",
-        #                 "posId":"307173036051017730",
-        #                 "posSide":"long",
-        #                 "thetaBS":"",
-        #                 "thetaPA":"",
-        #                 "tradeId":"109844",
-        #                 "uTime":"1619507761462",
-        #                 "upl":"-0.0000009932766034",
-        #                 "uplRatio":"-0.0025490556801078",
-        #                 "vegaBS":"",
-        #                 "vegaPA":""
+        #                 "adl": "1",
+        #                 "availPos": "1",
+        #                 "avgPx": "2566.31",
+        #                 "cTime": "1619507758793",
+        #                 "ccy": "ETH",
+        #                 "deltaBS": "",
+        #                 "deltaPA": "",
+        #                 "gammaBS": "",
+        #                 "gammaPA": "",
+        #                 "imr": "",
+        #                 "instId": "ETH-USD-210430",
+        #                 "instType": "FUTURES",
+        #                 "interest": "0",
+        #                 "last": "2566.22",
+        #                 "lever": "10",
+        #                 "liab": "",
+        #                 "liabCcy": "",
+        #                 "liqPx": "2352.8496681818233",
+        #                 "margin": "0.0003896645377994",
+        #                 "mgnMode": "isolated",
+        #                 "mgnRatio": "11.731726509588816",
+        #                 "mmr": "0.0000311811092368",
+        #                 "optVal": "",
+        #                 "pTime": "1619507761462",
+        #                 "pos": "1",
+        #                 "posCcy": "",
+        #                 "posId": "307173036051017730",
+        #                 "posSide": "long",
+        #                 "thetaBS": "",
+        #                 "thetaPA": "",
+        #                 "tradeId": "109844",
+        #                 "uTime": "1619507761462",
+        #                 "upl": "-0.0000009932766034",
+        #                 "uplRatio": "-0.0025490556801078",
+        #                 "vegaBS": "",
+        #                 "vegaPA": ""
         #             }
         #         ]
         #     }
@@ -3231,44 +3411,44 @@ class okx(Exchange):
     def parse_position(self, position, market=None):
         #
         #     {
-        #       "adl": "3",
-        #       "availPos": "1",
-        #       "avgPx": "34131.1",
-        #       "cTime": "1627227626502",
-        #       "ccy": "USDT",
-        #       "deltaBS": "",
-        #       "deltaPA": "",
-        #       "gammaBS": "",
-        #       "gammaPA": "",
-        #       "imr": "170.66093041794787",
-        #       "instId": "BTC-USDT-SWAP",
-        #       "instType": "SWAP",
-        #       "interest": "0",
-        #       "last": "34134.4",
-        #       "lever": "2",
-        #       "liab": "",
-        #       "liabCcy": "",
-        #       "liqPx": "12608.959083877446",
-        #       "markPx": "4786.459271773621",
-        #       "margin": "",
-        #       "mgnMode": "cross",
-        #       "mgnRatio": "140.49930117599155",
-        #       "mmr": "1.3652874433435829",
-        #       "notionalUsd": "341.5130010779638",
-        #       "optVal": "",
-        #       "pos": "1",
-        #       "posCcy": "",
-        #       "posId": "339552508062380036",
-        #       "posSide": "long",
-        #       "thetaBS": "",
-        #       "thetaPA": "",
-        #       "tradeId": "98617799",
-        #       "uTime": "1627227626502",
-        #       "upl": "0.0108608358957281",
-        #       "uplRatio": "0.0000636418743944",
-        #       "vegaBS": "",
-        #       "vegaPA": ""
-        #     }
+        #        "adl": "3",
+        #        "availPos": "1",
+        #        "avgPx": "34131.1",
+        #        "cTime": "1627227626502",
+        #        "ccy": "USDT",
+        #        "deltaBS": "",
+        #        "deltaPA": "",
+        #        "gammaBS": "",
+        #        "gammaPA": "",
+        #        "imr": "170.66093041794787",
+        #        "instId": "BTC-USDT-SWAP",
+        #        "instType": "SWAP",
+        #        "interest": "0",
+        #        "last": "34134.4",
+        #        "lever": "2",
+        #        "liab": "",
+        #        "liabCcy": "",
+        #        "liqPx": "12608.959083877446",
+        #        "markPx": "4786.459271773621",
+        #        "margin": "",
+        #        "mgnMode": "cross",
+        #        "mgnRatio": "140.49930117599155",
+        #        "mmr": "1.3652874433435829",
+        #        "notionalUsd": "341.5130010779638",
+        #        "optVal": "",
+        #        "pos": "1",
+        #        "posCcy": "",
+        #        "posId": "339552508062380036",
+        #        "posSide": "long",
+        #        "thetaBS": "",
+        #        "thetaPA": "",
+        #        "tradeId": "98617799",
+        #        "uTime": "1627227626502",
+        #        "upl": "0.0108608358957281",
+        #        "uplRatio": "0.0000636418743944",
+        #        "vegaBS": "",
+        #        "vegaPA": ""
+        #    }
         #
         marketId = self.safe_string(position, 'instId')
         market = self.safe_market(marketId, market)
@@ -3507,14 +3687,14 @@ class okx(Exchange):
 
     def parse_funding_rate(self, fundingRate, market=None):
         #
-        #     {
-        #       "fundingRate": "0.00027815",
-        #       "fundingTime": "1634256000000",
-        #       "instId": "BTC-USD-SWAP",
-        #       "instType": "SWAP",
-        #       "nextFundingRate": "0.00017",
-        #       "nextFundingTime": "1634284800000"
-        #     }
+        #    {
+        #        "fundingRate": "0.00027815",
+        #        "fundingTime": "1634256000000",
+        #        "instId": "BTC-USD-SWAP",
+        #        "instType": "SWAP",
+        #        "nextFundingRate": "0.00017",
+        #        "nextFundingTime": "1634284800000"
+        #    }
         #
         # in the response above nextFundingRate is actually two funding rates from now
         #
@@ -3555,20 +3735,20 @@ class okx(Exchange):
         }
         response = await self.publicGetPublicFundingRate(self.extend(request, params))
         #
-        #     {
-        #       "code": "0",
-        #       "data": [
-        #         {
-        #           "fundingRate": "0.00027815",
-        #           "fundingTime": "1634256000000",
-        #           "instId": "BTC-USD-SWAP",
-        #           "instType": "SWAP",
-        #           "nextFundingRate": "0.00017",
-        #           "nextFundingTime": "1634284800000"
-        #         }
-        #       ],
-        #       "msg": ""
-        #     }
+        #    {
+        #        "code": "0",
+        #        "data": [
+        #            {
+        #                "fundingRate": "0.00027815",
+        #                "fundingTime": "1634256000000",
+        #                "instId": "BTC-USD-SWAP",
+        #                "instType": "SWAP",
+        #                "nextFundingRate": "0.00017",
+        #                "nextFundingTime": "1634284800000"
+        #            }
+        #        ],
+        #        "msg": ""
+        #    }
         #
         data = self.safe_value(response, 'data', [])
         entry = self.safe_value(data, 0, {})
@@ -3671,28 +3851,28 @@ class okx(Exchange):
         # AccountBillsArchive has the same cost as AccountBills but supports three months of data
         response = await self.privateGetAccountBillsArchive(self.extend(request, query))
         #
-        #     {
-        #       "bal": "0.0242946200998573",
-        #       "balChg": "0.0000148752712240",
-        #       "billId": "377970609204146187",
-        #       "ccy": "ETH",
-        #       "execType": "",
-        #       "fee": "0",
-        #       "from": "",
-        #       "instId": "ETH-USD-SWAP",
-        #       "instType": "SWAP",
-        #       "mgnMode": "isolated",
-        #       "notes": "",
-        #       "ordId": "",
-        #       "pnl": "0.000014875271224",
-        #       "posBal": "0",
-        #       "posBalChg": "0",
-        #       "subType": "174",
-        #       "sz": "9",
-        #       "to": "",
-        #       "ts": "1636387215588",
-        #       "type": "8"
-        #     }
+        #    {
+        #        "bal": "0.0242946200998573",
+        #        "balChg": "0.0000148752712240",
+        #        "billId": "377970609204146187",
+        #        "ccy": "ETH",
+        #        "execType": "",
+        #        "fee": "0",
+        #        "from": "",
+        #        "instId": "ETH-USD-SWAP",
+        #        "instType": "SWAP",
+        #        "mgnMode": "isolated",
+        #        "notes": "",
+        #        "ordId": "",
+        #        "pnl": "0.000014875271224",
+        #        "posBal": "0",
+        #        "posBalChg": "0",
+        #        "subType": "174",
+        #        "sz": "9",
+        #        "to": "",
+        #        "ts": "1636387215588",
+        #        "type": "8"
+        #    }
         #
         data = self.safe_value(response, 'data')
         result = []
@@ -3761,15 +3941,15 @@ class okx(Exchange):
         }
         response = await self.privatePostAccountSetPositionMode(self.extend(request, params))
         #
-        #     {
-        #       "code": "0",
-        #       "data": [
-        #         {
-        #           "posMode": "net_mode"
-        #         }
-        #       ],
-        #       "msg": ""
-        #     }
+        #    {
+        #        "code": "0",
+        #        "data": [
+        #            {
+        #                "posMode": "net_mode"
+        #            }
+        #        ],
+        #        "msg": ""
+        #    }
         #
         return response
 
@@ -3812,16 +3992,18 @@ class okx(Exchange):
     async def fetch_borrow_rates(self, params={}):
         await self.load_markets()
         response = await self.privateGetAccountInterestRate(params)
-        # {
-        #     "code": "0",
-        #     "data": [
-        #         {
-        #             "ccy":"BTC",
-        #             "interestRate":"0.00000833"
-        #         }
-        #         ...
-        #     ],
-        # }
+        #
+        #    {
+        #        "code": "0",
+        #        "data": [
+        #            {
+        #                "ccy": "BTC",
+        #                "interestRate": "0.00000833"
+        #            }
+        #            ...
+        #        ],
+        #    }
+        #
         timestamp = self.milliseconds()
         data = self.safe_value(response, 'data')
         rates = {}
@@ -3845,17 +4027,19 @@ class okx(Exchange):
             'ccy': currency['id'],
         }
         response = await self.privateGetAccountInterestRate(self.extend(request, params))
-        # {
-        #     "code": "0",
-        #     "data":[
-        #          {
-        #             "ccy":"USDT",
-        #             "interestRate":"0.00002065"
-        #          }
-        #          ...
-        #     ],
-        #     "msg":""
-        # }
+        #
+        #    {
+        #        "code": "0",
+        #        "data": [
+        #             {
+        #                "ccy": "USDT",
+        #                "interestRate": "0.00002065"
+        #             }
+        #             ...
+        #        ],
+        #        "msg": ""
+        #    }
+        #
         timestamp = self.milliseconds()
         data = self.safe_value(response, 'data')
         rate = self.safe_value(data, 0)
@@ -3921,7 +4105,7 @@ class okx(Exchange):
         codeObject = json.loads('{"ccy": "' + code + '"}')
         histories = await self.fetch_borrow_rate_histories(since, limit, codeObject, params)
         if histories is None:
-            raise BadRequest(self.id + '.fetchBorrowRateHistory returned no data for ' + code)
+            raise BadRequest(self.id + ' fetchBorrowRateHistory() returned no data for ' + code)
         else:
             return histories
 
@@ -4017,25 +4201,29 @@ class okx(Exchange):
 
     def parse_market_leverage_tiers(self, info, market=None):
         '''
-            @param info: Exchange response for 1 market
-            [
-                {
-                    "baseMaxLoan": "500",
-                    "imr": "0.1",
-                    "instId": "ETH-USDT",
-                    "maxLever": "10",
-                    "maxSz": "500",
-                    "minSz": "0",
-                    "mmr": "0.03",
-                    "optMgnFactor": "0",
-                    "quoteMaxLoan": "200000",
-                    "tier": "1",
-                    "uly": ""
-                },
-                ...
-            ]
-            @param market: CCXT market
+         * @ignore
+         * @method
+         * @param info: Exchange response for 1 market
+         * @param market: CCXT market
        '''
+        #
+        #    [
+        #        {
+        #            "baseMaxLoan": "500",
+        #            "imr": "0.1",
+        #            "instId": "ETH-USDT",
+        #            "maxLever": "10",
+        #            "maxSz": "500",
+        #            "minSz": "0",
+        #            "mmr": "0.03",
+        #            "optMgnFactor": "0",
+        #            "quoteMaxLoan": "200000",
+        #            "tier": "1",
+        #            "uly": ""
+        #        },
+        #        ...
+        #    ]
+        #
         tiers = []
         for i in range(0, len(info)):
             tier = info[i]
@@ -4050,6 +4238,83 @@ class okx(Exchange):
             })
         return tiers
 
+    async def fetch_borrow_interest(self, code=None, symbol=None, since=None, limit=None, params={}):
+        '''
+         * @method
+         * @name okx#fetchBorrowInterest
+         * @description Obtain the amount of interest that has accrued for margin trading
+         * @param {string} code The unified currency code for the currency of the interest
+         * @param {string} symbol The market symbol of an isolated margin market, if None, the interest for cross margin markets is returned
+         * @param {integer} since Timestamp in ms of the earliest time to receive interest records for
+         * @param {integer} limit The number of [borrow interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure} to retrieve
+         * @param {dict} params Exchange specific parameters
+         * @param {integer} params.type Loan type 1 - VIP loans 2 - Market loans *Default is Market loans*
+         * @returns An array of [borrow interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure}
+        '''
+        await self.load_markets()
+        request = {
+            'mgnMode': 'isolated' if (symbol is not None) else 'cross',
+        }
+        market = None
+        if code is not None:
+            currency = self.currency(code)
+            request['ccy'] = currency['id']
+        if since is not None:
+            request['before'] = since - 1
+        if limit is not None:
+            request['limit'] = limit
+        if symbol is not None:
+            market = self.market(symbol)
+            request['instId'] = market['id']
+        response = await self.privateGetAccountInterestAccrued(self.extend(request, params))
+        #
+        #    {
+        #        "code": "0",
+        #        "data": [
+        #            {
+        #                "ccy": "USDT",
+        #                "instId": "",
+        #                "interest": "0.0003960833333334",
+        #                "interestRate": "0.0000040833333333",
+        #                "liab": "97",
+        #                "mgnMode": "",
+        #                "ts": "1637312400000",
+        #                "type": "1"
+        #            },
+        #            ...
+        #        ],
+        #        "msg": ""
+        #    }
+        #
+        data = self.safe_value(response, 'data')
+        interest = self.parse_borrow_interests(data)
+        return self.filter_by_currency_since_limit(interest, code, since, limit)
+
+    def parse_borrow_interests(self, response, market=None):
+        interest = []
+        for i in range(0, len(response)):
+            row = response[i]
+            interest.append(self.parse_borrow_interest(row, market))
+        return interest
+
+    def parse_borrow_interest(self, info, market=None):
+        instId = self.safe_string(info, 'instId')
+        account = 'cross'  # todo rename it to margin/marginType and separate it from the symbol
+        if instId is not None:
+            market = self.safe_market(instId, market)
+            account = self.safe_string(market, 'symbol')
+        timestamp = self.safe_number(info, 'ts')
+        return {
+            'account': account,  # isolated symbol, will not be returned for cross margin
+            'currency': self.safe_currency_code(self.safe_string(info, 'ccy')),
+            'interest': self.safe_number(info, 'interest'),
+            'interestRate': self.safe_number(info, 'interestRate'),
+            'amountBorrowed': self.safe_number(info, 'liab'),
+            'timestamp': timestamp,  # Interest accrued time
+            'datetime': self.iso8601(timestamp),
+            'info': info,
+        }
+
     def set_sandbox_mode(self, enable):
         super(okx, self).set_sandbox_mode(enable)
         if enable:
@@ -4061,8 +4326,24 @@ class okx(Exchange):
         if not response:
             return  # fallback to default error handler
         #
-        #     {"code":"1","data":[{"clOrdId":"","ordId":"","sCode":"51119","sMsg":"Order placement failed due to insufficient balance. ","tag":""}],"msg":""}
-        #     {"code":"58001","data":[],"msg":"Incorrect trade password"}
+        #    {
+        #        "code": "1",
+        #        "data": [
+        #            {
+        #                "clOrdId": "",
+        #                "ordId": "",
+        #                "sCode": "51119",
+        #                "sMsg": "Order placement failed due to insufficient balance. ",
+        #                "tag": ""
+        #            }
+        #        ],
+        #        "msg": ""
+        #    },
+        #    {
+        #        "code": "58001",
+        #        "data": [],
+        #        "msg": "Incorrect trade password"
+        #    }
         #
         code = self.safe_string(response, 'code')
         if code != '0':

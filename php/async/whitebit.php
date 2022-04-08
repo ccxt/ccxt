@@ -33,7 +33,6 @@ class whitebit extends Exchange {
                 'createLimitOrder' => null,
                 'createMarketOrder' => null,
                 'createOrder' => true,
-                'deposit' => null,
                 'editOrder' => null,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,
@@ -820,7 +819,7 @@ class whitebit extends Exchange {
             }
         }
         if ($method === null) {
-            throw new ArgumentsRequired($this->id . 'Invalid $type =>  createOrder() requires one of the following order types => $market, limit, stopLimit or stopMarket');
+            throw new ArgumentsRequired($this->id . ' Invalid $type =>  createOrder() requires one of the following order types => $market, limit, stopLimit or stopMarket');
         }
         $response = yield $this->$method (array_merge($request, $params));
         return $this->parse_order($response);

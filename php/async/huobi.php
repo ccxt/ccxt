@@ -45,11 +45,11 @@ class huobi extends Exchange {
                 'createDepositAddress' => null,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
-                'deposit' => null,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,
-                'fetchBorrowRate' => true,
+                'fetchBorrowInterest' => true,
+                'fetchBorrowRate' => null,
                 'fetchBorrowRateHistories' => null,
                 'fetchBorrowRateHistory' => null,
                 'fetchBorrowRates' => true,
@@ -1048,24 +1048,27 @@ class huobi extends Exchange {
         $options = $this->safe_value($this->options, 'fetchMarkets', array());
         $types = $this->safe_value($options, 'types', array());
         $allMarkets = array();
+        $promises = array();
         $keys = is_array($types) ? array_keys($types) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $type = $keys[$i];
             $value = $this->safe_value($types, $type);
             if ($value === true) {
-                $markets = yield $this->fetch_markets_by_type_and_sub_type($type, null, $params);
-                $allMarkets = $this->array_concat($allMarkets, $markets);
+                $promises[] = $this->fetch_markets_by_type_and_sub_type($type, null, $params);
             } else {
                 $subKeys = is_array($value) ? array_keys($value) : array();
                 for ($j = 0; $j < count($subKeys); $j++) {
                     $subType = $subKeys[$j];
                     $subValue = $this->safe_value($value, $subType);
                     if ($subValue) {
-                        $markets = yield $this->fetch_markets_by_type_and_sub_type($type, $subType, $params);
-                        $allMarkets = $this->array_concat($allMarkets, $markets);
+                        $promises[] = $this->fetch_markets_by_type_and_sub_type($type, $subType, $params);
                     }
                 }
             }
+        }
+        $promises = yield $promises;
+        for ($i = 0; $i < count($promises); $i++) {
+            $allMarkets = $this->array_concat($allMarkets, $promises[$i]);
         }
         return $allMarkets;
     }
@@ -3428,7 +3431,7 @@ class huobi extends Exchange {
         if ($stopPrice === null) {
             $stopOrderTypes = $this->safe_value($options, 'stopOrderTypes', array());
             if (is_array($stopOrderTypes) && array_key_exists($orderType, $stopOrderTypes)) {
-                throw new ArgumentsRequired($this->id . 'createOrder() requires a $stopPrice or a stop-$price parameter for a stop order');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a $stopPrice or a stop-$price parameter for a stop order');
             }
         } else {
             $stopOperator = $this->safe_string($params, 'operator');
@@ -3441,7 +3444,7 @@ class huobi extends Exchange {
             if (($orderType === 'limit') || ($orderType === 'limit-fok')) {
                 $orderType = 'stop-' . $orderType;
             } else if (($orderType !== 'stop-limit') && ($orderType !== 'stop-limit-fok')) {
-                throw new NotSupported($this->id . 'createOrder() does not support ' . $type . ' orders');
+                throw new NotSupported($this->id . ' createOrder() does not support ' . $type . ' orders');
             }
         }
         $postOnly = $this->safe_value($params, 'postOnly', false);
@@ -4623,6 +4626,128 @@ class huobi extends Exchange {
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
+    public function fetch_borrow_interest($code = null, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        $defaultMargin = $this->safe_string($params, 'marginType', 'cross'); // cross or isolated
+        $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', $defaultMargin);
+        $request = array();
+        if ($since !== null) {
+            $request['start-date'] = $this->yyyymmdd($since);
+        }
+        if ($limit !== null) {
+            $request['size'] = $limit;
+        }
+        $market = null;
+        $method = null;
+        if ($marginType === 'isolated') {
+            $method = 'privateGetMarginLoanOrders';
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['symbol'] = $market['id'];
+            }
+        } else {  // Cross
+            $method = 'privateGetCrossMarginLoanOrders';
+            if ($code !== null) {
+                $currency = $this->currency($code);
+                $request['currency'] = $currency['id'];
+            }
+        }
+        $response = yield $this->$method (array_merge($request, $params));
+        //
+        //    {
+        //        "status":"ok",
+        //        "data":array(
+        //            {
+        //                "loan-balance":"0.100000000000000000",
+        //                "interest-balance":"0.000200000000000000",
+        //                "loan-amount":"0.100000000000000000",
+        //                "accrued-at":1511169724531,
+        //                "interest-amount":"0.000200000000000000",
+        //                "filled-points":"0.2",
+        //                "filled-ht":"0.2",
+        //                "currency":"btc",
+        //                "id":394,
+        //                "state":"accrual",
+        //                "account-id":17747,
+        //                "user-id":119913,
+        //                "created-at":1511169724531
+        //            }
+        //        )
+        //    }
+        //
+        $data = $this->safe_value($response, 'data');
+        $interest = $this->parse_borrow_interests($data, $marginType, $market);
+        return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
+    }
+
+    public function parse_borrow_interests($response, $marginType, $market = null) {
+        $interest = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $row = $response[$i];
+            $interest[] = $this->parse_borrow_interest($row, $marginType, $market);
+        }
+        return $interest;
+    }
+
+    public function parse_borrow_interest($info, $marginType, $market = null) {
+        // isolated
+        //    {
+        //        "interest-rate":"0.000040830000000000",
+        //        "user-id":35930539,
+        //        "account-id":48916071,
+        //        "updated-at":1649320794195,
+        //        "deduct-rate":"1",
+        //        "day-interest-rate":"0.000980000000000000",
+        //        "hour-interest-rate":"0.000040830000000000",
+        //        "loan-balance":"100.790000000000000000",
+        //        "interest-balance":"0.004115260000000000",
+        //        "loan-amount":"100.790000000000000000",
+        //        "paid-coin":"0.000000000000000000",
+        //        "accrued-at":1649320794148,
+        //        "created-at":1649320794148,
+        //        "interest-amount":"0.004115260000000000",
+        //        "deduct-amount":"0",
+        //        "deduct-currency":"",
+        //        "paid-point":"0.000000000000000000",
+        //        "currency":"usdt",
+        //        "symbol":"ltcusdt",
+        //        "id":20242721,
+        //    }
+        //
+        // cross
+        //   {
+        //       "id":3416576,
+        //       "user-id":35930539,
+        //       "account-id":48956839,
+        //       "currency":"usdt",
+        //       "loan-amount":"102",
+        //       "loan-balance":"102",
+        //       "interest-amount":"0.00416466",
+        //       "interest-balance":"0.00416466",
+        //       "created-at":1649322735333,
+        //       "accrued-at":1649322735382,
+        //       "state":"accrual",
+        //       "filled-points":"0",
+        //       "filled-ht":"0"
+        //   }
+        //
+        $marketId = $this->safe_string($info, 'symbol');
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
+        $account = ($marginType === 'cross') ? $marginType : $symbol;
+        $timestamp = $this->safe_number($info, 'accrued-at');
+        return array(
+            'account' => $account,  // isolated $symbol, will not be returned for crossed margin
+            'currency' => $this->safe_currency_code($this->safe_string($info, 'currency')),
+            'interest' => $this->safe_number($info, 'interest-amount'),
+            'interestRate' => $this->safe_number($info, 'interest-rate'),
+            'amountBorrowed' => $this->safe_number($info, 'loan-amount'),
+            'timestamp' => $timestamp,  // Interest accrued time
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $info,
+        );
+    }
+
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '/';
         $query = $this->omit($params, $this->extract_params($path));
@@ -5502,7 +5627,7 @@ class huobi extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             if (!$market['contract']) {
-                throw new BadRequest($this->id . '.fetchLeverageTiers $symbol supports contract markets only');
+                throw new BadRequest($this->id . ' fetchLeverageTiers() $symbol supports contract markets only');
             }
             $request['contract_code'] = $market['id'];
         }

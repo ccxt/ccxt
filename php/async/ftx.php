@@ -20,11 +20,11 @@ class ftx extends Exchange {
             'id' => 'ftx',
             'name' => 'FTX',
             'countries' => array( 'BS' ), // Bahamas
-            // hard limit of 6 requests per 200ms => 30 requests per 1000ms => 1000ms / 30 = 33.3333 ms between requests
+            //  hard limit of 7 requests per 200ms => 35 requests per 1000ms => 1000ms / 35 = 28.5714 ms between requests
             // 10 withdrawal requests per 30 seconds = (1000ms / rateLimit) / (1/3) = 90.1
             // cancels do not count towards rateLimit
             // only 'order-making' requests count towards ratelimit
-            'rateLimit' => 33.34,
+            'rateLimit' => 28.57,
             'certified' => true,
             'pro' => true,
             'hostname' => 'ftx.com', // or ftx.us
@@ -2491,14 +2491,33 @@ class ftx extends Exchange {
         yield $this->load_markets();
         $request = array();
         $endTime = $this->safe_number_2($params, 'till', 'end_time');
+        if ($limit > 48) {
+            throw new BadRequest($this->id . ' fetchBorrowRateHistories() $limit cannot exceed 48');
+        }
+        $millisecondsPerHour = 3600000;
+        $millisecondsPer2Days = 172800000;
+        if (($endTime - $since) > $millisecondsPer2Days) {
+            throw new BadRequest($this->id . ' fetchBorrowRateHistories() requires the time range between the $since time and the end time to be less than 48 hours');
+        }
         if ($since !== null) {
-            $request['start_time'] = $since / 1000;
+            $request['start_time'] = intval($since / 1000);
             if ($endTime === null) {
-                $request['end_time'] = $this->milliseconds() / 1000;
+                $now = $this->milliseconds();
+                $sinceLimit = ($limit === null) ? 2 : $limit;
+                $endTime = $this->sum($since, $millisecondsPerHour * ($sinceLimit - 1));
+                $endTime = min ($endTime, $now);
+            }
+        } else {
+            if ($limit !== null) {
+                if ($endTime === null) {
+                    $endTime = $this->milliseconds();
+                }
+                $startTime = $this->sum(($endTime - $millisecondsPerHour * $limit), 1000);
+                $request['start_time'] = intval($startTime / 1000);
             }
         }
         if ($endTime !== null) {
-            $request['end_time'] = $endTime / 1000;
+            $request['end_time'] = intval($endTime / 1000);
         }
         $response = yield $this->publicGetSpotMarginHistory (array_merge($request, $params));
         //
@@ -2549,7 +2568,7 @@ class ftx extends Exchange {
         $histories = yield $this->fetch_borrow_rate_histories($since, $limit, $params);
         $borrowRateHistory = $this->safe_value($histories, $code);
         if ($borrowRateHistory === null) {
-            throw new BadRequest($this->id . '.fetchBorrowRateHistory returned no data for ' . $code);
+            throw new BadRequest($this->id . ' fetchBorrowRateHistory() returned no data for ' . $code);
         } else {
             return $borrowRateHistory;
         }

@@ -56,11 +56,11 @@ class huobi(Exchange):
                 'createDepositAddress': None,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
-                'deposit': None,
                 'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': None,
-                'fetchBorrowRate': True,
+                'fetchBorrowInterest': True,
+                'fetchBorrowRate': None,
                 'fetchBorrowRateHistories': None,
                 'fetchBorrowRateHistory': None,
                 'fetchBorrowRates': True,
@@ -1048,21 +1048,22 @@ class huobi(Exchange):
         options = self.safe_value(self.options, 'fetchMarkets', {})
         types = self.safe_value(options, 'types', {})
         allMarkets = []
+        promises = []
         keys = list(types.keys())
         for i in range(0, len(keys)):
             type = keys[i]
             value = self.safe_value(types, type)
             if value is True:
-                markets = self.fetch_markets_by_type_and_sub_type(type, None, params)
-                allMarkets = self.array_concat(allMarkets, markets)
+                promises.append(self.fetch_markets_by_type_and_sub_type(type, None, params))
             else:
                 subKeys = list(value.keys())
                 for j in range(0, len(subKeys)):
                     subType = subKeys[j]
                     subValue = self.safe_value(value, subType)
                     if subValue:
-                        markets = self.fetch_markets_by_type_and_sub_type(type, subType, params)
-                        allMarkets = self.array_concat(allMarkets, markets)
+                        promises.append(self.fetch_markets_by_type_and_sub_type(type, subType, params))
+        for i in range(0, len(promises)):
+            allMarkets = self.array_concat(allMarkets, promises[i])
         return allMarkets
 
     def fetch_markets_by_type_and_sub_type(self, type, subType, params={}):
@@ -3269,7 +3270,7 @@ class huobi(Exchange):
         if stopPrice is None:
             stopOrderTypes = self.safe_value(options, 'stopOrderTypes', {})
             if orderType in stopOrderTypes:
-                raise ArgumentsRequired(self.id + 'createOrder() requires a stopPrice or a stop-price parameter for a stop order')
+                raise ArgumentsRequired(self.id + ' createOrder() requires a stopPrice or a stop-price parameter for a stop order')
         else:
             stopOperator = self.safe_string(params, 'operator')
             if stopOperator is None:
@@ -3280,7 +3281,7 @@ class huobi(Exchange):
             if (orderType == 'limit') or (orderType == 'limit-fok'):
                 orderType = 'stop-' + orderType
             elif (orderType != 'stop-limit') and (orderType != 'stop-limit-fok'):
-                raise NotSupported(self.id + 'createOrder() does not support ' + type + ' orders')
+                raise NotSupported(self.id + ' createOrder() does not support ' + type + ' orders')
         postOnly = self.safe_value(params, 'postOnly', False)
         if postOnly:
             orderType = 'limit-maker'
@@ -4354,6 +4355,119 @@ class huobi(Exchange):
         result = self.parse_funding_rates(data)
         return self.filter_by_array(result, 'symbol', symbols)
 
+    def fetch_borrow_interest(self, code=None, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        defaultMargin = self.safe_string(params, 'marginType', 'cross')  # cross or isolated
+        marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', defaultMargin)
+        request = {}
+        if since is not None:
+            request['start-date'] = self.yyyymmdd(since)
+        if limit is not None:
+            request['size'] = limit
+        market = None
+        method = None
+        if marginType == 'isolated':
+            method = 'privateGetMarginLoanOrders'
+            if symbol is not None:
+                market = self.market(symbol)
+                request['symbol'] = market['id']
+        else:  # Cross
+            method = 'privateGetCrossMarginLoanOrders'
+            if code is not None:
+                currency = self.currency(code)
+                request['currency'] = currency['id']
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        #    {
+        #        "status":"ok",
+        #        "data":[
+        #            {
+        #                "loan-balance":"0.100000000000000000",
+        #                "interest-balance":"0.000200000000000000",
+        #                "loan-amount":"0.100000000000000000",
+        #                "accrued-at":1511169724531,
+        #                "interest-amount":"0.000200000000000000",
+        #                "filled-points":"0.2",
+        #                "filled-ht":"0.2",
+        #                "currency":"btc",
+        #                "id":394,
+        #                "state":"accrual",
+        #                "account-id":17747,
+        #                "user-id":119913,
+        #                "created-at":1511169724531
+        #            }
+        #        ]
+        #    }
+        #
+        data = self.safe_value(response, 'data')
+        interest = self.parse_borrow_interests(data, marginType, market)
+        return self.filter_by_currency_since_limit(interest, code, since, limit)
+
+    def parse_borrow_interests(self, response, marginType, market=None):
+        interest = []
+        for i in range(0, len(response)):
+            row = response[i]
+            interest.append(self.parse_borrow_interest(row, marginType, market))
+        return interest
+
+    def parse_borrow_interest(self, info, marginType, market=None):
+        # isolated
+        #    {
+        #        "interest-rate":"0.000040830000000000",
+        #        "user-id":35930539,
+        #        "account-id":48916071,
+        #        "updated-at":1649320794195,
+        #        "deduct-rate":"1",
+        #        "day-interest-rate":"0.000980000000000000",
+        #        "hour-interest-rate":"0.000040830000000000",
+        #        "loan-balance":"100.790000000000000000",
+        #        "interest-balance":"0.004115260000000000",
+        #        "loan-amount":"100.790000000000000000",
+        #        "paid-coin":"0.000000000000000000",
+        #        "accrued-at":1649320794148,
+        #        "created-at":1649320794148,
+        #        "interest-amount":"0.004115260000000000",
+        #        "deduct-amount":"0",
+        #        "deduct-currency":"",
+        #        "paid-point":"0.000000000000000000",
+        #        "currency":"usdt",
+        #        "symbol":"ltcusdt",
+        #        "id":20242721,
+        #    }
+        #
+        # cross
+        #   {
+        #       "id":3416576,
+        #       "user-id":35930539,
+        #       "account-id":48956839,
+        #       "currency":"usdt",
+        #       "loan-amount":"102",
+        #       "loan-balance":"102",
+        #       "interest-amount":"0.00416466",
+        #       "interest-balance":"0.00416466",
+        #       "created-at":1649322735333,
+        #       "accrued-at":1649322735382,
+        #       "state":"accrual",
+        #       "filled-points":"0",
+        #       "filled-ht":"0"
+        #   }
+        #
+        marketId = self.safe_string(info, 'symbol')
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
+        account = marginType if (marginType == 'cross') else symbol
+        timestamp = self.safe_number(info, 'accrued-at')
+        return {
+            'account': account,  # isolated symbol, will not be returned for crossed margin
+            'currency': self.safe_currency_code(self.safe_string(info, 'currency')),
+            'interest': self.safe_number(info, 'interest-amount'),
+            'interestRate': self.safe_number(info, 'interest-rate'),
+            'amountBorrowed': self.safe_number(info, 'loan-amount'),
+            'timestamp': timestamp,  # Interest accrued time
+            'datetime': self.iso8601(timestamp),
+            'info': info,
+        }
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/'
         query = self.omit(params, self.extract_params(path))
@@ -5186,7 +5300,7 @@ class huobi(Exchange):
         if symbol is not None:
             market = self.market(symbol)
             if not market['contract']:
-                raise BadRequest(self.id + '.fetchLeverageTiers symbol supports contract markets only')
+                raise BadRequest(self.id + ' fetchLeverageTiers() symbol supports contract markets only')
             request['contract_code'] = market['id']
         response = self.contractPublicGetLinearSwapApiV1SwapAdjustfactor(self.extend(request, params))
         #

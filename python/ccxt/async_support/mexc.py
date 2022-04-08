@@ -283,6 +283,9 @@ class mexc(Exchange):
                         'WAIT': 'pending',
                     },
                 },
+                'fetchOrdersByState': {
+                    'method': 'spotPrivateGetOrderList',  # contractPrivateGetPlanorderListOrders
+                },
             },
             'commonCurrencies': {
                 'BEYONDPROTOCOL': 'BEYOND',
@@ -1816,7 +1819,7 @@ class mexc(Exchange):
         #
         #     {"success": True, "code": 0, "data": 102057569836905984}
         #
-        # fetchOpenOrders
+        # fetchOpenOrders spot
         #
         #     {
         #         "id":"965245851c444078a11a7d771323613b",
@@ -1830,6 +1833,36 @@ class mexc(Exchange):
         #         "create_time":1633989029039,
         #         "client_order_id":"",
         #         "order_type":"LIMIT_ORDER"
+        #     }
+        #
+        #
+        # fetchOpenOrders swap
+        #
+        #     {
+        #         "orderId": "266578267438402048",
+        #         "symbol": "BTC_USDT",
+        #         "positionId": 0,
+        #         "price": 30000,
+        #         "vol": 11,
+        #         "leverage": 20,
+        #         "side": 1,
+        #         "category": 1,
+        #         "orderType": 1,
+        #         "dealAvgPrice": 0,
+        #         "dealVol": 0,
+        #         "orderMargin": 1.6896,
+        #         "takerFee": 0,
+        #         "makerFee": 0,
+        #         "profit": 0,
+        #         "feeCurrency": "USDT",
+        #         "openType": 1,
+        #         "state": 2,
+        #         "externalOid": "_m_8d673a31c47642d9a59993aca61ae394",
+        #         "errorCode": 0,
+        #         "usedMargin": 0,
+        #         "createTime": 1649227612000,
+        #         "updateTime": 1649227611000,
+        #         "positionMode": 1
         #     }
         #
         # fetchClosedOrders, fetchCanceledOrders, fetchOrder
@@ -1847,6 +1880,27 @@ class mexc(Exchange):
         #         "order_type":"MARKET_ORDER"  # LIMIT_ORDER
         #     }
         #
+        # trigger fetchClosedOrders, fetchCanceledOrders
+        #
+        #     {
+        #         "id": "266583973507973632",
+        #         "symbol": "BTC_USDT",
+        #         "leverage": 20,
+        #         "side": 1,
+        #         "triggerPrice": 30000,
+        #         "price": 31000,
+        #         "vol": 11,
+        #         "openType": 1,
+        #         "triggerType": 2,
+        #         "state": 2,
+        #         "executeCycle": 87600,
+        #         "trend": 1,
+        #         "orderType": 1,
+        #         "errorCode": 0,
+        #         "createTime": 1649228972000,
+        #         "updateTime": 1649230287000
+        #     }
+        #
         # cancelOrder
         #
         #     {"965245851c444078a11a7d771323613b":"success"}
@@ -1860,22 +1914,31 @@ class mexc(Exchange):
             if state == 'success':
                 status = 'canceled'
         state = self.safe_string(order, 'state')
-        timestamp = self.safe_integer(order, 'create_time')
+        timestamp = self.safe_integer_2(order, 'create_time', 'createTime')
         price = self.safe_string(order, 'price')
-        amount = self.safe_string(order, 'quantity')
+        amount = self.safe_string_2(order, 'quantity', 'vol')
         remaining = self.safe_string(order, 'remain_quantity')
-        filled = self.safe_string(order, 'deal_quantity')
-        cost = self.safe_string(order, 'deal_amount')
+        filled = self.safe_string_2(order, 'deal_quantity', 'dealVol')
+        cost = self.safe_string_2(order, 'deal_amount', 'dealAvgPrice')
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market, '_')
+        sideCheck = self.safe_integer(order, 'side')
         side = None
         bidOrAsk = self.safe_string(order, 'type')
         if bidOrAsk == 'BID':
             side = 'buy'
         elif bidOrAsk == 'ASK':
             side = 'sell'
+        if sideCheck == 1:
+            side = 'open long'
+        elif side == 2:
+            side = 'close short'
+        elif side == 3:
+            side = 'open short'
+        elif side == 4:
+            side = 'close long'
         status = self.parse_order_status(state)
-        clientOrderId = self.safe_string(order, 'client_order_id')
+        clientOrderId = self.safe_string_2(order, 'client_order_id', 'orderId')
         if clientOrderId == '':
             clientOrderId = None
         orderType = self.safe_string_lower(order, 'order_type')
@@ -1886,7 +1949,7 @@ class mexc(Exchange):
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': None,
+            'lastTradeTimestamp': self.safe_integer(order, 'updateTime'),
             'status': status,
             'symbol': symbol,
             'type': orderType,
@@ -1910,12 +1973,21 @@ class mexc(Exchange):
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'symbol': market['id'],
-            # 'start_time': since,
-            # 'limit': limit,  # default 50, max 1000
-            # 'trade_type': 'BID',  # BID / ASK
+            'symbol': market['id'],  # spot, swap
+            # 'start_time': since,  # spot
+            # 'limit': limit,  # spot default 50, max 1000
+            # 'trade_type': 'BID',  # spot BID / ASK
+            # 'page_num': 1,  # swap required default 1
+            # 'page_size': limit,  # swap required default 20 max 100
         }
-        response = await self.spotPrivateGetOrderOpenOrders(self.extend(request, params))
+        marketType, query = self.handle_market_type_and_params('fetchOpenOrders', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'spotPrivateGetOrderOpenOrders',
+            'swap': 'contractPrivateGetOrderListOpenOrdersSymbol',
+        })
+        response = await getattr(self, method)(self.extend(request, query))
+        #
+        # Spot
         #
         #     {
         #         "code":200,
@@ -1945,6 +2017,41 @@ class mexc(Exchange):
         #                 "create_time":1633988662382,
         #                 "client_order_id":"",
         #                 "order_type":"LIMIT_ORDER"
+        #             }
+        #         ]
+        #     }
+        #
+        # Swap
+        #
+        #     {
+        #         "success": True,
+        #         "code": 0,
+        #         "data": [
+        #             {
+        #                 "orderId": "266578267438402048",
+        #                 "symbol": "BTC_USDT",
+        #                 "positionId": 0,
+        #                 "price": 30000,
+        #                 "vol": 11,
+        #                 "leverage": 20,
+        #                 "side": 1,
+        #                 "category": 1,
+        #                 "orderType": 1,
+        #                 "dealAvgPrice": 0,
+        #                 "dealVol": 0,
+        #                 "orderMargin": 1.6896,
+        #                 "takerFee": 0,
+        #                 "makerFee": 0,
+        #                 "profit": 0,
+        #                 "feeCurrency": "USDT",
+        #                 "openType": 1,
+        #                 "state": 2,
+        #                 "externalOid": "_m_8d673a31c47642d9a59993aca61ae394",
+        #                 "errorCode": 0,
+        #                 "usedMargin": 0,
+        #                 "createTime": 1649227612000,
+        #                 "updateTime": 1649227611000,
+        #                 "positionMode": 1
         #             }
         #         ]
         #     }
@@ -1993,21 +2100,40 @@ class mexc(Exchange):
             # 'start_time': since,  # default 7 days, max 30 days
             # 'limit': limit,  # default 50, max 1000
             # 'trade_type': 'BID',  # BID / ASK
-            'states': state,  # NEW, FILLED, PARTIALLY_FILLED, CANCELED, PARTIALLY_CANCELED
+            'states': state,  # NEW, FILLED, PARTIALLY_FILLED, CANCELED, PARTIALLY_CANCELED, trigger orders: 1 untriggered, 2 cancelled, 3 executed, 4 invalid, 5 execution failed
+            # 'end_time': 1633988662000,  # trigger orders
+            # 'page_num': 1,  # trigger orders default is 1
+            # 'page_size': limit,  # trigger orders default 20 max 100
         }
+        stop = self.safe_value(params, 'stop')
+        limitRequest = 'page_size' if stop else 'limit'
         if limit is not None:
-            request['limit'] = limit
+            request[limitRequest] = limit
         if since is not None:
             request['start_time'] = since
-        response = await self.spotPrivateGetOrderList(self.extend(request, params))
+        options = self.safe_value(self.options, 'fetchOrdersByState', {})
+        defaultMethod = self.safe_string(options, 'method', 'spotPrivateGetOrderList')
+        method = self.safe_string(params, 'method', defaultMethod)
+        if stop:
+            method = 'contractPrivateGetPlanorderListOrders'
+        query = self.omit(params, ['method', 'stop'])
+        response = await getattr(self, method)(self.extend(request, query))
         data = self.safe_value(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
     async def fetch_canceled_orders(self, symbol=None, since=None, limit=None, params={}):
-        return await self.fetch_orders_by_state('CANCELED', symbol, since, limit, params)
+        stop = self.safe_value(params, 'stop')
+        state = 'CANCELED'
+        if stop:
+            state = '2'
+        return await self.fetch_orders_by_state(state, symbol, since, limit, params)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        return await self.fetch_orders_by_state('FILLED', symbol, since, limit, params)
+        stop = self.safe_value(params, 'stop')
+        state = 'FILLED'
+        if stop:
+            state = '3'
+        return await self.fetch_orders_by_state(state, symbol, since, limit, params)
 
     async def cancel_all_orders(self, symbol=None, params={}):
         await self.load_markets()

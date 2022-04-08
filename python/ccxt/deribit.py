@@ -1277,6 +1277,9 @@ class deribit(Exchange):
         lastUpdate = self.safe_integer(order, 'last_update_timestamp')
         id = self.safe_string(order, 'order_id')
         priceString = self.safe_string(order, 'price')
+        if priceString == 'market_price':
+            # for market orders we get a literal 'market_price' string here
+            priceString = None
         averageString = self.safe_string(order, 'average_price')
         amountString = self.safe_string(order, 'amount')
         filledString = self.safe_string(order, 'filled_amount')

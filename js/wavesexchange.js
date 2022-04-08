@@ -1749,6 +1749,72 @@ export default class wavesexchange extends Exchange {
         };
         const response = await this.publicGetTransactionsExchange (request);
         const data = this.safeValue (response, 'data');
+        //
+        //      {
+        //          "__type":"list",
+        //          "isLastPage":true,
+        //          "lastCursor":"MzA2MjQ0MzAwMDI5OjpkZXNj",
+        //          "data": [
+        //              {
+        //                  "__type":"transaction",
+        //                  "data": {
+        //                      "id":"GbjPqco2wRP5QSrY5LimFrUyJaM535K9nhK5zaQ7J7Tx",
+        //                      "timestamp":"2022-04-06T19:56:31.479Z",
+        //                      "height":3062443,
+        //                      "type":7,
+        //                      "version":2,
+        //                      "proofs":[
+        //                          "57mYrANw61eiArCTv2eYwzXm71jYC2KpZ5AeM9zHEstuRaYSAWSuSE7njAJYJu8zap6DMCm3nzqc6es3wQFDpRCN"
+        //                      ],
+        //                      "fee":0.003,
+        //                      "applicationStatus":"succeeded",
+        //                      "sender":"3PEjHv3JGjcWNpYEEkif2w8NXV4kbhnoGgu",
+        //                      "senderPublicKey":"9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        //                      "buyMatcherFee":0,
+        //                      "sellMatcherFee":0.00141728,
+        //                      "price":215.7431,
+        //                      "amount":0.09,
+        //                      "order1": {
+        //                          "id":"49qiuQj5frdZ6zpTCEpMuKPMAh1EimwXpXWB4BeCw33h",
+        //                          "senderPublicKey":"CjUfoH3dsDZsf5UuAjqqzpWHXgvKzBZpVG9YixF7L48K",
+        //                          "matcherPublicKey":"9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        //                          "assetPair": {
+        //                              "amountAsset":"7TMu26hAs7B2oW6c5sfx45KSZT7GQA3TZNYuCav8Dcqt",
+        //                              "priceAsset":"DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p"
+        //                          },
+        //                          "orderType":"buy",
+        //                          "price":215.7431,
+        //                          "sender":"3PR9WmaHV5ueVw2Wr9xsiCG3t4ySXzkkGLy",
+        //                          "amount":0.36265477,
+        //                          "timestamp":"2022-04-06T19:55:06.832Z",
+        //                          "expiration":"2022-05-05T19:55:06.832Z",
+        //                          "matcherFee":3.000334,
+        //                          "signature":"2rBWhdeuRJNpQfXfTFtcR8x8Lpic8FUHPdLML9uxABRUuxe48YRJcZxbncwWAh9LWFCEUZiztv7RZBZfGMWfFxTs",
+        //                          "matcherFeeAssetId":"DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p"
+        //                      },
+        //                      "order2": {
+        //                          "id":"AkxiJqCuv6wm8K41TUSgFNwShZMnCbMDT78MqrcWpQ53",
+        //                          "senderPublicKey":"72o7qNKyne5hthB1Ww6famE7uHrk5vTVB2ZfUMBEqL3Y",
+        //                          "matcherPublicKey":"9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        //                          "assetPair": {
+        //                              "amountAsset":"7TMu26hAs7B2oW6c5sfx45KSZT7GQA3TZNYuCav8Dcqt",
+        //                              "priceAsset":"DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p"
+        //                          },
+        //                          "orderType":"sell",
+        //                          "price":210,
+        //                          "sender":"3P3CzbjGgiqEyUBeKZYfgZtyaZfMG8fjoUD",
+        //                          "amount":0.09,
+        //                          "timestamp":"2022-04-06T19:56:18.535Z",
+        //                          "expiration":"2022-05-04T19:56:18.535Z",
+        //                          "matcherFee":0.00141728,
+        //                          "signature":"5BZCjYn6QzVkMXBFDBnzcAUBdCZqhq9hQfRXFHfLUQCsbis4zeriw4sUqLa1BZRT2isC6iY4Z4HtekikPqZ461PT",
+        //                          "matcherFeeAssetId":"7TMu26hAs7B2oW6c5sfx45KSZT7GQA3TZNYuCav8Dcqt"
+        //                      }
+        //                  }
+        //              },...
+        //          ]
+        //      }
+        //
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -1767,10 +1833,77 @@ export default class wavesexchange extends Exchange {
         }
         const response = await this.publicGetTransactionsExchange (request);
         const data = this.safeValue (response, 'data');
+        //
+        //      {
+        //          "__type":"list",
+        //          "isLastPage":false,
+        //          "lastCursor":"MzA2MjM2MTAwMDU0OjpkZXNj",
+        //          "data": [
+        //              {
+        //                  "__type":"transaction",
+        //                  "data": {
+        //                      "id":"F42WsvSsyEzvpPLFjVhQKkSNuopooP4zMkjSUs47NeML",
+        //                      "timestamp":"2022-04-06T18:39:49.145Z",
+        //                      "height":3062361,
+        //                      "type":7,
+        //                      "version":2,
+        //                      "proofs": [
+        //                          "39iJv82kFi4pyuBxYeZpP45NXXjbrCXdVsHPAAvj32UMLmTXLjMTfV43PcmZDSAuS93HKSDo1aKJrin8UvkeE9Bs"
+        //                      ],
+        //                      "fee":0.003,
+        //                      "applicationStatus":"succeeded",
+        //                      "sender":"3PEjHv3JGjcWNpYEEkif2w8NXV4kbhnoGgu",
+        //                      "senderPublicKey":"9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        //                      "buyMatcherFee":0.02314421,
+        //                      "sellMatcherFee":0,
+        //                      "price":217.3893,
+        //                      "amount":0.34523025,
+        //                      "order1": {
+        //                          "id":"HkM36PHGaeeZdDKT1mYgZXhaU9PRZ54RZiJc2K4YMT3Q",
+        //                          "senderPublicKey":"7wYCaDcc6GX1Jx2uS7QgLHBypBKvrezTS1HfiW6Xe4Bk",
+        //                          "matcherPublicKey":"9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        //                          "assetPair": {
+        //                              "amountAsset":"7TMu26hAs7B2oW6c5sfx45KSZT7GQA3TZNYuCav8Dcqt",
+        //                              "priceAsset":"DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p"
+        //                          },
+        //                          "orderType":"buy",
+        //                          "price":225.2693,
+        //                          "sender":"3PLPc8f4DGYaF9C9bwJ2uVmHqRv3NCjg5VQ",
+        //                          "amount":2.529,
+        //                          "timestamp":"2022-04-06T18:39:48.796Z",
+        //                          "expiration":"2022-05-05T18:39:48.796Z",
+        //                          "matcherFee":0.17584444,
+        //                          "signature":"2yQfJoomv86evQDw36fg1uiRkHvPDZtRp3qvxqTBWPvz4JLTHGQtEHJF5NGTvym6U93CtgNprngzmD9ecHBjxf6U",
+        //                          "matcherFeeAssetId":"Atqv59EYzjFGuitKVnMRk6H8FukjoV3ktPorbEys25on"
+        //                      },
+        //                      "order2": {
+        //                          "id":"F7HKmeuzwWdk3wKitHLnVx5MuD4wBWPpphQ8kUGx4tT9",
+        //                          "senderPublicKey":"CjUfoH3dsDZsf5UuAjqqzpWHXgvKzBZpVG9YixF7L48K",
+        //                          "matcherPublicKey":"9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        //                          "assetPair": {
+        //                              "amountAsset":"7TMu26hAs7B2oW6c5sfx45KSZT7GQA3TZNYuCav8Dcqt",
+        //                              "priceAsset":"DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p"
+        //                          },
+        //                          "orderType":"sell",
+        //                          "price":217.3893,
+        //                          "sender":"3PR9WmaHV5ueVw2Wr9xsiCG3t4ySXzkkGLy",
+        //                          "amount":0.35767793,
+        //                          "timestamp":"2022-04-06T18:32:01.390Z",
+        //                          "expiration":"2022-05-05T18:32:01.390Z",
+        //                          "matcherFee":0.0139168,
+        //                          "signature":"34HgWVLPgeYWkiSvAc5ChVepGTYDQDug2dMTSincs6idEyoM7AtaZuH3mqQ5RJG2fcxxH2QSB723Qq3dgLQwQmKf",
+        //                          "matcherFeeAssetId":"7TMu26hAs7B2oW6c5sfx45KSZT7GQA3TZNYuCav8Dcqt"
+        //                      }
+        //                  }
+        //              }, ...
+        //          ]
+        //      }
+        //
         return this.parseTrades (data, market, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
+        //
         // { __type: 'transaction',
         //   data:
         //    { id: 'HSdruioHqvYHeyn9hhyoHdRWPB2bFA8ujeCPZMK6992c',
@@ -1815,15 +1948,13 @@ export default class wavesexchange extends Exchange {
         //         matcherFee: 0.003,
         //         signature: '3SFyrcqzou2ddZyNisnLYaGhLt5qRjKxH8Nw3s4T5U7CEKGX9DDo8dS27RgThPVGbYF1rYET1FwrWoQ2UFZ6SMTR',
         //         matcherFeeAssetId: null } } }
+        //
         const data = this.safeValue (trade, 'data');
         const datetime = this.safeString (data, 'timestamp');
         const timestamp = this.parse8601 (datetime);
         const id = this.safeString (data, 'id');
         const priceString = this.safeString (data, 'price');
         const amountString = this.safeString (data, 'amount');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const order1 = this.safeValue (data, 'order1');
         const order2 = this.safeValue (data, 'order2');
         let order = undefined;
@@ -1843,10 +1974,10 @@ export default class wavesexchange extends Exchange {
         const side = this.safeString (order, 'orderType');
         const orderId = this.safeString (order, 'id');
         const fee = {
-            'cost': this.safeNumber (order, 'matcherFee'),
+            'cost': this.safeString (order, 'matcherFee'),
             'currency': this.safeCurrencyCode (this.safeString (order, 'matcherFeeAssetId', 'WAVES')),
         };
-        return {
+        return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': datetime,
@@ -1856,11 +1987,11 @@ export default class wavesexchange extends Exchange {
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': fee,
-        };
+        }, market);
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

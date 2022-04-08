@@ -40,7 +40,6 @@ class binance extends Exchange {
                 'createDepositAddress' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => true,
-                'deposit' => false,
                 'fetchAccounts' => null,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => true,
@@ -2360,10 +2359,11 @@ class binance extends Exchange {
         $id = $this->safe_string_2($trade, 'id', 'tradeId', $id);
         $side = null;
         $orderId = $this->safe_string($trade, 'orderId');
-        if (is_array($trade) && array_key_exists('m', $trade)) {
-            $side = $trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally
-        } else if (is_array($trade) && array_key_exists('isBuyerMaker', $trade)) {
-            $side = $trade['isBuyerMaker'] ? 'sell' : 'buy';
+        $buyerMaker = $this->safe_value($trade, 'm', 'isBuyerMaker');
+        $takerOrMaker = null;
+        if ($buyerMaker !== null) {
+            $side = $buyerMaker ? 'sell' : 'buy'; // this is reversed intentionally
+            $takerOrMaker = 'taker';
         } else if (is_array($trade) && array_key_exists('side', $trade)) {
             $side = $this->safe_string_lower($trade, 'side');
         } else {
@@ -2378,7 +2378,6 @@ class binance extends Exchange {
                 'currency' => $this->safe_currency_code($this->safe_string($trade, 'commissionAsset')),
             );
         }
-        $takerOrMaker = null;
         if (is_array($trade) && array_key_exists('isMaker', $trade)) {
             $takerOrMaker = $trade['isMaker'] ? 'maker' : 'taker';
         }
@@ -5179,11 +5178,13 @@ class binance extends Exchange {
         } else if (($api === 'private') || ($api === 'sapi' && $path !== 'system/status') || ($api === 'wapi' && $path !== 'systemStatus') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2')) {
             $this->check_required_credentials();
             $query = null;
-            $recvWindow = $this->safe_integer($this->options, 'recvWindow', 5000);
+            $recvWindow = $this->safe_integer($this->options, 'recvWindow');
             $extendedParams = array_merge(array(
                 'timestamp' => $this->nonce(),
-                'recvWindow' => $recvWindow,
             ), $params);
+            if ($recvWindow !== null) {
+                $extendedParams['recvWindow'] = $recvWindow;
+            }
             if (($api === 'sapi') && ($path === 'asset/dust')) {
                 $query = $this->urlencode_with_array_repeat($extendedParams);
             } else if (($path === 'batchOrders') || (mb_strpos($path, 'sub-account') !== false) || ($path === 'capital/withdraw/apply')) {
@@ -5551,7 +5552,7 @@ class binance extends Exchange {
         for ($i = 0; $i < count($rows); $i++) {
             $row = $rows[$i];
             $timestamp = $this->safe_number($row, 'interestAccuredTime');
-            $account = ($symbol === null) ? 'CROSS' : $symbol;
+            $account = ($symbol === null) ? 'cross' : $symbol;
             $interest[] = array(
                 'account' => $account,
                 'currency' => $this->safe_currency_code($this->safe_string($row, 'asset')),

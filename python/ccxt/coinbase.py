@@ -37,7 +37,6 @@ class coinbase(Exchange):
                 'createDepositAddress': True,
                 'createOrder': None,
                 'createReduceOnlyOrder': False,
-                'deposit': None,
                 'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': None,

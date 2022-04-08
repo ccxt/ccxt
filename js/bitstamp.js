@@ -1525,7 +1525,7 @@ export default class bitstamp extends Exchange {
                 direction = (amount > 0) ? 'in' : 'out';
             } else if (('currency' in parsedTransaction) && parsedTransaction['currency'] !== undefined) {
                 const code = parsedTransaction['currency'];
-                const currencyId = this.safeString (this.currencies_by_id, code, code);
+                const currencyId = this.safeStringLower (this.currencies_by_id, code, code);
                 const amount = this.safeNumber (item, currencyId);
                 direction = (amount > 0) ? 'in' : 'out';
             }

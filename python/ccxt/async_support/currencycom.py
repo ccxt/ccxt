@@ -46,7 +46,6 @@ class currencycom(Exchange):
                 'createLimitOrder': True,
                 'createMarketOrder': True,
                 'createOrder': True,
-                'deposit': None,
                 'editOrder': 'emulated',
                 'fetchAccounts': True,
                 'fetchBalance': True,

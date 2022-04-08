@@ -30,11 +30,11 @@ class ftx(Exchange):
             'id': 'ftx',
             'name': 'FTX',
             'countries': ['BS'],  # Bahamas
-            # hard limit of 6 requests per 200ms => 30 requests per 1000ms => 1000ms / 30 = 33.3333 ms between requests
+            #  hard limit of 7 requests per 200ms => 35 requests per 1000ms => 1000ms / 35 = 28.5714 ms between requests
             # 10 withdrawal requests per 30 seconds = (1000ms / rateLimit) / (1/3) = 90.1
             # cancels do not count towards rateLimit
             # only 'order-making' requests count towards ratelimit
-            'rateLimit': 33.34,
+            'rateLimit': 28.57,
             'certified': True,
             'pro': True,
             'hostname': 'ftx.com',  # or ftx.us
@@ -2376,12 +2376,27 @@ class ftx(Exchange):
         await self.load_markets()
         request = {}
         endTime = self.safe_number_2(params, 'till', 'end_time')
+        if limit > 48:
+            raise BadRequest(self.id + ' fetchBorrowRateHistories() limit cannot exceed 48')
+        millisecondsPerHour = 3600000
+        millisecondsPer2Days = 172800000
+        if (endTime - since) > millisecondsPer2Days:
+            raise BadRequest(self.id + ' fetchBorrowRateHistories() requires the time range between the since time and the end time to be less than 48 hours')
         if since is not None:
-            request['start_time'] = since / 1000
+            request['start_time'] = int(since / 1000)
             if endTime is None:
-                request['end_time'] = self.milliseconds() / 1000
+                now = self.milliseconds()
+                sinceLimit = 2 if (limit is None) else limit
+                endTime = self.sum(since, millisecondsPerHour * (sinceLimit - 1))
+                endTime = min(endTime, now)
+        else:
+            if limit is not None:
+                if endTime is None:
+                    endTime = self.milliseconds()
+                startTime = self.sum((endTime - millisecondsPerHour * limit), 1000)
+                request['start_time'] = int(startTime / 1000)
         if endTime is not None:
-            request['end_time'] = endTime / 1000
+            request['end_time'] = int(endTime / 1000)
         response = await self.publicGetSpotMarginHistory(self.extend(request, params))
         #
         #    {
@@ -2427,7 +2442,7 @@ class ftx(Exchange):
         histories = await self.fetch_borrow_rate_histories(since, limit, params)
         borrowRateHistory = self.safe_value(histories, code)
         if borrowRateHistory is None:
-            raise BadRequest(self.id + '.fetchBorrowRateHistory returned no data for ' + code)
+            raise BadRequest(self.id + ' fetchBorrowRateHistory() returned no data for ' + code)
         else:
             return borrowRateHistory
 

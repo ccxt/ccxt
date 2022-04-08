@@ -33,7 +33,6 @@ export default class aax extends Exchange {
                 'createDepositAddress': undefined,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
-                'deposit': undefined,
                 'editOrder': true,
                 'fetchAccounts': undefined,
                 'fetchBalance': true,

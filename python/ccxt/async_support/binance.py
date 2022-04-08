@@ -55,7 +55,6 @@ class binance(Exchange):
                 'createDepositAddress': False,
                 'createOrder': True,
                 'createReduceOnlyOrder': True,
-                'deposit': False,
                 'fetchAccounts': None,
                 'fetchBalance': True,
                 'fetchBidsAsks': True,
@@ -2312,10 +2311,11 @@ class binance(Exchange):
         id = self.safe_string_2(trade, 'id', 'tradeId', id)
         side = None
         orderId = self.safe_string(trade, 'orderId')
-        if 'm' in trade:
-            side = 'sell' if trade['m'] else 'buy'  # self is reversed intentionally
-        elif 'isBuyerMaker' in trade:
-            side = 'sell' if trade['isBuyerMaker'] else 'buy'
+        buyerMaker = self.safe_value(trade, 'm', 'isBuyerMaker')
+        takerOrMaker = None
+        if buyerMaker is not None:
+            side = 'sell' if buyerMaker else 'buy'  # self is reversed intentionally
+            takerOrMaker = 'taker'
         elif 'side' in trade:
             side = self.safe_string_lower(trade, 'side')
         else:
@@ -2327,7 +2327,6 @@ class binance(Exchange):
                 'cost': self.safe_string(trade, 'commission'),
                 'currency': self.safe_currency_code(self.safe_string(trade, 'commissionAsset')),
             }
-        takerOrMaker = None
         if 'isMaker' in trade:
             takerOrMaker = 'maker' if trade['isMaker'] else 'taker'
         if 'maker' in trade:
@@ -4894,11 +4893,12 @@ class binance(Exchange):
         elif (api == 'private') or (api == 'sapi' and path != 'system/status') or (api == 'wapi' and path != 'systemStatus') or (api == 'dapiPrivate') or (api == 'dapiPrivateV2') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2'):
             self.check_required_credentials()
             query = None
-            recvWindow = self.safe_integer(self.options, 'recvWindow', 5000)
+            recvWindow = self.safe_integer(self.options, 'recvWindow')
             extendedParams = self.extend({
                 'timestamp': self.nonce(),
-                'recvWindow': recvWindow,
             }, params)
+            if recvWindow is not None:
+                extendedParams['recvWindow'] = recvWindow
             if (api == 'sapi') and (path == 'asset/dust'):
                 query = self.urlencode_with_array_repeat(extendedParams)
             elif (path == 'batchOrders') or (path.find('sub-account') >= 0) or (path == 'capital/withdraw/apply'):
@@ -5220,7 +5220,7 @@ class binance(Exchange):
         for i in range(0, len(rows)):
             row = rows[i]
             timestamp = self.safe_number(row, 'interestAccuredTime')
-            account = 'CROSS' if (symbol is None) else symbol
+            account = 'cross' if (symbol is None) else symbol
             interest.append({
                 'account': account,
                 'currency': self.safe_currency_code(self.safe_string(row, 'asset')),
