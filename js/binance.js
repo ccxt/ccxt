@@ -4833,23 +4833,27 @@ module.exports = class binance extends Exchange {
 
     parseMarketLeverageTiers (info, market) {
         /**
-            @param info: Exchange response for 1 market
-            {
-                "symbol": "SUSHIUSDT",
-                "brackets": [
-                    {
-                        "bracket": 1,
-                        "initialLeverage": 50,
-                        "notionalCap": 50000,
-                        "notionalFloor": 0,
-                        "maintMarginRatio": 0.01,
-                        "cum": 0.0
-                    },
-                    ...
-                ]
-            }
-            @param market: CCXT market
-        */
+         * @ignore
+         * @method
+         * @param {dict} info Exchange response for 1 market
+         * @param {dict} market CCXT market
+         */
+        //
+        //    {
+        //        "symbol": "SUSHIUSDT",
+        //        "brackets": [
+        //            {
+        //                "bracket": 1,
+        //                "initialLeverage": 50,
+        //                "notionalCap": 50000,
+        //                "notionalFloor": 0,
+        //                "maintMarginRatio": 0.01,
+        //                "cum": 0.0
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
         const marketId = this.safeString (info, 'symbol');
         const safeSymbol = this.safeSymbol (marketId);
         market = this.safeMarket (safeSymbol, market);
