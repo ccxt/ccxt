@@ -1894,6 +1894,12 @@ module.exports = class mexc extends Exchange {
                 'CANCELED': 'canceled',
                 'PARTIALLY_CANCELED': 'canceled',
             };
+        } else if (market['type'] === 'swap') {
+            statuses = {
+                '2': 'open',
+                '3': 'closed',
+                '4': 'canceled',
+            };
         } else {
             statuses = {
                 '1': 'open',
@@ -1916,7 +1922,7 @@ module.exports = class mexc extends Exchange {
         //
         //     { "success": true, "code": 0, "data": 102057569836905984 }
         //
-        // fetchOpenOrders spot
+        // spot fetchOpenOrders
         //
         //     {
         //         "id":"965245851c444078a11a7d771323613b",
@@ -1932,7 +1938,7 @@ module.exports = class mexc extends Exchange {
         //         "order_type":"LIMIT_ORDER"
         //     }
         //
-        // swap fetchOrder, fetchOpenOrders
+        // swap fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
         //
         //     {
         //         "orderId": "266578267438402048",
@@ -1961,7 +1967,7 @@ module.exports = class mexc extends Exchange {
         //         "positionMode": 1
         //     }
         //
-        // fetchClosedOrders, fetchCanceledOrders, fetchOrder
+        // spot fetchClosedOrders, fetchCanceledOrders, fetchOrder
         //
         //     {
         //         "id":"d798765285374222990bbd14decb86cd",
@@ -2264,7 +2270,7 @@ module.exports = class mexc extends Exchange {
 
     async fetchOrdersByState (state, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrdersByState requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrdersByState() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2289,6 +2295,10 @@ module.exports = class mexc extends Exchange {
         const options = this.safeValue (this.options, 'fetchOrdersByState', {});
         const defaultMethod = this.safeString (options, 'method', 'spotPrivateGetOrderList');
         let method = this.safeString (params, 'method', defaultMethod);
+        method = this.getSupportedMapping (market['type'], {
+            'spot': 'spotPrivateGetOrderList',
+            'swap': 'contractPrivateGetOrderListHistoryOrders',
+        });
         if (stop) {
             method = 'contractPrivateGetPlanorderListOrders';
         }
@@ -2299,18 +2309,30 @@ module.exports = class mexc extends Exchange {
     }
 
     async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchCanceledOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
         const stop = this.safeValue (params, 'stop');
         let state = 'CANCELED';
-        if (stop) {
+        if (market['type'] === 'swap') {
+            state = '4';
+        } else if (stop) {
             state = '2';
         }
         return await this.fetchOrdersByState (state, symbol, since, limit, params);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
         const stop = this.safeValue (params, 'stop');
         let state = 'FILLED';
-        if (stop) {
+        if (stop || market['type'] === 'swap') {
             state = '3';
         }
         return await this.fetchOrdersByState (state, symbol, since, limit, params);
@@ -2366,7 +2388,7 @@ module.exports = class mexc extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
