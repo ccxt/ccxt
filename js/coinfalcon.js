@@ -499,11 +499,16 @@ module.exports = class coinfalcon extends Exchange {
         await this.loadMarkets ();
         const currency = this.safeCurrency (code);
         const request = {
-            'currency': currency['id'].toLowerCase (),
+            'currency': this.safeStringLower (currency, 'id'),
         };
         const response = await this.privateGetAccountDepositAddress (this.extend (request, params));
         //
-        //    {data: { address: '0x9918987bbe865a1a9301dc736cf6cf3205956694', tag:null } }
+        //     {
+        //         data: {
+        //             address: '0x9918987bbe865a1a9301dc736cf6cf3205956694',
+        //             tag:null
+        //         }
+        //     }
         //
         const data = this.safeValue (response, 'data', {});
         return this.parseDepositAddress (data, currency);
@@ -647,7 +652,7 @@ module.exports = class coinfalcon extends Exchange {
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['currency'] = currency['id'].toLowerCase ();
+            request['currency'] = this.safeStringLower (currency, 'id');
         }
         if (since !== undefined) {
             request['since_time'] = this.iso8601 (since);
@@ -684,7 +689,7 @@ module.exports = class coinfalcon extends Exchange {
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['currency'] = currency['id'].toLowerCase ();
+            request['currency'] = this.safeStringLower (currency, 'id');
         }
         if (since !== undefined) {
             request['since_time'] = this.iso8601 (since);
@@ -716,7 +721,7 @@ module.exports = class coinfalcon extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
-            'currency': currency['id'].toLowerCase (),
+            'currency': this.safeStingLower (currency, 'id'),
             'address': address,
             'amount': amount,
             // 'tag': 'string', // withdraw tag/memo
