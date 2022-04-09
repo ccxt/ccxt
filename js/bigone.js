@@ -1243,8 +1243,6 @@ module.exports = class bigone extends Exchange {
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
-        fromAccount = fromAccount.toLowerCase ();
-        toAccount = toAccount.toLowerCase ();
         const accountsById = this.safeValue (this.options, 'accountsByType', {});
         const fromId = this.safeString (accountsById, fromAccount);
         if (fromId === undefined) {
