@@ -2277,7 +2277,18 @@ module.exports = class mexc extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.spotPrivateDeleteOrderCancelBySymbol (this.extend (request, params));
+        let method = this.getSupportedMapping (market['type'], {
+            'spot': 'spotPrivateDeleteOrderCancelBySymbol',
+            'swap': 'contractPrivatePostOrderCancelAll',
+        });
+        const stop = this.safeValue (params, 'stop');
+        if (stop) {
+            method = 'contractPrivatePostPlanorderCancelAll';
+        }
+        const query = this.omit (params, [ 'method', 'stop' ]);
+        const response = await this[method] (this.extend (request, query));
+        //
+        // Spot
         //
         //     {
         //         "code": 200,
@@ -2296,6 +2307,13 @@ module.exports = class mexc extends Exchange {
         //                 "order_id": "b58ef34c570e4917981f276d44091484"
         //             }
         //         ]
+        //     }
+        //
+        // Swap and Trigger
+        //
+        //     {
+        //         "success": true,
+        //         "code": 0
         //     }
         //
         return response;
