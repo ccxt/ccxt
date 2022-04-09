@@ -1937,8 +1937,7 @@ class mexc extends Exchange {
         //         "order_type":"LIMIT_ORDER"
         //     }
         //
-        //
-        // fetchOpenOrders swap
+        // swap fetchOrder, fetchOpenOrders
         //
         //     {
         //         "orderId" => "266578267438402048",
@@ -2190,11 +2189,22 @@ class mexc extends Exchange {
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOrder requires a $symbol argument');
+        }
         $this->load_markets();
+        $market = $this->market($symbol);
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchOrder', $market, $params);
         $request = array(
             'order_ids' => $id,
         );
-        $response = $this->spotPrivateGetOrderQuery (array_merge($request, $params));
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'spotPrivateGetOrderQuery',
+            'swap' => 'contractPrivateGetOrderBatchQuery',
+        ));
+        $response = $this->$method (array_merge($request, $query));
+        //
+        // Spot
         //
         //     {
         //         "code":200,
@@ -2214,12 +2224,47 @@ class mexc extends Exchange {
         //         )
         //     }
         //
+        // Swap
+        //
+        //     {
+        //         "success" => true,
+        //         "code" => 0,
+        //         "data" => array(
+        //             {
+        //                 "orderId" => "259208506647860224",
+        //                 "symbol" => "BTC_USDT",
+        //                 "positionId" => 0,
+        //                 "price" => 30000,
+        //                 "vol" => 10,
+        //                 "leverage" => 20,
+        //                 "side" => 1,
+        //                 "category" => 1,
+        //                 "orderType" => 1,
+        //                 "dealAvgPrice" => 0,
+        //                 "dealVol" => 0,
+        //                 "orderMargin" => 1.536,
+        //                 "takerFee" => 0,
+        //                 "makerFee" => 0,
+        //                 "profit" => 0,
+        //                 "feeCurrency" => "USDT",
+        //                 "openType" => 1,
+        //                 "state" => 4,
+        //                 "externalOid" => "planorder_279208506303929856_10",
+        //                 "errorCode" => 0,
+        //                 "usedMargin" => 0,
+        //                 "createTime" => 1647470524000,
+        //                 "updateTime" => 1647470540000,
+        //                 "positionMode" => 1
+        //             }
+        //         )
+        //     }
+        //
         $data = $this->safe_value($response, 'data', array());
         $firstOrder = $this->safe_value($data, 0);
         if ($firstOrder === null) {
             throw new OrderNotFound($this->id . ' fetchOrder() could not find the order $id ' . $id);
         }
-        return $this->parse_order($firstOrder);
+        return $this->parse_order($firstOrder, $market);
     }
 
     public function fetch_orders_by_state($state, $symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -2282,7 +2327,18 @@ class mexc extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->spotPrivateDeleteOrderCancelBySymbol (array_merge($request, $params));
+        $method = $this->get_supported_mapping($market['type'], array(
+            'spot' => 'spotPrivateDeleteOrderCancelBySymbol',
+            'swap' => 'contractPrivatePostOrderCancelAll',
+        ));
+        $stop = $this->safe_value($params, 'stop');
+        if ($stop) {
+            $method = 'contractPrivatePostPlanorderCancelAll';
+        }
+        $query = $this->omit($params, array( 'method', 'stop' ));
+        $response = $this->$method (array_merge($request, $query));
+        //
+        // Spot
         //
         //     {
         //         "code" => 200,
@@ -2301,6 +2357,13 @@ class mexc extends Exchange {
         //                 "order_id" => "b58ef34c570e4917981f276d44091484"
         //             }
         //         )
+        //     }
+        //
+        // Swap and Trigger
+        //
+        //     {
+        //         "success" => true,
+        //         "code" => 0
         //     }
         //
         return $response;

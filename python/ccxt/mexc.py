@@ -1843,8 +1843,7 @@ class mexc(Exchange):
         #         "order_type":"LIMIT_ORDER"
         #     }
         #
-        #
-        # fetchOpenOrders swap
+        # swap fetchOrder, fetchOpenOrders
         #
         #     {
         #         "orderId": "266578267438402048",
@@ -2086,11 +2085,21 @@ class mexc(Exchange):
         return self.parse_orders(data, market, since, limit)
 
     def fetch_order(self, id, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol argument')
         self.load_markets()
+        market = self.market(symbol)
+        marketType, query = self.handle_market_type_and_params('fetchOrder', market, params)
         request = {
             'order_ids': id,
         }
-        response = self.spotPrivateGetOrderQuery(self.extend(request, params))
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'spotPrivateGetOrderQuery',
+            'swap': 'contractPrivateGetOrderBatchQuery',
+        })
+        response = getattr(self, method)(self.extend(request, query))
+        #
+        # Spot
         #
         #     {
         #         "code":200,
@@ -2110,11 +2119,46 @@ class mexc(Exchange):
         #         ]
         #     }
         #
+        # Swap
+        #
+        #     {
+        #         "success": True,
+        #         "code": 0,
+        #         "data": [
+        #             {
+        #                 "orderId": "259208506647860224",
+        #                 "symbol": "BTC_USDT",
+        #                 "positionId": 0,
+        #                 "price": 30000,
+        #                 "vol": 10,
+        #                 "leverage": 20,
+        #                 "side": 1,
+        #                 "category": 1,
+        #                 "orderType": 1,
+        #                 "dealAvgPrice": 0,
+        #                 "dealVol": 0,
+        #                 "orderMargin": 1.536,
+        #                 "takerFee": 0,
+        #                 "makerFee": 0,
+        #                 "profit": 0,
+        #                 "feeCurrency": "USDT",
+        #                 "openType": 1,
+        #                 "state": 4,
+        #                 "externalOid": "planorder_279208506303929856_10",
+        #                 "errorCode": 0,
+        #                 "usedMargin": 0,
+        #                 "createTime": 1647470524000,
+        #                 "updateTime": 1647470540000,
+        #                 "positionMode": 1
+        #             }
+        #         ]
+        #     }
+        #
         data = self.safe_value(response, 'data', [])
         firstOrder = self.safe_value(data, 0)
         if firstOrder is None:
             raise OrderNotFound(self.id + ' fetchOrder() could not find the order id ' + id)
-        return self.parse_order(firstOrder)
+        return self.parse_order(firstOrder, market)
 
     def fetch_orders_by_state(self, state, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
@@ -2167,7 +2211,17 @@ class mexc(Exchange):
         request = {
             'symbol': market['id'],
         }
-        response = self.spotPrivateDeleteOrderCancelBySymbol(self.extend(request, params))
+        method = self.get_supported_mapping(market['type'], {
+            'spot': 'spotPrivateDeleteOrderCancelBySymbol',
+            'swap': 'contractPrivatePostOrderCancelAll',
+        })
+        stop = self.safe_value(params, 'stop')
+        if stop:
+            method = 'contractPrivatePostPlanorderCancelAll'
+        query = self.omit(params, ['method', 'stop'])
+        response = getattr(self, method)(self.extend(request, query))
+        #
+        # Spot
         #
         #     {
         #         "code": 200,
@@ -2186,6 +2240,13 @@ class mexc(Exchange):
         #                 "order_id": "b58ef34c570e4917981f276d44091484"
         #             }
         #         ]
+        #     }
+        #
+        # Swap and Trigger
+        #
+        #     {
+        #         "success": True,
+        #         "code": 0
         #     }
         #
         return response
