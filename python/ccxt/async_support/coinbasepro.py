@@ -1029,7 +1029,7 @@ class coinbasepro(Exchange):
          * @param {float} amount The amount of currency to send in the deposit(e.g. `20`)
          * @param {string} address Not used by coinbasepro
          * @param {dictionary} params Parameters specific to the exchange API endpoint(e.g. `{"network": "TRX"}`)
-         * @returns a [transaction structure](#https://docs.ccxt.com/en/latest/manual.html#transaction-structure)
+         * @returns a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
         '''
         await self.load_markets()
         currency = self.currency(code)

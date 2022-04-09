@@ -1081,7 +1081,7 @@ class coinbasepro extends Exchange {
          * @param {float} $amount The $amount of $currency to send in the deposit (e.g. `20`)
          * @param {string} $address Not used by coinbasepro
          * @param {dictionary} $params Parameters specific to the exchange API endpoint (e.g. `array("network" => "TRX")`)
-         * @returns a [transaction structure](#https://docs.ccxt.com/en/latest/manual.html#transaction-structure)
+         * @returns a [transaction structure]array(@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure)
          */
         $this->load_markets();
         $currency = $this->currency($code);
