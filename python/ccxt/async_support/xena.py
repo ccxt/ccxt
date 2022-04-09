@@ -642,6 +642,8 @@ class xena(Exchange):
 
     def parse_trade(self, trade, market=None):
         #
+        # fetchTrades(public)
+        #
         #     {
         #         "mdUpdateAction":"0",
         #         "mdEntryType":"2",
@@ -652,7 +654,7 @@ class xena(Exchange):
         #         "aggressorSide":"1"
         #     }
         #
-        # fetchMyTrades
+        # fetchMyTrades(private)
         #
         #     {
         #         "msgType":"8",
@@ -691,21 +693,18 @@ class xena(Exchange):
         symbol = self.safe_symbol(marketId, market)
         priceString = self.safe_string_2(trade, 'lastPx', 'mdEntryPx')
         amountString = self.safe_string_2(trade, 'lastQty', 'mdEntrySize')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         fee = None
-        feeCost = self.safe_number(trade, 'commission')
-        if feeCost is not None:
+        feeCostString = self.safe_string(trade, 'commission')
+        if feeCostString is not None:
             feeCurrencyId = self.safe_string(trade, 'commCurrency')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
-            feeRate = self.safe_number(trade, 'commRate')
+            feeRateString = self.safe_string(trade, 'commRate')
             fee = {
-                'cost': feeCost,
-                'rate': feeRate,
+                'cost': feeCostString,
+                'rate': feeRateString,
                 'currency': feeCurrencyCode,
             }
-        return {
+        return self.safe_trade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -715,11 +714,11 @@ class xena(Exchange):
             'order': orderId,
             'side': side,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': fee,
-        }
+        }, market)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()

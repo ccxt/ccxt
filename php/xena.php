@@ -666,6 +666,8 @@ class xena extends Exchange {
 
     public function parse_trade($trade, $market = null) {
         //
+        // fetchTrades (public)
+        //
         //     {
         //         "mdUpdateAction":"0",
         //         "mdEntryType":"2",
@@ -676,7 +678,7 @@ class xena extends Exchange {
         //         "aggressorSide":"1"
         //     }
         //
-        // fetchMyTrades
+        // fetchMyTrades (private)
         //
         //     {
         //         "msgType":"8",
@@ -717,22 +719,19 @@ class xena extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market);
         $priceString = $this->safe_string_2($trade, 'lastPx', 'mdEntryPx');
         $amountString = $this->safe_string_2($trade, 'lastQty', 'mdEntrySize');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $fee = null;
-        $feeCost = $this->safe_number($trade, 'commission');
-        if ($feeCost !== null) {
+        $feeCostString = $this->safe_string($trade, 'commission');
+        if ($feeCostString !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'commCurrency');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
-            $feeRate = $this->safe_number($trade, 'commRate');
+            $feeRateString = $this->safe_string($trade, 'commRate');
             $fee = array(
-                'cost' => $feeCost,
-                'rate' => $feeRate,
+                'cost' => $feeCostString,
+                'rate' => $feeRateString,
                 'currency' => $feeCurrencyCode,
             );
         }
-        return array(
+        return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -742,11 +741,11 @@ class xena extends Exchange {
             'order' => $orderId,
             'side' => $side,
             'takerOrMaker' => null,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
