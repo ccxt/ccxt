@@ -90,11 +90,14 @@ class ftx extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
+                'fetchTransfer' => null,
+                'fetchTransfers' => null,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
                 'setLeverage' => true,
                 'setMarginMode' => false, // FTX only supports cross margin
                 'setPositionMode' => false,
+                'transfer' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -1895,6 +1898,73 @@ class ftx extends Exchange {
         //
         $trades = $this->safe_value($response, 'result', array());
         return $this->parse_trades($trades, $market, $since, $limit);
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'coin' => $currency['id'],
+            'source' => $fromAccount,
+            'destination' => $toAccount,
+            'size' => $amount,
+        );
+        $response = $this->privatePostSubaccountsTransfer (array_merge($request, $params));
+        //
+        //     {
+        //         success => true,
+        //         $result => {
+        //             id => '31222278',
+        //             coin => 'USDT',
+        //             size => '1.0',
+        //             time => '2022-04-01T11:18:27.194188+00:00',
+        //             notes => 'Transfer from main account to testSubaccount',
+        //             status => 'complete'
+        //         }
+        //     }
+        //
+        $result = $this->safe_value($response, 'result', array());
+        return $this->parse_transfer($result, $currency);
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        //     {
+        //         id => '31222278',
+        //         coin => 'USDT',
+        //         size => '1.0',
+        //         time => '2022-04-01T11:18:27.194188+00:00',
+        //         $notes => 'Transfer from main account to testSubaccount',
+        //         $status => 'complete'
+        //     }
+        //
+        $currencyId = $this->safe_string($transfer, 'coin');
+        $notes = $this->safe_string($transfer, 'notes', '');
+        $status = $this->safe_string($transfer, 'status');
+        $fromTo = str_replace('Transfer from ', '', $notes);
+        $parts = explode(' to ', $fromTo);
+        $fromAccount = $this->safe_string($parts, 0);
+        $fromAccount = str_replace(' account', '', $fromAccount);
+        $toAccount = $this->safe_string($parts, 1);
+        $toAccount = str_replace(' account', '', $toAccount);
+        return array(
+            'info' => $transfer,
+            'id' => $this->safe_string($transfer, 'id'),
+            'timestamp' => null,
+            'datetime' => $this->safe_string($transfer, 'time'),
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'amount' => $this->safe_number($transfer, 'size'),
+            'fromAccount' => $fromAccount,
+            'toAccount' => $toAccount,
+            'status' => $this->parse_transfer_status($status),
+        );
+    }
+
+    public function parse_transfer_status($status) {
+        $statuses = array(
+            'complete' => 'ok',
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {

@@ -101,11 +101,14 @@ class ftx(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
+                'fetchTransfer': None,
+                'fetchTransfers': None,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
                 'setLeverage': True,
                 'setMarginMode': False,  # FTX only supports cross margin
                 'setPositionMode': False,
+                'transfer': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -1824,6 +1827,70 @@ class ftx(Exchange):
         #
         trades = self.safe_value(response, 'result', [])
         return self.parse_trades(trades, market, since, limit)
+
+    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'coin': currency['id'],
+            'source': fromAccount,
+            'destination': toAccount,
+            'size': amount,
+        }
+        response = self.privatePostSubaccountsTransfer(self.extend(request, params))
+        #
+        #     {
+        #         success: True,
+        #         result: {
+        #             id: '31222278',
+        #             coin: 'USDT',
+        #             size: '1.0',
+        #             time: '2022-04-01T11:18:27.194188+00:00',
+        #             notes: 'Transfer from main account to testSubaccount',
+        #             status: 'complete'
+        #         }
+        #     }
+        #
+        result = self.safe_value(response, 'result', {})
+        return self.parse_transfer(result, currency)
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        #     {
+        #         id: '31222278',
+        #         coin: 'USDT',
+        #         size: '1.0',
+        #         time: '2022-04-01T11:18:27.194188+00:00',
+        #         notes: 'Transfer from main account to testSubaccount',
+        #         status: 'complete'
+        #     }
+        #
+        currencyId = self.safe_string(transfer, 'coin')
+        notes = self.safe_string(transfer, 'notes', '')
+        status = self.safe_string(transfer, 'status')
+        fromTo = notes.replace('Transfer from ', '')
+        parts = fromTo.split(' to ')
+        fromAccount = self.safe_string(parts, 0)
+        fromAccount = fromAccount.replace(' account', '')
+        toAccount = self.safe_string(parts, 1)
+        toAccount = toAccount.replace(' account', '')
+        return {
+            'info': transfer,
+            'id': self.safe_string(transfer, 'id'),
+            'timestamp': None,
+            'datetime': self.safe_string(transfer, 'time'),
+            'currency': self.safe_currency_code(currencyId, currency),
+            'amount': self.safe_number(transfer, 'size'),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': self.parse_transfer_status(status),
+        }
+
+    def parse_transfer_status(self, status):
+        statuses = {
+            'complete': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
