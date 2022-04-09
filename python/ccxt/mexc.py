@@ -1807,6 +1807,12 @@ class mexc(Exchange):
                 'CANCELED': 'canceled',
                 'PARTIALLY_CANCELED': 'canceled',
             }
+        elif market['type'] == 'swap':
+            statuses = {
+                '2': 'open',
+                '3': 'closed',
+                '4': 'canceled',
+            }
         else:
             statuses = {
                 '1': 'open',
@@ -1827,7 +1833,7 @@ class mexc(Exchange):
         #
         #     {"success": True, "code": 0, "data": 102057569836905984}
         #
-        # fetchOpenOrders spot
+        # spot fetchOpenOrders
         #
         #     {
         #         "id":"965245851c444078a11a7d771323613b",
@@ -1843,7 +1849,7 @@ class mexc(Exchange):
         #         "order_type":"LIMIT_ORDER"
         #     }
         #
-        # swap fetchOrder, fetchOpenOrders
+        # swap fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
         #
         #     {
         #         "orderId": "266578267438402048",
@@ -1872,7 +1878,7 @@ class mexc(Exchange):
         #         "positionMode": 1
         #     }
         #
-        # fetchClosedOrders, fetchCanceledOrders, fetchOrder
+        # spot fetchClosedOrders, fetchCanceledOrders, fetchOrder
         #
         #     {
         #         "id":"d798765285374222990bbd14decb86cd",
@@ -2162,7 +2168,7 @@ class mexc(Exchange):
 
     def fetch_orders_by_state(self, state, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrdersByState requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrdersByState() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -2184,6 +2190,10 @@ class mexc(Exchange):
         options = self.safe_value(self.options, 'fetchOrdersByState', {})
         defaultMethod = self.safe_string(options, 'method', 'spotPrivateGetOrderList')
         method = self.safe_string(params, 'method', defaultMethod)
+        method = self.get_supported_mapping(market['type'], {
+            'spot': 'spotPrivateGetOrderList',
+            'swap': 'contractPrivateGetOrderListHistoryOrders',
+        })
         if stop:
             method = 'contractPrivateGetPlanorderListOrders'
         query = self.omit(params, ['method', 'stop'])
@@ -2192,16 +2202,26 @@ class mexc(Exchange):
         return self.parse_orders(data, market, since, limit)
 
     def fetch_canceled_orders(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchCanceledOrders() requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
         stop = self.safe_value(params, 'stop')
         state = 'CANCELED'
-        if stop:
+        if market['type'] == 'swap':
+            state = '4'
+        elif stop:
             state = '2'
         return self.fetch_orders_by_state(state, symbol, since, limit, params)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
         stop = self.safe_value(params, 'stop')
         state = 'FILLED'
-        if stop:
+        if stop or market['type'] == 'swap':
             state = '3'
         return self.fetch_orders_by_state(state, symbol, since, limit, params)
 
@@ -2253,7 +2273,7 @@ class mexc(Exchange):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {

@@ -1899,6 +1899,12 @@ class mexc extends Exchange {
                 'CANCELED' => 'canceled',
                 'PARTIALLY_CANCELED' => 'canceled',
             );
+        } else if ($market['type'] === 'swap') {
+            $statuses = array(
+                '2' => 'open',
+                '3' => 'closed',
+                '4' => 'canceled',
+            );
         } else {
             $statuses = array(
                 '1' => 'open',
@@ -1921,7 +1927,7 @@ class mexc extends Exchange {
         //
         //     array( "success" => true, "code" => 0, "data" => 102057569836905984 )
         //
-        // fetchOpenOrders spot
+        // spot fetchOpenOrders
         //
         //     {
         //         "id":"965245851c444078a11a7d771323613b",
@@ -1937,7 +1943,7 @@ class mexc extends Exchange {
         //         "order_type":"LIMIT_ORDER"
         //     }
         //
-        // swap fetchOrder, fetchOpenOrders
+        // swap fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
         //
         //     {
         //         "orderId" => "266578267438402048",
@@ -1966,7 +1972,7 @@ class mexc extends Exchange {
         //         "positionMode" => 1
         //     }
         //
-        // fetchClosedOrders, fetchCanceledOrders, fetchOrder
+        // spot fetchClosedOrders, fetchCanceledOrders, fetchOrder
         //
         //     {
         //         "id":"d798765285374222990bbd14decb86cd",
@@ -2269,7 +2275,7 @@ class mexc extends Exchange {
 
     public function fetch_orders_by_state($state, $symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrdersByState requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrdersByState() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2294,6 +2300,10 @@ class mexc extends Exchange {
         $options = $this->safe_value($this->options, 'fetchOrdersByState', array());
         $defaultMethod = $this->safe_string($options, 'method', 'spotPrivateGetOrderList');
         $method = $this->safe_string($params, 'method', $defaultMethod);
+        $method = $this->get_supported_mapping($market['type'], array(
+            'spot' => 'spotPrivateGetOrderList',
+            'swap' => 'contractPrivateGetOrderListHistoryOrders',
+        ));
         if ($stop) {
             $method = 'contractPrivateGetPlanorderListOrders';
         }
@@ -2304,18 +2314,30 @@ class mexc extends Exchange {
     }
 
     public function fetch_canceled_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchCanceledOrders() requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market($symbol);
         $stop = $this->safe_value($params, 'stop');
         $state = 'CANCELED';
-        if ($stop) {
+        if ($market['type'] === 'swap') {
+            $state = '4';
+        } else if ($stop) {
             $state = '2';
         }
         return $this->fetch_orders_by_state($state, $symbol, $since, $limit, $params);
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market($symbol);
         $stop = $this->safe_value($params, 'stop');
         $state = 'FILLED';
-        if ($stop) {
+        if ($stop || $market['type'] === 'swap') {
             $state = '3';
         }
         return $this->fetch_orders_by_state($state, $symbol, $since, $limit, $params);
@@ -2371,7 +2393,7 @@ class mexc extends Exchange {
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
