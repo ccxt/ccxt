@@ -164,13 +164,12 @@ module.exports = class gateio extends ccxt.gateio {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['id'];
-        const isBtcContract = this.isBtcContract (market['inverse'], market['contract']);
         const type = market['type'];
         const messageType = this.getUniformType (type);
         const channel = messageType + '.' + 'tickers';
         const messageHash = channel + '.' + market['symbol'];
         const payload = [marketId];
-        const url = this.getUrlByMarketType (type, isBtcContract);
+        const url = this.getUrlByMarketType (type, market['inverse']);
         return await this.subscribePublic (url, channel, messageHash, payload);
     }
 
@@ -284,12 +283,11 @@ module.exports = class gateio extends ccxt.gateio {
         const market = this.market (symbol);
         const marketId = market['id'];
         const type = market['type'];
-        const isBtcContract = this.isBtcContract (market['inverse'], market['contract']);
         const interval = this.timeframes[timeframe];
         const messageType = this.getUniformType (type);
         const method = messageType + '.candlesticks';
         const messageHash = method + ':' + interval + ':' + market['symbol'];
-        const url = this.getUrlByMarketType (type, isBtcContract);
+        const url = this.getUrlByMarketType (type, market['inverse']);
         const payload = [interval, marketId];
         const ohlcv = await this.subscribePublic (url, method, messageHash, payload);
         if (this.newUpdates) {
@@ -535,8 +533,7 @@ module.exports = class gateio extends ccxt.gateio {
         const method = type + '.orders';
         let messageHash = method;
         messageHash = method + ':' + market['id'];
-        const isBtcContract = this.isBtcContract (market['inverse'], market['contract']);
-        const url = this.getUrlByMarketType (market['type'], isBtcContract);
+        const url = this.getUrlByMarketType (market['type'], market['inverse']);
         const payload = [market['id']];
         // uid required for non spot markets
         const requiresUid = (type !== 'spot');
@@ -773,7 +770,7 @@ module.exports = class gateio extends ccxt.gateio {
         return uniformType;
     }
 
-    getUrlByMarketType (type, isBtcContract = false) {
+    getUrlByMarketType (type, isInverse = false) {
         if (type === 'spot') {
             const spotUrl = this.urls['api']['spot'];
             if (spotUrl === undefined) {
@@ -783,11 +780,11 @@ module.exports = class gateio extends ccxt.gateio {
         }
         if (type === 'swap') {
             const baseUrl = this.urls['api']['swap'];
-            return isBtcContract ? baseUrl['btc'] : baseUrl['usdt'];
+            return isInverse ? baseUrl['btc'] : baseUrl['usdt'];
         }
         if (type === 'future') {
             const baseUrl = this.urls['api']['future'];
-            return isBtcContract ? baseUrl['btc'] : baseUrl['usdt'];
+            return isInverse ? baseUrl['btc'] : baseUrl['usdt'];
         }
         if (type === 'option') {
             return this.urls['api']['option'];
@@ -808,11 +805,6 @@ module.exports = class gateio extends ccxt.gateio {
             'messageHash': messageHash,
         };
         return await this.watch (url, messageHash, request, messageHash, subscription);
-    }
-
-    isBtcContract (isInverse, isContract) {
-        const isBtcContract = (isContract && isInverse) ? true : false;
-        return isBtcContract;
     }
 
     async subscribePrivate (url, channel, messageHash, payload, requiresUid = false) {
