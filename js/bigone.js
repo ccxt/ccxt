@@ -1266,8 +1266,13 @@ module.exports = class bigone extends Exchange {
             'to': toId,
             'guid': guid,
             'type': type,
-            'sub_account': subAccount,
         };
+        if (type !== undefined) {
+            request['type'] = type;
+        }
+        if (subAccount !== undefined) {
+            request['sub_account'] = subAccount;
+        }
         const response = await this.privatePostTransfer (this.extend (request, params));
         //
         //     {
