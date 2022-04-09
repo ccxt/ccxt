@@ -72,6 +72,7 @@ module.exports = class novadax extends Exchange {
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
+                'transfer': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -175,6 +176,9 @@ module.exports = class novadax extends Exchange {
             'options': {
                 'fetchOHLCV': {
                     'volume': 'amount', // 'amount' for base volume or 'vol' for quote volume
+                },
+                'transfer': {
+                    'fillResponseFromRequest': true,
                 },
             },
         });
@@ -951,6 +955,68 @@ module.exports = class novadax extends Exchange {
             'fee': fee,
             'trades': undefined,
         }, market);
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        if (fromAccount !== 'main' && toAccount !== 'main') {
+            throw new ExchangeError ('transfer is only allowed between main and sub accounts');
+        }
+        const type = (fromAccount === 'main') ? 'master-transfer-out' : 'master-transfer-in';
+        const request = {
+            'transferAmount': this.currencyToPrecision (code, amount),
+            'currency': currency['id'],
+            'subId': (type === 'master-transfer-out') ? toAccount : fromAccount,
+            'transferType': type,
+        };
+        const response = await this.privatePostAccountSubsTransfer (this.extend (request, params));
+        //
+        //    {
+        //        "code":"A10000",
+        //        "message":"Success",
+        //        "data":40
+        //    }
+        //
+        const transfer = this.parseTransfer (response, currency);
+        const transferOptions = this.safeValue (this.options, 'transfer', {});
+        const fillResponseFromRequest = this.safeValue (transferOptions, 'fillResponseFromRequest', true);
+        if (fillResponseFromRequest) {
+            transfer['fromAccount'] = fromAccount;
+            transfer['toAccount'] = toAccount;
+            transfer['amount'] = amount;
+        }
+        return transfer;
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        //    {
+        //        "code":"A10000",
+        //        "message":"Success",
+        //        "data":40
+        //    }
+        //
+        const id = this.safeString (transfer, 'data');
+        const status = this.safeString (transfer, 'message');
+        return {
+            'info': transfer,
+            'id': id,
+            'amount': undefined,
+            'code': this.safeCurrencyCode (undefined, currency),
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'status': status,
+        };
+    }
+
+    parseTransferStatus (status) {
+        const statuses = {
+            'SUCCESS': 'pending',
+        };
+        return this.safeString (statuses, status, 'failed');
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
