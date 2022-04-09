@@ -658,6 +658,8 @@ module.exports = class xena extends Exchange {
 
     parseTrade (trade, market = undefined) {
         //
+        // fetchTrades (public)
+        //
         //     {
         //         "mdUpdateAction":"0",
         //         "mdEntryType":"2",
@@ -668,7 +670,7 @@ module.exports = class xena extends Exchange {
         //         "aggressorSide":"1"
         //     }
         //
-        // fetchMyTrades
+        // fetchMyTrades (private)
         //
         //     {
         //         "msgType":"8",
@@ -709,22 +711,19 @@ module.exports = class xena extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const priceString = this.safeString2 (trade, 'lastPx', 'mdEntryPx');
         const amountString = this.safeString2 (trade, 'lastQty', 'mdEntrySize');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         let fee = undefined;
-        const feeCost = this.safeNumber (trade, 'commission');
-        if (feeCost !== undefined) {
+        const feeCostString = this.safeString (trade, 'commission');
+        if (feeCostString !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'commCurrency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
-            const feeRate = this.safeNumber (trade, 'commRate');
+            const feeRateString = this.safeString (trade, 'commRate');
             fee = {
-                'cost': feeCost,
-                'rate': feeRate,
+                'cost': feeCostString,
+                'rate': feeRateString,
                 'currency': feeCurrencyCode,
             };
         }
-        return {
+        return this.safeTrade ({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -734,11 +733,11 @@ module.exports = class xena extends Exchange {
             'order': orderId,
             'side': side,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
