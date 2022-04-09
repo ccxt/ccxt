@@ -2167,7 +2167,17 @@ class mexc(Exchange):
         request = {
             'symbol': market['id'],
         }
-        response = await self.spotPrivateDeleteOrderCancelBySymbol(self.extend(request, params))
+        method = self.get_supported_mapping(market['type'], {
+            'spot': 'spotPrivateDeleteOrderCancelBySymbol',
+            'swap': 'contractPrivatePostOrderCancelAll',
+        })
+        stop = self.safe_value(params, 'stop')
+        if stop:
+            method = 'contractPrivatePostPlanorderCancelAll'
+        query = self.omit(params, ['method', 'stop'])
+        response = await getattr(self, method)(self.extend(request, query))
+        #
+        # Spot
         #
         #     {
         #         "code": 200,
@@ -2186,6 +2196,13 @@ class mexc(Exchange):
         #                 "order_id": "b58ef34c570e4917981f276d44091484"
         #             }
         #         ]
+        #     }
+        #
+        # Swap and Trigger
+        #
+        #     {
+        #         "success": True,
+        #         "code": 0
         #     }
         #
         return response
