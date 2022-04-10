@@ -245,6 +245,7 @@ module.exports = class coinex extends Exchange {
         const getMarginData = this.checkRequiredCredentials (false);
         let promises = [];
         promises.push (this.publicGetMarketInfo (params));
+        promises.push (this.publicGetMarginMarket (params));
         if (getMarginData) {
             promises.push (this.privateGetMarginConfig (params));
         }
@@ -268,6 +269,17 @@ module.exports = class coinex extends Exchange {
         //         }
         //     }
         //
+        //     publicGetMarginMarket
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "BTCUSDT": 1,
+        //             "BCHUSDT": 2,
+        //             ...
+        //         },
+        //         "message": "Ok"
+        //     }
+        //
         //     privateGetMarginConfig
         //     {
         //         code: 0,
@@ -284,7 +296,9 @@ module.exports = class coinex extends Exchange {
         //
         const leverages = {};
         const marketInfoResponse = this.safeValue (promises, 0, {});
-        const marginConfigResponse = this.safeValue (promises, 1, {});
+        const marginMarketResponse = this.safeValue (promises, 1, {});
+        const marginMarkets = this.safeValue (marginMarketResponse, 'data', []);
+        const marginConfigResponse = this.safeValue (promises, 2, {});
         const marginConfigData = this.safeValue (marginConfigResponse, 'data', []);
         for (let i = 0; i < marginConfigData.length; i++) {
             const config = marginConfigData[i];
@@ -310,6 +324,7 @@ module.exports = class coinex extends Exchange {
             const leverage = this.safeNumber (leverages, id);
             result.push ({
                 'id': id,
+                'accountId': this.safeNumber (marginMarkets, id),
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
@@ -904,7 +919,7 @@ module.exports = class coinex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['id'];
-        const accountId = this.safeString (params, 'id', '0');
+        const accountId = this.safeString (market, 'accountId', '0');
         const request = {
             'account_id': accountId, // main account ID: 0, margin account ID: See < Inquire Margin Account Market Info >, future account ID: See < Inquire Future Account Market Info >
             'market': marketId,
@@ -1047,31 +1062,25 @@ module.exports = class coinex extends Exchange {
         if (fromAccount === 'margin' || toAccount === 'margin') {
             method = 'privatePostMarginTransfer';
             let marketId = this.safeString (params, 'market');
+            let market = undefined;
             if (marketId === undefined) {
                 const symbol = this.safeString (params, 'symbol');
                 if (symbol === undefined) {
                     throw new ArgumentsRequired (this.id + ' transfer() requires an exchange-specific market parameter or a unified symbol parameter');
                 } else {
                     params = this.omit (params, 'symbol');
-                    const market = this.market (symbol);
+                    market = this.market (symbol);
                     marketId = market['id'];
                     request['market'] = marketId;
                 }
+            } else {
+                if (this.markets_by_id !== undefined && marketId in this.markets_by_id) {
+                    market = this.markets_by_id[marketId];
+                } else {
+                    throw new ExchangeError (this.id + ' market ' + marketId + ' not found');
+                }
             }
-            const marginMarkets = await this.publicGetMarginMarket (params);
-            //
-            //     {
-            //         "code": 0,
-            //         "data": {
-            //             "BTCUSDT": 1,
-            //             "BCHUSDT": 2,
-            //             ...
-            //         },
-            //         "message": "Ok"
-            //     }
-            //
-            const data = this.safeValue (marginMarkets, 'data', {});
-            const accountId = this.safeValue (data, marketId);
+            const accountId = this.safeString (market, 'accountId');
             if (fromAccount === 'margin') {
                 request['from_account'] = accountId;
                 request['to_account'] = toId;
