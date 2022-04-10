@@ -1307,7 +1307,7 @@ class Transpiler {
         const python3BodyIntellisense = python3Body + '\n\n\n' + pythonBaseError + '\n' + pythonErrors.join ('\n') + '\n' + pythonAll + '\n'
 
         const pythonFilename = './python/ccxt/base/errors.py'
-        if (fs.existsSync(pythonFilename)) {
+        if (fs.existsSync (pythonFilename)) {
             log.bright.cyan (message, pythonFilename.yellow)
             fs.writeFileSync (pythonFilename, python3BodyIntellisense)
         }
@@ -1335,7 +1335,7 @@ class Transpiler {
 
         const phpFilename ='./ccxt.php'
 
-        if (fs.existsSync(phpFilename)) {
+        if (fs.existsSync (phpFilename)) {
             const phpErrors = intellisense (errorHierarchy, 'Exception', phpMakeErrorClassFile)
             const phpBodyIntellisense = phpErrors.join ("\n") + "\n\n"
             log.bright.cyan (message, phpFilename.yellow)
