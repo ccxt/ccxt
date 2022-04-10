@@ -168,7 +168,7 @@ module.exports = class gateio extends ccxt.gateio {
         const messageType = this.getUniformType (type);
         const channel = messageType + '.' + 'tickers';
         const messageHash = channel + '.' + market['symbol'];
-        const payload = [marketId];
+        const payload = [ marketId ];
         const url = this.getUrlByMarketType (type, market['inverse']);
         return await this.subscribePublic (url, channel, messageHash, payload);
     }
