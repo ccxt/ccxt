@@ -10,7 +10,7 @@ const fs           = require ('fs')
 const log          = require ('ololog')
 const ansi         = require ('ansicolor').nice
 const { execSync } = require ('child_process')
-const{ copyFile } = require ('./fs.js')
+const{ copyFile } = require ('ccxt/build/fs.js')
 const { vss } = require ('ccxt/build/vss.js')
 
 // ----------------------------------------------------------------------------
