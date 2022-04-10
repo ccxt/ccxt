@@ -22,6 +22,7 @@ const fs = require ('fs')
         overwriteFile,
     } = require ('./fs.js')
     , Exchange = require ('../js/base/Exchange.js')
+    , tsFilename = './ccxt.d.ts'
 
 class Transpiler {
 
@@ -1282,12 +1283,13 @@ class Transpiler {
 
     // ========================================================================
 
-    transpileErrorHierarchy () {
+    transpileErrorHierarchy ({ tsFilename }) {
 
         const errorHierarchyFilename = './js/base/errorHierarchy.js'
-        const errorHierarchy = require ('.' + errorHierarchyFilename)
+        const errorHierarchyPath = __dirname + '/.' + errorHierarchyFilename
+        const errorHierarchy = require (errorHierarchyPath)
 
-        let js = fs.readFileSync (errorHierarchyFilename, 'utf8')
+        let js = fs.readFileSync (errorHierarchyPath, 'utf8')
 
         js = this.regexAll (js, [
             [ /module\.exports = [^\;]+\;\n/s, '' ],
@@ -1332,16 +1334,16 @@ class Transpiler {
         ].join ('\n');
 
         const quote = (s) => "'" + s + "'" // helper to add quotes around class names
-
         const pythonExports = [ 'error_hierarchy', 'BaseError' ]
         const pythonErrors = intellisense (root, 'BaseError', pythonDeclareErrorClass, pythonExports)
         const pythonAll = '__all__ = [\n    ' + pythonExports.map (quote).join (',\n    ') + '\n]'
-
         const python3BodyIntellisense = python3Body + '\n\n\n' + pythonBaseError + '\n' + pythonErrors.join ('\n') + '\n' + pythonAll + '\n'
 
         const pythonFilename = './python/ccxt/base/errors.py'
-        log.bright.cyan (message, pythonFilename.yellow)
-        fs.writeFileSync (pythonFilename, python3BodyIntellisense)
+        if (fs.existsSync (pythonFilename)) {
+            log.bright.cyan (message, pythonFilename.yellow)
+            fs.writeFileSync (pythonFilename, python3BodyIntellisense)
+        }
 
         // PHP ----------------------------------------------------------------
 
@@ -1364,13 +1366,15 @@ class Transpiler {
             return "require_once PATH_TO_CCXT . '" + name + ".php';"
         }
 
-        const phpErrors = intellisense (errorHierarchy, 'Exception', phpMakeErrorClassFile)
-        const phpBodyIntellisense = phpErrors.join ("\n") + "\n\n"
-        const phpFilename = './ccxt.php'
+        const phpFilename ='./ccxt.php'
 
-        log.bright.cyan (message, phpFilename.yellow)
-        const phpRegex = /require_once PATH_TO_CCXT \. \'BaseError\.php\'\;\n(?:require_once PATH_TO_CCXT[^\n]+\n)+\n/m
-        replaceInFile (phpFilename, phpRegex, phpBodyIntellisense)
+        if (fs.existsSync (phpFilename)) {
+            const phpErrors = intellisense (errorHierarchy, 'Exception', phpMakeErrorClassFile)
+            const phpBodyIntellisense = phpErrors.join ("\n") + "\n\n"
+            log.bright.cyan (message, phpFilename.yellow)
+            const phpRegex = /require_once PATH_TO_CCXT \. \'BaseError\.php\'\;\n(?:require_once PATH_TO_CCXT[^\n]+\n)+\n/m
+            replaceInFile (phpFilename, phpRegex, phpBodyIntellisense)
+        }
 
         // TypeScript ---------------------------------------------------------
 
@@ -1388,7 +1392,6 @@ class Transpiler {
 
         const tsBodyIntellisense = tsBaseError + '\n\n    ' + tsErrors.join ('\n    ') + '\n\n'
 
-        const tsFilename = './ccxt.d.ts'
         log.bright.cyan (message, tsFilename.yellow)
         const regex = /export class BaseError[^}]+\}[\n][\n](?:\s+export class [a-zA-Z]+ extends [a-zA-Z]+ \{\}[\n])+[\n]/m
         replaceInFile (tsFilename, regex, tsBodyIntellisense)
@@ -1716,11 +1719,11 @@ class Transpiler {
 
         // HINT: if we're going to support specific class definitions
         // this process won't work anymore as it will override the definitions
-        this.exportTypeScriptDeclarations ('./ccxt.d.ts', classes)
+        this.exportTypeScriptDeclarations (tsFilename, classes)
 
         //*/
 
-        this.transpileErrorHierarchy ()
+        this.transpileErrorHierarchy ({ tsFilename })
 
         this.transpileTests ()
 
@@ -1747,7 +1750,7 @@ if (require.main === module) { // called directly like `node module`
     if (test) {
         transpiler.transpileTests ()
     } else if (errors) {
-        transpiler.transpileErrorHierarchy ()
+        transpiler.transpileErrorHierarchy ({ tsFilename })
     } else {
         transpiler.transpileEverything (force)
     }
