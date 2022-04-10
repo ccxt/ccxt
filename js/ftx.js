@@ -2604,10 +2604,11 @@ module.exports = class ftx extends Exchange {
         const histories = await this.fetchBorrowRateHistories (since, limit, params);
         const borrowRateHistory = this.safeValue (histories, code);
         if (borrowRateHistory === undefined) {
-            throw new BadRequest (this.id + '.fetchBorrowRateHistory returned no data for ' + code);
+            throw new BadRequest (this.id + ' fetchBorrowRateHistory() returned no data for ' + code);
         } else {
             return borrowRateHistory;
         }
+        return result;
     }
 
     parseBorrowRateHistories (response, codes, since, limit) {
@@ -2645,17 +2646,6 @@ module.exports = class ftx extends Exchange {
             const code = this.safeCurrencyCode (currency);
             const borrowRate = this.parseBorrowRate (item);
             result[code] = borrowRate;
-        }
-        return result;
-    }
-
-    async fetchBorrowRateHistory (code, since = undefined, limit = undefined, params = {}) {
-        const histories = await this.fetchBorrowRateHistories (since, limit, params);
-        const borrowRateHistory = this.safeValue (histories, code);
-        if (borrowRateHistory === undefined) {
-            throw new BadRequest (this.id + ' fetchBorrowRateHistory() returned no data for ' + code);
-        } else {
-            return borrowRateHistory;
         }
         return result;
     }
