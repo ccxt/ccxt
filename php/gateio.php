@@ -171,57 +171,47 @@ class gateio extends \ccxt\async\gateio {
         yield $this->load_markets();
         $market = $this->market($symbol);
         $marketId = $market['id'];
-        $uppercaseId = strtoupper($marketId);
-        $requestId = $this->nonce();
-        $url = $this->urls['api']['ws'];
-        $options = $this->safe_value($this->options, 'watchTicker', array());
-        $subscriptions = $this->safe_value($options, 'subscriptions', array());
-        $subscriptions[$uppercaseId] = true;
-        $options['subscriptions'] = $subscriptions;
-        $this->options['watchTicker'] = $options;
-        $subscribeMessage = array(
-            'id' => $requestId,
-            'method' => 'ticker.subscribe',
-            'params' => is_array($subscriptions) ? array_keys($subscriptions) : array(),
-        );
-        $subscription = array(
-            'id' => $requestId,
-        );
-        $messageHash = 'ticker.update' . ':' . $marketId;
-        return yield $this->watch($url, $messageHash, $subscribeMessage, $messageHash, $subscription);
+        $type = $market['type'];
+        $messageType = $this->get_uniform_type($type);
+        $channel = $messageType . '.' . 'tickers';
+        $messageHash = $channel . '.' . $market['symbol'];
+        $payload = array( $marketId );
+        $url = $this->get_url_by_market_type($type, $market['inverse']);
+        return yield $this->subscribe_public($url, $channel, $messageHash, $payload);
     }
 
     public function handle_ticker($client, $message) {
         //
-        //     {
-        //         'method' => 'ticker.update',
-        //         'params' => array(
-        //             'BTC_USDT',
-        //             {
-        //                 'period' => 86400, // 24 hours = 86400 seconds
-        //                 'open' => '9027.96',
-        //                 'close' => '9282.93',
-        //                 'high' => '9428.57',
-        //                 'low' => '8900',
-        //                 'last' => '9282.93',
-        //                 'change' => '2.8',
-        //                 'quoteVolume' => '1838.9950613035',
-        //                 'baseVolume' => '17032535.24172142379566994715'
-        //             }
-        //         ),
-        //         'id' => null
-        //     }
+        //    {
+        //        time => 1649326221,
+        //        $channel => 'spot.tickers',
+        //        event => 'update',
+        //        $result => {
+        //          currency_pair => 'BTC_USDT',
+        //          last => '43444.82',
+        //          lowest_ask => '43444.82',
+        //          highest_bid => '43444.81',
+        //          change_percentage => '-4.0036',
+        //          base_volume => '5182.5412425462',
+        //          quote_volume => '227267634.93123952',
+        //          high_24h => '47698',
+        //          low_24h => '42721.03'
+        //        }
+        //    }
         //
-        $params = $this->safe_value($message, 'params', array());
-        $marketId = $this->safe_string($params, 0);
-        $market = $this->safe_market($marketId, null, '_');
-        $symbol = $market['symbol'];
-        $ticker = $this->safe_value($params, 1, array());
-        $result = $this->parse_ticker($ticker, $market);
-        $methodType = $message['method'];
-        $messageHash = $methodType . ':' . $marketId;
-        $this->tickers[$symbol] = $result;
-        $client->resolve ($result, $messageHash);
+        $channel = $this->safe_string($message, 'channel');
+        $result = $this->safe_value($message, 'result');
+        if (gettype($result) === 'array' && count(array_filter(array_keys($result), 'is_string')) != 0) {
+            $result = array( $result );
+        }
+        for ($i = 0; $i < count($result); $i++) {
+            $ticker = $result[$i];
+            $parsed = $this->parse_ticker($ticker);
+            $symbol = $parsed['symbol'];
+            $this->tickers[$symbol] = $parsed;
+            $messageHash = $channel . '.' . $symbol;
+            $client->resolve ($this->tickers[$symbol], $messageHash);
+        }
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -299,13 +289,11 @@ class gateio extends \ccxt\async\gateio {
         $market = $this->market($symbol);
         $marketId = $market['id'];
         $type = $market['type'];
-        $isSettleBtc = $market['settleId'] === 'btc';
-        $isBtcContract = ($market['contract'] && $isSettleBtc) ? true : false;
         $interval = $this->timeframes[$timeframe];
         $messageType = $this->get_uniform_type($type);
         $method = $messageType . '.candlesticks';
         $messageHash = $method . ':' . $interval . ':' . $market['symbol'];
-        $url = $this->get_url_by_market_type($type, $isBtcContract);
+        $url = $this->get_url_by_market_type($type, $market['inverse']);
         $payload = [$interval, $marketId];
         $ohlcv = yield $this->subscribe_public($url, $method, $messageHash, $payload);
         if ($this->newUpdates) {
@@ -551,9 +539,7 @@ class gateio extends \ccxt\async\gateio {
         $method = $type . '.orders';
         $messageHash = $method;
         $messageHash = $method . ':' . $market['id'];
-        $isSettleBtc = $market['settleId'] === 'btc';
-        $isBtcContract = ($market['contract'] && $isSettleBtc) ? true : false;
-        $url = $this->get_url_by_market_type($market['type'], $isBtcContract);
+        $url = $this->get_url_by_market_type($market['type'], $market['inverse']);
         $payload = [$market['id']];
         // uid required for non spot markets
         $requiresUid = ($type !== 'spot');
@@ -771,6 +757,7 @@ class gateio extends \ccxt\async\gateio {
                 'usertrades' => array($this, 'handle_my_trades'),
                 'candlesticks' => array($this, 'handle_ohlcv'),
                 'orders' => array($this, 'handle_order'),
+                'tickers' => array($this, 'handle_ticker'),
             );
             $method = $this->safe_value($v4Methods, $channelType);
         }
@@ -789,7 +776,7 @@ class gateio extends \ccxt\async\gateio {
         return $uniformType;
     }
 
-    public function get_url_by_market_type($type, $isBtcContract = false) {
+    public function get_url_by_market_type($type, $isInverse = false) {
         if ($type === 'spot') {
             $spotUrl = $this->urls['api']['spot'];
             if ($spotUrl === null) {
@@ -799,11 +786,11 @@ class gateio extends \ccxt\async\gateio {
         }
         if ($type === 'swap') {
             $baseUrl = $this->urls['api']['swap'];
-            return $isBtcContract ? $baseUrl['btc'] : $baseUrl['usdt'];
+            return $isInverse ? $baseUrl['btc'] : $baseUrl['usdt'];
         }
         if ($type === 'future') {
             $baseUrl = $this->urls['api']['future'];
-            return $isBtcContract ? $baseUrl['btc'] : $baseUrl['usdt'];
+            return $isInverse ? $baseUrl['btc'] : $baseUrl['usdt'];
         }
         if ($type === 'option') {
             return $this->urls['api']['option'];
