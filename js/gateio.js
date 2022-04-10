@@ -164,57 +164,47 @@ module.exports = class gateio extends ccxt.gateio {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['id'];
-        const uppercaseId = marketId.toUpperCase ();
-        const requestId = this.nonce ();
-        const url = this.urls['api']['ws'];
-        const options = this.safeValue (this.options, 'watchTicker', {});
-        const subscriptions = this.safeValue (options, 'subscriptions', {});
-        subscriptions[uppercaseId] = true;
-        options['subscriptions'] = subscriptions;
-        this.options['watchTicker'] = options;
-        const subscribeMessage = {
-            'id': requestId,
-            'method': 'ticker.subscribe',
-            'params': Object.keys (subscriptions),
-        };
-        const subscription = {
-            'id': requestId,
-        };
-        const messageHash = 'ticker.update' + ':' + marketId;
-        return await this.watch (url, messageHash, subscribeMessage, messageHash, subscription);
+        const type = market['type'];
+        const messageType = this.getUniformType (type);
+        const channel = messageType + '.' + 'tickers';
+        const messageHash = channel + '.' + market['symbol'];
+        const payload = [ marketId ];
+        const url = this.getUrlByMarketType (type, market['inverse']);
+        return await this.subscribePublic (url, channel, messageHash, payload);
     }
 
     handleTicker (client, message) {
         //
-        //     {
-        //         'method': 'ticker.update',
-        //         'params': [
-        //             'BTC_USDT',
-        //             {
-        //                 'period': 86400, // 24 hours = 86400 seconds
-        //                 'open': '9027.96',
-        //                 'close': '9282.93',
-        //                 'high': '9428.57',
-        //                 'low': '8900',
-        //                 'last': '9282.93',
-        //                 'change': '2.8',
-        //                 'quoteVolume': '1838.9950613035',
-        //                 'baseVolume': '17032535.24172142379566994715'
-        //             }
-        //         ],
-        //         'id': null
-        //     }
+        //    {
+        //        time: 1649326221,
+        //        channel: 'spot.tickers',
+        //        event: 'update',
+        //        result: {
+        //          currency_pair: 'BTC_USDT',
+        //          last: '43444.82',
+        //          lowest_ask: '43444.82',
+        //          highest_bid: '43444.81',
+        //          change_percentage: '-4.0036',
+        //          base_volume: '5182.5412425462',
+        //          quote_volume: '227267634.93123952',
+        //          high_24h: '47698',
+        //          low_24h: '42721.03'
+        //        }
+        //    }
         //
-        const params = this.safeValue (message, 'params', []);
-        const marketId = this.safeString (params, 0);
-        const market = this.safeMarket (marketId, undefined, '_');
-        const symbol = market['symbol'];
-        const ticker = this.safeValue (params, 1, {});
-        const result = this.parseTicker (ticker, market);
-        const methodType = message['method'];
-        const messageHash = methodType + ':' + marketId;
-        this.tickers[symbol] = result;
-        client.resolve (result, messageHash);
+        const channel = this.safeString (message, 'channel');
+        let result = this.safeValue (message, 'result');
+        if (!Array.isArray (result)) {
+            result = [ result ];
+        }
+        for (let i = 0; i < result.length; i++) {
+            const ticker = result[i];
+            const parsed = this.parseTicker (ticker);
+            const symbol = parsed['symbol'];
+            this.tickers[symbol] = parsed;
+            const messageHash = channel + '.' + symbol;
+            client.resolve (this.tickers[symbol], messageHash);
+        }
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -292,13 +282,11 @@ module.exports = class gateio extends ccxt.gateio {
         const market = this.market (symbol);
         const marketId = market['id'];
         const type = market['type'];
-        const isSettleBtc = market['settleId'] === 'btc';
-        const isBtcContract = (market['contract'] && isSettleBtc) ? true : false;
         const interval = this.timeframes[timeframe];
         const messageType = this.getUniformType (type);
         const method = messageType + '.candlesticks';
         const messageHash = method + ':' + interval + ':' + market['symbol'];
-        const url = this.getUrlByMarketType (type, isBtcContract);
+        const url = this.getUrlByMarketType (type, market['inverse']);
         const payload = [interval, marketId];
         const ohlcv = await this.subscribePublic (url, method, messageHash, payload);
         if (this.newUpdates) {
@@ -544,9 +532,7 @@ module.exports = class gateio extends ccxt.gateio {
         const method = type + '.orders';
         let messageHash = method;
         messageHash = method + ':' + market['id'];
-        const isSettleBtc = market['settleId'] === 'btc';
-        const isBtcContract = (market['contract'] && isSettleBtc) ? true : false;
-        const url = this.getUrlByMarketType (market['type'], isBtcContract);
+        const url = this.getUrlByMarketType (market['type'], market['inverse']);
         const payload = [market['id']];
         // uid required for non spot markets
         const requiresUid = (type !== 'spot');
@@ -764,6 +750,7 @@ module.exports = class gateio extends ccxt.gateio {
                 'usertrades': this.handleMyTrades,
                 'candlesticks': this.handleOHLCV,
                 'orders': this.handleOrder,
+                'tickers': this.handleTicker,
             };
             method = this.safeValue (v4Methods, channelType);
         }
@@ -782,7 +769,7 @@ module.exports = class gateio extends ccxt.gateio {
         return uniformType;
     }
 
-    getUrlByMarketType (type, isBtcContract = false) {
+    getUrlByMarketType (type, isInverse = false) {
         if (type === 'spot') {
             const spotUrl = this.urls['api']['spot'];
             if (spotUrl === undefined) {
@@ -792,11 +779,11 @@ module.exports = class gateio extends ccxt.gateio {
         }
         if (type === 'swap') {
             const baseUrl = this.urls['api']['swap'];
-            return isBtcContract ? baseUrl['btc'] : baseUrl['usdt'];
+            return isInverse ? baseUrl['btc'] : baseUrl['usdt'];
         }
         if (type === 'future') {
             const baseUrl = this.urls['api']['future'];
-            return isBtcContract ? baseUrl['btc'] : baseUrl['usdt'];
+            return isInverse ? baseUrl['btc'] : baseUrl['usdt'];
         }
         if (type === 'option') {
             return this.urls['api']['option'];
