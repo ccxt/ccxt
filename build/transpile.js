@@ -1253,9 +1253,10 @@ class Transpiler {
 
     transpileErrorHierarchy ({ errorHierarchyFilename, tsFilename }) {
 
-        const errorHierarchy = require ('.' + errorHierarchyFilename)
+        const errorHierarchyPath = __dirname + '/.' + errorHierarchyFilename
+        const errorHierarchy = require (errorHierarchyPath)
 
-        let js = fs.readFileSync (__dirname + '/.' + errorHierarchyFilename, 'utf8')
+        let js = fs.readFileSync (errorHierarchyPath, 'utf8')
 
         js = this.regexAll (js, [
             [ /module\.exports = [^\;]+\;\n/s, '' ],
