@@ -220,7 +220,7 @@ class CCXTProTranspiler extends Transpiler {
         // this process won't work anymore as it will override the definitions
         this.exportTypeScriptDeclarations ('./ccxt.pro.d.ts', classes)
 
-        // transpileErrorHierarchy ()
+        this.transpileErrorHierarchy (true, __dirname + '/../')
 
         // transpilePrecisionTests ()
         // transpileDateTimeTests ()
