@@ -2549,25 +2549,11 @@ class ftx extends Exchange {
         //         )
         //     }
         //
-        $timestamp = $this->milliseconds();
         $result = $this->safe_value($response, 'result');
-        $rates = array();
-        for ($i = 0; $i < count($result); $i++) {
-            $rate = $result[$i];
-            $code = $this->safe_currency_code($this->safe_string($rate, 'coin'));
-            $rates[$code] = array(
-                'currency' => $code,
-                'rate' => $this->safe_number($rate, 'previous'),
-                'period' => 3600000,
-                'timestamp' => $timestamp,
-                'datetime' => $this->iso8601($timestamp),
-                'info' => $rate,
-            );
-        }
-        return $rates;
+        return $this->parse_borrow_rates($result, 'coin');
     }
 
-    public function fetch_borrow_rate_histories($since = null, $limit = null, $params = array ()) {
+    public function fetch_borrow_rate_histories($codes = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array();
         $endTime = $this->safe_number_2($params, 'till', 'end_time');
@@ -2615,33 +2601,7 @@ class ftx extends Exchange {
         //    }
         //
         $result = $this->safe_value($response, 'result');
-        // How to calculate borrow rate
-        // https://help.ftx.com/hc/en-us/articles/360053007671-Spot-Margin-Trading-Explainer
-        $takerFee = (string) $this->fees['trading']['taker'];
-        $spotMarginBorrowRate = Precise::string_mul('500', $takerFee);
-        $borrowRateHistories = array();
-        for ($i = 0; $i < count($result); $i++) {
-            $item = $result[$i];
-            $currency = $this->safe_currency_code($this->safe_string($item, 'coin'));
-            if (!(is_array($borrowRateHistories) && array_key_exists($currency, $borrowRateHistories))) {
-                $borrowRateHistories[$currency] = array();
-            }
-            $datetime = $this->safe_string($item, 'time');
-            $lendingRate = $this->safe_string($item, 'rate');
-            $borrowRateHistories[$currency][] = array(
-                'currency' => $currency,
-                'rate' => Precise::string_mul($lendingRate, Precise::string_add('1', $spotMarginBorrowRate)),
-                'timestamp' => $this->parse8601($datetime),
-                'datetime' => $datetime,
-                'info' => $item,
-            );
-        }
-        $keys = is_array($borrowRateHistories) ? array_keys($borrowRateHistories) : array();
-        for ($i = 0; $i < count($keys); $i++) {
-            $key = $keys[$i];
-            $borrowRateHistories[$key] = $this->filter_by_currency_since_limit($borrowRateHistories[$key], $key, $since, $limit);
-        }
-        return $borrowRateHistories;
+        return $this->parse_borrow_rate_histories($result, $codes, $since, $limit);
     }
 
     public function fetch_borrow_rate_history($code, $since = null, $limit = null, $params = array ()) {
@@ -2649,9 +2609,68 @@ class ftx extends Exchange {
         $borrowRateHistory = $this->safe_value($histories, $code);
         if ($borrowRateHistory === null) {
             throw new BadRequest($this->id . ' fetchBorrowRateHistory() returned no data for ' . $code);
-        } else {
-            return $borrowRateHistory;
         }
+        return $borrowRateHistory;
+    }
+
+    public function parse_borrow_rate_histories($response, $codes, $since, $limit) {
+        // How to calculate borrow rate
+        // https://help.ftx.com/hc/en-us/articles/360053007671-Spot-Margin-Trading-Explainer
+        $takerFee = (string) $this->fees['trading']['taker'];
+        $spotMarginBorrowRate = Precise::string_mul('500', $takerFee);
+        $borrowRateHistories = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $item = $response[$i];
+            $code = $this->safe_currency_code($this->safe_string($item, 'coin'));
+            if ($codes === null || $codes->includes ($code)) {
+                if (!(is_array($borrowRateHistories) && array_key_exists($code, $borrowRateHistories))) {
+                    $borrowRateHistories[$code] = array();
+                }
+                $lendingRate = $this->safe_string($item, 'rate');
+                $borrowRate = Precise::string_mul($lendingRate, Precise::string_add('1', $spotMarginBorrowRate));
+                $borrowRateStructure = array_merge($this->parse_borrow_rate($item), array( 'rate' => $borrowRate ));
+                $borrowRateHistories[$code][] = $borrowRateStructure;
+            }
+        }
+        $keys = is_array($borrowRateHistories) ? array_keys($borrowRateHistories) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $code = $keys[$i];
+            $borrowRateHistories[$code] = $this->filter_by_currency_since_limit($borrowRateHistories[$code], $code, $since, $limit);
+        }
+        return $borrowRateHistories;
+    }
+
+    public function parse_borrow_rates($response, $codeKey) {
+        $result = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $item = $response[$i];
+            $currency = $this->safe_string($item, $codeKey);
+            $code = $this->safe_currency_code($currency);
+            $borrowRate = $this->parse_borrow_rate($item);
+            $result[$code] = $borrowRate;
+        }
+        return $result;
+    }
+
+    public function parse_borrow_rate($info, $currency = null) {
+        //
+        //    {
+        //        "coin" => "1INCH",
+        //        "previous" => 0.0000462375,
+        //        "estimate" => 0.0000462375
+        //    }
+        //
+        $coin = $this->safe_string($info, 'coin');
+        $datetime = $this->safe_string($info, 'time');
+        $timestamp = $this->parse8601($datetime);
+        return array(
+            'currency' => $this->safe_currency_code($coin),
+            'rate' => $this->safe_number($info, 'previous'),
+            'period' => 3600000,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $info,
+        );
     }
 
     public function fetch_borrow_interest($code = null, $symbol = null, $since = null, $limit = null, $params = array ()) {

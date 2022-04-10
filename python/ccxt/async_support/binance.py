@@ -5082,15 +5082,7 @@ class binance(Exchange):
         #     ]
         #
         rate = self.safe_value(response, 0)
-        timestamp = self.safe_number(rate, 'timestamp')
-        return {
-            'currency': code,
-            'rate': self.safe_number(rate, 'dailyInterestRate'),
-            'period': 86400000,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'info': response,
-        }
+        return self.parse_borrow_rate(rate)
 
     async def fetch_borrow_rate_history(self, code, since=None, limit=None, params={}):
         await self.load_markets()
@@ -5120,18 +5112,36 @@ class binance(Exchange):
         #         },
         #     ]
         #
+        return self.parse_borrow_rate_history(response)
+
+    def parse_borrow_rate_history(self, response, code, since, limit):
         result = []
         for i in range(0, len(response)):
             item = response[i]
-            timestamp = self.safe_number(item, 'timestamp')
-            result.append({
-                'currency': code,
-                'rate': self.safe_number(item, 'dailyInterestRate'),
-                'timestamp': timestamp,
-                'datetime': self.iso8601(timestamp),
-                'info': item,
-            })
-        return result
+            borrowRate = self.parse_borrow_rate(item)
+            result.append(borrowRate)
+        sorted = self.sort_by(result, 'timestamp')
+        return self.filter_by_currency_since_limit(sorted, code, since, limit)
+
+    def parse_borrow_rate(self, info, currency=None):
+        #
+        #    {
+        #        "asset": "USDT",
+        #        "timestamp": 1638230400000,
+        #        "dailyInterestRate": "0.0006",
+        #        "vipLevel": 0
+        #    }
+        #
+        timestamp = self.safe_number(info, 'timestamp')
+        currency = self.safe_string(info, 'asset')
+        return {
+            'currency': self.safe_currency_code(currency),
+            'rate': self.safe_number(info, 'dailyInterestRate'),
+            'period': 86400000,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': info,
+        }
 
     async def create_gift_code(self, code, amount, params={}):
         await self.load_markets()

@@ -5,7 +5,6 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -4036,19 +4035,67 @@ class okx(Exchange):
         #        "msg": ""
         #    }
         #
-        timestamp = self.milliseconds()
         data = self.safe_value(response, 'data')
         rate = self.safe_value(data, 0)
+        return self.parse_borrow_rate(rate)
+
+    def parse_borrow_rate(self, info, currency=None):
+        #
+        #    {
+        #        "amt": "992.10341195",
+        #        "ccy": "BTC",
+        #        "rate": "0.01",
+        #        "ts": "1643954400000"
+        #    }
+        #
+        ccy = self.safe_string(info, 'ccy')
+        timestamp = self.safe_integer(info, 'ts')
         return {
-            'currency': code,
-            'rate': self.safe_number(rate, 'interestRate'),
+            'currency': self.safe_currency_code(ccy),
+            'rate': self.safe_number_2(info, 'interestRate', 'rate'),
             'period': 86400000,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'info': rate,
+            'info': info,
         }
 
-    def fetch_borrow_rate_histories(self, since=None, limit=None, params={}):
+    def parse_borrow_rate_histories(self, response, codes, since, limit):
+        #
+        #    [
+        #        {
+        #            "amt": "992.10341195",
+        #            "ccy": "BTC",
+        #            "rate": "0.01",
+        #            "ts": "1643954400000"
+        #        },
+        #        ...
+        #    ]
+        #
+        borrowRateHistories = {}
+        for i in range(0, len(response)):
+            item = response[i]
+            code = self.safe_currency_code(self.safe_string(item, 'ccy'))
+            if codes is None or codes.includes(code):
+                if not (code in borrowRateHistories):
+                    borrowRateHistories[code] = []
+                borrowRateStructure = self.parse_borrow_rate(item)
+                borrowRateHistories[code].append(borrowRateStructure)
+        keys = list(borrowRateHistories.keys())
+        for i in range(0, len(keys)):
+            code = keys[i]
+            borrowRateHistories[code] = self.filter_by_currency_since_limit(borrowRateHistories[code], code, since, limit)
+        return borrowRateHistories
+
+    def parse_borrow_rate_history(self, response, code, since, limit):
+        result = []
+        for i in range(0, len(response)):
+            item = response[i]
+            borrowRate = self.parse_borrow_rate(item)
+            result.append(borrowRate)
+        sorted = self.sort_by(result, 'timestamp')
+        return self.filter_by_currency_since_limit(sorted, code, since, limit)
+
+    def fetch_borrow_rate_histories(self, codes=None, since=None, limit=None, params={}):
         self.load_markets()
         request = {
             # 'ccy': currency['id'],
@@ -4076,34 +4123,38 @@ class okx(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data')
-        borrowRateHistories = {}
-        for i in range(0, len(data)):
-            item = data[i]
-            currency = self.safe_currency_code(self.safe_string(item, 'ccy'))
-            if not (currency in borrowRateHistories):
-                borrowRateHistories[currency] = []
-            rate = self.safe_string(item, 'rate')
-            timestamp = self.safe_string(item, 'ts')
-            borrowRateHistories[currency].append({
-                'info': item,
-                'currency': currency,
-                'rate': rate,
-                'timestamp': timestamp,
-                'datetime': self.iso8601(timestamp),
-            })
-        keys = list(borrowRateHistories.keys())
-        for i in range(0, len(keys)):
-            key = keys[i]
-            borrowRateHistories[key] = self.filter_by_currency_since_limit(borrowRateHistories[key], key, since, limit)
-        return borrowRateHistories
+        return self.parse_borrow_rate_histories(data, codes, since, limit)
 
     def fetch_borrow_rate_history(self, code, since=None, limit=None, params={}):
-        codeObject = json.loads('{"ccy": "' + code + '"}')
-        histories = self.fetch_borrow_rate_histories(since, limit, codeObject, params)
-        if histories is None:
-            raise BadRequest(self.id + ' fetchBorrowRateHistory() returned no data for ' + code)
-        else:
-            return histories
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'ccy': currency['id'],
+            # 'after': self.milliseconds(),  # Pagination of data to return records earlier than the requested ts,
+            # 'before': since,  # Pagination of data to return records newer than the requested ts,
+            # 'limit': limit,  # default is 100 and maximum is 100
+        }
+        if since is not None:
+            request['before'] = since
+        if limit is not None:
+            request['limit'] = limit
+        response = self.publicGetAssetLendingRateHistory(self.extend(request, params))
+        #
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             {
+        #                 "amt": "992.10341195",
+        #                 "ccy": "BTC",
+        #                 "rate": "0.01",
+        #                 "ts": "1643954400000"
+        #             },
+        #         ],
+        #         "msg": ""
+        #     }
+        #
+        data = self.safe_value(response, 'data')
+        return self.parse_borrow_rate_history(data, code, since, limit)
 
     def modify_margin_helper(self, symbol, amount, type, params={}):
         self.load_markets()

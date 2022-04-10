@@ -2433,23 +2433,10 @@ class ftx(Exchange):
         #         ]
         #     }
         #
-        timestamp = self.milliseconds()
         result = self.safe_value(response, 'result')
-        rates = {}
-        for i in range(0, len(result)):
-            rate = result[i]
-            code = self.safe_currency_code(self.safe_string(rate, 'coin'))
-            rates[code] = {
-                'currency': code,
-                'rate': self.safe_number(rate, 'previous'),
-                'period': 3600000,
-                'timestamp': timestamp,
-                'datetime': self.iso8601(timestamp),
-                'info': rate,
-            }
-        return rates
+        return self.parse_borrow_rates(result, 'coin')
 
-    async def fetch_borrow_rate_histories(self, since=None, limit=None, params={}):
+    async def fetch_borrow_rate_histories(self, codes=None, since=None, limit=None, params={}):
         await self.load_markets()
         request = {}
         endTime = self.safe_number_2(params, 'till', 'end_time')
@@ -2490,38 +2477,66 @@ class ftx(Exchange):
         #    }
         #
         result = self.safe_value(response, 'result')
-        # How to calculate borrow rate
-        # https://help.ftx.com/hc/en-us/articles/360053007671-Spot-Margin-Trading-Explainer
-        takerFee = str(self.fees['trading']['taker'])
-        spotMarginBorrowRate = Precise.string_mul('500', takerFee)
-        borrowRateHistories = {}
-        for i in range(0, len(result)):
-            item = result[i]
-            currency = self.safe_currency_code(self.safe_string(item, 'coin'))
-            if not (currency in borrowRateHistories):
-                borrowRateHistories[currency] = []
-            datetime = self.safe_string(item, 'time')
-            lendingRate = self.safe_string(item, 'rate')
-            borrowRateHistories[currency].append({
-                'currency': currency,
-                'rate': Precise.string_mul(lendingRate, Precise.string_add('1', spotMarginBorrowRate)),
-                'timestamp': self.parse8601(datetime),
-                'datetime': datetime,
-                'info': item,
-            })
-        keys = list(borrowRateHistories.keys())
-        for i in range(0, len(keys)):
-            key = keys[i]
-            borrowRateHistories[key] = self.filter_by_currency_since_limit(borrowRateHistories[key], key, since, limit)
-        return borrowRateHistories
+        return self.parse_borrow_rate_histories(result, codes, since, limit)
 
     async def fetch_borrow_rate_history(self, code, since=None, limit=None, params={}):
         histories = await self.fetch_borrow_rate_histories(since, limit, params)
         borrowRateHistory = self.safe_value(histories, code)
         if borrowRateHistory is None:
             raise BadRequest(self.id + ' fetchBorrowRateHistory() returned no data for ' + code)
-        else:
-            return borrowRateHistory
+        return borrowRateHistory
+
+    def parse_borrow_rate_histories(self, response, codes, since, limit):
+        # How to calculate borrow rate
+        # https://help.ftx.com/hc/en-us/articles/360053007671-Spot-Margin-Trading-Explainer
+        takerFee = str(self.fees['trading']['taker'])
+        spotMarginBorrowRate = Precise.string_mul('500', takerFee)
+        borrowRateHistories = {}
+        for i in range(0, len(response)):
+            item = response[i]
+            code = self.safe_currency_code(self.safe_string(item, 'coin'))
+            if codes is None or codes.includes(code):
+                if not (code in borrowRateHistories):
+                    borrowRateHistories[code] = []
+                lendingRate = self.safe_string(item, 'rate')
+                borrowRate = Precise.string_mul(lendingRate, Precise.string_add('1', spotMarginBorrowRate))
+                borrowRateStructure = self.extend(self.parse_borrow_rate(item), {'rate': borrowRate})
+                borrowRateHistories[code].append(borrowRateStructure)
+        keys = list(borrowRateHistories.keys())
+        for i in range(0, len(keys)):
+            code = keys[i]
+            borrowRateHistories[code] = self.filter_by_currency_since_limit(borrowRateHistories[code], code, since, limit)
+        return borrowRateHistories
+
+    def parse_borrow_rates(self, response, codeKey):
+        result = {}
+        for i in range(0, len(response)):
+            item = response[i]
+            currency = self.safe_string(item, codeKey)
+            code = self.safe_currency_code(currency)
+            borrowRate = self.parse_borrow_rate(item)
+            result[code] = borrowRate
+        return result
+
+    def parse_borrow_rate(self, info, currency=None):
+        #
+        #    {
+        #        "coin": "1INCH",
+        #        "previous": 0.0000462375,
+        #        "estimate": 0.0000462375
+        #    }
+        #
+        coin = self.safe_string(info, 'coin')
+        datetime = self.safe_string(info, 'time')
+        timestamp = self.parse8601(datetime)
+        return {
+            'currency': self.safe_currency_code(coin),
+            'rate': self.safe_number(info, 'previous'),
+            'period': 3600000,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': info,
+        }
 
     async def fetch_borrow_interest(self, code=None, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()

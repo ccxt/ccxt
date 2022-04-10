@@ -4228,23 +4228,79 @@ class okx extends Exchange {
         //        "msg" => ""
         //    }
         //
-        $timestamp = $this->milliseconds();
         $data = $this->safe_value($response, 'data');
         $rate = $this->safe_value($data, 0);
+        return $this->parse_borrow_rate($rate);
+    }
+
+    public function parse_borrow_rate($info, $currency = null) {
+        //
+        //    {
+        //        "amt" => "992.10341195",
+        //        "ccy" => "BTC",
+        //        "rate" => "0.01",
+        //        "ts" => "1643954400000"
+        //    }
+        //
+        $ccy = $this->safe_string($info, 'ccy');
+        $timestamp = $this->safe_integer($info, 'ts');
         return array(
-            'currency' => $code,
-            'rate' => $this->safe_number($rate, 'interestRate'),
+            'currency' => $this->safe_currency_code($ccy),
+            'rate' => $this->safe_number_2($info, 'interestRate', 'rate'),
             'period' => 86400000,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'info' => $rate,
+            'info' => $info,
         );
     }
 
-    public function fetch_borrow_rate_histories($since = null, $limit = null, $params = array ()) {
+    public function parse_borrow_rate_histories($response, $codes, $since, $limit) {
+        //
+        //    array(
+        //        array(
+        //            "amt" => "992.10341195",
+        //            "ccy" => "BTC",
+        //            "rate" => "0.01",
+        //            "ts" => "1643954400000"
+        //        ),
+        //        ...
+        //    )
+        //
+        $borrowRateHistories = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $item = $response[$i];
+            $code = $this->safe_currency_code($this->safe_string($item, 'ccy'));
+            if ($codes === null || $codes->includes ($code)) {
+                if (!(is_array($borrowRateHistories) && array_key_exists($code, $borrowRateHistories))) {
+                    $borrowRateHistories[$code] = array();
+                }
+                $borrowRateStructure = $this->parse_borrow_rate($item);
+                $borrowRateHistories[$code][] = $borrowRateStructure;
+            }
+        }
+        $keys = is_array($borrowRateHistories) ? array_keys($borrowRateHistories) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $code = $keys[$i];
+            $borrowRateHistories[$code] = $this->filter_by_currency_since_limit($borrowRateHistories[$code], $code, $since, $limit);
+        }
+        return $borrowRateHistories;
+    }
+
+    public function parse_borrow_rate_history($response, $code, $since, $limit) {
+        $result = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $item = $response[$i];
+            $borrowRate = $this->parse_borrow_rate($item);
+            $result[] = $borrowRate;
+        }
+        $sorted = $this->sort_by($result, 'timestamp');
+        return $this->filter_by_currency_since_limit($sorted, $code, $since, $limit);
+    }
+
+    public function fetch_borrow_rate_histories($codes = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
-            // 'ccy' => $currency['id'],
+            // 'ccy' => currency['id'],
             // 'after' => $this->milliseconds(), // Pagination of $data to return records earlier than the requested ts,
             // 'before' => $since, // Pagination of $data to return records newer than the requested ts,
             // 'limit' => $limit, // default is 100 and maximum is 100
@@ -4271,39 +4327,41 @@ class okx extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data');
-        $borrowRateHistories = array();
-        for ($i = 0; $i < count($data); $i++) {
-            $item = $data[$i];
-            $currency = $this->safe_currency_code($this->safe_string($item, 'ccy'));
-            if (!(is_array($borrowRateHistories) && array_key_exists($currency, $borrowRateHistories))) {
-                $borrowRateHistories[$currency] = array();
-            }
-            $rate = $this->safe_string($item, 'rate');
-            $timestamp = $this->safe_string($item, 'ts');
-            $borrowRateHistories[$currency][] = array(
-                'info' => $item,
-                'currency' => $currency,
-                'rate' => $rate,
-                'timestamp' => $timestamp,
-                'datetime' => $this->iso8601($timestamp),
-            );
-        }
-        $keys = is_array($borrowRateHistories) ? array_keys($borrowRateHistories) : array();
-        for ($i = 0; $i < count($keys); $i++) {
-            $key = $keys[$i];
-            $borrowRateHistories[$key] = $this->filter_by_currency_since_limit($borrowRateHistories[$key], $key, $since, $limit);
-        }
-        return $borrowRateHistories;
+        return $this->parse_borrow_rate_histories($data, $codes, $since, $limit);
     }
 
     public function fetch_borrow_rate_history($code, $since = null, $limit = null, $params = array ()) {
-        $codeObject = json_decode('array("ccy" => "' . $code . '", $as_associative_array = true)');
-        $histories = $this->fetch_borrow_rate_histories($since, $limit, $codeObject, $params);
-        if ($histories === null) {
-            throw new BadRequest($this->id . ' fetchBorrowRateHistory() returned no data for ' . $code);
-        } else {
-            return $histories;
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'ccy' => $currency['id'],
+            // 'after' => $this->milliseconds(), // Pagination of $data to return records earlier than the requested ts,
+            // 'before' => $since, // Pagination of $data to return records newer than the requested ts,
+            // 'limit' => $limit, // default is 100 and maximum is 100
+        );
+        if ($since !== null) {
+            $request['before'] = $since;
         }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->publicGetAssetLendingRateHistory (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "0",
+        //         "data" => array(
+        //             array(
+        //                 "amt" => "992.10341195",
+        //                 "ccy" => "BTC",
+        //                 "rate" => "0.01",
+        //                 "ts" => "1643954400000"
+        //             ),
+        //         ),
+        //         "msg" => ""
+        //     }
+        //
+        $data = $this->safe_value($response, 'data');
+        return $this->parse_borrow_rate_history($data, $code, $since, $limit);
     }
 
     public function modify_margin_helper($symbol, $amount, $type, $params = array ()) {

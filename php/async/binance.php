@@ -5402,15 +5402,7 @@ class binance extends Exchange {
         //     )
         //
         $rate = $this->safe_value($response, 0);
-        $timestamp = $this->safe_number($rate, 'timestamp');
-        return array(
-            'currency' => $code,
-            'rate' => $this->safe_number($rate, 'dailyInterestRate'),
-            'period' => 86400000,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'info' => $response,
-        );
+        return $this->parse_borrow_rate($rate);
     }
 
     public function fetch_borrow_rate_history($code, $since = null, $limit = null, $params = array ()) {
@@ -5443,19 +5435,39 @@ class binance extends Exchange {
         //         ),
         //     )
         //
+        return $this->parse_borrow_rate_history($response);
+    }
+
+    public function parse_borrow_rate_history($response, $code, $since, $limit) {
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $item = $response[$i];
-            $timestamp = $this->safe_number($item, 'timestamp');
-            $result[] = array(
-                'currency' => $code,
-                'rate' => $this->safe_number($item, 'dailyInterestRate'),
-                'timestamp' => $timestamp,
-                'datetime' => $this->iso8601($timestamp),
-                'info' => $item,
-            );
+            $borrowRate = $this->parse_borrow_rate($item);
+            $result[] = $borrowRate;
         }
-        return $result;
+        $sorted = $this->sort_by($result, 'timestamp');
+        return $this->filter_by_currency_since_limit($sorted, $code, $since, $limit);
+    }
+
+    public function parse_borrow_rate($info, $currency = null) {
+        //
+        //    {
+        //        "asset" => "USDT",
+        //        "timestamp" => 1638230400000,
+        //        "dailyInterestRate" => "0.0006",
+        //        "vipLevel" => 0
+        //    }
+        //
+        $timestamp = $this->safe_number($info, 'timestamp');
+        $currency = $this->safe_string($info, 'asset');
+        return array(
+            'currency' => $this->safe_currency_code($currency),
+            'rate' => $this->safe_number($info, 'dailyInterestRate'),
+            'period' => 86400000,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $info,
+        );
     }
 
     public function create_gift_code($code, $amount, $params = array ()) {
