@@ -326,8 +326,14 @@ class Transpiler {
             [ /\=\=\sTrue/g, 'is True' ], // a correction for PEP8 E712, it likes "is True", not "== True"
             [ /\sdelete\s/g, ' del ' ],
             [ /(?<!#.+)null/, 'None' ],
-            [ /\/\*\*/, '\'\'\'' ], // Doc strings
-            [ / \*\//, '\'\'\'' ], // Doc strings
+            [ /\/\*\*/, '\"\"\"' ], // Doc strings
+            [ / \*\//, '\"\"\"' ], // Doc strings
+            [ /\[(.*)\]\{@link (.*)\}/g, '`$1 <$2>`' ], // docstring item with link
+            [ /\s+\* @method/g, '' ], // docstring @method
+            [ /(\s+) \* @description (.*)/g, '$1$2' ], // docstring description
+            [ /\s+\* @name .*/g, '' ], // docstring @name
+            [ /(\s+) \* @returns/g, '$1:returns:' ], // docstring return
+            [ /(\s+) \* @([a-z]+) \{([a-z]+)\} ([a-zA-Z0-9_\-\.]+)/g, '$1:$2 $3 $4:' ], // docstring param
         ])
     }
 
@@ -347,7 +353,34 @@ class Transpiler {
 
     getPHPRegexes () {
         return [
+            //
+            // Curly-braces are used for both dictionaries in the code as well as for the url-imploded params.
+            // For example: https://docs.ccxt.com/en/latest/manual.html#implicit-api-methods
+            //
+            // There's a conflict between the curly braces that have to be converted from dictionaries to PHP-arrays and 
+            // the curly braces used for url-imploded params that should not be touched.
+            //
+            // The transpiler takes all non-spaced strings in curly braces {likeThis} and converts them to ~likeThis~.
+            // That is done to avoid changing the curly braces into the array() in PHP.
+            // This way we protect the url-imploded params from being touched by the regexes that will follow.
+            // That conversion is done first-thing, at the very early stage of transpilation.
+            // The regexes are applied in the order they're listed, top-down.
+            //
+            // A dictionary in curly braces will never have those curly braces attached to the contents of the dictionary.
+            // There will always be a space like { 'a': b, 'c': d }. 
+            // Hence, the remaining non-converted curly-brace dictionaries will have to be converted to arrays in PHP.
+            // That is done in the middle of the transpilation process.
+            //
+            // The last step is to convert those "saved embedded/imploded url-params substitutions" from ~likeThis~ back to {likeThis}.
+            // That is done at the very last regex steps.
+            // All of that is a workaround for PHP-arrays vs dictionaries vs url-imploded params in other langs.
+            //
             [ /\{([a-zA-Z0-9_-]+?)\}/g, '~$1~' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
+            [ /\[(.*)\]\{(@link .*)\}/g, '~$2 $1~' ], // docstring item with link
+            [ /\s+\* @method/g, '' ], // docstring @method
+            [ /(\s+)\* @description (.*)/g, '$1\* $2' ], // docstring description
+            [ /\s+\* @name .*/g, '' ], // docstring @name
+            [ /(\s+)\* @returns/g, '$1\* @return' ], // docstring return
             [ /\!Array\.isArray\s*\(([^\)]+)\)/g, "gettype($1) === 'array' && count(array_filter(array_keys($1), 'is_string')) != 0" ],
             [ /Array\.isArray\s*\(([^\)]+)\)/g, "gettype($1) === 'array' && count(array_filter(array_keys($1), 'is_string')) == 0" ],
             [ /([^\(\s]+)\s+instanceof\s+String/g, 'is_string($1)' ],
@@ -488,7 +521,7 @@ class Transpiler {
             [ /process\.exit/g, 'exit'],
             [ /super\./g, 'parent::'],
             [ /\sdelete\s([^\n]+)\;/g, ' unset($1);' ],
-            [ /\~([a-zA-Z0-9_-]+?)\~/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
+            [ /\~([@\.\s+\:\/#\-a-zA-Z0-9_-]+?)\~/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
         ])
     }
 

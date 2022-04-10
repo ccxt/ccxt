@@ -2339,16 +2339,16 @@ module.exports = class okx extends Exchange {
          * @method
          * @name okx#fetchOpenOrders
          * @description Fetch orders that are still open
-         * @param {string} symbol Unified market symbol
-         * @param {integer} since Timestamp in ms of the earliest time to retrieve orders for
-         * @param {integer} limit Number of results per request. The maximum is 100; The default is 100
+         * @param {str} symbol Unified market symbol
+         * @param {int} since Timestamp in ms of the earliest time to retrieve orders for
+         * @param {int} limit Number of results per request. The maximum is 100; The default is 100
          * @param {dict} params Extra and exchange specific parameters
-         * @param {integer} params.till Timestamp in ms of the latest time to retrieve orders for
-         * @param {boolean} params.stop True if fetching trigger orders
-         * @param {string} params.ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
-         * @param {string} params.algoId Algo ID
+         * @param {int} params.till Timestamp in ms of the latest time to retrieve orders for
+         * @param {bool} params.stop True if fetching trigger orders
+         * @param {str} params.ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+         * @param {str} params.algoId Algo ID
          * @returns [An order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-        */
+         */
         await this.loadMarkets ();
         const request = {
             // 'instType': 'SPOT', // SPOT, MARGIN, SWAP, FUTURES, OPTION
@@ -4404,9 +4404,9 @@ module.exports = class okx extends Exchange {
         /**
          * @ignore
          * @method
-         * @param info: Exchange response for 1 market
-         * @param market: CCXT market
-        */
+         * @param {dict} info Exchange response for 1 market
+         * @param {dict} market CCXT market
+         */
         //
         //    [
         //        {
@@ -4446,12 +4446,12 @@ module.exports = class okx extends Exchange {
          * @method
          * @name okx#fetchBorrowInterest
          * @description Obtain the amount of interest that has accrued for margin trading
-         * @param {string} code The unified currency code for the currency of the interest
-         * @param {string} symbol The market symbol of an isolated margin market, if undefined, the interest for cross margin markets is returned
-         * @param {integer} since Timestamp in ms of the earliest time to receive interest records for
-         * @param {integer} limit The number of [borrow interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure} to retrieve
+         * @param {str} code The unified currency code for the currency of the interest
+         * @param {str} symbol The market symbol of an isolated margin market, if undefined, the interest for cross margin markets is returned
+         * @param {int} since Timestamp in ms of the earliest time to receive interest records for
+         * @param {int} limit The number of [borrow interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure} to retrieve
          * @param {dict} params Exchange specific parameters
-         * @param {integer} params.type Loan type 1 - VIP loans 2 - Market loans *Default is Market loans*
+         * @param {int} params.type Loan type 1 - VIP loans 2 - Market loans *Default is Market loans*
          * @returns An array of [borrow interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure}
          */
         await this.loadMarkets ();
