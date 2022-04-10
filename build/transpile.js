@@ -16,6 +16,7 @@ const fs = require ('fs')
     , errors = require ('ccxt/js/base/errors.js')
     , Transpiler = require ('ccxt/build/transpile.js')
     , Exchange = require ('../js/base/Exchange.js')
+    , tsFilename = './ccxt.pro.d.ts'
 
 // ============================================================================
 
@@ -218,12 +219,16 @@ class CCXTProTranspiler extends Transpiler {
 
         // HINT: if we're going to support specific class definitions
         // this process won't work anymore as it will override the definitions
-        this.exportTypeScriptDeclarations ('./ccxt.pro.d.ts', classes)
+        this.exportTypeScriptDeclarations (tsFilename, classes)
 
-        this.transpileErrorHierarchy ('pro')
+        //*/
+
+        this.transpileErrorHierarchy ({ tsFilename })
 
         // transpilePrecisionTests ()
+
         // transpileDateTimeTests ()
+        
         // transpileCryptoTests ()
 
         log.bright.green ('Transpiled successfully.')
