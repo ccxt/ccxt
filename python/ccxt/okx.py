@@ -2248,20 +2248,18 @@ class okx(Exchange):
         return self.parse_order(order, market)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        '''
-         * @method
-         * @name okx#fetchOpenOrders
-         * @description Fetch orders that are still open
-         * @param {string} symbol Unified market symbol
-         * @param {integer} since Timestamp in ms of the earliest time to retrieve orders for
-         * @param {integer} limit Number of results per request. The maximum is 100; The default is 100
-         * @param {dict} params Extra and exchange specific parameters
-         * @param {integer} params.till Timestamp in ms of the latest time to retrieve orders for
-         * @param {boolean} params.stop True if fetching trigger orders
-         * @param {string} params.ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
-         * @param {string} params.algoId Algo ID
-         * @returns [An order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-       '''
+        """
+        Fetch orders that are still open
+        :param str symbol: Unified market symbol
+        :param int since: Timestamp in ms of the earliest time to retrieve orders for
+        :param int limit: Number of results per request. The maximum is 100; The default is 100
+        :param dict params: Extra and exchange specific parameters
+        :param int params.till: Timestamp in ms of the latest time to retrieve orders for
+        :param bool params.stop: True if fetching trigger orders
+        :param str params.ordType: "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+        :param str params.algoId: Algo ID
+        :returns: `An order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {
             # 'instType': 'SPOT',  # SPOT, MARGIN, SWAP, FUTURES, OPTION
@@ -4198,12 +4196,11 @@ class okx(Exchange):
         return self.parse_market_leverage_tiers(data, market)
 
     def parse_market_leverage_tiers(self, info, market=None):
-        '''
+        """
          * @ignore
-         * @method
-         * @param info: Exchange response for 1 market
-         * @param market: CCXT market
-       '''
+        :param dict info: Exchange response for 1 market
+        :param dict market: CCXT market
+        """
         #
         #    [
         #        {
@@ -4237,18 +4234,16 @@ class okx(Exchange):
         return tiers
 
     def fetch_borrow_interest(self, code=None, symbol=None, since=None, limit=None, params={}):
-        '''
-         * @method
-         * @name okx#fetchBorrowInterest
-         * @description Obtain the amount of interest that has accrued for margin trading
-         * @param {string} code The unified currency code for the currency of the interest
-         * @param {string} symbol The market symbol of an isolated margin market, if None, the interest for cross margin markets is returned
-         * @param {integer} since Timestamp in ms of the earliest time to receive interest records for
-         * @param {integer} limit The number of [borrow interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure} to retrieve
-         * @param {dict} params Exchange specific parameters
-         * @param {integer} params.type Loan type 1 - VIP loans 2 - Market loans *Default is Market loans*
-         * @returns An array of [borrow interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure}
-        '''
+        """
+        Obtain the amount of interest that has accrued for margin trading
+        :param str code: The unified currency code for the currency of the interest
+        :param str symbol: The market symbol of an isolated margin market, if None, the interest for cross margin markets is returned
+        :param int since: Timestamp in ms of the earliest time to receive interest records for
+        :param int limit: The number of `borrow interest structures <https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure>` to retrieve
+        :param dict params: Exchange specific parameters
+        :param int params.type: Loan type 1 - VIP loans 2 - Market loans *Default is Market loans*
+        :returns: An array of `borrow interest structures <https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure>`
+        """
         self.load_markets()
         request = {
             'mgnMode': 'isolated' if (symbol is not None) else 'cross',

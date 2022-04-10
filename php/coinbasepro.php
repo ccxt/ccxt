@@ -1074,14 +1074,12 @@ class coinbasepro extends Exchange {
 
     public function deposit($code, $amount, $address, $params = array ()) {
         /**
-         * @$method
-         * @name coinbasepro#deposit
-         * @description Creates a new deposit $address, as required by coinbasepro
-         * @param {string} $code Unified CCXT $currency $code (e.g. `"USDT"`)
+         * Creates a new deposit $address, as required by coinbasepro
+         * @param {str} $code Unified CCXT $currency $code (e.g. `"USDT"`)
          * @param {float} $amount The $amount of $currency to send in the deposit (e.g. `20`)
-         * @param {string} $address Not used by coinbasepro
-         * @param {dictionary} $params Parameters specific to the exchange API endpoint (e.g. `array("network" => "TRX")`)
-         * @returns a [transaction structure]array(@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure)
+         * @param {str} $address Not used by coinbasepro
+         * @param {dict} $params Parameters specific to the exchange API endpoint (e.g. `array("network" => "TRX")`)
+         * @return a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
          */
         $this->load_markets();
         $currency = $this->currency($code);

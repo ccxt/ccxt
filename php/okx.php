@@ -2340,19 +2340,17 @@ class okx extends Exchange {
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         /**
-         * @$method
-         * @name okx#fetchOpenOrders
-         * @description Fetch orders that are still open
-         * @param {string} $symbol Unified $market $symbol
-         * @param {integer} $since Timestamp in ms of the earliest time to retrieve orders for
-         * @param {integer} $limit Number of results per $request-> The maximum is 100; The default is 100
+         * Fetch orders that are still open
+         * @param {str} $symbol Unified $market $symbol
+         * @param {int} $since Timestamp in ms of the earliest time to retrieve orders for
+         * @param {int} $limit Number of results per $request-> The maximum is 100; The default is 100
          * @param {dict} $params Extra and exchange specific parameters
-         * @param {integer} $params->till Timestamp in ms of the latest time to retrieve orders for
-         * @param {boolean} $params->stop True if fetching trigger orders
-         * @param {string} $params->ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
-         * @param {string} $params->algoId Algo ID
-         * @returns [An order structure]array(@link https://docs.ccxt.com/en/latest/manual.html#order-structure)
-        */
+         * @param {int} $params->till Timestamp in ms of the latest time to retrieve orders for
+         * @param {bool} $params->stop True if fetching trigger orders
+         * @param {str} $params->ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+         * @param {str} $params->algoId Algo ID
+         * @return {@link https://docs.ccxt.com/en/latest/manual.html#order-structure An order structure}
+         */
         $this->load_markets();
         $request = array(
             // 'instType' => 'SPOT', // SPOT, MARGIN, SWAP, FUTURES, OPTION
@@ -4407,10 +4405,9 @@ class okx extends Exchange {
     public function parse_market_leverage_tiers($info, $market = null) {
         /**
          * @ignore
-         * @method
-         * @param $info => Exchange response for 1 $market
-         * @param $market => CCXT $market
-        */
+         * @param {dict} $info Exchange response for 1 $market
+         * @param {dict} $market CCXT $market
+         */
         //
         //    array(
         //        array(
@@ -4447,16 +4444,14 @@ class okx extends Exchange {
 
     public function fetch_borrow_interest($code = null, $symbol = null, $since = null, $limit = null, $params = array ()) {
         /**
-         * @method
-         * @name okx#fetchBorrowInterest
-         * @description Obtain the amount of $interest that has accrued for margin trading
-         * @param {string} $code The unified $currency $code for the $currency of the $interest
-         * @param {string} $symbol The $market $symbol of an isolated margin $market, if null, the $interest for cross margin markets is returned
-         * @param {integer} $since Timestamp in ms of the earliest time to receive $interest records for
-         * @param {integer} $limit The number of [borrow $interest structures]array(@link https://docs.ccxt.com/en/latest/manual.html#borrow-$interest-structure) to retrieve
+         * Obtain the amount of $interest that has accrued for margin trading
+         * @param {str} $code The unified $currency $code for the $currency of the $interest
+         * @param {str} $symbol The $market $symbol of an isolated margin $market, if null, the $interest for cross margin markets is returned
+         * @param {int} $since Timestamp in ms of the earliest time to receive $interest records for
+         * @param {int} $limit The number of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-$interest-structure borrow $interest structures} to retrieve
          * @param {dict} $params Exchange specific parameters
-         * @param {integer} $params->type Loan type 1 - VIP loans 2 - Market loans *Default is Market loans*
-         * @returns An array of [borrow $interest structures]array(@link https://docs.ccxt.com/en/latest/manual.html#borrow-$interest-structure)
+         * @param {int} $params->type Loan type 1 - VIP loans 2 - Market loans *Default is Market loans*
+         * @return An array of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-$interest-structure borrow $interest structures}
          */
         $this->load_markets();
         $request = array(
