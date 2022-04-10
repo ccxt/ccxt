@@ -1306,7 +1306,7 @@ class Transpiler {
 
         const python3BodyIntellisense = python3Body + '\n\n\n' + pythonBaseError + '\n' + pythonErrors.join ('\n') + '\n' + pythonAll + '\n'
 
-        const pythonFilename = './python/ccxt' + ccxtFolderSuffix + '/base/errors.py'
+        const pythonFilename = './python/ccxt/base/errors.py'
         log.bright.cyan (message, pythonFilename.yellow)
         fs.writeFileSync (pythonFilename, python3BodyIntellisense)
 
