@@ -1046,12 +1046,18 @@ module.exports = class coinex extends Exchange {
         let method = undefined;
         if (fromAccount === 'margin' || toAccount === 'margin') {
             method = 'privatePostMarginTransfer';
-            const symbol = this.safeString (params, 'symbol');
-            if (symbol === undefined) {
-                throw new ExchangeError ('You must define in params what market you are transferring. e.g. {symbol: ETH/BTC}');
+            let marketId = this.safeString (params, 'market');
+            if (marketId === undefined) {
+                const symbol = this.safeString (params, 'symbol');
+                if (symbol === undefined) {
+                    throw new ArgumentsRequired (this.id + ' transfer() requires an exchange-specific market parameter or a unified symbol parameter');
+                } else {
+                    params = this.omit (params, 'symbol');
+                    const market = this.market (symbol);
+                    marketId = market['id'];
+                    request['market'] = marketId;
+                }
             }
-            const market = this.market (symbol);
-            request['market'] = market['id'];
             const marginMarkets = await this.publicGetMarginMarket (params);
             //
             //     {
@@ -1065,7 +1071,7 @@ module.exports = class coinex extends Exchange {
             //     }
             //
             const data = this.safeValue (marginMarkets, 'data', {});
-            const accountId = this.safeValue (data, market['id']);
+            const accountId = this.safeValue (data, marketId);
             if (fromAccount === 'margin') {
                 request['from_account'] = accountId;
                 request['to_account'] = toId;
