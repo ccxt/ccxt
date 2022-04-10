@@ -22,6 +22,8 @@ const fs = require ('fs')
         overwriteFile,
     } = require ('./fs.js')
     , Exchange = require ('../js/base/Exchange.js')
+    , errorHierarchyFilename = './js/base/errorHierarchy.js'
+    , tsFilename = './ccxt.d.ts'
 
 class Transpiler {
 
@@ -1249,12 +1251,11 @@ class Transpiler {
 
     // ========================================================================
 
-    transpileErrorHierarchy (ccxtFolderSuffix = '') {
+    transpileErrorHierarchy ({ errorHierarchyFilename, tsFilename }) {
 
-        const errorHierarchyFilename = './js/base/errorHierarchy.js'
-        const errorHierarchy = require (__dirname + '/.' + errorHierarchyFilename)
+        const errorHierarchy = require ('.' + errorHierarchyFilename)
 
-        let js = fs.readFileSync (__dirname + '/.' + errorHierarchyFilename, 'utf8')
+        let js = fs.readFileSync (errorHierarchyFilename, 'utf8')
 
         js = this.regexAll (js, [
             [ /module\.exports = [^\;]+\;\n/s, '' ],
@@ -1360,7 +1361,6 @@ class Transpiler {
 
         const tsBodyIntellisense = tsBaseError + '\n\n    ' + tsErrors.join ('\n    ') + '\n\n'
 
-        const tsFilename ='./ccxt.' + (ccxtFolderSuffix !== '' ? ccxtFolderSuffix + '.' : '') + 'd.ts'
         log.bright.cyan (message, tsFilename.yellow)
         const regex = /export class BaseError[^}]+\}[\n][\n](?:\s+export class [a-zA-Z]+ extends [a-zA-Z]+ \{\}[\n])+[\n]/m
         replaceInFile (tsFilename, regex, tsBodyIntellisense)
@@ -1688,11 +1688,11 @@ class Transpiler {
 
         // HINT: if we're going to support specific class definitions
         // this process won't work anymore as it will override the definitions
-        this.exportTypeScriptDeclarations ('./ccxt.d.ts', classes)
+        this.exportTypeScriptDeclarations (tsFilename, classes)
 
         //*/
 
-        this.transpileErrorHierarchy ()
+        this.transpileErrorHierarchy ({ errorHierarchyFilename, tsFilename })
 
         this.transpileTests ()
 
@@ -1719,7 +1719,7 @@ if (require.main === module) { // called directly like `node module`
     if (test) {
         transpiler.transpileTests ()
     } else if (errors) {
-        transpiler.transpileErrorHierarchy ()
+        transpiler.transpileErrorHierarchy ({ errorHierarchyFilename, tsFilename })
     } else {
         transpiler.transpileEverything (force)
     }
