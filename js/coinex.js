@@ -1074,7 +1074,7 @@ module.exports = class coinex extends Exchange {
                     request['market'] = marketId;
                 }
             } else {
-                if (this.markets_by_id !== undefined && marketId in this.markets_by_id) {
+                if (this.markets_by_id !== undefined && (marketId in this.markets_by_id)) {
                     market = this.markets_by_id[marketId];
                 } else {
                     throw new ExchangeError (this.id + ' market ' + marketId + ' not found');
