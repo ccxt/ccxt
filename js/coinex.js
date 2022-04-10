@@ -242,9 +242,12 @@ module.exports = class coinex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        const getMarginData = this.checkRequiredCredentials (false);
         let promises = [];
         promises.push (this.publicGetMarketInfo (params));
-        promises.push (this.privateGetMarginConfig (params));
+        if (getMarginData) {
+            promises.push (this.privateGetMarginConfig (params));
+        }
         promises = await Promise.all (promises);
         //
         //     publicGetMarketInfo
@@ -279,10 +282,10 @@ module.exports = class coinex extends Exchange {
         //         ],
         //     }
         //
+        const leverages = {};
         const marketInfoResponse = this.safeValue (promises, 0, {});
         const marginConfigResponse = this.safeValue (promises, 1, {});
         const marginConfigData = this.safeValue (marginConfigResponse, 'data', []);
-        const leverages = {};
         for (let i = 0; i < marginConfigData.length; i++) {
             const config = marginConfigData[i];
             const marketId = this.safeString (config, 'market');
@@ -337,7 +340,7 @@ module.exports = class coinex extends Exchange {
                 },
                 'limits': {
                     'leverage': {
-                        'min': this.parseNumber ('1'),
+                        'min': leverage ? this.parseNumber ('1') : undefined,
                         'max': leverage,
                     },
                     'amount': {
