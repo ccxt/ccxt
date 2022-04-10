@@ -1249,12 +1249,14 @@ class Transpiler {
 
     // ========================================================================
 
-    transpileErrorHierarchy () {
+    transpileErrorHierarchy (isPro = false, targetCcxtBaseDir = undefined) {
+
+        targetCcxtBaseDir = targetCcxtBaseDir !== undefined ? targetCcxtBaseDir : '';
 
         const errorHierarchyFilename = './js/base/errorHierarchy.js'
-        const errorHierarchy = require ('.' + errorHierarchyFilename)
+        const errorHierarchy = require (__dirname + '/.' + errorHierarchyFilename)
 
-        let js = fs.readFileSync (errorHierarchyFilename, 'utf8')
+        let js = fs.readFileSync (__dirname + '/.' + errorHierarchyFilename, 'utf8')
 
         js = this.regexAll (js, [
             [ /module\.exports = [^\;]+\;\n/s, '' ],
@@ -1306,9 +1308,9 @@ class Transpiler {
 
         const python3BodyIntellisense = python3Body + '\n\n\n' + pythonBaseError + '\n' + pythonErrors.join ('\n') + '\n' + pythonAll + '\n'
 
-        const pythonFilename = './python/ccxt/base/errors.py'
+        const pythonFilename = './python/ccxt' + (isPro ? 'pro' : '') + '/base/errors.py'
         log.bright.cyan (message, pythonFilename.yellow)
-        fs.writeFileSync (pythonFilename, python3BodyIntellisense)
+        fs.writeFileSync (targetCcxtBaseDir + pythonFilename, python3BodyIntellisense)
 
         // PHP ----------------------------------------------------------------
 
@@ -1333,11 +1335,11 @@ class Transpiler {
 
         const phpErrors = intellisense (errorHierarchy, 'Exception', phpMakeErrorClassFile)
         const phpBodyIntellisense = phpErrors.join ("\n") + "\n\n"
-        const phpFilename = './ccxt.php'
+        const phpFilename ='./ccxt' + (isPro ? 'pro' : '') + '.php'
 
         log.bright.cyan (message, phpFilename.yellow)
         const phpRegex = /require_once PATH_TO_CCXT \. \'BaseError\.php\'\;\n(?:require_once PATH_TO_CCXT[^\n]+\n)+\n/m
-        replaceInFile (phpFilename, phpRegex, phpBodyIntellisense)
+        replaceInFile (targetCcxtBaseDir + phpFilename, phpRegex, phpBodyIntellisense)
 
         // TypeScript ---------------------------------------------------------
 
@@ -1355,7 +1357,7 @@ class Transpiler {
 
         const tsBodyIntellisense = tsBaseError + '\n\n    ' + tsErrors.join ('\n    ') + '\n\n'
 
-        const tsFilename = './ccxt.d.ts'
+        const tsFilename = isPro ? './ccxt.pro.d.ts' : './ccxt.d.ts'
         log.bright.cyan (message, tsFilename.yellow)
         const regex = /export class BaseError[^}]+\}[\n][\n](?:\s+export class [a-zA-Z]+ extends [a-zA-Z]+ \{\}[\n])+[\n]/m
         replaceInFile (tsFilename, regex, tsBodyIntellisense)
