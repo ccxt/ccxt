@@ -225,6 +225,7 @@ class Transpiler {
             [ /function\s*(\w+\s*\([^)]+\))\s*{/g, 'def $1:'],
             // [ /\.replaceAll\s*\(([^)]+)\)/g, '.replace($1)' ], // still not a part of the standard
             [ /assert\s*\((.+)\);/g, 'assert $1'],
+            [ /Promise\.all\s*\(([^\)]+)\)/g, 'asyncio.gather(*$1)' ],
             [ /Precise\.stringAdd\s/g, 'Precise.string_add' ],
             [ /Precise\.stringMul\s/g, 'Precise.string_mul' ],
             [ /Precise\.stringDiv\s/g, 'Precise.string_div' ],
@@ -325,26 +326,61 @@ class Transpiler {
             [ /\=\=\sTrue/g, 'is True' ], // a correction for PEP8 E712, it likes "is True", not "== True"
             [ /\sdelete\s/g, ' del ' ],
             [ /(?<!#.+)null/, 'None' ],
-            [ /\/\*\*/, '\'\'\'' ], // Doc strings
-            [ / \*\//, '\'\'\'' ], // Doc strings
+            [ /\/\*\*/, '\"\"\"' ], // Doc strings
+            [ / \*\//, '\"\"\"' ], // Doc strings
+            [ /\[(.*)\]\{@link (.*)\}/g, '`$1 <$2>`' ], // docstring item with link
+            [ /\s+\* @method/g, '' ], // docstring @method
+            [ /(\s+) \* @description (.*)/g, '$1$2' ], // docstring description
+            [ /\s+\* @name .*/g, '' ], // docstring @name
+            [ /(\s+) \* @returns/g, '$1:returns:' ], // docstring return
+            [ /(\s+) \* @([a-z]+) \{([a-z]+)\} ([a-zA-Z0-9_\-\.]+)/g, '$1:$2 $3 $4:' ], // docstring param
         ])
     }
 
     getPython2Regexes () {
         return [
+            [ /.+asyncio\.gather.+\n/g, '' ], // remove line entirely
             [ /(\s)await(\s)/g, '$1' ]
         ]
     }
 
     getSyncPHPRegexes () {
         return [
+            [ /.+(\$[a-zA-Z0-9_]+)\s*=\s*yield\s+\1;\n/g, '' ], // delete yield all promises line
             [ /\byield /g, '' ]
         ]
     }
 
     getPHPRegexes () {
         return [
+            //
+            // Curly-braces are used for both dictionaries in the code as well as for the url-imploded params.
+            // For example: https://docs.ccxt.com/en/latest/manual.html#implicit-api-methods
+            //
+            // There's a conflict between the curly braces that have to be converted from dictionaries to PHP-arrays and 
+            // the curly braces used for url-imploded params that should not be touched.
+            //
+            // The transpiler takes all non-spaced strings in curly braces {likeThis} and converts them to ~likeThis~.
+            // That is done to avoid changing the curly braces into the array() in PHP.
+            // This way we protect the url-imploded params from being touched by the regexes that will follow.
+            // That conversion is done first-thing, at the very early stage of transpilation.
+            // The regexes are applied in the order they're listed, top-down.
+            //
+            // A dictionary in curly braces will never have those curly braces attached to the contents of the dictionary.
+            // There will always be a space like { 'a': b, 'c': d }. 
+            // Hence, the remaining non-converted curly-brace dictionaries will have to be converted to arrays in PHP.
+            // That is done in the middle of the transpilation process.
+            //
+            // The last step is to convert those "saved embedded/imploded url-params substitutions" from ~likeThis~ back to {likeThis}.
+            // That is done at the very last regex steps.
+            // All of that is a workaround for PHP-arrays vs dictionaries vs url-imploded params in other langs.
+            //
             [ /\{([a-zA-Z0-9_-]+?)\}/g, '~$1~' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
+            [ /\[(.*)\]\{(@link .*)\}/g, '~$2 $1~' ], // docstring item with link
+            [ /\s+\* @method/g, '' ], // docstring @method
+            [ /(\s+)\* @description (.*)/g, '$1\* $2' ], // docstring description
+            [ /\s+\* @name .*/g, '' ], // docstring @name
+            [ /(\s+)\* @returns/g, '$1\* @return' ], // docstring return
             [ /\!Array\.isArray\s*\(([^\)]+)\)/g, "gettype($1) === 'array' && count(array_filter(array_keys($1), 'is_string')) != 0" ],
             [ /Array\.isArray\s*\(([^\)]+)\)/g, "gettype($1) === 'array' && count(array_filter(array_keys($1), 'is_string')) == 0" ],
             [ /([^\(\s]+)\s+instanceof\s+String/g, 'is_string($1)' ],
@@ -385,6 +421,7 @@ class Transpiler {
             [ /this\.binaryToBase16\s/g, 'bin2hex' ],
             [ /this\.base64ToBinary\s/g, 'base64_decode' ],
             [ /this\.base64ToString\s/g, 'base64_decode' ],
+            [ /Promise\.all\s*\(([^\)]+)\)/g, '$1' ],
             // deepExtend is commented for PHP because it does not overwrite linear arrays
             // a proper \ccxt\Exchange::deep_extend() base method is implemented instead
             // [ /this\.deepExtend\s/g, 'array_replace_recursive'],
@@ -399,6 +436,7 @@ class Transpiler {
             [ /Precise\.stringNeg\s/g, 'Precise::string_neg' ],
             [ /Precise\.stringMod\s/g, 'Precise::string_mod' ],
             [ /Precise\.stringEquals\s/g, 'Precise::string_equals' ],
+            [ /Precise\.stringEq\s/g, 'Precise::string_eq' ],
             [ /Precise\.stringMin\s/g, 'Precise::string_min' ],
             [ /Precise\.stringMax\s/g, 'Precise::string_max' ],
             [ /Precise\.stringGt\s/g, 'Precise::string_gt' ],
@@ -483,7 +521,7 @@ class Transpiler {
             [ /process\.exit/g, 'exit'],
             [ /super\./g, 'parent::'],
             [ /\sdelete\s([^\n]+)\;/g, ' unset($1);' ],
-            [ /\~([a-zA-Z0-9_-]+?)\~/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
+            [ /\~([@\.\s+\:\/#\-a-zA-Z0-9_-]+?)\~/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
         ])
     }
 
@@ -645,8 +683,12 @@ class Transpiler {
         if (bodyAsString.match (/[\s(]Precise/)) {
             precisionImports.push ('from ccxt.base.precise import Precise')
         }
+        const asyncioImports = []
+        if (bodyAsString.match (/asyncio/)) {
+            asyncioImports.push ('import asyncio')
+        }
 
-        header = header.concat (libraries, errorImports, precisionImports)
+        header = header.concat (asyncioImports, libraries, errorImports, precisionImports)
 
         methods = methods.concat (this.getPythonBaseMethods ())
 

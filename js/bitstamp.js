@@ -44,7 +44,6 @@ module.exports = class bitstamp extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
-                'fetchIsolatedPositions': false,
                 'fetchLedger': true,
                 'fetchLeverage': false,
                 'fetchMarkets': true,
@@ -236,6 +235,16 @@ module.exports = class bitstamp extends Exchange {
                         'avax_address/',
                         'wbtc_withdrawal/',
                         'wbtc_address/',
+                        'ctsi_withdrawal/',
+                        'ctsi_address/',
+                        'cvx_withdrawal/',
+                        'cvx_address/',
+                        'imx_withdrawal/',
+                        'imx_address/',
+                        'nexo_withdrawal/',
+                        'nexo_address/',
+                        'ust_withdrawal/',
+                        'ust_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal-requests/',
@@ -1517,7 +1526,7 @@ module.exports = class bitstamp extends Exchange {
                 direction = (amount > 0) ? 'in' : 'out';
             } else if (('currency' in parsedTransaction) && parsedTransaction['currency'] !== undefined) {
                 const code = parsedTransaction['currency'];
-                const currencyId = this.safeString (this.currencies_by_id, code, code);
+                const currencyId = this.safeStringLower (this.currencies_by_id, code, code);
                 const amount = this.safeNumber (item, currencyId);
                 direction = (amount > 0) ? 'in' : 'out';
             }

@@ -32,6 +32,51 @@ class Precise:
             self.decimals = decimals
         self.base = 10
 
+    def __add__(self, other):
+        return self.add(other)
+
+    def __sub__(self, other):
+        return self.sub(other)
+
+    def __mul__(self, other):
+        return self.mul(other)
+
+    def __truediv__(self, other):
+        return self.div(other)
+
+    def __mod__(self, other):
+        return self.mod(other)
+
+    def __neg__(self):
+        return self.neg()
+
+    def __abs__(self):
+        return self.abs()
+
+    def __min__(self, other):
+        return self.min(other)
+
+    def __max__(self, other):
+        return self.max(other)
+
+    def __lt__(self, other):
+        return self.lt(other)
+
+    def __le__(self, other):
+        return self.le(other)
+
+    def __gt__(self, other):
+        return self.gt(other)
+
+    def __ge__(self, other):
+        return self.ge(other)
+
+    def __eq__(self, other):
+        if isinstance(other, str):
+            # Allow comparisons with Precise("5") == "5"
+            return str(self) == other
+        return self.equals(other)
+
     def mul(self, other):
         integer_result = self.integer * other.integer
         return Precise(integer_result, self.decimals + other.decimals)
@@ -137,6 +182,9 @@ class Precise:
             item = '.'
         integer_array.insert(index, item)
         return sign + ''.join(integer_array)
+
+    def __repr__(self):
+        return "Precise(" + str(self) + ")"
 
     @staticmethod
     def string_mul(string1, string2):

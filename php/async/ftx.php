@@ -20,11 +20,11 @@ class ftx extends Exchange {
             'id' => 'ftx',
             'name' => 'FTX',
             'countries' => array( 'BS' ), // Bahamas
-            // hard limit of 6 requests per 200ms => 30 requests per 1000ms => 1000ms / 30 = 33.3333 ms between requests
+            //  hard limit of 7 requests per 200ms => 35 requests per 1000ms => 1000ms / 35 = 28.5714 ms between requests
             // 10 withdrawal requests per 30 seconds = (1000ms / rateLimit) / (1/3) = 90.1
             // cancels do not count towards rateLimit
             // only 'order-making' requests count towards ratelimit
-            'rateLimit' => 33.34,
+            'rateLimit' => 28.57,
             'certified' => true,
             'pro' => true,
             'hostname' => 'ftx.com', // or ftx.us
@@ -55,6 +55,7 @@ class ftx extends Exchange {
                 'createReduceOnlyOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => true,
                 'fetchBorrowRate' => true,
                 'fetchBorrowRateHistories' => true,
                 'fetchBorrowRateHistory' => true,
@@ -69,6 +70,8 @@ class ftx extends Exchange {
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => true,
+                'fetchLeverageTiers' => false,
+                'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -88,11 +91,14 @@ class ftx extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
+                'fetchTransfer' => null,
+                'fetchTransfers' => null,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
                 'setLeverage' => true,
                 'setMarginMode' => false, // FTX only supports cross margin
                 'setPositionMode' => false,
+                'transfer' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -364,6 +370,10 @@ class ftx extends Exchange {
             'options' => array(
                 // support for canceling conditional orders
                 // https://github.com/ccxt/ccxt/issues/6669
+                'fetchMarkets' => array(
+                    // the expiry datetime may be null for expiring futures, https://github.com/ccxt/ccxt/pull/12692
+                    'throwOnUndefinedExpiry' => false,
+                ),
                 'cancelOrder' => array(
                     'method' => 'privateDeleteOrdersOrderId', // privateDeleteConditionalOrdersOrderId
                 ),
@@ -510,7 +520,7 @@ class ftx extends Exchange {
         //     }
         //
         $allFuturesResponse = null;
-        if ($this->has['future']) {
+        if ($this->has['future'] && ($this->hostname !== 'ftx.us')) {
             $allFuturesResponse = yield $this->publicGetFutures ();
         }
         //
@@ -588,7 +598,14 @@ class ftx extends Exchange {
                 $type = 'future';
                 $expiry = $this->parse8601($expiryDatetime);
                 if ($expiry === null) {
-                    throw new BadResponse($this->id . " $symbol '" . $id . "' is a $future $contract but with invalid $expiry datetime => " . $expiryDatetime);
+                    // it is likely a $future that is expiring in this moment
+                    $options = $this->safe_value($this->options, 'fetchMarkets', array());
+                    $throwOnUndefinedExpiry = $this->safe_value($options, 'throwOnUndefinedExpiry', false);
+                    if ($throwOnUndefinedExpiry) {
+                        throw new BadResponse($this->id . " $symbol '" . $id . "' is a $future $contract with an invalid $expiry datetime.");
+                    } else {
+                        continue;
+                    }
                 }
                 $parsedId = explode('-', $id);
                 $length = is_array($parsedId) ? count($parsedId) : 0;
@@ -1884,6 +1901,73 @@ class ftx extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        yield $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'coin' => $currency['id'],
+            'source' => $fromAccount,
+            'destination' => $toAccount,
+            'size' => $amount,
+        );
+        $response = yield $this->privatePostSubaccountsTransfer (array_merge($request, $params));
+        //
+        //     {
+        //         success => true,
+        //         $result => {
+        //             id => '31222278',
+        //             coin => 'USDT',
+        //             size => '1.0',
+        //             time => '2022-04-01T11:18:27.194188+00:00',
+        //             notes => 'Transfer from main account to testSubaccount',
+        //             status => 'complete'
+        //         }
+        //     }
+        //
+        $result = $this->safe_value($response, 'result', array());
+        return $this->parse_transfer($result, $currency);
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        //     {
+        //         id => '31222278',
+        //         coin => 'USDT',
+        //         size => '1.0',
+        //         time => '2022-04-01T11:18:27.194188+00:00',
+        //         $notes => 'Transfer from main account to testSubaccount',
+        //         $status => 'complete'
+        //     }
+        //
+        $currencyId = $this->safe_string($transfer, 'coin');
+        $notes = $this->safe_string($transfer, 'notes', '');
+        $status = $this->safe_string($transfer, 'status');
+        $fromTo = str_replace('Transfer from ', '', $notes);
+        $parts = explode(' to ', $fromTo);
+        $fromAccount = $this->safe_string($parts, 0);
+        $fromAccount = str_replace(' account', '', $fromAccount);
+        $toAccount = $this->safe_string($parts, 1);
+        $toAccount = str_replace(' account', '', $toAccount);
+        return array(
+            'info' => $transfer,
+            'id' => $this->safe_string($transfer, 'id'),
+            'timestamp' => null,
+            'datetime' => $this->safe_string($transfer, 'time'),
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'amount' => $this->safe_number($transfer, 'size'),
+            'fromAccount' => $fromAccount,
+            'toAccount' => $toAccount,
+            'status' => $this->parse_transfer_status($status),
+        );
+    }
+
+    public function parse_transfer_status($status) {
+        $statuses = array(
+            'complete' => 'ok',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         yield $this->load_markets();
@@ -2455,19 +2539,16 @@ class ftx extends Exchange {
 
     public function fetch_borrow_rates($params = array ()) {
         yield $this->load_markets();
-        $response = yield $this->privateGetSpotMarginBorrowRates ();
+        $response = yield $this->privateGetSpotMarginBorrowRates ($params);
         //
-        // {
-        //     "success":true,
-        //     "result":array(
-        //         {
-        //             "coin" => "1INCH",
-        //             "previous" => 0.0000462375,
-        //             "estimate" => 0.0000462375
-        //         }
-        //         ...
-        //     )
-        // }
+        //     {
+        //         "success":true,
+        //         "result":array(
+        //             array("coin":"1INCH","previous":4.8763e-6,"estimate":4.8048e-6),
+        //             array("coin":"AAPL","previous":0.0000326469,"estimate":0.0000326469),
+        //             array("coin":"AAVE","previous":1.43e-6,"estimate":1.43e-6),
+        //         )
+        //     }
         //
         $timestamp = $this->milliseconds();
         $result = $this->safe_value($response, 'result');
@@ -2491,14 +2572,33 @@ class ftx extends Exchange {
         yield $this->load_markets();
         $request = array();
         $endTime = $this->safe_number_2($params, 'till', 'end_time');
+        if ($limit > 48) {
+            throw new BadRequest($this->id . ' fetchBorrowRateHistories() $limit cannot exceed 48');
+        }
+        $millisecondsPerHour = 3600000;
+        $millisecondsPer2Days = 172800000;
+        if (($endTime - $since) > $millisecondsPer2Days) {
+            throw new BadRequest($this->id . ' fetchBorrowRateHistories() requires the time range between the $since time and the end time to be less than 48 hours');
+        }
         if ($since !== null) {
-            $request['start_time'] = $since / 1000;
+            $request['start_time'] = intval($since / 1000);
             if ($endTime === null) {
-                $request['end_time'] = $this->milliseconds() / 1000;
+                $now = $this->milliseconds();
+                $sinceLimit = ($limit === null) ? 2 : $limit;
+                $endTime = $this->sum($since, $millisecondsPerHour * ($sinceLimit - 1));
+                $endTime = min ($endTime, $now);
+            }
+        } else {
+            if ($limit !== null) {
+                if ($endTime === null) {
+                    $endTime = $this->milliseconds();
+                }
+                $startTime = $this->sum(($endTime - $millisecondsPerHour * $limit), 1000);
+                $request['start_time'] = intval($startTime / 1000);
             }
         }
         if ($endTime !== null) {
-            $request['end_time'] = $endTime / 1000;
+            $request['end_time'] = intval($endTime / 1000);
         }
         $response = yield $this->publicGetSpotMarginHistory (array_merge($request, $params));
         //
@@ -2549,9 +2649,46 @@ class ftx extends Exchange {
         $histories = yield $this->fetch_borrow_rate_histories($since, $limit, $params);
         $borrowRateHistory = $this->safe_value($histories, $code);
         if ($borrowRateHistory === null) {
-            throw new BadRequest($this->id . '.fetchBorrowRateHistory returned no data for ' . $code);
+            throw new BadRequest($this->id . ' fetchBorrowRateHistory() returned no data for ' . $code);
         } else {
             return $borrowRateHistory;
         }
+    }
+
+    public function fetch_borrow_interest($code = null, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        $request = array();
+        if ($since !== null) {
+            $request['start_time'] = intval($since / 1000);
+        }
+        $response = yield $this->privateGetSpotMarginBorrowHistory (array_merge($request, $params));
+        //
+        //     {
+        //         "success":true,
+        //         "result":array(
+        //             array("coin":"USDT","time":"2021-12-26T01:00:00+00:00","size":4593.74214725,"rate":3.3003e-6,"cost":0.0151607272085692,"feeUsd":0.0151683341034461),
+        //             array("coin":"USDT","time":"2021-12-26T00:00:00+00:00","size":4593.97110361,"rate":3.3003e-6,"cost":0.0151614828332441,"feeUsd":0.015169697173028324),
+        //             array("coin":"USDT","time":"2021-12-25T23:00:00+00:00","size":4594.20005922,"rate":3.3003e-6,"cost":0.0151622384554438,"feeUsd":0.015170200298479137),
+        //         )
+        //     }
+        //
+        $result = $this->safe_value($response, 'result');
+        $interest = array();
+        for ($i = 0; $i < count($result); $i++) {
+            $payment = $result[$i];
+            $coin = $this->safe_string($payment, 'coin');
+            $datetime = $this->safe_string($payment, 'time');
+            $interest[] = array(
+                'account' => null,
+                'currency' => $this->safe_currency_code($coin),
+                'interest' => $this->safe_number($payment, 'cost'),
+                'interestRate' => $this->safe_number($payment, 'rate'),
+                'amountBorrowed' => $this->safe_number($payment, 'size'),
+                'timestamp' => $this->parse8601($datetime),
+                'datetime' => $datetime,
+                'info' => $payment,
+            );
+        }
+        return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
     }
 }

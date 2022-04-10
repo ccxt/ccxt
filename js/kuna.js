@@ -31,7 +31,6 @@ module.exports = class kuna extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
-                'fetchIsolatedPositions': false,
                 'fetchL3OrderBook': true,
                 'fetchLeverage': false,
                 'fetchMarkets': true,

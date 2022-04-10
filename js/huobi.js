@@ -37,11 +37,11 @@ module.exports = class huobi extends Exchange {
                 'createDepositAddress': undefined,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
-                'deposit': undefined,
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
-                'fetchBorrowRate': true,
+                'fetchBorrowInterest': true,
+                'fetchBorrowRate': undefined,
                 'fetchBorrowRateHistories': undefined,
                 'fetchBorrowRateHistory': undefined,
                 'fetchBorrowRates': true,
@@ -62,7 +62,6 @@ module.exports = class huobi extends Exchange {
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': true,
-                'fetchIsolatedPositions': false,
                 'fetchL3OrderBook': undefined,
                 'fetchLedger': true,
                 'fetchLedgerEntry': undefined,
@@ -645,6 +644,8 @@ module.exports = class huobi extends Exchange {
                             'swap-api/v1/swap_track_openorders': 1,
                             'swap-api/v1/swap_track_hisorders': 1,
                             // Swap Account Interface
+                            'linear-swap-api/v1/swap_lever_position_limit': 1,
+                            'linear-swap-api/v1/swap_cross_lever_position_limit': 1,
                             'linear-swap-api/v1/swap_balance_valuation': 1,
                             'linear-swap-api/v1/swap_account_info': 1,
                             'linear-swap-api/v1/swap_cross_account_info': 1,
@@ -703,6 +704,8 @@ module.exports = class huobi extends Exchange {
                             'linear-swap-api/v1/swap_cross_matchresults': 1,
                             'linear-swap-api/v1/swap_matchresults_exact': 1,
                             'linear-swap-api/v1/swap_cross_matchresults_exact': 1,
+                            'linear-swap-api/v1/swap_switch_position_mode': 1,
+                            'linear-swap-api/v1/swap_cross_switch_position_mode': 1,
                             // Swap Strategy Order Interface
                             'linear-swap-api/v1/swap_trigger_order': 1,
                             'linear-swap-api/v1/swap_cross_trigger_order': 1,
@@ -1037,24 +1040,27 @@ module.exports = class huobi extends Exchange {
         const options = this.safeValue (this.options, 'fetchMarkets', {});
         const types = this.safeValue (options, 'types', {});
         let allMarkets = [];
+        let promises = [];
         const keys = Object.keys (types);
         for (let i = 0; i < keys.length; i++) {
             const type = keys[i];
             const value = this.safeValue (types, type);
             if (value === true) {
-                const markets = await this.fetchMarketsByTypeAndSubType (type, undefined, params);
-                allMarkets = this.arrayConcat (allMarkets, markets);
+                promises.push (this.fetchMarketsByTypeAndSubType (type, undefined, params));
             } else {
                 const subKeys = Object.keys (value);
                 for (let j = 0; j < subKeys.length; j++) {
                     const subType = subKeys[j];
                     const subValue = this.safeValue (value, subType);
                     if (subValue) {
-                        const markets = await this.fetchMarketsByTypeAndSubType (type, subType, params);
-                        allMarkets = this.arrayConcat (allMarkets, markets);
+                        promises.push (this.fetchMarketsByTypeAndSubType (type, subType, params));
                     }
                 }
             }
+        }
+        promises = await Promise.all (promises);
+        for (let i = 0; i < promises.length; i++) {
+            allMarkets = this.arrayConcat (allMarkets, promises[i]);
         }
         return allMarkets;
     }
@@ -1201,15 +1207,20 @@ module.exports = class huobi extends Exchange {
             let quoteId = undefined;
             let settleId = undefined;
             let id = undefined;
+            let lowercaseId = undefined;
+            let lowercaseBaseId = undefined;
             if (contract) {
                 id = this.safeString (market, 'contract_code');
+                lowercaseId = id.toLowerCase ();
                 if (swap) {
                     const parts = id.split ('-');
                     baseId = this.safeString (market, 'symbol');
-                    quoteId = this.safeString (parts, 1);
+                    lowercaseBaseId = baseId.toLowerCase ();
+                    quoteId = this.safeStringLower (parts, 1);
                     settleId = inverse ? baseId : quoteId;
                 } else if (future) {
                     baseId = this.safeString (market, 'symbol');
+                    lowercaseBaseId = baseId.toLowerCase ();
                     if (inverse) {
                         quoteId = 'USD';
                         settleId = baseId;
@@ -1222,8 +1233,10 @@ module.exports = class huobi extends Exchange {
                 }
             } else {
                 baseId = this.safeString (market, 'base-currency');
+                lowercaseBaseId = baseId.toLowerCase ();
                 quoteId = this.safeString (market, 'quote-currency');
                 id = baseId + quoteId;
+                lowercaseId = id.toLowerCase ();
             }
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
@@ -1288,11 +1301,13 @@ module.exports = class huobi extends Exchange {
             // 9 Suspending of Trade
             result.push ({
                 'id': id,
+                'lowercaseId': lowercaseId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'settle': settle,
                 'baseId': baseId,
+                'lowercaseBaseId': lowercaseBaseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
                 'type': type,
@@ -2412,7 +2427,11 @@ module.exports = class huobi extends Exchange {
             request['account-id'] = accountId;
             method = 'spotPrivateGetV1AccountAccountsAccountIdBalance';
         } else if (linear) {
-            method = 'contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo';
+            if (marginType === 'isolated') {
+                method = 'contractPrivatePostLinearSwapApiV1SwapAccountInfo';
+            } else {
+                method = 'contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo';
+            }
         } else if (inverse) {
             if (future) {
                 method = 'contractPrivatePostApiV1ContractAccountInfo';
@@ -2555,10 +2574,8 @@ module.exports = class huobi extends Exchange {
                 const code = this.safeCurrencyCode (currencyId);
                 result[code] = account;
             } else if (isolated) {
-                const fieldName = future ? 'futures_contract_detail' : 'contract_detail';
-                const balances = this.safeValue (first, fieldName, []);
-                for (let i = 0; i < balances.length; i++) {
-                    const balance = balances[i];
+                for (let i = 0; i < data.length; i++) {
+                    const balance = data[i];
                     const marketId = this.safeString2 (balance, 'contract_code', 'margin_account');
                     const market = this.safeMarket (marketId);
                     const account = this.account ();
@@ -3408,7 +3425,7 @@ module.exports = class huobi extends Exchange {
         if (stopPrice === undefined) {
             const stopOrderTypes = this.safeValue (options, 'stopOrderTypes', {});
             if (orderType in stopOrderTypes) {
-                throw new ArgumentsRequired (this.id + 'createOrder() requires a stopPrice or a stop-price parameter for a stop order');
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPrice or a stop-price parameter for a stop order');
             }
         } else {
             const stopOperator = this.safeString (params, 'operator');
@@ -3421,7 +3438,7 @@ module.exports = class huobi extends Exchange {
             if ((orderType === 'limit') || (orderType === 'limit-fok')) {
                 orderType = 'stop-' + orderType;
             } else if ((orderType !== 'stop-limit') && (orderType !== 'stop-limit-fok')) {
-                throw new NotSupported (this.id + 'createOrder() does not support ' + type + ' orders');
+                throw new NotSupported (this.id + ' createOrder() does not support ' + type + ' orders');
             }
         }
         const postOnly = this.safeValue (params, 'postOnly', false);
@@ -3515,6 +3532,7 @@ module.exports = class huobi extends Exchange {
             //     direction sell, offset open = open short
             //     direction buy, offset close = close short
             //
+            // 'reduce_only': 0, // 1 or 0, in hedge mode it is invalid, and in one-way mode its value is 0 when not filled
             'lever_rate': 1, // required, using leverage greater than 20x requires prior approval of high-leverage agreement
             // 'order_price_type': 'limit', // required
             //
@@ -3584,17 +3602,13 @@ module.exports = class huobi extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         request['order_price_type'] = type;
-        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id'); // must be 64 chars max and unique within 24 hours
-        if (clientOrderId === undefined) {
-            const broker = this.safeValue (this.options, 'broker', {});
-            const brokerId = this.safeString (broker, 'id');
-            request['client_order_id'] = brokerId + this.uuid ();
-        } else {
-            request['client_order_id'] = clientOrderId;
-        }
+        const broker = this.safeValue (this.options, 'broker', {});
+        const brokerId = this.safeString (broker, 'id');
+        request['channel_code'] = brokerId;
+        const clientOrderId = this.safeString2 (params, 'client_order_id', 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
-            params = this.omit (params, [ 'clientOrderId', 'client_order_id' ]);
+            params = this.omit (params, [ 'client_order_id', 'clientOrderId' ]);
         }
         let method = undefined;
         if (market['linear']) {
@@ -4606,6 +4620,128 @@ module.exports = class huobi extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
+    async fetchBorrowInterest (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const defaultMargin = this.safeString (params, 'marginType', 'cross'); // cross or isolated
+        const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', defaultMargin);
+        const request = {};
+        if (since !== undefined) {
+            request['start-date'] = this.yyyymmdd (since);
+        }
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        let market = undefined;
+        let method = undefined;
+        if (marginType === 'isolated') {
+            method = 'privateGetMarginLoanOrders';
+            if (symbol !== undefined) {
+                market = this.market (symbol);
+                request['symbol'] = market['id'];
+            }
+        } else {  // Cross
+            method = 'privateGetCrossMarginLoanOrders';
+            if (code !== undefined) {
+                const currency = this.currency (code);
+                request['currency'] = currency['id'];
+            }
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        //    {
+        //        "status":"ok",
+        //        "data":[
+        //            {
+        //                "loan-balance":"0.100000000000000000",
+        //                "interest-balance":"0.000200000000000000",
+        //                "loan-amount":"0.100000000000000000",
+        //                "accrued-at":1511169724531,
+        //                "interest-amount":"0.000200000000000000",
+        //                "filled-points":"0.2",
+        //                "filled-ht":"0.2",
+        //                "currency":"btc",
+        //                "id":394,
+        //                "state":"accrual",
+        //                "account-id":17747,
+        //                "user-id":119913,
+        //                "created-at":1511169724531
+        //            }
+        //        ]
+        //    }
+        //
+        const data = this.safeValue (response, 'data');
+        const interest = this.parseBorrowInterests (data, marginType, market);
+        return this.filterByCurrencySinceLimit (interest, code, since, limit);
+    }
+
+    parseBorrowInterests (response, marginType, market = undefined) {
+        const interest = [];
+        for (let i = 0; i < response.length; i++) {
+            const row = response[i];
+            interest.push (this.parseBorrowInterest (row, marginType, market));
+        }
+        return interest;
+    }
+
+    parseBorrowInterest (info, marginType, market = undefined) {
+        // isolated
+        //    {
+        //        "interest-rate":"0.000040830000000000",
+        //        "user-id":35930539,
+        //        "account-id":48916071,
+        //        "updated-at":1649320794195,
+        //        "deduct-rate":"1",
+        //        "day-interest-rate":"0.000980000000000000",
+        //        "hour-interest-rate":"0.000040830000000000",
+        //        "loan-balance":"100.790000000000000000",
+        //        "interest-balance":"0.004115260000000000",
+        //        "loan-amount":"100.790000000000000000",
+        //        "paid-coin":"0.000000000000000000",
+        //        "accrued-at":1649320794148,
+        //        "created-at":1649320794148,
+        //        "interest-amount":"0.004115260000000000",
+        //        "deduct-amount":"0",
+        //        "deduct-currency":"",
+        //        "paid-point":"0.000000000000000000",
+        //        "currency":"usdt",
+        //        "symbol":"ltcusdt",
+        //        "id":20242721,
+        //    }
+        //
+        // cross
+        //   {
+        //       "id":3416576,
+        //       "user-id":35930539,
+        //       "account-id":48956839,
+        //       "currency":"usdt",
+        //       "loan-amount":"102",
+        //       "loan-balance":"102",
+        //       "interest-amount":"0.00416466",
+        //       "interest-balance":"0.00416466",
+        //       "created-at":1649322735333,
+        //       "accrued-at":1649322735382,
+        //       "state":"accrual",
+        //       "filled-points":"0",
+        //       "filled-ht":"0"
+        //   }
+        //
+        const marketId = this.safeString (info, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const account = (marginType === 'cross') ? marginType : symbol;
+        const timestamp = this.safeNumber (info, 'accrued-at');
+        return {
+            'account': account,  // isolated symbol, will not be returned for crossed margin
+            'currency': this.safeCurrencyCode (this.safeString (info, 'currency')),
+            'interest': this.safeNumber (info, 'interest-amount'),
+            'interestRate': this.safeNumber (info, 'interest-rate'),
+            'amountBorrowed': this.safeNumber (info, 'loan-amount'),
+            'timestamp': timestamp,  // Interest accrued time
+            'datetime': this.iso8601 (timestamp),
+            'info': info,
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/';
         const query = this.omit (params, this.extractParams (path));
@@ -5485,7 +5621,7 @@ module.exports = class huobi extends Exchange {
         if (symbol !== undefined) {
             const market = this.market (symbol);
             if (!market['contract']) {
-                throw new BadRequest (this.id + '.fetchLeverageTiers symbol supports contract markets only');
+                throw new BadRequest (this.id + ' fetchLeverageTiers() symbol supports contract markets only');
             }
             request['contract_code'] = market['id'];
         }

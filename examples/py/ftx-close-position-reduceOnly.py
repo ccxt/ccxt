@@ -22,7 +22,7 @@ exchange.load_markets()
 
 # exchange.verbose = True  # uncomment for debugging purposes if necessary
 
-symbol = 'BTC-PERP'  # change for your symbol
+symbol = 'BTC/USD:USD'  # change for your symbol
 positions = exchange.fetch_positions()
 positions_by_symbol = exchange.index_by(positions, 'symbol')
 if symbol in positions_by_symbol:

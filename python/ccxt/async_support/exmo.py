@@ -62,7 +62,10 @@ class exmo(Exchange):
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchTransactions': True,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
                 'fetchWithdrawals': True,
+                'transfer': False,
                 'withdraw': True,
             },
             'timeframes': {
@@ -179,6 +182,9 @@ class exmo(Exchange):
                 'fetchTradingFees': {
                     'method': 'fetchPrivateTradingFees',  # or 'fetchPublicTradingFees'
                 },
+            },
+            'commonCurrencies': {
+                'GMT': 'GMT Token',
             },
             'exceptions': {
                 'exact': {

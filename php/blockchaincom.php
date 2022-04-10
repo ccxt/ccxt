@@ -57,9 +57,12 @@ class blockchaincom extends Exchange {
                 'fetchTrades' => false,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
+                'fetchTransfer' => false,
+                'fetchTransfers' => false,
                 'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
                 'fetchWithdrawalWhitelist' => true, // fetches exchange specific benficiary-ids needed for withdrawals
+                'transfer' => false,
                 'withdraw' => true,
             ),
             'timeframes' => null,
@@ -463,7 +466,7 @@ class blockchaincom extends Exchange {
         );
         $stopPrice = $this->safe_value_2($params, 'stopPx', 'stopPrice');
         $params = $this->omit($params, array( 'stopPx', 'stopPrice' ));
-        if ($uppercaseOrderType === 'STOP' || $uppercaseOrderType === 'LIMIT') {
+        if ($uppercaseOrderType === 'STOP' || $uppercaseOrderType === 'STOPLIMIT') {
             if ($stopPrice === null) {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires a stopPx or $stopPrice param for a ' . $uppercaseOrderType . ' order');
             }

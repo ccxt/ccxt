@@ -65,7 +65,10 @@ class poloniex(Exchange):
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchTransactions': True,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
                 'fetchWithdrawals': True,
+                'transfer': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -216,6 +219,18 @@ class poloniex(Exchange):
                             'BUSD': 1.0,
                         },
                     },
+                },
+                'accountsByType': {
+                    'spot': 'exchange',
+                    'margin': 'margin',
+                    'future': 'futures',
+                    'lending': 'lending',
+                },
+                'accountsById': {
+                    'exchange': 'spot',
+                    'margin': 'margin',
+                    'futures': 'future',
+                    'lending': 'lending',
                 },
             },
             'exceptions': {
@@ -1215,6 +1230,66 @@ class poloniex(Exchange):
             'tag': tag,
             'network': None,
             'info': response,
+        }
+
+    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        amount = self.currency_to_precision(code, amount)
+        accountsByType = self.safe_value(self.options, 'accountsByType', {})
+        fromId = self.safe_string(accountsByType, fromAccount)
+        toId = self.safe_string(accountsByType, toAccount)
+        if fromId is None:
+            keys = list(accountsByType.keys())
+            raise ExchangeError(self.id + ' fromAccount must be one of ' + ', '.join(keys))
+        if toId is None:
+            keys = list(accountsByType.keys())
+            raise ExchangeError(self.id + ' toAccount must be one of ' + ', '.join(keys))
+        request = {
+            'amount': amount,
+            'currency': currency['id'],
+            'fromAccount': fromId,
+            'toAccount': toId,
+        }
+        response = await self.privatePostTransferBalance(self.extend(request, params))
+        #
+        #    {
+        #        success: '1',
+        #        message: 'Transferred 1.00000000 USDT from exchange to lending account.'
+        #    }
+        #
+        return self.parse_transfer(response, currency)
+
+    def parse_transfer_status(self, status):
+        statuses = {
+            '1': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        #    {
+        #        success: '1',
+        #        message: 'Transferred 1.00000000 USDT from exchange to lending account.'
+        #    }
+        #
+        message = self.safe_string(transfer, 'message')
+        words = message.split(' ')
+        amount = self.safe_number(words, 1)
+        currencyId = self.safe_string(words, 2)
+        fromAccountId = self.safe_string(words, 4)
+        toAccountId = self.safe_string(words, 6)
+        accountsById = self.safe_value(self.options, 'accountsById', {})
+        return {
+            'info': transfer,
+            'id': None,
+            'timestamp': None,
+            'datetime': None,
+            'currency': self.safe_currency_code(currencyId, currency),
+            'amount': amount,
+            'fromAccount': self.safe_string(accountsById, fromAccountId),
+            'toAccount': self.safe_string(accountsById, toAccountId),
+            'status': self.parse_order_status(self.safe_string(transfer, 'success', 'failed')),
         }
 
     async def withdraw(self, code, amount, address, tag=None, params={}):

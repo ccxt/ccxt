@@ -38,7 +38,6 @@ module.exports = class btctradeua extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
-                'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
                 'fetchMarkOHLCV': false,
                 'fetchOpenOrders': true,

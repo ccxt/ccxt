@@ -37,7 +37,6 @@ class bitfinex2 extends bitfinex {
                 'createLimitOrder' => true,
                 'createMarketOrder' => true,
                 'createOrder' => true,
-                'deposit' => null,
                 'editOrder' => null,
                 'fetchBalance' => true,
                 'fetchClosedOrder' => true,

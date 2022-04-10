@@ -47,7 +47,6 @@ class bitfinex2(bitfinex):
                 'createLimitOrder': True,
                 'createMarketOrder': True,
                 'createOrder': True,
-                'deposit': None,
                 'editOrder': None,
                 'fetchBalance': True,
                 'fetchClosedOrder': True,

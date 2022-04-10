@@ -47,7 +47,6 @@ class wavesexchange extends Exchange {
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
-                'fetchIsolatedPositions' => false,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => false,
                 'fetchMarkets' => true,
@@ -64,11 +63,14 @@ class wavesexchange extends Exchange {
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
+                'fetchTransfer' => false,
+                'fetchTransfers' => false,
                 'reduceMargin' => false,
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
                 'signIn' => true,
+                'transfer' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -1754,6 +1756,72 @@ class wavesexchange extends Exchange {
         );
         $response = $this->publicGetTransactionsExchange ($request);
         $data = $this->safe_value($response, 'data');
+        //
+        //      {
+        //          "__type":"list",
+        //          "isLastPage":true,
+        //          "lastCursor":"MzA2MjQ0MzAwMDI5OjpkZXNj",
+        //          "data" => array(
+        //              {
+        //                  "__type":"transaction",
+        //                  "data" => {
+        //                      "id":"GbjPqco2wRP5QSrY5LimFrUyJaM535K9nhK5zaQ7J7Tx",
+        //                      "timestamp":"2022-04-06T19:56:31.479Z",
+        //                      "height":3062443,
+        //                      "type":7,
+        //                      "version":2,
+        //                      "proofs":array(
+        //                          "57mYrANw61eiArCTv2eYwzXm71jYC2KpZ5AeM9zHEstuRaYSAWSuSE7njAJYJu8zap6DMCm3nzqc6es3wQFDpRCN"
+        //                      ),
+        //                      "fee":0.003,
+        //                      "applicationStatus":"succeeded",
+        //                      "sender":"3PEjHv3JGjcWNpYEEkif2w8NXV4kbhnoGgu",
+        //                      "senderPublicKey":"9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        //                      "buyMatcherFee":0,
+        //                      "sellMatcherFee":0.00141728,
+        //                      "price":215.7431,
+        //                      "amount":0.09,
+        //                      "order1" => array(
+        //                          "id":"49qiuQj5frdZ6zpTCEpMuKPMAh1EimwXpXWB4BeCw33h",
+        //                          "senderPublicKey":"CjUfoH3dsDZsf5UuAjqqzpWHXgvKzBZpVG9YixF7L48K",
+        //                          "matcherPublicKey":"9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        //                          "assetPair" => array(
+        //                              "amountAsset":"7TMu26hAs7B2oW6c5sfx45KSZT7GQA3TZNYuCav8Dcqt",
+        //                              "priceAsset":"DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p"
+        //                          ),
+        //                          "orderType":"buy",
+        //                          "price":215.7431,
+        //                          "sender":"3PR9WmaHV5ueVw2Wr9xsiCG3t4ySXzkkGLy",
+        //                          "amount":0.36265477,
+        //                          "timestamp":"2022-04-06T19:55:06.832Z",
+        //                          "expiration":"2022-05-05T19:55:06.832Z",
+        //                          "matcherFee":3.000334,
+        //                          "signature":"2rBWhdeuRJNpQfXfTFtcR8x8Lpic8FUHPdLML9uxABRUuxe48YRJcZxbncwWAh9LWFCEUZiztv7RZBZfGMWfFxTs",
+        //                          "matcherFeeAssetId":"DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p"
+        //                      ),
+        //                      "order2" => array(
+        //                          "id":"AkxiJqCuv6wm8K41TUSgFNwShZMnCbMDT78MqrcWpQ53",
+        //                          "senderPublicKey":"72o7qNKyne5hthB1Ww6famE7uHrk5vTVB2ZfUMBEqL3Y",
+        //                          "matcherPublicKey":"9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        //                          "assetPair" => array(
+        //                              "amountAsset":"7TMu26hAs7B2oW6c5sfx45KSZT7GQA3TZNYuCav8Dcqt",
+        //                              "priceAsset":"DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p"
+        //                          ),
+        //                          "orderType":"sell",
+        //                          "price":210,
+        //                          "sender":"3P3CzbjGgiqEyUBeKZYfgZtyaZfMG8fjoUD",
+        //                          "amount":0.09,
+        //                          "timestamp":"2022-04-06T19:56:18.535Z",
+        //                          "expiration":"2022-05-04T19:56:18.535Z",
+        //                          "matcherFee":0.00141728,
+        //                          "signature":"5BZCjYn6QzVkMXBFDBnzcAUBdCZqhq9hQfRXFHfLUQCsbis4zeriw4sUqLa1BZRT2isC6iY4Z4HtekikPqZ461PT",
+        //                          "matcherFeeAssetId":"7TMu26hAs7B2oW6c5sfx45KSZT7GQA3TZNYuCav8Dcqt"
+        //                      }
+        //                  }
+        //              ),...
+        //          )
+        //      }
+        //
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
@@ -1772,10 +1840,77 @@ class wavesexchange extends Exchange {
         }
         $response = $this->publicGetTransactionsExchange ($request);
         $data = $this->safe_value($response, 'data');
+        //
+        //      {
+        //          "__type":"list",
+        //          "isLastPage":false,
+        //          "lastCursor":"MzA2MjM2MTAwMDU0OjpkZXNj",
+        //          "data" => array(
+        //              {
+        //                  "__type":"transaction",
+        //                  "data" => {
+        //                      "id":"F42WsvSsyEzvpPLFjVhQKkSNuopooP4zMkjSUs47NeML",
+        //                      "timestamp":"2022-04-06T18:39:49.145Z",
+        //                      "height":3062361,
+        //                      "type":7,
+        //                      "version":2,
+        //                      "proofs" => array(
+        //                          "39iJv82kFi4pyuBxYeZpP45NXXjbrCXdVsHPAAvj32UMLmTXLjMTfV43PcmZDSAuS93HKSDo1aKJrin8UvkeE9Bs"
+        //                      ),
+        //                      "fee":0.003,
+        //                      "applicationStatus":"succeeded",
+        //                      "sender":"3PEjHv3JGjcWNpYEEkif2w8NXV4kbhnoGgu",
+        //                      "senderPublicKey":"9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        //                      "buyMatcherFee":0.02314421,
+        //                      "sellMatcherFee":0,
+        //                      "price":217.3893,
+        //                      "amount":0.34523025,
+        //                      "order1" => array(
+        //                          "id":"HkM36PHGaeeZdDKT1mYgZXhaU9PRZ54RZiJc2K4YMT3Q",
+        //                          "senderPublicKey":"7wYCaDcc6GX1Jx2uS7QgLHBypBKvrezTS1HfiW6Xe4Bk",
+        //                          "matcherPublicKey":"9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        //                          "assetPair" => array(
+        //                              "amountAsset":"7TMu26hAs7B2oW6c5sfx45KSZT7GQA3TZNYuCav8Dcqt",
+        //                              "priceAsset":"DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p"
+        //                          ),
+        //                          "orderType":"buy",
+        //                          "price":225.2693,
+        //                          "sender":"3PLPc8f4DGYaF9C9bwJ2uVmHqRv3NCjg5VQ",
+        //                          "amount":2.529,
+        //                          "timestamp":"2022-04-06T18:39:48.796Z",
+        //                          "expiration":"2022-05-05T18:39:48.796Z",
+        //                          "matcherFee":0.17584444,
+        //                          "signature":"2yQfJoomv86evQDw36fg1uiRkHvPDZtRp3qvxqTBWPvz4JLTHGQtEHJF5NGTvym6U93CtgNprngzmD9ecHBjxf6U",
+        //                          "matcherFeeAssetId":"Atqv59EYzjFGuitKVnMRk6H8FukjoV3ktPorbEys25on"
+        //                      ),
+        //                      "order2" => array(
+        //                          "id":"F7HKmeuzwWdk3wKitHLnVx5MuD4wBWPpphQ8kUGx4tT9",
+        //                          "senderPublicKey":"CjUfoH3dsDZsf5UuAjqqzpWHXgvKzBZpVG9YixF7L48K",
+        //                          "matcherPublicKey":"9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        //                          "assetPair" => array(
+        //                              "amountAsset":"7TMu26hAs7B2oW6c5sfx45KSZT7GQA3TZNYuCav8Dcqt",
+        //                              "priceAsset":"DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p"
+        //                          ),
+        //                          "orderType":"sell",
+        //                          "price":217.3893,
+        //                          "sender":"3PR9WmaHV5ueVw2Wr9xsiCG3t4ySXzkkGLy",
+        //                          "amount":0.35767793,
+        //                          "timestamp":"2022-04-06T18:32:01.390Z",
+        //                          "expiration":"2022-05-05T18:32:01.390Z",
+        //                          "matcherFee":0.0139168,
+        //                          "signature":"34HgWVLPgeYWkiSvAc5ChVepGTYDQDug2dMTSincs6idEyoM7AtaZuH3mqQ5RJG2fcxxH2QSB723Qq3dgLQwQmKf",
+        //                          "matcherFeeAssetId":"7TMu26hAs7B2oW6c5sfx45KSZT7GQA3TZNYuCav8Dcqt"
+        //                      }
+        //                  }
+        //              ), ...
+        //          )
+        //      }
+        //
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
     public function parse_trade($trade, $market = null) {
+        //
         // { __type => 'transaction',
         //   $data:
         //    { $id => 'HSdruioHqvYHeyn9hhyoHdRWPB2bFA8ujeCPZMK6992c',
@@ -1790,17 +1925,17 @@ class wavesexchange extends Exchange {
         //      senderPublicKey => '9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5',
         //      buyMatcherFee => 0.00299999,
         //      sellMatcherFee => 0.00299999,
-        //      $price => 0.00012003,
-        //      $amount => 60.80421562,
+        //      price => 0.00012003,
+        //      amount => 60.80421562,
         //      $order1:
         //       array( $id => 'CBRwP3ar4oMvvpUiGyfxc1syh41488SDi2GkrjuBDegv',
         //         senderPublicKey => 'DBXSHBz96NFsMu7xh4fi2eT9ZnyxefAHXsMxUayzgC6a',
         //         matcherPublicKey => '9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5',
         //         $assetPair => [Object],
         //         orderType => 'buy',
-        //         $price => 0.00012003,
+        //         price => 0.00012003,
         //         sender => '3PJfFRgVuJ47UY4ckb74EGzEBzkHXtmG1LA',
-        //         $amount => 60.80424773,
+        //         amount => 60.80424773,
         //         $timestamp => '2020-06-09T19:34:51.885Z',
         //         expiration => '2020-06-10T12:31:31.885Z',
         //         matcherFee => 0.003,
@@ -1812,23 +1947,21 @@ class wavesexchange extends Exchange {
         //         matcherPublicKey => '9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5',
         //         $assetPair => [Object],
         //         orderType => 'sell',
-        //         $price => 0.00012003,
+        //         price => 0.00012003,
         //         sender => '3P9vKoQpMZtaSkHKpNh977YY9ZPzTuntLAq',
-        //         $amount => 60.80424773,
+        //         amount => 60.80424773,
         //         $timestamp => '2020-06-09T19:34:51.887Z',
         //         expiration => '2020-06-10T12:31:31.887Z',
         //         matcherFee => 0.003,
         //         signature => '3SFyrcqzou2ddZyNisnLYaGhLt5qRjKxH8Nw3s4T5U7CEKGX9DDo8dS27RgThPVGbYF1rYET1FwrWoQ2UFZ6SMTR',
         //         matcherFeeAssetId => null } } }
+        //
         $data = $this->safe_value($trade, 'data');
         $datetime = $this->safe_string($data, 'timestamp');
         $timestamp = $this->parse8601($datetime);
         $id = $this->safe_string($data, 'id');
         $priceString = $this->safe_string($data, 'price');
         $amountString = $this->safe_string($data, 'amount');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $order1 = $this->safe_value($data, 'order1');
         $order2 = $this->safe_value($data, 'order2');
         $order = null;
@@ -1848,10 +1981,10 @@ class wavesexchange extends Exchange {
         $side = $this->safe_string($order, 'orderType');
         $orderId = $this->safe_string($order, 'id');
         $fee = array(
-            'cost' => $this->safe_number($order, 'matcherFee'),
+            'cost' => $this->safe_string($order, 'matcherFee'),
             'currency' => $this->safe_currency_code($this->safe_string($order, 'matcherFeeAssetId', 'WAVES')),
         );
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $datetime,
@@ -1861,11 +1994,11 @@ class wavesexchange extends Exchange {
             'type' => null,
             'side' => $side,
             'takerOrMaker' => null,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

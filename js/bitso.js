@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InvalidNonce, AuthenticationError, OrderNotFound } = require ('./base/errors');
+const { ExchangeError, InvalidNonce, AuthenticationError, OrderNotFound, BadRequest } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -42,11 +42,11 @@ module.exports = class bitso extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
-                'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
+                'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -59,10 +59,13 @@ module.exports = class bitso extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
+                'fetchTransfer': false,
+                'fetchTransfers': false,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
+                'transfer': false,
                 'withdraw': true,
             },
             'urls': {
@@ -82,6 +85,17 @@ module.exports = class bitso extends Exchange {
                 },
                 'defaultPrecision': 0.00000001,
             },
+            'timeframes': {
+                '1m': '60',
+                '5m': '300',
+                '15m': '900',
+                '30m': '1800',
+                '1h': '3600',
+                '4h': '14400',
+                '12h': '43200',
+                '1d': '86400',
+                '1w': '604800',
+            },
             'api': {
                 'public': {
                     'get': [
@@ -89,6 +103,7 @@ module.exports = class bitso extends Exchange {
                         'ticker',
                         'order_book',
                         'trades',
+                        'ohlc',
                     ],
                 },
                 'private': {
@@ -139,6 +154,7 @@ module.exports = class bitso extends Exchange {
             'exceptions': {
                 '0201': AuthenticationError, // Invalid Nonce or Invalid Credentials
                 '104': InvalidNonce, // Cannot perform request - nonce must be higher than 1520307203724237
+                '0304': BadRequest, // {"success":false,"error":{"code":"0304","message":"The field time_bucket () is either invalid or missing"}}
             },
         });
     }
@@ -408,6 +424,73 @@ module.exports = class bitso extends Exchange {
         //     }
         //
         return this.parseTicker (ticker, market);
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'book': market['id'],
+            'time_bucket': this.timeframes[timeframe],
+        };
+        if (since !== undefined) {
+            request['start'] = since;
+            if (limit !== undefined) {
+                const duration = this.parseTimeframe (timeframe);
+                request['end'] = this.sum (since, duration * limit * 1000);
+            }
+        } else if (limit !== undefined) {
+            const now = this.milliseconds ();
+            request['end'] = now;
+            request['start'] = now - this.parseTimeframe (timeframe) * 1000 * limit;
+        }
+        const response = await this.publicGetOhlc (this.extend (request, params));
+        //
+        //     {
+        //         "success":true,
+        //         "payload": [
+        //             {
+        //                 "bucket_start_time":1648219140000,
+        //                 "first_trade_time":1648219154990,
+        //                 "last_trade_time":1648219189441,
+        //                 "first_rate":"44958.60",
+        //                 "last_rate":"44979.88",
+        //                 "min_rate":"44957.33",
+        //                 "max_rate":"44979.88",
+        //                 "trade_count":8,
+        //                 "volume":"0.00082814",
+        //                 "vwap":"44965.02"
+        //             },
+        //         ]
+        //     }
+        //
+        const payload = this.safeValue (response, 'payload', []);
+        return this.parseOHLCVs (payload, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1m') {
+        //
+        //     {
+        //         "bucket_start_time":1648219140000,
+        //         "first_trade_time":1648219154990,
+        //         "last_trade_time":1648219189441,
+        //         "first_rate":"44958.60",
+        //         "last_rate":"44979.88",
+        //         "min_rate":"44957.33",
+        //         "max_rate":"44979.88",
+        //         "trade_count":8,
+        //         "volume":"0.00082814",
+        //         "vwap":"44965.02"
+        //     },
+        //
+        return [
+            this.safeInteger (ohlcv, 'bucket_start_time'),
+            this.safeNumber (ohlcv, 'first_rate'),
+            this.safeNumber (ohlcv, 'max_rate'),
+            this.safeNumber (ohlcv, 'min_rate'),
+            this.safeNumber (ohlcv, 'last_rate'),
+            this.safeNumber (ohlcv, 'volume'),
+        ];
     }
 
     parseTrade (trade, market = undefined) {

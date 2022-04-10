@@ -14,7 +14,7 @@ module.exports = class bitvavo extends Exchange {
             'id': 'bitvavo',
             'name': 'Bitvavo',
             'countries': [ 'NL' ], // Netherlands
-            'rateLimit': 60.1, // 1000 requests per second
+            'rateLimit': 60, // 1000 requests per minute
             'version': 'v2',
             'certified': true,
             'pro': true,
@@ -45,7 +45,6 @@ module.exports = class bitvavo extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
-                'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
                 'fetchMarkets': true,
@@ -66,11 +65,14 @@ module.exports = class bitvavo extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
+                'fetchTransfer': false,
+                'fetchTransfers': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
+                'transfer': false,
                 'withdraw': true,
             },
             'timeframes': {

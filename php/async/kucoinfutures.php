@@ -1662,18 +1662,21 @@ class kucoinfutures extends kucoin {
 
     public function parse_market_leverage_tiers($info, $market) {
         /**
-            @param $info => Exchange $market response for 1 $market
-            {
-                "symbol" => "ETHUSDTM",
-                "level" => 1,
-                "maxRiskLimit" => 300000,
-                "minRiskLimit" => 0,
-                "maxLeverage" => 100,
-                "initialMargin" => 0.0100000000,
-                "maintainMargin" => 0.0050000000
-            }
-            @param $market => CCXT $market
-        */
+         * @ignore
+         * @param {dict} $info Exchange $market response for 1 $market
+         * @param {dict} $market CCXT $market
+         */
+        //
+        //    {
+        //        "symbol" => "ETHUSDTM",
+        //        "level" => 1,
+        //        "maxRiskLimit" => 300000,
+        //        "minRiskLimit" => 0,
+        //        "maxLeverage" => 100,
+        //        "initialMargin" => 0.0100000000,
+        //        "maintainMargin" => 0.0050000000
+        //    }
+        //
         $tiers = array();
         for ($i = 0; $i < count($info); $i++) {
             $tier = $info[$i];

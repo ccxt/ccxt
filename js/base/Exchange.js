@@ -78,11 +78,11 @@ module.exports = class Exchange {
                 'createLimitOrder': true,
                 'createMarketOrder': true,
                 'createOrder': true,
-                'deposit': undefined,
                 'editOrder': 'emulated',
                 'fetchAccounts': undefined,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
+                'fetchBorrowInterest': undefined,
                 'fetchBorrowRate': undefined,
                 'fetchBorrowRateHistory': undefined,
                 'fetchBorrowRatesPerSymbol': undefined,
@@ -2068,7 +2068,7 @@ module.exports = class Exchange {
         }
         // support for market orders
         const orderType = this.safeValue (order, 'type');
-        const emptyPrice = (price === undefined) || Precise.stringEquals (price, '0');
+        const emptyPrice = (price === "market_price") || (price === undefined) || Precise.stringEquals (price, '0');
         if (emptyPrice && (orderType === 'market')) {
             price = average;
         }
@@ -2162,12 +2162,12 @@ module.exports = class Exchange {
     async fetchBorrowRate (code, params = {}) {
         await this.loadMarkets ();
         if (!this.has['fetchBorrowRates']) {
-            throw new NotSupported (this.id + 'fetchBorrowRate() is not supported yet')
+            throw new NotSupported (this.id + ' fetchBorrowRate() is not supported yet')
         }
         const borrowRates = await this.fetchBorrowRates (params);
         const rate = this.safeValue (borrowRates, code);
         if (rate === undefined) {
-            throw new ExchangeError (this.id + 'fetchBorrowRate() could not find the borrow rate for currency code ' + code);
+            throw new ExchangeError (this.id + ' fetchBorrowRate() could not find the borrow rate for currency code ' + code);
         }
         return rate;
     }
@@ -2180,7 +2180,7 @@ module.exports = class Exchange {
             if (typeof methodOptions === 'string') {
                 methodType = methodOptions;
             } else {
-                methodType = this.safeString2 (methodOptions, 'defaultType', 'type');
+                methodType = this.safeString2 (methodOptions, 'defaultType', 'type', methodType);
             }
         }
         const marketType = (market === undefined) ? methodType : market['type'];
@@ -2224,7 +2224,7 @@ module.exports = class Exchange {
             const tiers = await this.fetchLeverageTiers ([ symbol ]);
             return this.safeValue (tiers, symbol);
         } else {
-            throw new NotSupported (this.id + 'fetchMarketLeverageTiers() is not supported yet');
+            throw new NotSupported (this.id + ' fetchMarketLeverageTiers() is not supported yet');
         }
 
     }

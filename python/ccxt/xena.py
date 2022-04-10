@@ -642,6 +642,8 @@ class xena(Exchange):
 
     def parse_trade(self, trade, market=None):
         #
+        # fetchTrades(public)
+        #
         #     {
         #         "mdUpdateAction":"0",
         #         "mdEntryType":"2",
@@ -652,7 +654,7 @@ class xena(Exchange):
         #         "aggressorSide":"1"
         #     }
         #
-        # fetchMyTrades
+        # fetchMyTrades(private)
         #
         #     {
         #         "msgType":"8",
@@ -691,21 +693,18 @@ class xena(Exchange):
         symbol = self.safe_symbol(marketId, market)
         priceString = self.safe_string_2(trade, 'lastPx', 'mdEntryPx')
         amountString = self.safe_string_2(trade, 'lastQty', 'mdEntrySize')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         fee = None
-        feeCost = self.safe_number(trade, 'commission')
-        if feeCost is not None:
+        feeCostString = self.safe_string(trade, 'commission')
+        if feeCostString is not None:
             feeCurrencyId = self.safe_string(trade, 'commCurrency')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
-            feeRate = self.safe_number(trade, 'commRate')
+            feeRateString = self.safe_string(trade, 'commRate')
             fee = {
-                'cost': feeCost,
-                'rate': feeRate,
+                'cost': feeCostString,
+                'rate': feeRateString,
                 'currency': feeCurrencyCode,
             }
-        return {
+        return self.safe_trade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -715,11 +714,11 @@ class xena(Exchange):
             'order': orderId,
             'side': side,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': fee,
-        }
+        }, market)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -1688,75 +1687,81 @@ class xena(Exchange):
         return self.parse_leverage_tiers(response, symbols, 'symbol')
 
     def parse_market_leverage_tiers(self, info, market):
-        '''
-            @param info: Exchange market response for 1 market
-            {
-                "id": "XBTUSD_3M_240622",
-                "type": "Margin",
-                "marginType": "XenaFuture",
-                "symbol": "XBTUSD_3M_240622",
-                "baseCurrency": "BTC",
-                "quoteCurrency": "USD",
-                "settlCurrency": "USDC",
-                "tickSize": 0,
-                "minOrderQuantity": "0.0001",
-                "orderQtyStep": "0.0001",
-                "limitOrderMaxDistance": "10",
-                "priceInputMask": "00000.0",
-                "enabled": True,
-                "liquidationMaxDistance": "0.01",
-                "contractValue": "1",
-                "contractCurrency": "BTC",
-                "lotSize": "1",
-                "maxOrderQty": "10",
-                "maxPosVolume": "200",
-                "mark": ".XBTUSD_3M_240622",
-                "underlying": ".BTC3_TWAP",
-                "openInterest": ".XBTUSD_3M_240622_OpenInterest",
-                "addUvmToFreeMargin": "ProfitAndLoss",
-                "margin": {
-                    "netting": "PositionsAndOrders",
-                    "rates": [
-                        {"maxVolume": "10", "initialRate": "0.05", "maintenanceRate": "0.025"},
-                        {"maxVolume": "20", "initialRate": "0.1", "maintenanceRate": "0.05"},
-                        {"maxVolume": "30", "initialRate": "0.2", "maintenanceRate": "0.1"},
-                        {"maxVolume": "40", "initialRate": "0.3", "maintenanceRate": "0.15"},
-                        {"maxVolume": "60", "initialRate": "0.4", "maintenanceRate": "0.2"},
-                        {"maxVolume": "150", "initialRate": "0.5", "maintenanceRate": "0.25"},
-                        {"maxVolume": "200", "initialRate": "1", "maintenanceRate": "0.5"}
-                    ],
-                    "rateMultipliers": {
-                        "LimitBuy": "1",
-                        "LimitSell": "1",
-                        "Long": "1",
-                        "MarketBuy": "1",
-                        "MarketSell": "1",
-                        "Short": "1",
-                        "StopBuy": "0",
-                        "StopSell": "0"
-                },
-                "clearing": {"enabled": True, "index": ".XBTUSD_3M_240622"},
-                "riskAdjustment": {"enabled": True, "index": ".RiskAdjustment_IR"},
-                "expiration": {"enabled": True, "index": ".BTC3_TWAP"},
-                "pricePrecision": 1,
-                "priceRange": {
-                    "enabled": True,
-                    "distance": "0.2",
-                    "movingBoundary": "0",
-                    "lowIndex": ".XBTUSD_3M_240622_LOWRANGE",
-                    "highIndex": ".XBTUSD_3M_240622_HIGHRANGE"
-                },
-                "priceLimits": {
-                    "enabled": True,
-                    "distance": "0.5",
-                    "movingBoundary": "0",
-                    "lowIndex": ".XBTUSD_3M_240622_LOWLIMIT",
-                    "highIndex": ".XBTUSD_3M_240622_HIGHLIMIT"
-                },
-                "serie": "XBTUSD",
-                "tradingStartDate": "2021-12-31 07:00:00",
-                "expiryDate": "2022-06-24 08:00:00"
-       '''
+        """
+         * @ignore
+        :param dict info: Exchange market response for 1 market
+        :param dict market: CCXT market
+        """
+        #
+        #    {
+        #        "id": "XBTUSD_3M_240622",
+        #        "type": "Margin",
+        #        "marginType": "XenaFuture",
+        #        "symbol": "XBTUSD_3M_240622",
+        #        "baseCurrency": "BTC",
+        #        "quoteCurrency": "USD",
+        #        "settlCurrency": "USDC",
+        #        "tickSize": 0,
+        #        "minOrderQuantity": "0.0001",
+        #        "orderQtyStep": "0.0001",
+        #        "limitOrderMaxDistance": "10",
+        #        "priceInputMask": "00000.0",
+        #        "enabled": True,
+        #        "liquidationMaxDistance": "0.01",
+        #        "contractValue": "1",
+        #        "contractCurrency": "BTC",
+        #        "lotSize": "1",
+        #        "maxOrderQty": "10",
+        #        "maxPosVolume": "200",
+        #        "mark": ".XBTUSD_3M_240622",
+        #        "underlying": ".BTC3_TWAP",
+        #        "openInterest": ".XBTUSD_3M_240622_OpenInterest",
+        #        "addUvmToFreeMargin": "ProfitAndLoss",
+        #        "margin": {
+        #            "netting": "PositionsAndOrders",
+        #            "rates": [
+        #                {"maxVolume": "10", "initialRate": "0.05", "maintenanceRate": "0.025"},
+        #                {"maxVolume": "20", "initialRate": "0.1", "maintenanceRate": "0.05"},
+        #                {"maxVolume": "30", "initialRate": "0.2", "maintenanceRate": "0.1"},
+        #                {"maxVolume": "40", "initialRate": "0.3", "maintenanceRate": "0.15"},
+        #                {"maxVolume": "60", "initialRate": "0.4", "maintenanceRate": "0.2"},
+        #                {"maxVolume": "150", "initialRate": "0.5", "maintenanceRate": "0.25"},
+        #                {"maxVolume": "200", "initialRate": "1", "maintenanceRate": "0.5"}
+        #            ],
+        #            "rateMultipliers": {
+        #                "LimitBuy": "1",
+        #                "LimitSell": "1",
+        #                "Long": "1",
+        #                "MarketBuy": "1",
+        #                "MarketSell": "1",
+        #                "Short": "1",
+        #                "StopBuy": "0",
+        #                "StopSell": "0"
+        #            }
+        #        },
+        #        "clearing": {"enabled": True, "index": ".XBTUSD_3M_240622"},
+        #        "riskAdjustment": {"enabled": True, "index": ".RiskAdjustment_IR"},
+        #        "expiration": {"enabled": True, "index": ".BTC3_TWAP"},
+        #        "pricePrecision": 1,
+        #        "priceRange": {
+        #            "enabled": True,
+        #            "distance": "0.2",
+        #            "movingBoundary": "0",
+        #            "lowIndex": ".XBTUSD_3M_240622_LOWRANGE",
+        #            "highIndex": ".XBTUSD_3M_240622_HIGHRANGE"
+        #        },
+        #        "priceLimits": {
+        #            "enabled": True,
+        #            "distance": "0.5",
+        #            "movingBoundary": "0",
+        #            "lowIndex": ".XBTUSD_3M_240622_LOWLIMIT",
+        #            "highIndex": ".XBTUSD_3M_240622_HIGHLIMIT"
+        #        },
+        #        "serie": "XBTUSD",
+        #        "tradingStartDate": "2021-12-31 07:00:00",
+        #        "expiryDate": "2022-06-24 08:00:00"
+        #    }
+        #
         margin = self.safe_value(info, 'margin')
         rates = self.safe_value(margin, 'rates')
         floor = 0

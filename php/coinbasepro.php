@@ -33,7 +33,6 @@ class coinbasepro extends Exchange {
                 'cancelOrder' => true,
                 'createDepositAddress' => true,
                 'createOrder' => true,
-                'deposit' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
@@ -1074,6 +1073,14 @@ class coinbasepro extends Exchange {
     }
 
     public function deposit($code, $amount, $address, $params = array ()) {
+        /**
+         * Creates a new deposit $address, as required by coinbasepro
+         * @param {str} $code Unified CCXT $currency $code (e.g. `"USDT"`)
+         * @param {float} $amount The $amount of $currency to send in the deposit (e.g. `20`)
+         * @param {str} $address Not used by coinbasepro
+         * @param {dict} $params Parameters specific to the exchange API endpoint (e.g. `array("network" => "TRX")`)
+         * @return a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(

@@ -56,7 +56,6 @@ class hollaex(Exchange):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
-                'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
@@ -136,10 +135,10 @@ class hollaex(Exchange):
                         'user/withdrawal/fee': 1,
                         'user/trades': 1,
                         'orders': 1,
-                        'orders/{order_id}': 1,
+                        'order': 1,
                     },
                     'post': {
-                        'user/request-withdrawal': 1,
+                        'user/withdrawal': 1,
                         'order': 1,
                     },
                     'delete': {
@@ -741,7 +740,7 @@ class hollaex(Exchange):
         request = {
             'order_id': id,
         }
-        response = await self.privateGetOrdersOrderId(self.extend(request, params))
+        response = await self.privateGetOrder(self.extend(request, params))
         #
         #     {
         #         "id": "string",
@@ -776,7 +775,7 @@ class hollaex(Exchange):
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         request = {
-            'status': 'filled',
+            'open': False,
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
@@ -785,11 +784,7 @@ class hollaex(Exchange):
         request = {
             'order_id': id,
         }
-        response = await self.privateGetOrders(self.extend(request, params))
-        #
-        #     {
-        #         "count": 1,
-        #         "data": [
+        response = await self.privateGetOrder(self.extend(request, params))
         #             {
         #                 "id": "string",
         #                 "side": "sell",
@@ -812,11 +807,7 @@ class hollaex(Exchange):
         #                     "exchange_id": 176
         #                 }
         #             }
-        #         ]
-        #     }
-        #
-        data = self.safe_value(response, 'data', [])
-        order = self.safe_value(data, 0)
+        order = response
         if order is None:
             raise OrderNotFound(self.id + ' fetchOrder() could not find order id ' + id)
         return self.parse_order(order)
@@ -1256,6 +1247,8 @@ class hollaex(Exchange):
 
     def parse_transaction(self, transaction, currency=None):
         #
+        # fetchWithdrawals, fetchDeposits
+        #
         #     {
         #         "id": 539,
         #         "amount": 20,
@@ -1271,6 +1264,17 @@ class hollaex(Exchange):
         #         "created_at": "2020-03-03T07:56:36.198Z",
         #         "updated_at": "2020-03-03T08:00:05.674Z",
         #         "user_id": 620
+        #     }
+        #
+        # withdraw
+        #
+        #     {
+        #         message: 'Withdrawal request is in the queue and will be processed.',
+        #         transaction_id: '1d1683c3-576a-4d53-8ff5-27c93fd9758a',
+        #         amount: 1,
+        #         currency: 'xht',
+        #         fee: 0,
+        #         fee_coin: 'xht'
         #     }
         #
         id = self.safe_string(transaction, 'id')
@@ -1292,7 +1296,7 @@ class hollaex(Exchange):
             addressTo = address
             tagTo = tag
         currencyId = self.safe_string(transaction, 'currency')
-        code = self.safe_currency_code(currencyId)
+        currency = self.safe_currency(currencyId, currency)
         status = self.safe_value(transaction, 'status')
         dismissed = self.safe_value(transaction, 'dismissed')
         rejected = self.safe_value(transaction, 'rejected')
@@ -1304,8 +1308,10 @@ class hollaex(Exchange):
             status = 'failed'
         else:
             status = 'pending'
+        feeCurrencyId = self.safe_string(transaction, 'fee_coin')
+        feeCurrencyCode = self.safe_currency_code(feeCurrencyId, currency)
         fee = {
-            'currency': code,
+            'currency': feeCurrencyCode,
             'cost': self.safe_number(transaction, 'fee'),
         }
         return {
@@ -1323,7 +1329,7 @@ class hollaex(Exchange):
             'tagTo': tagTo,
             'type': type,
             'amount': amount,
-            'currency': code,
+            'currency': currency['code'],
             'status': status,
             'updated': updated,
             'fee': fee,
@@ -1341,17 +1347,21 @@ class hollaex(Exchange):
             'amount': amount,
             'address': address,
         }
-        # one time password
-        otp = self.safe_string(params, 'otp_code')
-        if (otp is not None) or (self.twofa is not None):
-            if otp is None:
-                otp = self.oath()
-            request['otp_code'] = otp
-        response = await self.privatePostUserRequestWithdrawal(self.extend(request, params))
-        return {
-            'info': response,
-            'id': None,
-        }
+        network = self.safe_string(params, 'network')
+        if network is not None:
+            request['network'] = network
+        response = await self.privatePostUserWithdrawal(self.extend(request, params))
+        #
+        #     {
+        #         message: 'Withdrawal request is in the queue and will be processed.',
+        #         transaction_id: '1d1683c3-576a-4d53-8ff5-27c93fd9758a',
+        #         amount: 1,
+        #         currency: 'xht',
+        #         fee: 0,
+        #         fee_coin: 'xht'
+        #     }
+        #
+        return self.parse_transaction(response, currency)
 
     def normalize_number_if_needed(self, number):
         if number % 1 == 0:

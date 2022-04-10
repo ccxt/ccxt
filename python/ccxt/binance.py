@@ -52,26 +52,26 @@ class binance(Exchange):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': None,
-                'createDepositAddress': None,
+                'createDepositAddress': False,
                 'createOrder': True,
                 'createReduceOnlyOrder': True,
-                'deposit': None,
                 'fetchAccounts': None,
                 'fetchBalance': True,
                 'fetchBidsAsks': True,
+                'fetchBorrowInterest': True,
                 'fetchBorrowRate': True,
                 'fetchBorrowRateHistories': True,
                 'fetchBorrowRateHistory': True,
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
-                'fetchCanceledOrders': None,
+                'fetchCanceledOrders': False,
                 'fetchClosedOrder': None,
                 'fetchClosedOrders': 'emulated',
                 'fetchCurrencies': True,
-                'fetchDeposit': None,
+                'fetchDeposit': False,
                 'fetchDepositAddress': True,
-                'fetchDepositAddresses': None,
-                'fetchDepositAddressesByNetwork': None,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
                 'fetchFundingFee': None,
                 'fetchFundingFees': True,
@@ -80,10 +80,9 @@ class binance(Exchange):
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
                 'fetchIndexOHLCV': True,
-                'fetchIsolatedPositions': None,
                 'fetchL3OrderBook': None,
                 'fetchLedger': None,
-                'fetchLeverage': None,
+                'fetchLeverage': False,
                 'fetchLeverageTiers': True,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': True,
@@ -92,11 +91,11 @@ class binance(Exchange):
                 'fetchMySells': None,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
-                'fetchOpenOrder': None,
+                'fetchOpenOrder': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrderBooks': None,
+                'fetchOrderBooks': False,
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
                 'fetchPosition': None,
@@ -1344,7 +1343,7 @@ class binance(Exchange):
                 isWithdrawEnabled = isWithdrawEnabled or withdrawEnable
                 fees[network] = withdrawFee
                 isDefault = self.safe_value(networkItem, 'isDefault')
-                if isDefault or fee is None:
+                if isDefault or (fee is None):
                     fee = withdrawFee
             trading = self.safe_value(entry, 'trading')
             active = (isWithdrawEnabled and isDepositEnabled and trading)
@@ -2312,10 +2311,11 @@ class binance(Exchange):
         id = self.safe_string_2(trade, 'id', 'tradeId', id)
         side = None
         orderId = self.safe_string(trade, 'orderId')
-        if 'm' in trade:
-            side = 'sell' if trade['m'] else 'buy'  # self is reversed intentionally
-        elif 'isBuyerMaker' in trade:
-            side = 'sell' if trade['isBuyerMaker'] else 'buy'
+        buyerMaker = self.safe_value(trade, 'm', 'isBuyerMaker')
+        takerOrMaker = None
+        if buyerMaker is not None:
+            side = 'sell' if buyerMaker else 'buy'  # self is reversed intentionally
+            takerOrMaker = 'taker'
         elif 'side' in trade:
             side = self.safe_string_lower(trade, 'side')
         else:
@@ -2327,7 +2327,6 @@ class binance(Exchange):
                 'cost': self.safe_string(trade, 'commission'),
                 'currency': self.safe_currency_code(self.safe_string(trade, 'commissionAsset')),
             }
-        takerOrMaker = None
         if 'isMaker' in trade:
             takerOrMaker = 'maker' if trade['isMaker'] else 'taker'
         if 'maker' in trade:
@@ -4596,23 +4595,27 @@ class binance(Exchange):
         return self.parse_leverage_tiers(response, symbols, 'symbol')
 
     def parse_market_leverage_tiers(self, info, market):
-        '''
-            @param info: Exchange response for 1 market
-            {
-                "symbol": "SUSHIUSDT",
-                "brackets": [
-                    {
-                        "bracket": 1,
-                        "initialLeverage": 50,
-                        "notionalCap": 50000,
-                        "notionalFloor": 0,
-                        "maintMarginRatio": 0.01,
-                        "cum": 0.0
-                    },
-                    ...
-                ]
-            @param market: CCXT market
-       '''
+        """
+         * @ignore
+        :param dict info: Exchange response for 1 market
+        :param dict market: CCXT market
+        """
+        #
+        #    {
+        #        "symbol": "SUSHIUSDT",
+        #        "brackets": [
+        #            {
+        #                "bracket": 1,
+        #                "initialLeverage": 50,
+        #                "notionalCap": 50000,
+        #                "notionalFloor": 0,
+        #                "maintMarginRatio": 0.01,
+        #                "cum": 0.0
+        #            },
+        #            ...
+        #        ]
+        #    }
+        #
         marketId = self.safe_string(info, 'symbol')
         safeSymbol = self.safe_symbol(marketId)
         market = self.safe_market(safeSymbol, market)
@@ -4894,11 +4897,12 @@ class binance(Exchange):
         elif (api == 'private') or (api == 'sapi' and path != 'system/status') or (api == 'wapi' and path != 'systemStatus') or (api == 'dapiPrivate') or (api == 'dapiPrivateV2') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2'):
             self.check_required_credentials()
             query = None
-            recvWindow = self.safe_integer(self.options, 'recvWindow', 5000)
+            recvWindow = self.safe_integer(self.options, 'recvWindow')
             extendedParams = self.extend({
                 'timestamp': self.nonce(),
-                'recvWindow': recvWindow,
             }, params)
+            if recvWindow is not None:
+                extendedParams['recvWindow'] = recvWindow
             if (api == 'sapi') and (path == 'asset/dust'):
                 query = self.urlencode_with_array_repeat(extendedParams)
             elif (path == 'batchOrders') or (path.find('sub-account') >= 0) or (path == 'capital/withdraw/apply'):
@@ -5027,10 +5031,10 @@ class binance(Exchange):
         response = getattr(self, method)(self.extend(request, params))
         #
         #     {
-        #       "code": 200,
-        #       "msg": "Successfully modify position margin.",
-        #       "amount": 0.001,
-        #       "type": 1
+        #         "code": 200,
+        #         "msg": "Successfully modify position margin.",
+        #         "amount": 0.001,
+        #         "type": 1
         #     }
         #
         rawType = self.safe_integer(response, 'type')
@@ -5062,15 +5066,14 @@ class binance(Exchange):
         }
         response = self.sapiGetMarginInterestRateHistory(self.extend(request, params))
         #
-        # [
-        #     {
-        #         "asset": "USDT",
-        #         "timestamp": 1638230400000,
-        #         "dailyInterestRate": "0.0006",
-        #         "vipLevel": 0
-        #     },
-        #     ...
-        # ]
+        #     [
+        #         {
+        #             "asset": "USDT",
+        #             "timestamp": 1638230400000,
+        #             "dailyInterestRate": "0.0006",
+        #             "vipLevel": 0
+        #         },
+        #     ]
         #
         rate = self.safe_value(response, 0)
         timestamp = self.safe_number(rate, 'timestamp')
@@ -5135,10 +5138,10 @@ class binance(Exchange):
         response = self.sapiPostGiftcardCreateCode(self.extend(request, params))
         #
         #     {
-        #       code: '000000',
-        #       message: 'success',
-        #       data: {referenceNo: '0033002404219823', code: 'AP6EXTLKNHM6CEX7'},
-        #       success: True
+        #         code: '000000',
+        #         message: 'success',
+        #         data: {referenceNo: '0033002404219823', code: 'AP6EXTLKNHM6CEX7'},
+        #         success: True
         #     }
         #
         data = self.safe_value(response, 'data')
@@ -5159,13 +5162,13 @@ class binance(Exchange):
         response = self.sapiPostGiftcardRedeemCode(self.extend(request, params))
         #
         #     {
-        #       code: '000000',
-        #       message: 'success',
-        #       data: {
-        #         referenceNo: '0033002404219823',
-        #         identityNo: '10316431732801474560'
-        #       },
-        #       success: True
+        #         code: '000000',
+        #         message: 'success',
+        #         data: {
+        #             referenceNo: '0033002404219823',
+        #             identityNo: '10316431732801474560'
+        #         },
+        #         success: True
         #     }
         #
         return response
@@ -5177,10 +5180,59 @@ class binance(Exchange):
         response = self.sapiGetGiftcardVerify(self.extend(request, params))
         #
         #     {
-        #       code: '000000',
-        #       message: 'success',
-        #       data: {valid: True},
-        #       success: True
+        #         code: '000000',
+        #         message: 'success',
+        #         data: {valid: True},
+        #         success: True
         #     }
         #
         return response
+
+    def fetch_borrow_interest(self, code=None, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {}
+        market = None
+        if code is not None:
+            currency = self.currency(code)
+            request['asset'] = currency['id']
+        if since is not None:
+            request['startTime'] = since
+        if limit is not None:
+            request['size'] = limit
+        if symbol is not None:  # Isolated
+            market = self.market(symbol)
+            request['isolatedSymbol'] = market['id']
+        response = self.sapiGetMarginInterestHistory(self.extend(request, params))
+        #
+        #     {
+        #         "rows":[
+        #             {
+        #                 "isolatedSymbol": "BNBUSDT",  # isolated symbol, will not be returned for crossed margin
+        #                 "asset": "BNB",
+        #                 "interest": "0.02414667",
+        #                 "interestAccuredTime": 1566813600000,
+        #                 "interestRate": "0.01600000",
+        #                 "principal": "36.22000000",
+        #                 "type": "ON_BORROW"
+        #             }
+        #         ],
+        #         "total": 1
+        #     }
+        #
+        rows = self.safe_value(response, 'rows')
+        interest = []
+        for i in range(0, len(rows)):
+            row = rows[i]
+            timestamp = self.safe_number(row, 'interestAccuredTime')
+            account = 'cross' if (symbol is None) else symbol
+            interest.append({
+                'account': account,
+                'currency': self.safe_currency_code(self.safe_string(row, 'asset')),
+                'interest': self.safe_number(row, 'interest'),
+                'interestRate': self.safe_number(row, 'interestRate'),
+                'amountBorrowed': self.safe_number(row, 'principal'),
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+                'info': row,
+            })
+        return self.filter_by_currency_since_limit(interest, code, since, limit)

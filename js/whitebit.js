@@ -28,7 +28,6 @@ module.exports = class whitebit extends Exchange {
                 'createLimitOrder': undefined,
                 'createMarketOrder': undefined,
                 'createOrder': true,
-                'deposit': undefined,
                 'editOrder': undefined,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
@@ -815,7 +814,7 @@ module.exports = class whitebit extends Exchange {
             }
         }
         if (method === undefined) {
-            throw new ArgumentsRequired (this.id + 'Invalid type:  createOrder() requires one of the following order types: market, limit, stopLimit or stopMarket');
+            throw new ArgumentsRequired (this.id + ' Invalid type:  createOrder() requires one of the following order types: market, limit, stopLimit or stopMarket');
         }
         const response = await this[method] (this.extend (request, params));
         return this.parseOrder (response);

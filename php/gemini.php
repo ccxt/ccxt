@@ -51,7 +51,6 @@ class gemini extends Exchange {
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
-                'fetchIsolatedPositions' => false,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => false,
                 'fetchMarkets' => true,
@@ -169,8 +168,8 @@ class gemini extends Exchange {
             'precisionMode' => TICK_SIZE,
             'fees' => array(
                 'trading' => array(
-                    'taker' => 0.0035,
-                    'maker' => 0.001,
+                    'taker' => 0.004,
+                    'maker' => 0.002,
                 ),
             ),
             'httpExceptions' => array(
@@ -995,7 +994,7 @@ class gemini extends Exchange {
         $this->load_markets();
         $network = $this->safe_string($params, 'network');
         if ($network === null) {
-            throw new ArgumentsRequired($this->id . 'fetchDepositAddressesByNetwork() requires a $network parameter');
+            throw new ArgumentsRequired($this->id . ' fetchDepositAddressesByNetwork() requires a $network parameter');
         }
         $params = $this->omit($params, 'network');
         $networks = $this->safe_value($this->options, 'networks', array());

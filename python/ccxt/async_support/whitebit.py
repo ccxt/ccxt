@@ -40,7 +40,6 @@ class whitebit(Exchange):
                 'createLimitOrder': None,
                 'createMarketOrder': None,
                 'createOrder': True,
-                'deposit': None,
                 'editOrder': None,
                 'fetchBalance': True,
                 'fetchBidsAsks': None,
@@ -790,7 +789,7 @@ class whitebit(Exchange):
                     cost = amount if (cost is None) else cost
                 request['amount'] = self.cost_to_precision(symbol, cost)
         if method is None:
-            raise ArgumentsRequired(self.id + 'Invalid type:  createOrder() requires one of the following order types: market, limit, stopLimit or stopMarket')
+            raise ArgumentsRequired(self.id + ' Invalid type:  createOrder() requires one of the following order types: market, limit, stopLimit or stopMarket')
         response = await getattr(self, method)(self.extend(request, params))
         return self.parse_order(response)
 

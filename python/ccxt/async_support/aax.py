@@ -46,7 +46,6 @@ class aax(Exchange):
                 'createDepositAddress': None,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
-                'deposit': None,
                 'editOrder': True,
                 'fetchAccounts': None,
                 'fetchBalance': True,
@@ -72,7 +71,6 @@ class aax(Exchange):
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
-                'fetchIsolatedPositions': None,
                 'fetchL3OrderBook': None,
                 'fetchLedger': None,
                 'fetchLedgerEntry': None,
@@ -105,7 +103,8 @@ class aax(Exchange):
                 'fetchTradingFees': False,
                 'fetchTradingLimits': None,
                 'fetchTransactions': None,
-                'fetchTransfers': None,
+                'fetchTransfer': False,
+                'fetchTransfers': True,
                 'fetchWithdrawal': None,
                 'fetchWithdrawals': True,
                 'fetchWithdrawalWhitelist': None,
@@ -188,6 +187,7 @@ class aax(Exchange):
                         'account/balances',  # Get Account Balances
                         'account/deposit/address',  # undocumented
                         'account/deposits',  # Get account deposits history
+                        'account/transfer',
                         'account/withdraws',  # Get account withdrawals history
                         'spot/trades',  # Retrieve trades details for a spot order
                         'spot/openOrders',  # Retrieve spot open orders
@@ -805,6 +805,35 @@ class aax(Exchange):
             'cost': None,
             'fee': fee,
         }, market)
+
+    async def fetch_transfers(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        currency = None
+        request = {}
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        if since is not None:
+            request['startTime'] = since
+        response = await self.privateGetAccountTransfer(self.extend(request, params))
+        #
+        #      {
+        #          code: '1',
+        #          data: [{
+        #                  quantity: '0.000010000000',
+        #                  transferID: '480975741034369024',
+        #                  transferTime: '2022-03-24T13:53:07.042Z',
+        #                  fromPurse: 'VLTP',
+        #                  toPurse: 'SPTP',
+        #                  currency: 'ETH'
+        #              },
+        #          ],
+        #          message: 'success',
+        #          ts: '1648338516932'
+        #      }
+        #
+        transfers = self.safe_value(response, 'data', [])
+        return self.parse_transfers(transfers, currency, since, limit)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
@@ -2225,30 +2254,33 @@ class aax(Exchange):
         return self.parse_leverage_tiers(data, symbols, 'symbol')
 
     def parse_market_leverage_tiers(self, info, market):
-        '''
-            @param info: Exchange market response
-            {
-                "tickSize":"0.01",
-                "lotSize":"1",
-                "base":"BTC",
-                "quote":"USDT",
-                "minQuantity":"1.0000000000",
-                "maxQuantity":"30000",
-                "minPrice":"0.0100000000",
-                "maxPrice":"999999.0000000000",
-                "status":"readOnly",
-                "symbol":"BTCUSDTFP",
-                "code":"FP",
-                "takerFee":"0.00040",
-                "makerFee":"0.00020",
-                "multiplier":"0.001000000000",
-                "mmRate":"0.00500",
-                "imRate":"0.01000",
-                "type":"futures",
-                "settleType":"Vanilla",
-                "settleCurrency":"USDT"
-            @param market: CCXT Market
-       '''
+        """
+        :param dict info: Exchange market response
+        :param dict market: CCXT Market
+        """
+        #
+        #    {
+        #        "tickSize":"0.01",
+        #        "lotSize":"1",
+        #        "base":"BTC",
+        #        "quote":"USDT",
+        #        "minQuantity":"1.0000000000",
+        #        "maxQuantity":"30000",
+        #        "minPrice":"0.0100000000",
+        #        "maxPrice":"999999.0000000000",
+        #        "status":"readOnly",
+        #        "symbol":"BTCUSDTFP",
+        #        "code":"FP",
+        #        "takerFee":"0.00040",
+        #        "makerFee":"0.00020",
+        #        "multiplier":"0.001000000000",
+        #        "mmRate":"0.00500",
+        #        "imRate":"0.01000",
+        #        "type":"futures",
+        #        "settleType":"Vanilla",
+        #        "settleCurrency":"USDT"
+        #    }
+        #
         maintenanceMarginRate = self.safe_string(info, 'mmRate')
         initialMarginRate = self.safe_string(info, 'imRate')
         maxVol = self.safe_string(info, 'maxQuantity')
@@ -2274,26 +2306,41 @@ class aax(Exchange):
         return tiers
 
     def parse_transfer(self, transfer, currency=None):
-        data = self.safe_value(transfer, 'data', {})
-        id = self.safe_string(data, 'transferID')
-        dateTime = self.safe_string(data, 'transferTime')
-        timestamp = self.safe_number(transfer, 'ts')
-        currencyCode = self.safe_string(currency, 'code')
-        responseCode = self.safe_string(transfer, 'code')
-        status = 'canceled'
-        if responseCode == '1':
-            status = 'ok'
+        #     {
+        #          quantity: '0.000010000000',
+        #          transferID: '480975741034369024',
+        #          transferTime: '2022-03-24T13:53:07.042Z',
+        #          fromPurse: 'VLTP',
+        #          toPurse: 'SPTP',
+        #          currency: 'ETH'
+        #     },
+        id = self.safe_string(transfer, 'transferID')
+        amount = self.safe_number(transfer, 'quantity')
+        timestamp = self.parse8601(self.safe_string(transfer, 'transferTime'))
+        accounts = self.safe_value(self.options, 'accounts', {})
+        fromId = self.safe_string(transfer, 'fromPurse')
+        toId = self.safe_string(transfer, 'toPurse')
+        fromAccount = self.safe_string(accounts, fromId)
+        toAccount = self.safe_string(accounts, toId)
+        currencyId = self.safe_string(transfer, 'currency')
+        currencyCode = self.safe_currency_code(currencyId, currency)
         return {
             'info': transfer,
             'id': id,
             'timestamp': timestamp,
-            'datetime': dateTime,
+            'datetime': self.iso8601(timestamp),
             'currency': currencyCode,
-            'amount': None,
-            'fromAccount': None,
-            'toAccount': None,
-            'status': status,
+            'amount': amount,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': None,
         }
+
+    def parse_transfer_status(self, status):
+        statuses = {
+            '1': 'ok',
+        }
+        return self.safe_string(statuses, status, 'canceled')
 
     async def transfer(self, code, amount, fromAccount, toAccount, params={}):
         await self.load_markets()
@@ -2325,15 +2372,19 @@ class aax(Exchange):
         #         "ts": 1647962945151
         #     }
         #
-        transfer = self.parse_transfer(response, currency)
+        data = self.safe_value(response, 'data', {})
+        transfer = self.parse_transfer(data, currency)
         transferOptions = self.safe_value(self.options, 'transfer', {})
         fillFromAccountToAccount = self.safe_value(transferOptions, 'fillFromAccountToAccount', True)
         fillAmount = self.safe_value(transferOptions, 'fillAmount', True)
         if fillFromAccountToAccount:
-            transfer['fromAccount'] = fromAccount
-            transfer['toAccount'] = toAccount
-        if fillAmount:
+            if transfer['fromAccount'] is None:
+                transfer['fromAccount'] = fromAccount
+            if transfer['toAccount'] is None:
+                transfer['toAccount'] = toAccount
+        if fillAmount and transfer['amount'] is None:
             transfer['amount'] = amount
+        transfer['status'] = self.parse_transfer_status(self.safe_string(response, 'code'))
         return transfer
 
     def nonce(self):

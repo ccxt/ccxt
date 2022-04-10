@@ -58,7 +58,6 @@ class bitstamp(Exchange):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
-                'fetchIsolatedPositions': False,
                 'fetchLedger': True,
                 'fetchLeverage': False,
                 'fetchMarkets': True,
@@ -250,6 +249,16 @@ class bitstamp(Exchange):
                         'avax_address/',
                         'wbtc_withdrawal/',
                         'wbtc_address/',
+                        'ctsi_withdrawal/',
+                        'ctsi_address/',
+                        'cvx_withdrawal/',
+                        'cvx_address/',
+                        'imx_withdrawal/',
+                        'imx_address/',
+                        'nexo_withdrawal/',
+                        'nexo_address/',
+                        'ust_withdrawal/',
+                        'ust_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal-requests/',
@@ -1437,7 +1446,7 @@ class bitstamp(Exchange):
                 direction = 'in' if (amount > 0) else 'out'
             elif ('currency' in parsedTransaction) and parsedTransaction['currency'] is not None:
                 code = parsedTransaction['currency']
-                currencyId = self.safe_string(self.currencies_by_id, code, code)
+                currencyId = self.safe_string_lower(self.currencies_by_id, code, code)
                 amount = self.safe_number(item, currencyId)
                 direction = 'in' if (amount > 0) else 'out'
             return {

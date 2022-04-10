@@ -14,7 +14,8 @@ module.exports = class zaif extends Exchange {
             'id': 'zaif',
             'name': 'Zaif',
             'countries': [ 'JP' ],
-            'rateLimit': 2000,
+            // 10 requests per second = 1000ms / 10 = 100ms between requests (public market endpoints)
+            'rateLimit': 100,
             'version': '1',
             'has': {
                 'CORS': undefined,
@@ -66,58 +67,58 @@ module.exports = class zaif extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'depth/{pair}',
-                        'currencies/{pair}',
-                        'currencies/all',
-                        'currency_pairs/{pair}',
-                        'currency_pairs/all',
-                        'last_price/{pair}',
-                        'ticker/{pair}',
-                        'trades/{pair}',
-                    ],
+                    'get': {
+                        'depth/{pair}': 1,
+                        'currencies/{pair}': 1,
+                        'currencies/all': 1,
+                        'currency_pairs/{pair}': 1,
+                        'currency_pairs/all': 1,
+                        'last_price/{pair}': 1,
+                        'ticker/{pair}': 1,
+                        'trades/{pair}': 1,
+                    },
                 },
                 'private': {
-                    'post': [
-                        'active_orders',
-                        'cancel_order',
-                        'deposit_history',
-                        'get_id_info',
-                        'get_info',
-                        'get_info2',
-                        'get_personal_info',
-                        'trade',
-                        'trade_history',
-                        'withdraw',
-                        'withdraw_history',
-                    ],
+                    'post': {
+                        'active_orders': 5, // 10 in 5 seconds = 2 per second => cost = 10 / 2 = 5
+                        'cancel_order': 5,
+                        'deposit_history': 5,
+                        'get_id_info': 5,
+                        'get_info': 10, // 10 in 10 seconds = 1 per second => cost = 10 / 1 = 10
+                        'get_info2': 5, // 20 in 10 seconds = 2 per second => cost = 10 / 2 = 5
+                        'get_personal_info': 5,
+                        'trade': 5,
+                        'trade_history': 50, // 12 in 60 seconds = 0.2 per second => cost = 10 / 0.2 = 50
+                        'withdraw': 5,
+                        'withdraw_history': 5,
+                    },
                 },
                 'ecapi': {
-                    'post': [
-                        'createInvoice',
-                        'getInvoice',
-                        'getInvoiceIdsByOrderNumber',
-                        'cancelInvoice',
-                    ],
+                    'post': {
+                        'createInvoice': 1, // unverified
+                        'getInvoice': 1,
+                        'getInvoiceIdsByOrderNumber': 1,
+                        'cancelInvoice': 1,
+                    },
                 },
                 'tlapi': {
-                    'post': [
-                        'get_positions',
-                        'position_history',
-                        'active_positions',
-                        'create_position',
-                        'change_position',
-                        'cancel_position',
-                    ],
+                    'post': {
+                        'get_positions': 66, // 10 in 60 seconds = 0.166 per second => cost = 10 / 0.166 = 66
+                        'position_history': 66, // 10 in 60 seconds
+                        'active_positions': 5, // 20 in 10 seconds
+                        'create_position': 33, // 3 in 10 seconds = 0.3 per second => cost = 10 / 0.3 = 33
+                        'change_position': 33, // 3 in 10 seconds
+                        'cancel_position': 33, // 3 in 10 seconds
+                    },
                 },
                 'fapi': {
-                    'get': [
-                        'groups/{group_id}',
-                        'last_price/{group_id}/{pair}',
-                        'ticker/{group_id}/{pair}',
-                        'trades/{group_id}/{pair}',
-                        'depth/{group_id}/{pair}',
-                    ],
+                    'get': {
+                        'groups/{group_id}': 1, // testing
+                        'last_price/{group_id}/{pair}': 1,
+                        'ticker/{group_id}/{pair}': 1,
+                        'trades/{group_id}/{pair}': 1,
+                        'depth/{group_id}/{pair}': 1,
+                    },
                 },
             },
             'options': {
@@ -334,18 +335,27 @@ module.exports = class zaif extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades (public)
+        //
+        //      {
+        //          "date": 1648559414,
+        //          "price": 5880375.0,
+        //          "amount": 0.017,
+        //          "tid": 176126557,
+        //          "currency_pair": "btc_jpy",
+        //          "trade_type": "ask"
+        //      }
+        //
         let side = this.safeString (trade, 'trade_type');
         side = (side === 'bid') ? 'buy' : 'sell';
         const timestamp = this.safeTimestamp (trade, 'date');
         const id = this.safeString2 (trade, 'id', 'tid');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const marketId = this.safeString (trade, 'currency_pair');
         const symbol = this.safeSymbol (marketId, market, '_');
-        return {
+        return this.safeTrade ({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -355,11 +365,11 @@ module.exports = class zaif extends Exchange {
             'side': side,
             'order': undefined,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': undefined,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -369,6 +379,18 @@ module.exports = class zaif extends Exchange {
             'pair': market['id'],
         };
         let response = await this.publicGetTradesPair (this.extend (request, params));
+        //
+        //      [
+        //          {
+        //              "date": 1648559414,
+        //              "price": 5880375.0,
+        //              "amount": 0.017,
+        //              "tid": 176126557,
+        //              "currency_pair": "btc_jpy",
+        //              "trade_type": "ask"
+        //          }, ...
+        //      ]
+        //
         const numTrades = response.length;
         if (numTrades === 1) {
             const firstTrade = response[0];

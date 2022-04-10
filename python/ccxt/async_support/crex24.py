@@ -63,7 +63,6 @@ class crex24(Exchange):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
-                'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
                 'fetchMarkets': True,
@@ -187,6 +186,7 @@ class crex24(Exchange):
                 'FUND': 'FUNDChains',
                 'GHOST': 'GHOSTPRISM',
                 'GM': 'GM Holding',
+                'GMT': 'GMT Token',
                 'GTC': 'GastroCoin',  # conflict with Gitcoin and Game.com
                 'IQ': 'IQ.Cash',
                 'ONE': 'One Hundred Coin',

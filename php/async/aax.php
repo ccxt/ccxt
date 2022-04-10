@@ -39,7 +39,6 @@ class aax extends Exchange {
                 'createDepositAddress' => null,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
-                'deposit' => null,
                 'editOrder' => true,
                 'fetchAccounts' => null,
                 'fetchBalance' => true,
@@ -65,7 +64,6 @@ class aax extends Exchange {
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
-                'fetchIsolatedPositions' => null,
                 'fetchL3OrderBook' => null,
                 'fetchLedger' => null,
                 'fetchLedgerEntry' => null,
@@ -98,7 +96,8 @@ class aax extends Exchange {
                 'fetchTradingFees' => false,
                 'fetchTradingLimits' => null,
                 'fetchTransactions' => null,
-                'fetchTransfers' => null,
+                'fetchTransfer' => false,
+                'fetchTransfers' => true,
                 'fetchWithdrawal' => null,
                 'fetchWithdrawals' => true,
                 'fetchWithdrawalWhitelist' => null,
@@ -181,6 +180,7 @@ class aax extends Exchange {
                         'account/balances', // Get Account Balances
                         'account/deposit/address', // undocumented
                         'account/deposits', // Get account deposits history
+                        'account/transfer',
                         'account/withdraws', // Get account withdrawals history
                         'spot/trades', // Retrieve trades details for a spot order
                         'spot/openOrders', // Retrieve spot open orders
@@ -820,6 +820,38 @@ class aax extends Exchange {
             'cost' => null,
             'fee' => $fee,
         ), $market);
+    }
+
+    public function fetch_transfers($code = null, $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        $currency = null;
+        $request = array();
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency'] = $currency['id'];
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        $response = yield $this->privateGetAccountTransfer (array_merge($request, $params));
+        //
+        //      {
+        //          $code => '1',
+        //          data => [array(
+        //                  quantity => '0.000010000000',
+        //                  transferID => '480975741034369024',
+        //                  transferTime => '2022-03-24T13:53:07.042Z',
+        //                  fromPurse => 'VLTP',
+        //                  toPurse => 'SPTP',
+        //                  $currency => 'ETH'
+        //              ),
+        //          ],
+        //          message => 'success',
+        //          ts => '1648338516932'
+        //      }
+        //
+        $transfers = $this->safe_value($response, 'data', array());
+        return $this->parse_transfers($transfers, $currency, $since, $limit);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -2330,30 +2362,32 @@ class aax extends Exchange {
 
     public function parse_market_leverage_tiers($info, $market) {
         /**
-            @param $info => Exchange $market response
-            {
-                "tickSize":"0.01",
-                "lotSize":"1",
-                "base":"BTC",
-                "quote":"USDT",
-                "minQuantity":"1.0000000000",
-                "maxQuantity":"30000",
-                "minPrice":"0.0100000000",
-                "maxPrice":"999999.0000000000",
-                "status":"readOnly",
-                "symbol":"BTCUSDTFP",
-                "code":"FP",
-                "takerFee":"0.00040",
-                "makerFee":"0.00020",
-                "multiplier":"0.001000000000",
-                "mmRate":"0.00500",
-                "imRate":"0.01000",
-                "type":"futures",
-                "settleType":"Vanilla",
-                "settleCurrency":"USDT"
-            }
-            @param $market => CCXT Market
-        */
+         * @param {dict} $info Exchange $market response
+         * @param {dict} $market CCXT Market
+         */
+        //
+        //    {
+        //        "tickSize":"0.01",
+        //        "lotSize":"1",
+        //        "base":"BTC",
+        //        "quote":"USDT",
+        //        "minQuantity":"1.0000000000",
+        //        "maxQuantity":"30000",
+        //        "minPrice":"0.0100000000",
+        //        "maxPrice":"999999.0000000000",
+        //        "status":"readOnly",
+        //        "symbol":"BTCUSDTFP",
+        //        "code":"FP",
+        //        "takerFee":"0.00040",
+        //        "makerFee":"0.00020",
+        //        "multiplier":"0.001000000000",
+        //        "mmRate":"0.00500",
+        //        "imRate":"0.01000",
+        //        "type":"futures",
+        //        "settleType":"Vanilla",
+        //        "settleCurrency":"USDT"
+        //    }
+        //
         $maintenanceMarginRate = $this->safe_string($info, 'mmRate');
         $initialMarginRate = $this->safe_string($info, 'imRate');
         $maxVol = $this->safe_string($info, 'maxQuantity');
@@ -2381,27 +2415,42 @@ class aax extends Exchange {
     }
 
     public function parse_transfer($transfer, $currency = null) {
-        $data = $this->safe_value($transfer, 'data', array());
-        $id = $this->safe_string($data, 'transferID');
-        $dateTime = $this->safe_string($data, 'transferTime');
-        $timestamp = $this->safe_number($transfer, 'ts');
-        $currencyCode = $this->safe_string($currency, 'code');
-        $responseCode = $this->safe_string($transfer, 'code');
-        $status = 'canceled';
-        if ($responseCode === '1') {
-            $status = 'ok';
-        }
+        //     array(
+        //          quantity => '0.000010000000',
+        //          transferID => '480975741034369024',
+        //          transferTime => '2022-03-24T13:53:07.042Z',
+        //          fromPurse => 'VLTP',
+        //          toPurse => 'SPTP',
+        //          $currency => 'ETH'
+        //     ),
+        $id = $this->safe_string($transfer, 'transferID');
+        $amount = $this->safe_number($transfer, 'quantity');
+        $timestamp = $this->parse8601($this->safe_string($transfer, 'transferTime'));
+        $accounts = $this->safe_value($this->options, 'accounts', array());
+        $fromId = $this->safe_string($transfer, 'fromPurse');
+        $toId = $this->safe_string($transfer, 'toPurse');
+        $fromAccount = $this->safe_string($accounts, $fromId);
+        $toAccount = $this->safe_string($accounts, $toId);
+        $currencyId = $this->safe_string($transfer, 'currency');
+        $currencyCode = $this->safe_currency_code($currencyId, $currency);
         return array(
             'info' => $transfer,
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $dateTime,
+            'datetime' => $this->iso8601($timestamp),
             'currency' => $currencyCode,
-            'amount' => null,
-            'fromAccount' => null,
-            'toAccount' => null,
-            'status' => $status,
+            'amount' => $amount,
+            'fromAccount' => $fromAccount,
+            'toAccount' => $toAccount,
+            'status' => null,
         );
+    }
+
+    public function parse_transfer_status($status) {
+        $statuses = array(
+            '1' => 'ok',
+        );
+        return $this->safe_string($statuses, $status, 'canceled');
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
@@ -2436,17 +2485,23 @@ class aax extends Exchange {
         //         "ts" => 1647962945151
         //     }
         //
-        $transfer = $this->parse_transfer($response, $currency);
+        $data = $this->safe_value($response, 'data', array());
+        $transfer = $this->parse_transfer($data, $currency);
         $transferOptions = $this->safe_value($this->options, 'transfer', array());
         $fillFromAccountToAccount = $this->safe_value($transferOptions, 'fillFromAccountToAccount', true);
         $fillAmount = $this->safe_value($transferOptions, 'fillAmount', true);
         if ($fillFromAccountToAccount) {
-            $transfer['fromAccount'] = $fromAccount;
-            $transfer['toAccount'] = $toAccount;
+            if ($transfer['fromAccount'] === null) {
+                $transfer['fromAccount'] = $fromAccount;
+            }
+            if ($transfer['toAccount'] === null) {
+                $transfer['toAccount'] = $toAccount;
+            }
         }
-        if ($fillAmount) {
+        if ($fillAmount && $transfer['amount'] === null) {
             $transfer['amount'] = $amount;
         }
+        $transfer['status'] = $this->parse_transfer_status($this->safe_string($response, 'code'));
         return $transfer;
     }
 

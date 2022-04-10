@@ -47,6 +47,9 @@ module.exports = class cex extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
+                'fetchTransfer': false,
+                'fetchTransfers': false,
+                'transfer': false,
             },
             'timeframes': {
                 '1m': '1m',

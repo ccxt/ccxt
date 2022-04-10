@@ -981,7 +981,7 @@ class bigone(Exchange):
         data = self.safe_value(response, 'data', [])
         dataLength = len(data)
         if dataLength < 1:
-            raise ExchangeError(self.id + 'fetchDepositAddress() returned empty address response')
+            raise ExchangeError(self.id + ' fetchDepositAddress() returned empty address response')
         firstElement = data[0]
         address = self.safe_string(firstElement, 'value')
         tag = self.safe_string(firstElement, 'memo')

@@ -217,6 +217,7 @@ class bybit(Exchange):
                             'stop-order/list',
                             'stop-order',
                             'position/list',
+                            'position/fee-rate',
                             'execution/list',
                             'trade/closed-pnl/list',
                             'funding/prev-funding-rate',
@@ -325,6 +326,7 @@ class bybit(Exchange):
                         'v2/private/stop-order/list': 5,
                         'v2/private/stop-order': 1,
                         'v2/private/position/list': 25,
+                        'v2/private/position/fee-rate': 40,
                         'v2/private/execution/list': 25,
                         'v2/private/trade/closed-pnl/list': 1,
                         'v2/public/risk-limit/list': 1,  # TODO check
@@ -2768,7 +2770,7 @@ class bybit(Exchange):
         #
         leverage = self.safe_value(params, 'leverage')
         if leverage is None:
-            raise ArgumentsRequired(self.id + '.setMarginMode requires a leverage parameter')
+            raise ArgumentsRequired(self.id + ' setMarginMode() requires a leverage parameter')
         marginType = marginType.upper()
         if marginType == 'CROSSED':  # * Deprecated, use 'CROSS' instead
             marginType = 'CROSS'
@@ -2966,7 +2968,7 @@ class bybit(Exchange):
         if symbol is not None:
             market = self.market(symbol)
             if market['spot']:
-                raise BadRequest(self.id + '.fetchLeverageTiers symbol supports contract markets only')
+                raise BadRequest(self.id + ' fetchLeverageTiers() symbol supports contract markets only')
             request['symbol'] = market['id']
         type, query = self.handle_market_type_and_params('fetchMarketLeverageTiers', market, params)
         method = self.get_supported_mapping(type, {

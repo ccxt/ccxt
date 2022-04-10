@@ -48,7 +48,6 @@ module.exports = class gemini extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
-                'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
                 'fetchMarkets': true,
@@ -166,8 +165,8 @@ module.exports = class gemini extends Exchange {
             'precisionMode': TICK_SIZE,
             'fees': {
                 'trading': {
-                    'taker': 0.0035,
-                    'maker': 0.001,
+                    'taker': 0.004,
+                    'maker': 0.002,
                 },
             },
             'httpExceptions': {
@@ -992,7 +991,7 @@ module.exports = class gemini extends Exchange {
         await this.loadMarkets ();
         const network = this.safeString (params, 'network');
         if (network === undefined) {
-            throw new ArgumentsRequired (this.id + 'fetchDepositAddressesByNetwork() requires a network parameter');
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddressesByNetwork() requires a network parameter');
         }
         params = this.omit (params, 'network');
         const networks = this.safeValue (this.options, 'networks', {});

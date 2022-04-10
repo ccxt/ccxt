@@ -6,6 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import BadRequest
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -46,11 +47,11 @@ class bitso(Exchange):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
-                'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
+                'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
@@ -63,10 +64,13 @@ class bitso(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
+                'transfer': False,
                 'withdraw': True,
             },
             'urls': {
@@ -86,6 +90,17 @@ class bitso(Exchange):
                 },
                 'defaultPrecision': 0.00000001,
             },
+            'timeframes': {
+                '1m': '60',
+                '5m': '300',
+                '15m': '900',
+                '30m': '1800',
+                '1h': '3600',
+                '4h': '14400',
+                '12h': '43200',
+                '1d': '86400',
+                '1w': '604800',
+            },
             'api': {
                 'public': {
                     'get': [
@@ -93,6 +108,7 @@ class bitso(Exchange):
                         'ticker',
                         'order_book',
                         'trades',
+                        'ohlc',
                     ],
                 },
                 'private': {
@@ -143,6 +159,7 @@ class bitso(Exchange):
             'exceptions': {
                 '0201': AuthenticationError,  # Invalid Nonce or Invalid Credentials
                 '104': InvalidNonce,  # Cannot perform request - nonce must be higher than 1520307203724237
+                '0304': BadRequest,  # {"success":false,"error":{"code":"0304","message":"The field time_bucket() is either invalid or missing"}}
             },
         })
 
@@ -402,6 +419,69 @@ class bitso(Exchange):
         #     }
         #
         return self.parse_ticker(ticker, market)
+
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'book': market['id'],
+            'time_bucket': self.timeframes[timeframe],
+        }
+        if since is not None:
+            request['start'] = since
+            if limit is not None:
+                duration = self.parse_timeframe(timeframe)
+                request['end'] = self.sum(since, duration * limit * 1000)
+        elif limit is not None:
+            now = self.milliseconds()
+            request['end'] = now
+            request['start'] = now - self.parse_timeframe(timeframe) * 1000 * limit
+        response = await self.publicGetOhlc(self.extend(request, params))
+        #
+        #     {
+        #         "success":true,
+        #         "payload": [
+        #             {
+        #                 "bucket_start_time":1648219140000,
+        #                 "first_trade_time":1648219154990,
+        #                 "last_trade_time":1648219189441,
+        #                 "first_rate":"44958.60",
+        #                 "last_rate":"44979.88",
+        #                 "min_rate":"44957.33",
+        #                 "max_rate":"44979.88",
+        #                 "trade_count":8,
+        #                 "volume":"0.00082814",
+        #                 "vwap":"44965.02"
+        #             },
+        #         ]
+        #     }
+        #
+        payload = self.safe_value(response, 'payload', [])
+        return self.parse_ohlcvs(payload, market, timeframe, since, limit)
+
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m'):
+        #
+        #     {
+        #         "bucket_start_time":1648219140000,
+        #         "first_trade_time":1648219154990,
+        #         "last_trade_time":1648219189441,
+        #         "first_rate":"44958.60",
+        #         "last_rate":"44979.88",
+        #         "min_rate":"44957.33",
+        #         "max_rate":"44979.88",
+        #         "trade_count":8,
+        #         "volume":"0.00082814",
+        #         "vwap":"44965.02"
+        #     },
+        #
+        return [
+            self.safe_integer(ohlcv, 'bucket_start_time'),
+            self.safe_number(ohlcv, 'first_rate'),
+            self.safe_number(ohlcv, 'max_rate'),
+            self.safe_number(ohlcv, 'min_rate'),
+            self.safe_number(ohlcv, 'last_rate'),
+            self.safe_number(ohlcv, 'volume'),
+        ]
 
     def parse_trade(self, trade, market=None):
         #

@@ -57,18 +57,6 @@ Sponsored Promotion
 -------------------
 
 
-.. image:: https://user-images.githubusercontent.com/1294454/150618153-e818845e-ba2e-4d60-8b1d-4ff47e09270d.png
-     :target: https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223
-     :alt: Huobi Futures Now In CCXT
-
-
-
-.. image:: https://user-images.githubusercontent.com/1294454/152485987-b2197494-1c1f-4a64-99e4-94bc48b84e69.jpg
-     :target: https://www.okx.com/join/1888677
-     :alt: OKEX is now OKX
-
-
-
 .. image:: https://user-images.githubusercontent.com/1294454/106092533-865ce180-613f-11eb-8d67-0830771fde32.png
      :target: https://ccxt.pro
      :alt: CCXT Pro – A JavaScript / Python / PHP cryptocurrency exchange trading WebSocket API for professionals
@@ -119,7 +107,7 @@ Certified Cryptocurrency Exchanges
      - ascendex
      - `AscendEX <https://ascendex.com/en-us/register?inviteCode=EL6BXBQM>`__
      - .. image:: https://img.shields.io/badge/2-lightgray
-          :target: https://bitmax-exchange.github.io/bitmax-pro-api/#bitmax-pro-api-documentation
+          :target: https://ascendex.github.io/ascendex-pro-api/#ascendex-pro-api-documentation
           :alt: API Version 2
      
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
@@ -455,7 +443,7 @@ The CCXT library currently supports the following 114 cryptocurrency exchange ma
      - ascendex
      - `AscendEX <https://ascendex.com/en-us/register?inviteCode=EL6BXBQM>`__
      - .. image:: https://img.shields.io/badge/2-lightgray
-          :target: https://bitmax-exchange.github.io/bitmax-pro-api/#bitmax-pro-api-documentation
+          :target: https://ascendex.github.io/ascendex-pro-api/#ascendex-pro-api-documentation
           :alt: API Version 2
      
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
@@ -2017,14 +2005,14 @@ JavaScript (for use with the ``<script>`` tag):
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
 
- * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.77.16/dist/ccxt.browser.js
- * unpkg: https://unpkg.com/ccxt@1.77.16/dist/ccxt.browser.js
+ * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.78.59/dist/ccxt.browser.js
+ * unpkg: https://unpkg.com/ccxt@1.78.59/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code-block:: HTML
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.77.16/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.78.59/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 

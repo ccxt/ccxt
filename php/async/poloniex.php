@@ -53,7 +53,10 @@ class poloniex extends Exchange {
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
                 'fetchTransactions' => true,
+                'fetchTransfer' => false,
+                'fetchTransfers' => false,
                 'fetchWithdrawals' => true,
+                'transfer' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -204,6 +207,18 @@ class poloniex extends Exchange {
                             'BUSD' => 1.0,
                         ),
                     ),
+                ),
+                'accountsByType' => array(
+                    'spot' => 'exchange',
+                    'margin' => 'margin',
+                    'future' => 'futures',
+                    'lending' => 'lending',
+                ),
+                'accountsById' => array(
+                    'exchange' => 'spot',
+                    'margin' => 'margin',
+                    'futures' => 'future',
+                    'lending' => 'lending',
                 ),
             ),
             'exceptions' => array(
@@ -1284,6 +1299,71 @@ class poloniex extends Exchange {
             'tag' => $tag,
             'network' => null,
             'info' => $response,
+        );
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        yield $this->load_markets();
+        $currency = $this->currency($code);
+        $amount = $this->currency_to_precision($code, $amount);
+        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $fromId = $this->safe_string($accountsByType, $fromAccount);
+        $toId = $this->safe_string($accountsByType, $toAccount);
+        if ($fromId === null) {
+            $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
+            throw new ExchangeError($this->id . ' $fromAccount must be one of ' . implode(', ', $keys));
+        }
+        if ($toId === null) {
+            $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
+            throw new ExchangeError($this->id . ' $toAccount must be one of ' . implode(', ', $keys));
+        }
+        $request = array(
+            'amount' => $amount,
+            'currency' => $currency['id'],
+            'fromAccount' => $fromId,
+            'toAccount' => $toId,
+        );
+        $response = yield $this->privatePostTransferBalance (array_merge($request, $params));
+        //
+        //    {
+        //        success => '1',
+        //        message => 'Transferred 1.00000000 USDT from exchange to lending account.'
+        //    }
+        //
+        return $this->parse_transfer($response, $currency);
+    }
+
+    public function parse_transfer_status($status) {
+        $statuses = array(
+            '1' => 'ok',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        //    {
+        //        success => '1',
+        //        $message => 'Transferred 1.00000000 USDT from exchange to lending account.'
+        //    }
+        //
+        $message = $this->safe_string($transfer, 'message');
+        $words = explode(' ', $message);
+        $amount = $this->safe_number($words, 1);
+        $currencyId = $this->safe_string($words, 2);
+        $fromAccountId = $this->safe_string($words, 4);
+        $toAccountId = $this->safe_string($words, 6);
+        $accountsById = $this->safe_value($this->options, 'accountsById', array());
+        return array(
+            'info' => $transfer,
+            'id' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'amount' => $amount,
+            'fromAccount' => $this->safe_string($accountsById, $fromAccountId),
+            'toAccount' => $this->safe_string($accountsById, $toAccountId),
+            'status' => $this->parse_order_status($this->safe_string($transfer, 'success', 'failed')),
         );
     }
 

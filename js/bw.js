@@ -29,7 +29,6 @@ module.exports = class bw extends Exchange {
                 'createLimitOrder': true,
                 'createMarketOrder': undefined,
                 'createOrder': true,
-                'deposit': undefined,
                 'editOrder': undefined,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,

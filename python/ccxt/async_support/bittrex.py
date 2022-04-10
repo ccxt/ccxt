@@ -65,7 +65,6 @@ class bittrex(Exchange):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
-                'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
                 'fetchMarkets': True,
@@ -270,6 +269,7 @@ class bittrex(Exchange):
             'commonCurrencies': {
                 'BIFI': 'Bifrost Finance',
                 'BTR': 'BTRIPS',
+                'GMT': 'GMT Token',
                 'MEME': 'Memetic',  # conflict with Meme Inu
                 'MER': 'Mercury',  # conflict with Mercurial Finance
                 'PROS': 'Pros.Finance',

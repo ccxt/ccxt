@@ -54,7 +54,10 @@ class exmo extends Exchange {
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
                 'fetchTransactions' => true,
+                'fetchTransfer' => false,
+                'fetchTransfers' => false,
                 'fetchWithdrawals' => true,
+                'transfer' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -171,6 +174,9 @@ class exmo extends Exchange {
                 'fetchTradingFees' => array(
                     'method' => 'fetchPrivateTradingFees', // or 'fetchPublicTradingFees'
                 ),
+            ),
+            'commonCurrencies' => array(
+                'GMT' => 'GMT Token',
             ),
             'exceptions' => array(
                 'exact' => array(

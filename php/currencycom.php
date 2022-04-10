@@ -38,7 +38,6 @@ class currencycom extends Exchange {
                 'createLimitOrder' => true,
                 'createMarketOrder' => true,
                 'createOrder' => true,
-                'deposit' => null,
                 'editOrder' => 'emulated',
                 'fetchAccounts' => true,
                 'fetchBalance' => true,

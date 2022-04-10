@@ -39,7 +39,10 @@ module.exports = class liquid extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchTradingFee': true,
+                'fetchTradingFees': true,
                 'fetchWithdrawals': true,
+                'transfer': false,
                 'withdraw': true,
             },
             'urls': {
@@ -693,6 +696,166 @@ module.exports = class liquid extends Exchange {
         return this.parseTrades (result, market, since, limit);
     }
 
+    async fetchTradingFee (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'id': market['id'],
+        };
+        const response = await this.publicGetProductsId (this.extend (request, params));
+        //
+        //     {
+        //         "id":"637",
+        //         "product_type":"CurrencyPair",
+        //         "code":"CASH",
+        //         "name":null,
+        //         "market_ask":"0.00000797",
+        //         "market_bid":"0.00000727",
+        //         "indicator":null,
+        //         "currency":"BTC",
+        //         "currency_pair_code":"TFTBTC",
+        //         "symbol":null,
+        //         "btc_minimum_withdraw":null,
+        //         "fiat_minimum_withdraw":null,
+        //         "pusher_channel":"product_cash_tftbtc_637",
+        //         "taker_fee":"0.0",
+        //         "maker_fee":"0.0",
+        //         "low_market_bid":"0.00000685",
+        //         "high_market_ask":"0.00000885",
+        //         "volume_24h":"3696.0755956",
+        //         "last_price_24h":"0.00000716",
+        //         "last_traded_price":"0.00000766",
+        //         "last_traded_quantity":"1748.0377978",
+        //         "average_price":null,
+        //         "quoted_currency":"BTC",
+        //         "base_currency":"TFT",
+        //         "tick_size":"0.00000001",
+        //         "disabled":false,
+        //         "margin_enabled":false,
+        //         "cfd_enabled":false,
+        //         "perpetual_enabled":false,
+        //         "last_event_timestamp":"1596962820.000797146",
+        //         "timestamp":"1596962820.000797146",
+        //         "multiplier_up":"9.0",
+        //         "multiplier_down":"0.1",
+        //         "average_time_interval":null
+        //     }
+        //
+        return this.parseTradingFee (response, market);
+    }
+
+    parseTradingFee (fee, market = undefined) {
+        const marketId = this.safeString (fee, 'id');
+        const symbol = this.safeSymbol (marketId, market);
+        return {
+            'info': fee,
+            'symbol': symbol,
+            'maker': this.safeNumber (fee, 'maker_fee'),
+            'taker': this.safeNumber (fee, 'taker_fee'),
+            'percentage': true,
+            'tierBased': true,
+        };
+    }
+
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const spot = await this.publicGetProducts (params);
+        //
+        //     [
+        //         {
+        //             "id":"637",
+        //             "product_type":"CurrencyPair",
+        //             "code":"CASH",
+        //             "name":null,
+        //             "market_ask":"0.00000797",
+        //             "market_bid":"0.00000727",
+        //             "indicator":null,
+        //             "currency":"BTC",
+        //             "currency_pair_code":"TFTBTC",
+        //             "symbol":null,
+        //             "btc_minimum_withdraw":null,
+        //             "fiat_minimum_withdraw":null,
+        //             "pusher_channel":"product_cash_tftbtc_637",
+        //             "taker_fee":"0.0",
+        //             "maker_fee":"0.0",
+        //             "low_market_bid":"0.00000685",
+        //             "high_market_ask":"0.00000885",
+        //             "volume_24h":"3696.0755956",
+        //             "last_price_24h":"0.00000716",
+        //             "last_traded_price":"0.00000766",
+        //             "last_traded_quantity":"1748.0377978",
+        //             "average_price":null,
+        //             "quoted_currency":"BTC",
+        //             "base_currency":"TFT",
+        //             "tick_size":"0.00000001",
+        //             "disabled":false,
+        //             "margin_enabled":false,
+        //             "cfd_enabled":false,
+        //             "perpetual_enabled":false,
+        //             "last_event_timestamp":"1596962820.000797146",
+        //             "timestamp":"1596962820.000797146",
+        //             "multiplier_up":"9.0",
+        //             "multiplier_down":"0.1",
+        //             "average_time_interval":null
+        //         },
+        //     ]
+        //
+        const perpetual = await this.publicGetProducts ({ 'perpetual': '1' });
+        //
+        //     [
+        //         {
+        //             "id":"604",
+        //             "product_type":"Perpetual",
+        //             "code":"CASH",
+        //             "name":null,
+        //             "market_ask":"11721.5",
+        //             "market_bid":"11719.0",
+        //             "indicator":null,
+        //             "currency":"USD",
+        //             "currency_pair_code":"P-BTCUSD",
+        //             "symbol":"$",
+        //             "btc_minimum_withdraw":null,
+        //             "fiat_minimum_withdraw":null,
+        //             "pusher_channel":"product_cash_p-btcusd_604",
+        //             "taker_fee":"0.0012",
+        //             "maker_fee":"0.0",
+        //             "low_market_bid":"11624.5",
+        //             "high_market_ask":"11859.0",
+        //             "volume_24h":"0.271",
+        //             "last_price_24h":"11621.5",
+        //             "last_traded_price":"11771.5",
+        //             "last_traded_quantity":"0.09",
+        //             "average_price":"11771.5",
+        //             "quoted_currency":"USD",
+        //             "base_currency":"P-BTC",
+        //             "tick_size":"0.5",
+        //             "disabled":false,
+        //             "margin_enabled":false,
+        //             "cfd_enabled":false,
+        //             "perpetual_enabled":true,
+        //             "last_event_timestamp":"1596963309.418853092",
+        //             "timestamp":"1596963309.418853092",
+        //             "multiplier_up":null,
+        //             "multiplier_down":"0.1",
+        //             "average_time_interval":300,
+        //             "index_price":"11682.8124",
+        //             "mark_price":"11719.96781",
+        //             "funding_rate":"0.00273",
+        //             "fair_price":"11720.2745"
+        //         },
+        //     ]
+        //
+        const markets = this.arrayConcat (spot, perpetual);
+        const result = {};
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            const marketId = this.safeString (market, 'id');
+            const symbol = this.safeSymbol (marketId, market);
+            result[symbol] = this.parseTradingFee (market);
+        }
+        return result;
+    }
+
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1021,11 +1184,15 @@ module.exports = class liquid extends Exchange {
             }
         }
         const networks = this.safeValue (this.options, 'networks', {});
-        const paramsCwArray = this.safeValue (params, 'crypto_withdrawal', {});
-        let network = this.safeStringUpper (paramsCwArray, 'network'); // this line allows the user to specify either ERC20 or ETH
+        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        if (network === undefined) {
+            const paramsCwArray = this.safeValue (params, 'crypto_withdrawal', {});
+            network = this.safeStringUpper (paramsCwArray, 'network');
+        }
         network = this.safeString (networks, network, network); // handle ERC20>ETH alias
         if (network !== undefined) {
             request['crypto_withdrawal']['network'] = network;
+            params = this.omit (params, 'network');
             params['crypto_withdrawal'] = this.omit (params['crypto_withdrawal'], 'network');
         }
         const response = await this.privatePostCryptoWithdrawals (this.deepExtend (request, params));
