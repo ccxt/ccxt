@@ -22,7 +22,6 @@ const fs = require ('fs')
         overwriteFile,
     } = require ('./fs.js')
     , Exchange = require ('../js/base/Exchange.js')
-    , errorHierarchyFilename = './js/base/errorHierarchy.js'
     , tsFilename = './ccxt.d.ts'
 
 class Transpiler {
@@ -1251,8 +1250,9 @@ class Transpiler {
 
     // ========================================================================
 
-    transpileErrorHierarchy ({ errorHierarchyFilename, tsFilename }) {
+    transpileErrorHierarchy ({ tsFilename }) {
 
+        const errorHierarchyFilename = './js/base/errorHierarchy.js'
         const errorHierarchyPath = __dirname + '/.' + errorHierarchyFilename
         const errorHierarchy = require (errorHierarchyPath)
 
@@ -1690,7 +1690,7 @@ class Transpiler {
 
         //*/
 
-        this.transpileErrorHierarchy ({ errorHierarchyFilename, tsFilename })
+        this.transpileErrorHierarchy ({ tsFilename })
 
         this.transpileTests ()
 
@@ -1717,7 +1717,7 @@ if (require.main === module) { // called directly like `node module`
     if (test) {
         transpiler.transpileTests ()
     } else if (errors) {
-        transpiler.transpileErrorHierarchy ({ errorHierarchyFilename, tsFilename })
+        transpiler.transpileErrorHierarchy ({ tsFilename })
     } else {
         transpiler.transpileEverything (force)
     }
