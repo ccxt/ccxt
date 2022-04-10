@@ -1307,8 +1307,10 @@ class Transpiler {
         const python3BodyIntellisense = python3Body + '\n\n\n' + pythonBaseError + '\n' + pythonErrors.join ('\n') + '\n' + pythonAll + '\n'
 
         const pythonFilename = './python/ccxt/base/errors.py'
-        log.bright.cyan (message, pythonFilename.yellow)
-        fs.writeFileSync (pythonFilename, python3BodyIntellisense)
+        if (fs.existsSync(pythonFilename)) {
+            log.bright.cyan (message, pythonFilename.yellow)
+            fs.writeFileSync (pythonFilename, python3BodyIntellisense)
+        }
 
         // PHP ----------------------------------------------------------------
 
@@ -1331,13 +1333,16 @@ class Transpiler {
             return "require_once PATH_TO_CCXT . '" + name + ".php';"
         }
 
-        const phpErrors = intellisense (errorHierarchy, 'Exception', phpMakeErrorClassFile)
-        const phpBodyIntellisense = phpErrors.join ("\n") + "\n\n"
-        const phpFilename ='./ccxt' + ccxtFolderSuffix + '.php'
+        const phpFilename ='./ccxt.php'
 
-        log.bright.cyan (message, phpFilename.yellow)
-        const phpRegex = /require_once PATH_TO_CCXT \. \'BaseError\.php\'\;\n(?:require_once PATH_TO_CCXT[^\n]+\n)+\n/m
-        replaceInFile (phpFilename, phpRegex, phpBodyIntellisense)
+        if (fs.existsSync(phpFilename)) {
+            const phpErrors = intellisense (errorHierarchy, 'Exception', phpMakeErrorClassFile)
+            const phpBodyIntellisense = phpErrors.join ("\n") + "\n\n"
+
+            log.bright.cyan (message, phpFilename.yellow)
+            const phpRegex = /require_once PATH_TO_CCXT \. \'BaseError\.php\'\;\n(?:require_once PATH_TO_CCXT[^\n]+\n)+\n/m
+            replaceInFile (phpFilename, phpRegex, phpBodyIntellisense)
+        }
 
         // TypeScript ---------------------------------------------------------
 
