@@ -437,10 +437,10 @@ class binance(Exchange):
                         'broker/subAccountApi/ipRestriction/ipList': 1,
                     },
                 },
-				'sapiV3': {
+                'sapiV3': {
                     'get': {
                         'sub-account/assets': 1,
-                    }
+                    },
                 },
                 # deprecated
                 'wapi': {
@@ -4900,7 +4900,7 @@ class binance(Exchange):
                     body = self.urlencode(params)
             else:
                 raise AuthenticationError(self.id + ' userDataStream endpoint requires `apiKey` credential')
-        elif (api == 'private') or (api == 'sapi' and path != 'system/status') or (api == 'wapi' and path != 'systemStatus') or or (api == 'sapiv3' and path != 'systemStatus') or (api == 'dapiPrivate') or (api == 'dapiPrivateV2') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2'):
+        elif (api == 'private') or (api == 'sapi' and path != 'system/status') or (api == 'sapiV3') or (api == 'wapi' and path != 'systemStatus') or (api == 'dapiPrivate') or (api == 'dapiPrivateV2') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2'):
             self.check_required_credentials()
             query = None
             recvWindow = self.safe_integer(self.options, 'recvWindow')
@@ -5007,7 +5007,7 @@ class binance(Exchange):
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
         response = self.fetch2(path, api, method, params, headers, body, config, context)
         # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
-        if (api == 'private') or (api == 'wapi') or (api == 'sapiv3'):
+        if (api == 'private') or (api == 'wapi'):
             self.options['hasAlreadyAuthenticatedSuccessfully'] = True
         return response
 
