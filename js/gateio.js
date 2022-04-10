@@ -194,9 +194,8 @@ module.exports = class gateio extends ccxt.gateio {
         //
         const channel = this.safeString (message, 'channel');
         let result = this.safeValue (message, 'result');
-        const isArray = Array.isArray (result);
-        if (!isArray) {
-            result = [result];
+        if (!Array.isArray (result)) {
+            result = [ result ];
         }
         for (let i = 0; i < result.length; i++) {
             const ticker = result[i];
