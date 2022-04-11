@@ -617,28 +617,20 @@ module.exports = class okx extends Exchange {
                 // 1 = SPOT, 3 = FUTURES, 5 = MARGIN, 6 = FUNDING, 9 = SWAP, 12 = OPTION, 18 = Unified account
                 'fetchOrder': {
                     'method': 'privateGetTradeOrder', // privateGetTradeOrdersAlgoHistory
-                    'algoOrderTypes': {
-                        'conditional': true,
-                        'trigger': true,
-                        'oco': true,
-                        'move_order_stop': true,
-                        'iceberg': true,
-                        'twap': true,
-                    },
                 },
                 'fetchOpenOrders': {
                     'method': 'privateGetTradeOrdersPending', // privateGetTradeOrdersAlgoPending
-                    'algoOrderTypes': {
-                        'conditional': true,
-                        'trigger': true,
-                        'oco': true,
-                        'move_order_stop': true,
-                        'iceberg': true,
-                        'twap': true,
-                    },
                 },
                 'cancelOrders': {
                     'method': 'privatePostTradeCancelBatchOrders', // privatePostTradeCancelAlgos
+                },
+                'algoOrderTypes': {
+                    'conditional': true,
+                    'trigger': true,
+                    'oco': true,
+                    'move_order_stop': true,
+                    'iceberg': true,
+                    'twap': true,
                 },
                 'accountsByType': {
                     'spot': '1',
@@ -2312,7 +2304,7 @@ module.exports = class okx extends Exchange {
         };
         const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
         const options = this.safeValue (this.options, 'fetchOrder', {});
-        const algoOrderTypes = this.safeValue (options, 'algoOrderTypes', {});
+        const algoOrderTypes = this.safeValue (this.options, 'algoOrderTypes', {});
         const defaultMethod = this.safeString (options, 'method', 'privateGetTradeOrder');
         let method = this.safeString (params, 'method', defaultMethod);
         const ordType = this.safeString (params, 'ordType');
@@ -2469,7 +2461,7 @@ module.exports = class okx extends Exchange {
             request['limit'] = limit; // default 100, max 100
         }
         const options = this.safeValue (this.options, 'fetchOpenOrders', {});
-        const algoOrderTypes = this.safeValue (options, 'algoOrderTypes', {});
+        const algoOrderTypes = this.safeValue (this.options, 'algoOrderTypes', {});
         const defaultMethod = this.safeString (options, 'method', 'privateGetTradeOrdersPending');
         let method = this.safeString (params, 'method', defaultMethod);
         const ordType = this.safeString (params, 'ordType');
