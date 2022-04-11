@@ -175,6 +175,9 @@ class Exchange(BaseExchange):
             return http_response
         return response.content
 
+    async def fetch_permissions(self, params={}):
+        raise NotSupported('fetch_permissions() is not supported yet')
+
     async def load_markets_helper(self, reload=False, params={}):
         if not reload:
             if self.markets:
