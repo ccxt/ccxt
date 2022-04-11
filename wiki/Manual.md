@@ -4523,7 +4523,7 @@ Be careful when specifying the `tag` and the `address`. The `tag` is **NOT an ar
 
 ## Transfers
 
-The `transfer` method makes internal transfers of funds between accounts on the same exchange. If an exchange is separated on CCXT into a spot and futures class (e.g. `binanceusdm`, `kucoinfutures`, ...), then the method `transferIn` may be available to transfer funds into the futures account, and the method `transferOut` may be available to transfer funds out of the futures account
+The `transfer` method makes internal transfers of funds between accounts on the same exchange. This can include subaccounts or accounts of different types (`spot`, `margin`, `future`, ...). If an exchange is separated on CCXT into a spot and futures class (e.g. `binanceusdm`, `kucoinfutures`, ...), then the method `transferIn` may be available to transfer funds into the futures account, and the method `transferOut` may be available to transfer funds out of the futures account
 
 ```Javascript
 transfer (code, amount, fromAccount, toAccount, params = {})
@@ -4547,6 +4547,8 @@ Unified values for `fromAccount` and `toAccount` include
 - `future`
 
 You can retrieve all the account types by selecting the keys from `exchange.options['accountsByType']
+
+If transfering to or from a margin account you can specify the market symbol in `params`. (e.g. `{'symbol': 'BTC/USDT'}`)
 
 Returns
 
@@ -4581,6 +4583,21 @@ Parameters
 Returns
 
 - An array of [transfer structures](#transfer-structure)
+
+```Javascript
+fetchTransfer (id, since = undefined, limit = undefined, params = {})
+```
+
+Parameters
+
+- **id** (String) tranfer id (e.g. `"12345"`)
+- **since** (Integer) Timestamp (ms) of the earliest time to retrieve transfers for (e.g. `1646940314000`)
+- **limit** (Integer) The number of [transfer structures](#transfer-structure) to retrieve (e.g. `5`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- A [transfer structure](#transfer-structure)
 
 ### Transfer Structure
 
