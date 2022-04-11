@@ -13,6 +13,7 @@ import { basename } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile } from './fsLocal.js'
 import { pathToFileURL } from 'url'
 import { errorHierarchy } from '../js/base/errorHierarchy.js'
+import { platform } from 'process'
 
 
 const tsFilename = './ccxt.d.ts'
