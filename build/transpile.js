@@ -18,7 +18,7 @@ import { platform } from 'process'
 
 const tsFilename = './ccxt.d.ts'
 
-const __dirname = new URL('.', import.meta.url).pathname;
+let __dirname = new URL('.', import.meta.url).pathname;
 
 // this is necessary because for some reason
 // pathname keeps the first '/' for windows paths
