@@ -2804,3 +2804,10 @@ class Exchange(object):
             return self.safe_value(tiers, symbol)
         else:
             raise NotSupported(self.id + 'fetch_market_leverage_tiers() is not supported yet')
+
+    def parse_borrow_interests(self, response, market=None):
+        interest = []
+        for i in range(len(response)):
+            row = response[i]
+            interest.append(self.parse_borrow_interest(row, market))
+        return interest

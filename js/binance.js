@@ -5563,22 +5563,24 @@ module.exports = class binance extends Exchange {
         //     }
         //
         const rows = this.safeValue (response, 'rows');
-        const interest = [];
-        for (let i = 0; i < rows.length; i++) {
-            const row = rows[i];
-            const timestamp = this.safeNumber (row, 'interestAccuredTime');
-            const account = (symbol === undefined) ? 'cross' : symbol;
-            interest.push ({
-                'account': account,
-                'currency': this.safeCurrencyCode (this.safeString (row, 'asset')),
-                'interest': this.safeNumber (row, 'interest'),
-                'interestRate': this.safeNumber (row, 'interestRate'),
-                'amountBorrowed': this.safeNumber (row, 'principal'),
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-                'info': row,
-            });
-        }
+        const interest = this.parseBorrowInterests (rows, market);
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
+    }
+
+    parseBorrowInterest (info, market) {
+        const symbol = this.safeString (info, 'isolatedSymbol');
+        const timestamp = this.safeNumber (info, 'interestAccuredTime');
+        return {
+            'account': (symbol === undefined) ? 'cross' : symbol,
+            'symbol': symbol,
+            'marginType': (symbol === undefined) ? 'cross' : 'isolated',
+            'currency': this.safeCurrencyCode (this.safeString (info, 'asset')),
+            'interest': this.safeNumber (info, 'interest'),
+            'interestRate': this.safeNumber (info, 'interestRate'),
+            'amountBorrowed': this.safeNumber (info, 'principal'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': info,
+        };
     }
 };

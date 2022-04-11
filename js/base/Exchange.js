@@ -2228,4 +2228,13 @@ module.exports = class Exchange {
         }
 
     }
+
+    parseBorrowInterests (response, market = undefined) {
+        const interest = [];
+        for (let i = 0; i < response.length; i++) {
+            const row = response[i];
+            interest.push (this.parseBorrowInterest (row, market));
+        }
+        return interest;
+    }
 }

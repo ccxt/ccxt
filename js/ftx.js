@@ -2687,22 +2687,24 @@ module.exports = class ftx extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result');
-        const interest = [];
-        for (let i = 0; i < result.length; i++) {
-            const payment = result[i];
-            const coin = this.safeString (payment, 'coin');
-            const datetime = this.safeString (payment, 'time');
-            interest.push ({
-                'account': undefined,
-                'currency': this.safeCurrencyCode (coin),
-                'interest': this.safeNumber (payment, 'cost'),
-                'interestRate': this.safeNumber (payment, 'rate'),
-                'amountBorrowed': this.safeNumber (payment, 'size'),
-                'timestamp': this.parse8601 (datetime),
-                'datetime': datetime,
-                'info': payment,
-            });
-        }
+        const interest = this.parseBorrowInterests (result);
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
+    }
+
+    parseBorrowInterest (info, market = undefined) {
+        const coin = this.safeString (info, 'coin');
+        const datetime = this.safeString (info, 'time');
+        return {
+            'account': 'cross',
+            'symbol': undefined,
+            'marginType': 'cross',
+            'currency': this.safeCurrencyCode (coin),
+            'interest': this.safeNumber (info, 'cost'),
+            'interestRate': this.safeNumber (info, 'rate'),
+            'amountBorrowed': this.safeNumber (info, 'size'),
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime,
+            'info': info,
+        };
     }
 };
