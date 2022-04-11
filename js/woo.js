@@ -66,6 +66,7 @@ module.exports = class woo extends Exchange {
                 'fetchTransactions': true,
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
+                'transfer': true,
                 'withdraw': false, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#token-withdraw
             },
             'timeframes': {
@@ -133,6 +134,7 @@ module.exports = class woo extends Exchange {
                         },
                         'post': {
                             'order': 5, // 2 requests per 1 second per symbol
+                            'asset/main_sub_transfer': 30, // 20 requests per 60 seconds
                             'asset/withdraw': 120,  // implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
                         },
                         'delete': {
@@ -212,6 +214,9 @@ module.exports = class woo extends Exchange {
                 'defaultNetworkCodeForCurrencies': {
                     // 'USDT': 'TRC20',
                     // 'BTC': 'BTC',
+                },
+                'transfer': {
+                    'fillResponseFromRequest': true,
                 },
             },
             'commonCurrencies': {},
@@ -1373,6 +1378,44 @@ module.exports = class woo extends Exchange {
             'CANCELED': 'canceled',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'token': currency['id'],
+            'amount': this.parseNumber (amount),
+            'from_application_id': fromAccount,
+            'to_application_id': toAccount,
+        };
+        const response = await this.v1PrivatePostAssetMainSubTransfer (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "id": 200
+        //     }
+        //
+        const transferOptions = this.safeValue (this.options, 'transfer', {});
+        const fillResponseFromRequest = this.safeValue (transferOptions, 'fillResponseFromRequest', true);
+        const transfer = {
+            'info': response,
+            'id': this.safeString (response, 'id'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': undefined,
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': this.safeString (response, 'success') ? 'ok' : 'failed',
+        };
+        if (fillResponseFromRequest) {
+            transfer['amount'] = amount;
+            transfer['fromAccount'] = fromAccount;
+            transfer['toAccount'] = toAccount;
+            transfer['currency'] = currency['id'];
+        }
+        return transfer;
     }
 
     async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
