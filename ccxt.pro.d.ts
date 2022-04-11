@@ -41,9 +41,9 @@ declare module 'ccxt.pro' {
     // -----------------------------------------------
 
     import {
+        Exchange as BaseExchange,
         Balances,
         Dictionary,
-        Exchange as BaseExchange,
         OHLCV,
         Order,
         OrderBook,
@@ -54,23 +54,23 @@ declare module 'ccxt.pro' {
 
     // default interfaces
     export {
+        Balance,
+        Balances,
+        Currency,
+        DepositAddress,
+        DepositAddressResponse,
+        ExchangeId,
+        Fee,
         Market,
+        OHLCV,
         Order,
         OrderBook,
-        Trade,
-        Ticker,
-        Transaction,
-        Tickers,
-        Currency,
-        Balance,
         PartialBalances,
-        Balances,
-        DepositAddress,
-        Fee,
+        Ticker,
+        Tickers,
+        Trade,
+        Transaction,
         WithdrawalResponse,
-        DepositAddressResponse,
-        OHLCV,
-        ExchangeId
     } from 'ccxt'
 
     export class Exchange extends BaseExchange {
