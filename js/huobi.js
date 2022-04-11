@@ -4670,11 +4670,11 @@ module.exports = class huobi extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        const interest = this.parseBorrowInterests (data, marginType, market);
+        const interest = this.parseBorrowInterests (data, market);
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
 
-    parseBorrowInterest (info, marginType, market = undefined) {
+    parseBorrowInterest (info, market = undefined) {
         // isolated
         //    {
         //        "interest-rate":"0.000040830000000000",
@@ -4717,12 +4717,14 @@ module.exports = class huobi extends Exchange {
         //   }
         //
         const marketId = this.safeString (info, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
-        const account = (marginType === 'cross') ? marginType : symbol;
+        const marginType = (marketId === undefined) ? 'cross' : 'isolated';
+        market = this.safeMarket (marketId);
+        const symbol = this.safeString (market, 'symbol');
         const timestamp = this.safeNumber (info, 'accrued-at');
         return {
-            'account': account,  // isolated symbol, will not be returned for crossed margin
+            'account': (marginType === 'isolated') ? symbol : 'cross',  // deprecated
+            'symbol': symbol,
+            'marginType': marginType,
             'currency': this.safeCurrencyCode (this.safeString (info, 'currency')),
             'interest': this.safeNumber (info, 'interest-amount'),
             'interestRate': this.safeNumber (info, 'interest-rate'),
