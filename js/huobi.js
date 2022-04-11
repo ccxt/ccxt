@@ -1075,7 +1075,7 @@ module.exports = class huobi extends ccxt.huobi {
                 }
             }
         }
-        const subParams = {
+        const subscriptionParams = {
             'type': type,
             'subType': subType,
             'margin': marginMode,
@@ -1084,7 +1084,7 @@ module.exports = class huobi extends ccxt.huobi {
         // because huobi returns a different topic than the topic sent. Example: we send
         // "accounts.*" and "accounts" is returned so we're setting channel = "accounts.*" and
         // messageHash = "accounts" allowing handleBalance to freely resolve the topic in the message
-        return await this.subscribePrivate (channel, messageHash, type, subType, params, subParams);
+        return await this.subscribePrivate (channel, messageHash, type, subType, params, subscriptionParams);
     }
 
     handleBalance (client, message) {
@@ -1814,14 +1814,14 @@ module.exports = class huobi extends ccxt.huobi {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
     }
 
-    async subscribePrivate (channel, messageHash, type, subtype, params = {}, subParams = {}) {
+    async subscribePrivate (channel, messageHash, type, subtype, params = {}, subscriptionParams = {}) {
         const requestId = this.nonce ();
         const subscription = {
             'id': requestId,
             'messageHash': messageHash,
             'params': params,
         };
-        const extendedSubsription = this.extend (subscription, subParams);
+        const extendedSubsription = this.extend (subscription, subscriptionParams);
         let request = undefined;
         if (type === 'spot') {
             request = {
