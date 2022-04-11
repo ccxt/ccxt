@@ -19,6 +19,16 @@ const tsFilename = './ccxt.d.ts'
 
 const __dirname = new URL('.', import.meta.url).pathname;
 
+// this is necessary because for some reason
+// pathname keeps the first '/' for windows paths
+// making them invalid
+// example: /C:Users/user/Desktop/
+if (platform === 'win32') {
+    if (__dirname[0] === '/') {
+        __dirname = __dirname.substring(1)
+    }
+}
+
 ansi.nice
 
 
