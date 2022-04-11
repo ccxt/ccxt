@@ -2804,3 +2804,8 @@ class Exchange(object):
             return self.safe_value(tiers, symbol)
         else:
             raise NotSupported(self.id + 'fetch_market_leverage_tiers() is not supported yet')
+
+    def parse_positions(self, positions, market=None, params={}):
+        array = self.to_array(positions)
+        array = [self.merge(self.parse_position(position, market), params) for position in array]
+        return self.sort_by_2(array, 'timestamp', 'id')

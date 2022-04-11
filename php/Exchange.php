@@ -3737,4 +3737,13 @@ class Exchange {
     public function sleep($milliseconds) {
         sleep($milliseconds / 1000);
     }
+
+    public function parse_positions($positions, $market = null, $params = array()) {
+        $array = is_array($positions) ? array_values($positions) : array();
+        $result = array();
+        foreach ($array as $position) {
+            $result[] = $this->merge($this->parse_position($position, $market), $params);
+        }
+        return $this->sort_by_2($result, 'timestamp', 'id');
+    }
 }
