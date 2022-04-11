@@ -8,9 +8,10 @@ require('ansicolor').nice
 
 async function b4yTest () {
         // let exchange2 = new ccxt.coinbase();
-        // const res = await exchange2.fetchMarkets();
+        // const res = await exchange2.fetchTickers();
         // console.log(res)
-        const token = 'token here';
+        // return
+        const token = 'ce18c6ddfbdafb3a8398975edefc5bdd7d6300a5';
         let exchange = new ccxt.bit4you({
             'token': token, // bearer token : need to sign on www.bit4you.io
             'enableRateLimit': true,
@@ -22,10 +23,13 @@ async function b4yTest () {
         // console.log(exchange.simulation)
 
         // fetchOrderBook
-        // console.log(await exchange.fetchOrderBook('BTC-USDT'))
+        // console.log(await exchange.fetchOrderBook('BTC/USDT'))
+             
+        // fetchTicker
+        // console.log(await exchange.fetchTicker('BTC/USDT'))
 
         // fetchMarkets
-        // console.log(await exchange.fetchStatus())
+        // console.log(await exchange.fetchCurrencies())
         
         // fetchCurrencies
         // console.log(await exchange.loadMarkets())
@@ -34,7 +38,7 @@ async function b4yTest () {
         // console.log(await exchange.fetchMyTrades())
 
         // fetchBalance
-        console.log(await exchange.fetchBalance())
+        // console.log(await exchange.fetchBalance())
 
         // createOrder
         // symbol, type, side, amount, price = undefined, params = {}
@@ -60,7 +64,7 @@ async function b4yTest () {
 
         // fetchTransactions
         // console.log('--- Start ---')
-        // console.log(await exchange.fetchTransactions())
+        // console.log(await exchange.fetchOrders())
         
         
         // console.log('--- Start ---')

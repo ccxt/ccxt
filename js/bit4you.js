@@ -1,54 +1,7 @@
-/* eslint-disable guard-for-in */
-/* eslint-disable no-restricted-syntax */
-/* eslint-disable no-trailing-spaces */
-/* eslint-disable nonblock-statement-body-position */
-/* eslint-disable padding-line-between-statements */
-/* eslint-disable func-call-spacing */
-
 'use strict';
 
-//                              User
-// +-------------------------------------------------------------+
-// |                            CCXT                             |
-// +------------------------------+------------------------------+
-// |            Public            |           Private            |
-// +=============================================================+
-// │                              .                              |
-// │                    The Unified CCXT API                     |
-// │                              .                              |
-// |       loadMarkets           .           fetchBalance       |
-// |       fetchMarkets           .            createOrder       |
-// |       fetchCurrencies        .            cancelOrder       |
-// |       fetchTicker            .             fetchOrder       |
-// |       fetchTickers           .            fetchOrders       |
-// |       fetchOrderBook         .        fetchOpenOrders       |
-// |       fetchOHLCV             .      fetchClosedOrders       |
-// |       fetchStatus            .          fetchMyTrades       |
-// |       fetchTrades            .                deposit       |
-// |                              .               withdraw       |
-// │                              .                              |
-// +=============================================================+
-// │                              .                              |
-// |                     Custom Exchange API                     |
-// |         (Derived Classes And Their Implicit Methods)        |
-// │                              .                              |
-// |       publicGet...           .          privateGet...       |
-// |       publicPost...          .         privatePost...       |
-// |                              .          privatePut...       |
-// |                              .       privateDelete...       |
-// |                              .                   sign       |
-// │                              .                              |
-// +=============================================================+
-// │                              .                              |
-// |                      Base Exchange Class                    |
-// │                              .                              |
-// +=============================================================+
-
-//  ---------------------------------------------------------------------------
 const Exchange = require ('./base/Exchange');
 const { BadRequest, DDoSProtection, ExchangeError } = require ('./base/errors');
-// const { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } = require ('./base/functions/number');
-//  ---------------------------------------------------------------------------
 
 module.exports = class bit4you extends Exchange {
     describe () {
@@ -70,20 +23,27 @@ module.exports = class bit4you extends Exchange {
                 'walletAddress': false,
             },
             'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': undefined,
+                'swap': undefined,
+                'future': undefined,
+                'option': undefined,
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
-                'fetchMarkets': true,
                 'fetchCurrencies': true,
+                'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchOHLCV': true,
-                'fetchStatus': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTrades': false,
                 'fetchTransactions': true,
                 'withdraw': true,
             },
@@ -138,18 +98,17 @@ module.exports = class bit4you extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        await this.loadMarkets ();
         const market = this.market (symbol);
         // console.log (market)
         const request = {
-            'symbol': market['symbol'].replace('/', '-'),
+            'symbol': market['symbol'].replace ('/', '-'),
             'resolution': this.timeframes[timeframe],
             'from': since,
             'to': params && params.to || null,
         };
-
         try {
-            const response = await this.publicGetUdfHistory(this.extend(request, params));
+            const response = await this.publicGetUdfHistory (this.extend (request, params));
             return response;
         } catch (error) {
             return error;
@@ -158,43 +117,77 @@ module.exports = class bit4you extends Exchange {
 
     async fetchMarkets (params = {}) {
         try {
-            const response = await this.publicGetMarketList();
-            const parsedData = [];
-            for (const info in response) {
-                const obj = {};
-                obj.id = response[info].iso.replace('-', '').toLowerCase();
-                obj.symbol = response[info].iso.replace('-', '/');
-                obj.base = response[info].iso.split('-')[0];
-                obj.quote = response[info].iso.split('-')[1];
-                obj.baseId = response[info].iso.split('-')[0].toLowerCase();
-                obj.quoteId = response[info].iso.split('-')[1].toLowerCase();
-                obj.active = true;
-                obj.taker = response[info].config && response[info].config.taker_fee || 0;
-                obj.maker = response[info].config && response[info].config.maker_fee || 0;
-                obj.percentage = true;
-                obj.tierBased = false;
-                obj.feeSide = 'quote';
-                obj.precision = {
-                    'price': response[info].config && response[info].config.rate_step.length - 2 || 8,
-                    'amount': response[info].config && response[info].config.base_qty_step.length - 2 || 8,
-                    'cost': response[info].config && response[info].config.quote_qty_step.length - 2 || 8,
+            const markets = await this.publicGetMarketList ();
+            const marketIds = Object.keys (markets);
+            const result = [];
+            for (let i = 0; i < marketIds.length; i++) {
+                const marketId = marketIds[i];
+                const market = this.safeValue (markets, marketId);
+                const id = this.safeString (market, 'iso').replace ('-', '').toLowerCase ();
+                const symbol = this.safeString (market, 'iso').replace ('-', '/').toUpperCase ();
+                const baseId = this.safeString (market, 'iso').split ('-')[0].toLowerCase ();
+                const quoteId = this.safeString (market, 'iso').split ('-')[1].toLowerCase ();
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                const active = true;
+                const config = market.config;
+                const precision = {
+                    'price': (this.safeNumber (config, 'rate_step').length - 2) || 8,
+                    'amount': (this.safeNumber (config, 'base_qty_step').length - 2) || 8,
+                    'cost': (this.safeNumber (config, 'quote_qty_step').length - 2) || 8,
                 };
-                obj.limit = {
+                const limits = {
                     'price': {
-                        'min': response[info].config && response[info].config.rate_min || 0,
-                        'max': response[info].config && response[info].config.rate_max || 0,
+                        'min': this.safeNumber (config, 'config.rate_min') || 0,
+                        'max': this.safeNumber (config, 'config.rate_max') || 0,
                     },
                     'amount': {
-                        'min': response[info].config && response[info].config.base_qty_min || 0,
+                        'min': this.safeNumber (config, 'config.base_qty_min') || 0,
                     },
                     'cost': {
-                        'min': response[info].config && response[info].config.quote_qty_min || 0,
+                        'min': this.safeNumber (config, 'quote_qty_min') || 0,
+                    },
+                    'leverage': {
+                        'max': undefined,
                     },
                 };
-                obj.info = response[info];
-                parsedData.push(obj);
+                const taker = this.safeNumber (config, 'taker_fee');
+                const maker = this.safeNumber (config, 'maker_fee');
+                result.push ({
+                    'id': id,
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
+                    'active': active,
+                    'spot': true,
+                    'margin': false,
+                    'percentage': true,
+                    'swap': false,
+                    'future': false,
+                    'option': false,
+                    'contract': false,
+                    'tierBased': false,
+                    'precision': precision,
+                    'taker': taker,
+                    'maker': maker,
+                    'settle': undefined,
+                    'settleId': undefined,
+                    'type': 'spot',
+                    'feeSide': 'quote',
+                    'linear': undefined,
+                    'inverse': undefined,
+                    'contractSize': undefined,
+                    'expiry': undefined,
+                    'expiryDatetime': undefined,
+                    'strike': undefined,
+                    'optionType': undefined,
+                    'limits': limits,
+                    'info': market,
+                });
             }
-            return parsedData;
+            return result;
         } catch (error) {
             return error;
         }
@@ -202,35 +195,37 @@ module.exports = class bit4you extends Exchange {
 
     async fetchCurrencies (params = {}) {
         try {
-            const response = await this.publicGetMarketAssets();
-            const parsedData = {};
-            for (const info in response) {
-                const obj = {};
-                const fee = (response[info].chains || [])[0];
-                obj.id = info.toLowerCase();
-                obj.code = info;
-                obj.name = response[info].name;
-                obj.active = true;
-                obj.fee = fee && fee.withdraw_fee || 0;
-                obj.precision = 8;
-                obj.limits = {
+            const response = await this.publicGetMarketAssets ();
+            const result = {};
+            const assetsIds = Object.keys (response);
+            for (let i = 0; i < assetsIds.length; i++) {
+                const key = assetsIds[i];
+                const code = this.safeCurrencyCode (key);
+                const asset = response[key];
+                const name = this.safeString (asset, 'name');
+                const fee = this.safeNumber (asset, 'withdraw_fee') || 0;
+                const limits = {
                     'amount': {
                         'min': undefined,
                         'max': undefined,
                     },
-                    'withdraw': {  
-                        'min': fee && fee.min_withdraw || 0,
-                        'max': fee && fee.max_withdraw || 0,
+                    'withdraw': {
+                        'min': this.safeNumber (asset, 'min_withdraw') || 0,
+                        'max': this.safeNumber (asset, 'max_withdraw') || 0,
                     },
                 };
-
-                const original = {};
-                original[info] = response[info];
-                obj.info = original;
-            
-                parsedData[info] = obj;
+                result[code] = {
+                    'id': key.toLowerCase (),
+                    'code': code,
+                    'name': name,
+                    'active': true,
+                    'fee': fee,
+                    'precision': 8,
+                    'info': asset,
+                    'limits': limits,
+                };
             }
-            return parsedData;
+            return result;
         } catch (error) {
             return error;
         }
@@ -243,36 +238,57 @@ module.exports = class bit4you extends Exchange {
         request.iso = code;
         request.after_id = params.after_id;
         request.before_id = params.before_id;
-
         try {
             const response = await this.privatePostWalletBlockchainHistory (this.extend (request));
-            const parsedData = [];
-
-            for (const i in response) {
-                const obj = {};
-                // obj.info = response[i];
-                obj.id = response[i].id;
-                obj.txid = response[i].txid;
-                obj.timestamp = response[i].time;
-                obj.datetime = response[i].time;
-                obj.address = response[i].address;
-                obj.tag = response[i].tag;
-                obj.type = Math.sign(response[i].quantity) >= 0 ? 'deposit' : 'withdrawal';
-                obj.amount = response[i].quantity;
-                obj.currency = response[i].iso;
-                obj.status = (!response[i].pending && !response[i].canceled ? 'ok' : 'canceled');
-                obj.updated = response[i].update_time;
-                obj.comment = null;
-                obj.fee = {
-                    'currency': response[i].fee_iso,
-                    'cost': response[i].fee,
+            const transactionIds = Object.keys (response);
+            const result = [];
+            for (let i = 0; i < transactionIds.length; i++) {
+                const transactionId = transactionIds[i];
+                const transaction = this.safeValue (response, transactionId);
+                const timestamp = this.safeInteger (transaction, 'time');
+                const datetime = this.iso8601 (timestamp);
+                const qty = this.safeNumber (transaction, 'quantity');
+                let type = '';
+                if (qty >= 0) {
+                    type = 'deposit';
+                } else {
+                    type = 'withdrawal';
+                }
+                const pending = this.safeInteger (transaction, 'pending');
+                const canceled = this.safeInteger (transaction, 'canceled');
+                let status = '';
+                if (!pending && !canceled) {
+                    status = 'ok';
+                } else {
+                    status = 'canceled';
+                }
+                const amount = this.safeNumber (transaction, 'quantity');
+                const currency = this.safeString (transaction, 'iso');
+                const updated = this.safeInteger (transaction, 'update_time');
+                const comment = null;
+                const fee = {
+                    'currency': this.safeString (transaction, 'fee_iso'),
+                    'cost': this.safeNumber (transaction, 'fee'),
                     'rate': undefined,
                 };
-
-                parsedData.push(obj);
+                result.push ({
+                    'info': transaction,
+                    'id': this.safeString (transaction, 'id'),
+                    'txid': this.safeString (transaction, 'txid'),
+                    'timestamp': timestamp,
+                    'datetime': datetime,
+                    'address': this.safeString (transaction, 'address'),
+                    'tag': this.safeString (transaction, 'tag'),
+                    'type': type,
+                    'amount': amount,
+                    'currency': currency,
+                    'status': status,
+                    'updated': updated,
+                    'comment': comment,
+                    'fee': fee,
+                });
             }
-
-            return parsedData || [];
+            return result;
         } catch (error) {
             return error;
         }
@@ -282,9 +298,12 @@ module.exports = class bit4you extends Exchange {
         const request = {};
         request.iso = code;
         request.quantity = amount;
-        request.address = tag ? address + ':' + tag : address;
+        if (tag) {
+            request.addres = address + ':' + tag;
+        } else {
+            request.address = address;
+        }
         request.chain = params.network + '-mainnet' || '';
-
         try {
             const response = await this.privatePostWalletSend (this.extend (request));
             return response || [];
@@ -303,11 +322,11 @@ module.exports = class bit4you extends Exchange {
     }
 
     async fetchTicker (symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        await this.loadMarkets ();
         const cached = this.market (symbol);
         const market = cached['symbol'];
         try {
-            const response = await this.fetchTickers();
+            const response = await this.fetchTickers ();
             return response[market] || [];
         } catch (error) {
             return error;
@@ -316,80 +335,97 @@ module.exports = class bit4you extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         try {
-            const response = await this.publicGetMarketSummaries();
-            const parsedData = {};
-            for (const info in response) {
-                const symbol = response[info].market.replace('-', '/');
-                const obj = {};
-                obj.symbol = symbol;
-                obj.timestamp = undefined;
-                obj.datetime = undefined;
-                obj.symbol = symbol;
-                obj.high = response[info].high;
-                obj.low = response[info].low;
-                obj.bid = response[info].bid;
-                obj.bidVolume = undefined;
-                obj.ask = response[info].ask;
-                obj.askVolume = undefined;
-                obj.open = response[info].open;
-                obj.close = response[info].close;
-                obj.last = response[info].last;
-                obj.previousClose = response[info].prevDay;
-                obj.change = undefined;
-                obj.percentage = undefined;
-                obj.average = undefined;
-                obj.baseVolume = undefined;
-                obj.quoteVolume = undefined;
-                obj.info = response[info];
-               
-                obj.info = response[info];
-            
-                parsedData[symbol] = obj;
+            const response = await this.publicGetMarketSummaries ();
+            const result = {};
+            const tickerIds = Object.keys (response);
+            for (let i = 0; i < tickerIds.length; i++) {
+                const key = tickerIds[i];
+                const ticker = response[key];
+                const symbol = this.safeString (ticker, 'market').replace ('-', '/');
+                result[symbol] = {
+                    'symbol': symbol,
+                    'info': ticker,
+                    'timestamp': undefined,
+                    'datetime': undefined,
+                    'high': this.safeFloat (ticker, 'high'),
+                    'low': this.safeFloat (ticker, 'low'),
+                    'bid': this.safeFloat (ticker, 'bid'),
+                    'bidVolume': undefined,
+                    'ask': this.safeFloat (ticker, 'ask'),
+                    'askVolume': undefined,
+                    'vwap': undefined,
+                    'open': this.safeFloat (ticker, 'open'),
+                    'close': this.safeFloat (ticker, 'last'),
+                    'last': this.safeFloat (ticker, 'last'),
+                    'previousClose': this.safeFloat (ticker, 'prevDay'),
+                    'change': undefined,
+                    'percentage': undefined,
+                    'average': undefined,
+                    'baseVolume': this.safeFloat (ticker, 'volume'),
+                    'quoteVolume': undefined,
+                };
             }
-            return parsedData;
+            return result;
         } catch (error) {
             return error;
         }
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        // since is currently not implemented in our api, we use pagination index default is 0
         const request = {};
         request.market = symbol || '';
         request.page = since;
         request.limit = limit;
-        
         try {
             const response = await this.privatePostOrderList (this.extend (request));
-            const parsedData = [];
-            for (const info in response) {
-                const obj = {};
-                obj.id = response[info].txid;
-                obj.clientOrderId = undefined;
-                obj.datetime = this.iso8601 (response[info].open_time);
-                obj.timestamp = response[info].open_time;
-                obj.lastTradeTimestamp = response[info].update_time;
-                obj.status = response[info].isOpen ? 'open' : 'closed';
-                obj.symbol = response[info].market.replace('-', '/');
-                obj.type = response[info].requested_rate ? 'limit' : 'market';
-                obj.timeInForce = undefined;
-                obj.side = response[info].type;
-                obj.price = response[info].quantity;
-                obj.average = response[info].quantity;
-                obj.amount = response[info].base_quantity;
-                obj.filled = response[info].base_quantity;
-                obj.remaining = response[info].remaining.quantity || undefined;
-                obj.cost = parseFloat(Number(obj.filled) * Number(obj.price));
-                obj.trades = response[info].position;
-                obj.fee = {
-                    'currency': response[info].fee.iso,
-                    'cost': response[info].fee.quantity,
-                    'rate': undefined,
-                };
-                obj.info = response[info];
-                parsedData.push(obj);
+            const orderIds = Object.keys (response);
+            const result = [];
+            for (let i = 0; i < orderIds.length; i++) {
+                const key = orderIds[i];
+                const order = response[key];
+                const remaining = order.remaining;
+                const filled = this.safeFloat (order, 'base_quantity');
+                const price = this.safeFloat (order, 'quantity');
+                const feeObj = order.fee;
+                let status = '';
+                let type = '';
+                if (this.safeString (order, 'isOpen')) {
+                    status = 'open';
+                } else {
+                    status = 'closed';
+                }
+                if (this.safeNumber (order, 'requested_rate')) {
+                    type = 'limit';
+                } else {
+                    type = 'market';
+                }
+                result.push ({
+                    'id': this.safeString (order, 'txid'),
+                    'clientOrderId': undefined,
+                    'datetime': this.iso8601 (this.safeTimestamp (order, 'open_time')),
+                    'timestamp': this.safeTimestamp (order, 'open_time'),
+                    'lastTradeTimestamp': this.safeTimestamp (order, 'update_time'),
+                    'status': status,
+                    'symbol': this.safeString (order, 'market').replace ('-', '/'),
+                    'type': type,
+                    'timeInForce': undefined,
+                    'side': this.safeString (order, 'type'),
+                    'price': price,
+                    'average': this.safeFloat (order, 'quantity'),
+                    'amount': this.safeFloat (order, 'base_quantity'),
+                    'filled': filled,
+                    'remaining': this.safeFloat (remaining, 'quantity'),
+                    'cost': filled * price,
+                    'trades': order.position,
+                    'fee': {
+                        'currency': this.safeString (feeObj, 'iso'),
+                        'cost': this.safeFloat (feeObj, 'quantity'),
+                        'rate': undefined,
+                    },
+                    'info': order,
+                });
             }
-            return parsedData;
+            return result;
         } catch (error) {
             return error;
         }
@@ -398,7 +434,6 @@ module.exports = class bit4you extends Exchange {
     async fetchOrder (id, symbol = undefined, params = {}) {
         const request = {};
         request.txid = id;
-
         try {
             const response = await this.privatePostOrderInfo (this.extend (request));
             const parsedData = {};
@@ -407,9 +442,17 @@ module.exports = class bit4you extends Exchange {
             parsedData.datetime = this.iso8601 (response.open_time);
             parsedData.timestamp = response.open_time;
             parsedData.lastTradeTimestamp = response.update_time;
-            parsedData.status = response.isOpen ? 'open' : 'closed';
-            parsedData.symbol = response.market.replace('-', '/');
-            parsedData.type = response.requested_rate ? 'limit' : 'market';
+            if (response.isOpen) {
+                parsedData.status = 'open';
+            } else {
+                parsedData.status = 'closed';
+            }
+            parsedData.symbol = response.market.replace ('-', '/');
+            if (response.requested_rate) {
+                parsedData.type = 'limit';
+            } else {
+                parsedData.type = 'market';
+            }
             parsedData.timeInForce = undefined;
             parsedData.side = response.type;
             parsedData.price = response.quantity;
@@ -417,7 +460,7 @@ module.exports = class bit4you extends Exchange {
             parsedData.amount = response.base_quantity;
             parsedData.filled = response.base_quantity;
             parsedData.remaining = response.remaining.quantity || undefined;
-            parsedData.cost = parseFloat(parsedData.filled * parsedData.price);
+            parsedData.cost = parseFloat (parsedData.filled * parsedData.price);
             parsedData.trades = response.position;
             parsedData.fee = {
                 'currency': response.fee.iso,
@@ -425,7 +468,6 @@ module.exports = class bit4you extends Exchange {
                 'rate': undefined,
             };
             parsedData.info = response;
-
             return parsedData || [];
         } catch (error) {
             return error;
@@ -456,7 +498,6 @@ module.exports = class bit4you extends Exchange {
         // side type be limit or Market
         const request = {};
         request.txid = id;
-      
         try {
             const response = await this.privatePostOrderCancel (request);
             return response || [];
@@ -467,23 +508,37 @@ module.exports = class bit4you extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         // side type be limit or Market
-        await this.loadMarkets();
+        await this.loadMarkets ();
         const market = this.market (symbol);
-        const iso = market['symbol'].replace('/', '-');
+        const iso = market['symbol'].replace ('/', '-');
         const request = {};
-
         // if no rate is provided, the order will be executed at the current market rate
         if (type === 'limit' && price) {
             request.rate = price;
         }
-
         request.market = iso;
         request.type = side; // ENUM Buy or sell
         request.quantity = amount;
-        request.quantity_iso = params && params.quantity_iso ? params.quantity_iso : market.quote;
-        request.time_in_force = params && params.time_in_force ? params.time_in_force : null; // Default: 'GTC' - Enum: "GTC" "IOC" "FOK" "GTD" "DAY"
-        request.client_order_id = params && params.client_order_id ? params.client_order_id : null;
-        request.expires_at = params && params.expires_at ? params.expires_at : null;
+        if (params && params.quantity_iso) {
+            request.quantity_iso = params.quantity_iso;
+        } else {
+            request.quantity_iso = market.quote;
+        }
+        if (params && params.time_in_force) {
+            request.time_in_force = params.time_in_force;
+        } else {
+            request.time_in_force = 'GTC';
+        }
+        if (params && params.client_order_id) {
+            request.client_order_id = params.client_order_id;
+        } else {
+            request.client_order_id = undefined;
+        }
+        if (params && params.expires_at) {
+            request.expires_at = params.expires_at;
+        } else {
+            request.expires_at = undefined;
+        }
         try {
             const response = await this.privatePostOrderCreate (request);
             return response || [];
@@ -491,25 +546,26 @@ module.exports = class bit4you extends Exchange {
             return error;
         }
     }
-    
+
     async fetchBalance (params = {}) {
         const request = params;
         try {
-            const response = await this.privatePostWalletBalances(this.extend (request));
-            return response.filter((e) => e.balance > 0) || [];
+            const response = await this.privatePostWalletBalances (this.extend (request));
+            return response;
         } catch (error) {
             return error;
         }
     }
-    
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        const request = {
-            'market': symbol,
-        };
 
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['symbol'].replace ('/', '-'),
+        };
         try {
             const response = await this.publicPostMarketOrderbook (this.extend (request, params));
-            return response || [];
+            return this.parseOrderBook (response, symbol, undefined, 'bid', 'ask', 'rate', 'quantity');
         } catch (error) {
             return error;
         }
@@ -518,23 +574,19 @@ module.exports = class bit4you extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let fullPath = '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-
         if (method === 'POST') {
-            body = JSON.parse(this.json(query));
+            body = JSON.parse (this.json (query));
             body.simulation = this.simulation;
         }
-
         headers = {
             'Content-Type': 'application/json',
         };
-
         if (method === 'GET') {
             if (Object.keys (query).length) {
                 fullPath += '?' + this.urlencode (query);
             }
         }
         const url = this.urls['api'].url + fullPath;
-
         if (api === 'private') {
             const authorization = this.safeString (this.headers, 'Authorization');
             if (authorization !== undefined) {
@@ -547,9 +599,9 @@ module.exports = class bit4you extends Exchange {
                     'Content-Type': 'application/json',
                     'Authorization': 'Bearer ' + this.token,
                 };
-            } 
-        }    
-        return { 'url': url, 'method': method, 'body': this.json(body), 'headers': headers };
+            }
+        }
+        return { 'url': url, 'method': method, 'body': this.json (body), 'headers': headers };
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
@@ -560,8 +612,6 @@ module.exports = class bit4you extends Exchange {
             throw new DDoSProtection (this.id + ' ' + body);
         }
         if (code >= 400) {
-            const error = this.safeValue (response, 'error', {});
-            const message = this.safeString (error, 'message');
             const feedback = this.id + ' ' + body;
             // this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             // this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
