@@ -292,13 +292,11 @@ module.exports = class gateio extends ccxt.gateio {
         const market = this.market (symbol);
         const marketId = market['id'];
         const type = market['type'];
-        const isSettleBtc = market['settleId'] === 'btc';
-        const isBtcContract = (market['contract'] && isSettleBtc) ? true : false;
         const interval = this.timeframes[timeframe];
         const messageType = this.getUniformType (type);
         const method = messageType + '.candlesticks';
         const messageHash = method + ':' + interval + ':' + market['symbol'];
-        const url = this.getUrlByMarketType (type, isBtcContract);
+        const url = this.getUrlByMarketType (type, market['inverse']);
         const payload = [interval, marketId];
         const ohlcv = await this.subscribePublic (url, method, messageHash, payload);
         if (this.newUpdates) {
@@ -386,7 +384,7 @@ module.exports = class gateio extends ccxt.gateio {
 
     async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let isBtcContract = undefined;
+        let subType = undefined;
         let type = undefined;
         let marketId = '!all';
         if (symbol !== undefined) {
@@ -397,9 +395,9 @@ module.exports = class gateio extends ccxt.gateio {
             [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', undefined, params);
             if (type !== 'spot') {
                 const options = this.safeValue (this.options, 'watchMyTrades', {});
-                isBtcContract = this.safeValue (options, 'isBtcContract', false);
-                isBtcContract = this.safeValue (params, 'isBtcContract', isBtcContract);
-                params = this.omit (params, 'isBtcContract');
+                subType = this.safeValue (options, 'subType', 'linear');
+                subType = this.safeValue (params, 'subType', subType);
+                params = this.omit (params, 'subType');
             }
         }
         const messageType = this.getUniformType (type);
@@ -408,7 +406,8 @@ module.exports = class gateio extends ccxt.gateio {
         if (symbol !== undefined) {
             messageHash += ':' + marketId;
         }
-        const url = this.getUrlByMarketType (type, isBtcContract);
+        const isInverse = (subType === 'inverse');
+        const url = this.getUrlByMarketType (type, isInverse);
         const payload = [marketId];
         // uid required for non spot markets
         const requiresUid = (type !== 'spot');
@@ -552,9 +551,7 @@ module.exports = class gateio extends ccxt.gateio {
         const method = type + '.orders';
         let messageHash = method;
         messageHash = method + ':' + market['id'];
-        const isSettleBtc = market['settleId'] === 'btc';
-        const isBtcContract = (market['contract'] && isSettleBtc) ? true : false;
-        const url = this.getUrlByMarketType (market['type'], isBtcContract);
+        const url = this.getUrlByMarketType (market['type'], market['inverse']);
         const payload = [market['id']];
         // uid required for non spot markets
         const requiresUid = (type !== 'spot');
@@ -790,7 +787,7 @@ module.exports = class gateio extends ccxt.gateio {
         return uniformType;
     }
 
-    getUrlByMarketType (type, isBtcContract = false) {
+    getUrlByMarketType (type, isInverse = false) {
         if (type === 'spot') {
             const spotUrl = this.urls['api']['spot'];
             if (spotUrl === undefined) {
@@ -800,11 +797,11 @@ module.exports = class gateio extends ccxt.gateio {
         }
         if (type === 'swap') {
             const baseUrl = this.urls['api']['swap'];
-            return isBtcContract ? baseUrl['btc'] : baseUrl['usdt'];
+            return isInverse ? baseUrl['btc'] : baseUrl['usdt'];
         }
         if (type === 'future') {
             const baseUrl = this.urls['api']['future'];
-            return isBtcContract ? baseUrl['btc'] : baseUrl['usdt'];
+            return isInverse ? baseUrl['btc'] : baseUrl['usdt'];
         }
         if (type === 'option') {
             return this.urls['api']['option'];
