@@ -51,6 +51,7 @@ module.exports = class okcoin extends Exchange {
                 'fetchTrades': true,
                 'fetchTransactions': undefined,
                 'fetchWithdrawals': true,
+                'transfer': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -746,6 +747,16 @@ module.exports = class okcoin extends Exchange {
                 'createMarketBuyOrderRequiresPrice': true,
                 'fetchMarkets': [ 'spot' ],
                 'defaultType': 'spot', // 'account', 'spot', 'margin', 'futures', 'swap', 'option'
+                'accountsByType': {
+                    'spot': '1',
+                    'margin': '5',
+                    'funding': '6',
+                },
+                'accountsById': {
+                    '1': 'spot',
+                    '5': 'margin',
+                    '6': 'funding',
+                },
                 'auth': {
                     'time': 'public',
                     'currencies': 'private',
@@ -2573,6 +2584,93 @@ module.exports = class okcoin extends Exchange {
             throw new InvalidAddress (this.id + ' fetchDepositAddress cannot return nonexistent addresses, you should create withdrawal addresses with the exchange website first');
         }
         return address;
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
+        const toId = this.safeString (accountsByType, toAccount, toAccount);
+        const request = {
+            'amount': this.currencyToPrecision (code, amount),
+            'currency': currency['id'],
+            'from': fromId,
+            'to': toId,
+            'type': '0',
+        };
+        if (fromAccount === 'main') {
+            request['type'] = 1;
+            request['sub_account'] = toAccount;
+            request['to'] = '0';
+        } else if (toAccount === 'main') {
+            request['type'] = 2;
+            request['sub_account'] = fromAccount;
+            request['from'] = '0';
+            request['to'] = '6';
+        } else if (fromAccount === 'margin' || toAccount === 'margin') {
+            let marketId = this.safeString2 (params, 'instrument_id', 'to_instrument_id');
+            if (marketId === undefined) {
+                const symbol = this.safeString (params, 'symbol');
+                if (symbol === undefined) {
+                    throw new ArgumentsRequired (this.id + ' transfer() requires an exchange-specific instrument_id parameter or a unified symbol parameter');
+                } else {
+                    params = this.omit (params, 'symbol');
+                    const market = this.market (symbol);
+                    marketId = market['id'];
+                }
+                if (fromAccount === 'margin') {
+                    request['instrument_id'] = marketId;
+                }
+                if (toAccount === 'margin') {
+                    request['to_instrument_id'] = marketId;
+                }
+            }
+        }
+        const response = await this.accountPostTransfer (this.extend (request, params));
+        //
+        //      {
+        //          "transfer_id": "754147",
+        //          "currency": "ETC",
+        //          "from": "6",
+        //          "amount": "0.1",
+        //          "to": "1",
+        //          "result": true
+        //      }
+        //
+        return this.parseTransfer (response, currency);
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        //      {
+        //          "transfer_id": "754147",
+        //          "currency": "ETC",
+        //          "from": "6",
+        //          "amount": "0.1",
+        //          "to": "1",
+        //          "result": true
+        //      }
+        //
+        const accountsById = this.safeValue (this.options, 'accountsById', {});
+        return {
+            'info': transfer,
+            'id': this.safeString (transfer, 'transfer_id'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': this.safeCurrencyCode (this.safeString (transfer, 'currency'), currency),
+            'amount': this.safeNumber (transfer, 'amount'),
+            'fromAccount': this.safeString (accountsById, this.safeString (transfer, 'from')),
+            'toAccount': this.safeString (accountsById, this.safeString (transfer, 'to')),
+            'status': this.parseTransferStatus (this.safeString (transfer, 'result')),
+        };
+    }
+
+    parseTransferStatus (status) {
+        const statuses = {
+            'true': 'ok',
+        };
+        return this.safeString (statuses, status, 'failed');
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
