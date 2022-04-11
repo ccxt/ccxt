@@ -92,7 +92,9 @@ class hollaex extends Exchange {
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/75841031-ca375180-5ddd-11ea-8417-b975674c23cb.jpg',
                 'test' => 'https://api.sandbox.hollaex.com',
-                'api' => 'https://api.hollaex.com',
+                'api' => array(
+                    'rest' => 'https://api.hollaex.com',
+                ),
                 'www' => 'https://hollaex.com',
                 'doc' => 'https://apidocs.hollaex.com',
                 'referral' => 'https://pro.hollaex.com/signup?affiliation_code=QSWA6G',
@@ -1438,7 +1440,7 @@ class hollaex extends Exchange {
                 $path .= '?' . $this->urlencode($query);
             }
         }
-        $url = $this->urls['api'] . $path;
+        $url = $this->urls['api']['rest'] . $path;
         if ($api === 'private') {
             $this->check_required_credentials();
             $defaultExpires = $this->safe_integer_2($this->options, 'api-expires', 'expires', intval($this->timeout / 1000));
