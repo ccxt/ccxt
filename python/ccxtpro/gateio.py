@@ -163,56 +163,44 @@ class gateio(Exchange, ccxt.gateio):
         await self.load_markets()
         market = self.market(symbol)
         marketId = market['id']
-        uppercaseId = marketId.upper()
-        requestId = self.nonce()
-        url = self.urls['api']['ws']
-        options = self.safe_value(self.options, 'watchTicker', {})
-        subscriptions = self.safe_value(options, 'subscriptions', {})
-        subscriptions[uppercaseId] = True
-        options['subscriptions'] = subscriptions
-        self.options['watchTicker'] = options
-        subscribeMessage = {
-            'id': requestId,
-            'method': 'ticker.subscribe',
-            'params': list(subscriptions.keys()),
-        }
-        subscription = {
-            'id': requestId,
-        }
-        messageHash = 'ticker.update' + ':' + marketId
-        return await self.watch(url, messageHash, subscribeMessage, messageHash, subscription)
+        type = market['type']
+        messageType = self.get_uniform_type(type)
+        channel = messageType + '.' + 'tickers'
+        messageHash = channel + '.' + market['symbol']
+        payload = [marketId]
+        url = self.get_url_by_market_type(type, market['inverse'])
+        return await self.subscribe_public(url, channel, messageHash, payload)
 
     def handle_ticker(self, client, message):
         #
-        #     {
-        #         'method': 'ticker.update',
-        #         'params': [
-        #             'BTC_USDT',
-        #             {
-        #                 'period': 86400,  # 24 hours = 86400 seconds
-        #                 'open': '9027.96',
-        #                 'close': '9282.93',
-        #                 'high': '9428.57',
-        #                 'low': '8900',
-        #                 'last': '9282.93',
-        #                 'change': '2.8',
-        #                 'quoteVolume': '1838.9950613035',
-        #                 'baseVolume': '17032535.24172142379566994715'
-        #             }
-        #         ],
-        #         'id': null
-        #     }
+        #    {
+        #        time: 1649326221,
+        #        channel: 'spot.tickers',
+        #        event: 'update',
+        #        result: {
+        #          currency_pair: 'BTC_USDT',
+        #          last: '43444.82',
+        #          lowest_ask: '43444.82',
+        #          highest_bid: '43444.81',
+        #          change_percentage: '-4.0036',
+        #          base_volume: '5182.5412425462',
+        #          quote_volume: '227267634.93123952',
+        #          high_24h: '47698',
+        #          low_24h: '42721.03'
+        #        }
+        #    }
         #
-        params = self.safe_value(message, 'params', [])
-        marketId = self.safe_string(params, 0)
-        market = self.safe_market(marketId, None, '_')
-        symbol = market['symbol']
-        ticker = self.safe_value(params, 1, {})
-        result = self.parse_ticker(ticker, market)
-        methodType = message['method']
-        messageHash = methodType + ':' + marketId
-        self.tickers[symbol] = result
-        client.resolve(result, messageHash)
+        channel = self.safe_string(message, 'channel')
+        result = self.safe_value(message, 'result')
+        if not isinstance(result, list):
+            result = [result]
+        for i in range(0, len(result)):
+            ticker = result[i]
+            parsed = self.parse_ticker(ticker)
+            symbol = parsed['symbol']
+            self.tickers[symbol] = parsed
+            messageHash = channel + '.' + symbol
+            client.resolve(self.tickers[symbol], messageHash)
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
@@ -283,79 +271,65 @@ class gateio(Exchange, ccxt.gateio):
         await self.load_markets()
         market = self.market(symbol)
         marketId = market['id']
-        uppercaseId = marketId.upper()
-        requestId = self.nonce()
-        url = self.urls['api']['ws']
-        interval = self.parse_timeframe(timeframe)
-        subscribeMessage = {
-            'id': requestId,
-            'method': 'kline.subscribe',
-            'params': [uppercaseId, interval],
-        }
-        subscription = {
-            'id': requestId,
-        }
-        # gateio sends candles without a timeframe identifier
-        # making it impossible to differentiate candles from
-        # two or more different timeframes within the same symbol
-        # thus the exchange API is limited to one timeframe per symbol
-        messageHash = 'kline.update' + ':' + marketId
-        ohlcv = await self.watch(url, messageHash, subscribeMessage, messageHash, subscription)
+        type = market['type']
+        interval = self.timeframes[timeframe]
+        messageType = self.get_uniform_type(type)
+        method = messageType + '.candlesticks'
+        messageHash = method + ':' + interval + ':' + market['symbol']
+        url = self.get_url_by_market_type(type, market['inverse'])
+        payload = [interval, marketId]
+        ohlcv = await self.subscribe_public(url, method, messageHash, payload)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_ohlcv(self, client, message):
         #
-        #     {
-        #         method: 'kline.update',
-        #         params: [
-        #             [
-        #                 1580661060,
-        #                 '9432.37',
-        #                 '9435.77',
-        #                 '9435.77',
-        #                 '9429.93',
-        #                 '0.0879',
-        #                 '829.1875889352',
-        #                 'BTC_USDT'
-        #             ]
-        #         ],
-        #         id: null
+        # {
+        #     "time": 1606292600,
+        #     "channel": "spot.candlesticks",
+        #     "event": "update",
+        #     "result": {
+        #       "t": "1606292580",  # total volume
+        #       "v": "2362.32035",  # volume
+        #       "c": "19128.1",  # close
+        #       "h": "19128.1",  # high
+        #       "l": "19128.1",  # low
+        #       "o": "19128.1",  # open
+        #       "n": "1m_BTC_USDT"  # sub
         #     }
+        #   }
         #
-        params = self.safe_value(message, 'params', [])
-        ohlcv = self.safe_value(params, 0, [])
-        marketId = self.safe_string(ohlcv, 7)
-        parsed = [
-            self.safe_timestamp(ohlcv, 0),  # t
-            self.safe_number(ohlcv, 1),  # o
-            self.safe_number(ohlcv, 3),  # h
-            self.safe_number(ohlcv, 4),  # l
-            self.safe_number(ohlcv, 2),  # c
-            self.safe_number(ohlcv, 5),  # v
-        ]
-        symbol = self.safe_symbol(marketId, None, '_')
-        # gateio sends candles without a timeframe identifier
-        # making it impossible to differentiate candles from
-        # two or more different timeframes within the same symbol
-        # thus the exchange API is limited to one timeframe per symbol
-        # --------------------------------------------------------------------
-        # self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
-        # stored = self.safe_value(self.ohlcvs[symbol], timeframe, [])
-        # --------------------------------------------------------------------
-        stored = self.safe_value(self.ohlcvs, symbol)
-        if stored is None:
-            limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
-            stored = ArrayCacheByTimestamp(limit)
-            self.ohlcvs[symbol] = stored
-        stored.append(parsed)
-        # --------------------------------------------------------------------
-        # self.ohlcvs[symbol][timeframe] = stored
-        # --------------------------------------------------------------------
-        methodType = message['method']
-        messageHash = methodType + ':' + marketId
-        client.resolve(stored, messageHash)
+        channel = self.safe_string(message, 'channel')
+        result = self.safe_value(message, 'result')
+        isArray = isinstance(result, list)
+        if not isArray:
+            result = [result]
+        marketIds = {}
+        for i in range(0, len(result)):
+            ohlcv = result[i]
+            subscription = self.safe_string(ohlcv, 'n', '')
+            parts = subscription.split('_')
+            timeframe = self.safe_string(parts, 0)
+            prefix = timeframe + '_'
+            marketId = subscription.replace(prefix, '')
+            symbol = self.safe_symbol(marketId, None, '_')
+            parsed = self.parse_ohlcv(ohlcv)
+            stored = self.safe_value(self.ohlcvs, symbol)
+            if stored is None:
+                limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
+                stored = ArrayCacheByTimestamp(limit)
+                self.ohlcvs[symbol] = stored
+            stored.append(parsed)
+            marketIds[symbol] = timeframe
+        keys = list(marketIds.keys())
+        for i in range(0, len(keys)):
+            symbol = keys[i]
+            timeframe = marketIds[symbol]
+            interval = self.timeframes[timeframe]
+            hash = channel + ':' + interval + ':' + symbol
+            stored = self.safe_value(self.ohlcvs, symbol)
+            client.resolve(stored, hash)
 
     async def authenticate(self, params={}):
         url = self.urls['api']['ws']
@@ -520,9 +494,7 @@ class gateio(Exchange, ccxt.gateio):
         method = type + '.orders'
         messageHash = method
         messageHash = method + ':' + market['id']
-        isSettleBtc = market['settleId'] == 'btc'
-        isBtcContract = True if (market['contract'] and isSettleBtc) else False
-        url = self.get_url_by_market_type(market['type'], isBtcContract)
+        url = self.get_url_by_market_type(market['type'], market['inverse'])
         payload = [market['id']]
         # uid required for non spot markets
         requiresUid = (type != 'spot')
@@ -660,6 +632,30 @@ class gateio(Exchange, ccxt.gateio):
             client.resolve(message, messageId)
 
     def handle_message(self, client, message):
+        # subscribe
+        # {
+        #     time: 1649062304,
+        #     id: 1649062303,
+        #     channel: 'spot.candlesticks',
+        #     event: 'subscribe',
+        #     result: {status: 'success'}
+        # }
+        # candlestick
+        # {
+        #     time: 1649063328,
+        #     channel: 'spot.candlesticks',
+        #     event: 'update',
+        #     result: {
+        #       t: '1649063280',
+        #       v: '58932.23174896',
+        #       c: '45966.47',
+        #       h: '45997.24',
+        #       l: '45966.47',
+        #       o: '45975.18',
+        #       n: '1m_BTC_USDT',
+        #       a: '1.281699'
+        #     }
+        #  }
         # orders
         # {
         #     "time": 1630654851,
@@ -683,10 +679,6 @@ class gateio(Exchange, ccxt.gateio):
         methodType = self.safe_string(message, 'method')
         method = self.safe_value(methods, methodType)
         if method is None:
-            messageId = self.safe_integer(message, 'id')
-            if messageId is not None:
-                self.handle_subscription_status(client, message)
-                return
             event = self.safe_string(message, 'event')
             if event == 'subscribe':
                 self.handle_subscription_status(client, message)
@@ -694,15 +686,25 @@ class gateio(Exchange, ccxt.gateio):
             channel = self.safe_string(message, 'channel', '')
             channelParts = channel.split('.')
             channelType = self.safe_value(channelParts, 1)
-            if channelType == 'usertrades':
-                self.handle_my_trades(client, message)
-                return
-            if channelType == 'orders':
-                self.handle_order(client, message)
-        else:
+            v4Methods = {
+                'usertrades': self.handle_my_trades,
+                'candlesticks': self.handle_ohlcv,
+                'orders': self.handle_order,
+                'tickers': self.handle_ticker,
+            }
+            method = self.safe_value(v4Methods, channelType)
+        if method is not None:
             method(client, message)
 
-    def get_url_by_market_type(self, type, isBtcContract=False):
+    def get_uniform_type(self, type):
+        uniformType = 'spot'
+        if type == 'future' or type == 'swap':
+            uniformType = 'futures'
+        elif type == 'option':
+            uniformType = 'options'
+        return uniformType
+
+    def get_url_by_market_type(self, type, isInverse=False):
         if type == 'spot':
             spotUrl = self.urls['api']['spot']
             if spotUrl is None:
@@ -710,12 +712,27 @@ class gateio(Exchange, ccxt.gateio):
             return spotUrl
         if type == 'swap':
             baseUrl = self.urls['api']['swap']
-            return baseUrl['btc'] if isBtcContract else baseUrl['usdt']
+            return baseUrl['btc'] if isInverse else baseUrl['usdt']
         if type == 'future':
             baseUrl = self.urls['api']['future']
-            return baseUrl['btc'] if isBtcContract else baseUrl['usdt']
+            return baseUrl['btc'] if isInverse else baseUrl['usdt']
         if type == 'option':
             return self.urls['api']['option']
+
+    async def subscribe_public(self, url, channel, messageHash, payload):
+        time = self.seconds()
+        request = {
+            'id': time,
+            'time': time,
+            'channel': channel,
+            'event': 'subscribe',
+            'payload': payload,
+        }
+        subscription = {
+            'id': time,
+            'messageHash': messageHash,
+        }
+        return await self.watch(url, messageHash, request, messageHash, subscription)
 
     async def subscribe_private(self, url, channel, messageHash, payload, requiresUid=False):
         self.check_required_credentials()
