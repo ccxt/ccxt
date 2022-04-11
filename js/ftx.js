@@ -2705,6 +2705,6 @@ module.exports = class ftx extends Exchange {
             'timestamp': this.parse8601 (datetime),
             'datetime': datetime,
             'info': info,
-        }
+        };
     }
 };
