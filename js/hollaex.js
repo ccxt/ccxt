@@ -4,7 +4,7 @@
 
 const ccxt = require ('ccxt');
 const { AuthenticationError, BadSymbol, BadRequest } = require ('ccxt/js/base/errors');
-const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
+const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -15,18 +15,15 @@ module.exports = class hollaex extends ccxt.hollaex {
                 'ws': true,
                 'watchBalance': false,
                 'watchTickers': false, // for now
-                'watchMyTrades': true,
+                'watchMyTrades': false,
                 'watchTrades': true,
                 'watchOrderBook': true,
-                'watchOrders': true,
+                'watchOrders': false,
                 'watchOHLCV': true,
             },
             'urls': {
                 'api': {
                     'ws': 'https://api.hollaex.com/stream',
-                },
-                'test': {
-                    'ws': 'api.hollaex.com/stream',
                 },
             },
             'options': {
