@@ -1300,11 +1300,11 @@ module.exports = class zonda extends Exchange {
         //     }
         //
         const status = this.safeString (transfer, 'status');
-        const from = this.safeValue (transfer, 'from', {});
-        const fromId = this.safeString (from, 'id');
+        const fromAccount = this.safeValue (transfer, 'from', {});
+        const fromId = this.safeString (fromAccount, 'id');
         const to = this.safeValue (transfer, 'to', {});
         const toId = this.safeString (to, 'id');
-        const currencyId = this.safeString (from, 'currency');
+        const currencyId = this.safeString (fromAccount, 'currency');
         return {
             'info': transfer,
             'id': undefined,
