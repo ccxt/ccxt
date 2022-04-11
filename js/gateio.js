@@ -399,7 +399,7 @@ module.exports = class gateio extends ccxt.gateio {
         }
         const isInverse = (subType === 'inverse');
         const url = this.getUrlByMarketType (type, isInverse);
-        const payload = [marketId];
+        const payload = [ marketId ];
         // uid required for non spot markets
         const requiresUid = (type !== 'spot');
         const trades = await this.subscribePrivate (url, method, messageHash, payload, requiresUid);
