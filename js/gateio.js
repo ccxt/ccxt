@@ -409,7 +409,7 @@ module.exports = class gateio extends ccxt.gateio {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleMyTrade (client, message) {
+    handleMyTrades (client, message) {
         //
         // {
         //     "time": 1543205083,
@@ -757,7 +757,7 @@ module.exports = class gateio extends ccxt.gateio {
             const channelParts = channel.split ('.');
             const channelType = this.safeValue (channelParts, 1);
             const v4Methods = {
-                'usertrades': this.handleMyTrade,
+                'usertrades': this.handleMyTrades,
                 'candlesticks': this.handleOHLCV,
                 'orders': this.handleOrder,
                 'tickers': this.handleTicker,
