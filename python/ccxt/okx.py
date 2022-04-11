@@ -4422,13 +4422,6 @@ class okx(Exchange):
         interest = self.parse_borrow_interests(data)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
 
-    def parse_borrow_interests(self, response, market=None):
-        interest = []
-        for i in range(0, len(response)):
-            row = response[i]
-            interest.append(self.parse_borrow_interest(row, market))
-        return interest
-
     def parse_borrow_interest(self, info, market=None):
         instId = self.safe_string(info, 'instId')
         account = 'cross'  # todo rename it to margin/marginType and separate it from the symbol
@@ -4437,7 +4430,9 @@ class okx(Exchange):
             account = self.safe_string(market, 'symbol')
         timestamp = self.safe_number(info, 'ts')
         return {
-            'account': account,  # isolated symbol, will not be returned for cross margin
+            'account': account,  # deprecated
+            'symbol': self.safe_string(market, 'symbol'),
+            'marginType': 'cross' if (instId is None) else 'isolated',
             'currency': self.safe_currency_code(self.safe_string(info, 'ccy')),
             'interest': self.safe_number(info, 'interest'),
             'interestRate': self.safe_number(info, 'interestRate'),

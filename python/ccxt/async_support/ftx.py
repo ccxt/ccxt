@@ -2555,19 +2555,21 @@ class ftx(Exchange):
         #     }
         #
         result = self.safe_value(response, 'result')
-        interest = []
-        for i in range(0, len(result)):
-            payment = result[i]
-            coin = self.safe_string(payment, 'coin')
-            datetime = self.safe_string(payment, 'time')
-            interest.append({
-                'account': None,
-                'currency': self.safe_currency_code(coin),
-                'interest': self.safe_number(payment, 'cost'),
-                'interestRate': self.safe_number(payment, 'rate'),
-                'amountBorrowed': self.safe_number(payment, 'size'),
-                'timestamp': self.parse8601(datetime),
-                'datetime': datetime,
-                'info': payment,
-            })
+        interest = self.parse_borrow_interests(result)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
+
+    def parse_borrow_interest(self, info, market=None):
+        coin = self.safe_string(info, 'coin')
+        datetime = self.safe_string(info, 'time')
+        return {
+            'account': 'cross',
+            'symbol': None,
+            'marginType': 'cross',
+            'currency': self.safe_currency_code(coin),
+            'interest': self.safe_number(info, 'cost'),
+            'interestRate': self.safe_number(info, 'rate'),
+            'amountBorrowed': self.safe_number(info, 'size'),
+            'timestamp': self.parse8601(datetime),
+            'datetime': datetime,
+            'info': info,
+        }

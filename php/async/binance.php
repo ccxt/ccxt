@@ -5570,22 +5570,24 @@ class binance extends Exchange {
         //     }
         //
         $rows = $this->safe_value($response, 'rows');
-        $interest = array();
-        for ($i = 0; $i < count($rows); $i++) {
-            $row = $rows[$i];
-            $timestamp = $this->safe_number($row, 'interestAccuredTime');
-            $account = ($symbol === null) ? 'cross' : $symbol;
-            $interest[] = array(
-                'account' => $account,
-                'currency' => $this->safe_currency_code($this->safe_string($row, 'asset')),
-                'interest' => $this->safe_number($row, 'interest'),
-                'interestRate' => $this->safe_number($row, 'interestRate'),
-                'amountBorrowed' => $this->safe_number($row, 'principal'),
-                'timestamp' => $timestamp,
-                'datetime' => $this->iso8601($timestamp),
-                'info' => $row,
-            );
-        }
+        $interest = $this->parse_borrow_interests($rows, $market);
         return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
+    }
+
+    public function parse_borrow_interest($info, $market) {
+        $symbol = $this->safe_string($info, 'isolatedSymbol');
+        $timestamp = $this->safe_number($info, 'interestAccuredTime');
+        return array(
+            'account' => ($symbol === null) ? 'cross' : $symbol,
+            'symbol' => $symbol,
+            'marginType' => ($symbol === null) ? 'cross' : 'isolated',
+            'currency' => $this->safe_currency_code($this->safe_string($info, 'asset')),
+            'interest' => $this->safe_number($info, 'interest'),
+            'interestRate' => $this->safe_number($info, 'interestRate'),
+            'amountBorrowed' => $this->safe_number($info, 'principal'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $info,
+        );
     }
 }

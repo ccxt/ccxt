@@ -4645,15 +4645,6 @@ class okx extends Exchange {
         return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
     }
 
-    public function parse_borrow_interests($response, $market = null) {
-        $interest = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $row = $response[$i];
-            $interest[] = $this->parse_borrow_interest($row, $market);
-        }
-        return $interest;
-    }
-
     public function parse_borrow_interest($info, $market = null) {
         $instId = $this->safe_string($info, 'instId');
         $account = 'cross'; // todo rename it to margin/marginType and separate it from the symbol
@@ -4663,7 +4654,9 @@ class okx extends Exchange {
         }
         $timestamp = $this->safe_number($info, 'ts');
         return array(
-            'account' => $account, // isolated symbol, will not be returned for cross margin
+            'account' => $account, // deprecated
+            'symbol' => $this->safe_string($market, 'symbol'),
+            'marginType' => ($instId === null) ? 'cross' : 'isolated',
             'currency' => $this->safe_currency_code($this->safe_string($info, 'ccy')),
             'interest' => $this->safe_number($info, 'interest'),
             'interestRate' => $this->safe_number($info, 'interestRate'),

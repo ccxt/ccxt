@@ -5236,19 +5236,21 @@ class binance(Exchange):
         #     }
         #
         rows = self.safe_value(response, 'rows')
-        interest = []
-        for i in range(0, len(rows)):
-            row = rows[i]
-            timestamp = self.safe_number(row, 'interestAccuredTime')
-            account = 'cross' if (symbol is None) else symbol
-            interest.append({
-                'account': account,
-                'currency': self.safe_currency_code(self.safe_string(row, 'asset')),
-                'interest': self.safe_number(row, 'interest'),
-                'interestRate': self.safe_number(row, 'interestRate'),
-                'amountBorrowed': self.safe_number(row, 'principal'),
-                'timestamp': timestamp,
-                'datetime': self.iso8601(timestamp),
-                'info': row,
-            })
+        interest = self.parse_borrow_interests(rows, market)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
+
+    def parse_borrow_interest(self, info, market):
+        symbol = self.safe_string(info, 'isolatedSymbol')
+        timestamp = self.safe_number(info, 'interestAccuredTime')
+        return {
+            'account': 'cross' if (symbol is None) else symbol,
+            'symbol': symbol,
+            'marginType': 'cross' if (symbol is None) else 'isolated',
+            'currency': self.safe_currency_code(self.safe_string(info, 'asset')),
+            'interest': self.safe_number(info, 'interest'),
+            'interestRate': self.safe_number(info, 'interestRate'),
+            'amountBorrowed': self.safe_number(info, 'principal'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': info,
+        }
