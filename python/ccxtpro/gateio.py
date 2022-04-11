@@ -355,25 +355,32 @@ class gateio(Exchange, ccxt.gateio):
 
     async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
-        self.check_required_credentials()
-        type = 'spot'
-        marketId = None
-        marketSymbol = None
+        subType = None
+        type = None
+        marketId = 'not all'
         if symbol is not None:
             market = self.market(symbol)
+            symbol = market['symbol']
             type = market['type']
             marketId = market['id']
-            marketSymbol = market['symbol']
-        if type != 'spot':
-            raise BadRequest(self.id + ' watchMyTrades symbol supports spot markets only')
-        url = self.get_url_by_market_type(type)
-        channel = 'spot.usertrades'
-        messageHash = channel
-        payload = []
-        if marketId is not None:
-            payload = [marketId]
-            messageHash += ':' + marketSymbol
-        trades = await self.subscribe_private(url, channel, messageHash, payload, None)
+        else:
+            type, params = self.handle_market_type_and_params('watchMyTrades', None, params)
+            if type != 'spot':
+                options = self.safe_value(self.options, 'watchMyTrades', {})
+                subType = self.safe_value(options, 'subType', 'linear')
+                subType = self.safe_value(params, 'subType', subType)
+                params = self.omit(params, 'subType')
+        messageType = self.get_uniform_type(type)
+        method = messageType + '.usertrades'
+        messageHash = method
+        if symbol is not None:
+            messageHash += ':' + symbol
+        isInverse = (subType == 'inverse')
+        url = self.get_url_by_market_type(type, isInverse)
+        payload = [marketId]
+        # uid required for non spot markets
+        requiresUid = (type != 'spot')
+        trades = await self.subscribe_private(url, method, messageHash, payload, requiresUid)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
@@ -381,43 +388,46 @@ class gateio(Exchange, ccxt.gateio):
     def handle_my_trades(self, client, message):
         #
         # {
-        #     "time": 1605176741,
-        #     "channel": "spot.usertrades",
+        #     "time": 1543205083,
+        #     "channel": "futures.usertrades",
         #     "event": "update",
+        #     "error": null,
         #     "result": [
         #       {
-        #         "id": 5736713,
-        #         "user_id": 1000001,
-        #         "order_id": "30784428",
-        #         "currency_pair": "BTC_USDT",
-        #         "create_time": 1605176741,
-        #         "create_time_ms": "1605176741123.456",
-        #         "side": "sell",
-        #         "amount": "1.00000000",
-        #         "role": "taker",
-        #         "price": "10000.00000000",
-        #         "fee": "0.00200000000000",
-        #         "point_fee": "0",
-        #         "gt_fee": "0",
-        #         "text": "apiv4"
+        #         "id": "3335259",
+        #         "create_time": 1628736848,
+        #         "create_time_ms": 1628736848321,
+        #         "contract": "BTC_USD",
+        #         "order_id": "4872460",
+        #         "size": 1,
+        #         "price": "40000.4",
+        #         "role": "maker"
         #       }
         #     ]
-        #   }
+        # }
         #
+        result = self.safe_value(message, 'result', [])
         channel = self.safe_string(message, 'channel')
-        trades = self.safe_value(message, 'result', [])
-        if len(trades) > 0:
-            if self.myTrades is None:
-                limit = self.safe_integer(self.options, 'tradesLimit', 1000)
-                self.myTrades = ArrayCache(limit)
-            stored = self.myTrades
-            parsedTrades = self.parse_trades(trades)
-            for i in range(0, len(parsedTrades)):
-                stored.append(parsedTrades[i])
-            client.resolve(self.myTrades, channel)
-            for i in range(0, len(parsedTrades)):
-                messageHash = channel + ':' + parsedTrades[i]['symbol']
-                client.resolve(self.myTrades, messageHash)
+        tradesLength = len(result)
+        if tradesLength == 0:
+            return
+        cachedTrades = self.myTrades
+        if cachedTrades is None:
+            limit = self.safe_integer(self.options, 'tradesLimit', 1000)
+            cachedTrades = ArrayCacheBySymbolById(limit)
+        parsed = self.parse_trades(result)
+        marketIds = {}
+        for i in range(0, len(parsed)):
+            trade = parsed[i]
+            cachedTrades.append(trade)
+            symbol = trade['symbol']
+            marketIds[symbol] = True
+        keys = list(marketIds.keys())
+        for i in range(0, len(keys)):
+            market = keys[i]
+            hash = channel + ':' + market
+            client.resolve(cachedTrades, hash)
+        client.resolve(cachedTrades, channel)
 
     async def watch_balance(self, params={}):
         await self.load_markets()
