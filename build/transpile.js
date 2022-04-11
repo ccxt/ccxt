@@ -13,7 +13,11 @@ import { basename } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile } from './fsLocal.js'
 import { pathToFileURL } from 'url'
 import { errorHierarchy } from '../js/base/errorHierarchy.js'
-import tsFilename from './ccxt.d.ts'
+
+
+const tsFilename = './ccxt.d.ts'
+
+const __dirname = new URL('.', import.meta.url).pathname;
 
 ansi.nice
 
@@ -1280,7 +1284,7 @@ class Transpiler {
     transpileErrorHierarchy ({ tsFilename }) {
 
         const errorHierarchyFilename = './js/base/errorHierarchy.js'
-        // const errorHierarchy = require ('.' + errorHierarchyFilename)
+        const errorHierarchyPath = __dirname + '/.' + errorHierarchyFilename
 
         let js = fs.readFileSync (errorHierarchyPath, 'utf8')
 
