@@ -4674,15 +4674,6 @@ module.exports = class huobi extends Exchange {
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
 
-    parseBorrowInterests (response, marginType, market = undefined) {
-        const interest = [];
-        for (let i = 0; i < response.length; i++) {
-            const row = response[i];
-            interest.push (this.parseBorrowInterest (row, marginType, market));
-        }
-        return interest;
-    }
-
     parseBorrowInterest (info, marginType, market = undefined) {
         // isolated
         //    {

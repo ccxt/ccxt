@@ -4556,15 +4556,6 @@ module.exports = class okx extends Exchange {
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
 
-    parseBorrowInterests (response, market = undefined) {
-        const interest = [];
-        for (let i = 0; i < response.length; i++) {
-            const row = response[i];
-            interest.push (this.parseBorrowInterest (row, market));
-        }
-        return interest;
-    }
-
     parseBorrowInterest (info, market = undefined) {
         const instId = this.safeString (info, 'instId');
         let account = 'cross'; // todo rename it to margin/marginType and separate it from the symbol

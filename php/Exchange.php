@@ -3737,4 +3737,13 @@ class Exchange {
     public function sleep($milliseconds) {
         sleep($milliseconds / 1000);
     }
+    
+    public function parse_borrow_interests($response, $market = null) {
+        $interest = array();
+        for ($i = 0; $i < count($response); $i++){
+            $row = $response[$i];
+            array_push($interest, $this->parseBorrowInterest ($row, $market));
+        }
+        return $interest;
+    }
 }
