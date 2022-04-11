@@ -1226,8 +1226,6 @@ module.exports = class zonda extends Exchange {
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
-        fromAccount = fromAccount.toLowerCase ();
-        toAccount = toAccount.toLowerCase ();
         const request = {
             'source': fromAccount,
             'destination': toAccount,
