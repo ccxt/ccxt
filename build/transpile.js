@@ -226,9 +226,7 @@ class CCXTProTranspiler extends Transpiler {
         this.transpileErrorHierarchy ({ tsFilename })
 
         // transpilePrecisionTests ()
-
         // transpileDateTimeTests ()
-        
         // transpileCryptoTests ()
 
         log.bright.green ('Transpiled successfully.')
