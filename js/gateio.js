@@ -389,6 +389,7 @@ module.exports = class gateio extends ccxt.gateio {
         let marketId = '!all';
         if (symbol !== undefined) {
             const market = this.market (symbol);
+            symbol = market['symbol'];
             type = market['type'];
             marketId = market['id'];
         } else {
@@ -404,7 +405,7 @@ module.exports = class gateio extends ccxt.gateio {
         const method = messageType + '.usertrades';
         let messageHash = method;
         if (symbol !== undefined) {
-            messageHash += ':' + marketId;
+            messageHash += ':' + symbol;
         }
         const isInverse = (subType === 'inverse');
         const url = this.getUrlByMarketType (type, isInverse);
@@ -450,7 +451,7 @@ module.exports = class gateio extends ccxt.gateio {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             cachedTrades = new ArrayCacheBySymbolById (limit);
         }
-        const parsed = this.parseTrades (cachedTrades);
+        const parsed = this.parseTrades (result);
         const marketIds = {};
         for (let i = 0; i < parsed.length; i++) {
             const trade = parsed[i];
