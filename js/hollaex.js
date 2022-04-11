@@ -31,6 +31,9 @@ module.exports = class hollaex extends ccxt.hollaex {
             },
             'options': {
             },
+            'streaming': {
+                'ping': this.ping,
+            },
         });
     }
 
@@ -44,19 +47,9 @@ module.exports = class hollaex extends ccxt.hollaex {
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
-        if (limit !== undefined) {
-            if ((limit !== 10) && (limit !== 150)) {
-                throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 10 or 150');
-            }
-        } else {
-            limit = 150; // default value
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (!market['spot']) {
-            throw new NotSupported (this.id + ' watchOrderBook() supports spot markets only');
-        }
-        const messageHash = 'book' + '.' + market['id'] + '.' + limit.toString ();
+        const messageHash = 'orderbook' + ':' + market['id'];
         const orderbook = await this.watchPublic (messageHash, params);
         return orderbook.limit (limit);
     }
@@ -165,109 +158,14 @@ module.exports = class hollaex extends ccxt.hollaex {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    async watchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        if (!market['spot']) {
-            throw new NotSupported (this.id + ' watchTicker() supports spot markets only');
-        }
-        const messageHash = 'ticker' + '.' + market['id'];
-        return await this.watchPublic (messageHash, params);
-    }
-
-    handleTicker (client, message) {
-        //
-        // {
-        //     "info":{
-        //        "instrument_name":"BTC_USDT",
-        //        "subscription":"ticker.BTC_USDT",
-        //        "channel":"ticker",
-        //        "data":[
-        //           {
-        //              "i":"BTC_USDT",
-        //              "b":43063.19,
-        //              "k":43063.2,
-        //              "a":43063.19,
-        //              "t":1648121165658,
-        //              "v":43573.912409,
-        //              "h":43498.51,
-        //              "l":41876.58,
-        //              "c":1087.43
-        //           }
-        //        ]
-        //     }
-        //  }
-        //
-        const messageHash = this.safeString (message, 'subscription');
-        const marketId = this.safeString (message, 'instrument_name');
-        const market = this.safeMarket (marketId);
-        const data = this.safeValue (message, 'data', []);
-        for (let i = 0; i < data.length; i++) {
-            const ticker = data[i];
-            const parsed = this.parseTicker (ticker, market);
-            const symbol = parsed['symbol'];
-            this.tickers[symbol] = parsed;
-            client.resolve (parsed, messageHash);
-        }
-    }
-
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        if (!market['spot']) {
-            throw new NotSupported (this.id + ' watchOHLCV() supports spot markets only');
-        }
-        const interval = this.timeframes[timeframe];
-        const messageHash = 'candlestick' + '.' + interval + '.' + market['id'];
-        const ohlcv = await this.watchPublic (messageHash, params);
-        if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
-    }
-
-    handleOHLCV (client, message) {
-        //
-        //  {
-        //       instrument_name: 'BTC_USDT',
-        //       subscription: 'candlestick.1m.BTC_USDT',
-        //       channel: 'candlestick',
-        //       depth: 300,
-        //       interval: '1m',
-        //       data: [ [Object] ]
-        //   }
-        //
-        const messageHash = this.safeString (message, 'subscription');
-        const marketId = this.safeString (message, 'instrument_name');
-        const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
-        const interval = this.safeString (message, 'interval');
-        const timeframe = this.findTimeframe (interval);
-        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
-        if (stored === undefined) {
-            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframe] = stored;
-        }
-        const data = this.safeValue (message, 'data');
-        for (let i = 0; i < data.length; i++) {
-            const tick = data[i];
-            const parsed = this.parseOHLCV (tick, market);
-            stored.append (parsed);
-        }
-        client.resolve (stored, messageHash);
-    }
-
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        let messageHash = 'order';
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
+            messageHash += ':' + market['id'];
         }
-        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
-        let messageHash = (defaultType === 'margin') ? 'user.margin.order' : 'user.order';
-        messageHash = (market !== undefined) ? (messageHash + '.' + market['id']) : messageHash;
         const orders = await this.watchPrivate (messageHash, params);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
@@ -275,54 +173,51 @@ module.exports = class hollaex extends ccxt.hollaex {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrders (client, message, subscription = undefined) {
+    handleOrder (client, message, subscription = undefined) {
         //
         // {
-        //     "method": "subscribe",
-        //     "result": {
-        //       "instrument_name": "ETH_CRO",
-        //       "subscription": "user.order.ETH_CRO",
-        //       "channel": "user.order",
-        //       "data": [
-        //         {
-        //           "status": "ACTIVE",
-        //           "side": "BUY",
-        //           "price": 1,
-        //           "quantity": 1,
-        //           "order_id": "366455245775097673",
-        //           "client_oid": "my_order_0002",
-        //           "create_time": 1588758017375,
-        //           "update_time": 1588758017411,
-        //           "type": "LIMIT",
-        //           "instrument_name": "ETH_CRO",
-        //           "cumulative_quantity": 0,
-        //           "cumulative_value": 0,
-        //           "avg_price": 0,
-        //           "fee_currency": "CRO",
-        //           "time_in_force":"GOOD_TILL_CANCEL"
-        //         }
-        //       ],
-        //       "channel": "user.order.ETH_CRO"
-        //     }
+        //     topic: 'order',
+        //     action: 'insert',
+        //     user_id: 155328,
+        //     symbol: 'ltc-usdt',
+        //     data: {
+        //       symbol: 'ltc-usdt',
+        //       side: 'buy',
+        //       size: 0.05,
+        //       type: 'market',
+        //       price: 0,
+        //       fee_structure: { maker: 0.1, taker: 0.1 },
+        //       fee_coin: 'ltc',
+        //       id: 'ce38fd48-b336-400b-812b-60c636454231',
+        //       created_by: 155328,
+        //       filled: 0.05,
+        //       method: 'market',
+        //       created_at: '2022-04-11T14:09:00.760Z',
+        //       updated_at: '2022-04-11T14:09:00.760Z',
+        //       status: 'filled'
+        //     },
+        //     time: 1649686140
+        // }
         //
-        const channel = this.safeString (message, 'channel');
-        const symbolSpecificMessageHash = this.safeString (message, 'subscription');
-        const orders = this.safeValue (message, 'data', []);
-        const ordersLength = orders.length;
-        if (ordersLength > 0) {
-            if (this.orders === undefined) {
-                const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-                this.orders = new ArrayCacheBySymbolById (limit);
-            }
-            const stored = this.orders;
-            const parsed = this.parseOrders (orders);
-            for (let i = 0; i < parsed.length; i++) {
-                stored.append (parsed[i]);
-            }
-            client.resolve (stored, symbolSpecificMessageHash);
-            // non-symbol specific
-            client.resolve (stored, channel);
+        const channel = this.safeString (message, 'topic');
+        const marketId = this.safeString (message, 'symbol');
+        const data = this.safeValue (message, 'data', {});
+        // usually the first message is an empty array
+        if (data.length === 0) {
+            return 0;
         }
+        const parsed = this.parseOrder (data);
+        if (this.orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById (limit);
+        }
+        const orders = this.orders;
+        orders.append (parsed);
+        client.resolve (orders);
+        // non-symbol specific
+        client.resolve (orders, channel);
+        const messageHash = channel + ':' + marketId;
+        client.resolve (orders, messageHash);
     }
 
     async watchBalance (params = {}) {
@@ -377,27 +272,28 @@ module.exports = class hollaex extends ccxt.hollaex {
     }
 
     async watchPrivate (messageHash, params = {}) {
-        await this.authenticate ();
-        const url = this.urls['api']['ws']['private'];
-        const id = this.nonce ();
+        this.checkRequiredCredentials ();
+        const url = this.urls['api']['ws'];
+        const defaultExpires = this.safeInteger2 (this.options, 'api-expires', 'expires', parseInt (this.timeout / 1000));
+        const expires = this.sum (this.seconds (), defaultExpires);
+        const expiresString = expires.toString ();
+        const auth = 'CONNECT' + '/stream' + expiresString;
+        const signature = this.hmac (this.encode (auth), this.encode (this.secret));
+        const authParams = {
+            'api-key': this.apiKey,
+            'api-signature': signature,
+            'api-expires': expiresString,
+        };
+        const signedUrl = url + '?' + this.urlencode (authParams);
         const request = {
-            'method': 'subscribe',
-            'params': {
-                'channels': [ messageHash ],
-            },
-            'nonce': id,
+            'op': 'subscribe',
+            'args': [ messageHash ],
         };
         const message = this.extend (request, params);
-        return await this.watch (url, messageHash, message, messageHash);
+        return await this.watch (signedUrl, messageHash, message, messageHash);
     }
 
     handleErrorMessage (client, message) {
-        // {
-        //     id: 0,
-        //     code: 10004,
-        //     method: 'subscribe',
-        //     message: 'invalid channel {"channels":["trade.BTCUSD-PERP"]}'
-        // }
         const errorCode = this.safeInteger (message, 'code');
         try {
             if (errorCode !== undefined && errorCode !== 0) {
@@ -423,6 +319,7 @@ module.exports = class hollaex extends ccxt.hollaex {
     }
 
     handleMessage (client, message) {
+        // trade
         //   {
         //       topic: 'trade',
         //       action: 'partial',
@@ -436,20 +333,50 @@ module.exports = class hollaex extends ccxt.hollaex {
         //         },
         //         (...)
         //    }
+        // orderbook
+        //    {
+        //        topic: 'orderbook',
+        //        action: 'partial',
+        //        symbol: 'ltc-usdt',
+        //        data: {
+        //          bids: [ ],
+        //          asks: [ ],
+        //          timestamp: '2022-04-11T10:37:01.227Z'
+        //        },
+        //        time: 1649673421
+        //    }
+        // order
+        // {
+        //     topic: 'order',
+        //     action: 'insert',
+        //     user_id: 155328,
+        //     symbol: 'ltc-usdt',
+        //     data: {
+        //       symbol: 'ltc-usdt',
+        //       side: 'buy',
+        //       size: 0.05,
+        //       type: 'market',
+        //       price: 0,
+        //       fee_structure: { maker: 0.1, taker: 0.1 },
+        //       fee_coin: 'ltc',
+        //       id: 'ce38fd48-b336-400b-812b-60c636454231',
+        //       created_by: 155328,
+        //       filled: 0.05,
+        //       method: 'market',
+        //       created_at: '2022-04-11T14:09:00.760Z',
+        //       updated_at: '2022-04-11T14:09:00.760Z',
+        //       status: 'filled'
+        //     },
+        //     time: 1649686140
+        // }
+        //
         if (!this.handleErrorMessage (client, message)) {
-            return;
-        }
-        const subject = this.safeString (message, 'method');
-        if (subject === 'public/heartbeat') {
-            this.handlePing (client, message);
-            return;
-        }
-        if (subject === 'public/auth') {
-            this.handleAuthenticate (client, message);
             return;
         }
         const methods = {
             'trade': this.handleTrades,
+            'orderbook': this.handlOrderBook,
+            'order': this.handleOrder,
         };
         const topic = this.safeValue (message, 'topic');
         const method = this.safeValue (methods, topic);
@@ -458,31 +385,9 @@ module.exports = class hollaex extends ccxt.hollaex {
         }
     }
 
-    async authenticate (params = {}) {
-        const url = this.urls['api']['ws']['private'];
-        this.checkRequiredCredentials ();
-        const client = this.client (url);
-        const future = client.future ('authenticated');
-        const messageHash = 'public/auth';
-        const authenticated = this.safeValue (client.subscriptions, messageHash);
-        if (authenticated === undefined) {
-            const nonce = this.nonce ().toString ();
-            const auth = messageHash + nonce + this.apiKey + nonce;
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
-            const request = {
-                'id': nonce,
-                'nonce': nonce,
-                'method': messageHash,
-                'api_key': this.apiKey,
-                'sig': signature,
-            };
-            this.spawn (this.watch, url, messageHash, this.extend (request, params), messageHash);
-        }
-        return await future;
-    }
-
-    handlePing (client, message) {
-        this.spawn (this.pong, client, message);
+    ping (client) {
+        // hollaex does not support built-in ws protocol-level ping-pong
+        return { 'op': 'ping' };
     }
 
     handleAuthenticate (client, message) {
