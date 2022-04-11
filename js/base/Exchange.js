@@ -2226,6 +2226,10 @@ module.exports = class Exchange {
         } else {
             throw new NotSupported (this.id + ' fetchMarketLeverageTiers() is not supported yet');
         }
+    }
 
+    parsePositions (positions, market = undefined, params = {}) {
+        let result = Object.values (positions || []).map ((position) => this.merge (this.parsePositioin (position, market), params));
+        return sortBy2 (result, 'timestamp', 'id');
     }
 }
