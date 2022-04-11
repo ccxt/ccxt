@@ -2426,7 +2426,11 @@ export default class huobi extends Exchange {
             request['account-id'] = accountId;
             method = 'spotPrivateGetV1AccountAccountsAccountIdBalance';
         } else if (linear) {
-            method = 'contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo';
+            if (marginType === 'isolated') {
+                method = 'contractPrivatePostLinearSwapApiV1SwapAccountInfo';
+            } else {
+                method = 'contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo';
+            }
         } else if (inverse) {
             if (future) {
                 method = 'contractPrivatePostApiV1ContractAccountInfo';
@@ -2569,10 +2573,8 @@ export default class huobi extends Exchange {
                 const code = this.safeCurrencyCode (currencyId);
                 result[code] = account;
             } else if (isolated) {
-                const fieldName = future ? 'futures_contract_detail' : 'contract_detail';
-                const balances = this.safeValue (first, fieldName, []);
-                for (let i = 0; i < balances.length; i++) {
-                    const balance = balances[i];
+                for (let i = 0; i < data.length; i++) {
+                    const balance = data[i];
                     const marketId = this.safeString2 (balance, 'contract_code', 'margin_account');
                     const market = this.safeMarket (marketId);
                     const account = this.account ();

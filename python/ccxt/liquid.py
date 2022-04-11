@@ -53,6 +53,7 @@ class liquid(Exchange):
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
                 'fetchWithdrawals': True,
+                'transfer': False,
                 'withdraw': True,
             },
             'urls': {

@@ -86,7 +86,7 @@ declare module 'ccxt' {
             amount: number | undefined,
             price: number | undefined
         };
-        limits: { 
+        limits: {
             amount?: MinMax,
             cost?: MinMax,
             leverage?: MinMax,
@@ -308,7 +308,7 @@ declare module 'ccxt' {
         countries: string[];
         // set by loadMarkets
         markets: Dictionary<Market>;
-        marketsById: Dictionary<Market>;
+        markets_by_id: Dictionary<Market>;
         currencies: Dictionary<Currency>;
         ids: string[];
         symbols: string[];

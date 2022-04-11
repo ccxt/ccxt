@@ -2334,7 +2334,10 @@ class huobi(Exchange):
             request['account-id'] = accountId
             method = 'spotPrivateGetV1AccountAccountsAccountIdBalance'
         elif linear:
-            method = 'contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo'
+            if marginType == 'isolated':
+                method = 'contractPrivatePostLinearSwapApiV1SwapAccountInfo'
+            else:
+                method = 'contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo'
         elif inverse:
             if future:
                 method = 'contractPrivatePostApiV1ContractAccountInfo'
@@ -2471,10 +2474,8 @@ class huobi(Exchange):
                 code = self.safe_currency_code(currencyId)
                 result[code] = account
             elif isolated:
-                fieldName = 'futures_contract_detail' if future else 'contract_detail'
-                balances = self.safe_value(first, fieldName, [])
-                for i in range(0, len(balances)):
-                    balance = balances[i]
+                for i in range(0, len(data)):
+                    balance = data[i]
                     marketId = self.safe_string_2(balance, 'contract_code', 'margin_account')
                     market = self.safe_market(marketId)
                     account = self.account()

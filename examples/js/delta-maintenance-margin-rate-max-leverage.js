@@ -4,10 +4,10 @@ console.log ('CCXT Version:', ccxt.version);
 
 function getMaxLeverage (market, positionSize) {
     /**
-     * Equation taken from https://www.delta.exchange/contracts/
-     * @param market: CCXT market
-     * @param positionSize: The value of the position in quote currency
-     * @return: The maximum leverage available for the market for the given position size
+     * @description Equation taken from https://www.delta.exchange/contracts/
+     * @param {dict} market CCXT market
+     * @param {float} positionSize The value of the position in quote currency
+     * @returns The maximum leverage available for the market for the given position size
      */
     const info = market['info'];
     const maxLeverageNotional = Number (info['max_leverage_notional']);
@@ -26,10 +26,10 @@ function getMaxLeverage (market, positionSize) {
 
 function getMaintenanceMarginRate (market, positionSize) {
     /**
-     * Equation taken from https://www.delta.exchange/contracts/
-     * @param market: CCXT market
-     * @param positionSize: The value of the position in quote currency
-     * @return: The maintenance margin rate as a percentage for the market with the given position size
+     * @description Equation taken from https://www.delta.exchange/contracts/
+     * @param {dict} market CCXT market
+     * @param {float} positionSize The value of the position in quote currency
+     * @returns The maintenance margin rate as a percentage for the market with the given position size
      */
     const info = market['info'];
     const maxLeverageNotional = Number (info['max_leverage_notional']);

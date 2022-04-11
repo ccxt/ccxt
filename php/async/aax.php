@@ -2362,30 +2362,32 @@ class aax extends Exchange {
 
     public function parse_market_leverage_tiers($info, $market) {
         /**
-            @param $info => Exchange $market response
-            {
-                "tickSize":"0.01",
-                "lotSize":"1",
-                "base":"BTC",
-                "quote":"USDT",
-                "minQuantity":"1.0000000000",
-                "maxQuantity":"30000",
-                "minPrice":"0.0100000000",
-                "maxPrice":"999999.0000000000",
-                "status":"readOnly",
-                "symbol":"BTCUSDTFP",
-                "code":"FP",
-                "takerFee":"0.00040",
-                "makerFee":"0.00020",
-                "multiplier":"0.001000000000",
-                "mmRate":"0.00500",
-                "imRate":"0.01000",
-                "type":"futures",
-                "settleType":"Vanilla",
-                "settleCurrency":"USDT"
-            }
-            @param $market => CCXT Market
-        */
+         * @param {dict} $info Exchange $market response
+         * @param {dict} $market CCXT Market
+         */
+        //
+        //    {
+        //        "tickSize":"0.01",
+        //        "lotSize":"1",
+        //        "base":"BTC",
+        //        "quote":"USDT",
+        //        "minQuantity":"1.0000000000",
+        //        "maxQuantity":"30000",
+        //        "minPrice":"0.0100000000",
+        //        "maxPrice":"999999.0000000000",
+        //        "status":"readOnly",
+        //        "symbol":"BTCUSDTFP",
+        //        "code":"FP",
+        //        "takerFee":"0.00040",
+        //        "makerFee":"0.00020",
+        //        "multiplier":"0.001000000000",
+        //        "mmRate":"0.00500",
+        //        "imRate":"0.01000",
+        //        "type":"futures",
+        //        "settleType":"Vanilla",
+        //        "settleCurrency":"USDT"
+        //    }
+        //
         $maintenanceMarginRate = $this->safe_string($info, 'mmRate');
         $initialMarginRate = $this->safe_string($info, 'imRate');
         $maxVol = $this->safe_string($info, 'maxQuantity');

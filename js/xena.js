@@ -657,6 +657,8 @@ export default class xena extends Exchange {
 
     parseTrade (trade, market = undefined) {
         //
+        // fetchTrades (public)
+        //
         //     {
         //         "mdUpdateAction":"0",
         //         "mdEntryType":"2",
@@ -667,7 +669,7 @@ export default class xena extends Exchange {
         //         "aggressorSide":"1"
         //     }
         //
-        // fetchMyTrades
+        // fetchMyTrades (private)
         //
         //     {
         //         "msgType":"8",
@@ -708,22 +710,19 @@ export default class xena extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const priceString = this.safeString2 (trade, 'lastPx', 'mdEntryPx');
         const amountString = this.safeString2 (trade, 'lastQty', 'mdEntrySize');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         let fee = undefined;
-        const feeCost = this.safeNumber (trade, 'commission');
-        if (feeCost !== undefined) {
+        const feeCostString = this.safeString (trade, 'commission');
+        if (feeCostString !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'commCurrency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
-            const feeRate = this.safeNumber (trade, 'commRate');
+            const feeRateString = this.safeString (trade, 'commRate');
             fee = {
-                'cost': feeCost,
-                'rate': feeRate,
+                'cost': feeCostString,
+                'rate': feeRateString,
                 'currency': feeCurrencyCode,
             };
         }
-        return {
+        return this.safeTrade ({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -733,11 +732,11 @@ export default class xena extends Exchange {
             'order': orderId,
             'side': side,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1770,76 +1769,81 @@ export default class xena extends Exchange {
 
     parseMarketLeverageTiers (info, market) {
         /**
-            @param info: Exchange market response for 1 market
-            {
-                "id": "XBTUSD_3M_240622",
-                "type": "Margin",
-                "marginType": "XenaFuture",
-                "symbol": "XBTUSD_3M_240622",
-                "baseCurrency": "BTC",
-                "quoteCurrency": "USD",
-                "settlCurrency": "USDC",
-                "tickSize": 0,
-                "minOrderQuantity": "0.0001",
-                "orderQtyStep": "0.0001",
-                "limitOrderMaxDistance": "10",
-                "priceInputMask": "00000.0",
-                "enabled": true,
-                "liquidationMaxDistance": "0.01",
-                "contractValue": "1",
-                "contractCurrency": "BTC",
-                "lotSize": "1",
-                "maxOrderQty": "10",
-                "maxPosVolume": "200",
-                "mark": ".XBTUSD_3M_240622",
-                "underlying": ".BTC3_TWAP",
-                "openInterest": ".XBTUSD_3M_240622_OpenInterest",
-                "addUvmToFreeMargin": "ProfitAndLoss",
-                "margin": {
-                    "netting": "PositionsAndOrders",
-                    "rates": [
-                        { "maxVolume": "10", "initialRate": "0.05", "maintenanceRate": "0.025" },
-                        { "maxVolume": "20", "initialRate": "0.1", "maintenanceRate": "0.05" },
-                        { "maxVolume": "30", "initialRate": "0.2", "maintenanceRate": "0.1" },
-                        { "maxVolume": "40", "initialRate": "0.3", "maintenanceRate": "0.15" },
-                        { "maxVolume": "60", "initialRate": "0.4", "maintenanceRate": "0.2" },
-                        { "maxVolume": "150", "initialRate": "0.5", "maintenanceRate": "0.25" },
-                        { "maxVolume": "200", "initialRate": "1", "maintenanceRate": "0.5" }
-                    ],
-                    "rateMultipliers": {
-                        "LimitBuy": "1",
-                        "LimitSell": "1",
-                        "Long": "1",
-                        "MarketBuy": "1",
-                        "MarketSell": "1",
-                        "Short": "1",
-                        "StopBuy": "0",
-                        "StopSell": "0"
-                    }
-                },
-                "clearing": { "enabled": true, "index": ".XBTUSD_3M_240622" },
-                "riskAdjustment": { "enabled": true, "index": ".RiskAdjustment_IR" },
-                "expiration": { "enabled": true, "index": ".BTC3_TWAP" },
-                "pricePrecision": 1,
-                "priceRange": {
-                    "enabled": true,
-                    "distance": "0.2",
-                    "movingBoundary": "0",
-                    "lowIndex": ".XBTUSD_3M_240622_LOWRANGE",
-                    "highIndex": ".XBTUSD_3M_240622_HIGHRANGE"
-                },
-                "priceLimits": {
-                    "enabled": true,
-                    "distance": "0.5",
-                    "movingBoundary": "0",
-                    "lowIndex": ".XBTUSD_3M_240622_LOWLIMIT",
-                    "highIndex": ".XBTUSD_3M_240622_HIGHLIMIT"
-                },
-                "serie": "XBTUSD",
-                "tradingStartDate": "2021-12-31 07:00:00",
-                "expiryDate": "2022-06-24 08:00:00"
-            }
-        */
+         * @ignore
+         * @method
+         * @param {dict} info Exchange market response for 1 market
+         * @param {dict} market CCXT market
+         */
+        //
+        //    {
+        //        "id": "XBTUSD_3M_240622",
+        //        "type": "Margin",
+        //        "marginType": "XenaFuture",
+        //        "symbol": "XBTUSD_3M_240622",
+        //        "baseCurrency": "BTC",
+        //        "quoteCurrency": "USD",
+        //        "settlCurrency": "USDC",
+        //        "tickSize": 0,
+        //        "minOrderQuantity": "0.0001",
+        //        "orderQtyStep": "0.0001",
+        //        "limitOrderMaxDistance": "10",
+        //        "priceInputMask": "00000.0",
+        //        "enabled": true,
+        //        "liquidationMaxDistance": "0.01",
+        //        "contractValue": "1",
+        //        "contractCurrency": "BTC",
+        //        "lotSize": "1",
+        //        "maxOrderQty": "10",
+        //        "maxPosVolume": "200",
+        //        "mark": ".XBTUSD_3M_240622",
+        //        "underlying": ".BTC3_TWAP",
+        //        "openInterest": ".XBTUSD_3M_240622_OpenInterest",
+        //        "addUvmToFreeMargin": "ProfitAndLoss",
+        //        "margin": {
+        //            "netting": "PositionsAndOrders",
+        //            "rates": [
+        //                { "maxVolume": "10", "initialRate": "0.05", "maintenanceRate": "0.025" },
+        //                { "maxVolume": "20", "initialRate": "0.1", "maintenanceRate": "0.05" },
+        //                { "maxVolume": "30", "initialRate": "0.2", "maintenanceRate": "0.1" },
+        //                { "maxVolume": "40", "initialRate": "0.3", "maintenanceRate": "0.15" },
+        //                { "maxVolume": "60", "initialRate": "0.4", "maintenanceRate": "0.2" },
+        //                { "maxVolume": "150", "initialRate": "0.5", "maintenanceRate": "0.25" },
+        //                { "maxVolume": "200", "initialRate": "1", "maintenanceRate": "0.5" }
+        //            ],
+        //            "rateMultipliers": {
+        //                "LimitBuy": "1",
+        //                "LimitSell": "1",
+        //                "Long": "1",
+        //                "MarketBuy": "1",
+        //                "MarketSell": "1",
+        //                "Short": "1",
+        //                "StopBuy": "0",
+        //                "StopSell": "0"
+        //            }
+        //        },
+        //        "clearing": { "enabled": true, "index": ".XBTUSD_3M_240622" },
+        //        "riskAdjustment": { "enabled": true, "index": ".RiskAdjustment_IR" },
+        //        "expiration": { "enabled": true, "index": ".BTC3_TWAP" },
+        //        "pricePrecision": 1,
+        //        "priceRange": {
+        //            "enabled": true,
+        //            "distance": "0.2",
+        //            "movingBoundary": "0",
+        //            "lowIndex": ".XBTUSD_3M_240622_LOWRANGE",
+        //            "highIndex": ".XBTUSD_3M_240622_HIGHRANGE"
+        //        },
+        //        "priceLimits": {
+        //            "enabled": true,
+        //            "distance": "0.5",
+        //            "movingBoundary": "0",
+        //            "lowIndex": ".XBTUSD_3M_240622_LOWLIMIT",
+        //            "highIndex": ".XBTUSD_3M_240622_HIGHLIMIT"
+        //        },
+        //        "serie": "XBTUSD",
+        //        "tradingStartDate": "2021-12-31 07:00:00",
+        //        "expiryDate": "2022-06-24 08:00:00"
+        //    }
+        //
         const margin = this.safeValue (info, 'margin');
         const rates = this.safeValue (margin, 'rates');
         let floor = 0;

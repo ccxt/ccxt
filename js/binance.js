@@ -134,6 +134,7 @@ export default class binance extends Exchange {
                 'api': {
                     'wapi': 'https://api.binance.com/wapi/v3',
                     'sapi': 'https://api.binance.com/sapi/v1',
+                    'sapiV3': 'https://api.binance.com/sapi/v3',
                     'dapiPublic': 'https://dapi.binance.com/dapi/v1',
                     'dapiPrivate': 'https://dapi.binance.com/dapi/v1',
                     'vapiPublic': 'https://vapi.binance.com/vapi/v1',
@@ -411,6 +412,11 @@ export default class binance extends Exchange {
                         // brokerage API TODO NO MENTION OF RATELIMIT IN BROKERAGE DOCS
                         'broker/subAccountApi': 1,
                         'broker/subAccountApi/ipRestriction/ipList': 1,
+                    },
+                },
+                'sapiV3': {
+                    'get': {
+                        'sub-account/assets': 1,
                     },
                 },
                 // deprecated
@@ -4832,23 +4838,27 @@ export default class binance extends Exchange {
 
     parseMarketLeverageTiers (info, market) {
         /**
-            @param info: Exchange response for 1 market
-            {
-                "symbol": "SUSHIUSDT",
-                "brackets": [
-                    {
-                        "bracket": 1,
-                        "initialLeverage": 50,
-                        "notionalCap": 50000,
-                        "notionalFloor": 0,
-                        "maintMarginRatio": 0.01,
-                        "cum": 0.0
-                    },
-                    ...
-                ]
-            }
-            @param market: CCXT market
-        */
+         * @ignore
+         * @method
+         * @param {dict} info Exchange response for 1 market
+         * @param {dict} market CCXT market
+         */
+        //
+        //    {
+        //        "symbol": "SUSHIUSDT",
+        //        "brackets": [
+        //            {
+        //                "bracket": 1,
+        //                "initialLeverage": 50,
+        //                "notionalCap": 50000,
+        //                "notionalFloor": 0,
+        //                "maintMarginRatio": 0.01,
+        //                "cum": 0.0
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
         const marketId = this.safeString (info, 'symbol');
         const safeSymbol = this.safeSymbol (marketId);
         market = this.safeMarket (safeSymbol, market);
@@ -5167,7 +5177,7 @@ export default class binance extends Exchange {
             } else {
                 throw new AuthenticationError (this.id + ' userDataStream endpoint requires `apiKey` credential');
             }
-        } else if ((api === 'private') || (api === 'sapi' && path !== 'system/status') || (api === 'wapi' && path !== 'systemStatus') || (api === 'dapiPrivate') || (api === 'dapiPrivateV2') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2')) {
+        } else if ((api === 'private') || (api === 'sapi' && path !== 'system/status') || (api === 'sapiV3') || (api === 'wapi' && path !== 'systemStatus') || (api === 'dapiPrivate') || (api === 'dapiPrivateV2') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2')) {
             this.checkRequiredCredentials ();
             let query = undefined;
             const recvWindow = this.safeInteger (this.options, 'recvWindow');
@@ -5384,15 +5394,7 @@ export default class binance extends Exchange {
         //     ]
         //
         const rate = this.safeValue (response, 0);
-        const timestamp = this.safeNumber (rate, 'timestamp');
-        return {
-            'currency': code,
-            'rate': this.safeNumber (rate, 'dailyInterestRate'),
-            'period': 86400000,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'info': response,
-        };
+        return this.parseBorrowRate (rate);
     }
 
     async fetchBorrowRateHistory (code, since = undefined, limit = undefined, params = {}) {
@@ -5425,19 +5427,39 @@ export default class binance extends Exchange {
         //         },
         //     ]
         //
+        return this.parseBorrowRateHistory (response);
+    }
+
+    parseBorrowRateHistory (response, code, since, limit) {
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const item = response[i];
-            const timestamp = this.safeNumber (item, 'timestamp');
-            result.push ({
-                'currency': code,
-                'rate': this.safeNumber (item, 'dailyInterestRate'),
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-                'info': item,
-            });
+            const borrowRate = this.parseBorrowRate (item);
+            result.push (borrowRate);
         }
-        return result;
+        const sorted = this.sortBy (result, 'timestamp');
+        return this.filterByCurrencySinceLimit (sorted, code, since, limit);
+    }
+
+    parseBorrowRate (info, currency = undefined) {
+        //
+        //    {
+        //        "asset": "USDT",
+        //        "timestamp": 1638230400000,
+        //        "dailyInterestRate": "0.0006",
+        //        "vipLevel": 0
+        //    }
+        //
+        const timestamp = this.safeNumber (info, 'timestamp');
+        currency = this.safeString (info, 'asset');
+        return {
+            'currency': this.safeCurrencyCode (currency),
+            'rate': this.safeNumber (info, 'dailyInterestRate'),
+            'period': 86400000,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': info,
+        };
     }
 
     async createGiftCode (code, amount, params = {}) {

@@ -2338,16 +2338,16 @@ export default class okx extends Exchange {
          * @method
          * @name okx#fetchOpenOrders
          * @description Fetch orders that are still open
-         * @param {string} symbol Unified market symbol
-         * @param {integer} since Timestamp in ms of the earliest time to retrieve orders for
-         * @param {integer} limit Number of results per request. The maximum is 100; The default is 100
+         * @param {str} symbol Unified market symbol
+         * @param {int} since Timestamp in ms of the earliest time to retrieve orders for
+         * @param {int} limit Number of results per request. The maximum is 100; The default is 100
          * @param {dict} params Extra and exchange specific parameters
-         * @param {integer} params.till Timestamp in ms of the latest time to retrieve orders for
-         * @param {boolean} params.stop True if fetching trigger orders
-         * @param {string} params.ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
-         * @param {string} params.algoId Algo ID
+         * @param {int} params.till Timestamp in ms of the latest time to retrieve orders for
+         * @param {bool} params.stop True if fetching trigger orders
+         * @param {str} params.ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+         * @param {str} params.algoId Algo ID
          * @returns [An order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-        */
+         */
         await this.loadMarkets ();
         const request = {
             // 'instType': 'SPOT', // SPOT, MARGIN, SWAP, FUTURES, OPTION
@@ -4225,20 +4225,76 @@ export default class okx extends Exchange {
         //        "msg": ""
         //    }
         //
-        const timestamp = this.milliseconds ();
         const data = this.safeValue (response, 'data');
         const rate = this.safeValue (data, 0);
+        return this.parseBorrowRate (rate);
+    }
+
+    parseBorrowRate (info, currency = undefined) {
+        //
+        //    {
+        //        "amt": "992.10341195",
+        //        "ccy": "BTC",
+        //        "rate": "0.01",
+        //        "ts": "1643954400000"
+        //    }
+        //
+        const ccy = this.safeString (info, 'ccy');
+        const timestamp = this.safeInteger (info, 'ts');
         return {
-            'currency': code,
-            'rate': this.safeNumber (rate, 'interestRate'),
+            'currency': this.safeCurrencyCode (ccy),
+            'rate': this.safeNumber2 (info, 'interestRate', 'rate'),
             'period': 86400000,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'info': rate,
+            'info': info,
         };
     }
 
-    async fetchBorrowRateHistories (since = undefined, limit = undefined, params = {}) {
+    parseBorrowRateHistories (response, codes, since, limit) {
+        //
+        //    [
+        //        {
+        //            "amt": "992.10341195",
+        //            "ccy": "BTC",
+        //            "rate": "0.01",
+        //            "ts": "1643954400000"
+        //        },
+        //        ...
+        //    ]
+        //
+        const borrowRateHistories = {};
+        for (let i = 0; i < response.length; i++) {
+            const item = response[i];
+            const code = this.safeCurrencyCode (this.safeString (item, 'ccy'));
+            if (codes === undefined || codes.includes (code)) {
+                if (!(code in borrowRateHistories)) {
+                    borrowRateHistories[code] = [];
+                }
+                const borrowRateStructure = this.parseBorrowRate (item);
+                borrowRateHistories[code].push (borrowRateStructure);
+            }
+        }
+        const keys = Object.keys (borrowRateHistories);
+        for (let i = 0; i < keys.length; i++) {
+            const code = keys[i];
+            borrowRateHistories[code] = this.filterByCurrencySinceLimit (borrowRateHistories[code], code, since, limit);
+        }
+        return borrowRateHistories;
+    }
+
+    parseBorrowRateHistory (response, code, since, limit) {
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const item = response[i];
+            const borrowRate = this.parseBorrowRate (item);
+            result.push (borrowRate);
+        }
+        const sorted = this.sortBy (result, 'timestamp');
+        return this.filterByCurrencySinceLimit (sorted, code, since, limit);
+    }
+
+    async fetchBorrowRateHistories (codes = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             // 'ccy': currency['id'],
@@ -4268,39 +4324,41 @@ export default class okx extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data');
-        const borrowRateHistories = {};
-        for (let i = 0; i < data.length; i++) {
-            const item = data[i];
-            const currency = this.safeCurrencyCode (this.safeString (item, 'ccy'));
-            if (!(currency in borrowRateHistories)) {
-                borrowRateHistories[currency] = [];
-            }
-            const rate = this.safeString (item, 'rate');
-            const timestamp = this.safeString (item, 'ts');
-            borrowRateHistories[currency].push ({
-                'info': item,
-                'currency': currency,
-                'rate': rate,
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-            });
-        }
-        const keys = Object.keys (borrowRateHistories);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            borrowRateHistories[key] = this.filterByCurrencySinceLimit (borrowRateHistories[key], key, since, limit);
-        }
-        return borrowRateHistories;
+        return this.parseBorrowRateHistories (data, codes, since, limit);
     }
 
     async fetchBorrowRateHistory (code, since = undefined, limit = undefined, params = {}) {
-        const codeObject = JSON.parse ('{"ccy": "' + code + '"}');
-        const histories = await this.fetchBorrowRateHistories (since, limit, codeObject, params);
-        if (histories === undefined) {
-            throw new BadRequest (this.id + ' fetchBorrowRateHistory() returned no data for ' + code);
-        } else {
-            return histories;
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'ccy': currency['id'],
+            // 'after': this.milliseconds (), // Pagination of data to return records earlier than the requested ts,
+            // 'before': since, // Pagination of data to return records newer than the requested ts,
+            // 'limit': limit, // default is 100 and maximum is 100
+        };
+        if (since !== undefined) {
+            request['before'] = since;
         }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetAssetLendingRateHistory (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "amt": "992.10341195",
+        //                 "ccy": "BTC",
+        //                 "rate": "0.01",
+        //                 "ts": "1643954400000"
+        //             },
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseBorrowRateHistory (data, code, since, limit);
     }
 
     async modifyMarginHelper (symbol, amount, type, params = {}) {
@@ -4403,9 +4461,9 @@ export default class okx extends Exchange {
         /**
          * @ignore
          * @method
-         * @param info: Exchange response for 1 market
-         * @param market: CCXT market
-        */
+         * @param {dict} info Exchange response for 1 market
+         * @param {dict} market CCXT market
+         */
         //
         //    [
         //        {
@@ -4445,12 +4503,12 @@ export default class okx extends Exchange {
          * @method
          * @name okx#fetchBorrowInterest
          * @description Obtain the amount of interest that has accrued for margin trading
-         * @param {string} code The unified currency code for the currency of the interest
-         * @param {string} symbol The market symbol of an isolated margin market, if undefined, the interest for cross margin markets is returned
-         * @param {integer} since Timestamp in ms of the earliest time to receive interest records for
-         * @param {integer} limit The number of [borrow interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure} to retrieve
+         * @param {str} code The unified currency code for the currency of the interest
+         * @param {str} symbol The market symbol of an isolated margin market, if undefined, the interest for cross margin markets is returned
+         * @param {int} since Timestamp in ms of the earliest time to receive interest records for
+         * @param {int} limit The number of [borrow interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure} to retrieve
          * @param {dict} params Exchange specific parameters
-         * @param {integer} params.type Loan type 1 - VIP loans 2 - Market loans *Default is Market loans*
+         * @param {int} params.type Loan type 1 - VIP loans 2 - Market loans *Default is Market loans*
          * @returns An array of [borrow interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure}
          */
         await this.loadMarkets ();
