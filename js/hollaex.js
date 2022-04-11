@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { AuthenticationError, NotSupported, ExchangeError } = require ('ccxt/js/base/errors');
+const { AuthenticationError, BadSymbol, BadRequest } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -33,6 +33,14 @@ module.exports = class hollaex extends ccxt.hollaex {
             },
             'streaming': {
                 'ping': this.ping,
+            },
+            'exceptions': {
+                'ws': {
+                    'exact': {
+                        'Bearer or HMAC authentication required': BadSymbol, // { error: 'Bearer or HMAC authentication required' }
+                        'Error: wrong input': BadRequest, // { error: 'Error: wrong input' }
+                    },
+                },
             },
         });
     }
@@ -203,7 +211,8 @@ module.exports = class hollaex extends ccxt.hollaex {
         const marketId = this.safeString (message, 'symbol');
         const data = this.safeValue (message, 'data', {});
         // usually the first message is an empty array
-        if (data.length === 0) {
+        const dataLength = data.length;
+        if (dataLength === 0) {
             return 0;
         }
         const parsed = this.parseOrder (data);
@@ -221,40 +230,86 @@ module.exports = class hollaex extends ccxt.hollaex {
     }
 
     async watchBalance (params = {}) {
-        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
-        const messageHash = (defaultType === 'margin') ? 'user.margin.balance' : 'user.balance';
+        const messageHash = 'wallet';
         return await this.watchPrivate (messageHash, params);
     }
 
     handleBalance (client, message) {
         //
         // {
-        //     "method": "subscribe",
-        //     "result": {
-        //       "subscription": "user.balance",
-        //       "channel": "user.balance",
-        //       "data": [
-        //         {
-        //           "currency": "CRO",
-        //           "balance": 99999999947.99626,
-        //           "available": 99999988201.50826,
-        //           "order": 11746.488,
-        //           "stake": 0
-        //         }
-        //       ],
-        //       "channel": "user.balance"
-        //     }
-        // }
+        //     topic: 'wallet',
+        //     action: 'partial',
+        //     user_id: 155328,
+        //     data: {
+        //       bch_balance: 0,
+        //       bch_available: 0,
+        //       xrp_balance: 0,
+        //       xrp_available: 0,
+        //       eth_balance: 0,
+        //       eth_available: 0,
+        //       usdt_balance: 18.94344188,
+        //       usdt_available: 18.94344188,
+        //       btc_balance: 0,
+        //       btc_available: 0,
+        //       xht_balance: 0,
+        //       xht_available: 0,
+        //       link_balance: 0,
+        //       link_available: 0,
+        //       ama_balance: 0,
+        //       ama_available: 0,
+        //       xlm_balance: 0,
+        //       xlm_available: 0,
+        //       xmr_balance: 0,
+        //       xmr_available: 0,
+        //       bnb_balance: 0,
+        //       bnb_available: 0,
+        //       trx_balance: 0,
+        //       trx_available: 0,
+        //       ada_balance: 0,
+        //       ada_available: 0,
+        //       dot_balance: 0,
+        //       dot_available: 0,
+        //       ltc_balance: 0.00005,
+        //       ltc_available: 0.00005,
+        //       uni_balance: 0,
+        //       uni_available: 0,
+        //       dai_balance: 0,
+        //       dai_available: 0,
+        //       xtz_balance: 0,
+        //       xtz_available: 0,
+        //       doge_balance: 0,
+        //       doge_available: 0,
+        //       axs_balance: 0,
+        //       axs_available: 0,
+        //       sol_balance: 0,
+        //       sol_available: 0,
+        //       avax_balance: 0,
+        //       avax_available: 0,
+        //       shib_balance: 0,
+        //       shib_available: 0
+        //     },
+        //     time: 1649687396
+        //   }
         //
-        const messageHash = this.safeString (message, 'subscription');
+        const messageHash = this.safeString (message, 'topic');
         const data = this.safeValue (message, 'data');
-        for (let i = 0; i < data.length; i++) {
-            const balance = data[i];
-            const currencyId = this.safeString (balance, 'currency');
+        const balanceKeys = Object.keys (data);
+        const currencies = {};
+        for (let i = 0; i < balanceKeys.length; i++) {
+            const rawKey = balanceKeys[i];
+            const keyParts = rawKey.split ('_');
+            const currency = this.safeValue (keyParts, 0);
+            currencies[currency] = true;
+        }
+        const currenciesKeys = Object.keys (currencies);
+        for (let i = 0; i < currenciesKeys.length; i++) {
+            const currencyId = currenciesKeys[i];
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeString (balance, 'available');
-            account['total'] = this.safeString (balance, 'balance');
+            const availableKey = currencyId + '_available';
+            const totalKey = currencyId + '_balance';
+            account['free'] = this.safeString (data, availableKey);
+            account['total'] = this.safeString (data, totalKey);
             this.balance[code] = account;
             this.balance = this.safeBalance (this.balance);
         }
@@ -294,25 +349,17 @@ module.exports = class hollaex extends ccxt.hollaex {
     }
 
     handleErrorMessage (client, message) {
-        const errorCode = this.safeInteger (message, 'code');
+        //  { error: 'Bearer or HMAC authentication required' }
+        //  { error: 'Error: wrong input' }
+        const error = this.safeInteger (message, 'error');
         try {
-            if (errorCode !== undefined && errorCode !== 0) {
+            if (error !== undefined) {
                 const feedback = this.id + ' ' + this.json (message);
-                this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
-                const messageString = this.safeValue (message, 'message');
-                if (messageString !== undefined) {
-                    this.throwBroadlyMatchedException (this.exceptions['broad'], messageString, feedback);
-                }
+                this.throwExactlyMatchedException (this.exceptions['ws']['exact'], error, feedback);
             }
         } catch (e) {
             if (e instanceof AuthenticationError) {
-                client.reject (e, 'authenticated');
-                if ('public/auth' in client.subscriptions) {
-                    delete client.subscriptions['public/auth'];
-                }
                 return false;
-            } else {
-                client.reject (e);
             }
         }
         return message;
@@ -346,29 +393,36 @@ module.exports = class hollaex extends ccxt.hollaex {
         //        time: 1649673421
         //    }
         // order
-        // {
-        //     topic: 'order',
-        //     action: 'insert',
-        //     user_id: 155328,
-        //     symbol: 'ltc-usdt',
-        //     data: {
-        //       symbol: 'ltc-usdt',
-        //       side: 'buy',
-        //       size: 0.05,
-        //       type: 'market',
-        //       price: 0,
-        //       fee_structure: { maker: 0.1, taker: 0.1 },
-        //       fee_coin: 'ltc',
-        //       id: 'ce38fd48-b336-400b-812b-60c636454231',
-        //       created_by: 155328,
-        //       filled: 0.05,
-        //       method: 'market',
-        //       created_at: '2022-04-11T14:09:00.760Z',
-        //       updated_at: '2022-04-11T14:09:00.760Z',
-        //       status: 'filled'
-        //     },
-        //     time: 1649686140
-        // }
+        //  {
+        //      topic: 'order',
+        //      action: 'insert',
+        //      user_id: 155328,
+        //      symbol: 'ltc-usdt',
+        //      data: {
+        //        symbol: 'ltc-usdt',
+        //        side: 'buy',
+        //        size: 0.05,
+        //        type: 'market',
+        //        price: 0,
+        //        fee_structure: { maker: 0.1, taker: 0.1 },
+        //        fee_coin: 'ltc',
+        //        id: 'ce38fd48-b336-400b-812b-60c636454231',
+        //        created_by: 155328,
+        //        filled: 0.05,
+        //        method: 'market',
+        //        created_at: '2022-04-11T14:09:00.760Z',
+        //        updated_at: '2022-04-11T14:09:00.760Z',
+        //        status: 'filled'
+        //      },
+        //      time: 1649686140
+        //  }
+        // balance
+        //   {
+        //       topic: 'wallet',
+        //       action: 'partial',
+        //       user_id: 155328,
+        //       data: { }
+        //   }
         //
         if (!this.handleErrorMessage (client, message)) {
             return;
@@ -377,6 +431,7 @@ module.exports = class hollaex extends ccxt.hollaex {
             'trade': this.handleTrades,
             'orderbook': this.handlOrderBook,
             'order': this.handleOrder,
+            'wallet': this.handleBalance,
         };
         const topic = this.safeValue (message, 'topic');
         const method = this.safeValue (methods, topic);
@@ -388,15 +443,5 @@ module.exports = class hollaex extends ccxt.hollaex {
     ping (client) {
         // hollaex does not support built-in ws protocol-level ping-pong
         return { 'op': 'ping' };
-    }
-
-    handleAuthenticate (client, message) {
-        //
-        //  { id: 1648132625434, method: 'public/auth', code: 0 }}
-        //
-        const future = client.futures['authenticated'];
-        future.resolve (1);
-        client.resolve (1, 'public/auth');
-        return message;
     }
 };
