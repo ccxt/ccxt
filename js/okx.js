@@ -4565,7 +4565,9 @@ module.exports = class okx extends Exchange {
         }
         const timestamp = this.safeNumber (info, 'ts');
         return {
-            'account': account, // isolated symbol, will not be returned for cross margin
+            'account': account, // deprecated
+            'symbol': this.safeString (market, 'symbol'),
+            'marginType': (instId === undefined) ? 'cross' : 'isolated',
             'currency': this.safeCurrencyCode (this.safeString (info, 'ccy')),
             'interest': this.safeNumber (info, 'interest'),
             'interestRate': this.safeNumber (info, 'interestRate'),
