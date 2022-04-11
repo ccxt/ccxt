@@ -621,19 +621,22 @@ class okx extends Exchange {
                     'method' => 'privateGetAccountBills', // privateGetAccountBillsArchive, privateGetAssetBills
                 ),
                 // 1 = SPOT, 3 = FUTURES, 5 = MARGIN, 6 = FUNDING, 9 = SWAP, 12 = OPTION, 18 = Unified account
+                'fetchOrder' => array(
+                    'method' => 'privateGetTradeOrder', // privateGetTradeOrdersAlgoHistory
+                ),
                 'fetchOpenOrders' => array(
                     'method' => 'privateGetTradeOrdersPending', // privateGetTradeOrdersAlgoPending
-                    'algoOrderTypes' => array(
-                        'conditional' => true,
-                        'trigger' => true,
-                        'oco' => true,
-                        'move_order_stop' => true,
-                        'iceberg' => true,
-                        'twap' => true,
-                    ),
                 ),
                 'cancelOrders' => array(
                     'method' => 'privatePostTradeCancelBatchOrders', // privatePostTradeCancelAlgos
+                ),
+                'algoOrderTypes' => array(
+                    'conditional' => true,
+                    'trigger' => true,
+                    'oco' => true,
+                    'move_order_stop' => true,
+                    'iceberg' => true,
+                    'twap' => true,
                 ),
                 'accountsByType' => array(
                     'spot' => '1',
@@ -2112,7 +2115,7 @@ class okx extends Exchange {
         //         "sMsg" => ""
         //     }
         //
-        // fetchOrder, fetchOpenOrders
+        // Spot and Swap fetchOrder, fetchOpenOrders
         //
         //     {
         //         "accFillSz" => "0",
@@ -2149,7 +2152,7 @@ class okx extends Exchange {
         //         "uTime" => "1621910749815"
         //     }
         //
-        // fetchOpenOrders Algo $order
+        // Algo Order fetchOrder fetchOpenOrders
         //
         //     {
         //         "activePx" => "",
@@ -2275,6 +2278,17 @@ class okx extends Exchange {
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
+        /**
+         * Fetch an $order by the $id
+         * @param {string} $id The $order $id
+         * @param {string} $symbol Unified $market $symbol
+         * @param {dict} $params Extra and exchange specific parameters
+         * @param {integer} $params->till Timestamp in ms of the latest time to retrieve orders for
+         * @param {boolean} $params->stop True if fetching trigger orders
+         * @param {string} $params->ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+         * @param {string} $params->algoId Algo ID
+         * @return {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure An $order structure}
+        */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
@@ -2284,15 +2298,38 @@ class okx extends Exchange {
             'instId' => $market['id'],
             // 'clOrdId' => 'abcdef12345', // optional, [a-z0-9]array(1,32)
             // 'ordId' => $id,
+            // 'ordType' => 'limit', // $stop orders => conditional, oco, trigger, move_order_stop, iceberg, or twap
+            // 'state' => 'live', // $stop orders => effective, canceled, order_failed
+            // 'alogId' => orderId, // $stop orders
+            // 'instType' => // spot, swap, futures, margin
+            // 'after' => orderId, // $stop orders
+            // 'before' => orderId, // $stop orders
+            // 'limit' => limit, // $stop orders, default 100, max 100
         );
         $clientOrderId = $this->safe_string_2($params, 'clOrdId', 'clientOrderId');
-        if ($clientOrderId !== null) {
-            $request['clOrdId'] = $clientOrderId;
+        $options = $this->safe_value($this->options, 'fetchOrder', array());
+        $algoOrderTypes = $this->safe_value($this->options, 'algoOrderTypes', array());
+        $defaultMethod = $this->safe_string($options, 'method', 'privateGetTradeOrder');
+        $method = $this->safe_string($params, 'method', $defaultMethod);
+        $ordType = $this->safe_string($params, 'ordType');
+        $stop = $this->safe_value($params, 'stop');
+        if ($stop || (is_array($algoOrderTypes) && array_key_exists($ordType, $algoOrderTypes))) {
+            if ($ordType === null) {
+                throw new ArgumentsRequired($this->id . ' fetchOrder() requires an $ordType parameter');
+            }
+            $method = 'privateGetTradeOrdersAlgoHistory';
+            $request['algoId'] = $id;
         } else {
-            $request['ordId'] = $id;
+            if ($clientOrderId !== null) {
+                $request['clOrdId'] = $clientOrderId;
+            } else {
+                $request['ordId'] = $id;
+            }
         }
-        $query = $this->omit($params, array( 'clOrdId', 'clientOrderId' ));
-        $response = yield $this->privateGetTradeOrder (array_merge($request, $query));
+        $query = $this->omit($params, array( 'method', 'stop', 'clOrdId', 'clientOrderId' ));
+        $response = yield $this->$method (array_merge($request, $query));
+        //
+        // Spot and Swap
         //
         //     {
         //         "code" => "0",
@@ -2330,6 +2367,59 @@ class okx extends Exchange {
         //                 "tpTriggerPx" => "",
         //                 "tradeId" => "",
         //                 "uTime" => "1621910749815"
+        //             }
+        //         ),
+        //         "msg" => ""
+        //     }
+        //
+        // Algo $order
+        //
+        //     {
+        //         "code" => "0",
+        //         "data" => array(
+        //             {
+        //                 "activePx" => "",
+        //                 "activePxType" => "",
+        //                 "actualPx" => "",
+        //                 "actualSide" => "buy",
+        //                 "actualSz" => "0",
+        //                 "algoId" => "432912085631369216",
+        //                 "cTime" => "1649486284333",
+        //                 "callbackRatio" => "",
+        //                 "callbackSpread" => "",
+        //                 "ccy" => "",
+        //                 "ctVal" => "0.01",
+        //                 "instId" => "BTC-USDT-SWAP",
+        //                 "instType" => "SWAP",
+        //                 "last" => "42458.6",
+        //                 "lever" => "125",
+        //                 "moveTriggerPx" => "",
+        //                 "notionalUsd" => "1699.856",
+        //                 "ordId" => "",
+        //                 "ordPx" => "30000",
+        //                 "ordType" => "trigger",
+        //                 "posSide" => "long",
+        //                 "pxLimit" => "",
+        //                 "pxSpread" => "",
+        //                 "pxVar" => "",
+        //                 "side" => "buy",
+        //                 "slOrdPx" => "",
+        //                 "slTriggerPx" => "",
+        //                 "slTriggerPxType" => "",
+        //                 "state" => "live",
+        //                 "sz" => "4",
+        //                 "szLimit" => "",
+        //                 "tag" => "",
+        //                 "tdMode" => "isolated",
+        //                 "tgtCcy" => "",
+        //                 "timeInterval" => "",
+        //                 "tpOrdPx" => "",
+        //                 "tpTriggerPx" => "",
+        //                 "tpTriggerPxType" => "",
+        //                 "triggerPx" => "31000",
+        //                 "triggerPxType" => "last",
+        //                 "triggerTime" => "",
+        //                 "uly" => "BTC-USDT"
         //             }
         //         ),
         //         "msg" => ""
@@ -2373,7 +2463,7 @@ class okx extends Exchange {
             $request['limit'] = $limit; // default 100, max 100
         }
         $options = $this->safe_value($this->options, 'fetchOpenOrders', array());
-        $algoOrderTypes = $this->safe_value($options, 'algoOrderTypes', array());
+        $algoOrderTypes = $this->safe_value($this->options, 'algoOrderTypes', array());
         $defaultMethod = $this->safe_string($options, 'method', 'privateGetTradeOrdersPending');
         $method = $this->safe_string($params, 'method', $defaultMethod);
         $ordType = $this->safe_string($params, 'ordType');

@@ -636,19 +636,22 @@ class okx(Exchange):
                     'method': 'privateGetAccountBills',  # privateGetAccountBillsArchive, privateGetAssetBills
                 },
                 # 1 = SPOT, 3 = FUTURES, 5 = MARGIN, 6 = FUNDING, 9 = SWAP, 12 = OPTION, 18 = Unified account
+                'fetchOrder': {
+                    'method': 'privateGetTradeOrder',  # privateGetTradeOrdersAlgoHistory
+                },
                 'fetchOpenOrders': {
                     'method': 'privateGetTradeOrdersPending',  # privateGetTradeOrdersAlgoPending
-                    'algoOrderTypes': {
-                        'conditional': True,
-                        'trigger': True,
-                        'oco': True,
-                        'move_order_stop': True,
-                        'iceberg': True,
-                        'twap': True,
-                    },
                 },
                 'cancelOrders': {
                     'method': 'privatePostTradeCancelBatchOrders',  # privatePostTradeCancelAlgos
+                },
+                'algoOrderTypes': {
+                    'conditional': True,
+                    'trigger': True,
+                    'oco': True,
+                    'move_order_stop': True,
+                    'iceberg': True,
+                    'twap': True,
                 },
                 'accountsByType': {
                     'spot': '1',
@@ -2026,7 +2029,7 @@ class okx(Exchange):
         #         "sMsg": ""
         #     }
         #
-        # fetchOrder, fetchOpenOrders
+        # Spot and Swap fetchOrder, fetchOpenOrders
         #
         #     {
         #         "accFillSz": "0",
@@ -2063,7 +2066,7 @@ class okx(Exchange):
         #         "uTime": "1621910749815"
         #     }
         #
-        # fetchOpenOrders Algo order
+        # Algo Order fetchOrder fetchOpenOrders
         #
         #     {
         #         "activePx": "",
@@ -2184,6 +2187,17 @@ class okx(Exchange):
         }, market)
 
     def fetch_order(self, id, symbol=None, params={}):
+        """
+        Fetch an order by the id
+        :param string id: The order id
+        :param string symbol: Unified market symbol
+        :param dict params: Extra and exchange specific parameters
+        :param integer params.till: Timestamp in ms of the latest time to retrieve orders for
+        :param boolean params.stop: True if fetching trigger orders
+        :param string params.ordType: "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+        :param string params.algoId: Algo ID
+        :returns: `An order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+       """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         self.load_markets()
@@ -2192,14 +2206,35 @@ class okx(Exchange):
             'instId': market['id'],
             # 'clOrdId': 'abcdef12345',  # optional, [a-z0-9]{1,32}
             # 'ordId': id,
+            # 'ordType': 'limit',  # stop orders: conditional, oco, trigger, move_order_stop, iceberg, or twap
+            # 'state': 'live',  # stop orders: effective, canceled, order_failed
+            # 'alogId': orderId,  # stop orders
+            # 'instType':  # spot, swap, futures, margin
+            # 'after': orderId,  # stop orders
+            # 'before': orderId,  # stop orders
+            # 'limit': limit,  # stop orders, default 100, max 100
         }
         clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
-        if clientOrderId is not None:
-            request['clOrdId'] = clientOrderId
+        options = self.safe_value(self.options, 'fetchOrder', {})
+        algoOrderTypes = self.safe_value(self.options, 'algoOrderTypes', {})
+        defaultMethod = self.safe_string(options, 'method', 'privateGetTradeOrder')
+        method = self.safe_string(params, 'method', defaultMethod)
+        ordType = self.safe_string(params, 'ordType')
+        stop = self.safe_value(params, 'stop')
+        if stop or (ordType in algoOrderTypes):
+            if ordType is None:
+                raise ArgumentsRequired(self.id + ' fetchOrder() requires an ordType parameter')
+            method = 'privateGetTradeOrdersAlgoHistory'
+            request['algoId'] = id
         else:
-            request['ordId'] = id
-        query = self.omit(params, ['clOrdId', 'clientOrderId'])
-        response = self.privateGetTradeOrder(self.extend(request, query))
+            if clientOrderId is not None:
+                request['clOrdId'] = clientOrderId
+            else:
+                request['ordId'] = id
+        query = self.omit(params, ['method', 'stop', 'clOrdId', 'clientOrderId'])
+        response = getattr(self, method)(self.extend(request, query))
+        #
+        # Spot and Swap
         #
         #     {
         #         "code": "0",
@@ -2242,6 +2277,59 @@ class okx(Exchange):
         #         "msg": ""
         #     }
         #
+        # Algo order
+        #
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             {
+        #                 "activePx": "",
+        #                 "activePxType": "",
+        #                 "actualPx": "",
+        #                 "actualSide": "buy",
+        #                 "actualSz": "0",
+        #                 "algoId": "432912085631369216",
+        #                 "cTime": "1649486284333",
+        #                 "callbackRatio": "",
+        #                 "callbackSpread": "",
+        #                 "ccy": "",
+        #                 "ctVal": "0.01",
+        #                 "instId": "BTC-USDT-SWAP",
+        #                 "instType": "SWAP",
+        #                 "last": "42458.6",
+        #                 "lever": "125",
+        #                 "moveTriggerPx": "",
+        #                 "notionalUsd": "1699.856",
+        #                 "ordId": "",
+        #                 "ordPx": "30000",
+        #                 "ordType": "trigger",
+        #                 "posSide": "long",
+        #                 "pxLimit": "",
+        #                 "pxSpread": "",
+        #                 "pxVar": "",
+        #                 "side": "buy",
+        #                 "slOrdPx": "",
+        #                 "slTriggerPx": "",
+        #                 "slTriggerPxType": "",
+        #                 "state": "live",
+        #                 "sz": "4",
+        #                 "szLimit": "",
+        #                 "tag": "",
+        #                 "tdMode": "isolated",
+        #                 "tgtCcy": "",
+        #                 "timeInterval": "",
+        #                 "tpOrdPx": "",
+        #                 "tpTriggerPx": "",
+        #                 "tpTriggerPxType": "",
+        #                 "triggerPx": "31000",
+        #                 "triggerPxType": "last",
+        #                 "triggerTime": "",
+        #                 "uly": "BTC-USDT"
+        #             }
+        #         ],
+        #         "msg": ""
+        #     }
+        #
         data = self.safe_value(response, 'data', [])
         order = self.safe_value(data, 0)
         return self.parse_order(order, market)
@@ -2277,7 +2365,7 @@ class okx(Exchange):
         if limit is not None:
             request['limit'] = limit  # default 100, max 100
         options = self.safe_value(self.options, 'fetchOpenOrders', {})
-        algoOrderTypes = self.safe_value(options, 'algoOrderTypes', {})
+        algoOrderTypes = self.safe_value(self.options, 'algoOrderTypes', {})
         defaultMethod = self.safe_string(options, 'method', 'privateGetTradeOrdersPending')
         method = self.safe_string(params, 'method', defaultMethod)
         ordType = self.safe_string(params, 'ordType')
