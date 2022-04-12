@@ -1553,6 +1553,18 @@ module.exports = class Exchange {
         return result;
     }
 
+    safeFundingHistoryEntry (fundingHistoryEntry) {
+        return this.extend({
+            'id': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'code': undefined,
+            'symbol': undefined,
+            'amount': undefined,
+            'info': {},
+        }, fundingHistoryEntry);
+    }
+
     parseOHLCV (ohlcv, market = undefined) {
         return Array.isArray (ohlcv) ? ohlcv.slice (0, 6) : ohlcv
     }

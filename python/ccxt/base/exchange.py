@@ -1645,6 +1645,17 @@ class Exchange(object):
             result[parsed['symbol']] = parsed
         return result
 
+    def safe_funding_history_entry(self, funding_history_entry):
+        return self.extend({
+            'id': None,
+            'timestamp': None,
+            'datetime': None,
+            'code': None,
+            'symbol': None,
+            'amount': None,
+            'info': None,
+        }, funding_history_entry)
+
     def parse_ohlcv(self, ohlcv, market=None):
         if isinstance(ohlcv, list):
             return [

@@ -1944,6 +1944,18 @@ class Exchange {
         return $result;
     }
 
+    public function safe_funding_history_entry($funding_history_entry) {
+        return $this->extend([
+            'id'=> null,
+            'timestamp'=> null,
+            'datetime'=> null,
+            'code'=> null,
+            'symbol'=> null,
+            'amount'=> null,
+            'info'=> [],
+        ], $funding_history_entry);
+    }
+
     public function parse_ohlcv($ohlcv, $market = null) {
         return ('array' === gettype($ohlcv) && !static::is_associative($ohlcv)) ? array_slice($ohlcv, 0, 6) : $ohlcv;
     }
