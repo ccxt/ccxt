@@ -4535,6 +4535,7 @@ Parameters
 - **amount** (Float) The amount of currency to transfer (e.g. `10.5`)
 - **fromAccount** (String) The account to transfer funds from.
 - **toAccount** (String) The account to transfer funds to
+- **params.symbol** (String) Market symbol when transfering to or from a margin account (e.g. `'BTC/USDT'`)
 - **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
 
 **Account Types**
@@ -4547,8 +4548,6 @@ Unified values for `fromAccount` and `toAccount` include
 - `future`
 
 You can retrieve all the account types by selecting the keys from `exchange.options['accountsByType']
-
-If transfering to or from a margin account you can specify the market symbol in `params`. (e.g. `{'symbol': 'BTC/USDT'}`)
 
 Returns
 
