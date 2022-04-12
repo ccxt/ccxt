@@ -352,10 +352,13 @@ module.exports = class krakenfutures extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         /**
-         * @param {string} symbol: Unified market symbol
-         * @param {*} limit: Not used by krakenfutures
-         * @param {*} params: exchange specific params
-         * @returns: An order book structure
+         * @method
+         * @name krakenfutures#fetchOrderBook
+         * @description Fetches a list of open orders in a market
+         * @param {str} symbol Unified market symbol
+         * @param {int} limit Not used by krakenfutures
+         * @param {dict} params exchange specific params
+         * @returns An [order book structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -577,12 +580,15 @@ module.exports = class krakenfutures extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
-         * @param {string} symbol: Unified CCXT market symbol
-         * @param {integer} since: Timestamp(ms) of earliest trade. Not used by krakenfutures except in combination with params.till
-         * @param {integer} limit: Total number of trades, cannot exceed 100
-         * @param {dict} params: Exchange specific params
-         * @param {integer} params.till: Timestamp(ms) of latest trade
-         * @returns: An array of trade structures
+         * @method
+         * @name krakenfutures#fetchTrades
+         * @descriptions Fetch a history of filled trades that this account has made
+         * @param {str} symbol Unified CCXT market symbol
+         * @param {int} since Timestamp in ms of earliest trade. Not used by krakenfutures except in combination with params.till
+         * @param {int} limit Total number of trades, cannot exceed 100
+         * @param {dict} params Exchange specific params
+         * @param {int} params.till Timestamp in ms of latest trade
+         * @returns An array of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -742,16 +748,19 @@ module.exports = class krakenfutures extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         /**
-         * @param {string} symbol: CCXT market symbol
-         * @param {string} type: One of 'limit', 'market', 'take_profit' (take_profit order - not unified)
-         * @param {string} side: buy or sell
-         * @param {integer} amount: Contract quantity
-         * @param {float} price: Limit order price
-         * @param {float} params.stopPrice: (Unified) The stop price associated with a stop or take profit order. Required if orderType is stp or take_profit. Must not have more than 2 decimal places. Note that for stop orders, limitPrice denotes the worst price at which the stop or take_profit order can get filled at. If no limitPrice is provided the stop or take_profit order will trigger a market order.
-         * @param {boolean} params.reduceOnly: (Unified) Set as true if you wish the order to only reduce an existing position. Any order which increases an existing position will be rejected. Default false.
-         * @param {boolean} params.postOnly: (Unified) Set as true if you wish to make a postOnly order. Default false.
-         * @param {string} params.triggerSignal: If placing a stp or take_profit, the signal used for trigger. One of: 'mark', 'index', 'last' (market price)
-         * @param {string} params.cliOrdId: UUID - The order identity that is specified from the user. It must be globally unique.
+         * @method
+         * @name krakenfutures#createOrder
+         * @description Create an order on the exchange
+         * @param {str} symbol CCXT market symbol
+         * @param {str} type One of 'limit', 'market', 'take_profit'
+         * @param {str} side buy or sell
+         * @param {int} amount Contract quantity
+         * @param {float} price Limit order price
+         * @param {float} params.stopPrice The stop price associated with a stop or take profit order, Required if orderType is stp or take_profit, Must not have more than 2 decimal places, Note that for stop orders, limitPrice denotes the worst price at which the stop or take_profit order can get filled at. If no limitPrice is provided the stop or take_profit order will trigger a market order,
+         * @param {bool} params.reduceOnly Set as true if you wish the order to only reduce an existing position, Any order which increases an existing position will be rejected, Default false,
+         * @param {bool} params.postOnly Set as true if you wish to make a postOnly order, Default false
+         * @param {str} params.triggerSignal If placing a stp or take_profit, the signal used for trigger, One of: 'mark', 'index', 'last', last is market price
+         * @param {str} params.cliOrdId UUID The order identity that is specified from the user, It must be globally unique
          */
         await this.loadMarkets ();
         type = this.safeString (params, 'orderType', type);
@@ -822,14 +831,17 @@ module.exports = class krakenfutures extends Exchange {
 
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
-         * @param {string} id: order id
-         * @param {string} symbol: Not used by Krakenfutures
-         * @param {string} type: Not used by Krakenfutures
-         * @param {string} side: Not used by Krakenfutures
-         * @param {float} amount: Order size
-         * @param {float} price: Price to fill order at
-         * @param {dictionary} params: Exchange specific params
-         * @returns: An order structure
+         * @method
+         * @name krakenfutures#editOrder
+         * @description Edit an open order on the exchange
+         * @param {str} id order id
+         * @param {str} symbol Not used by Krakenfutures
+         * @param {str} type Not used by Krakenfutures
+         * @param {str} side Not used by Krakenfutures
+         * @param {float} amount Order size
+         * @param {float} price Price to fill order at
+         * @param {dict} params Exchange specific params
+         * @returns An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -851,10 +863,10 @@ module.exports = class krakenfutures extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         /**
-         * @param {string} id: Order id
-         * @param {string} symbol: Not used by Krakenfutures
-         * @param {dictionary} params: Exchange specific params
-         * @returns: An order structure
+         * @param {str} id Order id
+         * @param {str} symbol Not used by Krakenfutures
+         * @param {dict} params Exchange specific params
+         * @returns An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const response = await this.privatePostCancelorder (this.extend ({ 'order_id': id }, params));
@@ -870,10 +882,12 @@ module.exports = class krakenfutures extends Exchange {
 
     async cancelAllOrders (symbol = undefined, params = {}) {
         /**
-         * Cancels all orders on the exchange, including trigger orders
-         * @param {string} symbol: Unified market symbol
-         * @param {dictionary} params: Exchange specific params
-         * @returns: Response from exchange api
+         * @method
+         * @name krakenfutures#cancelAllOrders
+         * @description Cancels all orders on the exchange, including trigger orders
+         * @param {str} symbol Unified market symbol
+         * @param {dict} params Exchange specific params
+         * @returns Response from exchange api
          */
         const request = {};
         if (symbol !== undefined) {
@@ -885,12 +899,14 @@ module.exports = class krakenfutures extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
-         * Gets all open orders, including trigger orders, for an account from the exchange api
-         * @param {string} symbol: Unified market symbol
-         * @param {integer} since: Timestamp (ms) of earliest order. (Not used by kraken api but filtered internally by CCXT)
-         * @param {integer} limit: How many orders to return. (Not used by kraken api but filtered internally by CCXT)
-         * @param {dictionary} params: Exchange specific parameters
-         * @returns: An array of order structures
+         * @method
+         * @name krakenfutures#fetchOpenOrders
+         * @description Gets all open orders, including trigger orders, for an account from the exchange api
+         * @param {str} symbol Unified market symbol
+         * @param {int} since Timestamp (ms) of earliest order. (Not used by kraken api but filtered internally by CCXT)
+         * @param {int} limit How many orders to return. (Not used by kraken api but filtered internally by CCXT)
+         * @param {dict} params Exchange specific parameters
+         * @returns An array of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -1434,10 +1450,12 @@ module.exports = class krakenfutures extends Exchange {
 
     async fetchPositions (symbols = undefined, params = {}) {
         /**
-         * Fetches current contract trading positions
-         * @param {[string]} symbols: List of CCXT symbols
-         * @param {dict} params: Not used by krakenfutures
-         * @return: Parsed exchange response for positions
+         * @method
+         * @name krakenfutures#fetchPositions
+         * @description Fetches current contract trading positions
+         * @param {[str]} symbols List of unified symbols
+         * @param {dict} params Not used by krakenfutures
+         * @returns Parsed exchange response for positions
          */
         await this.loadMarkets ();
         const request = {};
