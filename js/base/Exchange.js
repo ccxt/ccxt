@@ -1145,6 +1145,14 @@ module.exports = class Exchange {
         return balance
     }
 
+    safeBalanceEntry (balanceEntry) {
+        return this.extend({
+            'free': undefined,
+            'used': undefined,
+            'total': undefined,
+        }, balanceEntry);
+    }
+
     async fetchBalance (params = {}) {
         throw new NotSupported (this.id + ' fetchBalance not supported yet')
     }

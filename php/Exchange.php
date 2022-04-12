@@ -2036,6 +2036,14 @@ class Exchange {
         return $balance;
     }
 
+    public function safe_balance_entry($balance_entry) {
+        return $this->extend([
+            'free'=> null,
+            'used'=> null,
+            'total'=> null,
+        ], $balance_entry);
+    }
+
     public function fetch_partial_balance($part, $params = array()) {
         $balance = $this->fetch_balance($params);
         return $balance[$part];

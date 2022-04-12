@@ -1722,6 +1722,13 @@ class Exchange(object):
             balance['total'][currency] = balance[currency]['total']
         return balance
 
+    def safe_balance_entry(self, balance_entry):
+        return self.extend({
+            'free': None,
+            'used': None,
+            'total': None,
+        }, balance_entry)
+
     def fetch_partial_balance(self, part, params={}):
         balance = self.fetch_balance(params)
         return balance[part]
