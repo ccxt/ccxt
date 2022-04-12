@@ -1056,13 +1056,24 @@ module.exports = class kucoinfutures extends kucoin {
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#cancelAllOrders
+         * @description Cancels all orders in one api call
+         * @param {str} symbol Assign to cancel only the orders in the market matching the unified symbol
+         * @param {dict} params Exchange specific parameters
+         * @param {dict} params.stop When true, all the trigger orders will be cancelled
+         * @returns Response from the exchange
+         */
         await this.loadMarkets ();
         const request = {};
         if (symbol !== undefined) {
             request['symbol'] = this.marketId (symbol);
         }
-        const response = await this.futuresPrivateDeleteOrders (this.extend (request, params));
-        // ? futuresPrivateDeleteStopOrders
+        const stop = this.safeValue (params, 'stop');
+        const method = stop ? 'futuresPrivateDeleteStopOrders' : 'futuresPrivateDeleteOrders';
+        const response = await this[method] (this.extend (request, params));
+        //
         //   {
         //       code: "200000",
         //       data: {
