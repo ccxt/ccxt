@@ -211,6 +211,13 @@ module.exports = class krakenfutures extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name krakenfutures#fetchMarkets
+         * @description Fetches the available trading markets from the exchange, Multi-collateral markets are returned as linear markets, but can be settled in multiple currencies
+         * @param {dict} params exchange specific params
+         * @returns An array of market structures
+         */
         const response = await this.publicGetInstruments (params);
         //
         //    {
