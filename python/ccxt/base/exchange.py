@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.78.63'
+__version__ = '1.78.77'
 
 # -----------------------------------------------------------------------------
 
@@ -295,6 +295,7 @@ class Exchange(object):
         'fetchOrderBooks': None,
         'fetchOrders': None,
         'fetchOrderTrades': None,
+        'fetchPermissions': None,
         'fetchPosition': None,
         'fetchPositions': None,
         'fetchPositionsRisk': None,
@@ -1497,6 +1498,9 @@ class Exchange(object):
         self.currencies_by_id = self.index_by(list(self.currencies.values()), 'id')
         self.codes = sorted(self.currencies.keys())
         return self.markets
+
+    def fetch_permissions(self, params={}):
+        raise NotSupported('fetch_permissions() not supported yet')
 
     def load_markets(self, reload=False, params={}):
         if not reload:
@@ -2809,3 +2813,10 @@ class Exchange(object):
         array = self.to_array(positions)
         array = [self.merge(self.parse_position(position, market), params) for position in array]
         return self.sort_by_2(array, 'timestamp', 'id')
+
+    def parse_borrow_interests(self, response, market=None):
+        interest = []
+        for i in range(len(response)):
+            row = response[i]
+            interest.append(self.parse_borrow_interest(row, market))
+        return interest

@@ -119,6 +119,7 @@ module.exports = class Exchange {
                 'fetchOrderBooks': undefined,
                 'fetchOrders': undefined,
                 'fetchOrderTrades': undefined,
+                'fetchPermissions': undefined,
                 'fetchPosition': undefined,
                 'fetchPositions': undefined,
                 'fetchPositionsRisk': undefined,
@@ -812,6 +813,10 @@ module.exports = class Exchange {
         }
         const markets = await this.fetchMarkets (params)
         return this.setMarkets (markets, currencies)
+    }
+
+    async fetchPermissions (params = {}) {
+        throw new NotSupported (this.id + ' fetchPermissions() not supported yet')
     }
 
     // is async (returns a promise)
@@ -2231,5 +2236,14 @@ module.exports = class Exchange {
     parsePositions (positions, market = undefined, params = {}) {
         let result = Object.values (positions || []).map ((position) => this.merge (this.parsePositioin (position, market), params));
         return sortBy2 (result, 'timestamp', 'id');
+    }
+
+    parseBorrowInterests (response, market = undefined) {
+        const interest = [];
+        for (let i = 0; i < response.length; i++) {
+            const row = response[i];
+            interest.push (this.parseBorrowInterest (row, market));
+        }
+        return interest;
     }
 }

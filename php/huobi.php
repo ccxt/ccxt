@@ -4676,20 +4676,11 @@ class huobi extends Exchange {
         //    }
         //
         $data = $this->safe_value($response, 'data');
-        $interest = $this->parse_borrow_interests($data, $marginType, $market);
+        $interest = $this->parse_borrow_interests($data, $market);
         return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
     }
 
-    public function parse_borrow_interests($response, $marginType, $market = null) {
-        $interest = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $row = $response[$i];
-            $interest[] = $this->parse_borrow_interest($row, $marginType, $market);
-        }
-        return $interest;
-    }
-
-    public function parse_borrow_interest($info, $marginType, $market = null) {
+    public function parse_borrow_interest($info, $market = null) {
         // isolated
         //    {
         //        "interest-rate":"0.000040830000000000",
@@ -4732,12 +4723,14 @@ class huobi extends Exchange {
         //   }
         //
         $marketId = $this->safe_string($info, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
-        $account = ($marginType === 'cross') ? $marginType : $symbol;
+        $marginType = ($marketId === null) ? 'cross' : 'isolated';
+        $market = $this->safe_market($marketId);
+        $symbol = $this->safe_string($market, 'symbol');
         $timestamp = $this->safe_number($info, 'accrued-at');
         return array(
-            'account' => $account,  // isolated $symbol, will not be returned for crossed margin
+            'account' => ($marginType === 'isolated') ? $symbol : 'cross',  // deprecated
+            'symbol' => $symbol,
+            'marginType' => $marginType,
             'currency' => $this->safe_currency_code($this->safe_string($info, 'currency')),
             'interest' => $this->safe_number($info, 'interest-amount'),
             'interestRate' => $this->safe_number($info, 'interest-rate'),

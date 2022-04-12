@@ -21,7 +21,17 @@ class xena(Exchange):
             'id': 'xena',
             'name': 'Xena Exchange',
             'countries': ['VC', 'UK'],
-            'rateLimit': 100,
+            # per second rate limits are far lower than the equivalent hourly
+            # requests per second rounded down(3dp)
+            # relative weight costs rounded up(3dp)
+            # 1 hour = 3600 seconds
+            # Order Cancellations: 100k per hour => 100 000 / 3600 = 27.777 requests per second => rateLimit = 1000ms / 27.777 = 36.001008 ms between requests => 36.1(safety)
+            # New Orders: 30k per hour => 30 000 / 3600 = 8.333 requests per second => cost = 27.777 / 8.333 = 3.333373335 => 3.334
+            # Heartbeat: 30k per hour => 30 000 / 3600 = 8.333 requests per second => cost = 27.777 / 8.333 = 3.333373335 => 3.334
+            # Candles: 5000 per hour => 5000 /  3600 = 1.388 requests per second => cost = 27.777 / 1.388 = 20.01224784 => 20.013
+            # Dom(market data): 5000 per hour => 5000 /  3600 = 1.388 requests per second => cost = 27.777 / 1.388 = 20.01224784 => 20.013
+            # All snapshot requests(balances, active orders and trade history, positions): 500 per hour => 0.138 requests per second => cost = 27.777 / 0.138 = 201.2826087 => 201.283
+            'rateLimit': 36.1,
             'has': {
                 'CORS': None,
                 'spot': False,
@@ -89,57 +99,57 @@ class xena(Exchange):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'common/currencies',
-                        'common/instruments',
-                        'common/features',
-                        'common/commissions',
-                        'common/news',
-                        'market-data/candles/{marketId}/{timeframe}',
-                        'market-data/market-watch',
-                        'market-data/dom/{symbol}',
-                        'market-data/candles/{symbol}/{timeframe}',
-                        'market-data/trades/{symbol}',
-                        'market-data/server-time',
-                        'market-data/v2/candles/{symbol}/{timeframe}',
-                        'market-data/v2/trades/{symbol}',
-                        'market-data/v2/dom/{symbol}/',
-                        'market-data/v2/server-time',
-                    ],
+                    'get': {
+                        'common/currencies': 20.013,
+                        'common/instruments': 20.013,
+                        'common/features': 20.013,
+                        'common/commissions': 20.013,
+                        'common/news': 20.013,
+                        'market-data/candles/{marketId}/{timeframe}': 20.013,
+                        'market-data/market-watch': 20.013,
+                        'market-data/dom/{symbol}': 20.013,
+                        'market-data/candles/{symbol}/{timeframe}': 20.013,
+                        'market-data/trades/{symbol}': 20.013,
+                        'market-data/server-time': 20.013,
+                        'market-data/v2/candles/{symbol}/{timeframe}': 20.013,
+                        'market-data/v2/trades/{symbol}': 20.013,
+                        'market-data/v2/dom/{symbol}/': 20.013,
+                        'market-data/v2/server-time': 20.013,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'trading/accounts/{accountId}/order',
-                        'trading/accounts/{accountId}/active-orders',
-                        'trading/accounts/{accountId}/last-order-statuses',
-                        'trading/accounts/{accountId}/positions',
-                        'trading/accounts/{accountId}/positions-history',
-                        'trading/accounts/{accountId}/margin-requirements',
-                        'trading/accounts',
-                        'trading/accounts/{accountId}/balance',
-                        'trading/accounts/{accountId}/trade-history',
-                        # 'trading/accounts/{accountId}/trade-history?symbol=BTC/USDT&client_order_id=EMBB8Veke&trade_id=220143254',
-                        'transfers/accounts',
-                        'transfers/accounts/{accountId}',
-                        'transfers/accounts/{accountId}/deposit-address/{currency}',
-                        'transfers/accounts/{accountId}/deposits',
-                        'transfers/accounts/{accountId}/trusted-addresses',
-                        'transfers/accounts/{accountId}/withdrawals',
-                        'transfers/accounts/{accountId}/balance-history',
-                        # 'transfers/accounts/{accountId}/balance-history?currency={currency}&from={time}&to={time}&kind={kind}&kind={kind}',
-                        # 'transfers/accounts/{accountId}/balance-history?page={page}&limit={limit}',
-                        # 'transfers/accounts/{accountId}/balance-history?txid=3e1db982c4eed2d6355e276c5bae01a52a27c9cef61574b0e8c67ee05fc26ccf',
-                    ],
-                    'post': [
-                        'trading/order/new',
-                        'trading/order/heartbeat',
-                        'trading/order/cancel',
-                        'trading/order/mass-cancel',
-                        'trading/order/replace',
-                        'trading/position/maintenance',
-                        'transfers/accounts/{accountId}/withdrawals',
-                        'transfers/accounts/{accountId}/deposit-address/{currency}',
-                    ],
+                    'get': {
+                        'trading/accounts/{accountId}/order': 50,
+                        'trading/accounts/{accountId}/active-orders': 50,
+                        'trading/accounts/{accountId}/last-order-statuses': 50,
+                        'trading/accounts/{accountId}/positions': 50,
+                        'trading/accounts/{accountId}/positions-history': 50,
+                        'trading/accounts/{accountId}/margin-requirements': 50,
+                        'trading/accounts': 50,
+                        'trading/accounts/{accountId}/balance': 50,  # TESTING(50 works)
+                        'trading/accounts/{accountId}/trade-history': 50,
+                        # 'trading/accounts/{accountId}/trade-history?symbol=BTC/USDT&client_order_id=EMBB8Veke&trade_id=2205043254': 50,
+                        'transfers/accounts': 50,
+                        'transfers/accounts/{accountId}': 50,
+                        'transfers/accounts/{accountId}/deposit-address/{currency}': 50,
+                        'transfers/accounts/{accountId}/deposits': 100,  # TESTING
+                        'transfers/accounts/{accountId}/trusted-addresses': 50,
+                        'transfers/accounts/{accountId}/withdrawals': 50,
+                        'transfers/accounts/{accountId}/balance-history': 50,
+                        # 'transfers/accounts/{accountId}/balance-history?currency={currency}&from={time}&to={time}&kind={kind}&kind={kind}': 50,
+                        # 'transfers/accounts/{accountId}/balance-history?page={page}&limit={limit}': 50,
+                        # 'transfers/accounts/{accountId}/balance-history?txid=3e50db982c4eed2d6355e276c5bae01a52a27c9cef61574b0e8c67ee05fc26ccf': 50,
+                    },
+                    'post': {
+                        'trading/order/new': 3.334,
+                        'trading/order/heartbeat': 3.334,
+                        'trading/order/cancel': 1,
+                        'trading/order/mass-cancel': 1,
+                        'trading/order/replace': 3.334,
+                        'trading/position/maintenance': 3.334,
+                        'transfers/accounts/{accountId}/withdrawals': 3.334,
+                        'transfers/accounts/{accountId}/deposit-address/{currency}': 3.334,
+                    },
                 },
             },
             'fees': {

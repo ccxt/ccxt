@@ -28,11 +28,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.78.63';
+$version = '1.78.77';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.78.63';
+    const VERSION = '1.78.77';
 
     public static $loop;
     public static $kernel;
@@ -188,6 +188,11 @@ class Exchange extends \ccxt\Exchange {
         $request = $this->sign($path, $api, $method, $params, $headers, $body);
         return yield $this->fetch($request['url'], $request['method'], $request['headers'], $request['body']);
     }
+
+    public function fetch_permissions($params = array()) {
+        throw new NotSupported($this->id . ' fetch_permissions() not supported yet');
+    }
+
 
     public function load_markets_helper($reload = false, $params = array()) {
         // copied from js
