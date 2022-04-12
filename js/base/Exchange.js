@@ -879,7 +879,7 @@ module.exports = class Exchange {
         return [apikeySet, initialPermissions];
     }
 
-    safePermissions (permissionsMap = {}, permissionsValues = {}) {
+    safePermissions (permissionsMap = {}) {
         // exchanges provide permissions response with diffrent way, however, most common way is to return permissions like:
         //
         //     {
@@ -889,34 +889,30 @@ module.exports = class Exchange {
         //         // any custom key name can be here
         //     }
         //
-        // thus, we have to make a map of dependent unified methods, to set them correctly.
-        //
-        // At first, we need to have 'permissionsMap' object like this:
+        // thus, we have to make a map of dependent unified methods (in 'permissionsMap') to be like the below (so, we can resolve group of methods to true/false):
         //
         //     {
-        //         'trade': ['createOrder', 'cancelOrder', 'fetchOrder', ...],
-        //         'funds': ['fetchBalance', 'fetchFundingHistory', ...],
-        //         'transfer': ['withdraw', 'fetchDeposits', 'createDepositAddress', ...],
+        //         'trade': {
+        //             'value': false,
+        //             'methods': ['createOrder', 'cancelOrder', 'fetchOrder', ...],
+        //         },
+        //         'funds': {
+        //             'value': true,
+        //             ['fetchBalance', 'fetchFundingHistory', ...],
+        //         },
+        //         'transfer': {
+        //             'value': false,
+        //             ['withdraw', 'fetchDeposits', 'createDepositAddress', ...],
+        //         }
         //     }
         //
-        // thus, we know whih key's true/false affects which group of private-methods.
-        //
-        // Then, we need to have 'permissionsValues' object like this
-        //
-        //     {
-        //         'trade': true,
-        //         'funding': true,
-        //         ...
-        //     }
-        //
-        // thus, depending true/false we can resolve which group of private-methods should be set to true/false
-        //
-        const keys = Object.keys (permissionsValues);
+        const keys = Object.keys (permissionsMap);
         const privatePermissions = {};
         for (let i = 0; i < keys.length; i++) {
             const permissionSlug = keys[i]; // i.e. 'trade', 'funding' or whatever custom keyname
-            const permissionBool = permissionsValues[permissionSlug]; // i.e. true or false)
-            const methodsArrayForSlug = permissionsMap[permissionSlug]; // i.e. ['createOrder','fetchOrder', ...]
+            const permissionObject = permissionsMap[permissionSlug];
+            const permissionBool = permissionObject['value']; // i.e. true or false)
+            const methodsArrayForSlug = permissionObject['methods']; // i.e. ['createOrder','fetchOrder', ...]
             for (let j = 0; j < methodsArrayForSlug.length; j++) {
                 const methodName = methodsArrayForSlug[j];
                 privatePermissions[methodName] = permissionBool; 
