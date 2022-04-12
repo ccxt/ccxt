@@ -2321,6 +2321,18 @@ class Exchange {
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit, $tail);
     }
 
+    public function safe_time($time) {
+        return $time;
+    }
+
+    public function safe_status($status) {
+        return $this->extend([
+            'status'=> null,
+            'updated'=> $this->milliseconds(),
+            'eta'=> null,
+        ], $status);
+    }
+
     public function safe_market($marketId, $market = null, $delimiter = null) {
         if ($marketId !== null) {
             if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
