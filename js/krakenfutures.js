@@ -1560,6 +1560,11 @@ module.exports = class krakenfutures extends Exchange {
             const currencyId = currencyIds[i];
             const balance = balances[currencyId];
             const code = this.safeCurrencyCode (currencyId);
+            const splitCode = code.split ('_');
+            const codeLength = splitCode.length;
+            if (codeLength > 1) {
+                continue;   // Removes contract codes like PI_XRPUSD
+            }
             const account = this.account ();
             if (isFlex) {
                 account['total'] = this.safeString (balance, 'quantity');
