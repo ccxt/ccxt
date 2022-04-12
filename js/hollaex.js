@@ -13,13 +13,13 @@ module.exports = class hollaex extends ccxt.hollaex {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                'watchBalance': false,
+                'watchBalance': true,
                 'watchTickers': false, // for now
                 'watchMyTrades': false,
                 'watchTrades': true,
                 'watchOrderBook': true,
                 'watchOrders': false,
-                'watchOHLCV': true,
+                'watchOHLCV': false,
             },
             'urls': {
                 'api': {
@@ -40,15 +40,6 @@ module.exports = class hollaex extends ccxt.hollaex {
                 },
             },
         });
-    }
-
-    async pong (client, message) {
-        // {
-        //     "id": 1587523073344,
-        //     "method": "public/heartbeat",
-        //     "code": 0
-        // }
-        await client.send ({ 'id': this.safeInteger (message, 'id'), 'method': 'public/respond-heartbeat' });
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
