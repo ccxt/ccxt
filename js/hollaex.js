@@ -372,6 +372,10 @@ module.exports = class hollaex extends ccxt.hollaex {
     }
 
     handleMessage (client, message) {
+        // pong
+        //
+        // { message: 'pong' }
+        //
         // trade
         //   {
         //       topic: 'trade',
@@ -433,6 +437,11 @@ module.exports = class hollaex extends ccxt.hollaex {
         if (!this.handleErrorMessage (client, message)) {
             return;
         }
+        const content = this.safeString (message, 'message');
+        if (content === 'pong') {
+            this.handlePong (client);
+            return;
+        }
         const methods = {
             'trade': this.handleTrades,
             'orderbook': this.handleOrderBook,
@@ -449,5 +458,10 @@ module.exports = class hollaex extends ccxt.hollaex {
     ping (client) {
         // hollaex does not support built-in ws protocol-level ping-pong
         return { 'op': 'ping' };
+    }
+
+    handlePong (client, message) {
+        client.lastPong = this.milliseconds ();
+        return message;
     }
 };
