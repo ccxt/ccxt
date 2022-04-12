@@ -295,6 +295,7 @@ class Exchange(object):
         'fetchOrderBooks': None,
         'fetchOrders': None,
         'fetchOrderTrades': None,
+        'fetchPermissions': None,
         'fetchPosition': None,
         'fetchPositions': None,
         'fetchPositionsRisk': None,
@@ -1497,6 +1498,9 @@ class Exchange(object):
         self.currencies_by_id = self.index_by(list(self.currencies.values()), 'id')
         self.codes = sorted(self.currencies.keys())
         return self.markets
+
+    def fetch_permissions(self, params={}):
+        raise NotSupported('fetch_permissions() not supported yet')
 
     def load_markets(self, reload=False, params={}):
         if not reload:

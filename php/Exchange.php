@@ -1249,6 +1249,7 @@ class Exchange {
             'fetchOrderBooks' => null,
             'fetchOrders' => null,
             'fetchOrderTrades' => null,
+            'fetchPermissions' => null,
             'fetchPosition' => null,
             'fetchPositions' => null,
             'fetchPositionsRisk' => null,
@@ -1893,6 +1894,10 @@ class Exchange {
         $this->codes = array_keys($this->currencies);
         sort($this->codes);
         return $this->markets;
+    }
+
+    public function fetch_permissions($params = array()) {
+        throw new NotSupported($this->id . ' fetch_permissions() not supported yet');
     }
 
     public function load_markets($reload = false, $params = array()) {

@@ -189,6 +189,11 @@ class Exchange extends \ccxt\Exchange {
         return yield $this->fetch($request['url'], $request['method'], $request['headers'], $request['body']);
     }
 
+    public function fetch_permissions($params = array()) {
+        throw new NotSupported($this->id . ' fetch_permissions() not supported yet');
+    }
+
+
     public function load_markets_helper($reload = false, $params = array()) {
         // copied from js
         if (!$reload && $this->markets) {
