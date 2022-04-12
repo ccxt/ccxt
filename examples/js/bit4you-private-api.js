@@ -11,7 +11,7 @@ async function b4yTest () {
         // const res = await exchange2.fetchTickers();
         // console.log(res)
         // return
-        const token = 'ce18c6ddfbdafb3a8398975edefc5bdd7d6300a5';
+        const token = '';
         let exchange = new ccxt.bit4you({
             'token': token, // bearer token : need to sign on www.bit4you.io
             'enableRateLimit': true,
