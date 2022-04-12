@@ -2304,6 +2304,26 @@ class Exchange {
         return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
     }
 
+    public function safe_ledger_entry($ledger_entry) {
+        return $this->extend([
+            'id'=> null,
+            'timestamp'=> null,
+            'datetime'=> null,
+            'direction'=> null,
+            'account'=> null,
+            'referenceId'=> null,
+            'referenceAccount'=> null,
+            'type'=> null,
+            'currency'=> null,
+            'amount'=> null,
+            'before'=> null,
+            'after'=> null,
+            'status'=> null,
+            'fee'=> null,
+            'info'=> [],
+        ], $ledger_entry);
+    }
+
     public function parse_orders($orders, $market = null, $since = null, $limit = null, $params = array()) {
         $result = array();
         if (count(array_filter(array_keys($orders), 'is_string')) == 0) {

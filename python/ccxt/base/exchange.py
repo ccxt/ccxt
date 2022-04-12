@@ -2027,6 +2027,26 @@ class Exchange(object):
         tail = since is None
         return self.filter_by_currency_since_limit(result, code, since, limit, tail)
 
+    def safe_ledger_entry(self, ledger_entry):
+        return self.extend({
+            'id': None,
+            'timestamp': None,
+            'datetime': None,
+            'direction': None,
+            'account': None,
+            'referenceId': None,
+            'referenceAccount': None,
+            'type': None,
+            'currency': None,
+            'amount': None,
+            'before': None,
+            'after': None,
+            'status': None,
+            'fee': None,
+            'info': {},
+        }, ledger_entry)
+
+
     def parse_orders(self, orders, market=None, since=None, limit=None, params={}):
         if isinstance(orders, list):
             array = [self.extend(self.parse_order(order, market), params) for order in orders]

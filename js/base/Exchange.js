@@ -1437,6 +1437,26 @@ module.exports = class Exchange {
         return this.filterByCurrencySinceLimit (result, code, since, limit, tail);
     }
 
+    safeLedgerEntry (ledgerEntry) {
+        return this.extend({
+            'id': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'direction': undefined,
+            'account': undefined,
+            'referenceId': undefined,
+            'referenceAccount': undefined,
+            'type': undefined,
+            'currency': undefined,
+            'amount': undefined,
+            'before': undefined,
+            'after': undefined,
+            'status': undefined,
+            'fee': undefined,
+            'info': {},
+        }, ledgerEntry);
+    }
+
     parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
         //
         // the value of orders is either a dict or a list
