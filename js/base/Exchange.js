@@ -898,11 +898,11 @@ module.exports = class Exchange {
         //         },
         //         'funds': {
         //             'value': true,
-        //             ['fetchBalance', 'fetchFundingHistory', ...],
+        //             'methods': ['fetchBalance', 'fetchFundingHistory', ...],
         //         },
         //         'transfer': {
         //             'value': false,
-        //             ['withdraw', 'fetchDeposits', 'createDepositAddress', ...],
+        //             'methods': ['withdraw', 'fetchDeposits', 'createDepositAddress', ...],
         //         }
         //     }
         //
