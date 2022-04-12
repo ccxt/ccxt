@@ -78,13 +78,9 @@ module.exports = class gateio extends ccxt.gateio {
         if (!limit) {
             limit = defaultLimit;
         }
-        // else if (limit !== 1 && limit !== 5 && limit !== 10 && limit !== 20) {
-        //     throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 1, 5, 10, 20');
-        // }
         const interval = this.safeString (params, 'interval', '1000ms');
         const type = market['type'];
         const messageType = this.getUniformType (type);
-        // const suffix = (type === 'spot') ? 'order_book_update' : 'order_book';
         const method = messageType + '.' + 'order_book_update';
         const messageHash = method + ':' + market['symbol'];
         const url = this.getUrlByMarketType (type, market['inverse']);
@@ -106,7 +102,7 @@ module.exports = class gateio extends ccxt.gateio {
             delete this.orderbooks[symbol];
         }
         this.orderbooks[symbol] = this.orderBook ({}, limit);
-        // this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+        this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
     }
 
     async fetchOrderBookSnapshot (client, message, subscription) {
@@ -118,13 +114,13 @@ module.exports = class gateio extends ccxt.gateio {
             const orderbook = this.orderbooks[symbol];
             const messages = orderbook.cache;
             const firstMessage = this.safeValue (messages, 0, {});
-            const tick = this.safeValue (firstMessage, 'tick');
-            const sequence = this.safeInteger (tick, 'seqNum');
+            const result = this.safeValue (firstMessage, 'result');
+            const seqNum = this.safeInteger (result, 'U');
             const nonce = this.safeInteger (snapshot, 'nonce');
             // if the received snapshot is earlier than the first cached delta
             // then we cannot align it with the cached deltas and we need to
             // retry synchronizing in maxAttempts
-            if ((sequence !== undefined) && (nonce < sequence)) {
+            if ((seqNum !== undefined) && (nonce < seqNum)) {
                 const maxAttempts = this.safeInteger (this.options, 'maxOrderBookSyncAttempts', 3);
                 let numAttempts = this.safeInteger (subscription, 'numAttempts', 0);
                 // retry to syncrhonize if we haven't reached maxAttempts yet
@@ -206,13 +202,18 @@ module.exports = class gateio extends ccxt.gateio {
         if (orderbook['nonce'] === undefined) {
             orderbook.cache.push (message);
         } else {
-            this.handleOrderBookMessage (client, message, orderbook);
             const messageHash = channel + ':' + symbol;
-            client.resolve (orderbook, messageHash);
+            this.handleOrderBookMessage (client, message, orderbook, messageHash);
         }
     }
 
-    handleOrderBookMessage (client, message, orderbook) {
+    handleOrderBookMessage (client, message, orderbook, messageHash = undefined) {
+        //
+        //  {
+        //      "time":1649770575,
+        //      "channel":"spot.order_book_update",
+        //      "event":"update",
+        //      "result":{
         //   {
         //         "t":1649770575537,
         //         "e":"depthUpdate",
@@ -245,17 +246,26 @@ module.exports = class gateio extends ccxt.gateio {
         //            ["106.03","9.712"],
         //         ]
         //      }
+        //  }
         //
-        const nonce = this.safeInteger (message, 'u');
-        if (nonce > orderbook['nonce']) {
-            const asks = this.safeValue (message, 'a', []);
-            const bids = this.safeValue (message, 'b', []);
-            this.handleDeltas (orderbook['asks'], asks, orderbook['nonce']);
-            this.handleDeltas (orderbook['bids'], bids, orderbook['nonce']);
-            orderbook['nonce'] = nonce;
-            const timestamp = this.safeInteger (message, 't');
+        const result = this.safeValue (message, 'result');
+        const prevSeqNum = this.safeInteger (result, 'U');
+        const seqNum = this.safeInteger (result, 'u');
+        const nonce = orderbook['nonce'];
+        // we have to add +1 because if the current seqNumber on iteration X is 5
+        // on the iteration X+1, prevSeqNum will be (5+1)
+        if ((prevSeqNum <= nonce + 1) && (seqNum >= nonce + 1)) {
+            const asks = this.safeValue (result, 'a', []);
+            const bids = this.safeValue (result, 'b', []);
+            this.handleDeltas (orderbook['asks'], asks, nonce);
+            this.handleDeltas (orderbook['bids'], bids, nonce);
+            orderbook['nonce'] = seqNum;
+            const timestamp = this.safeInteger (result, 't');
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601 (timestamp);
+            if (messageHash !== undefined) {
+                client.resolve (orderbook, messageHash);
+            }
         }
         return orderbook;
     }
