@@ -23,10 +23,16 @@ module.exports = class hollaex extends ccxt.hollaex {
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://api.hollaex.com/stream',
+                    'ws': 'https://api.hollaex.com/stream',
                 },
             },
             'options': {
+                'watchBalance': {
+                    'api-expires': '',
+                },
+                'watchOrders': {
+                    'api-expires': '',
+                },
             },
             'streaming': {
                 'ping': this.ping,
@@ -156,22 +162,6 @@ module.exports = class hollaex extends ccxt.hollaex {
         client.resolve (stored, channel);
     }
 
-    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        }
-        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
-        let messageHash = (defaultType === 'margin') ? 'user.margin.trade' : 'user.trade';
-        messageHash = (market !== undefined) ? (messageHash + '.' + market['id']) : messageHash;
-        const trades = await this.watchPrivate (messageHash, params);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
-    }
-
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let messageHash = 'order';
@@ -180,7 +170,15 @@ module.exports = class hollaex extends ccxt.hollaex {
             market = this.market (symbol);
             messageHash += ':' + market['id'];
         }
-        const orders = await this.watchPrivate (messageHash, params);
+        const options = this.safeValue (this.options, 'watchOrders', {});
+        let expiresString = this.safeString (options, 'api-expires');
+        if (expiresString === undefined || expiresString.length === 0) {
+            expiresString = this.getExpirationTime ();
+            // we need to memoize these values to avoid generating a new url on each method execution
+            // that would trigger a new connection on each received message
+            this.options['watchOrders']['api-expires'] = expiresString;
+        }
+        const orders = await this.watchPrivate (messageHash, expiresString, params);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -237,7 +235,22 @@ module.exports = class hollaex extends ccxt.hollaex {
 
     async watchBalance (params = {}) {
         const messageHash = 'wallet';
-        return await this.watchPrivate (messageHash, params);
+        const options = this.safeValue (this.options, 'watchBalance', {});
+        let expiresString = this.safeInteger (options, 'api-expires');
+        if (expiresString === undefined || expiresString.length === 0) {
+            expiresString = this.getExpirationTime ();
+            // we need to memoize these values to avoid generating a new url on each method execution
+            // that would trigger a new connection on each received message
+            this.options['watchBalance']['api-expires'] = expiresString;
+        }
+        return await this.watchPrivate (messageHash, expiresString, params);
+    }
+
+    getExpirationTime () {
+        const defaultValue = parseInt (this.timeout / 1000);
+        const expires = this.sum (this.seconds (), defaultValue);
+        const expiresString = expires.toString ();
+        return expiresString;
     }
 
     handleBalance (client, message) {
@@ -332,18 +345,15 @@ module.exports = class hollaex extends ccxt.hollaex {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    async watchPrivate (messageHash, params = {}) {
+    async watchPrivate (messageHash, expires, params = {}) {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'];
-        const defaultExpires = this.safeInteger2 (this.options, 'api-expires', 'expires', parseInt (this.timeout / 1000));
-        const expires = this.sum (this.seconds (), defaultExpires);
-        const expiresString = expires.toString ();
-        const auth = 'CONNECT' + '/stream' + expiresString;
+        const auth = 'CONNECT' + '/stream' + expires;
         const signature = this.hmac (this.encode (auth), this.encode (this.secret));
         const authParams = {
             'api-key': this.apiKey,
             'api-signature': signature,
-            'api-expires': expiresString,
+            'api-expires': expires,
         };
         const signedUrl = url + '?' + this.urlencode (authParams);
         const request = {
