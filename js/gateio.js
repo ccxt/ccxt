@@ -71,35 +71,88 @@ module.exports = class gateio extends ccxt.gateio {
     async watchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const marketId = market['id'];
-        const uppercaseId = marketId.toUpperCase ();
-        const requestId = this.nonce ();
-        const url = this.urls['api']['ws'];
         const options = this.safeValue (this.options, 'watchOrderBook', {});
-        const defaultLimit = this.safeInteger (options, 'limit', 30);
+        const defaultLimit = this.safeInteger (options, 'limit', 20);
         if (!limit) {
             limit = defaultLimit;
-        } else if (limit !== 1 && limit !== 5 && limit !== 10 && limit !== 20 && limit !== 30) {
-            throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 1, 5, 10, 20, or 30');
         }
-        const interval = this.safeString (params, 'interval', '100ms');
-        const parameters = [ uppercaseId, limit, interval ];
-        const subscriptions = this.safeValue (options, 'subscriptions', {});
-        subscriptions[symbol] = parameters;
-        options['subscriptions'] = subscriptions;
-        this.options['watchOrderBook'] = options;
-        const toSend = Object.values (subscriptions);
-        const messageHash = 'depth.update' + ':' + marketId;
-        const subscribeMessage = {
-            'id': requestId,
-            'method': 'depth.subscribe',
-            'params': toSend,
+        // else if (limit !== 1 && limit !== 5 && limit !== 10 && limit !== 20) {
+        //     throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 1, 5, 10, 20');
+        // }
+        const interval = this.safeString (params, 'interval', '1000ms');
+        const type = market['type'];
+        const messageType = this.getUniformType (type);
+        // const suffix = (type === 'spot') ? 'order_book_update' : 'order_book';
+        const method = messageType + '.' + 'order_book_update';
+        const messageHash = method + ':' + interval + ':' + market['symbol'];
+        const url = this.getUrlByMarketType (type, market['inverse']);
+        limit = limit.toString ();
+        const payload = [ marketId, interval ];
+        const subscriptionParams = {
+            'method': this.handleOrderBookSubscription,
+            'symbol': symbol,
+            'limit': limit,
         };
-        const subscription = {
-            'id': requestId,
-        };
-        const orderbook = await this.watch (url, messageHash, subscribeMessage, messageHash, subscription);
+        const orderbook = await this.subscribePublic (url, method, messageHash, payload, subscriptionParams);
         return orderbook.limit (limit);
+    }
+
+    handleOrderBookSubscription (client, message, subscription) {
+        const symbol = this.safeString (subscription, 'symbol');
+        const limit = this.safeInteger (subscription, 'limit');
+        if (symbol in this.orderbooks) {
+            delete this.orderbooks[symbol];
+        }
+        this.orderbooks[symbol] = this.orderBook ({}, limit);
+        this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+    }
+
+    async fetchOrderBookSnapshot (client, message, subscription) {
+        const symbol = this.safeString (subscription, 'symbol');
+        const limit = this.safeInteger (subscription, 'limit');
+        const messageHash = this.safeString (subscription, 'messageHash');
+        try {
+            const snapshot = await this.fetchOrderBook (symbol, limit);
+            const orderbook = this.orderbooks[symbol];
+            const messages = orderbook.cache;
+            const firstMessage = this.safeValue (messages, 0, {});
+            const tick = this.safeValue (firstMessage, 'tick');
+            const sequence = this.safeInteger (tick, 'seqNum');
+            const nonce = this.safeInteger (snapshot, 'nonce');
+            // if the received snapshot is earlier than the first cached delta
+            // then we cannot align it with the cached deltas and we need to
+            // retry synchronizing in maxAttempts
+            if ((sequence !== undefined) && (nonce < sequence)) {
+                const maxAttempts = this.safeInteger (this.options, 'maxOrderBookSyncAttempts', 3);
+                let numAttempts = this.safeInteger (subscription, 'numAttempts', 0);
+                // retry to syncrhonize if we haven't reached maxAttempts yet
+                if (numAttempts < maxAttempts) {
+                    // safety guard
+                    if (messageHash in client.subscriptions) {
+                        numAttempts = this.sum (numAttempts, 1);
+                        subscription['numAttempts'] = numAttempts;
+                        client.subscriptions[messageHash] = subscription;
+                        this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+                    }
+                } else {
+                    // throw upon failing to synchronize in maxAttempts
+                    throw new InvalidNonce (this.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + ' in ' + maxAttempts.toString () + ' attempts');
+                }
+            } else {
+                orderbook.reset (snapshot);
+                // unroll the accumulated deltas
+                for (let i = 0; i < messages.length; i++) {
+                    const message = messages[i];
+                    this.handleOrderBookMessage (client, message, orderbook);
+                }
+                this.orderbooks[symbol] = orderbook;
+                client.resolve (orderbook, messageHash);
+            }
+        } catch (e) {
+            client.reject (e, messageHash);
+        }
     }
 
     handleDelta (bookside, delta) {
@@ -800,7 +853,7 @@ module.exports = class gateio extends ccxt.gateio {
         }
     }
 
-    async subscribePublic (url, channel, messageHash, payload) {
+    async subscribePublic (url, channel, messageHash, payload, subscriptionParams = {}) {
         const time = this.seconds ();
         const request = {
             'id': time,
@@ -809,10 +862,11 @@ module.exports = class gateio extends ccxt.gateio {
             'event': 'subscribe',
             'payload': payload,
         };
-        const subscription = {
+        let subscription = {
             'id': time,
             'messageHash': messageHash,
         };
+        subscription = this.extend (subscription, subscriptionParams);
         return await this.watch (url, messageHash, request, messageHash, subscription);
     }
 
