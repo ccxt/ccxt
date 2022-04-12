@@ -286,11 +286,20 @@ module.exports = class krakenfutures extends Exchange {
             const quote = parsed['quote'];
             // swap == perpetual
             let settle = undefined;
+            let settleId = undefined;
             const contract = (swap || future);
             if (contract) {
-                settle = base;
-                linear = false;
-                inverse = true;
+                const exchangeType = this.safeString (market, 'type');
+                if (exchangeType === 'futures_inverse') {
+                    settle = base;
+                    settleId = baseId;
+                    inverse = true;
+                } else {
+                    settle = quote;
+                    settleId = quoteId;
+                    inverse = false;
+                }
+                linear = !inverse;
                 symbol = base + '/' + quote + ':' + settle;
                 if (future) {
                     symbol = symbol + '-' + this.yymmdd (expiry);
@@ -304,7 +313,7 @@ module.exports = class krakenfutures extends Exchange {
                 'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': undefined,
+                'settleId': settleId,
                 'type': type,
                 'spot': false,
                 'margin': false,
@@ -1713,7 +1722,7 @@ module.exports = class krakenfutures extends Exchange {
         const currency = this.currency (code);
         let method = 'privatePostTransfer';
         const request = {
-            'amount': amount,
+            'amount': this.currencyToPrecision (code, amount),
         };
         if (fromAccount === 'spot') {
             throw new BadRequest (this.id + ' transfer does not yet support transfers from spot');
