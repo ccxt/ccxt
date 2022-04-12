@@ -1361,65 +1361,182 @@ module.exports = class krakenfutures extends Exchange {
         const response = await this.privateGetAccounts (params);
         //
         //    {
-        //       "result": "success",
-        //       "serverTime": "2016-02-25T09:45:53.818Z",
-        //       "accounts":{
-        //           "cash":{
-        //               "type": "cashAccount",
-        //               "balances":{
-        //                   "xbt":141.31756797,
-        //                   "xrp":52465.1254,
-        //               },
-        //           },
-        //           "fi_xbtusd":{
-        //               "type": "marginAccount",
-        //               "currency": "xbt",
-        //               "balances":{
-        //                   "fi_xbtusd_171215":50000,
-        //                   "fi_xbtusd_180615":-15000,
-        //                   ...,
-        //                   "xbt":141.31756797,
-        //                   "xrp":0,
-        //               },
-        //               "auxiliary":{
-        //                   "af":100.73891563,
-        //                   "pnl":12.42134766,
-        //                   "pv":153.73891563,
-        //               },
-        //               "marginRequirements":{
-        //                   "im":52.8,
-        //                   "mm":23.76,
-        //                   "lt":39.6,
-        //                   "tt":15.84,
-        //               },
-        //               "triggerEstimates":{
-        //                   "im":3110,
-        //                   "mm":3000,
-        //                   "lt":2890,
-        //                   "tt":2830,
-        //               },
-        //           },
-        //           ...
-        //       },
+        //        result: 'success',
+        //        accounts: {
+        //          fi_xbtusd: {
+        //            auxiliary: { usd: '0', pv: '0.0', pnl: '0.0', af: '0.0', funding: '0.0' },
+        //            marginRequirements: { im: '0.0', mm: '0.0', lt: '0.0', tt: '0.0' },
+        //            triggerEstimates: { im: '0', mm: '0', lt: '0', tt: '0' },
+        //            balances: { xbt: '0.0' },
+        //            currency: 'xbt',
+        //            type: 'marginAccount'
+        //          },
+        //          cash: {
+        //            balances: {
+        //              eur: '0.0',
+        //              gbp: '0.0',
+        //              bch: '0.0',
+        //              xrp: '2.20188538338',
+        //              usd: '0.0',
+        //              eth: '0.0',
+        //              usdt: '0.0',
+        //              ltc: '0.0',
+        //              usdc: '0.0',
+        //              xbt: '0.0'
+        //            },
+        //            type: 'cashAccount'
+        //          },
+        //          fv_xrpxbt: {
+        //            auxiliary: { usd: '0', pv: '0.0', pnl: '0.0', af: '0.0', funding: '0.0' },
+        //            marginRequirements: { im: '0.0', mm: '0.0', lt: '0.0', tt: '0.0' },
+        //            triggerEstimates: { im: '0', mm: '0', lt: '0', tt: '0' },
+        //            balances: { xbt: '0.0' },
+        //            currency: 'xbt',
+        //            type: 'marginAccount'
+        //          },
+        //          fi_xrpusd: {
+        //            auxiliary: {
+        //              usd: '0',
+        //              pv: '11.0',
+        //              pnl: '0.0',
+        //              af: '11.0',
+        //              funding: '0.0'
+        //            },
+        //            marginRequirements: { im: '0.0', mm: '0.0', lt: '0.0', tt: '0.0' },
+        //            triggerEstimates: { im: '0', mm: '0', lt: '0', tt: '0' },
+        //            balances: { xrp: '11.0' },
+        //            currency: 'xrp',
+        //            type: 'marginAccount'
+        //          },
+        //          fi_ethusd: {
+        //            auxiliary: { usd: '0', pv: '0.0', pnl: '0.0', af: '0.0', funding: '0.0' },
+        //            marginRequirements: { im: '0.0', mm: '0.0', lt: '0.0', tt: '0.0' },
+        //            triggerEstimates: { im: '0', mm: '0', lt: '0', tt: '0' },
+        //            balances: { eth: '0.0' },
+        //            currency: 'eth',
+        //            type: 'marginAccount'
+        //          },
+        //          fi_ltcusd: {
+        //            auxiliary: { usd: '0', pv: '0.0', pnl: '0.0', af: '0.0', funding: '0.0' },
+        //            marginRequirements: { im: '0.0', mm: '0.0', lt: '0.0', tt: '0.0' },
+        //            triggerEstimates: { im: '0', mm: '0', lt: '0', tt: '0' },
+        //            balances: { ltc: '0.0' },
+        //            currency: 'ltc',
+        //            type: 'marginAccount'
+        //          },
+        //          fi_bchusd: {
+        //            auxiliary: { usd: '0', pv: '0.0', pnl: '0.0', af: '0.0', funding: '0.0' },
+        //            marginRequirements: { im: '0.0', mm: '0.0', lt: '0.0', tt: '0.0' },
+        //            triggerEstimates: { im: '0', mm: '0', lt: '0', tt: '0' },
+        //            balances: { bch: '0.0' },
+        //            currency: 'bch',
+        //            type: 'marginAccount'
+        //          },
+        //          flex: {
+        //            currencies: {},
+        //            initialMargin: '0.0',
+        //            initialMarginWithOrders: '0.0',
+        //            maintenanceMargin: '0.0',
+        //            balanceValue: '0.0',
+        //            portfolioValue: '0.0',
+        //            collateralValue: '0.0',
+        //            pnl: '0.0',
+        //            unrealizedFunding: '0.0',
+        //            totalUnrealized: '0.0',
+        //            totalUnrealizedAsMargin: '0.0',
+        //            availableMargin: '0.0',
+        //            marginEquity: '0.0',
+        //            type: 'multiCollateralMarginAccount'
+        //          }
+        //        },
+        //        serverTime: '2022-04-12T07:48:07.475Z'
         //    }
         //
-        return this.parseBalance (response);
+        const datetime = this.safeString (response, 'serverTime');
+        const type = this.safeString (params, 'type', 'symbol');
+        const account = this.parseAccount (type);
+        const accounts = this.safeValue (response, 'accounts');
+        const info = this.safeValue2 (accounts, account, 'cash');
+        const balance = this.parseBalance (info);
+        return this.merge (balance, {
+            'info': response,
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime,
+        });
     }
 
     parseBalance (response) {
-        const result = { 'info': response };
-        const accounts = this.safeValue (response, 'accounts', {});
-        const cash = this.safeValue (accounts, 'cash', {});
-        const cashBalances = this.safeValue (cash, 'balances', {});
-        // This contains the actually usable margin by each market,
-        // but ccxt does not support such format
-        // const bySymbol = this.omit (accounts, 'cash');
-        const currencyIds = Object.keys (cashBalances);
+        //
+        //    cash: {
+        //        balances: {
+        //          eur: '0.0',
+        //          gbp: '0.0',
+        //          bch: '0.0',
+        //          xrp: '2.20188538338',
+        //          usd: '0.0',
+        //          eth: '0.0',
+        //          usdt: '0.0',
+        //          ltc: '0.0',
+        //          usdc: '0.0',
+        //          xbt: '0.0'
+        //        },
+        //        type: 'cashAccount'
+        //    },
+        //    fi_xrpusd: {
+        //        auxiliary: {
+        //          usd: '0',
+        //          pv: '11.0',
+        //          pnl: '0.0',
+        //          af: '11.0',
+        //          funding: '0.0'
+        //        },
+        //        marginRequirements: { im: '0.0', mm: '0.0', lt: '0.0', tt: '0.0' },
+        //        triggerEstimates: { im: '0', mm: '0', lt: '0', tt: '0' },
+        //        balances: { xrp: '11.0' },
+        //        currency: 'xrp',
+        //        type: 'marginAccount'
+        //    },
+        //    flex: {
+        //        currencies: {
+        //          USDT: {
+        //            quantity: '1',
+        //            value: '1.0001',
+        //            collateral: '0.9477197625',
+        //            available: '1.0'
+        //          }
+        //        },
+        //        initialMargin: '0.0',
+        //        initialMarginWithOrders: '0.0',
+        //        maintenanceMargin: '0.0',
+        //        balanceValue: '1.0',
+        //        portfolioValue: '1.0',
+        //        collateralValue: '0.95',
+        //        pnl: '0.0',
+        //        unrealizedFunding: '0.0',
+        //        totalUnrealized: '0.0',
+        //        totalUnrealizedAsMargin: '0.0',
+        //        availableMargin: '0.95',
+        //        marginEquity: '0.95',
+        //        type: 'multiCollateralMarginAccount'
+        //    }
+        //
+        let balances = this.safeValue (response, 'balances', {});
+        const currencies = this.safeValue (response, 'currencies', {});
+        const isFlex = (currencies !== undefined);
+        if (isFlex) {
+            balances = currencies;
+        }
+        const result = {};
+        const currencyIds = Object.keys (balances);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
+            let amount = balances['currencyId'];
+            if (isFlex) {
+                amount = this.safeNumber (amount, 'quantity');
+            }
             const account = this.account ();
-            account['total'] = this.safeFloat (cashBalances, currencyId);
+            account['total'] = amount;
             result[code] = account;
         }
         return this.safeBalance (result);
