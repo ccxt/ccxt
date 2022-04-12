@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { ExchangeError, AuthenticationError, BadRequest, ArgumentsRequired, NotSupported } = require ('ccxt/js/base/errors');
+const { ExchangeError, AuthenticationError, BadRequest, ArgumentsRequired, NotSupported, InvalidNonce } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -86,7 +86,7 @@ module.exports = class gateio extends ccxt.gateio {
         const messageType = this.getUniformType (type);
         // const suffix = (type === 'spot') ? 'order_book_update' : 'order_book';
         const method = messageType + '.' + 'order_book_update';
-        const messageHash = method + ':' + interval + ':' + market['symbol'];
+        const messageHash = method + ':' + market['symbol'];
         const url = this.getUrlByMarketType (type, market['inverse']);
         limit = limit.toString ();
         const payload = [ marketId, interval ];
@@ -106,7 +106,7 @@ module.exports = class gateio extends ccxt.gateio {
             delete this.orderbooks[symbol];
         }
         this.orderbooks[symbol] = this.orderBook ({}, limit);
-        this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+        // this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
     }
 
     async fetchOrderBookSnapshot (client, message, subscription) {
@@ -155,6 +155,111 @@ module.exports = class gateio extends ccxt.gateio {
         }
     }
 
+    handleOrderBook (client, message) {
+        //
+        //  {
+        //      "time":1649770575,
+        //      "channel":"spot.order_book_update",
+        //      "event":"update",
+        //      "result":{
+        //         "t":1649770575537,
+        //         "e":"depthUpdate",
+        //         "E":1649770575,
+        //         "s":"LTC_USDT",
+        //         "U":2622528153,
+        //         "u":2622528265,
+        //         "b":[
+        //            ["104.18","3.9398"],
+        //            ["104.56","19.0603"],
+        //            ["104.94","0"],
+        //            ["103.72","0"],
+        //            ["105.01","52.6186"],
+        //            ["104.76","0"],
+        //            ["104.97","0"],
+        //            ["104.71","0"],
+        //            ["104.84","25.8604"],
+        //            ["104.51","47.6508"],
+        //         ],
+        //         "a":[
+        //            ["105.26","40.5519"],
+        //            ["106.08","35.4396"],
+        //            ["105.2","0"],
+        //            ["105.45","8.5834"],
+        //            ["105.5","20.17"],
+        //            ["105.11","54.8359"],
+        //            ["105.52","28.5605"],
+        //            ["105.27","6.6325"],
+        //            ["105.3","4.291446"],
+        //            ["106.03","9.712"],
+        //         ]
+        //      }
+        //   }
+        //
+        const channel = this.safeString (message, 'channel');
+        const result = this.safeValue (message, 'result');
+        const marketId = this.safeString (result, 's');
+        const symbol = this.safeSymbol (marketId);
+        let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            orderbook = this.orderBook ({});
+        }
+        if (orderbook['nonce'] === undefined) {
+            orderbook.cache.push (message);
+        } else {
+            this.handleOrderBookMessage (client, message, orderbook);
+            const messageHash = channel + ':' + symbol;
+            client.resolve (orderbook, messageHash);
+        }
+    }
+
+    handleOrderBookMessage (client, message, orderbook) {
+        //   {
+        //         "t":1649770575537,
+        //         "e":"depthUpdate",
+        //         "E":1649770575,
+        //         "s":"LTC_USDT",
+        //         "U":2622528153,
+        //         "u":2622528265,
+        //         "b":[
+        //            ["104.18","3.9398"],
+        //            ["104.56","19.0603"],
+        //            ["104.94","0"],
+        //            ["103.72","0"],
+        //            ["105.01","52.6186"],
+        //            ["104.76","0"],
+        //            ["104.97","0"],
+        //            ["104.71","0"],
+        //            ["104.84","25.8604"],
+        //            ["104.51","47.6508"],
+        //         ],
+        //         "a":[
+        //            ["105.26","40.5519"],
+        //            ["106.08","35.4396"],
+        //            ["105.2","0"],
+        //            ["105.45","8.5834"],
+        //            ["105.5","20.17"],
+        //            ["105.11","54.8359"],
+        //            ["105.52","28.5605"],
+        //            ["105.27","6.6325"],
+        //            ["105.3","4.291446"],
+        //            ["106.03","9.712"],
+        //         ]
+        //      }
+        //
+        const nonce = this.safeInteger (message, 'u');
+        if (nonce > orderbook['nonce']) {
+            const asks = this.safeValue (message, 'a', []);
+            const bids = this.safeValue (message, 'b', []);
+            this.handleDeltas (orderbook['asks'], asks, orderbook['nonce']);
+            this.handleDeltas (orderbook['bids'], bids, orderbook['nonce']);
+            orderbook['nonce'] = nonce;
+            const timestamp = this.safeInteger (message, 't');
+            orderbook['timestamp'] = timestamp;
+            orderbook['datetime'] = this.iso8601 (timestamp);
+        }
+        return orderbook;
+    }
+
     handleDelta (bookside, delta) {
         const price = this.safeFloat (delta, 0);
         const amount = this.safeFloat (delta, 1);
@@ -165,52 +270,6 @@ module.exports = class gateio extends ccxt.gateio {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
-    }
-
-    handleOrderBook (client, message) {
-        //
-        //     {
-        //         "method":"depth.update",
-        //         "params":[
-        //             true, // snapshot or not
-        //             {
-        //                 "asks":[
-        //                     ["7449.62","0.3933"],
-        //                     ["7450","3.58662932"],
-        //                     ["7450.44","0.15"],
-        //                 "bids":[
-        //                     ["7448.31","0.69984534"],
-        //                     ["7447.08","0.7506"],
-        //                     ["7445.74","0.4433"],
-        //                 ]
-        //             },
-        //             "BTC_USDT"
-        //         ],
-        //         "id":null
-        //     }
-        //
-        const params = this.safeValue (message, 'params', []);
-        const clean = this.safeValue (params, 0);
-        const book = this.safeValue (params, 1);
-        const marketId = this.safeString (params, 2);
-        const symbol = this.safeSymbol (marketId);
-        const method = this.safeString (message, 'method');
-        const messageHash = method + ':' + marketId;
-        let orderBook = undefined;
-        const options = this.safeValue (this.options, 'watchOrderBook', {});
-        const subscriptions = this.safeValue (options, 'subscriptions', {});
-        const subscription = this.safeValue (subscriptions, symbol, []);
-        const defaultLimit = this.safeInteger (options, 'limit', 30);
-        const limit = this.safeValue (subscription, 1, defaultLimit);
-        if (clean) {
-            orderBook = this.orderBook ({}, limit);
-            this.orderbooks[symbol] = orderBook;
-        } else {
-            orderBook = this.orderbooks[symbol];
-        }
-        this.handleDeltas (orderBook['asks'], this.safeValue (book, 'asks', []));
-        this.handleDeltas (orderBook['bids'], this.safeValue (book, 'bids', []));
-        client.resolve (orderBook, messageHash);
     }
 
     async watchTicker (symbol, params = {}) {
@@ -790,6 +849,36 @@ module.exports = class gateio extends ccxt.gateio {
         //             (...)
         //     ]
         // }
+        // orderbook
+        // {
+        //     time: 1649770525,
+        //     channel: 'spot.order_book_update',
+        //     event: 'update',
+        //     result: {
+        //       t: 1649770525653,
+        //       e: 'depthUpdate',
+        //       E: 1649770525,
+        //       s: 'LTC_USDT',
+        //       U: 2622525645,
+        //       u: 2622525665,
+        //       b: [
+        //         [Array], [Array],
+        //         [Array], [Array],
+        //         [Array], [Array],
+        //         [Array], [Array],
+        //         [Array], [Array],
+        //         [Array]
+        //       ],
+        //       a: [
+        //         [Array], [Array],
+        //         [Array], [Array],
+        //         [Array], [Array],
+        //         [Array], [Array],
+        //         [Array], [Array],
+        //         [Array]
+        //       ]
+        //     }
+        //   }
         this.handleErrorMessage (client, message);
         const methods = {
             'depth.update': this.handleOrderBook,
@@ -814,6 +903,7 @@ module.exports = class gateio extends ccxt.gateio {
                 'candlesticks': this.handleOHLCV,
                 'orders': this.handleOrder,
                 'tickers': this.handleTicker,
+                'order_book_update': this.handleOrderBook,
             };
             method = this.safeValue (v4Methods, channelType);
         }
