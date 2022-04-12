@@ -1097,9 +1097,25 @@ module.exports = class kucoinfutures extends kucoin {
     }
 
     async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#fetchOrdersByStatus
+         * @description fetches a list of orders placed on the exchange
+         * @param {str} status 'active' or 'closed', only 'active' is valid for stop orders
+         * @param {str} symbol unified symbol for the market to retrieve orders from
+         * @param {int} since timestamp in ms of the earliest order to retrieve
+         * @param {int} limit The maximum number of orders to retrieve
+         * @param {dict} params exchange specific parameters
+         * @param {bool} params.stop set to true to retrieve untriggered stop orders
+         * @param {str} params.side buy or sell
+         * @param {str} params.type limit or market
+         * @param {int} params.endAt End time in ms
+         * @returns An [array of order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const stop = this.safeValue (params, 'stop');
         params = this.omit (params, 'stop');
+        status = (status === 'closed') ? 'done' : status;
         const request = {};
         if (!stop) {
             request['status'] = status;
