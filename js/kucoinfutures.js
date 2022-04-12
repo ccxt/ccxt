@@ -928,6 +928,29 @@ module.exports = class kucoinfutures extends kucoin {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#createOrder
+         * @description Create an order on the exchange
+         * @param {str} symbol Unified CCXT market symbol
+         * @param {str} type "limit" or "market" *"market" is contract only*
+         * @param {str} side "buy" or "sell"
+         * @param {float} amount the amount of currency to trade
+         * @param {float} price *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+         * @param {dict} params  Extra parameters specific to the exchange API endpoint
+         * @param {float} params.leverage Leverage size of the order
+         * @param {float} params.stopPrice The price at which a trigger order is triggered at
+         * @param {bool} params.reduceOnly A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
+         * @param {str} params.timeInForce GTC, GTT, IOC, or FOK, default is GTC, limit orders only
+         * @param {str} params.postOnly Post only flag, invalid when timeInForce is IOC or FOK
+         * @param {str} params.clientOid client order id, defaults to uuid if not passed
+         * @param {str} params.remark remark for the order, length cannot exceed 100 utf8 characters
+         * @param {str} params.stop 'up' or 'down', defaults to 'up' if side is sell and 'down' if side is buy, requires stopPrice
+         * @param {str} params.stopPriceType  TP, IP or MP, defaults to TP
+         * @param {bool} params.closeOrder set to true to close position
+         * @param {bool} params.forceHold A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.
+         * @returns an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         // required param, cannot be used twice
@@ -944,28 +967,6 @@ module.exports = class kucoinfutures extends kucoin {
             'type': type, // limit or market
             'size': preciseAmount,
             'leverage': 1,
-            // 'remark': '', // optional remark for the order, length cannot exceed 100 utf8 characters
-            // 'tradeType': 'TRADE', // TRADE, MARGIN_TRADE // not used with margin orders
-            // limit orders ---------------------------------------------------
-            // 'timeInForce': 'GTC', // GTC, GTT, IOC, or FOK (default is GTC), limit orders only
-            // 'cancelAfter': long, // cancel after n seconds, requires timeInForce to be GTT
-            // 'postOnly': false, // Post only flag, invalid when timeInForce is IOC or FOK
-            // 'hidden': false, // Order will not be displayed in the order book
-            // 'iceberg': false, // Only a portion of the order is displayed in the order book
-            // 'visibleSize': this.amountToPrecision (symbol, visibleSize), // The maximum visible size of an iceberg order
-            // market orders --------------------------------------------------
-            // 'funds': this.costToPrecision (symbol, cost), // Amount of quote currency to use
-            // stop orders ----------------------------------------------------
-            // 'stop': 'loss', // loss or entry, the default is loss, requires stopPrice
-            // 'stopPrice': this.priceToPrecision (symbol, amount), // need to be defined if stop is specified
-            // 'stopPriceType' // Either TP, IP or MP, Need to be defined if stop is specified.
-            // margin orders --------------------------------------------------
-            // 'marginMode': 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
-            // 'autoBorrow': false, // The system will first borrow you funds at the optimal interest rate and then place an order for you
-            // futures orders -------------------------------------------------
-            // reduceOnly // (boolean) A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
-            // closeOrder // (boolean) A mark to close the position. Set to false by default. It will close all the positions when closeOrder is true.
-            // forceHold // (boolean) A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.
         };
         const stopPrice = this.safeNumber (params, 'stopPrice');
         if (stopPrice) {
