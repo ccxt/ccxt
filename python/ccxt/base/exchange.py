@@ -1997,6 +1997,28 @@ class Exchange(object):
         tail = since is None
         return self.filter_by_symbol_since_limit(array, symbol, since, limit, tail)
 
+    def safe_transaction(self, transaction):
+        return self.extend({
+            'id': None,
+            'currency': None,
+            'amount': None,
+            'network': None,
+            'address': None,
+            'addressTo': None,
+            'addressFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'tagFrom': None,
+            'status': None,
+            'type': None,
+            'updated': None,
+            'txid': None,
+            'timestamp': None,
+            'datetime': None,
+            'fee': None,
+            'info': [],
+        }, transaction)
+
     def parse_transactions(self, transactions, currency=None, since=None, limit=None, params={}):
         array = self.to_array(transactions)
         array = [self.extend(self.parse_transaction(transaction, currency), params) for transaction in array]
