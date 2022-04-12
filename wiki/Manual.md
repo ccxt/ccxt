@@ -4535,8 +4535,8 @@ Parameters
 - **amount** (Float) The amount of currency to transfer (e.g. `10.5`)
 - **fromAccount** (String) The account to transfer funds from.
 - **toAccount** (String) The account to transfer funds to
-- **params.symbol** (String) Market symbol when transfering to or from a margin account (e.g. `'BTC/USDT'`)
 - **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+- **params.symbol** (String) Market symbol when transfering to or from a margin account (e.g. `'BTC/USDT'`)
 
 **Account Types**
 
