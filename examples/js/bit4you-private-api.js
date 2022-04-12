@@ -19,7 +19,6 @@ async function b4yTest () {
         })
 
         console.log('simulation mode:', exchange.simulation)
-
         // console.log(exchange.simulation)
 
         // fetchOrderBook
