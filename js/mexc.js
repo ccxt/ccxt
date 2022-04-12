@@ -1936,7 +1936,10 @@ module.exports = class mexc extends Exchange {
         //         "code": 0
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        let data = this.safeValue (response, 'data', []);
+        if (stop) {
+            data = response;
+        }
         return this.parseOrder (data, market);
     }
 
