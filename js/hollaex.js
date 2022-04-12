@@ -23,7 +23,7 @@ module.exports = class hollaex extends ccxt.hollaex {
             },
             'urls': {
                 'api': {
-                    'ws': 'https://api.hollaex.com/stream',
+                    'ws': 'wss://api.hollaex.com/stream',
                 },
             },
             'options': {
