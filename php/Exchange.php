@@ -2113,6 +2113,17 @@ class Exchange {
         return $result;
     }
 
+    public function safe_withdraw($withdrawal) {
+        return $this->extend([
+            'id'=> null,
+            'code'=> null,
+            'amount'=> null,
+            'address'=> null,
+            'tag'=> null,
+            'info'=> [],
+        ], $withdrawal);
+    }
+
     public function safe_ticker($ticker, $market = null, $legacy = true) {
         if ($legacy) {
             $symbol = $this->safe_value($ticker, 'symbol');

@@ -1879,6 +1879,16 @@ class Exchange(object):
         offset = timestamp % ms
         return timestamp - offset + (ms if direction == ROUND_UP else 0)
 
+    def safe_withdraw(self, transfer):
+        return self.extend({
+            'id': None,
+            'code': None,
+            'amount': None,
+            'address': None,
+            'tag': None,
+            'info': [],
+        }, transfer)
+
     def safe_ticker(self, ticker, market=None, legacy=True):
         if legacy:
             symbol = self.safe_value(ticker, 'symbol')

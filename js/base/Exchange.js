@@ -1258,6 +1258,17 @@ module.exports = class Exchange {
         return indexed ? indexBy (result, key) : result
     }
 
+    safeWithdraw (withdrawal) {
+        return this.extend({
+            'id': undefined,
+            'code': undefined,
+            'amount': undefined,
+            'address': undefined,
+            'tag': undefined,
+            'info': {},
+        }, withdrawal);
+    }
+
     safeTicker (ticker, market = undefined, legacy = true) {
         if (legacy) {
             let symbol = this.safeValue (ticker, 'symbol');
