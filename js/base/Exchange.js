@@ -1410,6 +1410,20 @@ module.exports = class Exchange {
         return this.filterByCurrencySinceLimit (result, code, since, limit, tail);
     }
 
+    safeTransfer (transfer) {
+        return this.extend({
+            'id': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': undefined,
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': undefined,
+            'info': {},
+        }, transaction);
+    }
+
     parseTransfers (transfers, currency = undefined, since = undefined, limit = undefined, params = {}) {
         let result = Object.values (transfers || []).map ((transfer) => this.extend (this.parseTransfer (transfer, currency), params))
         result = this.sortBy (result, 'timestamp');

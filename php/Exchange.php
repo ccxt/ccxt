@@ -2273,6 +2273,20 @@ class Exchange {
         return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
     }
 
+    public function safe_transfer($transfer) {
+        return $this->extend([
+            'id'=> null,
+            'timestamp'=> null,
+            'datetime'=> null,
+            'currency'=> null,
+            'amount'=> null,
+            'fromAccount'=> null,
+            'toAccount'=> null,
+            'status'=> null,
+            'info'=> [],
+        ], $transfer);
+    }
+
     public function parse_transfers($transfers, $currency = null, $since = null, $limit = null, $params = array()) {
         $array = is_array($transfers) ? array_values($transfers) : array();
         $result = array();
