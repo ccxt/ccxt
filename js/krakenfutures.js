@@ -1357,6 +1357,15 @@ module.exports = class krakenfutures extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name krakenfutures#fetchBalance
+         * @description Fetch the balance for a sub-account, all sub-account balances are inside 'info' in the response
+         * @param {dict} params Exchange specific parameters
+         * @param {str} params.type The sub-account type to query the balance of, possible values include 'flex', 'cash'/'main'/'funding', or a market symbol * defaults to 'cash' *
+         * @param {str} params.symbol A unified market symbol, when assigned the balance for a trading market that matches the symbol is returned
+         * @returns A [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html#balance-structure}
+         */
         await this.loadMarkets ();
         let type = this.safeString2 (params, 'type', 'account');
         let symbol = this.safeString (params, 'symbol');
