@@ -1525,8 +1525,8 @@ module.exports = class bitstamp extends Exchange {
                 const amount = this.safeNumber (item, 'amount');
                 direction = (amount > 0) ? 'in' : 'out';
             } else if (('currency' in parsedTransaction) && parsedTransaction['currency'] !== undefined) {
-                const code = this.safeString (parsedTransaction, 'currency');
-                const currency = this.currency (code);
+                const currencyId = this.safeString (parsedTransaction, 'currency');
+                const currency = this.safeCurrency (currencyId, currency);
                 const amount = this.safeNumber (item, currency['id']);
                 direction = (amount > 0) ? 'in' : 'out';
             }
