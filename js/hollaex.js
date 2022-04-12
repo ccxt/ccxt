@@ -59,44 +59,62 @@ module.exports = class hollaex extends ccxt.hollaex {
         return orderbook.limit (limit);
     }
 
-    handleOrderBookSnapshot (client, message) {
-        // full snapshot
+    handleOrderBook (client, message) {
         //
         // {
-        //     "instrument_name":"LTC_USDT",
-        //     "subscription":"book.LTC_USDT.150",
-        //     "channel":"book",
-        //     "depth":150,
-        //     "data": [
-        //          {
-        //              'bids': [
-        //                  [122.21, 0.74041, 4]
-        //              ],
-        //              'asks': [
-        //                  [122.29, 0.00002, 1]
-        //              ]
-        //              't': 1648123943803,
-        //              's':754560122
-        //          }
-        //      ]
-        // }
+        //     "topic":"orderbook",
+        //     "action":"partial",
+        //     "symbol":"ltc-usdt",
+        //     "data":{
+        //        "bids":[
+        //           [104.29, 5.2264],
+        //           [103.86,1.3629],
+        //           [101.82,0.5942]
+        //        ],
+        //        "asks":[
+        //           [104.81,9.5531],
+        //           [105.54,0.6416],
+        //           [106.18,1.4141],
+        //           [112.43,0.6525],
+        //           [114.4,0.3653],
+        //           [116.59,0.0377],
+        //           [118.67,0.3116],
+        //           [120.64,0.2881],
+        //           [122.84,0.3331],
+        //           [135.11,0.01],
+        //           [137.61,0.01],
+        //           [140.11,0.01],
+        //           [142.61,0.01],
+        //           [145.12,0.01],
+        //           [147.62,0.01],
+        //           [154,0.0048],
+        //           [300,0.0215],
+        //           [500,1],
+        //           [650,0.1],
+        //           [1000,1]
+        //        ],
+        //        "timestamp":"2022-04-12T08:17:05.932Z"
+        //     },
+        //     "time":1649751425
+        //  }
         //
-        const messageHash = this.safeString (message, 'subscription');
-        const marketId = this.safeString (message, 'instrument_name');
+        const marketId = this.safeString (message, 'symbol');
+        const channel = this.safeString (message, 'topic');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        let data = this.safeValue (message, 'data');
-        data = this.safeValue (data, 0);
-        const timestamp = this.safeInteger (data, 't');
+        const data = this.safeValue (message, 'data');
+        let timestamp = this.safeString (data, 'timestamp');
+        timestamp = this.parse8601 (timestamp);
         const snapshot = this.parseOrderBook (data, symbol, timestamp);
-        snapshot['nonce'] = this.safeInteger (data, 's');
-        let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            const limit = this.safeInteger (message, 'depth');
-            orderbook = this.orderBook ({}, limit);
+        let orderbook = undefined;
+        if (!(symbol in this.orderbooks)) {
+            orderbook = this.orderBook (snapshot);
+            this.orderbooks[symbol] = orderbook;
+        } else {
+            orderbook = this.orderbooks[symbol];
+            orderbook.reset (snapshot);
         }
-        orderbook.reset (snapshot);
-        this.orderbooks[symbol] = orderbook;
+        const messageHash = channel + ':' + marketId;
         client.resolve (orderbook, messageHash);
     }
 
@@ -426,7 +444,7 @@ module.exports = class hollaex extends ccxt.hollaex {
         }
         const methods = {
             'trade': this.handleTrades,
-            'orderbook': this.handlOrderBook,
+            'orderbook': this.handleOrderBook,
             'order': this.handleOrder,
             'wallet': this.handleBalance,
         };
