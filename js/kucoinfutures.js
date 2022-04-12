@@ -1098,9 +1098,14 @@ module.exports = class kucoinfutures extends kucoin {
 
     async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {
-            'status': status,
-        };
+        const stop = this.safeValue (params, 'stop');
+        params = this.omit (params, 'stop');
+        const request = {};
+        if (!stop) {
+            request['status'] = status;
+        } else if (status !== 'active') {
+            throw new BadRequest (this.id + ' fetchOrdersByStatus can only fetch untriggered stop orders');
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1109,7 +1114,8 @@ module.exports = class kucoinfutures extends kucoin {
         if (since !== undefined) {
             request['startAt'] = since;
         }
-        const response = await this.futuresPrivateGetOrders (this.extend (request, params));
+        const method = stop ? 'futuresPrivateGetStopOrders' : 'futuresPrivateGetOrders';
+        const response = await this[method] (this.extend (request, params));
         const responseData = this.safeValue (response, 'data', {});
         const orders = this.safeValue (responseData, 'items', []);
         return this.parseOrders (orders, market, since, limit);
