@@ -56,7 +56,7 @@ module.exports = class krakenfutures extends Exchange {
                 'fetchTrades': true,
                 'setLeverage': false,
                 'setMarginMode': false,
-                'transfer': undefined, // https://support.kraken.com/hc/en-us/articles/360028105972-Withdrawal-to-Spot-Wallet // https://support.kraken.com/hc/en-us/articles/360022635852-Transfer
+                'transfer': true, // https://support.kraken.com/hc/en-us/articles/360028105972-Withdrawal-to-Spot-Wallet // https://support.kraken.com/hc/en-us/articles/360022635852-Transfer
             },
             'urls': {
                 'test': {
@@ -1620,6 +1620,74 @@ module.exports = class krakenfutures extends Exchange {
             });
         }
         return tiers;
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        // transfer
+        //
+        //    {
+        //        result: 'success',
+        //        serverTime: '2022-04-12T01:22:53.420Z'
+        //    }
+        //
+        const datetime = this.safeString (transfer, 'serverTime');
+        return {
+            'info': transfer,
+            'id': undefined,
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime,
+            'currency': this.safeString (currency, 'code'),
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': this.safeString (transfer, 'result'),
+        };
+    }
+
+    parseAccount (account) {
+        const accountByType = {
+            'main': 'cash',
+            'funding': 'cash',
+        };
+        if (account in accountByType) {
+            return accountByType[account];
+        } else if (account in this.markets) {
+            const market = this.market (account);
+            const marketId = market['id'];
+            const splitId = marketId.split ('_');
+            if (market['inverse']) {
+                return 'fi_' + this.safeString (splitId, 1);
+            } else {
+                return 'fv_' + this.safeString (splitId, 1);
+            }
+        } else {
+            return account;
+        }
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'fromAccount': this.parseAccount (fromAccount),
+            'toAccount': this.parseAccount (toAccount),
+            'unit': currency['id'],
+            'amount': amount,
+        };
+        const response = await this.privatePostTransfer (this.extend (request, params));
+        //
+        //    {
+        //        result: 'success',
+        //        serverTime: '2022-04-12T01:22:53.420Z'
+        //    }
+        //
+        const transfer = this.parseTransfer (response, currency);
+        return this.extend (transfer, {
+            'amount': amount,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+        });
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
