@@ -1676,6 +1676,15 @@ module.exports = class Exchange {
         };
     }
 
+    safeTradingFee (tradingFee) {
+        return this.extend({
+            'symbol': undefined,
+            'maker': undefined,
+            'taker': undefined,
+            'info': {},
+        }, tradingFee);
+    }
+
     checkRequiredDependencies () {
         return
     }

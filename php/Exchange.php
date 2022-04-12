@@ -2706,6 +2706,15 @@ class Exchange {
         );
     }
 
+    public function safe_trading_fee($trading_fee) {
+        return $this->extend([
+            'symbol'=> null,
+            'maker'=> null,
+            'taker'=> null,
+            'info'=> [],
+        ], $trading_fee);
+    }
+
     public static function account() {
         return array(
             'free' => null,
