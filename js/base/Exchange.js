@@ -2220,6 +2220,20 @@ module.exports = class Exchange {
         return tiers;
     }
 
+    safeLeverageTier (leverageTier) {
+        return this.extend({
+            'tier': undefined,
+            'currency': undefined,
+            'maintenanceMarginRate': undefined,
+            'maxLeverage': undefined,
+            // 'notionalFloor': undefined,
+            // 'notionalCap': undefined,
+            'minNotinal': undefined,
+            'maxNotional': undefined,
+            'info': {},
+        }, leverageTier);
+    }
+
     async fetchMarketLeverageTiers (symbol, params = {}) {
         if (this.has['fetchLeverageTiers']) {
             const market = await this.market (symbol);

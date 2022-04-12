@@ -3728,6 +3728,20 @@ class Exchange {
         return $tiers;
     }
 
+    public function safe_leverage_tier($leverage_tier) {
+        return $this->extend([
+            'tier'=> null,
+            'currency'=> null,
+            'maintenanceMarginRate'=> null,
+            'maxLeverage'=> null,
+            // 'notionalFloor'=> null,
+            // 'notionalCap'=> null,
+            'minNotinal'=> null,
+            'maxNotional'=> null,
+            'info'=> [],
+        ], $leverage_tier);
+    }
+
     public function fetch_market_leverage_tiers($symbol, $params = array()) {
         if ($this->has['fetchLeverageTiers']) {
             $market = $this->market($symbol);

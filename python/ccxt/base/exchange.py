@@ -2799,6 +2799,19 @@ class Exchange(object):
                 tiers[symbol] = self.parse_market_leverage_tiers(item, market)
         return tiers
 
+    def safe_leverage_tier(self, leverage_tier):
+        return self.extend({
+            'tier': None,
+            'currency': None,
+            'maintenanceMarginRate': None,
+            'maxLeverage': None,
+            # 'notionalFloor': None,
+            # 'notionalCap': None,
+            'minNotinal': None,
+            'maxNotional': None,
+            'info': {},
+        }, leverage_tier)
+
     def fetch_market_leverage_tiers(self, symbol, params={}):
         if self.has['fetchLeverageTiers']:
             market = self.market(symbol)
