@@ -1358,6 +1358,9 @@ module.exports = class krakenfutures extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
+        let type = this.safeString2 (params, 'type', 'account');
+        let symbol = this.safeString (params, 'symbol');
+        params = this.omit (params, [ 'type', 'account', 'symbol' ]);
         const response = await this.privateGetAccounts (params);
         //
         //    {
@@ -1453,50 +1456,68 @@ module.exports = class krakenfutures extends Exchange {
         //    }
         //
         const datetime = this.safeString (response, 'serverTime');
-        const type = this.safeString (params, 'type', 'symbol');
-        const account = this.parseAccount (type);
+        if (type === 'marginAccount' || type === 'margin') {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchBalance');
+            }
+            type = symbol;
+        }
+        if (type === undefined) {
+            type = (symbol === undefined) ? 'cash' : symbol;
+        }
+        const accountName = this.parseAccount (type);
         const accounts = this.safeValue (response, 'accounts');
-        const info = this.safeValue2 (accounts, account, 'cash');
-        const balance = this.parseBalance (info);
-        return this.merge (balance, {
+        const account = this.safeValue (accounts, accountName);
+        if (account === undefined) {
+            type = (type === undefined) ? '' : type;
+            symbol = (symbol === undefined) ? '' : symbol;
+            throw new BadRequest (this.id + ' fetchBalance has no account for ' + type);
+        }
+        const balance = this.parseBalance (account);
+        return this.merge ({
             'info': response,
             'timestamp': this.parse8601 (datetime),
             'datetime': datetime,
-        });
+        }, balance);
     }
 
     parseBalance (response) {
         //
-        //    cash: {
+        // cashAccount
+        //    {
         //        balances: {
-        //          eur: '0.0',
-        //          gbp: '0.0',
-        //          bch: '0.0',
-        //          xrp: '2.20188538338',
-        //          usd: '0.0',
-        //          eth: '0.0',
-        //          usdt: '0.0',
-        //          ltc: '0.0',
-        //          usdc: '0.0',
-        //          xbt: '0.0'
+        //            eur: '0.0',
+        //            gbp: '0.0',
+        //            bch: '0.0',
+        //            xrp: '2.20188538338',
+        //            usd: '0.0',
+        //            eth: '0.0',
+        //            usdt: '0.0',
+        //            ltc: '0.0',
+        //            usdc: '0.0',
+        //            xbt: '0.0'
         //        },
         //        type: 'cashAccount'
-        //    },
-        //    fi_xrpusd: {
+        //    }
+        //
+        // marginAccount e,g, fi_xrpusd
+        //    {
         //        auxiliary: {
-        //          usd: '0',
-        //          pv: '11.0',
-        //          pnl: '0.0',
-        //          af: '11.0',
-        //          funding: '0.0'
+        //            usd: '0',
+        //            pv: '11.0',
+        //            pnl: '0.0',
+        //            af: '11.0',
+        //            funding: '0.0'
         //        },
         //        marginRequirements: { im: '0.0', mm: '0.0', lt: '0.0', tt: '0.0' },
         //        triggerEstimates: { im: '0', mm: '0', lt: '0', tt: '0' },
         //        balances: { xrp: '11.0' },
         //        currency: 'xrp',
         //        type: 'marginAccount'
-        //    },
-        //    flex: {
+        //    }
+        //
+        // flex/multiCollateralMarginAccount
+        //    {
         //        currencies: {
         //          USDT: {
         //            quantity: '1',
@@ -1520,23 +1541,28 @@ module.exports = class krakenfutures extends Exchange {
         //        type: 'multiCollateralMarginAccount'
         //    }
         //
-        let balances = this.safeValue (response, 'balances', {});
-        const currencies = this.safeValue (response, 'currencies', {});
-        const isFlex = (currencies !== undefined);
-        if (isFlex) {
-            balances = currencies;
-        }
+        const accountType = this.safeString2 (response, 'accountType', 'type');
+        const isFlex = (accountType === 'multiCollateralMarginAccount');
+        const isCash = (accountType === 'cashAccount');
+        const balances = this.safeValue2 (response, 'balances', 'currencies', {});
         const result = {};
         const currencyIds = Object.keys (balances);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
+            const balance = balances[currencyId];
             const code = this.safeCurrencyCode (currencyId);
-            let amount = balances['currencyId'];
-            if (isFlex) {
-                amount = this.safeNumber (amount, 'quantity');
-            }
             const account = this.account ();
-            account['total'] = amount;
+            if (isFlex) {
+                account['total'] = this.safeString (balance, 'quantity');
+                account['free'] = this.safeString (balance, 'available');
+            } else if (isCash) {
+                account['used'] = '0.0';
+                account['total'] = balance;
+            } else {
+                const auxiliary = this.safeValue (response, 'auxiliary');
+                account['free'] = this.safeString (auxiliary, 'af');
+                account['total'] = this.safeString (auxiliary, 'pv');
+            }
             result[code] = account;
         }
         return this.safeBalance (result);
@@ -1802,6 +1828,10 @@ module.exports = class krakenfutures extends Exchange {
             'funding': 'cash',
             'future': 'cash',
             'futures': 'cash',
+            'cashAccount': 'cash',
+            'multiCollateralMarginAccount': 'flex',
+            'multiCollateral': 'flex',
+            'multiCollateralMargin': 'flex',
         };
         if (account in accountByType) {
             return accountByType[account];
