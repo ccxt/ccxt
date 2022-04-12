@@ -2080,6 +2080,18 @@ class Exchange {
         return $this->markets;
     }
 
+    public function safe_trading_limit($trading_limit) {
+        return $this->deep_extend([
+            'limits'=> [
+                'amount'=> [
+                    'min'=> null,
+                    'max'=> null,
+                ],
+            ],
+            'info'=> [],
+        ], $trading_limit);
+    }
+
     public function filter_by_since_limit($array, $since = null, $limit = null, $key = 'timestamp', $tail = false) {
         $result = array();
         $since_is_set = isset($since);

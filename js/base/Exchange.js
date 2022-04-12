@@ -1201,6 +1201,18 @@ module.exports = class Exchange {
         return this.markets;
     }
 
+    safeTradingLimit (tradingLimit) {
+        return this.extend({
+            'limit': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                }
+            },
+            'info': {},
+        }, tradingLimit);
+    }
+
     filterBySinceLimit (array, since = undefined, limit = undefined, key = 'timestamp', tail = false) {
         const sinceIsDefined = (since !== undefined && since !== null)
         if (sinceIsDefined) {

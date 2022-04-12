@@ -1761,6 +1761,17 @@ class Exchange(object):
                 self.options['limitsLoaded'] = self.milliseconds()
         return self.markets
 
+    def safe_trading_limit(self, trading_limit):
+        return self.extend({
+            'limit': {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                }
+            },
+            'info': {},
+        }, trading_limit)
+
     def fetch_ohlcvc(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         if not self.has['fetchTrades']:
             raise NotSupported('fetch_ohlcv() not supported yet')
