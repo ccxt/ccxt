@@ -1930,6 +1930,14 @@ class Exchange {
         return $this->accounts;
     }
 
+    public function safe_funding_fee($funding_fee) {
+        return $this->extend([
+            'withdraw'=> [],
+            'deposit'=> [],
+            'info'=> [],
+        ], $funding_fee);
+    }
+
     public function parse_funding_rate($response, $market = null) {
         throw new NotSupported($this->id . ' parse_funding_rate() not supported yet');
     }

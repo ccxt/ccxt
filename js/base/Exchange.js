@@ -1540,6 +1540,14 @@ module.exports = class Exchange {
         return ((symbol !== undefined) ? array.filter ((entry) => entry.symbol === symbol) : array)
     }
 
+    safeFundingFee (fundingFee) {
+        return this.extend({
+            'withdraw': {},
+            'deposit': {},
+            'info': {},
+        }, fundingFee);
+    }
+
     parseFundingRate (contract, market = undefined) {
         throw new NotSupported (this.id + ' parseFundingRate() not supported yet')
     }

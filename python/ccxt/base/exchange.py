@@ -1635,6 +1635,13 @@ class Exchange(object):
         else:
             raise NotSupported(self.id + ' fetchDepositAddress not supported yet')
 
+    def safe_funding_fee(self, funding_fee):
+        return self.extend({
+            'withdraw': [],
+            'depost': [],
+            'info': [],
+        }, funding_fee)
+
     def parse_funding_rate(self, contract, market=None):
         raise NotSupported(self.id + ' parse_funding_rate() not supported yet')
 
