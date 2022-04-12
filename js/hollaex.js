@@ -18,7 +18,7 @@ module.exports = class hollaex extends ccxt.hollaex {
                 'watchMyTrades': false,
                 'watchTrades': true,
                 'watchOrderBook': true,
-                'watchOrders': false,
+                'watchOrders': true,
                 'watchOHLCV': false,
             },
             'urls': {
