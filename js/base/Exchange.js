@@ -819,6 +819,112 @@ module.exports = class Exchange {
         throw new NotSupported (this.id + ' fetchPermissions() not supported yet')
     }
 
+    getInitialPermissions () {
+        const broadPropertyNames = {
+            'publicAPI': 0,
+            'privateAPI': 0,
+            'CORS': 0,
+            'spot': 0,
+            'margin': 0,
+            'swap': 0,
+            'future': 0,
+            'option': 0,
+        };
+        // public endpoints, which are considered to work without need of api-key (though, in some exchanges some 'public' endpoints will be manually overriden as 'non-public')
+        const publicPropertyNames = {
+            'fetchBidsAsks': 0,
+            'fetchCurrencies': 0,
+            'fetchL2OrderBook': 0,
+            'fetchLeverageTiers': 0,
+            'fetchMarketLeverageTiers': 0,
+            'fetchMarkets': 0,
+            'fetchMarkOHLCV': 0,
+            'fetchOHLCV': 0,
+            'fetchOrderBook': 0,
+            'fetchOrderBooks': 0,
+            'fetchPremiumIndexOHLCV': 0,
+            'fetchStatus': 0,
+            'fetchTicker': 0,
+            'fetchTickers': 0,
+            'fetchTime': 0,
+            'fetchTrades': 0,
+            'fetchTradingFee': 0,
+            'fetchTradingFees': 0,
+            'fetchTradingLimits': 0,
+            'loadMarkets': 0,
+            'fetchBorrowInterest': 0,
+            'fetchBorrowRate': 0,
+            'fetchBorrowRatesPerSymbol': 0,
+            'fetchBorrowRates': 0,
+            'fetchFundingFee': 0,
+            'fetchFundingFees': 0,
+            'fetchFundingRate': 0,
+        };
+        const publiclyAvailables = Object.assign (broadPropertyNames, publicPropertyNames);
+        const initialPermissions = {};
+        const allKeys = Object.keys (this.has);
+        for (let i = 0; i < allKeys.length; i++) {
+            const methodName = allKeys[i];
+            if (methodName in publiclyAvailables) {
+                // if method is non-private endpoint, set it to same value as in `.has`
+                initialPermissions[methodName] = this.has[methodName];
+            } else {
+                // if method is private endpoint, then set it to undefined, to be overriden by implementation
+                initialPermissions[methodName] = undefined;
+            }
+        }
+        // if user didn't set api-keys, then we can't further check private endpoints, thus return 
+        const apikeySet = this.checkRequiredCredentials (false) === true;
+        this.initialPermissions = initialPermissions;
+        return [apikeySet, initialPermissions];
+    }
+
+    safePermissions (permissionsMap = {}, permissionsValues = {}) {
+        // exchanges provide permissions response with diffrent way, however, most common way is to return permissions like:
+        //
+        //     {
+        //         'trade': true,
+        //         'funds': true,
+        //         'transfer': true,
+        //         // any custom key name can be here
+        //     }
+        //
+        // thus, we have to make a map of dependent unified methods, to set them correctly.
+        //
+        // At first, we need to have 'permissionsMap' object like this:
+        //
+        //     {
+        //         'trade': ['createOrder', 'cancelOrder', 'fetchOrder', ...],
+        //         'funds': ['fetchBalance', 'fetchFundingHistory', ...],
+        //         'transfer': ['withdraw', 'fetchDeposits', 'createDepositAddress', ...],
+        //     }
+        //
+        // thus, we know whih key's true/false affects which group of private-methods.
+        //
+        // Then, we need to have 'permissionsValues' object like this
+        //
+        //     {
+        //         'trade': true,
+        //         'funding': true,
+        //         ...
+        //     }
+        //
+        // thus, depending true/false we can resolve which group of private-methods should be set to true/false
+        //
+        const keys = Object.keys (permissionsValues);
+        const privatePermissions = {};
+        for (let i = 0; i < keys.length; i++) {
+            const permissionSlug = keys[i]; // i.e. 'trade', 'funding' or whatever custom keyname
+            const permissionBool = permissionsValues[permissionSlug]; // i.e. true or false)
+            const methodsArrayForSlug = permissionsMap[permissionSlug]; // i.e. ['createOrder','fetchOrder', ...]
+            for (let j = 0; j < methodsArrayForSlug.length; j++) {
+                const methodName = methodsArrayForSlug[j];
+                privatePermissions[methodName] = permissionBool; 
+            }
+        }
+        return this.extend (this.initialPermissions, privatePermissions);
+    }
+
     // is async (returns a promise)
     loadMarkets (reload = false, params = {}) {
         if ((reload && !this.reloadingMarkets) || !this.marketsLoading) {
