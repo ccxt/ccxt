@@ -1258,7 +1258,7 @@ module.exports = class Exchange {
         return indexed ? indexBy (result, key) : result
     }
 
-    safeWithdraw (withdrawal) {
+    safeWithdraw (withdrawEntry) {
         return this.extend({
             'id': undefined,
             'code': undefined,
@@ -1266,7 +1266,7 @@ module.exports = class Exchange {
             'address': undefined,
             'tag': undefined,
             'info': {},
-        }, withdrawal);
+        }, withdrawEntry);
     }
 
     safeTicker (ticker, market = undefined, legacy = true) {
