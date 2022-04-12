@@ -1667,6 +1667,17 @@ module.exports = class krakenfutures extends Exchange {
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        /**
+         * @method
+         * @name krakenfutures#transfer
+         * @description transfers currencies between sub-accounts
+         * @param {str} code Unified currency code
+         * @param {float} amount Size of the transfer
+         * @param {str} fromAccount 'main'/'funding', 'flex', or a unified market symbol
+         * @param {str} toAccount 'main'/'funding', 'flex', or a unified market symbol
+         * @param {dict} params Exchange specific parameters
+         * @returns a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
