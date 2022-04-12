@@ -9,7 +9,7 @@
 const fs           = require ('fs')
 const log          = require ('ololog')
 const ansi         = require ('ansicolor').nice
-const { execSync } = require ('child_process')
+const { copyFile } = require ('ccxt/build/fs.js')
 const { vss } = require ('ccxt/build/vss.js')
 
 // ----------------------------------------------------------------------------
@@ -29,7 +29,13 @@ function vssEverything () {
     vss ('./README.md',       "ccxt@{version}")
     // vss ('./wiki/Install.md', "ccxt@{version}")
 
-    execSync ('cp ./package.json ./LICENSE.txt ./keys.json ./python/')
+    const pythonFiles = [
+        'package.json',
+        'LICENSE.txt',
+        'keys.json',
+    ]
+
+    pythonFiles.forEach ((fileName) => copyFile ('./' + fileName, './python/' + fileName))
 
     log.bright.green ('Version single-sourced successfully.')
 }
