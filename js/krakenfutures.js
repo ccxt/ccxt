@@ -56,7 +56,7 @@ module.exports = class krakenfutures extends Exchange {
                 'fetchTrades': true,
                 'setLeverage': false,
                 'setMarginMode': false,
-                'transfer': true, // https://support.kraken.com/hc/en-us/articles/360028105972-Withdrawal-to-Spot-Wallet // https://support.kraken.com/hc/en-us/articles/360022635852-Transfer
+                'transfer': true,
             },
             'urls': {
                 'test': {
@@ -1667,6 +1667,8 @@ module.exports = class krakenfutures extends Exchange {
         const accountByType = {
             'main': 'cash',
             'funding': 'cash',
+            'future': 'cash',
+            'futures': 'cash',
         };
         if (account in accountByType) {
             return accountByType[account];
@@ -1684,6 +1686,17 @@ module.exports = class krakenfutures extends Exchange {
         }
     }
 
+    async transferOut (code, amount, params = {}) {
+        /**
+         * @description transfer from futures wallet to spot wallet
+         * @param {str} code Unified currency code
+         * @param {float} amount Size of the transfer
+         * @param {dict} params Exchange specific parameters
+         * @returns a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         */
+        return await this.transfer (code, amount, 'future', 'spot', params);
+    }
+
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
@@ -1691,20 +1704,32 @@ module.exports = class krakenfutures extends Exchange {
          * @description transfers currencies between sub-accounts
          * @param {str} code Unified currency code
          * @param {float} amount Size of the transfer
-         * @param {str} fromAccount 'main'/'funding', 'flex', or a unified market symbol
-         * @param {str} toAccount 'main'/'funding', 'flex', or a unified market symbol
+         * @param {str} fromAccount 'main'/'funding'/'future', 'flex', or a unified market symbol
+         * @param {str} toAccount 'main'/'funding', 'flex', 'spot' or a unified market symbol
          * @param {dict} params Exchange specific parameters
          * @returns a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
+        let method = 'privatePostTransfer';
         const request = {
-            'fromAccount': this.parseAccount (fromAccount),
-            'toAccount': this.parseAccount (toAccount),
-            'unit': currency['id'],
             'amount': amount,
         };
-        const response = await this.privatePostTransfer (this.extend (request, params));
+        if (fromAccount === 'spot') {
+            throw new BadRequest (this.id + ' transfer does not yet support transfers from spot');
+        }
+        if (toAccount === 'spot') {
+            if (this.parseAccount (fromAccount) !== 'cash') {
+                throw new BadRequest (this.id + ' transfer cannot transfer from ' + fromAccount + ' to ' + toAccount);
+            }
+            method = 'privatePostWithdrawal';
+            request['currency'] = currency['id'];
+        } else {
+            request['fromAccount'] = this.parseAccount (fromAccount);
+            request['toAccount'] = this.parseAccount (toAccount);
+            request['unit'] = currency['id'];
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         //    {
         //        result: 'success',
