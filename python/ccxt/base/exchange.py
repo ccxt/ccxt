@@ -2046,7 +2046,6 @@ class Exchange(object):
             'info': {},
         }, ledger_entry)
 
-
     def parse_orders(self, orders, market=None, since=None, limit=None, params={}):
         if isinstance(orders, list):
             array = [self.extend(self.parse_order(order, market), params) for order in orders]
