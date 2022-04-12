@@ -2500,6 +2500,15 @@ class Exchange(object):
             result = self.array_concat(result, reducedFeeValues)
         return result
 
+    def safe_funding_rate_history_entry(self, funding_rate_history_entry):
+        return self.extend({
+            'symbol': None,
+            'timestamp': None,
+            'datetime': None,
+            'fundingRate': None,
+            'info': {},
+        }, funding_rate_history_entry)
+
     def safe_trade(self, trade, market=None):
         amount = self.safe_string(trade, 'amount')
         price = self.safe_string(trade, 'price')

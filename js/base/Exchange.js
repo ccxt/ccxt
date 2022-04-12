@@ -1845,6 +1845,16 @@ module.exports = class Exchange {
         return result;
     }
 
+    safeFundingRateHistoryEntry (fundingRateHistoryEntry) {
+        return this.extend({
+            'symbol': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fundingRate': undefined,
+            'info': {},
+        }, fundingRateHistoryEntry);
+    }
+
     safeTrade (trade, market = undefined) {
         const amount = this.safeString (trade, 'amount');
         const price = this.safeString (trade, 'price');

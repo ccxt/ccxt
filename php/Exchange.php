@@ -3343,6 +3343,16 @@ class Exchange {
         return $result;
     }
 
+    public function safe_funding_rate_history_entry($funding_rate_history_entry) {
+        return $this->extend([
+            'symbol'=> null,
+            'timestamp'=> null,
+            'datetime'=> null,
+            'fundingRate'=> null,
+            'info'=> [],
+        ], $funding_rate_history_entry);
+    }
+
     public function safe_trade($trade, $market = null) {
         $amount = $this->safe_string($trade, 'amount');
         $price = $this->safe_string($trade, 'price');
