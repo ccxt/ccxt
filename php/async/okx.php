@@ -630,6 +630,9 @@ class okx extends Exchange {
                 'cancelOrders' => array(
                     'method' => 'privatePostTradeCancelBatchOrders', // privatePostTradeCancelAlgos
                 ),
+                'fetchCanceledOrders' => array(
+                    'method' => 'privateGetTradeOrdersHistory', // privateGetTradeOrdersAlgoHistory
+                ),
                 'algoOrderTypes' => array(
                     'conditional' => true,
                     'trigger' => true,
@@ -2152,7 +2155,7 @@ class okx extends Exchange {
         //         "uTime" => "1621910749815"
         //     }
         //
-        // Algo Order fetchOrder fetchOpenOrders
+        // Algo Order fetchOrder, fetchOpenOrders, fetchCanceledOrders
         //
         //     {
         //         "activePx" => "",
@@ -2578,11 +2581,12 @@ class okx extends Exchange {
             // 'instType' => strtoupper($type), // SPOT, MARGIN, SWAP, FUTURES, OPTION
             // 'uly' => currency['id'],
             // 'instId' => $market['id'],
-            // 'ordType' => 'limit', // $market, $limit, post_only, fok, ioc, comma-separated
-            // 'state' => 'filled', // filled, canceled
+            // 'ordType' => 'limit', // $market, $limit, post_only, fok, ioc, comma-separated $stop orders => conditional, oco, trigger, move_order_stop, iceberg, or twap
+            // 'state' => 'canceled', // filled, canceled
             // 'after' => orderId,
             // 'before' => orderId,
             // 'limit' => $limit, // default 100, max 100
+            // 'algoId' => "'433845797218942976'", // Algo order
         );
         $market = null;
         if ($symbol !== null) {
@@ -2595,8 +2599,17 @@ class okx extends Exchange {
             $request['limit'] = $limit; // default 100, max 100
         }
         $request['state'] = 'canceled';
-        $method = $this->safe_string($this->options, 'method', 'privateGetTradeOrdersHistory');
-        $response = yield $this->$method (array_merge($request, $query));
+        $options = $this->safe_value($this->options, 'fetchCanceledOrders', array());
+        $algoOrderTypes = $this->safe_value($this->options, 'algoOrderTypes', array());
+        $defaultMethod = $this->safe_string($options, 'method', 'privateGetTradeOrdersHistory');
+        $method = $this->safe_string($params, 'method', $defaultMethod);
+        $ordType = $this->safe_string($params, 'ordType');
+        $stop = $this->safe_value($params, 'stop');
+        if ($stop || (is_array($algoOrderTypes) && array_key_exists($ordType, $algoOrderTypes))) {
+            $method = 'privateGetTradeOrdersAlgoHistory';
+        }
+        $send = $this->omit($query, array( 'method', 'stop' ));
+        $response = yield $this->$method (array_merge($request, $send));
         //
         //     {
         //         "code" => "0",
@@ -2639,6 +2652,59 @@ class okx extends Exchange {
         //                 "tradeId" => "",
         //                 "uTime" => "1644038165667"
         //             }
+        //         ),
+        //         "msg" => ""
+        //     }
+        //
+        // Algo order
+        //
+        //     {
+        //         "code" => "0",
+        //         "data" => array(
+        //             array(
+        //                 "activePx" => "",
+        //                 "activePxType" => "",
+        //                 "actualPx" => "",
+        //                 "actualSide" => "buy",
+        //                 "actualSz" => "0",
+        //                 "algoId" => "433845797218942976",
+        //                 "cTime" => "1649708898523",
+        //                 "callbackRatio" => "",
+        //                 "callbackSpread" => "",
+        //                 "ccy" => "",
+        //                 "ctVal" => "0.01",
+        //                 "instId" => "BTC-USDT-SWAP",
+        //                 "instType" => "SWAP",
+        //                 "last" => "39950.4",
+        //                 "lever" => "125",
+        //                 "moveTriggerPx" => "",
+        //                 "notionalUsd" => "1592.1760000000002",
+        //                 "ordId" => "",
+        //                 "ordPx" => "29000",
+        //                 "ordType" => "trigger",
+        //                 "posSide" => "long",
+        //                 "pxLimit" => "",
+        //                 "pxSpread" => "",
+        //                 "pxVar" => "",
+        //                 "side" => "buy",
+        //                 "slOrdPx" => "",
+        //                 "slTriggerPx" => "",
+        //                 "slTriggerPxType" => "",
+        //                 "state" => "canceled",
+        //                 "sz" => "4",
+        //                 "szLimit" => "",
+        //                 "tag" => "",
+        //                 "tdMode" => "isolated",
+        //                 "tgtCcy" => "",
+        //                 "timeInterval" => "",
+        //                 "tpOrdPx" => "",
+        //                 "tpTriggerPx" => "",
+        //                 "tpTriggerPxType" => "",
+        //                 "triggerPx" => "30000",
+        //                 "triggerPxType" => "last",
+        //                 "triggerTime" => "",
+        //                 "uly" => "BTC-USDT"
+        //             ),
         //         ),
         //         "msg" => ""
         //     }

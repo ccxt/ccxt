@@ -646,6 +646,9 @@ class okx(Exchange):
                 'cancelOrders': {
                     'method': 'privatePostTradeCancelBatchOrders',  # privatePostTradeCancelAlgos
                 },
+                'fetchCanceledOrders': {
+                    'method': 'privateGetTradeOrdersHistory',  # privateGetTradeOrdersAlgoHistory
+                },
                 'algoOrderTypes': {
                     'conditional': True,
                     'trigger': True,
@@ -2068,7 +2071,7 @@ class okx(Exchange):
         #         "uTime": "1621910749815"
         #     }
         #
-        # Algo Order fetchOrder fetchOpenOrders
+        # Algo Order fetchOrder, fetchOpenOrders, fetchCanceledOrders
         #
         #     {
         #         "activePx": "",
@@ -2480,11 +2483,12 @@ class okx(Exchange):
             # 'instType': type.upper(),  # SPOT, MARGIN, SWAP, FUTURES, OPTION
             # 'uly': currency['id'],
             # 'instId': market['id'],
-            # 'ordType': 'limit',  # market, limit, post_only, fok, ioc, comma-separated
-            # 'state': 'filled',  # filled, canceled
+            # 'ordType': 'limit',  # market, limit, post_only, fok, ioc, comma-separated stop orders: conditional, oco, trigger, move_order_stop, iceberg, or twap
+            # 'state': 'canceled',  # filled, canceled
             # 'after': orderId,
             # 'before': orderId,
             # 'limit': limit,  # default 100, max 100
+            # 'algoId': "'433845797218942976'",  # Algo order
         }
         market = None
         if symbol is not None:
@@ -2495,8 +2499,16 @@ class okx(Exchange):
         if limit is not None:
             request['limit'] = limit  # default 100, max 100
         request['state'] = 'canceled'
-        method = self.safe_string(self.options, 'method', 'privateGetTradeOrdersHistory')
-        response = await getattr(self, method)(self.extend(request, query))
+        options = self.safe_value(self.options, 'fetchCanceledOrders', {})
+        algoOrderTypes = self.safe_value(self.options, 'algoOrderTypes', {})
+        defaultMethod = self.safe_string(options, 'method', 'privateGetTradeOrdersHistory')
+        method = self.safe_string(params, 'method', defaultMethod)
+        ordType = self.safe_string(params, 'ordType')
+        stop = self.safe_value(params, 'stop')
+        if stop or (ordType in algoOrderTypes):
+            method = 'privateGetTradeOrdersAlgoHistory'
+        send = self.omit(query, ['method', 'stop'])
+        response = await getattr(self, method)(self.extend(request, send))
         #
         #     {
         #         "code": "0",
@@ -2539,6 +2551,59 @@ class okx(Exchange):
         #                 "tradeId": "",
         #                 "uTime": "1644038165667"
         #             }
+        #         ],
+        #         "msg": ""
+        #     }
+        #
+        # Algo order
+        #
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             {
+        #                 "activePx": "",
+        #                 "activePxType": "",
+        #                 "actualPx": "",
+        #                 "actualSide": "buy",
+        #                 "actualSz": "0",
+        #                 "algoId": "433845797218942976",
+        #                 "cTime": "1649708898523",
+        #                 "callbackRatio": "",
+        #                 "callbackSpread": "",
+        #                 "ccy": "",
+        #                 "ctVal": "0.01",
+        #                 "instId": "BTC-USDT-SWAP",
+        #                 "instType": "SWAP",
+        #                 "last": "39950.4",
+        #                 "lever": "125",
+        #                 "moveTriggerPx": "",
+        #                 "notionalUsd": "1592.1760000000002",
+        #                 "ordId": "",
+        #                 "ordPx": "29000",
+        #                 "ordType": "trigger",
+        #                 "posSide": "long",
+        #                 "pxLimit": "",
+        #                 "pxSpread": "",
+        #                 "pxVar": "",
+        #                 "side": "buy",
+        #                 "slOrdPx": "",
+        #                 "slTriggerPx": "",
+        #                 "slTriggerPxType": "",
+        #                 "state": "canceled",
+        #                 "sz": "4",
+        #                 "szLimit": "",
+        #                 "tag": "",
+        #                 "tdMode": "isolated",
+        #                 "tgtCcy": "",
+        #                 "timeInterval": "",
+        #                 "tpOrdPx": "",
+        #                 "tpTriggerPx": "",
+        #                 "tpTriggerPxType": "",
+        #                 "triggerPx": "30000",
+        #                 "triggerPxType": "last",
+        #                 "triggerTime": "",
+        #                 "uly": "BTC-USDT"
+        #             },
         #         ],
         #         "msg": ""
         #     }
