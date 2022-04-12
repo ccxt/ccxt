@@ -23,7 +23,7 @@ module.exports = class hollaex extends ccxt.hollaex {
             },
             'urls': {
                 'api': {
-                    'ws': 'https://api.hollaex.com/stream',
+                    'ws': 'wss://api.hollaex.com/stream',
                 },
             },
             'options': {
@@ -439,7 +439,7 @@ module.exports = class hollaex extends ccxt.hollaex {
         }
         const content = this.safeString (message, 'message');
         if (content === 'pong') {
-            this.handlePong (client);
+            this.handlePong (client, message);
             return;
         }
         const methods = {
