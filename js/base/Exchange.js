@@ -1009,6 +1009,7 @@ module.exports = class Exchange {
         if (this.markets === undefined) {
             throw new ExchangeError (this.id + ' markets not loaded')
         }
+
         if (typeof symbol === 'string') {
             if (symbol in this.markets) {
                 return this.markets[symbol]
