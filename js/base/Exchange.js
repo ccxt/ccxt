@@ -816,7 +816,7 @@ module.exports = class Exchange {
     }
 
     async fetchPermissions (params = {}) {
-        throw new NotSupported (this.id + ' fetchPermissions not supported yet')
+        throw new NotSupported (this.id + ' fetchPermissions() not supported yet')
     }
 
     // is async (returns a promise)
