@@ -1934,6 +1934,28 @@ class Exchange {
         throw new NotSupported($this->id . ' parse_funding_rate() not supported yet');
     }
 
+    public function safe_funding_rate($funding_rate) {
+        return $this->extend([
+            'timestamp'=> null,
+            'datetime'=> null,
+            'symbol'=> null,
+            'markPrice'=> null,
+            'indexPrice'=> null,
+            'interestRate'=> null,
+            'estimatedSettlePrice'=> null,
+            'fundingRate'=> null,
+            'fundingTimestamp'=> null,
+            'fundingDatetime'=> null,
+            'nextFundingRate'=> null,
+            'nextFundingTimestamp'=> null,
+            'nextFundingDatetime'=> null,
+            'previousFundingRate'=> null,
+            'previousFundingTimestamp'=> null,
+            'previousFundingDatetime'=> null,
+            'info'=> [],
+        ], $funding_rate);
+    }
+
     public function parse_funding_rates($response, $market = null) {
         $response = is_array($response) ? array_values($response) : array();
         $result = array();

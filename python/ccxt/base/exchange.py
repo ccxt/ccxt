@@ -1638,6 +1638,27 @@ class Exchange(object):
     def parse_funding_rate(self, contract, market=None):
         raise NotSupported(self.id + ' parse_funding_rate() not supported yet')
 
+    def safe_funding_rate(self, funding_rate):
+        return self.extend({
+            'timestamp': None,
+            'datetime': None,
+            'symbol': None,
+            'markPrice': None,
+            'indexPrice': None,
+            'interestRate': None,
+            'estimatedSettlePrice': None,
+            'fundingRate': None,
+            'fundingTimestamp': None,
+            'fundingDatetime': None,
+            'nextFundingRate': None,
+            'nextFundingTimestamp': None,
+            'nextFundingDatetime': None,
+            'previousFundingRate': None,
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
+            'info': {},
+        }, funding_rate)
+
     def parse_funding_rates(self, response, market=None):
         result = {}
         for entry in response:
