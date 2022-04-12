@@ -2358,7 +2358,7 @@ module.exports = class binance extends Exchange {
         id = this.safeString2 (trade, 'id', 'tradeId', id);
         let side = undefined;
         const orderId = this.safeString (trade, 'orderId');
-        const buyerMaker = this.safeValue (trade, 'm', 'isBuyerMaker');
+        const buyerMaker = this.safeValue2 (trade, 'm', 'isBuyerMaker');
         let takerOrMaker = undefined;
         if (buyerMaker !== undefined) {
             side = buyerMaker ? 'sell' : 'buy'; // this is reversed intentionally
