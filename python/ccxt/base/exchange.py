@@ -1699,6 +1699,14 @@ class Exchange(object):
             'nonce': None,
         }
 
+    def safe_account(self, account):
+        return self.extend({
+            'id': None,
+            'type': None,
+            'currency': None,
+            'info': [],
+        }, account)
+
     def safe_balance(self, balance):
         currencies = self.omit(balance, ['info', 'timestamp', 'datetime', 'free', 'used', 'total']).keys()
         balance['free'] = {}

@@ -1110,6 +1110,15 @@ module.exports = class Exchange {
         }
     }
 
+    safeAccount (account) {
+        return this.extend({
+            'id': undefined,
+            'type': undefined,
+            'currency': undefined,
+            'info': {},
+        }, account);
+    }
+
     safeBalance (balance) {
 
         const codes = Object.keys (this.omit (balance, [ 'info', 'timestamp', 'datetime', 'free', 'used', 'total' ]));

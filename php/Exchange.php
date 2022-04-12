@@ -2003,6 +2003,15 @@ class Exchange {
         );
     }
 
+    public function safe_account($account) {
+        return $this->extend([
+            'id'=> null,
+            'type'=> null,
+            'currency'=> null,
+            'info'=> [],
+        ], $account);
+    }
+
     public function safe_balance($balance) {
         $currencies = $this->omit($balance, array('info', 'timestamp', 'datetime', 'free', 'used', 'total'));
 
