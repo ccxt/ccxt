@@ -2249,6 +2249,16 @@ class Exchange {
         return $indexed ? $this->index_by($result, 'currency') : $result;
     }
 
+    public function safe_deposit_address($deposit_address) {
+        return $this->deep_extend([
+            'currency'=> null,
+            'address'=> null,
+            'tag'=> null,
+            'network'=> null,
+            'info'=> [],
+        ], $deposit_address);
+    }
+
     public function parse_trades($trades, $market = null, $since = null, $limit = null, $params = array()) {
         $array = is_array($trades) ? array_values($trades) : array();
         $result = array();

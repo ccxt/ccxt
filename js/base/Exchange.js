@@ -1394,6 +1394,16 @@ module.exports = class Exchange {
         return indexed ? this.indexBy (result, 'currency') : result;
     }
 
+    safeDepositAddress (depositAddress) {
+        return this.extend({
+            'currency': undefined,
+            'address': undefined,
+            'tag': undefined,
+            'network': undefined,
+            'info': {},
+        }, depositAddress);
+    }
+
     parseTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
         let result = Object.values (trades || []).map ((trade) => this.merge (this.parseTrade (trade, market), params))
         result = sortBy2 (result, 'timestamp', 'id')
