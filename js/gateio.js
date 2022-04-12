@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { ExchangeError, AuthenticationError, BadRequest, ArgumentsRequired, NotSupported, InvalidNonce } = require ('ccxt/js/base/errors');
+const { AuthenticationError, BadRequest, ArgumentsRequired, NotSupported, InvalidNonce } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -84,8 +84,12 @@ module.exports = class gateio extends ccxt.gateio {
         const method = messageType + '.' + 'order_book_update';
         const messageHash = method + ':' + market['symbol'];
         const url = this.getUrlByMarketType (type, market['inverse']);
-        limit = limit.toString ();
         const payload = [ marketId, interval ];
+        if (type !== 'spot') {
+            // contract pairs require limit in the payload
+            const stringLimit = limit.toString ();
+            payload.push (stringLimit);
+        }
         const subscriptionParams = {
             'method': this.handleOrderBookSubscription,
             'symbol': symbol,
@@ -891,10 +895,7 @@ module.exports = class gateio extends ccxt.gateio {
         //   }
         this.handleErrorMessage (client, message);
         const methods = {
-            'depth.update': this.handleOrderBook,
-            'ticker.update': this.handleTicker,
-            'trades.update': this.handleTrades,
-            'kline.update': this.handleOHLCV,
+            // missing migration to v4
             'balance.update': this.handleBalance,
         };
         const methodType = this.safeString (message, 'method');
