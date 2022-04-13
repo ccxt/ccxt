@@ -1794,11 +1794,7 @@ module.exports = class hitbtc3 extends Exchange {
         }
         const response = await this.privatePostWalletCryptoWithdraw (this.extend (request, params));
         // {"id":"084cfcd5-06b9-4826-882e-fdb75ec3625d"}
-        const id = this.safeString (response, 'id');
-        return {
-            'info': response,
-            'id': id,
-        };
+        return this.parseTransaction (response, currency);
     }
 
     async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
