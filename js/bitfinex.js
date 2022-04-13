@@ -1238,6 +1238,13 @@ module.exports = class bitfinex extends Exchange {
         //         "timestamp_created": "1561716066.0"
         //     }
         //
+        // withdraw
+        //
+        //     {
+        //       'info': {},
+        //       'id': '12345678...',
+        //     }
+        //
         const timestamp = this.safeTimestamp (transaction, 'timestamp_created');
         const updated = this.safeTimestamp (transaction, 'timestamp');
         const currencyId = this.safeString (transaction, 'currency');

@@ -813,6 +813,14 @@ module.exports = class bibox extends Exchange {
         //         'status': 3
         //     }
         //
+        //
+        // withdraw
+        //
+        //     {
+        //       'info': {},
+        //       'id': '12345678...',
+        //     }
+        //
         const id = this.safeString (transaction, 'id');
         const address = this.safeString (transaction, 'to_address');
         const currencyId = this.safeString (transaction, 'coin_symbol');
