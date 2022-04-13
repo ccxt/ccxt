@@ -905,10 +905,7 @@ module.exports = class gemini extends Exchange {
             'address': address,
         };
         const response = await this.privatePostV1WithdrawCurrency (this.extend (request, params));
-        return {
-            'info': response,
-            'id': this.safeString (response, 'txHash'),
-        };
+        return this.parseTransaction (response, code);
     }
 
     nonce () {
