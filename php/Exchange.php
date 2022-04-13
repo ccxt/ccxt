@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.78.85';
+$version = '1.78.93';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.78.85';
+    const VERSION = '1.78.93';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -330,10 +330,12 @@ class Exchange {
         'parseDepositAddresses' => 'parse_deposit_addresses',
         'parseTrades' => 'parse_trades',
         'parseTransactions' => 'parse_transactions',
+        'safeTransfer' => 'safe_transfer',
         'safeTransaction' => 'safe_transaction',
         'parseTransfers' => 'parse_transfers',
         'parseLedger' => 'parse_ledger',
         'parseOrders' => 'parse_orders',
+        'safeStatus' => 'safe_status',
         'safeCurrency' => 'safe_currency',
         'safeCurrencyCode' => 'safe_currency_code',
         'safeMarket' => 'safe_market',
@@ -2274,6 +2276,21 @@ class Exchange {
         return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
     }
 
+    public function safe_transfer($transfer, $currency = null) {
+        $currency = $this->safe_currency(null, $currency);
+        return $this->extend(array(
+            'id'=> null,
+            'timestamp'=> null,
+            'datetime'=> null,
+            'currency'=> $currency['code'],
+            'amount'=> null,
+            'fromAccount'=> null,
+            'toAccount'=> null,
+            'status'=> null,
+            'info'=> null,
+        ), $transfer);
+    }
+
     public function safe_transaction($transaction, $currency = null) {
         $currency = $this->safe_currency(null, $currency);
         return $this->extend(array(
@@ -2344,6 +2361,14 @@ class Exchange {
         $symbol = isset($market) ? $market['symbol'] : null;
         $tail = $since === null;
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit, $tail);
+    }
+
+    public function safe_status($status) {
+        return $this->extend(array(
+            'status'=> null,
+            'updated'=> $this->milliseconds(),
+            'eta'=> null,
+        ), $status);
     }
 
     public function safe_market($marketId, $market = null, $delimiter = null) {

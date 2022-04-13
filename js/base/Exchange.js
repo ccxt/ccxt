@@ -1410,6 +1410,21 @@ module.exports = class Exchange {
         return this.filterByCurrencySinceLimit (result, code, since, limit, tail);
     }
 
+    safeTransfer (transfer, currency = undefined) {
+        currency = this.safeCurrency (undefined, currency);
+        return this.extend ({
+            'id': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': currency['code'],
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': undefined,
+            'info': undefined,
+        }, transfer);
+    }
+
     safeTransaction (transaction, currency = undefined) {
         currency = this.safeCurrency (undefined, currency);
         return this.extend ({
@@ -1490,6 +1505,14 @@ module.exports = class Exchange {
         const symbol = (market !== undefined) ? market['symbol'] : undefined
         const tail = since === undefined
         return this.filterBySymbolSinceLimit (result, symbol, since, limit, tail)
+    }
+
+    safeStatus (status) {
+        return this.extend ({
+            'status': undefined,
+            'updated': this.milliseconds (),
+            'eta': undefined,
+        }, status);
     }
 
     safeCurrency (currencyId, currency = undefined) {

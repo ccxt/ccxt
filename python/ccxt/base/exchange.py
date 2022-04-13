@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.78.85'
+__version__ = '1.78.93'
 
 # -----------------------------------------------------------------------------
 
@@ -1997,6 +1997,20 @@ class Exchange(object):
         tail = since is None
         return self.filter_by_symbol_since_limit(array, symbol, since, limit, tail)
 
+    def safe_transfer(self, transfer, currency=None):
+        currency = self.safe_currency(None, currency)
+        return self.extend({
+            'id': None,
+            'timestamp': None,
+            'datetime': None,
+            'currency': currency['code'],
+            'amount': None,
+            'fromAccount': None,
+            'toAccount': None,
+            'status': None,
+            'info': None,
+        }, transfer)
+
     def safe_transaction(self, transaction, currency=None):
         currency = self.safe_currency(None, currency)
         return self.extend({
@@ -2059,6 +2073,13 @@ class Exchange(object):
         symbol = market['symbol'] if market else None
         tail = since is None
         return self.filter_by_symbol_since_limit(array, symbol, since, limit, tail)
+
+    def safe_status(self, status):
+        return self.extend({
+            'status': None,
+            'updated': self.milliseconds(),
+            'eta': None,
+        }, status)
 
     def safe_market(self, marketId, market=None, delimiter=None):
         if marketId is not None:
