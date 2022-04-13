@@ -2017,7 +2017,7 @@ class Exchange(object):
             'timestamp': None,
             'datetime': None,
             'fee': None,
-            'info': transaction,
+            'info': None,
         }, transaction)
 
     def parse_transactions(self, transactions, currency=None, since=None, limit=None, params={}):
