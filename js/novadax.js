@@ -961,7 +961,7 @@ module.exports = class novadax extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         if (fromAccount !== 'main' && toAccount !== 'main') {
-            throw new ExchangeError ('transfer is only allowed between main and sub accounts');
+            throw new ExchangeError (this.id + ' transfer() supports transfers between main account and subaccounts only');
         }
         const type = (fromAccount === 'main') ? 'master-transfer-out' : 'master-transfer-in';
         const request = {
