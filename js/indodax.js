@@ -647,13 +647,31 @@ module.exports = class indodax extends Exchange {
         //         "withdraw_memo": "123123"
         //     }
         //
-        let id = undefined;
-        if (('txid' in response) && (response['txid'].length > 0)) {
-            id = response['txid'];
-        }
+        return this.parseTransaction (response, currency);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        currency = this.safeCurrency (undefined, currency);
         return {
-            'info': response,
-            'id': id,
+            'id': this.safeString (transaction, 'txid'),
+            'txid': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'network': undefined,
+            'addressFrom': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'amount': undefined,
+            'type': undefined,
+            'currency': currency['code'],
+            'status': undefined,
+            'updated': undefined,
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'comment': undefined,
+            'fee': undefined,
+            'info': transaction,
         };
     }
 
