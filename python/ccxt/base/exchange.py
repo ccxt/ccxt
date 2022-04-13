@@ -1997,7 +1997,7 @@ class Exchange(object):
         tail = since is None
         return self.filter_by_symbol_since_limit(array, symbol, since, limit, tail)
 
-    def safe_transaction(self, transfer, currency=None):
+    def safe_transfer(self, transfer, currency=None):
         currency = self.safe_currency(None, currency)
         return self.extend({
             'id': None,
@@ -2008,7 +2008,7 @@ class Exchange(object):
             'fromAccount': None,
             'toAccount': None,
             'status': None,
-            'info': [],
+            'info': None,
         }, transfer)
 
     def safe_transaction(self, transaction, currency=None):
