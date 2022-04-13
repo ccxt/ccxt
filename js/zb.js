@@ -1725,37 +1725,34 @@ module.exports = class zb extends Exchange {
         const swap = market['swap'];
         const spot = market['spot'];
         const timeInForce = this.safeString (params, 'timeInForce');
+        const reduceOnly = this.safeValue (params, 'reduceOnly');
+        const stop = this.safeValue (params, 'stop');
         if (type === 'market') {
             throw new InvalidOrder (this.id + ' createOrder() on ' + market['type'] + ' markets does not allow market orders');
         }
-        const method = this.getSupportedMapping (market['type'], {
+        let method = this.getSupportedMapping (market['type'], {
             'spot': 'spotV1PrivateGetOrder',
             'swap': 'contractV2PrivatePostTradeOrder',
         });
         const request = {
             'amount': this.amountToPrecision (symbol, amount),
+            // 'symbol': market['id'],
             // 'acctType': 0, // Spot, Margin 0/1/2 [Spot/Isolated/Cross] Optional, Default to: 0 Spot
             // 'customerOrderId': '1f2g', // Spot, Margin
             // 'orderType': 1, // Spot, Margin order type 1/2 [PostOnly/IOC] Optional
+            // 'triggerPrice': 30000.0, // Stop trigger price
+            // 'algoPrice': 29000.0, // Stop order price
+            // 'priceType': 1, // Stop Loss Take Profit, 1: Mark price, 2: Last price
+            // 'bizType': 1, // Stop Loss Take Profit, 1: TP, 2: SL
         };
-        if (price) {
-            request['price'] = this.priceToPrecision (symbol, price);
-        }
-        if (spot) {
-            request['tradeType'] = (side === 'buy') ? '1' : '0';
-            request['currency'] = market['id'];
-            if (timeInForce !== undefined) {
-                if (timeInForce === 'PO') {
-                    request['orderType'] = 1;
-                } else if (timeInForce === 'IOC') {
-                    request['orderType'] = 2;
-                } else {
-                    throw new InvalidOrder (this.id + ' createOrder() on ' + market['type'] + ' markets does not allow ' + timeInForce + ' orders');
-                }
-            }
-        } else if (swap) {
-            const reduceOnly = this.safeValue (params, 'reduceOnly');
-            params = this.omit (params, 'reduceOnly');
+        if (stop) {
+            method = 'contractV2PrivatePostTradeOrderAlgo';
+            const orderType = this.safeInteger (params, 'orderType');
+            const priceType = this.safeInteger (params, 'priceType');
+            const bizType = this.safeInteger (params, 'bizType');
+            const triggerPrice = this.safeNumber (params, 'triggerPrice');
+            const algoPrice = this.safeNumber (params, 'algoPrice');
+            request['symbol'] = market['id'];
             if (side === 'sell' && reduceOnly) {
                 request['side'] = 3; // close long
             } else if (side === 'buy' && reduceOnly) {
@@ -1764,23 +1761,66 @@ module.exports = class zb extends Exchange {
                 request['side'] = 1; // open long
             } else if (side === 'sell') {
                 request['side'] = 2; // open short
+            } else if (side === 5) {
+                request['side'] = 5; // one way position buy
+            } else if (side === 6) {
+                request['side'] = 6; // one way position sell
+            } else if (side === 6) {
+                request['side'] = 0; // one way position close only
             }
-            if (type === 'limit') {
-                request['action'] = 1;
-            } else if (timeInForce === 'IOC') {
-                request['action'] = 3;
-            } else if (timeInForce === 'PO') {
-                request['action'] = 4;
-            } else if (timeInForce === 'FOK') {
-                request['action'] = 5;
-            } else {
-                request['action'] = type;
+            if (type === 'trigger' || orderType === 1) {
+                request['orderType'] = 1;
+            } else if (type === 'stop loss' || type === 'take profit' || orderType === 2 || priceType || bizType) {
+                request['orderType'] = 2;
+                request['priceType'] = priceType;
+                request['bizType'] = bizType;
             }
-            request['symbol'] = market['id'];
-            request['clientOrderId'] = params['clientOrderId']; // OPTIONAL '^[a-zA-Z0-9-_]{1,36}$', // The user-defined order number
-            request['extend'] = params['extend']; // OPTIONAL {"orderAlgos":[{"bizType":1,"priceType":1,"triggerPrice":"70000"},{"bizType":2,"priceType":1,"triggerPrice":"40000"}]}
+            request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
+            request['algoPrice'] = this.priceToPrecision (symbol, algoPrice);
+        } else {
+            if (price) {
+                request['price'] = this.priceToPrecision (symbol, price);
+            }
+            if (spot) {
+                request['tradeType'] = (side === 'buy') ? '1' : '0';
+                request['currency'] = market['id'];
+                if (timeInForce !== undefined) {
+                    if (timeInForce === 'PO') {
+                        request['orderType'] = 1;
+                    } else if (timeInForce === 'IOC') {
+                        request['orderType'] = 2;
+                    } else {
+                        throw new InvalidOrder (this.id + ' createOrder() on ' + market['type'] + ' markets does not allow ' + timeInForce + ' orders');
+                    }
+                }
+            } else if (swap) {
+                if (side === 'sell' && reduceOnly) {
+                    request['side'] = 3; // close long
+                } else if (side === 'buy' && reduceOnly) {
+                    request['side'] = 4; // close short
+                } else if (side === 'buy') {
+                    request['side'] = 1; // open long
+                } else if (side === 'sell') {
+                    request['side'] = 2; // open short
+                }
+                if (type === 'limit') {
+                    request['action'] = 1;
+                } else if (timeInForce === 'IOC') {
+                    request['action'] = 3;
+                } else if (timeInForce === 'PO') {
+                    request['action'] = 4;
+                } else if (timeInForce === 'FOK') {
+                    request['action'] = 5;
+                } else {
+                    request['action'] = type;
+                }
+                request['symbol'] = market['id'];
+                request['clientOrderId'] = params['clientOrderId']; // OPTIONAL '^[a-zA-Z0-9-_]{1,36}$', // The user-defined order number
+                request['extend'] = params['extend']; // OPTIONAL {"orderAlgos":[{"bizType":1,"priceType":1,"triggerPrice":"70000"},{"bizType":2,"priceType":1,"triggerPrice":"40000"}]}
+            }
         }
-        let response = await this[method] (this.extend (request, params));
+        const query = this.omit (params, [ 'reduceOnly', 'stop', 'orderType', 'triggerPrice', 'algoPrice', 'priceType', 'bizType' ]);
+        let response = await this[method] (this.extend (request, query));
         //
         // Spot
         //
@@ -1801,13 +1841,21 @@ module.exports = class zb extends Exchange {
         //         }
         //     }
         //
-        if (swap) {
+        // Algo order
+        //
+        //     {
+        //         "code": 10000,
+        //         "data": "6919884551305242624",
+        //         "desc": "操作成功"
+        //     }
+        //
+        if (swap && stop === undefined) {
             response = this.safeValue (response, 'data');
+            response['timeInForce'] = timeInForce;
+            response['type'] = request['tradeType'];
+            response['total_amount'] = amount;
+            response['price'] = price;
         }
-        response['timeInForce'] = timeInForce;
-        response['type'] = request['tradeType'];
-        response['total_amount'] = amount;
-        response['price'] = price;
         return this.parseOrder (response, market);
     }
 
@@ -2230,7 +2278,7 @@ module.exports = class zb extends Exchange {
         //         "value": "60"
         //     },
         //
-        // Spot
+        // Spot createOrder
         //
         //     {
         //         code: '1000',
@@ -2241,7 +2289,7 @@ module.exports = class zb extends Exchange {
         //         price: 30000
         //     }
         //
-        // Swap
+        // Swap createOrder
         //
         //     {
         //         orderId: '6901786759944937472',
@@ -2251,6 +2299,13 @@ module.exports = class zb extends Exchange {
         //         price: 30000
         //     }
         //
+        // Algo createOrder
+        //
+        //     {
+        //         "code": 10000,
+        //         "data": "6919884551305242624",
+        //         "desc": "操作成功"
+        //     }
         let orderId = market['swap'] ? this.safeValue (order, 'orderId') : this.safeValue (order, 'id');
         if (orderId === undefined) {
             orderId = this.safeValue (order, 'id');
