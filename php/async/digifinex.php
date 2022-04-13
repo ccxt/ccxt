@@ -723,7 +723,7 @@ class digifinex extends Exchange {
     }
 
     public function fetch_status($params = array ()) {
-        yield $this->publicGetPing ($params);
+        $response = yield $this->publicGetPing ($params);
         //
         //     {
         //         "msg" => "pong",
@@ -733,6 +733,7 @@ class digifinex extends Exchange {
         $this->status = array_merge($this->status, array(
             'status' => 'ok',
             'updated' => $this->milliseconds(),
+            'info' => $response,
         ));
         return $this->status;
     }

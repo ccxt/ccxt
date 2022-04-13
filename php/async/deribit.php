@@ -395,7 +395,7 @@ class deribit extends Exchange {
         $request = array(
             // 'expected_result' => false, // true will trigger an error for testing purposes
         );
-        yield $this->publicGetTest (array_merge($request, $params));
+        $response = yield $this->publicGetTest (array_merge($request, $params));
         //
         //     {
         //         jsonrpc => '2.0',
@@ -409,6 +409,7 @@ class deribit extends Exchange {
         $this->status = array_merge($this->status, array(
             'status' => 'ok',
             'updated' => $this->milliseconds(),
+            'info' => $response,
         ));
         return $this->status;
     }

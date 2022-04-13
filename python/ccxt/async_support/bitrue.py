@@ -351,6 +351,7 @@ class bitrue(Exchange):
         self.status = self.extend(self.status, {
             'status': formattedStatus,
             'updated': self.milliseconds(),
+            'info': response,
         })
         return self.status
 

@@ -374,6 +374,7 @@ module.exports = class bitfinex2 extends bitfinex {
         this.status = this.extend (this.status, {
             'status': formattedStatus,
             'updated': this.milliseconds (),
+            'info': response,
         });
         return this.status;
     }

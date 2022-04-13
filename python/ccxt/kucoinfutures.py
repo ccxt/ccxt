@@ -327,6 +327,7 @@ class kucoinfutures(kucoin):
             self.status = self.extend(self.status, {
                 'status': status,
                 'updated': self.milliseconds(),
+                'info': response,
             })
         return self.status
 
@@ -907,6 +908,27 @@ class kucoinfutures(kucoin):
         }
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        Create an order on the exchange
+        :param str symbol: Unified CCXT market symbol
+        :param str type: "limit" or "market" *"market" is contract only*
+        :param str side: "buy" or "sell"
+        :param float amount: the amount of currency to trade
+        :param float price: *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+        :param dict params:  Extra parameters specific to the exchange API endpoint
+        :param float params.leverage: Leverage size of the order
+        :param float params.stopPrice: The price at which a trigger order is triggered at
+        :param bool params.reduceOnly: A mark to reduce the position size only. Set to False by default. Need to set the position size when reduceOnly is True.
+        :param str params.timeInForce: GTC, GTT, IOC, or FOK, default is GTC, limit orders only
+        :param str params.postOnly: Post only flag, invalid when timeInForce is IOC or FOK
+        :param str params.clientOid: client order id, defaults to uuid if not passed
+        :param str params.remark: remark for the order, length cannot exceed 100 utf8 characters
+        :param str params.stop: 'up' or 'down', defaults to 'up' if side is sell and 'down' if side is buy, requires stopPrice
+        :param str params.stopPriceType:  TP, IP or MP, defaults to TP
+        :param bool params.closeOrder: set to True to close position
+        :param bool params.forceHold: A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to False by default.
+        :returns: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         # required param, cannot be used twice
@@ -922,35 +944,12 @@ class kucoinfutures(kucoin):
             'type': type,  # limit or market
             'size': preciseAmount,
             'leverage': 1,
-            # 'remark': '',  # optional remark for the order, length cannot exceed 100 utf8 characters
-            # 'tradeType': 'TRADE',  # TRADE, MARGIN_TRADE  # not used with margin orders
-            # limit orders ---------------------------------------------------
-            # 'timeInForce': 'GTC',  # GTC, GTT, IOC, or FOK(default is GTC), limit orders only
-            # 'cancelAfter': long,  # cancel after n seconds, requires timeInForce to be GTT
-            # 'postOnly': False,  # Post only flag, invalid when timeInForce is IOC or FOK
-            # 'hidden': False,  # Order will not be displayed in the order book
-            # 'iceberg': False,  # Only a portion of the order is displayed in the order book
-            # 'visibleSize': self.amount_to_precision(symbol, visibleSize),  # The maximum visible size of an iceberg order
-            # market orders --------------------------------------------------
-            # 'funds': self.cost_to_precision(symbol, cost),  # Amount of quote currency to use
-            # stop orders ----------------------------------------------------
-            # 'stop': 'loss',  # loss or entry, the default is loss, requires stopPrice
-            # 'stopPrice': self.price_to_precision(symbol, amount),  # need to be defined if stop is specified
-            # 'stopPriceType'  # Either TP, IP or MP, Need to be defined if stop is specified.
-            # margin orders --------------------------------------------------
-            # 'marginMode': 'cross',  # cross(cross mode) and isolated(isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
-            # 'autoBorrow': False,  # The system will first borrow you funds at the optimal interest rate and then place an order for you
-            # futures orders -------------------------------------------------
-            # reduceOnly  #(boolean) A mark to reduce the position size only. Set to False by default. Need to set the position size when reduceOnly is True.
-            # closeOrder  #(boolean) A mark to close the position. Set to False by default. It will close all the positions when closeOrder is True.
-            # forceHold  #(boolean) A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to False by default.
         }
         stopPrice = self.safe_number(params, 'stopPrice')
         if stopPrice:
-            request['stop'] = 'down' if (side == 'buy') else 'up'
-            stopPriceType = self.safe_string(params, 'stopPriceType')
-            if not stopPriceType:
-                raise ArgumentsRequired(self.id + ' createOrder() trigger orders require a stopPriceType parameter to be set to TP, IP or MP(Trade Price, Index Price or Mark Price)')
+            request['stop'] = 'up' if (side == 'buy') else 'down'
+            stopPriceType = self.safe_string(params, 'stopPriceType', 'TP')
+            request['stopPriceType'] = stopPriceType
         uppercaseType = type.upper()
         timeInForce = self.safe_string(params, 'timeInForce')
         if uppercaseType == 'LIMIT':
@@ -1024,12 +1023,21 @@ class kucoinfutures(kucoin):
         return self.safe_value(response, 'data')
 
     def cancel_all_orders(self, symbol=None, params={}):
+        """
+        Cancels all orders in one api call
+        :param str symbol: Assign to cancel only the orders in the market matching the unified symbol
+        :param dict params: Exchange specific parameters
+        :param dict params.stop: When True, all the trigger orders will be cancelled
+        :returns: Response from the exchange
+        """
         self.load_markets()
         request = {}
         if symbol is not None:
             request['symbol'] = self.market_id(symbol)
-        response = self.futuresPrivateDeleteOrders(self.extend(request, params))
-        # ? futuresPrivateDeleteStopOrders
+        stop = self.safe_value(params, 'stop')
+        method = 'futuresPrivateDeleteStopOrders' if stop else 'futuresPrivateDeleteOrders'
+        response = getattr(self, method)(self.extend(request, params))
+        #
         #   {
         #       code: "200000",
         #       data: {
@@ -1053,17 +1061,36 @@ class kucoinfutures(kucoin):
         return self.futuresPrivatePostPositionMarginDepositMargin(self.extend(request, params))
 
     def fetch_orders_by_status(self, status, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches a list of orders placed on the exchange
+        :param str status: 'active' or 'closed', only 'active' is valid for stop orders
+        :param str symbol: unified symbol for the market to retrieve orders from
+        :param int since: timestamp in ms of the earliest order to retrieve
+        :param int limit: The maximum number of orders to retrieve
+        :param dict params: exchange specific parameters
+        :param bool params.stop: set to True to retrieve untriggered stop orders
+        :param str params.side: buy or sell
+        :param str params.type: limit or market
+        :param int params.endAt: End time in ms
+        :returns: An `array of order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
-        request = {
-            'status': status,
-        }
+        stop = self.safe_value(params, 'stop')
+        params = self.omit(params, 'stop')
+        status = 'done' if (status == 'closed') else status
+        request = {}
+        if not stop:
+            request['status'] = status
+        elif status != 'active':
+            raise BadRequest(self.id + ' fetchOrdersByStatus can only fetch untriggered stop orders')
         market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
         if since is not None:
             request['startAt'] = since
-        response = self.futuresPrivateGetOrders(self.extend(request, params))
+        method = 'futuresPrivateGetStopOrders' if stop else 'futuresPrivateGetOrders'
+        response = getattr(self, method)(self.extend(request, params))
         responseData = self.safe_value(response, 'data', {})
         orders = self.safe_value(responseData, 'items', [])
         return self.parse_orders(orders, market, since, limit)

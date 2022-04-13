@@ -723,10 +723,10 @@ module.exports = class okx extends Exchange {
         const data = this.safeValue (response, 'data', []);
         const timestamp = this.milliseconds ();
         const update = {
-            'info': response,
             'updated': timestamp,
             'status': 'ok',
             'eta': undefined,
+            'info': response,
         };
         for (let i = 0; i < data.length; i++) {
             const event = data[i];

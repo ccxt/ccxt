@@ -365,6 +365,7 @@ class aax extends Exchange {
         $endTime = $this->parse8601($this->safe_string($data, 'endTime'));
         $update = array(
             'updated' => $this->safe_integer($response, 'ts', $timestamp),
+            'info' => $response,
         );
         if ($endTime !== null) {
             $startTimeIsOk = ($startTime === null) ? true : ($timestamp < $startTime);

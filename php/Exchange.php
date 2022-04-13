@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.78.77';
+$version = '1.78.85';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.78.77';
+    const VERSION = '1.78.85';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -330,6 +330,7 @@ class Exchange {
         'parseDepositAddresses' => 'parse_deposit_addresses',
         'parseTrades' => 'parse_trades',
         'parseTransactions' => 'parse_transactions',
+        'safeTransaction' => 'safe_transaction',
         'parseTransfers' => 'parse_transfers',
         'parseLedger' => 'parse_ledger',
         'parseOrders' => 'parse_orders',
@@ -2271,6 +2272,30 @@ class Exchange {
         $code = isset($currency) ? $currency['code'] : null;
         $tail = $since === null;
         return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
+    }
+
+    public function safe_transaction($transaction, $currency = null) {
+        $currency = $this->safe_currency(null, $currency);
+        return $this->extend(array(
+            'id'=> null,
+            'currency'=> $currency['code'],
+            'amount'=> null,
+            'network'=> null,
+            'address'=> null,
+            'addressTo'=> null,
+            'addressFrom'=> null,
+            'tag'=> null,
+            'tagTo'=> null,
+            'tagFrom'=> null,
+            'status'=> null,
+            'type'=> null,
+            'updated'=> null,
+            'txid'=> null,
+            'timestamp'=> null,
+            'datetime'=> null,
+            'fee'=> null,
+            'info'=> null,
+        ), $transaction);
     }
 
     public function parse_transfers($transfers, $currency = null, $since = null, $limit = null, $params = array()) {

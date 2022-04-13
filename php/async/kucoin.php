@@ -477,6 +477,7 @@ class kucoin extends Exchange {
             $this->status = array_merge($this->status, array(
                 'status' => $status,
                 'updated' => $this->milliseconds(),
+                'info' => $response,
             ));
         }
         return $this->status;
@@ -1155,7 +1156,12 @@ class kucoin extends Exchange {
             $request['size'] = $amountString;
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        $response = yield $this->privatePostOrders (array_merge($request, $params));
+        $method = 'privatePostOrders';
+        $tradeType = $this->safe_string($params, 'tradeType');
+        if ($tradeType === 'MARGIN_TRADE') {
+            $method = 'privatePostMarginOrder';
+        }
+        $response = yield $this->$method (array_merge($request, $params));
         //
         //     {
         //         code => '200000',
