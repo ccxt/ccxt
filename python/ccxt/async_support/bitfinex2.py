@@ -385,6 +385,7 @@ class bitfinex2(bitfinex):
         self.status = self.extend(self.status, {
             'status': formattedStatus,
             'updated': self.milliseconds(),
+            'info': response,
         })
         return self.status
 

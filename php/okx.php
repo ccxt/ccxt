@@ -728,10 +728,10 @@ class okx extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $timestamp = $this->milliseconds();
         $update = array(
-            'info' => $response,
             'updated' => $timestamp,
             'status' => 'ok',
             'eta' => null,
+            'info' => $response,
         );
         for ($i = 0; $i < count($data); $i++) {
             $event = $data[$i];

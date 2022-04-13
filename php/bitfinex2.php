@@ -379,6 +379,7 @@ class bitfinex2 extends bitfinex {
         $this->status = array_merge($this->status, array(
             'status' => $formattedStatus,
             'updated' => $this->milliseconds(),
+            'info' => $response,
         ));
         return $this->status;
     }

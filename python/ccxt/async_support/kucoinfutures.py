@@ -327,6 +327,7 @@ class kucoinfutures(kucoin):
             self.status = self.extend(self.status, {
                 'status': status,
                 'updated': self.milliseconds(),
+                'info': response,
             })
         return self.status
 

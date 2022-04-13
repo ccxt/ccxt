@@ -403,7 +403,7 @@ class deribit(Exchange):
         request = {
             # 'expected_result': False,  # True will trigger an error for testing purposes
         }
-        await self.publicGetTest(self.extend(request, params))
+        response = await self.publicGetTest(self.extend(request, params))
         #
         #     {
         #         jsonrpc: '2.0',
@@ -417,6 +417,7 @@ class deribit(Exchange):
         self.status = self.extend(self.status, {
             'status': 'ok',
             'updated': self.milliseconds(),
+            'info': response,
         })
         return self.status
 
