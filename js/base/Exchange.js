@@ -1410,10 +1410,11 @@ module.exports = class Exchange {
         return this.filterByCurrencySinceLimit (result, code, since, limit, tail);
     }
 
-    safeTransaction (transaction) {
-        return this.extend({
+    safeTransaction (transaction, currency = undefined) {
+        currency = this.safeCurrency (undefined, currency);
+        return this.extend ({
             'id': undefined,
-            'currency': undefined,
+            'currency': currency['code'],
             'amount': undefined,
             'network': undefined,
             'address': undefined,
