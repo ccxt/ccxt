@@ -2060,6 +2060,13 @@ class Exchange(object):
         tail = since is None
         return self.filter_by_symbol_since_limit(array, symbol, since, limit, tail)
 
+    def safe_status(self, status):
+        return self.extend({
+            'status': None,
+            'updated': self.milliseconds(),
+            'eta': None,
+        }, status)
+
     def safe_market(self, marketId, market=None, delimiter=None):
         if marketId is not None:
             if self.markets_by_id is not None and marketId in self.markets_by_id:

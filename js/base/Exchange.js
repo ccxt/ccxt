@@ -1492,6 +1492,14 @@ module.exports = class Exchange {
         return this.filterBySymbolSinceLimit (result, symbol, since, limit, tail)
     }
 
+    safeStatus (status) {
+        return this.extend ({
+            'status': undefined,
+            'updated': this.milliseconds (),
+            'eta': undefined,
+        }, status);
+    }
+
     safeCurrency (currencyId, currency = undefined) {
         if ((currencyId === undefined) && (currency !== undefined)) {
             return currency
