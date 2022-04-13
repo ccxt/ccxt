@@ -2124,6 +2124,33 @@ module.exports = class wavesexchange extends Exchange {
             'timestamp': timestamp,
             'signature': signature,
         };
-        return await this.nodePostTransactionsBroadcast (request);
+        const result = await this.nodePostTransactionsBroadcast (request);
+        return this.parseTransaction (result, currency); // breaking change
     }
+
+    parseTransaction (transaction, currency = undefined) {
+        currency = this.safeCurrency (undefined, currency);
+        return {
+            'id': undefined,
+            'txid': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'network': undefined,
+            'addressFrom': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'amount': undefined,
+            'type': undefined,
+            'currency': currency['code'],
+            'status': undefined,
+            'updated': undefined,
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'comment': undefined,
+            'fee': undefined,
+            'info': transaction,
+        };
+    }
+
 };
