@@ -958,9 +958,6 @@ module.exports = class bitmex extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (!market['active']) {
-            throw new BadSymbol (this.id + ' fetchTicker() symbol ' + symbol + ' is not tradable');
-        }
         const tickers = await this.fetchTickers ([ market['symbol'] ], params);
         const ticker = this.safeValue (tickers, market['symbol']);
         if (ticker === undefined) {
