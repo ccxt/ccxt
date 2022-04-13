@@ -1152,7 +1152,17 @@ module.exports = class kucoin extends Exchange {
             request['size'] = amountString;
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const response = await this.privatePostOrders (this.extend (request, params));
+
+        let method = 'privatePostOrders';
+
+        // We'll need to call the implicit `margin order` function instead of `orders` if tradeType is margin.
+        if (Object.prototype.hasOwnProperty.call(params, 'tradeType')) {
+          if (params.tradeType === 'MARGIN_TRADE') {
+            method = 'privatePostMarginOrder';
+          }
+        }
+
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         code: '200000',
