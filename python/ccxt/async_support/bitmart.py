@@ -411,6 +411,7 @@ class bitmart(Exchange):
             'status': status,
             'updated': self.milliseconds(),
             'eta': eta,
+            'info': response,
         })
         return self.status
 

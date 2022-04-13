@@ -1734,6 +1734,9 @@ class zb extends Exchange {
         $swap = $market['swap'];
         $spot = $market['spot'];
         $timeInForce = $this->safe_string($params, 'timeInForce');
+        $reduceOnly = $this->safe_value($params, 'reduceOnly');
+        $stop = $this->safe_value($params, 'stop');
+        $stopPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
         if ($type === 'market') {
             throw new InvalidOrder($this->id . ' createOrder() on ' . $market['type'] . ' markets does not allow $market orders');
         }
@@ -1743,28 +1746,22 @@ class zb extends Exchange {
         ));
         $request = array(
             'amount' => $this->amount_to_precision($symbol, $amount),
+            // 'symbol' => $market['id'],
             // 'acctType' => 0, // Spot, Margin 0/1/2 [Spot/Isolated/Cross] Optional, Default to => 0 Spot
             // 'customerOrderId' => '1f2g', // Spot, Margin
             // 'orderType' => 1, // Spot, Margin order $type 1/2 [PostOnly/IOC] Optional
+            // 'triggerPrice' => 30000.0, // Stop trigger $price
+            // 'algoPrice' => 29000.0, // Stop order $price
+            // 'priceType' => 1, // Stop Loss Take Profit, 1 => Mark $price, 2 => Last $price
+            // 'bizType' => 1, // Stop Loss Take Profit, 1 => TP, 2 => SL
         );
-        if ($price) {
-            $request['price'] = $this->price_to_precision($symbol, $price);
-        }
-        if ($spot) {
-            $request['tradeType'] = ($side === 'buy') ? '1' : '0';
-            $request['currency'] = $market['id'];
-            if ($timeInForce !== null) {
-                if ($timeInForce === 'PO') {
-                    $request['orderType'] = 1;
-                } else if ($timeInForce === 'IOC') {
-                    $request['orderType'] = 2;
-                } else {
-                    throw new InvalidOrder($this->id . ' createOrder() on ' . $market['type'] . ' markets does not allow ' . $timeInForce . ' orders');
-                }
-            }
-        } else if ($swap) {
-            $reduceOnly = $this->safe_value($params, 'reduceOnly');
-            $params = $this->omit($params, 'reduceOnly');
+        if ($stop || $stopPrice) {
+            $method = 'contractV2PrivatePostTradeOrderAlgo';
+            $orderType = $this->safe_integer($params, 'orderType');
+            $priceType = $this->safe_integer($params, 'priceType');
+            $bizType = $this->safe_integer($params, 'bizType');
+            $algoPrice = $this->safe_number($params, 'algoPrice');
+            $request['symbol'] = $market['id'];
             if ($side === 'sell' && $reduceOnly) {
                 $request['side'] = 3; // close long
             } else if ($side === 'buy' && $reduceOnly) {
@@ -1773,23 +1770,66 @@ class zb extends Exchange {
                 $request['side'] = 1; // open long
             } else if ($side === 'sell') {
                 $request['side'] = 2; // open short
+            } else if ($side === 5) {
+                $request['side'] = 5; // one way position buy
+            } else if ($side === 6) {
+                $request['side'] = 6; // one way position sell
+            } else if ($side === 0) {
+                $request['side'] = 0; // one way position close only
             }
-            if ($type === 'limit') {
-                $request['action'] = 1;
-            } else if ($timeInForce === 'IOC') {
-                $request['action'] = 3;
-            } else if ($timeInForce === 'PO') {
-                $request['action'] = 4;
-            } else if ($timeInForce === 'FOK') {
-                $request['action'] = 5;
-            } else {
-                $request['action'] = $type;
+            if ($type === 'trigger' || $orderType === 1) {
+                $request['orderType'] = 1;
+            } else if ($type === 'stop loss' || $type === 'take profit' || $orderType === 2 || $priceType || $bizType) {
+                $request['orderType'] = 2;
+                $request['priceType'] = $priceType;
+                $request['bizType'] = $bizType;
             }
-            $request['symbol'] = $market['id'];
-            $request['clientOrderId'] = $params['clientOrderId']; // OPTIONAL '^[a-zA-Z0-9-_]array(1,36)$', // The user-defined order number
-            $request['extend'] = $params['extend']; // OPTIONAL array("orderAlgos":[array("bizType":1,"priceType":1,"triggerPrice":"70000"),array("bizType":2,"priceType":1,"triggerPrice":"40000")])
+            $request['triggerPrice'] = $this->price_to_precision($symbol, $stopPrice);
+            $request['algoPrice'] = $this->price_to_precision($symbol, $algoPrice);
+        } else {
+            if ($price) {
+                $request['price'] = $this->price_to_precision($symbol, $price);
+            }
+            if ($spot) {
+                $request['tradeType'] = ($side === 'buy') ? '1' : '0';
+                $request['currency'] = $market['id'];
+                if ($timeInForce !== null) {
+                    if ($timeInForce === 'PO') {
+                        $request['orderType'] = 1;
+                    } else if ($timeInForce === 'IOC') {
+                        $request['orderType'] = 2;
+                    } else {
+                        throw new InvalidOrder($this->id . ' createOrder() on ' . $market['type'] . ' markets does not allow ' . $timeInForce . ' orders');
+                    }
+                }
+            } else if ($swap) {
+                if ($side === 'sell' && $reduceOnly) {
+                    $request['side'] = 3; // close long
+                } else if ($side === 'buy' && $reduceOnly) {
+                    $request['side'] = 4; // close short
+                } else if ($side === 'buy') {
+                    $request['side'] = 1; // open long
+                } else if ($side === 'sell') {
+                    $request['side'] = 2; // open short
+                }
+                if ($type === 'limit') {
+                    $request['action'] = 1;
+                } else if ($timeInForce === 'IOC') {
+                    $request['action'] = 3;
+                } else if ($timeInForce === 'PO') {
+                    $request['action'] = 4;
+                } else if ($timeInForce === 'FOK') {
+                    $request['action'] = 5;
+                } else {
+                    $request['action'] = $type;
+                }
+                $request['symbol'] = $market['id'];
+                $request['clientOrderId'] = $params['clientOrderId']; // OPTIONAL '^[a-zA-Z0-9-_]array(1,36)$', // The user-defined order number
+                $request['extend'] = $params['extend']; // OPTIONAL array("orderAlgos":[array("bizType":1,"priceType":1,"triggerPrice":"70000"),array("bizType":2,"priceType":1,"triggerPrice":"40000")])
+            }
         }
-        $response = yield $this->$method (array_merge($request, $params));
+        $query = $this->omit($params, array( 'reduceOnly', 'stop', 'stopPrice', 'orderType', 'triggerPrice', 'algoPrice', 'priceType', 'bizType' ));
+        $response = yield $this->$method (array_merge($request, $query));
         //
         // Spot
         //
@@ -1810,13 +1850,21 @@ class zb extends Exchange {
         //         }
         //     }
         //
-        if ($swap) {
+        // Algo order
+        //
+        //     {
+        //         "code" => 10000,
+        //         "data" => "6919884551305242624",
+        //         "desc" => "操作成功"
+        //     }
+        //
+        if ($swap && $stop === null && $stopPrice === null) {
             $response = $this->safe_value($response, 'data');
+            $response['timeInForce'] = $timeInForce;
+            $response['type'] = $request['tradeType'];
+            $response['total_amount'] = $amount;
+            $response['price'] = $price;
         }
-        $response['timeInForce'] = $timeInForce;
-        $response['type'] = $request['tradeType'];
-        $response['total_amount'] = $amount;
-        $response['price'] = $price;
         return $this->parse_order($response, $market);
     }
 
@@ -2239,7 +2287,7 @@ class zb extends Exchange {
         //         "value" => "60"
         //     ),
         //
-        // Spot
+        // Spot createOrder
         //
         //     {
         //         code => '1000',
@@ -2250,7 +2298,7 @@ class zb extends Exchange {
         //         $price => 30000
         //     }
         //
-        // Swap
+        // Swap createOrder
         //
         //     {
         //         $orderId => '6901786759944937472',
@@ -2260,6 +2308,13 @@ class zb extends Exchange {
         //         $price => 30000
         //     }
         //
+        // Algo createOrder
+        //
+        //     {
+        //         "code" => 10000,
+        //         "data" => "6919884551305242624",
+        //         "desc" => "操作成功"
+        //     }
         $orderId = $market['swap'] ? $this->safe_value($order, 'orderId') : $this->safe_value($order, 'id');
         if ($orderId === null) {
             $orderId = $this->safe_value($order, 'id');

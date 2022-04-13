@@ -2068,6 +2068,7 @@ module.exports = class binance extends Exchange {
             this.status = this.extend (this.status, {
                 'status': status,
                 'updated': this.milliseconds (),
+                'info': response,
             });
         }
         return this.status;

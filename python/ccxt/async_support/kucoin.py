@@ -488,6 +488,7 @@ class kucoin(Exchange):
             self.status = self.extend(self.status, {
                 'status': status,
                 'updated': self.milliseconds(),
+                'info': response,
             })
         return self.status
 
@@ -1131,7 +1132,11 @@ class kucoin(Exchange):
             amountString = self.amount_to_precision(symbol, amount)
             request['size'] = amountString
             request['price'] = self.price_to_precision(symbol, price)
-        response = await self.privatePostOrders(self.extend(request, params))
+        method = 'privatePostOrders'
+        tradeType = self.safe_string(params, 'tradeType')
+        if tradeType == 'MARGIN_TRADE':
+            method = 'privatePostMarginOrder'
+        response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         code: '200000',

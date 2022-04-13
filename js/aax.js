@@ -360,6 +360,7 @@ module.exports = class aax extends Exchange {
         const endTime = this.parse8601 (this.safeString (data, 'endTime'));
         const update = {
             'updated': this.safeInteger (response, 'ts', timestamp),
+            'info': response,
         };
         if (endTime !== undefined) {
             const startTimeIsOk = (startTime === undefined) ? true : (timestamp < startTime);

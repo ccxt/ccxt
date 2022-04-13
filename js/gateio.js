@@ -1646,11 +1646,13 @@ module.exports = class gateio extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 10, max 100
         }
+        request['with_id'] = true;
         const response = await this[method] (this.extend (request, params));
         //
         // SPOT
         //
         //     {
+        //         "id":6358770031
         //         "current": 1634345973275,
         //         "update": 1634345973271,
         //         "asks": [
@@ -1681,6 +1683,7 @@ module.exports = class gateio extends Exchange {
         // Perpetual Swap
         //
         //     {
+        //         "id":6358770031
         //         "current": 1634350208.745,
         //         "asks": [
         //             {"s":24909,"p": "61264.8"},
@@ -1715,7 +1718,10 @@ module.exports = class gateio extends Exchange {
         }
         const priceKey = spotOrMargin ? 0 : 'p';
         const amountKey = spotOrMargin ? 1 : 's';
-        return this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', priceKey, amountKey);
+        const nonce = this.safeInteger (response, 'id');
+        const result = this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', priceKey, amountKey);
+        result['nonce'] = nonce;
+        return result;
     }
 
     async fetchTicker (symbol, params = {}) {

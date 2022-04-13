@@ -1688,6 +1688,9 @@ class zb(Exchange):
         swap = market['swap']
         spot = market['spot']
         timeInForce = self.safe_string(params, 'timeInForce')
+        reduceOnly = self.safe_value(params, 'reduceOnly')
+        stop = self.safe_value(params, 'stop')
+        stopPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
         if type == 'market':
             raise InvalidOrder(self.id + ' createOrder() on ' + market['type'] + ' markets does not allow market orders')
         method = self.get_supported_mapping(market['type'], {
@@ -1696,25 +1699,22 @@ class zb(Exchange):
         })
         request = {
             'amount': self.amount_to_precision(symbol, amount),
+            # 'symbol': market['id'],
             # 'acctType': 0,  # Spot, Margin 0/1/2 [Spot/Isolated/Cross] Optional, Default to: 0 Spot
             # 'customerOrderId': '1f2g',  # Spot, Margin
             # 'orderType': 1,  # Spot, Margin order type 1/2 [PostOnly/IOC] Optional
+            # 'triggerPrice': 30000.0,  # Stop trigger price
+            # 'algoPrice': 29000.0,  # Stop order price
+            # 'priceType': 1,  # Stop Loss Take Profit, 1: Mark price, 2: Last price
+            # 'bizType': 1,  # Stop Loss Take Profit, 1: TP, 2: SL
         }
-        if price:
-            request['price'] = self.price_to_precision(symbol, price)
-        if spot:
-            request['tradeType'] = '1' if (side == 'buy') else '0'
-            request['currency'] = market['id']
-            if timeInForce is not None:
-                if timeInForce == 'PO':
-                    request['orderType'] = 1
-                elif timeInForce == 'IOC':
-                    request['orderType'] = 2
-                else:
-                    raise InvalidOrder(self.id + ' createOrder() on ' + market['type'] + ' markets does not allow ' + timeInForce + ' orders')
-        elif swap:
-            reduceOnly = self.safe_value(params, 'reduceOnly')
-            params = self.omit(params, 'reduceOnly')
+        if stop or stopPrice:
+            method = 'contractV2PrivatePostTradeOrderAlgo'
+            orderType = self.safe_integer(params, 'orderType')
+            priceType = self.safe_integer(params, 'priceType')
+            bizType = self.safe_integer(params, 'bizType')
+            algoPrice = self.safe_number(params, 'algoPrice')
+            request['symbol'] = market['id']
             if side == 'sell' and reduceOnly:
                 request['side'] = 3  # close long
             elif side == 'buy' and reduceOnly:
@@ -1723,20 +1723,57 @@ class zb(Exchange):
                 request['side'] = 1  # open long
             elif side == 'sell':
                 request['side'] = 2  # open short
-            if type == 'limit':
-                request['action'] = 1
-            elif timeInForce == 'IOC':
-                request['action'] = 3
-            elif timeInForce == 'PO':
-                request['action'] = 4
-            elif timeInForce == 'FOK':
-                request['action'] = 5
-            else:
-                request['action'] = type
-            request['symbol'] = market['id']
-            request['clientOrderId'] = params['clientOrderId']  # OPTIONAL '^[a-zA-Z0-9-_]{1,36}$',  # The user-defined order number
-            request['extend'] = params['extend']  # OPTIONAL {"orderAlgos":[{"bizType":1,"priceType":1,"triggerPrice":"70000"},{"bizType":2,"priceType":1,"triggerPrice":"40000"}]}
-        response = await getattr(self, method)(self.extend(request, params))
+            elif side == 5:
+                request['side'] = 5  # one way position buy
+            elif side == 6:
+                request['side'] = 6  # one way position sell
+            elif side == 0:
+                request['side'] = 0  # one way position close only
+            if type == 'trigger' or orderType == 1:
+                request['orderType'] = 1
+            elif type == 'stop loss' or type == 'take profit' or orderType == 2 or priceType or bizType:
+                request['orderType'] = 2
+                request['priceType'] = priceType
+                request['bizType'] = bizType
+            request['triggerPrice'] = self.price_to_precision(symbol, stopPrice)
+            request['algoPrice'] = self.price_to_precision(symbol, algoPrice)
+        else:
+            if price:
+                request['price'] = self.price_to_precision(symbol, price)
+            if spot:
+                request['tradeType'] = '1' if (side == 'buy') else '0'
+                request['currency'] = market['id']
+                if timeInForce is not None:
+                    if timeInForce == 'PO':
+                        request['orderType'] = 1
+                    elif timeInForce == 'IOC':
+                        request['orderType'] = 2
+                    else:
+                        raise InvalidOrder(self.id + ' createOrder() on ' + market['type'] + ' markets does not allow ' + timeInForce + ' orders')
+            elif swap:
+                if side == 'sell' and reduceOnly:
+                    request['side'] = 3  # close long
+                elif side == 'buy' and reduceOnly:
+                    request['side'] = 4  # close short
+                elif side == 'buy':
+                    request['side'] = 1  # open long
+                elif side == 'sell':
+                    request['side'] = 2  # open short
+                if type == 'limit':
+                    request['action'] = 1
+                elif timeInForce == 'IOC':
+                    request['action'] = 3
+                elif timeInForce == 'PO':
+                    request['action'] = 4
+                elif timeInForce == 'FOK':
+                    request['action'] = 5
+                else:
+                    request['action'] = type
+                request['symbol'] = market['id']
+                request['clientOrderId'] = params['clientOrderId']  # OPTIONAL '^[a-zA-Z0-9-_]{1,36}$',  # The user-defined order number
+                request['extend'] = params['extend']  # OPTIONAL {"orderAlgos":[{"bizType":1,"priceType":1,"triggerPrice":"70000"},{"bizType":2,"priceType":1,"triggerPrice":"40000"}]}
+        query = self.omit(params, ['reduceOnly', 'stop', 'stopPrice', 'orderType', 'triggerPrice', 'algoPrice', 'priceType', 'bizType'])
+        response = await getattr(self, method)(self.extend(request, query))
         #
         # Spot
         #
@@ -1757,12 +1794,20 @@ class zb(Exchange):
         #         }
         #     }
         #
-        if swap:
+        # Algo order
+        #
+        #     {
+        #         "code": 10000,
+        #         "data": "6919884551305242624",
+        #         "desc": "操作成功"
+        #     }
+        #
+        if swap and stop is None and stopPrice is None:
             response = self.safe_value(response, 'data')
-        response['timeInForce'] = timeInForce
-        response['type'] = request['tradeType']
-        response['total_amount'] = amount
-        response['price'] = price
+            response['timeInForce'] = timeInForce
+            response['type'] = request['tradeType']
+            response['total_amount'] = amount
+            response['price'] = price
         return self.parse_order(response, market)
 
     async def cancel_order(self, id, symbol=None, params={}):
@@ -2159,7 +2204,7 @@ class zb(Exchange):
         #         "value": "60"
         #     },
         #
-        # Spot
+        # Spot createOrder
         #
         #     {
         #         code: '1000',
@@ -2170,7 +2215,7 @@ class zb(Exchange):
         #         price: 30000
         #     }
         #
-        # Swap
+        # Swap createOrder
         #
         #     {
         #         orderId: '6901786759944937472',
@@ -2180,6 +2225,13 @@ class zb(Exchange):
         #         price: 30000
         #     }
         #
+        # Algo createOrder
+        #
+        #     {
+        #         "code": 10000,
+        #         "data": "6919884551305242624",
+        #         "desc": "操作成功"
+        #     }
         orderId = self.safe_value(order, 'orderId') if market['swap'] else self.safe_value(order, 'id')
         if orderId is None:
             orderId = self.safe_value(order, 'id')

@@ -343,6 +343,7 @@ class bitrue extends Exchange {
         $this->status = array_merge($this->status, array(
             'status' => $formattedStatus,
             'updated' => $this->milliseconds(),
+            'info' => $response,
         ));
         return $this->status;
     }
