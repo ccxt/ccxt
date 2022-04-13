@@ -1205,11 +1205,7 @@ module.exports = class idex extends Exchange {
         //   txId: null
         // }
         const response = await this.privatePostWithdrawals (request);
-        const id = this.safeString (response, 'withdrawalId');
-        return {
-            'info': response,
-            'id': id,
-        };
+        return this.parseTransaction (response, currency);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -1331,13 +1327,27 @@ module.exports = class idex extends Exchange {
         //   txId: '0x305e9cdbaa85ad029f50578d13d31d777c085de573ed5334d95c19116d8c03ce',
         //   txStatus: 'mined'
         //  }
+        //
+        // withdraw
+        //     {
+        //        withdrawalId: 'a61dcff0-ec4d-11ea-8b83-c78a6ecb3180',
+        //        asset: 'ETH',
+        //        assetContractAddress: '0x0000000000000000000000000000000000000000',
+        //        quantity: '0.20000000',
+        //        time: 1598962883190,
+        //        fee: '0.00024000',
+        //        txStatus: 'pending',
+        //        txId: null
+        //     }
+        //
         let type = undefined;
         if ('depositId' in transaction) {
             type = 'deposit';
         } else if ('withdrawalId' in transaction) {
             type = 'withdrawal';
         }
-        const id = this.safeString2 (transaction, 'depositId', 'withdrawId');
+        let id = this.safeString2 (transaction, 'depositId', 'withdrawId');
+        id = this.safeString (transaction, 'withdrawalId', id);
         const code = this.safeCurrencyCode (this.safeString (transaction, 'asset'), currency);
         const amount = this.safeNumber (transaction, 'quantity');
         const txid = this.safeString (transaction, 'txId');
