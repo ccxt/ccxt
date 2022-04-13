@@ -582,8 +582,6 @@ module.exports = class huobi extends ccxt.huobi {
             type = market['type'];
             subType = market['linear'] ? 'linear' : 'inverse';
             marketId = market['lowercaseId'];
-        } else {
-            [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', undefined, params);
         }
         if (type === 'spot') {
             let mode = undefined;
@@ -599,10 +597,9 @@ module.exports = class huobi extends ccxt.huobi {
                 type = this.safeString (params, 'type', type);
                 subType = this.safeString2 (this.options, 'watchOrders', 'subType', 'linear');
                 subType = this.safeString (params, 'subType', type);
-                params = this.omit (params, ['type', 'subtype']);
+                params = this.omit (params, ['type', 'subType']);
             }
             const channelAndMessageHash = this.getOrderChannelAndMessageHash (type, subType, market, params);
-            // we just want the orders channel
             channel = this.safeString (channelAndMessageHash, 0);
             const orderMessageHash = this.safeString (channelAndMessageHash, 1);
             // we will take advantage of the order messageHash because already handles stuff
@@ -674,7 +671,7 @@ module.exports = class huobi extends ccxt.huobi {
             type = this.safeString (params, 'type', type);
             subType = this.safeString2 (this.options, 'watchOrders', 'subType', 'linear');
             subType = this.safeString (params, 'subType', type);
-            params = this.omit (params, ['type', 'subtype']);
+            params = this.omit (params, ['type', 'subType']);
         }
         let messageHash = undefined;
         let channel = undefined;
@@ -772,18 +769,17 @@ module.exports = class huobi extends ccxt.huobi {
             parsedTrade = this.parseOrderTrade (data, market);
             symbol = parsedTrade['symbol'];
         } else {
-            parsedOrder = this.parseWsOrder (data, market);
-            const trades = this.safeValue (parsedOrder, 'trades', []);
-            symbol = parsedOrder['symbol'];
-            const tradesLength = trades.length;
+            const rawTrades = this.safeValue (data, 'trade', []);
+            const tradesLength = rawTrades.length;
             const tradesObject = {
-                'trades': trades,
+                'trades': rawTrades,
                 'ch': messageHash,
-                'symbol': symbol,
+                'symbol': marketId,
             };
             if (tradesLength > 0) {
                 this.handleMyTrade (client, tradesObject);
             }
+            parsedOrder = this.parseWsOrder (data, market);
         }
         if (symbol !== undefined) {
             const market = this.market (symbol);
@@ -932,6 +928,7 @@ module.exports = class huobi extends ccxt.huobi {
         const lastTradeTimestamp = this.safeInteger2 (order, 'lastActTime', 'ts');
         const created = this.safeInteger (order, 'orderCreateTime');
         const marketId = this.safeString2 (order, 'contract_code', 'symbol');
+        market = this.safeMarket (marketId, market);
         const symbol = this.safeSymbol (marketId, market);
         const amount = this.safeString2 (order, 'orderSize', 'volume');
         const status = this.parseOrderStatus (this.safeString2 (order, 'orderStatus', 'status'));
@@ -951,10 +948,6 @@ module.exports = class huobi extends ccxt.huobi {
         }
         const avgPrice = this.safeString (order, 'trade_avg_price');
         const rawTrades = this.safeValue (order, 'trade');
-        let trades = [];
-        if (rawTrades !== undefined) {
-            trades = this.parseTrades (rawTrades, market);
-        }
         if (typeSide !== undefined) {
             typeSide = typeSide.split ('-');
         }
@@ -986,7 +979,7 @@ module.exports = class huobi extends ccxt.huobi {
             'cost': undefined,
             'fee': fee,
             'average': avgPrice,
-            'trades': trades,
+            'trades': rawTrades,
         }, market);
     }
 
@@ -1765,14 +1758,14 @@ module.exports = class huobi extends ccxt.huobi {
                     client.resolve (this.myTrades, messageHash);
                 }
             } else {
-                // this trades are already parsed in handleOrder
-                // since they arrived inside an order update
-                // we just need to resolve the future at this point
-                const trades = this.safeValue (message, 'trades', []);
-                const symbol = this.safeValue (message, 'symbol');
-                const market = this.market (symbol);
-                for (let i = 0; i < trades.length; i++) {
-                    const parsedTrade = trades[i];
+                // this trades object is artificially created
+                // in handleOrder
+                const rawTrades = this.safeValue (message, 'trades', []);
+                const marketId = this.safeValue (message, 'symbol');
+                const market = this.market (marketId);
+                for (let i = 0; i < rawTrades.length; i++) {
+                    const trade = rawTrades[i];
+                    const parsedTrade = this.parseTrade (trade, market);
                     cachedTrades.append (parsedTrade);
                 }
                 // messageHash here is the orders one, so
