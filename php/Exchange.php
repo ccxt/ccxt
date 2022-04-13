@@ -2273,6 +2273,30 @@ class Exchange {
         return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
     }
 
+    public function safe_transaction($transaction, $currency = null) {
+        $currency = $this->safe_currency(null, $currency);
+        return $this->extend(array(
+            'id'=> null,
+            'currency'=> $currency['code'],
+            'amount'=> null,
+            'network'=> null,
+            'address'=> null,
+            'addressTo'=> null,
+            'addressFrom'=> null,
+            'tag'=> null,
+            'tagTo'=> null,
+            'tagFrom'=> null,
+            'status'=> null,
+            'type'=> null,
+            'updated'=> null,
+            'txid'=> null,
+            'timestamp'=> null,
+            'datetime'=> null,
+            'fee'=> null,
+            'info'=> null,
+        ), $transaction);
+    }
+
     public function parse_transfers($transfers, $currency = null, $since = null, $limit = null, $params = array()) {
         $array = is_array($transfers) ? array_values($transfers) : array();
         $result = array();
