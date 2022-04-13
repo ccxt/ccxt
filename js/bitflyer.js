@@ -644,10 +644,10 @@ module.exports = class bitflyer extends Exchange {
         };
         const response = await this.privatePostWithdraw (this.extend (request, params));
         const id = this.safeString (response, 'message_id');
-        return {
+        return this.parseTransaction ({
             'info': response,
             'id': id,
-        };
+        }, currency);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -752,6 +752,13 @@ module.exports = class bitflyer extends Exchange {
         //     "event_date": "2015-12-24T01:40:40.397"
         //   }
         //
+        // withdraw
+        //
+        //   {
+        //       'info': {},
+        //       'id': '12345678...',
+        //   }
+        //
         const id = this.safeString (transaction, 'id');
         const address = this.safeString (transaction, 'address');
         const currencyId = this.safeString (transaction, 'currency_code');
@@ -763,15 +770,17 @@ module.exports = class bitflyer extends Exchange {
         let type = undefined;
         let status = undefined;
         let fee = undefined;
-        if ('fee' in transaction) {
-            type = 'withdrawal';
-            status = this.parseWithdrawalStatus (rawStatus);
-            const feeCost = this.safeNumber (transaction, 'fee');
-            const additionalFee = this.safeNumber (transaction, 'additional_fee');
-            fee = { 'currency': code, 'cost': feeCost + additionalFee };
-        } else {
-            type = 'deposit';
-            status = this.parseDepositStatus (rawStatus);
+        if ('order_id' in transaction) {
+            if ('fee' in transaction) {
+                type = 'withdrawal';
+                status = this.parseWithdrawalStatus (rawStatus);
+                const feeCost = this.safeNumber (transaction, 'fee');
+                const additionalFee = this.safeNumber (transaction, 'additional_fee');
+                fee = { 'currency': code, 'cost': feeCost + additionalFee };
+            } else {
+                type = 'deposit';
+                status = this.parseDepositStatus (rawStatus);
+            }
         }
         return {
             'info': transaction,
