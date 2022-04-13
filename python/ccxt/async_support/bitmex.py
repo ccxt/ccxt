@@ -61,6 +61,9 @@ class bitmex(Exchange):
                 'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchTransactions': 'emulated',
+                'fetchTransfer': False,
+                'fetchTransfers': False,
+                'transfer': False,
                 'withdraw': True,
             },
             'timeframes': {

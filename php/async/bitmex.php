@@ -56,6 +56,9 @@ class bitmex extends Exchange {
                 'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchTransactions' => 'emulated',
+                'fetchTransfer' => false,
+                'fetchTransfers' => false,
+                'transfer' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array(
