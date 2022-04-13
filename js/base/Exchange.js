@@ -1430,7 +1430,7 @@ module.exports = class Exchange {
             'timestamp': undefined,
             'datetime': undefined,
             'fee': undefined,
-            'info': transaction,
+            'info': undefined,
         }, transaction);
     }
 
