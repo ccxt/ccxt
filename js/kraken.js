@@ -2006,11 +2006,7 @@ module.exports = class kraken extends Exchange {
             };
             const response = await this.privatePostWithdraw (this.extend (request, params));
             const result = this.safeValue (response, 'result', {});
-            const id = this.safeString (result, 'refid');
-            return {
-                'info': result,
-                'id': id,
-            };
+            return this.parseTransaction (result, currency);
         }
         throw new ExchangeError (this.id + " withdraw() requires a 'key' parameter (withdrawal key name, as set up on your account)");
     }
