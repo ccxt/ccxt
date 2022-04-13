@@ -2342,7 +2342,8 @@ module.exports = class Exchange {
             interests.push (interest);
         }
         const sorted = this.sortBy (interests, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, market, since, limit);
+        const symbol = this.safeString (market, 'symbol');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
     isPostOnly (type, timeInForce = undefined, exchangeSpecificOption = undefined, params = {}) {

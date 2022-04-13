@@ -3965,7 +3965,7 @@ class Exchange {
         }
         $array = array('postOnly' => true);
         $query = $this->extend($params, $array);
-        return $this->create_order($symbol, $type, $side, $amount, $price, $params);
+        return $this->create_order($symbol, $type, $side, $amount, $price, $query);
     }
 
     public function create_reduce_only_order($symbol, $type, $side, $amount, $price, $params = array()) {
