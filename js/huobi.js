@@ -575,10 +575,12 @@ module.exports = class huobi extends ccxt.huobi {
         let messageHash = undefined;
         let channel = undefined;
         let trades = undefined;
+        let subType = undefined;
         if (symbol !== undefined) {
             await this.loadMarkets ();
             market = this.market (symbol);
             type = market['type'];
+            subType = market['linear'] ? 'linear' : 'inverse';
             marketId = market['lowercaseId'];
         } else {
             [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', undefined, params);
@@ -592,7 +594,6 @@ module.exports = class huobi extends ccxt.huobi {
             messageHash = 'trade.clearing' + '#' + marketId + '#' + mode;
             channel = messageHash;
         } else {
-            let subType = undefined;
             if (type === undefined) {
                 type = this.safeString2 (this.options, 'watchOrders', 'defaultType', 'spot');
                 type = this.safeString (params, 'type', type);
@@ -604,11 +605,11 @@ module.exports = class huobi extends ccxt.huobi {
             // we just want the orders channel
             channel = this.safeString (channelAndMessageHash, 0);
             const orderMessageHash = this.safeString (channelAndMessageHash, 1);
-            // we will take advantage of the orderMessage because already handles stuff
-            // like margin/subtype/type variations
+            // we will take advantage of the order messageHash because already handles stuff
+            // like symbol/margin/subtype/type variations
             messageHash = orderMessageHash + ':' + 'trade';
         }
-        trades = await this.subscribePrivate (channel, messageHash, type, 'linear', params);
+        trades = await this.subscribePrivate (channel, messageHash, type, subType, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -1765,6 +1766,7 @@ module.exports = class huobi extends ccxt.huobi {
                 }
             } else {
                 // this trades are already parsed in handleOrder
+                // since they arrived inside an order update
                 // we just need to resolve the future at this point
                 const trades = this.safeValue (message, 'trades', []);
                 const symbol = this.safeValue (message, 'symbol');
