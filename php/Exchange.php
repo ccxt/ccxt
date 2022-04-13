@@ -2321,10 +2321,6 @@ class Exchange {
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit, $tail);
     }
 
-    public function safe_time($time) {
-        return $time;
-    }
-
     public function safe_status($status) {
         return $this->extend([
             'status'=> null,
