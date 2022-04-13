@@ -1154,7 +1154,12 @@ class kucoin extends Exchange {
             $request['size'] = $amountString;
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        $response = $this->privatePostOrders (array_merge($request, $params));
+        $method = 'privatePostOrders';
+        $tradeType = $this->safe_string($params, 'tradeType');
+        if ($tradeType === 'MARGIN_TRADE') {
+            $method = 'privatePostMarginOrder';
+        }
+        $response = $this->$method (array_merge($request, $params));
         //
         //     {
         //         code => '200000',
