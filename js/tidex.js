@@ -800,9 +800,31 @@ module.exports = class tidex extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'return', {});
+        return this.parseTransaction (result, currency);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        currency = this.safeCurrency (undefined, currency);
         return {
-            'info': response,
-            'id': this.safeString (result, 'withdraw_id'),
+            'id': this.safeString (transaction, 'withdraw_id'),
+            'txid': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'network': undefined,
+            'addressFrom': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'amount': undefined,
+            'type': undefined,
+            'currency': currency['code'],
+            'status': undefined,
+            'updated': undefined,
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'comment': undefined,
+            'fee': undefined,
+            'info': transaction,
         };
     }
 
