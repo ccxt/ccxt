@@ -571,33 +571,89 @@ module.exports = class huobi extends ccxt.huobi {
         this.checkRequiredCredentials ();
         let type = undefined;
         let marketId = '*'; // wildcard
+        let market = undefined;
+        let messageHash = undefined;
+        let channel = undefined;
+        let trades = undefined;
         if (symbol !== undefined) {
             await this.loadMarkets ();
-            const market = this.market (symbol);
+            market = this.market (symbol);
             type = market['type'];
             marketId = market['lowercaseId'];
         } else {
             [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', undefined, params);
         }
-        if (type !== 'spot') {
-            throw new ArgumentsRequired (this.id + ' watchMyTrades supports spot markets only');
+        if (type === 'spot') {
+            let mode = undefined;
+            if (mode === undefined) {
+                mode = this.safeString2 (this.options, 'watchMyTrades', 'mode', 0);
+                mode = this.safeString (params, 'mode', mode);
+            }
+            messageHash = 'trade.clearing' + '#' + marketId + '#' + mode;
+            channel = messageHash;
+        } else {
+            let subType = undefined;
+            if (type === undefined) {
+                type = this.safeString2 (this.options, 'watchOrders', 'defaultType', 'spot');
+                type = this.safeString (params, 'type', type);
+                subType = this.safeString2 (this.options, 'watchOrders', 'subType', 'linear');
+                subType = this.safeString (params, 'subType', type);
+                params = this.omit (params, ['type', 'subtype']);
+            }
+            const channelAndMessageHash = this.getOrderChannelAndMessageHash (type, subType, market, params);
+            channel = this.safeString (channelAndMessageHash, 0);
+            messageHash = 'trades' + ':' + marketId;
         }
-        let mode = undefined;
-        if (mode === undefined) {
-            mode = this.safeString2 (this.options, 'watchMyTrades', 'mode', 0);
-            mode = this.safeString (params, 'mode', mode);
-        }
-        const messageHash = 'trade.clearing' + '#' + marketId + '#' + mode;
-        const trades = await this.subscribePrivate (messageHash, messageHash, type, 'linear', params);
+        trades = await this.subscribePrivate (channel, messageHash, type, 'linear', params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit);
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+    }
+
+    getOrderChannelAndMessageHash (type, subType, market = undefined, params = {}) {
+        let messageHash = undefined;
+        let channel = undefined;
+        let orderType = this.safeString2 (this.options, 'watchOrders', 'orderType', 'orders'); // orders or matchOrders
+        orderType = this.safeString (params, 'orderType', orderType);
+        params = this.omit (params, 'orderType');
+        const marketCode = (market !== undefined) ? market['lowercaseId'] : undefined;
+        const baseId = (market !== undefined) ? market['lowercaseBaseId'] : undefined;
+        const prefix = orderType;
+        messageHash = prefix;
+        if (subType === 'linear') {
+            // USDT Margined Contracts Example: LTC/USDT:USDT
+            const marginMode = this.safeString (params, 'margin', 'cross');
+            const marginPrefix = (marginMode === 'cross') ? prefix + '_cross' : prefix;
+            messageHash = marginPrefix;
+            if (marketCode !== undefined) {
+                messageHash += '.' + marketCode;
+                channel = messageHash;
+            } else {
+                channel = marginPrefix + '.' + '*';
+            }
+        } else if (type === 'future') {
+            // inverse futures Example: BCH/USD:BCH-220408
+            if (baseId !== undefined) {
+                channel = prefix + '.' + baseId;
+                messageHash = channel;
+            } else {
+                channel = prefix + '.' + '*';
+            }
+        } else {
+            // inverse swaps: Example: BTC/USD:BTC
+            if (marketCode !== undefined) {
+                channel = prefix + '.' + marketCode;
+                messageHash = channel;
+            } else {
+                channel = prefix + '.' + '*';
+            }
+        }
+        return [channel, messageHash];
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let query = params;
         let type = undefined;
         let subType = undefined;
         let market = undefined;
@@ -613,7 +669,7 @@ module.exports = class huobi extends ccxt.huobi {
             type = this.safeString (params, 'type', type);
             subType = this.safeString2 (this.options, 'watchOrders', 'subType', 'linear');
             subType = this.safeString (params, 'subType', type);
-            query = this.omit (params, ['type', 'subtype']);
+            params = this.omit (params, ['type', 'subtype']);
         }
         let messageHash = undefined;
         let channel = undefined;
@@ -621,43 +677,11 @@ module.exports = class huobi extends ccxt.huobi {
             messageHash = 'orders' + '#' + suffix;
             channel = messageHash;
         } else {
-            let orderType = this.safeString2 (this.options, 'watchOrders', 'orderType', 'orders'); // orders or matchOrders
-            orderType = this.safeString (params, 'orderType', orderType);
-            query = this.omit (params, 'orderType');
-            const marketCode = (market !== undefined) ? market['lowercaseId'] : undefined;
-            const baseId = (market !== undefined) ? market['lowercaseBaseId'] : undefined;
-            const prefix = orderType;
-            messageHash = prefix;
-            if (subType === 'linear') {
-                // USDT Margined Contracts Example: LTC/USDT:USDT
-                const marginMode = this.safeString (params, 'margin', 'cross');
-                const marginPrefix = (marginMode === 'cross') ? prefix + '_cross' : prefix;
-                messageHash = marginPrefix;
-                if (marketCode !== undefined) {
-                    messageHash += '.' + marketCode;
-                    channel = messageHash;
-                } else {
-                    channel = marginPrefix + '.' + '*';
-                }
-            } else if (type === 'future') {
-                // inverse futures Example: BCH/USD:BCH-220408
-                if (baseId !== undefined) {
-                    channel = prefix + '.' + baseId;
-                    messageHash = channel;
-                } else {
-                    channel = prefix + '.' + '*';
-                }
-            } else {
-                // inverse swaps: Example: BTC/USD:BTC
-                if (marketCode !== undefined) {
-                    channel = prefix + '.' + marketCode;
-                    messageHash = channel;
-                } else {
-                    channel = prefix + '.' + '*';
-                }
-            }
+            const channelAndMessageHash = this.getOrderChannelAndMessageHash (type, subType, market, params);
+            channel = this.safeString (channelAndMessageHash, 0);
+            messageHash = this.safeString (channelAndMessageHash, 1);
         }
-        const orders = await this.subscribePrivate (channel, messageHash, type, subType, query);
+        const orders = await this.subscribePrivate (channel, messageHash, type, subType, params);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
