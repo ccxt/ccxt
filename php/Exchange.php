@@ -2250,7 +2250,7 @@ class Exchange {
     }
 
     public function safe_deposit_address($deposit_address) {
-        return $this->deep_extend([
+        return $this->extend([
             'currency'=> null,
             'address'=> null,
             'tag'=> null,
