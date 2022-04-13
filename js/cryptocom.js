@@ -1135,11 +1135,7 @@ module.exports = class cryptocom extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result');
-        const id = this.safeString (result, 'id');
-        return {
-            'info': response,
-            'id': id,
-        };
+        return this.parseTransaction (result, currency);
     }
 
     async fetchDepositAddressesByNetwork (code, params = {}) {
