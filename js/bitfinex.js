@@ -1312,10 +1312,10 @@ module.exports = class bitfinex extends Exchange {
             }
             throw new ExchangeError (this.id + ' withdraw returned an id of zero: ' + this.json (response));
         }
-        return {
+        return this.parseTransaction ({
             'info': response,
             'id': id,
-        };
+        });
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
