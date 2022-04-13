@@ -34,7 +34,7 @@ const priorityCodes = [
     'ZRX',
 ];
 
-prioritySymbols = [
+const prioritySymbols = [
     'BTC/CNY',
     'BTC/USD',
     'BTC/USDT',
