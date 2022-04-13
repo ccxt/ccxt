@@ -1384,6 +1384,9 @@ class Exchange(object):
                     return error
         return True
 
+    def safe_sign_in_entry(self, sign_in_entry):
+        return sign_in_entry
+
     def check_address(self, address):
         """Checks an address is not the same character repeated or an empty sequence"""
         if address is None:

@@ -1021,6 +1021,10 @@ class Exchange {
         return true;
     }
 
+    public function safe_sign_in_entry($sign_in_entry) {
+        return $sign_in_entry;
+    }
+
     public function check_address($address) {
         if (empty($address) || !is_string($address)) {
             throw new InvalidAddress($this->id . ' address is null');

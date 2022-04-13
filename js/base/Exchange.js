@@ -424,6 +424,10 @@ module.exports = class Exchange {
         return true
     }
 
+    safeSignInEntry(signInEntry) {
+        return signInEntry;
+    }
+
     checkAddress (address) {
 
         if (address === undefined) {
