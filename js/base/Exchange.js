@@ -1468,10 +1468,6 @@ module.exports = class Exchange {
         return this.filterBySymbolSinceLimit (result, symbol, since, limit, tail)
     }
 
-    safeTime (time) {
-        return time;
-    }
-
     safeStatus (status) {
         return this.extend({
             'status': undefined,
