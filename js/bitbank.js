@@ -659,10 +659,31 @@ module.exports = class bitbank extends Exchange {
         };
         const response = await this.privatePostUserRequestWithdrawal (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
-        const txid = this.safeString (data, 'txid');
+        return this.parseTransaction (data, currency);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        const txid = this.safeString (transaction, 'txid');
         return {
-            'info': response,
-            'id': txid,
+            'id': undefined,
+            'txid': txid,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'network': undefined,
+            'addressFrom': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'amount': undefined,
+            'type': undefined,
+            'currency': undefined,
+            'status': undefined,
+            'updated': undefined,
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'comment': undefined,
+            'fee': undefined,
+            'info': transaction,
         };
     }
 
