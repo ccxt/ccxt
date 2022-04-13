@@ -30,11 +30,11 @@ class ftx(Exchange):
             'id': 'ftx',
             'name': 'FTX',
             'countries': ['BS'],  # Bahamas
-            # hard limit of 6 requests per 200ms => 30 requests per 1000ms => 1000ms / 30 = 33.3333 ms between requests
+            #  hard limit of 7 requests per 200ms => 35 requests per 1000ms => 1000ms / 35 = 28.5714 ms between requests
             # 10 withdrawal requests per 30 seconds = (1000ms / rateLimit) / (1/3) = 90.1
             # cancels do not count towards rateLimit
             # only 'order-making' requests count towards ratelimit
-            'rateLimit': 33.34,
+            'rateLimit': 28.57,
             'certified': True,
             'pro': True,
             'hostname': 'ftx.com',  # or ftx.us
@@ -101,11 +101,14 @@ class ftx(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
+                'fetchTransfer': None,
+                'fetchTransfers': None,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
                 'setLeverage': True,
                 'setMarginMode': False,  # FTX only supports cross margin
                 'setPositionMode': False,
+                'transfer': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -377,6 +380,10 @@ class ftx(Exchange):
             'options': {
                 # support for canceling conditional orders
                 # https://github.com/ccxt/ccxt/issues/6669
+                'fetchMarkets': {
+                    # the expiry datetime may be None for expiring futures, https://github.com/ccxt/ccxt/pull/12692
+                    'throwOnUndefinedExpiry': False,
+                },
                 'cancelOrder': {
                     'method': 'privateDeleteOrdersOrderId',  # privateDeleteConditionalOrdersOrderId
                 },
@@ -597,7 +604,13 @@ class ftx(Exchange):
                 type = 'future'
                 expiry = self.parse8601(expiryDatetime)
                 if expiry is None:
-                    raise BadResponse(self.id + " symbol '" + id + "' is a future contract but with an invalid expiry datetime.")
+                    # it is likely a future that is expiring in self moment
+                    options = self.safe_value(self.options, 'fetchMarkets', {})
+                    throwOnUndefinedExpiry = self.safe_value(options, 'throwOnUndefinedExpiry', False)
+                    if throwOnUndefinedExpiry:
+                        raise BadResponse(self.id + " symbol '" + id + "' is a future contract with an invalid expiry datetime.")
+                    else:
+                        continue
                 parsedId = id.split('-')
                 length = len(parsedId)
                 if length > 2:
@@ -1815,6 +1828,70 @@ class ftx(Exchange):
         trades = self.safe_value(response, 'result', [])
         return self.parse_trades(trades, market, since, limit)
 
+    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'coin': currency['id'],
+            'source': fromAccount,
+            'destination': toAccount,
+            'size': amount,
+        }
+        response = await self.privatePostSubaccountsTransfer(self.extend(request, params))
+        #
+        #     {
+        #         success: True,
+        #         result: {
+        #             id: '31222278',
+        #             coin: 'USDT',
+        #             size: '1.0',
+        #             time: '2022-04-01T11:18:27.194188+00:00',
+        #             notes: 'Transfer from main account to testSubaccount',
+        #             status: 'complete'
+        #         }
+        #     }
+        #
+        result = self.safe_value(response, 'result', {})
+        return self.parse_transfer(result, currency)
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        #     {
+        #         id: '31222278',
+        #         coin: 'USDT',
+        #         size: '1.0',
+        #         time: '2022-04-01T11:18:27.194188+00:00',
+        #         notes: 'Transfer from main account to testSubaccount',
+        #         status: 'complete'
+        #     }
+        #
+        currencyId = self.safe_string(transfer, 'coin')
+        notes = self.safe_string(transfer, 'notes', '')
+        status = self.safe_string(transfer, 'status')
+        fromTo = notes.replace('Transfer from ', '')
+        parts = fromTo.split(' to ')
+        fromAccount = self.safe_string(parts, 0)
+        fromAccount = fromAccount.replace(' account', '')
+        toAccount = self.safe_string(parts, 1)
+        toAccount = toAccount.replace(' account', '')
+        return {
+            'info': transfer,
+            'id': self.safe_string(transfer, 'id'),
+            'timestamp': None,
+            'datetime': self.safe_string(transfer, 'time'),
+            'currency': self.safe_currency_code(currencyId, currency),
+            'amount': self.safe_number(transfer, 'size'),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': self.parse_transfer_status(status),
+        }
+
+    def parse_transfer_status(self, status):
+        statuses = {
+            'complete': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
+
     async def withdraw(self, code, amount, address, tag=None, params={}):
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         await self.load_markets()
@@ -2356,23 +2433,10 @@ class ftx(Exchange):
         #         ]
         #     }
         #
-        timestamp = self.milliseconds()
         result = self.safe_value(response, 'result')
-        rates = {}
-        for i in range(0, len(result)):
-            rate = result[i]
-            code = self.safe_currency_code(self.safe_string(rate, 'coin'))
-            rates[code] = {
-                'currency': code,
-                'rate': self.safe_number(rate, 'previous'),
-                'period': 3600000,
-                'timestamp': timestamp,
-                'datetime': self.iso8601(timestamp),
-                'info': rate,
-            }
-        return rates
+        return self.parse_borrow_rates(result, 'coin')
 
-    async def fetch_borrow_rate_histories(self, since=None, limit=None, params={}):
+    async def fetch_borrow_rate_histories(self, codes=None, since=None, limit=None, params={}):
         await self.load_markets()
         request = {}
         endTime = self.safe_number_2(params, 'till', 'end_time')
@@ -2413,38 +2477,66 @@ class ftx(Exchange):
         #    }
         #
         result = self.safe_value(response, 'result')
-        # How to calculate borrow rate
-        # https://help.ftx.com/hc/en-us/articles/360053007671-Spot-Margin-Trading-Explainer
-        takerFee = str(self.fees['trading']['taker'])
-        spotMarginBorrowRate = Precise.string_mul('500', takerFee)
-        borrowRateHistories = {}
-        for i in range(0, len(result)):
-            item = result[i]
-            currency = self.safe_currency_code(self.safe_string(item, 'coin'))
-            if not (currency in borrowRateHistories):
-                borrowRateHistories[currency] = []
-            datetime = self.safe_string(item, 'time')
-            lendingRate = self.safe_string(item, 'rate')
-            borrowRateHistories[currency].append({
-                'currency': currency,
-                'rate': Precise.string_mul(lendingRate, Precise.string_add('1', spotMarginBorrowRate)),
-                'timestamp': self.parse8601(datetime),
-                'datetime': datetime,
-                'info': item,
-            })
-        keys = list(borrowRateHistories.keys())
-        for i in range(0, len(keys)):
-            key = keys[i]
-            borrowRateHistories[key] = self.filter_by_currency_since_limit(borrowRateHistories[key], key, since, limit)
-        return borrowRateHistories
+        return self.parse_borrow_rate_histories(result, codes, since, limit)
 
     async def fetch_borrow_rate_history(self, code, since=None, limit=None, params={}):
         histories = await self.fetch_borrow_rate_histories(since, limit, params)
         borrowRateHistory = self.safe_value(histories, code)
         if borrowRateHistory is None:
             raise BadRequest(self.id + ' fetchBorrowRateHistory() returned no data for ' + code)
-        else:
-            return borrowRateHistory
+        return borrowRateHistory
+
+    def parse_borrow_rate_histories(self, response, codes, since, limit):
+        # How to calculate borrow rate
+        # https://help.ftx.com/hc/en-us/articles/360053007671-Spot-Margin-Trading-Explainer
+        takerFee = str(self.fees['trading']['taker'])
+        spotMarginBorrowRate = Precise.string_mul('500', takerFee)
+        borrowRateHistories = {}
+        for i in range(0, len(response)):
+            item = response[i]
+            code = self.safe_currency_code(self.safe_string(item, 'coin'))
+            if codes is None or codes.includes(code):
+                if not (code in borrowRateHistories):
+                    borrowRateHistories[code] = []
+                lendingRate = self.safe_string(item, 'rate')
+                borrowRate = Precise.string_mul(lendingRate, Precise.string_add('1', spotMarginBorrowRate))
+                borrowRateStructure = self.extend(self.parse_borrow_rate(item), {'rate': borrowRate})
+                borrowRateHistories[code].append(borrowRateStructure)
+        keys = list(borrowRateHistories.keys())
+        for i in range(0, len(keys)):
+            code = keys[i]
+            borrowRateHistories[code] = self.filter_by_currency_since_limit(borrowRateHistories[code], code, since, limit)
+        return borrowRateHistories
+
+    def parse_borrow_rates(self, response, codeKey):
+        result = {}
+        for i in range(0, len(response)):
+            item = response[i]
+            currency = self.safe_string(item, codeKey)
+            code = self.safe_currency_code(currency)
+            borrowRate = self.parse_borrow_rate(item)
+            result[code] = borrowRate
+        return result
+
+    def parse_borrow_rate(self, info, currency=None):
+        #
+        #    {
+        #        "coin": "1INCH",
+        #        "previous": 0.0000462375,
+        #        "estimate": 0.0000462375
+        #    }
+        #
+        coin = self.safe_string(info, 'coin')
+        datetime = self.safe_string(info, 'time')
+        timestamp = self.parse8601(datetime)
+        return {
+            'currency': self.safe_currency_code(coin),
+            'rate': self.safe_number(info, 'previous'),
+            'period': 3600000,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': info,
+        }
 
     async def fetch_borrow_interest(self, code=None, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -2463,19 +2555,21 @@ class ftx(Exchange):
         #     }
         #
         result = self.safe_value(response, 'result')
-        interest = []
-        for i in range(0, len(result)):
-            payment = result[i]
-            coin = self.safe_string(payment, 'coin')
-            datetime = self.safe_string(payment, 'time')
-            interest.append({
-                'account': None,
-                'currency': self.safe_currency_code(coin),
-                'interest': self.safe_number(payment, 'cost'),
-                'interestRate': self.safe_number(payment, 'rate'),
-                'amountBorrowed': self.safe_number(payment, 'size'),
-                'timestamp': self.parse8601(datetime),
-                'datetime': datetime,
-                'info': payment,
-            })
+        interest = self.parse_borrow_interests(result)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
+
+    def parse_borrow_interest(self, info, market=None):
+        coin = self.safe_string(info, 'coin')
+        datetime = self.safe_string(info, 'time')
+        return {
+            'account': 'cross',
+            'symbol': None,
+            'marginType': 'cross',
+            'currency': self.safe_currency_code(coin),
+            'interest': self.safe_number(info, 'cost'),
+            'interestRate': self.safe_number(info, 'rate'),
+            'amountBorrowed': self.safe_number(info, 'size'),
+            'timestamp': self.parse8601(datetime),
+            'datetime': datetime,
+            'info': info,
+        }

@@ -121,6 +121,7 @@ module.exports = class Exchange {
                 'fetchOrderBooks': undefined,
                 'fetchOrders': undefined,
                 'fetchOrderTrades': undefined,
+                'fetchPermissions': undefined,
                 'fetchPosition': undefined,
                 'fetchPositions': undefined,
                 'fetchPositionsRisk': undefined,
@@ -814,6 +815,10 @@ module.exports = class Exchange {
         }
         const markets = await this.fetchMarkets (params)
         return this.setMarkets (markets, currencies)
+    }
+
+    async fetchPermissions (params = {}) {
+        throw new NotSupported (this.id + ' fetchPermissions() not supported yet')
     }
 
     // is async (returns a promise)
@@ -2231,14 +2236,14 @@ module.exports = class Exchange {
 
     }
 
-    /**
-     * @param {string} type: Order type
-     * @param {string} timeInForce
-     * @param {boolean} exchangeSpecificOption: True if the exchange specific post only setting is set
-     * @param {dict} params: Exchange specific params
-     * @returns {boolean}: true if a post only order, false otherwise
-     */
     isPostOnly (type, timeInForce, exchangeSpecificOption, params = {}) {
+        /**
+         * @param {string} type: Order type
+         * @param {string} timeInForce
+         * @param {boolean} exchangeSpecificOption: True if the exchange specific post only setting is set
+         * @param {dict} params: Exchange specific params
+         * @returns {boolean}: true if a post only order, false otherwise
+         */
         let postOnly = this.safeValue2 (params, 'postOnly', 'post_only', false);
         params = this.omit (params, ['post_only', 'postOnly']);
         const timeInForceUpper = timeInForce.toUpperCase ();
@@ -2268,5 +2273,14 @@ module.exports = class Exchange {
         }
         const query = this.extend (params, {'postOnly': true});
         return await this.createOrder (symbol, type, side, amount, price, query);
+    }
+
+    parseBorrowInterests (response, market = undefined) {
+        const interest = [];
+        for (let i = 0; i < response.length; i++) {
+            const row = response[i];
+            interest.push (this.parseBorrowInterest (row, market));
+        }
+        return interest;
     }
 }

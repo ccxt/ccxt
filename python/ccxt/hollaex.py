@@ -96,7 +96,9 @@ class hollaex(Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/75841031-ca375180-5ddd-11ea-8417-b975674c23cb.jpg',
                 'test': 'https://api.sandbox.hollaex.com',
-                'api': 'https://api.hollaex.com',
+                'api': {
+                    'rest': 'https://api.hollaex.com',
+                },
                 'www': 'https://hollaex.com',
                 'doc': 'https://apidocs.hollaex.com',
                 'referral': 'https://pro.hollaex.com/signup?affiliation_code=QSWA6G',
@@ -138,7 +140,7 @@ class hollaex(Exchange):
                         'order': 1,
                     },
                     'post': {
-                        'user/request-withdrawal': 1,
+                        'user/withdrawal': 1,
                         'order': 1,
                     },
                     'delete': {
@@ -1247,6 +1249,8 @@ class hollaex(Exchange):
 
     def parse_transaction(self, transaction, currency=None):
         #
+        # fetchWithdrawals, fetchDeposits
+        #
         #     {
         #         "id": 539,
         #         "amount": 20,
@@ -1262,6 +1266,17 @@ class hollaex(Exchange):
         #         "created_at": "2020-03-03T07:56:36.198Z",
         #         "updated_at": "2020-03-03T08:00:05.674Z",
         #         "user_id": 620
+        #     }
+        #
+        # withdraw
+        #
+        #     {
+        #         message: 'Withdrawal request is in the queue and will be processed.',
+        #         transaction_id: '1d1683c3-576a-4d53-8ff5-27c93fd9758a',
+        #         amount: 1,
+        #         currency: 'xht',
+        #         fee: 0,
+        #         fee_coin: 'xht'
         #     }
         #
         id = self.safe_string(transaction, 'id')
@@ -1283,7 +1298,7 @@ class hollaex(Exchange):
             addressTo = address
             tagTo = tag
         currencyId = self.safe_string(transaction, 'currency')
-        code = self.safe_currency_code(currencyId)
+        currency = self.safe_currency(currencyId, currency)
         status = self.safe_value(transaction, 'status')
         dismissed = self.safe_value(transaction, 'dismissed')
         rejected = self.safe_value(transaction, 'rejected')
@@ -1295,8 +1310,10 @@ class hollaex(Exchange):
             status = 'failed'
         else:
             status = 'pending'
+        feeCurrencyId = self.safe_string(transaction, 'fee_coin')
+        feeCurrencyCode = self.safe_currency_code(feeCurrencyId, currency)
         fee = {
-            'currency': code,
+            'currency': feeCurrencyCode,
             'cost': self.safe_number(transaction, 'fee'),
         }
         return {
@@ -1314,7 +1331,7 @@ class hollaex(Exchange):
             'tagTo': tagTo,
             'type': type,
             'amount': amount,
-            'currency': code,
+            'currency': currency['code'],
             'status': status,
             'updated': updated,
             'fee': fee,
@@ -1332,17 +1349,21 @@ class hollaex(Exchange):
             'amount': amount,
             'address': address,
         }
-        # one time password
-        otp = self.safe_string(params, 'otp_code')
-        if (otp is not None) or (self.twofa is not None):
-            if otp is None:
-                otp = self.oath()
-            request['otp_code'] = otp
-        response = self.privatePostUserRequestWithdrawal(self.extend(request, params))
-        return {
-            'info': response,
-            'id': None,
-        }
+        network = self.safe_string(params, 'network')
+        if network is not None:
+            request['network'] = network
+        response = self.privatePostUserWithdrawal(self.extend(request, params))
+        #
+        #     {
+        #         message: 'Withdrawal request is in the queue and will be processed.',
+        #         transaction_id: '1d1683c3-576a-4d53-8ff5-27c93fd9758a',
+        #         amount: 1,
+        #         currency: 'xht',
+        #         fee: 0,
+        #         fee_coin: 'xht'
+        #     }
+        #
+        return self.parse_transaction(response, currency)
 
     def normalize_number_if_needed(self, number):
         if number % 1 == 0:
@@ -1355,7 +1376,7 @@ class hollaex(Exchange):
         if (method == 'GET') or (method == 'DELETE'):
             if query:
                 path += '?' + self.urlencode(query)
-        url = self.urls['api'] + path
+        url = self.urls['api']['rest'] + path
         if api == 'private':
             self.check_required_credentials()
             defaultExpires = self.safe_integer_2(self.options, 'api-expires', 'expires', int(self.timeout / 1000))

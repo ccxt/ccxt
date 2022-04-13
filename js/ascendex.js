@@ -2362,30 +2362,32 @@ module.exports = class ascendex extends Exchange {
 
     parseMarketLeverageTiers (info, market = undefined) {
         /**
-            @param info: Exchange market response for 1 market
-            {
-                "symbol":"BTC-PERP",
-                "status":"Normal",
-                "displayName":"BTCUSDT",
-                "settlementAsset":"USDT",
-                "underlying":"BTC/USDT",
-                "tradingStartTime":1579701600000,
-                "priceFilter":{"minPrice":"1","maxPrice":"1000000","tickSize":"1"},
-                "lotSizeFilter":{"minQty":"0.0001","maxQty":"1000000000","lotSize":"0.0001"},
-                "commissionType":"Quote",
-                "commissionReserveRate":"0.001",
-                "marketOrderPriceMarkup":"0.03",
-                "marginRequirements":[
-                    {"positionNotionalLowerBound":"0","positionNotionalUpperBound":"50000","initialMarginRate":"0.01","maintenanceMarginRate":"0.006"},
-                    {"positionNotionalLowerBound":"50000","positionNotionalUpperBound":"200000","initialMarginRate":"0.02","maintenanceMarginRate":"0.012"},
-                    {"positionNotionalLowerBound":"200000","positionNotionalUpperBound":"2000000","initialMarginRate":"0.04","maintenanceMarginRate":"0.024"},
-                    {"positionNotionalLowerBound":"2000000","positionNotionalUpperBound":"20000000","initialMarginRate":"0.1","maintenanceMarginRate":"0.06"},
-                    {"positionNotionalLowerBound":"20000000","positionNotionalUpperBound":"40000000","initialMarginRate":"0.2","maintenanceMarginRate":"0.12"},
-                    {"positionNotionalLowerBound":"40000000","positionNotionalUpperBound":"1000000000","initialMarginRate":"0.333333","maintenanceMarginRate":"0.2"}
-                ]
-            }
-            @param market: CCXT market
-        */
+         * @param {dict} info Exchange market response for 1 market
+         * @param {dict} market CCXT market
+         */
+        //
+        //    {
+        //        "symbol":"BTC-PERP",
+        //        "status":"Normal",
+        //        "displayName":"BTCUSDT",
+        //        "settlementAsset":"USDT",
+        //        "underlying":"BTC/USDT",
+        //        "tradingStartTime":1579701600000,
+        //        "priceFilter":{"minPrice":"1","maxPrice":"1000000","tickSize":"1"},
+        //        "lotSizeFilter":{"minQty":"0.0001","maxQty":"1000000000","lotSize":"0.0001"},
+        //        "commissionType":"Quote",
+        //        "commissionReserveRate":"0.001",
+        //        "marketOrderPriceMarkup":"0.03",
+        //        "marginRequirements":[
+        //            {"positionNotionalLowerBound":"0","positionNotionalUpperBound":"50000","initialMarginRate":"0.01","maintenanceMarginRate":"0.006"},
+        //            {"positionNotionalLowerBound":"50000","positionNotionalUpperBound":"200000","initialMarginRate":"0.02","maintenanceMarginRate":"0.012"},
+        //            {"positionNotionalLowerBound":"200000","positionNotionalUpperBound":"2000000","initialMarginRate":"0.04","maintenanceMarginRate":"0.024"},
+        //            {"positionNotionalLowerBound":"2000000","positionNotionalUpperBound":"20000000","initialMarginRate":"0.1","maintenanceMarginRate":"0.06"},
+        //            {"positionNotionalLowerBound":"20000000","positionNotionalUpperBound":"40000000","initialMarginRate":"0.2","maintenanceMarginRate":"0.12"},
+        //            {"positionNotionalLowerBound":"40000000","positionNotionalUpperBound":"1000000000","initialMarginRate":"0.333333","maintenanceMarginRate":"0.2"}
+        //        ]
+        //    }
+        //
         const marginRequirements = this.safeValue (info, 'marginRequirements');
         const id = this.safeString (info, 'symbol');
         market = this.safeMarket (id, market);

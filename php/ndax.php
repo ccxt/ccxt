@@ -830,7 +830,7 @@ class ndax extends Exchange {
         //
         $priceString = null;
         $amountString = null;
-        $cost = null;
+        $costString = null;
         $timestamp = null;
         $id = null;
         $marketId = null;
@@ -855,27 +855,22 @@ class ndax extends Exchange {
             $marketId = $this->safe_string_2($trade, 'InstrumentId', 'Instrument');
             $priceString = $this->safe_string($trade, 'Price');
             $amountString = $this->safe_string($trade, 'Quantity');
-            $cost = $this->safe_number_2($trade, 'Value', 'GrossValueExecuted');
+            $costString = $this->safe_string_2($trade, 'Value', 'GrossValueExecuted');
             $takerOrMaker = $this->safe_string_lower($trade, 'MakerTaker');
             $side = $this->safe_string_lower($trade, 'Side');
             $type = $this->safe_string_lower($trade, 'OrderType');
-            $feeCost = $this->safe_number($trade, 'Fee');
-            if ($feeCost !== null) {
+            $feeCostString = $this->safe_string($trade, 'Fee');
+            if ($feeCostString !== null) {
                 $feeCurrencyId = $this->safe_string($trade, 'FeeProductId');
                 $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
                 $fee = array(
-                    'cost' => $feeCost,
+                    'cost' => $feeCostString,
                     'currency' => $feeCurrencyCode,
                 );
             }
         }
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        if ($cost === null) {
-            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
-        }
         $symbol = $this->safe_symbol($marketId, $market);
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
             'symbol' => $symbol,
@@ -885,11 +880,11 @@ class ndax extends Exchange {
             'type' => $type,
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => $costString,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {

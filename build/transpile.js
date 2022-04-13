@@ -22,6 +22,7 @@ const fs = require ('fs')
         overwriteFile,
     } = require ('./fs.js')
     , Exchange = require ('../js/base/Exchange.js')
+    , tsFilename = './ccxt.d.ts'
 
 class Transpiler {
 
@@ -326,8 +327,14 @@ class Transpiler {
             [ /\=\=\sTrue/g, 'is True' ], // a correction for PEP8 E712, it likes "is True", not "== True"
             [ /\sdelete\s/g, ' del ' ],
             [ /(?<!#.+)null/, 'None' ],
-            [ /\/\*\*/, '\'\'\'' ], // Doc strings
-            [ / \*\//, '\'\'\'' ], // Doc strings
+            [ /\/\*\*/, '\"\"\"' ], // Doc strings
+            [ / \*\//, '\"\"\"' ], // Doc strings
+            [ /\[(.*)\]\{@link (.*)\}/g, '`$1 <$2>`' ], // docstring item with link
+            [ /\s+\* @method/g, '' ], // docstring @method
+            [ /(\s+) \* @description (.*)/g, '$1$2' ], // docstring description
+            [ /\s+\* @name .*/g, '' ], // docstring @name
+            [ /(\s+) \* @returns/g, '$1:returns:' ], // docstring return
+            [ /(\s+) \* @([a-z]+) \{([a-z]+)\} ([a-zA-Z0-9_\-\.]+)/g, '$1:$2 $3 $4:' ], // docstring param
         ])
     }
 
@@ -347,7 +354,34 @@ class Transpiler {
 
     getPHPRegexes () {
         return [
+            //
+            // Curly-braces are used for both dictionaries in the code as well as for the url-imploded params.
+            // For example: https://docs.ccxt.com/en/latest/manual.html#implicit-api-methods
+            //
+            // There's a conflict between the curly braces that have to be converted from dictionaries to PHP-arrays and 
+            // the curly braces used for url-imploded params that should not be touched.
+            //
+            // The transpiler takes all non-spaced strings in curly braces {likeThis} and converts them to ~likeThis~.
+            // That is done to avoid changing the curly braces into the array() in PHP.
+            // This way we protect the url-imploded params from being touched by the regexes that will follow.
+            // That conversion is done first-thing, at the very early stage of transpilation.
+            // The regexes are applied in the order they're listed, top-down.
+            //
+            // A dictionary in curly braces will never have those curly braces attached to the contents of the dictionary.
+            // There will always be a space like { 'a': b, 'c': d }. 
+            // Hence, the remaining non-converted curly-brace dictionaries will have to be converted to arrays in PHP.
+            // That is done in the middle of the transpilation process.
+            //
+            // The last step is to convert those "saved embedded/imploded url-params substitutions" from ~likeThis~ back to {likeThis}.
+            // That is done at the very last regex steps.
+            // All of that is a workaround for PHP-arrays vs dictionaries vs url-imploded params in other langs.
+            //
             [ /\{([a-zA-Z0-9_-]+?)\}/g, '~$1~' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
+            [ /\[(.*)\]\{(@link .*)\}/g, '~$2 $1~' ], // docstring item with link
+            [ /\s+\* @method/g, '' ], // docstring @method
+            [ /(\s+)\* @description (.*)/g, '$1\* $2' ], // docstring description
+            [ /\s+\* @name .*/g, '' ], // docstring @name
+            [ /(\s+)\* @returns/g, '$1\* @return' ], // docstring return
             [ /\!Array\.isArray\s*\(([^\)]+)\)/g, "gettype($1) === 'array' && count(array_filter(array_keys($1), 'is_string')) != 0" ],
             [ /Array\.isArray\s*\(([^\)]+)\)/g, "gettype($1) === 'array' && count(array_filter(array_keys($1), 'is_string')) == 0" ],
             [ /([^\(\s]+)\s+instanceof\s+String/g, 'is_string($1)' ],
@@ -488,7 +522,7 @@ class Transpiler {
             [ /process\.exit/g, 'exit'],
             [ /super\./g, 'parent::'],
             [ /\sdelete\s([^\n]+)\;/g, ' unset($1);' ],
-            [ /\~([a-zA-Z0-9_-]+?)\~/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
+            [ /\~([@\.\s+\:\/#\-a-zA-Z0-9_-]+?)\~/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
         ])
     }
 
@@ -1249,12 +1283,13 @@ class Transpiler {
 
     // ========================================================================
 
-    transpileErrorHierarchy () {
+    transpileErrorHierarchy ({ tsFilename }) {
 
         const errorHierarchyFilename = './js/base/errorHierarchy.js'
-        const errorHierarchy = require ('.' + errorHierarchyFilename)
+        const errorHierarchyPath = __dirname + '/.' + errorHierarchyFilename
+        const errorHierarchy = require (errorHierarchyPath)
 
-        let js = fs.readFileSync (errorHierarchyFilename, 'utf8')
+        let js = fs.readFileSync (errorHierarchyPath, 'utf8')
 
         js = this.regexAll (js, [
             [ /module\.exports = [^\;]+\;\n/s, '' ],
@@ -1299,16 +1334,16 @@ class Transpiler {
         ].join ('\n');
 
         const quote = (s) => "'" + s + "'" // helper to add quotes around class names
-
         const pythonExports = [ 'error_hierarchy', 'BaseError' ]
         const pythonErrors = intellisense (root, 'BaseError', pythonDeclareErrorClass, pythonExports)
         const pythonAll = '__all__ = [\n    ' + pythonExports.map (quote).join (',\n    ') + '\n]'
-
         const python3BodyIntellisense = python3Body + '\n\n\n' + pythonBaseError + '\n' + pythonErrors.join ('\n') + '\n' + pythonAll + '\n'
 
         const pythonFilename = './python/ccxt/base/errors.py'
-        log.bright.cyan (message, pythonFilename.yellow)
-        fs.writeFileSync (pythonFilename, python3BodyIntellisense)
+        if (fs.existsSync (pythonFilename)) {
+            log.bright.cyan (message, pythonFilename.yellow)
+            fs.writeFileSync (pythonFilename, python3BodyIntellisense)
+        }
 
         // PHP ----------------------------------------------------------------
 
@@ -1331,13 +1366,15 @@ class Transpiler {
             return "require_once PATH_TO_CCXT . '" + name + ".php';"
         }
 
-        const phpErrors = intellisense (errorHierarchy, 'Exception', phpMakeErrorClassFile)
-        const phpBodyIntellisense = phpErrors.join ("\n") + "\n\n"
-        const phpFilename = './ccxt.php'
+        const phpFilename ='./ccxt.php'
 
-        log.bright.cyan (message, phpFilename.yellow)
-        const phpRegex = /require_once PATH_TO_CCXT \. \'BaseError\.php\'\;\n(?:require_once PATH_TO_CCXT[^\n]+\n)+\n/m
-        replaceInFile (phpFilename, phpRegex, phpBodyIntellisense)
+        if (fs.existsSync (phpFilename)) {
+            const phpErrors = intellisense (errorHierarchy, 'Exception', phpMakeErrorClassFile)
+            const phpBodyIntellisense = phpErrors.join ("\n") + "\n\n"
+            log.bright.cyan (message, phpFilename.yellow)
+            const phpRegex = /require_once PATH_TO_CCXT \. \'BaseError\.php\'\;\n(?:require_once PATH_TO_CCXT[^\n]+\n)+\n/m
+            replaceInFile (phpFilename, phpRegex, phpBodyIntellisense)
+        }
 
         // TypeScript ---------------------------------------------------------
 
@@ -1355,7 +1392,6 @@ class Transpiler {
 
         const tsBodyIntellisense = tsBaseError + '\n\n    ' + tsErrors.join ('\n    ') + '\n\n'
 
-        const tsFilename = './ccxt.d.ts'
         log.bright.cyan (message, tsFilename.yellow)
         const regex = /export class BaseError[^}]+\}[\n][\n](?:\s+export class [a-zA-Z]+ extends [a-zA-Z]+ \{\}[\n])+[\n]/m
         replaceInFile (tsFilename, regex, tsBodyIntellisense)
@@ -1683,11 +1719,11 @@ class Transpiler {
 
         // HINT: if we're going to support specific class definitions
         // this process won't work anymore as it will override the definitions
-        this.exportTypeScriptDeclarations ('./ccxt.d.ts', classes)
+        this.exportTypeScriptDeclarations (tsFilename, classes)
 
         //*/
 
-        this.transpileErrorHierarchy ()
+        this.transpileErrorHierarchy ({ tsFilename })
 
         this.transpileTests ()
 
@@ -1714,7 +1750,7 @@ if (require.main === module) { // called directly like `node module`
     if (test) {
         transpiler.transpileTests ()
     } else if (errors) {
-        transpiler.transpileErrorHierarchy ()
+        transpiler.transpileErrorHierarchy ({ tsFilename })
     } else {
         transpiler.transpileEverything (force)
     }

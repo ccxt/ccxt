@@ -157,6 +157,7 @@ class binance(Exchange):
                 'api': {
                     'wapi': 'https://api.binance.com/wapi/v3',
                     'sapi': 'https://api.binance.com/sapi/v1',
+                    'sapiV3': 'https://api.binance.com/sapi/v3',
                     'dapiPublic': 'https://dapi.binance.com/dapi/v1',
                     'dapiPrivate': 'https://dapi.binance.com/dapi/v1',
                     'vapiPublic': 'https://vapi.binance.com/vapi/v1',
@@ -434,6 +435,11 @@ class binance(Exchange):
                         # brokerage API TODO NO MENTION OF RATELIMIT IN BROKERAGE DOCS
                         'broker/subAccountApi': 1,
                         'broker/subAccountApi/ipRestriction/ipList': 1,
+                    },
+                },
+                'sapiV3': {
+                    'get': {
+                        'sub-account/assets': 1,
                     },
                 },
                 # deprecated
@@ -2311,7 +2317,7 @@ class binance(Exchange):
         id = self.safe_string_2(trade, 'id', 'tradeId', id)
         side = None
         orderId = self.safe_string(trade, 'orderId')
-        buyerMaker = self.safe_value(trade, 'm', 'isBuyerMaker')
+        buyerMaker = self.safe_value_2(trade, 'm', 'isBuyerMaker')
         takerOrMaker = None
         if buyerMaker is not None:
             side = 'sell' if buyerMaker else 'buy'  # self is reversed intentionally
@@ -4595,23 +4601,27 @@ class binance(Exchange):
         return self.parse_leverage_tiers(response, symbols, 'symbol')
 
     def parse_market_leverage_tiers(self, info, market):
-        '''
-            @param info: Exchange response for 1 market
-            {
-                "symbol": "SUSHIUSDT",
-                "brackets": [
-                    {
-                        "bracket": 1,
-                        "initialLeverage": 50,
-                        "notionalCap": 50000,
-                        "notionalFloor": 0,
-                        "maintMarginRatio": 0.01,
-                        "cum": 0.0
-                    },
-                    ...
-                ]
-            @param market: CCXT market
-       '''
+        """
+         * @ignore
+        :param dict info: Exchange response for 1 market
+        :param dict market: CCXT market
+        """
+        #
+        #    {
+        #        "symbol": "SUSHIUSDT",
+        #        "brackets": [
+        #            {
+        #                "bracket": 1,
+        #                "initialLeverage": 50,
+        #                "notionalCap": 50000,
+        #                "notionalFloor": 0,
+        #                "maintMarginRatio": 0.01,
+        #                "cum": 0.0
+        #            },
+        #            ...
+        #        ]
+        #    }
+        #
         marketId = self.safe_string(info, 'symbol')
         safeSymbol = self.safe_symbol(marketId)
         market = self.safe_market(safeSymbol, market)
@@ -4890,7 +4900,7 @@ class binance(Exchange):
                     body = self.urlencode(params)
             else:
                 raise AuthenticationError(self.id + ' userDataStream endpoint requires `apiKey` credential')
-        elif (api == 'private') or (api == 'sapi' and path != 'system/status') or (api == 'wapi' and path != 'systemStatus') or (api == 'dapiPrivate') or (api == 'dapiPrivateV2') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2'):
+        elif (api == 'private') or (api == 'sapi' and path != 'system/status') or (api == 'sapiV3') or (api == 'wapi' and path != 'systemStatus') or (api == 'dapiPrivate') or (api == 'dapiPrivateV2') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2'):
             self.check_required_credentials()
             query = None
             recvWindow = self.safe_integer(self.options, 'recvWindow')
@@ -5072,15 +5082,7 @@ class binance(Exchange):
         #     ]
         #
         rate = self.safe_value(response, 0)
-        timestamp = self.safe_number(rate, 'timestamp')
-        return {
-            'currency': code,
-            'rate': self.safe_number(rate, 'dailyInterestRate'),
-            'period': 86400000,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'info': response,
-        }
+        return self.parse_borrow_rate(rate)
 
     def fetch_borrow_rate_history(self, code, since=None, limit=None, params={}):
         self.load_markets()
@@ -5110,18 +5112,36 @@ class binance(Exchange):
         #         },
         #     ]
         #
+        return self.parse_borrow_rate_history(response)
+
+    def parse_borrow_rate_history(self, response, code, since, limit):
         result = []
         for i in range(0, len(response)):
             item = response[i]
-            timestamp = self.safe_number(item, 'timestamp')
-            result.append({
-                'currency': code,
-                'rate': self.safe_number(item, 'dailyInterestRate'),
-                'timestamp': timestamp,
-                'datetime': self.iso8601(timestamp),
-                'info': item,
-            })
-        return result
+            borrowRate = self.parse_borrow_rate(item)
+            result.append(borrowRate)
+        sorted = self.sort_by(result, 'timestamp')
+        return self.filter_by_currency_since_limit(sorted, code, since, limit)
+
+    def parse_borrow_rate(self, info, currency=None):
+        #
+        #    {
+        #        "asset": "USDT",
+        #        "timestamp": 1638230400000,
+        #        "dailyInterestRate": "0.0006",
+        #        "vipLevel": 0
+        #    }
+        #
+        timestamp = self.safe_number(info, 'timestamp')
+        currency = self.safe_string(info, 'asset')
+        return {
+            'currency': self.safe_currency_code(currency),
+            'rate': self.safe_number(info, 'dailyInterestRate'),
+            'period': 86400000,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': info,
+        }
 
     def create_gift_code(self, code, amount, params={}):
         self.load_markets()
@@ -5216,19 +5236,21 @@ class binance(Exchange):
         #     }
         #
         rows = self.safe_value(response, 'rows')
-        interest = []
-        for i in range(0, len(rows)):
-            row = rows[i]
-            timestamp = self.safe_number(row, 'interestAccuredTime')
-            account = 'cross' if (symbol is None) else symbol
-            interest.append({
-                'account': account,
-                'currency': self.safe_currency_code(self.safe_string(row, 'asset')),
-                'interest': self.safe_number(row, 'interest'),
-                'interestRate': self.safe_number(row, 'interestRate'),
-                'amountBorrowed': self.safe_number(row, 'principal'),
-                'timestamp': timestamp,
-                'datetime': self.iso8601(timestamp),
-                'info': row,
-            })
+        interest = self.parse_borrow_interests(rows, market)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
+
+    def parse_borrow_interest(self, info, market):
+        symbol = self.safe_string(info, 'isolatedSymbol')
+        timestamp = self.safe_number(info, 'interestAccuredTime')
+        return {
+            'account': 'cross' if (symbol is None) else symbol,
+            'symbol': symbol,
+            'marginType': 'cross' if (symbol is None) else 'isolated',
+            'currency': self.safe_currency_code(self.safe_string(info, 'asset')),
+            'interest': self.safe_number(info, 'interest'),
+            'interestRate': self.safe_number(info, 'interestRate'),
+            'amountBorrowed': self.safe_number(info, 'principal'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': info,
+        }

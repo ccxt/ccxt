@@ -143,6 +143,7 @@ class binance extends Exchange {
                 'api' => array(
                     'wapi' => 'https://api.binance.com/wapi/v3',
                     'sapi' => 'https://api.binance.com/sapi/v1',
+                    'sapiV3' => 'https://api.binance.com/sapi/v3',
                     'dapiPublic' => 'https://dapi.binance.com/dapi/v1',
                     'dapiPrivate' => 'https://dapi.binance.com/dapi/v1',
                     'vapiPublic' => 'https://vapi.binance.com/vapi/v1',
@@ -420,6 +421,11 @@ class binance extends Exchange {
                         // brokerage API TODO NO MENTION OF RATELIMIT IN BROKERAGE DOCS
                         'broker/subAccountApi' => 1,
                         'broker/subAccountApi/ipRestriction/ipList' => 1,
+                    ),
+                ),
+                'sapiV3' => array(
+                    'get' => array(
+                        'sub-account/assets' => 1,
                     ),
                 ),
                 // deprecated
@@ -2360,7 +2366,7 @@ class binance extends Exchange {
         $id = $this->safe_string_2($trade, 'id', 'tradeId', $id);
         $side = null;
         $orderId = $this->safe_string($trade, 'orderId');
-        $buyerMaker = $this->safe_value($trade, 'm', 'isBuyerMaker');
+        $buyerMaker = $this->safe_value_2($trade, 'm', 'isBuyerMaker');
         $takerOrMaker = null;
         if ($buyerMaker !== null) {
             $side = $buyerMaker ? 'sell' : 'buy'; // this is reversed intentionally
@@ -4841,23 +4847,26 @@ class binance extends Exchange {
 
     public function parse_market_leverage_tiers($info, $market) {
         /**
-            @param $info => Exchange response for 1 $market
-            {
-                "symbol" => "SUSHIUSDT",
-                "brackets" => array(
-                    array(
-                        "bracket" => 1,
-                        "initialLeverage" => 50,
-                        "notionalCap" => 50000,
-                        "notionalFloor" => 0,
-                        "maintMarginRatio" => 0.01,
-                        "cum" => 0.0
-                    ),
-                    ...
-                )
-            }
-            @param $market => CCXT $market
-        */
+         * @ignore
+         * @param {dict} $info Exchange response for 1 $market
+         * @param {dict} $market CCXT $market
+         */
+        //
+        //    {
+        //        "symbol" => "SUSHIUSDT",
+        //        "brackets" => array(
+        //            array(
+        //                "bracket" => 1,
+        //                "initialLeverage" => 50,
+        //                "notionalCap" => 50000,
+        //                "notionalFloor" => 0,
+        //                "maintMarginRatio" => 0.01,
+        //                "cum" => 0.0
+        //            ),
+        //            ...
+        //        )
+        //    }
+        //
         $marketId = $this->safe_string($info, 'symbol');
         $safeSymbol = $this->safe_symbol($marketId);
         $market = $this->safe_market($safeSymbol, $market);
@@ -5176,7 +5185,7 @@ class binance extends Exchange {
             } else {
                 throw new AuthenticationError($this->id . ' $userDataStream endpoint requires `apiKey` credential');
             }
-        } else if (($api === 'private') || ($api === 'sapi' && $path !== 'system/status') || ($api === 'wapi' && $path !== 'systemStatus') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2')) {
+        } else if (($api === 'private') || ($api === 'sapi' && $path !== 'system/status') || ($api === 'sapiV3') || ($api === 'wapi' && $path !== 'systemStatus') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2')) {
             $this->check_required_credentials();
             $query = null;
             $recvWindow = $this->safe_integer($this->options, 'recvWindow');
@@ -5393,15 +5402,7 @@ class binance extends Exchange {
         //     )
         //
         $rate = $this->safe_value($response, 0);
-        $timestamp = $this->safe_number($rate, 'timestamp');
-        return array(
-            'currency' => $code,
-            'rate' => $this->safe_number($rate, 'dailyInterestRate'),
-            'period' => 86400000,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'info' => $response,
-        );
+        return $this->parse_borrow_rate($rate);
     }
 
     public function fetch_borrow_rate_history($code, $since = null, $limit = null, $params = array ()) {
@@ -5434,19 +5435,39 @@ class binance extends Exchange {
         //         ),
         //     )
         //
+        return $this->parse_borrow_rate_history($response);
+    }
+
+    public function parse_borrow_rate_history($response, $code, $since, $limit) {
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $item = $response[$i];
-            $timestamp = $this->safe_number($item, 'timestamp');
-            $result[] = array(
-                'currency' => $code,
-                'rate' => $this->safe_number($item, 'dailyInterestRate'),
-                'timestamp' => $timestamp,
-                'datetime' => $this->iso8601($timestamp),
-                'info' => $item,
-            );
+            $borrowRate = $this->parse_borrow_rate($item);
+            $result[] = $borrowRate;
         }
-        return $result;
+        $sorted = $this->sort_by($result, 'timestamp');
+        return $this->filter_by_currency_since_limit($sorted, $code, $since, $limit);
+    }
+
+    public function parse_borrow_rate($info, $currency = null) {
+        //
+        //    {
+        //        "asset" => "USDT",
+        //        "timestamp" => 1638230400000,
+        //        "dailyInterestRate" => "0.0006",
+        //        "vipLevel" => 0
+        //    }
+        //
+        $timestamp = $this->safe_number($info, 'timestamp');
+        $currency = $this->safe_string($info, 'asset');
+        return array(
+            'currency' => $this->safe_currency_code($currency),
+            'rate' => $this->safe_number($info, 'dailyInterestRate'),
+            'period' => 86400000,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $info,
+        );
     }
 
     public function create_gift_code($code, $amount, $params = array ()) {
@@ -5549,22 +5570,24 @@ class binance extends Exchange {
         //     }
         //
         $rows = $this->safe_value($response, 'rows');
-        $interest = array();
-        for ($i = 0; $i < count($rows); $i++) {
-            $row = $rows[$i];
-            $timestamp = $this->safe_number($row, 'interestAccuredTime');
-            $account = ($symbol === null) ? 'cross' : $symbol;
-            $interest[] = array(
-                'account' => $account,
-                'currency' => $this->safe_currency_code($this->safe_string($row, 'asset')),
-                'interest' => $this->safe_number($row, 'interest'),
-                'interestRate' => $this->safe_number($row, 'interestRate'),
-                'amountBorrowed' => $this->safe_number($row, 'principal'),
-                'timestamp' => $timestamp,
-                'datetime' => $this->iso8601($timestamp),
-                'info' => $row,
-            );
-        }
+        $interest = $this->parse_borrow_interests($rows, $market);
         return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
+    }
+
+    public function parse_borrow_interest($info, $market) {
+        $symbol = $this->safe_string($info, 'isolatedSymbol');
+        $timestamp = $this->safe_number($info, 'interestAccuredTime');
+        return array(
+            'account' => ($symbol === null) ? 'cross' : $symbol,
+            'symbol' => $symbol,
+            'marginType' => ($symbol === null) ? 'cross' : 'isolated',
+            'currency' => $this->safe_currency_code($this->safe_string($info, 'asset')),
+            'interest' => $this->safe_number($info, 'interest'),
+            'interestRate' => $this->safe_number($info, 'interestRate'),
+            'amountBorrowed' => $this->safe_number($info, 'principal'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $info,
+        );
     }
 }

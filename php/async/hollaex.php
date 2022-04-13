@@ -92,7 +92,9 @@ class hollaex extends Exchange {
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/75841031-ca375180-5ddd-11ea-8417-b975674c23cb.jpg',
                 'test' => 'https://api.sandbox.hollaex.com',
-                'api' => 'https://api.hollaex.com',
+                'api' => array(
+                    'rest' => 'https://api.hollaex.com',
+                ),
                 'www' => 'https://hollaex.com',
                 'doc' => 'https://apidocs.hollaex.com',
                 'referral' => 'https://pro.hollaex.com/signup?affiliation_code=QSWA6G',
@@ -134,7 +136,7 @@ class hollaex extends Exchange {
                         'order' => 1,
                     ),
                     'post' => array(
-                        'user/request-withdrawal' => 1,
+                        'user/withdrawal' => 1,
                         'order' => 1,
                     ),
                     'delete' => array(
@@ -1301,6 +1303,8 @@ class hollaex extends Exchange {
 
     public function parse_transaction($transaction, $currency = null) {
         //
+        // fetchWithdrawals, fetchDeposits
+        //
         //     {
         //         "id" => 539,
         //         "amount" => 20,
@@ -1316,6 +1320,17 @@ class hollaex extends Exchange {
         //         "created_at" => "2020-03-03T07:56:36.198Z",
         //         "updated_at" => "2020-03-03T08:00:05.674Z",
         //         "user_id" => 620
+        //     }
+        //
+        // withdraw
+        //
+        //     {
+        //         message => 'Withdrawal request is in the queue and will be processed.',
+        //         transaction_id => '1d1683c3-576a-4d53-8ff5-27c93fd9758a',
+        //         $amount => 1,
+        //         $currency => 'xht',
+        //         $fee => 0,
+        //         fee_coin => 'xht'
         //     }
         //
         $id = $this->safe_string($transaction, 'id');
@@ -1338,7 +1353,7 @@ class hollaex extends Exchange {
             $tagTo = $tag;
         }
         $currencyId = $this->safe_string($transaction, 'currency');
-        $code = $this->safe_currency_code($currencyId);
+        $currency = $this->safe_currency($currencyId, $currency);
         $status = $this->safe_value($transaction, 'status');
         $dismissed = $this->safe_value($transaction, 'dismissed');
         $rejected = $this->safe_value($transaction, 'rejected');
@@ -1351,8 +1366,10 @@ class hollaex extends Exchange {
         } else {
             $status = 'pending';
         }
+        $feeCurrencyId = $this->safe_string($transaction, 'fee_coin');
+        $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId, $currency);
         $fee = array(
-            'currency' => $code,
+            'currency' => $feeCurrencyCode,
             'cost' => $this->safe_number($transaction, 'fee'),
         );
         return array(
@@ -1370,7 +1387,7 @@ class hollaex extends Exchange {
             'tagTo' => $tagTo,
             'type' => $type,
             'amount' => $amount,
-            'currency' => $code,
+            'currency' => $currency['code'],
             'status' => $status,
             'updated' => $updated,
             'fee' => $fee,
@@ -1390,19 +1407,22 @@ class hollaex extends Exchange {
             'amount' => $amount,
             'address' => $address,
         );
-        // one time password
-        $otp = $this->safe_string($params, 'otp_code');
-        if (($otp !== null) || ($this->twofa !== null)) {
-            if ($otp === null) {
-                $otp = $this->oath();
-            }
-            $request['otp_code'] = $otp;
+        $network = $this->safe_string($params, 'network');
+        if ($network !== null) {
+            $request['network'] = $network;
         }
-        $response = yield $this->privatePostUserRequestWithdrawal (array_merge($request, $params));
-        return array(
-            'info' => $response,
-            'id' => null,
-        );
+        $response = yield $this->privatePostUserWithdrawal (array_merge($request, $params));
+        //
+        //     {
+        //         message => 'Withdrawal $request is in the queue and will be processed.',
+        //         transaction_id => '1d1683c3-576a-4d53-8ff5-27c93fd9758a',
+        //         $amount => 1,
+        //         $currency => 'xht',
+        //         fee => 0,
+        //         fee_coin => 'xht'
+        //     }
+        //
+        return $this->parse_transaction($response, $currency);
     }
 
     public function normalize_number_if_needed($number) {
@@ -1420,7 +1440,7 @@ class hollaex extends Exchange {
                 $path .= '?' . $this->urlencode($query);
             }
         }
-        $url = $this->urls['api'] . $path;
+        $url = $this->urls['api']['rest'] . $path;
         if ($api === 'private') {
             $this->check_required_credentials();
             $defaultExpires = $this->safe_integer_2($this->options, 'api-expires', 'expires', intval($this->timeout / 1000));

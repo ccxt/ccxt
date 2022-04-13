@@ -47,6 +47,7 @@ class liquid extends Exchange {
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
                 'fetchWithdrawals' => true,
+                'transfer' => false,
                 'withdraw' => true,
             ),
             'urls' => array(

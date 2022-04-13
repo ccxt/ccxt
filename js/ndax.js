@@ -5,7 +5,6 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, AuthenticationError, InsufficientFunds, BadSymbol, OrderNotFound } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
-const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
 
@@ -829,7 +828,7 @@ module.exports = class ndax extends Exchange {
         //
         let priceString = undefined;
         let amountString = undefined;
-        let cost = undefined;
+        let costString = undefined;
         let timestamp = undefined;
         let id = undefined;
         let marketId = undefined;
@@ -854,27 +853,22 @@ module.exports = class ndax extends Exchange {
             marketId = this.safeString2 (trade, 'InstrumentId', 'Instrument');
             priceString = this.safeString (trade, 'Price');
             amountString = this.safeString (trade, 'Quantity');
-            cost = this.safeNumber2 (trade, 'Value', 'GrossValueExecuted');
+            costString = this.safeString2 (trade, 'Value', 'GrossValueExecuted');
             takerOrMaker = this.safeStringLower (trade, 'MakerTaker');
             side = this.safeStringLower (trade, 'Side');
             type = this.safeStringLower (trade, 'OrderType');
-            const feeCost = this.safeNumber (trade, 'Fee');
-            if (feeCost !== undefined) {
+            const feeCostString = this.safeString (trade, 'Fee');
+            if (feeCostString !== undefined) {
                 const feeCurrencyId = this.safeString (trade, 'FeeProductId');
                 const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
                 fee = {
-                    'cost': feeCost,
+                    'cost': feeCostString,
                     'currency': feeCurrencyCode,
                 };
             }
         }
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        if (cost === undefined) {
-            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
-        }
         const symbol = this.safeSymbol (marketId, market);
-        return {
+        return this.safeTrade ({
             'info': trade,
             'id': id,
             'symbol': symbol,
@@ -884,11 +878,11 @@ module.exports = class ndax extends Exchange {
             'type': type,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
