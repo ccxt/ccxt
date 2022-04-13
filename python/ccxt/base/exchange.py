@@ -2037,9 +2037,6 @@ class Exchange(object):
         tail = since is None
         return self.filter_by_symbol_since_limit(array, symbol, since, limit, tail)
 
-    def safe_time(self, time):
-        return time
-
     def safe_status(self, status):
         return self.extend({
             'status': None,
