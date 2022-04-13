@@ -151,6 +151,7 @@ class Transpiler {
             [ /\.safeOrder\s/g, '.safe_order'],
             [ /\.safeTicker\s/g, '.safe_ticker'],
             [ /\.safeTransaction\s/g, '.safe_transaction'],
+            [ /\.safeTransfer\s/g, '.safe_transfer'],
             [ /\.roundTimeframe\s/g, '.round_timeframe'],
             [ /\.calculateRateLimiterCost\s/g, '.calculate_rate_limiter_cost' ],
             [ /\.parseAccountPosition\s/g, '.parse_account_position' ],
