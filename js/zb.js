@@ -1727,6 +1727,7 @@ module.exports = class zb extends Exchange {
         const timeInForce = this.safeString (params, 'timeInForce');
         const reduceOnly = this.safeValue (params, 'reduceOnly');
         const stop = this.safeValue (params, 'stop');
+        const stopPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
         if (type === 'market') {
             throw new InvalidOrder (this.id + ' createOrder() on ' + market['type'] + ' markets does not allow market orders');
         }
@@ -1745,12 +1746,11 @@ module.exports = class zb extends Exchange {
             // 'priceType': 1, // Stop Loss Take Profit, 1: Mark price, 2: Last price
             // 'bizType': 1, // Stop Loss Take Profit, 1: TP, 2: SL
         };
-        if (stop) {
+        if (stop || stopPrice) {
             method = 'contractV2PrivatePostTradeOrderAlgo';
             const orderType = this.safeInteger (params, 'orderType');
             const priceType = this.safeInteger (params, 'priceType');
             const bizType = this.safeInteger (params, 'bizType');
-            const triggerPrice = this.safeNumber (params, 'triggerPrice');
             const algoPrice = this.safeNumber (params, 'algoPrice');
             request['symbol'] = market['id'];
             if (side === 'sell' && reduceOnly) {
@@ -1765,7 +1765,7 @@ module.exports = class zb extends Exchange {
                 request['side'] = 5; // one way position buy
             } else if (side === 6) {
                 request['side'] = 6; // one way position sell
-            } else if (side === 6) {
+            } else if (side === 0) {
                 request['side'] = 0; // one way position close only
             }
             if (type === 'trigger' || orderType === 1) {
@@ -1775,7 +1775,7 @@ module.exports = class zb extends Exchange {
                 request['priceType'] = priceType;
                 request['bizType'] = bizType;
             }
-            request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
+            request['triggerPrice'] = this.priceToPrecision (symbol, stopPrice);
             request['algoPrice'] = this.priceToPrecision (symbol, algoPrice);
         } else {
             if (price) {
@@ -1819,7 +1819,7 @@ module.exports = class zb extends Exchange {
                 request['extend'] = params['extend']; // OPTIONAL {"orderAlgos":[{"bizType":1,"priceType":1,"triggerPrice":"70000"},{"bizType":2,"priceType":1,"triggerPrice":"40000"}]}
             }
         }
-        const query = this.omit (params, [ 'reduceOnly', 'stop', 'orderType', 'triggerPrice', 'algoPrice', 'priceType', 'bizType' ]);
+        const query = this.omit (params, [ 'reduceOnly', 'stop', 'stopPrice', 'orderType', 'triggerPrice', 'algoPrice', 'priceType', 'bizType' ]);
         let response = await this[method] (this.extend (request, query));
         //
         // Spot
