@@ -1154,7 +1154,7 @@ module.exports = class kucoin extends Exchange {
         }
         let method = 'privatePostOrders';
         // We'll need to call the implicit `margin order` function instead of `orders` if tradeType is margin.
-        if (Object.prototype.hasOwnProperty.call(params, 'tradeType')) {
+        if (Object.prototype.hasOwnProperty.call (params, 'tradeType')) {
             if (params.tradeType === 'MARGIN_TRADE') {
                 method = 'privatePostMarginOrder';
             }
