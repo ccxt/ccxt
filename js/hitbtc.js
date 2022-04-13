@@ -1288,10 +1288,7 @@ module.exports = class hitbtc extends Exchange {
             params = this.omit (params, 'network');
         }
         const response = await this.privatePostAccountCryptoWithdraw (this.extend (request, params));
-        return {
-            'info': response,
-            'id': response['id'],
-        };
+        return this.parseTransaction (response, currency);
     }
 
     nonce () {
