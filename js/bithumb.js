@@ -885,10 +885,7 @@ module.exports = class bithumb extends Exchange {
             }
         }
         const response = await this.privatePostTradeBtcWithdrawal (this.extend (request, params));
-        return this.parseTransaction ({
-            'info': response,
-            'id': undefined,
-        }, currency);
+        return this.parseTransaction (response, currency);
     }
 
     parseTransaction (transaction, currency = undefined) {
