@@ -2274,7 +2274,7 @@ class Exchange {
     }
 
     public function safe_transaction($transaction) {
-        return $this->extend([
+        return $this->extend(array(
             'id'=> null,
             'currency'=> null,
             'amount'=> null,
@@ -2293,7 +2293,7 @@ class Exchange {
             'datetime'=> null,
             'fee'=> null,
             'info'=> [],
-        ], $transaction);
+        ), $transaction);
     }
 
     public function parse_transfers($transfers, $currency = null, $since = null, $limit = null, $params = array()) {
