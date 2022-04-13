@@ -750,18 +750,17 @@ module.exports = class huobi extends ccxt.huobi {
         const messageHash = this.safeString2 (message, 'ch', 'topic');
         const data = this.safeValue (message, 'data');
         let marketId = this.safeString (message, 'contract_code');
-        let market = undefined;
         if (marketId === undefined) {
             marketId = this.safeString (data, 'symbol');
-            market = this.safeMarket (marketId);
         }
+        const market = this.safeMarket (marketId);
         let parsedOrder = undefined;
         if (data !== undefined) {
             // spot updates
             const eventType = this.safeString (data, 'eventType');
             if (eventType === 'trade') {
                 // when a spot order is filled we get an update message
-                // with mixed information of the order and trade
+                // with the trade info
                 const parsedTrade = this.parseOrderTrade (data, market);
                 // inject trade in existing order by faking an order object
                 const orderId = this.safeString (parsedTrade, 'order');
