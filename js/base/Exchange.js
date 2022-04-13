@@ -1469,9 +1469,9 @@ module.exports = class Exchange {
     }
 
     safeStatus (status) {
-        return this.extend({
+        return this.extend ({
             'status': undefined,
-            'updated': this.milliseconds(),
+            'updated': this.milliseconds (),
             'eta': undefined,
         }, status);
     }
