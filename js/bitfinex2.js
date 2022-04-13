@@ -350,55 +350,8 @@ module.exports = class bitfinex2 extends bitfinex {
                 },
             },
             'commonCurrencies': {
-                'AAVEF0': 'AAVE',
-                'ADAF0': 'ADA',
-                'ALGF0': 'ALG',
-                'AMPF0': 'AMP',
-                'ATOF0': 'ATO',
-                'AVAXF0': 'AVAX',
-                'AXSF0': 'AXS',
-                'BTCDOMF0': 'BTCDOM',
-                'BTCF0': 'BTC',
-                'COMPF0': 'COMP',
-                'CRVF0': 'CRV',
-                'DOGEF0': 'DOGE',
-                'DOTF0': 'DOT',
-                'EGLDF0': 'EGLD',
-                'EOSF0': 'EOS',
-                'ETHF0': 'ETH',
-                'EURF0': 'EUR',
-                'EUROPE50IXF0': 'EUROPE50IX',
-                'EUTF0': 'EURT',
-                'FILF0': 'FIL',
-                'FTMF0': 'FTM',
-                'GBPF0': 'GBP',
-                'GERMANY30IXF0': 'GERMANY30IX',
-                'GERMANY40IXF0': 'GERMANY40IX',
-                'ICPF0': 'ICP',
-                'IOTF0': 'IOT',
-                'JPYF0': 'JPY',
-                'LINKF0': 'LINK',
-                'LTCF0': 'LTC',
-                'LUNAF0': 'LUNA',
-                'MATICF0': 'MATIC',
-                'NEARF0': 'NEAR',
-                'NEOF0': 'NEO',
-                'OMGF0': 'OMG',
-                'SHIBF0': 'SHIB',
-                'SOLF0': 'SOL',
-                'SUSHIF0': 'SUSHI',
-                'TESTBTCF0': 'TESTBTC',
-                'TESTUSDTF0': 'TESTUSDT',
-                'TRXF0': 'TRX',
-                'UNIF0': 'UNI',
+                'EUTFO': 'EURT',
                 'USTF0': 'USDT',
-                'XAGF0': 'XAG',
-                'XAUTF0': 'XAUT',
-                'XLMF0': 'XLM',
-                'XMRF0': 'XMR',
-                'XRPF0': 'XRP',
-                'XTZF0': 'XTZ',
-                'ZECF0': 'ZEC',
             },
         });
     }
@@ -459,8 +412,12 @@ module.exports = class bitfinex2 extends bitfinex {
                 baseId = id.slice (0, 3);
                 quoteId = id.slice (3, 6);
             }
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
+            let base = this.safeCurrencyCode (baseId);
+            let quote = this.safeCurrencyCode (quoteId);
+            const splitBase = base.split ('F0');
+            const splitQuote = quote.split ('F0');
+            base = this.safeString (splitBase, 0);
+            quote = this.safeString (splitQuote, 0);
             let symbol = base + '/' + quote;
             baseId = this.getCurrencyId (baseId);
             quoteId = this.getCurrencyId (quoteId);
