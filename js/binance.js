@@ -3987,10 +3987,7 @@ module.exports = class binance extends Exchange {
         }
         const response = await this.sapiPostCapitalWithdrawApply (this.extend (request, params));
         //     { id: '9a67628b16ba4988ae20d329333f16bc' }
-        return {
-            'info': response,
-            'id': this.safeString (response, 'id'),
-        };
+        return this.parseTransaction (response, currency);
     }
 
     parseTradingFee (fee, market = undefined) {
