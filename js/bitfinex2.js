@@ -455,8 +455,8 @@ module.exports = class bitfinex2 extends bitfinex {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber ('8'), // https://github.com/ccxt/ccxt/issues/7310
-                    'price': this.safeNumber (market, 'price_precision'),
+                    'amount': parseInt ('8'), // https://github.com/ccxt/ccxt/issues/7310
+                    'price': this.safeInteger (market, 'price_precision'),
                 },
                 'limits': {
                     'leverage': {
