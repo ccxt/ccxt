@@ -573,9 +573,33 @@ module.exports = class mercado extends Exchange {
             }
         }
         const response = await this.privatePostWithdrawCoin (this.extend (request, params));
+        const data = this.safeValue (response, 'response_data');
+        const withdrawalData = this.safeValue (data, 'withdrawal');
+        return this.parseTransaction (withdrawalData, currency);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        currency = this.safeCurrency (undefined, currency);
         return {
-            'info': response,
-            'id': response['response_data']['withdrawal']['id'],
+            'id': this.safeString (transaction, 'id'),
+            'txid': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'network': undefined,
+            'addressFrom': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'amount': undefined,
+            'type': undefined,
+            'currency': currency['code'],
+            'status': undefined,
+            'updated': undefined,
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'comment': undefined,
+            'fee': undefined,
+            'info': transaction,
         };
     }
 
