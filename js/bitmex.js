@@ -1742,10 +1742,7 @@ module.exports = class bitmex extends Exchange {
             // 'fee': 0.001, // bitcoin network fee
         };
         const response = await this.privatePostUserRequestWithdrawal (this.extend (request, params));
-        return {
-            'info': response,
-            'id': this.safeString (response, 'transactID'),
-        };
+        return this.parseTransaction (response, undefined);
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
