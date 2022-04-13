@@ -582,6 +582,12 @@ module.exports = class huobi extends ccxt.huobi {
             type = market['type'];
             subType = market['linear'] ? 'linear' : 'inverse';
             marketId = market['lowercaseId'];
+        } else {
+            type = this.safeString2 (this.options, 'watchOrders', 'defaultType', 'spot');
+            type = this.safeString (params, 'type', type);
+            subType = this.safeString2 (this.options, 'watchOrders', 'subType', 'linear');
+            subType = this.safeString (params, 'subType', type);
+            params = this.omit (params, ['type', 'subType']);
         }
         if (type === 'spot') {
             let mode = undefined;
@@ -592,13 +598,6 @@ module.exports = class huobi extends ccxt.huobi {
             messageHash = 'trade.clearing' + '#' + marketId + '#' + mode;
             channel = messageHash;
         } else {
-            if (type === undefined) {
-                type = this.safeString2 (this.options, 'watchOrders', 'defaultType', 'spot');
-                type = this.safeString (params, 'type', type);
-                subType = this.safeString2 (this.options, 'watchOrders', 'subType', 'linear');
-                subType = this.safeString (params, 'subType', type);
-                params = this.omit (params, ['type', 'subType']);
-            }
             const channelAndMessageHash = this.getOrderChannelAndMessageHash (type, subType, market, params);
             channel = this.safeString (channelAndMessageHash, 0);
             const orderMessageHash = this.safeString (channelAndMessageHash, 1);
@@ -665,8 +664,7 @@ module.exports = class huobi extends ccxt.huobi {
             type = market['type'];
             suffix = market['lowercaseId'];
             subType = market['linear'] ? 'linear' : 'inverse';
-        }
-        if (type === undefined) {
+        } else {
             type = this.safeString2 (this.options, 'watchOrders', 'defaultType', 'spot');
             type = this.safeString (params, 'type', type);
             subType = this.safeString2 (this.options, 'watchOrders', 'subType', 'linear');
@@ -749,67 +747,64 @@ module.exports = class huobi extends ccxt.huobi {
         //         "contract_code":"BTC-USDT",
         //     }
         //
-        const messageHash = this.safeString2 (message, 'ch', 'topic', '');
+        const messageHash = this.safeString2 (message, 'ch', 'topic');
+        const data = this.safeValue (message, 'data');
         let marketId = this.safeString (message, 'contract_code');
         let market = undefined;
         if (marketId === undefined) {
-            const messageParts = messageHash.split ('#');
-            marketId = this.safeString (messageParts, 1);
-            if ((marketId !== undefined) && (marketId !== '*')) {
-                market = this.market (marketId);
-            }
+            marketId = this.safeString (data, 'symbol');
+            market = this.safeMarket (marketId);
         }
-        const data = this.safeValue (message, 'data', message);
-        const eventType = this.safeString (data, 'eventType');
         let parsedOrder = undefined;
-        let parsedTrade = undefined;
-        let symbol = undefined;
-        if (eventType === 'trade') {
-            // spot trades only
-            parsedTrade = this.parseOrderTrade (data, market);
-            symbol = parsedTrade['symbol'];
-        } else {
-            const rawTrades = this.safeValue (data, 'trade', []);
-            const tradesLength = rawTrades.length;
-            const tradesObject = {
-                'trades': rawTrades,
-                'ch': messageHash,
-                'symbol': marketId,
-            };
-            if (tradesLength > 0) {
-                this.handleMyTrade (client, tradesObject);
-            }
-            parsedOrder = this.parseWsOrder (data, market);
-        }
-        if (symbol !== undefined) {
-            const market = this.market (symbol);
-            if (this.orders === undefined) {
-                const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-                this.orders = new ArrayCacheBySymbolById (limit);
-            }
-            const cachedOrders = this.orders;
-            let parsed = undefined;
-            if (parsedTrade !== undefined) {
+        if (data !== undefined) {
+            // spot updates
+            const eventType = this.safeString (data, 'eventType');
+            if (eventType === 'trade') {
+                // when a spot order is filled we get an update message
+                // with mixed information of the order and trade
+                const parsedTrade = this.parseOrderTrade (data, market);
                 // inject trade in existing order by faking an order object
                 const orderId = this.safeString (parsedTrade, 'order');
-                const trades = [];
-                trades.push (parsedTrade);
+                const trades = [ parsedTrade ];
                 const order = {
                     'id': orderId,
                     'trades': trades,
+                    'status': 'closed',
+                    'symbol': market['symbol'],
                 };
-                parsed = order;
+                parsedOrder = order;
             } else {
-                parsed = parsedOrder;
+                parsedOrder = this.parseWsOrder (data, market);
             }
-            cachedOrders.append (parsed);
-            client.resolve (this.orders, messageHash);
-            // when we make a global subscription our message hash can't have a symbol/currency attached
-            // so we're removing it here
-            let genericMessageHash = messageHash.replace ('.' + market['lowercaseId'], '');
-            genericMessageHash = genericMessageHash.replace ('.' + market['lowercaseBaseId'], '');
-            client.resolve (this.orders, genericMessageHash);
+        } else {
+            // contract branch
+            const rawTrades = this.safeValue (message, 'trade', []);
+            const tradesLength = rawTrades.length;
+            if (tradesLength > 0) {
+                const tradesObject = {
+                    'trades': rawTrades,
+                    'ch': messageHash,
+                    'symbol': marketId,
+                };
+                // trades arrive inside an order update
+                // we're forwarding them to handleMyTrade
+                // so they can be properly resolved
+                this.handleMyTrade (client, tradesObject);
+            }
+            parsedOrder = this.parseWsOrder (message, market);
         }
+        if (this.orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById (limit);
+        }
+        const cachedOrders = this.orders;
+        cachedOrders.append (parsedOrder);
+        client.resolve (this.orders, messageHash);
+        // when we make a global subscription (for contracts only) our message hash can't have a symbol/currency attached
+        // so we're removing it here
+        let genericMessageHash = messageHash.replace ('.' + market['lowercaseId'], '');
+        genericMessageHash = genericMessageHash.replace ('.' + market['lowercaseBaseId'], '');
+        client.resolve (this.orders, genericMessageHash);
     }
 
     parseWsOrder (order, market = undefined) {
