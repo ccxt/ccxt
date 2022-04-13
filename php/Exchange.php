@@ -2293,7 +2293,7 @@ class Exchange {
             'timestamp'=> null,
             'datetime'=> null,
             'fee'=> null,
-            'info'=> $transaction,
+            'info'=> null,
         ), $transaction);
     }
 
