@@ -142,7 +142,7 @@ module.exports = class binance extends ccxt.binance {
             'id': requestId.toString (),
             'messageHash': messageHash,
             'name': name,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'method': this.handleOrderBookSubscription,
             'limit': limit,
             'type': type,
