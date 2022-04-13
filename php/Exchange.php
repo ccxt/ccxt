@@ -3709,6 +3709,10 @@ class Exchange {
         return $this->options['timeDifference'];
     }
 
+    public function safe_margin_mode_entry($margin_mode_entry) {
+        return $margin_mode_entry;
+    }
+
     public function parse_leverage_tiers($response, $symbols, $market_id_key){
         $tiers = array();
         for ($i = 0; $i < count($response); $i++){

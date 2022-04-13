@@ -2201,6 +2201,10 @@ module.exports = class Exchange {
         return this.options['timeDifference'];
     }
 
+    safeMarginModeEntry(marginModeEntry) {
+        return marginModeEntry;
+    }
+
     parseLeverageTiers (response, symbols, marketIdKey) {
         const tiers = {};
         for (let i = 0; i < response.length; i++) {

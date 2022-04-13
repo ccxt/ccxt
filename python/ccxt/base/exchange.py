@@ -2785,6 +2785,9 @@ class Exchange(object):
         self.options['timeDifference'] = after - server_time
         return self.options['timeDifference']
 
+    def safe_margin_mode_entry(self, margin_mode_entry):
+        return margin_mode_entry
+
     def parse_leverage_tiers(self, response, symbols, market_id_key):
         tiers = {}
         for item in response:
