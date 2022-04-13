@@ -318,6 +318,7 @@ module.exports = class kucoinfutures extends kucoin {
             this.status = this.extend (this.status, {
                 'status': status,
                 'updated': this.milliseconds (),
+                'info': response,
             });
         }
         return this.status;
