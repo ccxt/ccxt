@@ -119,6 +119,7 @@ module.exports = class bitfinex2 extends bitfinex {
                         'conf/pub:info:{object}': 2.66,
                         'conf/pub:info:{object}:{detail}': 2.66,
                         'conf/pub:info:pair': 2.66,
+                        'conf/pub:info:pair:futures': 2.66,
                         'conf/pub:info:tx:status': 2.66, // [ deposit, withdrawal ] statuses 1 = active, 0 = maintenance
                         'conf/pub:fees': 2.66,
                         'platform/status': 8, // 30 requests per minute = 0.5 requests per second => ( 1000ms / rateLimit ) / 0.5 = 8
@@ -379,18 +380,36 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     async fetchMarkets (params = {}) {
-        // todo drop v1 in favor of v2 configs  ( temp-reference for v2update: https://pastebin.com/raw/S8CmqSHQ )
-        // pub:list:pair:exchange,pub:list:pair:margin,pub:list:pair:futures,pub:info:pair
-        const v2response = await this.publicGetConfPubListPairFutures (params);
-        const v1response = await this.v1GetSymbolsDetails (params);
-        const swapMarketIds = this.safeValue (v2response, 0, []);
+        const spotInfoPairResponse = await this.publicGetConfPubInfoPair (params);
+        const futuresInfoPairResponse = await this.publicGetConfPubInfoPairFutures (params);
+        const spotPairResponse = await this.publicGetConfPubListPairExchange (params);
+        const spotPairList = this.safeValue (spotInfoPairResponse, 0, []);
+        const futuresPairList = this.safeValue (futuresInfoPairResponse, 0, []);
+        const totalPairList = this.arrayConcat (spotPairList, futuresPairList);
+        const swapMarketIds = this.safeValue (spotPairResponse, 0, []);
         const result = [];
-        for (let i = 0; i < v1response.length; i++) {
-            const market = v1response[i];
-            const id = this.safeStringUpper (market, 'pair');
-            let spot = true;
+        for (let i = 0; i < totalPairList.length; i++) {
+            // [
+            //     "AAVEF0:USTF0",
+            //     [
+            //         null,
+            //         null,
+            //         null,
+            //         "0.001",
+            //         "5000.0",
+            //         null,
+            //         null,
+            //         null,
+            //         0.01,
+            //         0.005
+            //     ]
+            // ],
+            const market = totalPairList[i];
+            const marketInfo = this.safeValue (market, 1, []);
+            const id = this.safeStringUpper (market, 0);
+            let spot = false;
             if (this.inArray (id, swapMarketIds)) {
-                spot = false;
+                spot = true;
             }
             const swap = !spot;
             const type = spot ? 'spot' : 'swap';
@@ -409,8 +428,8 @@ module.exports = class bitfinex2 extends bitfinex {
             const symbol = base + '/' + quote;
             baseId = this.getCurrencyId (baseId);
             quoteId = this.getCurrencyId (quoteId);
-            const minOrderSizeString = this.safeString (market, 'minimum_order_size');
-            const maxOrderSizeString = this.safeString (market, 'maximum_order_size');
+            const minOrderSizeString = this.safeString (marketInfo, 3);
+            const maxOrderSizeString = this.safeString (marketInfo, 4);
             result.push ({
                 'id': 't' + id,
                 'symbol': symbol,
@@ -422,7 +441,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'settleId': undefined, // TODO
                 'type': type,
                 'spot': spot,
-                'margin': this.safeValue (market, 'margin'),
+                'margin': spot ? undefined : this.safeNumber (marketInfo, 8),
                 'swap': swap,
                 'future': false,
                 'option': false,
@@ -438,7 +457,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'optionType': undefined,
                 'precision': {
                     'amount': parseInt ('8'), // https://github.com/ccxt/ccxt/issues/7310
-                    'price': this.safeInteger (market, 'price_precision'),
+                    'price': parseInt ('5'),
                 },
                 'limits': {
                     'leverage': {
@@ -454,7 +473,7 @@ module.exports = class bitfinex2 extends bitfinex {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': spot ? undefined : this.safeNumber (marketInfo, 9),
                         'max': undefined,
                     },
                 },
