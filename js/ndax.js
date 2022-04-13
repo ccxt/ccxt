@@ -2016,7 +2016,7 @@ module.exports = class ndax extends Exchange {
         //         "NotionalProductId": 0
         //     }
         //
-        const id = this.safeString (transaction, 'DepositId');
+        const id = this.safeString2 (transaction, 'DepositId', 'id');
         let txid = undefined;
         const currencyId = this.safeString (transaction, 'ProductId');
         const code = this.safeCurrencyCode (currencyId, currency);
@@ -2148,10 +2148,7 @@ module.exports = class ndax extends Exchange {
             'Payload': this.json (withdrawPayload),
         };
         const response = await this.privatePostCreateWithdrawTicket (this.deepExtend (withdrawRequest, params));
-        return {
-            'info': response,
-            'id': this.safeString (response, 'Id'),
-        };
+        return this.parseTransaction (response, currency);
     }
 
     nonce () {
