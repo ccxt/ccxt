@@ -1,6 +1,63 @@
 'use strict'
 
 // ----------------------------------------------------------------------------
+const priorityCodes = [
+    'BTC',
+    'ETH',
+    'XRP',
+    'LTC',
+    'BCH',
+    'EOS',
+    'BNB',
+    'BSV',
+    'USDT',
+    'ATOM',
+    'BAT',
+    'BTG',
+    'DASH',
+    'DOGE',
+    'ETC',
+    'IOTA',
+    'LSK',
+    'MKR',
+    'NEO',
+    'PAX',
+    'QTUM',
+    'TRX',
+    'TUSD',
+    'USD',
+    'USDC',
+    'WAVES',
+    'XEM',
+    'XMR',
+    'ZEC',
+    'ZRX',
+];
+
+prioritySymbols = [
+    'BTC/CNY',
+    'BTC/USD',
+    'BTC/USDT',
+    'BTC/EUR',
+    'BTC/ETH',
+    'ETH/BTC',
+    'BTC/JPY',
+    'ETH/EUR',
+    'ETH/JPY',
+    'ETH/CNY',
+    'ETH/USD',
+    'LTC/CNY',
+    'DASH/BTC',
+    'DOGE/BTC',
+    'BTC/AUD',
+    'BTC/PLN',
+    'USD/SLL',
+    'BTC/RUB',
+    'BTC/UAH',
+    'LTC/BTC',
+    'EUR/USD',
+];
+// ----------------------------------------------------------------------------
 
 const [processPath, , exchangeId = null, exchangeSymbol = null] = process.argv.filter ((x) => !x.startsWith ('--'))
 const verbose = process.argv.includes ('--verbose') || false
@@ -135,29 +192,7 @@ async function loadExchange (exchange) {
     assert (Object.keys (exchange.markets).length > 0, 'Object.keys (.markets).length <= 0 (less than or equal to zero)')
     assert (exchange.symbols.length === Object.keys (exchange.markets).length, 'number of .symbols is not equal to the number of .markets')
 
-    const symbols = [
-        'BTC/CNY',
-        'BTC/USD',
-        'BTC/USDT',
-        'BTC/EUR',
-        'BTC/ETH',
-        'ETH/BTC',
-        'BTC/JPY',
-        'ETH/EUR',
-        'ETH/JPY',
-        'ETH/CNY',
-        'ETH/USD',
-        'LTC/CNY',
-        'DASH/BTC',
-        'DOGE/BTC',
-        'BTC/AUD',
-        'BTC/PLN',
-        'USD/SLL',
-        'BTC/RUB',
-        'BTC/UAH',
-        'LTC/BTC',
-        'EUR/USD',
-    ]
+    const symbols = prioritySymbols
 
     let result = exchange.symbols.filter ((symbol) => symbols.indexOf (symbol) >= 0)
 
@@ -194,38 +229,7 @@ async function testExchange (exchange) {
 
     await loadExchange (exchange)
 
-    const codes = [
-        'BTC',
-        'ETH',
-        'XRP',
-        'LTC',
-        'BCH',
-        'EOS',
-        'BNB',
-        'BSV',
-        'USDT',
-        'ATOM',
-        'BAT',
-        'BTG',
-        'DASH',
-        'DOGE',
-        'ETC',
-        'IOTA',
-        'LSK',
-        'MKR',
-        'NEO',
-        'PAX',
-        'QTUM',
-        'TRX',
-        'TUSD',
-        'USD',
-        'USDC',
-        'WAVES',
-        'XEM',
-        'XMR',
-        'ZEC',
-        'ZRX',
-    ]
+    const codes = priorityCodes
 
     let code = undefined
     for (let i = 0; i < codes.length; i++) {
