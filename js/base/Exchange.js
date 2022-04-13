@@ -2242,4 +2242,8 @@ module.exports = class Exchange {
         }
         return interest;
     }
+
+    safeLeverageEntry(leverage_entry) {
+        return leverage_entry;
+    }
 }

@@ -3753,4 +3753,8 @@ class Exchange {
         }
         return $interest;
     }
+
+    public function safe_leverage_entry($leverage_entry) {
+        return $leverage_entry;
+    }
 }

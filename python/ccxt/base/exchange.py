@@ -2815,3 +2815,6 @@ class Exchange(object):
             row = response[i]
             interest.append(self.parse_borrow_interest(row, market))
         return interest
+
+    def safe_leverage_entry(self, leverage_entry):
+        return leverage_entry
