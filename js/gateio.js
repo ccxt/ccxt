@@ -2502,16 +2502,7 @@ module.exports = class gateio extends Exchange {
         //       "memo": null
         //     }
         //
-        const currencyId = this.safeString (response, 'currency');
-        const id = this.safeString (response, 'id');
-        return {
-            'info': response,
-            'id': id,
-            'code': this.safeCurrencyCode (currencyId),
-            'amount': this.safeNumber (response, 'amount'),
-            'address': this.safeString (response, 'address'),
-            'tag': this.safeString (response, 'memo'),
-        };
+        return this.parseTransaction (response, currency);
     }
 
     parseTransactionStatus (status) {
@@ -2550,6 +2541,18 @@ module.exports = class gateio extends Exchange {
         //     }
         //
         // withdrawals
+        //
+        //
+        // withdraw
+        //
+        //     {
+        //       "id": "w13389675",
+        //       "currency": "USDT",
+        //       "amount": "50",
+        //       "address": "TUu2rLFrmzUodiWfYki7QCNtv1akL682p1",
+        //       "memo": null
+        //     }
+        //
         const id = this.safeString (transaction, 'id');
         let type = undefined;
         let amount = this.safeString (transaction, 'amount');
@@ -2561,7 +2564,7 @@ module.exports = class gateio extends Exchange {
             type = this.parseTransactionType (id[0]);
         }
         const currencyId = this.safeString (transaction, 'currency');
-        const code = this.safeCurrencyCode (currencyId);
+        currency = this.safeCurrency (currencyId, currency);
         const txid = this.safeString (transaction, 'txid');
         const rawStatus = this.safeString (transaction, 'status');
         const status = this.parseTransactionStatus (rawStatus);
@@ -2576,7 +2579,7 @@ module.exports = class gateio extends Exchange {
             'info': transaction,
             'id': id,
             'txid': txid,
-            'currency': code,
+            'currency': currency['code'],
             'amount': this.parseNumber (amount),
             'network': undefined,
             'address': address,
