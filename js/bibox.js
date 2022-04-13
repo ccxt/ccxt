@@ -1291,10 +1291,10 @@ module.exports = class bibox extends Exchange {
         const outerResults = this.safeValue (response, 'result');
         const firstResult = this.safeValue (outerResults, 0, {});
         const id = this.safeValue (firstResult, 'result');
-        return {
+        return this.parseTransaction ({
             'info': response,
             'id': id,
-        };
+        }, currency);
     }
 
     async fetchFundingFees (codes = undefined, params = {}) {
