@@ -525,10 +525,32 @@ module.exports = class zaif extends Exchange {
             request['message'] = tag;
         }
         const result = await this.privatePostWithdraw (this.extend (request, params));
+        const returnData = this.safeValue (result, 'return');
+        return this.parseTransaction (returnData, currency);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        currency = this.safeCurrency (undefined, currency);
         return {
-            'info': result,
-            'id': result['return']['txid'],
-            'fee': result['return']['fee'],
+            'id': this.safeString (transaction, 'txid'),
+            'txid': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'network': undefined,
+            'addressFrom': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'amount': undefined,
+            'type': undefined,
+            'currency': currency['code'],
+            'status': undefined,
+            'updated': undefined,
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'comment': undefined,
+            'fee': this.safeValue (transaction, 'fee'),
+            'info': transaction,
         };
     }
 
