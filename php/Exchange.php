@@ -2322,11 +2322,11 @@ class Exchange {
     }
 
     public function safe_status($status) {
-        return $this->extend([
+        return $this->extend(array(
             'status'=> null,
             'updated'=> $this->milliseconds(),
             'eta'=> null,
-        ], $status);
+        ), $status);
     }
 
     public function safe_market($marketId, $market = null, $delimiter = null) {
