@@ -2275,6 +2275,21 @@ class Exchange {
         return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
     }
 
+    public function safe_transfer($transfer, $currency = null) {
+        $currency = $this->safe_currency(null, $currency);
+        return $this->extend(array(
+            'id'=> null,
+            'timestamp'=> null,
+            'datetime'=> null,
+            'currency'=> $currency['code'],
+            'amount'=> null,
+            'fromAccount'=> null,
+            'toAccount'=> null,
+            'status'=> null,
+            'info'=> null,
+        ), $transfer);
+    }
+
     public function safe_transaction($transaction, $currency = null) {
         $currency = $this->safe_currency(null, $currency);
         return $this->extend(array(
