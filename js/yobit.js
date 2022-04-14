@@ -696,7 +696,31 @@ module.exports = class yobit extends Exchange {
         const request = {
             'order_id': parseInt (id),
         };
-        return await this.privatePostCancelOrder (this.extend (request, params));
+        const response = await this.privatePostCancelOrder (this.extend (request, params));
+        //
+        //      {
+        //          "success":1,
+        //          "return": {
+        //              "order_id":1101103632552304,
+        //              "funds": {
+        //                  "usdt":30.71055443,
+        //                  "usdttrc20":0,
+        //                  "doge":9.98327206
+        //              },
+        //              "funds_incl_orders": {
+        //                  "usdt":31.81275443,
+        //                  "usdttrc20":0,
+        //                  "doge":9.98327206
+        //              },
+        //              "server_time":1649918298
+        //          }
+        //      }
+        //
+        const result = this.safeValue (response, 'return', {});
+        return {
+            'id': this.safeString (result, 'order_id'),
+            'info': result,
+        };
     }
 
     parseOrderStatus (status) {
