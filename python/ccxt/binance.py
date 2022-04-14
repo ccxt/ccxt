@@ -3406,6 +3406,10 @@ class binance(Exchange):
         #       "updateTime": "1627501027000"
         #     }
         #
+        # withdraw
+        #
+        #    {id: '9a67628b16ba4988ae20d329333f16bc'}
+        #
         id = self.safe_string_2(transaction, 'id', 'orderNo')
         address = self.safe_string(transaction, 'address')
         tag = self.safe_string(transaction, 'addressTag')  # set but unused
@@ -3821,10 +3825,7 @@ class binance(Exchange):
             params = self.omit(params, 'network')
         response = self.sapiPostCapitalWithdrawApply(self.extend(request, params))
         #     {id: '9a67628b16ba4988ae20d329333f16bc'}
-        return {
-            'info': response,
-            'id': self.safe_string(response, 'id'),
-        }
+        return self.parse_transaction(response, currency)
 
     def parse_trading_fee(self, fee, market=None):
         #
