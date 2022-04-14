@@ -1373,10 +1373,7 @@ module.exports = class exmo extends Exchange {
             params = this.omit (params, 'network');
         }
         const response = await this.privatePostWithdrawCrypt (this.extend (request, params));
-        return {
-            'info': response,
-            'id': response['task_id'],
-        };
+        return this.parseTransaction (response, currency);
     }
 
     parseTransactionStatus (status) {
@@ -1434,7 +1431,7 @@ module.exports = class exmo extends Exchange {
         //             "error": ""
         //          },
         //
-        const id = this.safeString (transaction, 'order_id');
+        const id = this.safeString2 (transaction, 'order_id', 'task_id');
         const timestamp = this.safeTimestamp2 (transaction, 'dt', 'created');
         const updated = this.safeTimestamp (transaction, 'updated');
         let amount = this.safeNumber (transaction, 'amount');
