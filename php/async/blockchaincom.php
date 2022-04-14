@@ -787,10 +787,10 @@ class blockchaincom extends Exchange {
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         yield $this->load_markets();
-        $currencyid = $this->currencyId ($code);
+        $currency = $this->currency($code);
         $request = array(
             'amount' => $amount,
-            'currency' => $currencyid,
+            'currency' => $currency['id'],
             // 'beneficiary' => address/id,
             'sendMax' => false,
         );
@@ -798,20 +798,15 @@ class blockchaincom extends Exchange {
         //
         //     array(
         //         $amount => "30.0",
-        //         currency => "USDT",
+        //         $currency => "USDT",
         //         beneficiary => "adcd43fb-9ba6-41f7-8c0d-7013482cb88f",
-        //         $withdrawalId => "99df5ef7-eab6-4033-be49-312930fbd1ea",
+        //         withdrawalId => "99df5ef7-eab6-4033-be49-312930fbd1ea",
         //         fee => "34.005078",
         //         state => "PENDING",
         //         timestamp => "1634218452595"
         //     ),
         //
-        $withdrawalId = $this->safe_string($response, 'withdrawalId');
-        $result = array(
-            'info' => $response,
-            'id' => $withdrawalId,
-        );
-        return $result;
+        return $this->parse_transaction($response, $currency);
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
