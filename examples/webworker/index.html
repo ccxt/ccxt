@@ -19,6 +19,7 @@
                 <tr>
                     <th>Symbol</th>
                     <th>Last Price</th>
+                    <th>Base Volume</th>
                     <th>Exchange Ts</th>
                     <th>Local Ts</th>
                 </tr>
@@ -63,7 +64,7 @@
         }
         
         function handleReceivedData(data) {
-          var [symbol, last, timestamp, ourTimestamp] = data;
+          var [symbol, last, baseVolume, timestamp, ourTimestamp] = data;
           var tableRef = document.getElementById('resultsTable');
           var tbody = document.getElementById('tbody');
           row = tbody.insertRow(0);
@@ -73,6 +74,9 @@
         
           cellPrice = row.insertCell();
           cellPrice.innerHTML = last;
+
+          cellPrice = row.insertCell();
+          cellPrice.innerHTML = baseVolume;
         
           cellTimestamp = row.insertCell();
           cellTimestamp.innerHTML = timestamp;
@@ -83,8 +87,10 @@
         }
         
         function stopWorker() {
-          ccxtWorker.terminate();
-          ccxtWorker = undefined;
+          if (ccxtWorker !== undefined) {
+            ccxtWorker.terminate();
+            ccxtWorker = undefined;
+          }
         }
     </script>
     </body>
