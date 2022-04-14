@@ -1739,6 +1739,7 @@ class bitmex extends Exchange {
         if ($code !== 'BTC') {
             throw new ExchangeError($this->id . ' supoprts BTC withdrawals only, other currencies coming soon...');
         }
+        $currency = $this->currency($code);
         $request = array(
             'currency' => 'XBt', // temporarily
             'amount' => $amount,
@@ -1747,10 +1748,7 @@ class bitmex extends Exchange {
             // 'fee' => 0.001, // bitcoin network fee
         );
         $response = $this->privatePostUserRequestWithdrawal (array_merge($request, $params));
-        return array(
-            'info' => $response,
-            'id' => $this->safe_string($response, 'transactID'),
-        );
+        return $this->parse_transaction($response, $currency);
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

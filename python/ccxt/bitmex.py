@@ -1656,6 +1656,7 @@ class bitmex(Exchange):
         # currency = self.currency(code)
         if code != 'BTC':
             raise ExchangeError(self.id + ' supoprts BTC withdrawals only, other currencies coming soon...')
+        currency = self.currency(code)
         request = {
             'currency': 'XBt',  # temporarily
             'amount': amount,
@@ -1664,10 +1665,7 @@ class bitmex(Exchange):
             # 'fee': 0.001,  # bitcoin network fee
         }
         response = self.privatePostUserRequestWithdrawal(self.extend(request, params))
-        return {
-            'info': response,
-            'id': self.safe_string(response, 'transactID'),
-        }
+        return self.parse_transaction(response, currency)
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
