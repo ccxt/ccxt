@@ -936,6 +936,24 @@ module.exports = class bitso extends Exchange {
         };
         const classMethod = 'privatePost' + method + 'Withdrawal';
         const response = await this[classMethod] (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "payload": [{
+        //             "wid": "c5b8d7f0768ee91d3b33bee648318688",
+        //             "status": "pending",
+        //             "created_at": "2016-04-08T17:52:31.000+00:00",
+        //             "currency": "btc",
+        //             "method": "Bitcoin",
+        //             "amount": "0.48650929",
+        //             "details": {
+        //                 "withdrawal_address": "18MsnATiNiKLqUHDTRKjurwMg7inCrdNEp",
+        //                 "tx_hash": "d4f28394693e9fb5fffcaf730c11f32d1922e5837f76ca82189d3bfe30ded433"
+        //             }
+        //         },
+        //         ]
+        //     }
+        //
         const payload = this.safeValue (response, 'payload');
         return this.parseTransaction (payload);
     }
