@@ -1164,14 +1164,17 @@ module.exports = class whitebit extends Exchange {
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
+        const accountsByType = this.safeValue (this.options, 'accountsByType');
+        const fromAccountId = this.safeString (accountsByType, fromAccount, fromAccount);
+        const toAccountId = this.safeString (accountsByType, toAccount, toAccount);
         let type = undefined;
-        if (fromAccount === 'main' && toAccount === 'spot') {
+        if (fromAccountId === 'main' && toAccountId === 'trade') {
             type = 'deposit';
-        } else if (fromAccount === 'spot' && toAccount === 'main') {
+        } else if (fromAccountId === 'trade' && toAccountId === 'main') {
             type = 'withdraw';
         }
         if (type === undefined) {
-            throw new ExchangeError ('This exchange api only allows transfers between main account and spot account');
+            throw new ExchangeError (this.id + ' transfer() only allows transfers between main account and spot account');
         }
         const request = {
             'ticker': currency['id'],
