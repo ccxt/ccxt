@@ -1,4 +1,4 @@
-self.importScripts('ccxt.browser.js');
+self.importScripts('https://unpkg.com/ccxt@1.79.2/dist/ccxt.browser.js');
 
 console.log("Loaded ccxt version:", self.ccxt.version);
 
@@ -30,9 +30,10 @@ async function processTicker(symbol, exchangeId) {
   var symbol = result['symbol']
   var last = result['last']
   var timestamp = result['timestamp']
+  var baseVolume = result['baseVolume']
   var ourTimestamp = Date.now()
   // send the data back to the main script
-  postMessage([symbol, last, timestamp, ourTimestamp]);
+  postMessage([symbol, last, baseVolume, timestamp, ourTimestamp]);
 }
 
 async function fetchTicker(symbol){
