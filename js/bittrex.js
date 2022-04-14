@@ -1384,11 +1384,7 @@ module.exports = class bittrex extends Exchange {
             request['cryptoAddressTag'] = tag;
         }
         const response = await this.privatePostWithdrawals (this.extend (request, params));
-        const id = this.safeString (response, 'id');
-        return {
-            'info': response,
-            'id': id,
-        };
+        return this.parseTransaction (response, currency);
     }
 
     sign (path, api = 'v3', method = 'GET', params = {}, headers = undefined, body = undefined) {
