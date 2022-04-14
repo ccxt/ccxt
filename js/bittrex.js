@@ -1001,6 +1001,7 @@ module.exports = class bittrex extends Exchange {
     parseTransaction (transaction, currency = undefined) {
         //
         // fetchDeposits
+        //
         //     {
         //         "id": "d00fdf2e-df9e-48f1-....",
         //         "currencySymbol": "BTC",
@@ -1015,6 +1016,7 @@ module.exports = class bittrex extends Exchange {
         //     }
         //
         // fetchWithdrawals
+        //
         //     {
         //         "PaymentUuid" : "e293da98-788c-4188-a8f9-8ec2c33fdfcf",
         //         "Currency" : "XC",
@@ -1031,7 +1033,7 @@ module.exports = class bittrex extends Exchange {
         //
         // withdraw
         //
-        //      {
+        //     {
         //         "currencySymbol": "string",
         //         "quantity": "number (double)",
         //         "cryptoAddress": "string",
@@ -1039,7 +1041,6 @@ module.exports = class bittrex extends Exchange {
         //         "fundsTransferMethodId": "string (uuid)",
         //         "clientWithdrawalId": "string (uuid)"
         //     }
-        //
         //
         const id = this.safeString2 (transaction, 'id', 'clientWithdrawalId');
         const amount = this.safeNumber (transaction, 'quantity');
@@ -1397,7 +1398,7 @@ module.exports = class bittrex extends Exchange {
         }
         const response = await this.privatePostWithdrawals (this.extend (request, params));
         //
-        //      {
+        //     {
         //         "currencySymbol": "string",
         //         "quantity": "number (double)",
         //         "cryptoAddress": "string",
