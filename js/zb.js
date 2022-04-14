@@ -2134,7 +2134,7 @@ module.exports = class zb extends Exchange {
             method = 'contractV2PrivateGetTradeGetOrderAlgos';
             const orderType = this.safeInteger (params, 'orderType');
             if (orderType === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOrders() requires an orderType parameter for stop orders');
+                throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires an orderType parameter for stop orders');
             }
             const side = this.safeInteger (params, 'side');
             const bizType = this.safeInteger (params, 'bizType');
@@ -2272,7 +2272,7 @@ module.exports = class zb extends Exchange {
             method = 'contractV2PrivateGetTradeGetOrderAlgos';
             const orderType = this.safeInteger (params, 'orderType');
             if (orderType === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOrders() requires an orderType parameter for stop orders');
+                throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires an orderType parameter for stop orders');
             }
             const side = this.safeInteger (params, 'side');
             const bizType = this.safeInteger (params, 'bizType');
