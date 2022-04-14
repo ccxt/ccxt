@@ -379,10 +379,13 @@ module.exports = class bitfinex extends Exchange {
                     'spot': 'exchange',
                     'margin': 'trading',
                     'funding': 'deposit',
-                    'exchange': 'exchange',
-                    'trading': 'trading',
-                    'deposit': 'deposit',
-                    'derivatives': 'trading',
+                    'future': 'exchange',
+                    'contract': 'trading',
+                },
+                'accountsById': {
+                    'exchange': 'spot',
+                    'trading': 'margin',
+                    'deposit': 'funding',
                 },
             },
         });
@@ -647,15 +650,17 @@ module.exports = class bitfinex extends Exchange {
         // however we support it in CCXT (from just looking at web inspector)
         await this.loadMarkets ();
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-        const fromId = this.safeString (accountsByType, fromAccount);
-        if (fromId === undefined) {
+        const accountsById = this.safeValue (this.options, 'accountsById', {});
+        const accountIds = Object.keys (accountsById);
+        const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
+        if (!(fromId in accountIds)) {
             const keys = Object.keys (accountsByType);
-            throw new ExchangeError (this.id + ' transfer fromAccount must be one of ' + keys.join (', '));
+            throw new ExchangeError (this.id + ' transfer() fromAccount must be one of ' + keys.join (', '));
         }
-        const toId = this.safeString (accountsByType, toAccount);
-        if (toId === undefined) {
+        const toId = this.safeString (accountsByType, toAccount, toAccount);
+        if (!(toId in accountIds)) {
             const keys = Object.keys (accountsByType);
-            throw new ExchangeError (this.id + ' transfer toAccount must be one of ' + keys.join (', '));
+            throw new ExchangeError (this.id + ' transfer() toAccount must be one of ' + keys.join (', '));
         }
         const currency = this.currency (code);
         const fromCurrencyId = this.convertDerivativesId (currency['id'], fromAccount);
