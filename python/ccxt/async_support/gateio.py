@@ -1608,11 +1608,13 @@ class gateio(Exchange):
         })
         if limit is not None:
             request['limit'] = limit  # default 10, max 100
+        request['with_id'] = True
         response = await getattr(self, method)(self.extend(request, params))
         #
         # SPOT
         #
         #     {
+        #         "id":6358770031
         #         "current": 1634345973275,
         #         "update": 1634345973271,
         #         "asks": [
@@ -1643,6 +1645,7 @@ class gateio(Exchange):
         # Perpetual Swap
         #
         #     {
+        #         "id":6358770031
         #         "current": 1634350208.745,
         #         "asks": [
         #             {"s":24909,"p": "61264.8"},
@@ -1676,7 +1679,10 @@ class gateio(Exchange):
             timestamp = timestamp * 1000
         priceKey = 0 if spotOrMargin else 'p'
         amountKey = 1 if spotOrMargin else 's'
-        return self.parse_order_book(response, symbol, timestamp, 'bids', 'asks', priceKey, amountKey)
+        nonce = self.safe_integer(response, 'id')
+        result = self.parse_order_book(response, symbol, timestamp, 'bids', 'asks', priceKey, amountKey)
+        result['nonce'] = nonce
+        return result
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()

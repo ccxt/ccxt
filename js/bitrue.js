@@ -339,6 +339,7 @@ module.exports = class bitrue extends Exchange {
         this.status = this.extend (this.status, {
             'status': formattedStatus,
             'updated': this.milliseconds (),
+            'info': response,
         });
         return this.status;
     }

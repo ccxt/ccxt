@@ -712,7 +712,7 @@ class digifinex(Exchange):
         return self.safe_timestamp(response, 'server_time')
 
     def fetch_status(self, params={}):
-        self.publicGetPing(params)
+        response = self.publicGetPing(params)
         #
         #     {
         #         "msg": "pong",
@@ -722,6 +722,7 @@ class digifinex(Exchange):
         self.status = self.extend(self.status, {
             'status': 'ok',
             'updated': self.milliseconds(),
+            'info': response,
         })
         return self.status
 

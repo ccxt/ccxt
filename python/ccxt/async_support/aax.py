@@ -370,6 +370,7 @@ class aax(Exchange):
         endTime = self.parse8601(self.safe_string(data, 'endTime'))
         update = {
             'updated': self.safe_integer(response, 'ts', timestamp),
+            'info': response,
         }
         if endTime is not None:
             startTimeIsOk = True if (startTime is None) else (timestamp < startTime)

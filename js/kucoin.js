@@ -474,6 +474,7 @@ module.exports = class kucoin extends Exchange {
             this.status = this.extend (this.status, {
                 'status': status,
                 'updated': this.milliseconds (),
+                'info': response,
             });
         }
         return this.status;
@@ -1152,7 +1153,12 @@ module.exports = class kucoin extends Exchange {
             request['size'] = amountString;
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const response = await this.privatePostOrders (this.extend (request, params));
+        let method = 'privatePostOrders';
+        const tradeType = this.safeString (params, 'tradeType');
+        if (tradeType === 'MARGIN_TRADE') {
+            method = 'privatePostMarginOrder';
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         code: '200000',

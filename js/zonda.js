@@ -57,6 +57,7 @@ module.exports = class zonda extends Exchange {
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
+                'transfer': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -216,6 +217,9 @@ module.exports = class zonda extends Exchange {
             },
             'options': {
                 'fiatCurrencies': [ 'EUR', 'USD', 'GBP', 'PLN' ],
+                'transfer': {
+                    'fillResponseFromRequest': true,
+                },
             },
             'exceptions': {
                 '400': ExchangeError, // At least one parameter wasn't set
@@ -1217,6 +1221,109 @@ module.exports = class zonda extends Exchange {
             'PLN': true,
         };
         return this.safeValue (fiatCurrencies, currency, false);
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'source': fromAccount,
+            'destination': toAccount,
+            'currency': code,
+            'funds': this.currencyToPrecision (code, amount),
+        };
+        const response = await this.v1_01PrivatePostBalancesBITBAYBalanceTransferSourceDestination (this.extend (request, params));
+        //
+        //     {
+        //         "status": "Ok",
+        //         "from": {
+        //             "id": "ad9397c5-3bd9-4372-82ba-22da6a90cb56",
+        //             "userId": "4bc43956-423f-47fd-9faa-acd37c58ed9f",
+        //             "availableFunds": 0.01803472,
+        //             "totalFunds": 0.01804161,
+        //             "lockedFunds": 0.00000689,
+        //             "currency": "BTC",
+        //             "type": "CRYPTO",
+        //             "name": "BTC",
+        //             "balanceEngine": "BITBAY"
+        //         },
+        //         "to": {
+        //             "id": "01931d52-536b-4ca5-a9f4-be28c86d0cc3",
+        //             "userId": "4bc43956-423f-47fd-9faa-acd37c58ed9f",
+        //             "availableFunds": 0.0001,
+        //             "totalFunds": 0.0001,
+        //             "lockedFunds": 0,
+        //             "currency": "BTC",
+        //             "type": "CRYPTO",
+        //             "name": "Prowizja",
+        //             "balanceEngine": "BITBAY"
+        //         },
+        //         "errors": null
+        //     }
+        //
+        const transfer = this.parseTransfer (response, currency);
+        const transferOptions = this.safeValue (this.options, 'transfer', {});
+        const fillResponseFromRequest = this.safeValue (transferOptions, 'fillResponseFromRequest', true);
+        if (fillResponseFromRequest) {
+            transfer['amount'] = amount;
+        }
+        return transfer;
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        //     {
+        //         "status": "Ok",
+        //         "from": {
+        //             "id": "ad9397c5-3bd9-4372-82ba-22da6a90cb56",
+        //             "userId": "4bc43956-423f-47fd-9faa-acd37c58ed9f",
+        //             "availableFunds": 0.01803472,
+        //             "totalFunds": 0.01804161,
+        //             "lockedFunds": 0.00000689,
+        //             "currency": "BTC",
+        //             "type": "CRYPTO",
+        //             "name": "BTC",
+        //             "balanceEngine": "BITBAY"
+        //         },
+        //         "to": {
+        //             "id": "01931d52-536b-4ca5-a9f4-be28c86d0cc3",
+        //             "userId": "4bc43956-423f-47fd-9faa-acd37c58ed9f",
+        //             "availableFunds": 0.0001,
+        //             "totalFunds": 0.0001,
+        //             "lockedFunds": 0,
+        //             "currency": "BTC",
+        //             "type": "CRYPTO",
+        //             "name": "Prowizja",
+        //             "balanceEngine": "BITBAY"
+        //         },
+        //         "errors": null
+        //     }
+        //
+        const status = this.safeString (transfer, 'status');
+        const fromAccount = this.safeValue (transfer, 'from', {});
+        const fromId = this.safeString (fromAccount, 'id');
+        const to = this.safeValue (transfer, 'to', {});
+        const toId = this.safeString (to, 'id');
+        const currencyId = this.safeString (fromAccount, 'currency');
+        return {
+            'info': transfer,
+            'id': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': undefined,
+            'fromAccount': fromId,
+            'toAccount': toId,
+            'status': this.parseTransferStatus (status),
+        };
+    }
+
+    parseTransferStatus (status) {
+        const statuses = {
+            'Ok': 'ok',
+            'Fail': 'failed',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {

@@ -59,6 +59,7 @@ class zonda extends Exchange {
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
+                'transfer' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -218,6 +219,9 @@ class zonda extends Exchange {
             ),
             'options' => array(
                 'fiatCurrencies' => array( 'EUR', 'USD', 'GBP', 'PLN' ),
+                'transfer' => array(
+                    'fillResponseFromRequest' => true,
+                ),
             ),
             'exceptions' => array(
                 '400' => '\\ccxt\\ExchangeError', // At least one parameter wasn't set
@@ -1219,6 +1223,109 @@ class zonda extends Exchange {
             'PLN' => true,
         );
         return $this->safe_value($fiatCurrencies, $currency, false);
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        yield $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'source' => $fromAccount,
+            'destination' => $toAccount,
+            'currency' => $code,
+            'funds' => $this->currency_to_precision($code, $amount),
+        );
+        $response = yield $this->v1_01PrivatePostBalancesBITBAYBalanceTransferSourceDestination (array_merge($request, $params));
+        //
+        //     {
+        //         "status" => "Ok",
+        //         "from" => array(
+        //             "id" => "ad9397c5-3bd9-4372-82ba-22da6a90cb56",
+        //             "userId" => "4bc43956-423f-47fd-9faa-acd37c58ed9f",
+        //             "availableFunds" => 0.01803472,
+        //             "totalFunds" => 0.01804161,
+        //             "lockedFunds" => 0.00000689,
+        //             "currency" => "BTC",
+        //             "type" => "CRYPTO",
+        //             "name" => "BTC",
+        //             "balanceEngine" => "BITBAY"
+        //         ),
+        //         "to" => array(
+        //             "id" => "01931d52-536b-4ca5-a9f4-be28c86d0cc3",
+        //             "userId" => "4bc43956-423f-47fd-9faa-acd37c58ed9f",
+        //             "availableFunds" => 0.0001,
+        //             "totalFunds" => 0.0001,
+        //             "lockedFunds" => 0,
+        //             "currency" => "BTC",
+        //             "type" => "CRYPTO",
+        //             "name" => "Prowizja",
+        //             "balanceEngine" => "BITBAY"
+        //         ),
+        //         "errors" => null
+        //     }
+        //
+        $transfer = $this->parse_transfer($response, $currency);
+        $transferOptions = $this->safe_value($this->options, 'transfer', array());
+        $fillResponseFromRequest = $this->safe_value($transferOptions, 'fillResponseFromRequest', true);
+        if ($fillResponseFromRequest) {
+            $transfer['amount'] = $amount;
+        }
+        return $transfer;
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        //     {
+        //         "status" => "Ok",
+        //         "from" => array(
+        //             "id" => "ad9397c5-3bd9-4372-82ba-22da6a90cb56",
+        //             "userId" => "4bc43956-423f-47fd-9faa-acd37c58ed9f",
+        //             "availableFunds" => 0.01803472,
+        //             "totalFunds" => 0.01804161,
+        //             "lockedFunds" => 0.00000689,
+        //             "currency" => "BTC",
+        //             "type" => "CRYPTO",
+        //             "name" => "BTC",
+        //             "balanceEngine" => "BITBAY"
+        //         ),
+        //         "to" => array(
+        //             "id" => "01931d52-536b-4ca5-a9f4-be28c86d0cc3",
+        //             "userId" => "4bc43956-423f-47fd-9faa-acd37c58ed9f",
+        //             "availableFunds" => 0.0001,
+        //             "totalFunds" => 0.0001,
+        //             "lockedFunds" => 0,
+        //             "currency" => "BTC",
+        //             "type" => "CRYPTO",
+        //             "name" => "Prowizja",
+        //             "balanceEngine" => "BITBAY"
+        //         ),
+        //         "errors" => null
+        //     }
+        //
+        $status = $this->safe_string($transfer, 'status');
+        $fromAccount = $this->safe_value($transfer, 'from', array());
+        $fromId = $this->safe_string($fromAccount, 'id');
+        $to = $this->safe_value($transfer, 'to', array());
+        $toId = $this->safe_string($to, 'id');
+        $currencyId = $this->safe_string($fromAccount, 'currency');
+        return array(
+            'info' => $transfer,
+            'id' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'amount' => null,
+            'fromAccount' => $fromId,
+            'toAccount' => $toId,
+            'status' => $this->parse_transfer_status($status),
+        );
+    }
+
+    public function parse_transfer_status($status) {
+        $statuses = array(
+            'Ok' => 'ok',
+            'Fail' => 'failed',
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {

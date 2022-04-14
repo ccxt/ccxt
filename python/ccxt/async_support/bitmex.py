@@ -61,6 +61,9 @@ class bitmex(Exchange):
                 'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchTransactions': 'emulated',
+                'fetchTransfer': False,
+                'fetchTransfers': False,
+                'transfer': False,
                 'withdraw': True,
             },
             'timeframes': {
@@ -926,8 +929,6 @@ class bitmex(Exchange):
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        if not market['active']:
-            raise BadSymbol(self.id + ' fetchTicker() symbol ' + symbol + ' is not tradable')
         tickers = await self.fetch_tickers([market['symbol']], params)
         ticker = self.safe_value(tickers, market['symbol'])
         if ticker is None:

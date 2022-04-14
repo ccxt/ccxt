@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.78.77'
+__version__ = '1.79.1'
 
 # -----------------------------------------------------------------------------
 
@@ -1998,6 +1998,43 @@ class Exchange(object):
         symbol = market['symbol'] if market else None
         tail = since is None
         return self.filter_by_symbol_since_limit(array, symbol, since, limit, tail)
+
+    def safe_transfer(self, transfer, currency=None):
+        currency = self.safe_currency(None, currency)
+        return self.extend({
+            'id': None,
+            'timestamp': None,
+            'datetime': None,
+            'currency': currency['code'],
+            'amount': None,
+            'fromAccount': None,
+            'toAccount': None,
+            'status': None,
+            'info': None,
+        }, transfer)
+
+    def safe_transaction(self, transaction, currency=None):
+        currency = self.safe_currency(None, currency)
+        return self.extend({
+            'id': None,
+            'currency': currency['code'],
+            'amount': None,
+            'network': None,
+            'address': None,
+            'addressTo': None,
+            'addressFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'tagFrom': None,
+            'status': None,
+            'type': None,
+            'updated': None,
+            'txid': None,
+            'timestamp': None,
+            'datetime': None,
+            'fee': None,
+            'info': None,
+        }, transaction)
 
     def parse_transactions(self, transactions, currency=None, since=None, limit=None, params={}):
         array = self.to_array(transactions)

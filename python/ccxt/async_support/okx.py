@@ -741,10 +741,10 @@ class okx(Exchange):
         data = self.safe_value(response, 'data', [])
         timestamp = self.milliseconds()
         update = {
-            'info': response,
             'updated': timestamp,
             'status': 'ok',
             'eta': None,
+            'info': response,
         }
         for i in range(0, len(data)):
             event = data[i]

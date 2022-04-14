@@ -1652,11 +1652,13 @@ class gateio extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 10, max 100
         }
+        $request['with_id'] = true;
         $response = $this->$method (array_merge($request, $params));
         //
         // SPOT
         //
         //     {
+        //         "id":6358770031
         //         "current" => 1634345973275,
         //         "update" => 1634345973271,
         //         "asks" => [
@@ -1687,6 +1689,7 @@ class gateio extends Exchange {
         // Perpetual Swap
         //
         //     {
+        //         "id":6358770031
         //         "current" => 1634350208.745,
         //         "asks" => array(
         //             array("s":24909,"p" => "61264.8"),
@@ -1721,7 +1724,10 @@ class gateio extends Exchange {
         }
         $priceKey = $spotOrMargin ? 0 : 'p';
         $amountKey = $spotOrMargin ? 1 : 's';
-        return $this->parse_order_book($response, $symbol, $timestamp, 'bids', 'asks', $priceKey, $amountKey);
+        $nonce = $this->safe_integer($response, 'id');
+        $result = $this->parse_order_book($response, $symbol, $timestamp, 'bids', 'asks', $priceKey, $amountKey);
+        $result['nonce'] = $nonce;
+        return $result;
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

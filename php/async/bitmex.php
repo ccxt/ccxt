@@ -56,6 +56,9 @@ class bitmex extends Exchange {
                 'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchTransactions' => 'emulated',
+                'fetchTransfer' => false,
+                'fetchTransfers' => false,
+                'transfer' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -964,9 +967,6 @@ class bitmex extends Exchange {
     public function fetch_ticker($symbol, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
-        if (!$market['active']) {
-            throw new BadSymbol($this->id . ' fetchTicker() $symbol ' . $symbol . ' is not tradable');
-        }
         $tickers = yield $this->fetch_tickers([ $market['symbol'] ], $params);
         $ticker = $this->safe_value($tickers, $market['symbol']);
         if ($ticker === null) {
