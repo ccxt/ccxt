@@ -1096,7 +1096,7 @@ class gateio(Exchange):
 
     async def fetch_currencies(self, params={}):
         # sandbox/testnet only supports future markets
-        apiBackup = self.safe_string(self.urls, 'apiBackup')
+        apiBackup = self.safe_value(self.urls, 'apiBackup')
         if apiBackup is not None:
             return None
         response = await self.publicSpotGetCurrencies(params)
@@ -2979,8 +2979,15 @@ class gateio(Exchange):
         stop = self.safe_value_2(params, 'is_stop_order', 'stop', False)
         params = self.omit(params, ['is_stop_order', 'stop'])
         market = self.market(symbol)
+        clientOrderId = self.safe_string_2(params, 'text', 'clientOrderId')
+        orderId = id
+        if clientOrderId is not None:
+            params = self.omit(params, ['text', 'clientOrderId'])
+            if clientOrderId[0] != 't':
+                clientOrderId = 't-' + clientOrderId
+            orderId = clientOrderId
         request = {
-            'order_id': id,
+            'order_id': orderId,
         }
         if market['spot'] or market['margin']:
             request['currency_pair'] = market['id']
