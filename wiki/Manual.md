@@ -4542,9 +4542,11 @@ Parameters
 Unified values for `fromAccount` and `toAccount` include
 
 - `funding` *For some exchanges `funding` and `spot` are the same account*
+- `main` *For some exchanges that allow for subaccounts
 - `spot`
 - `margin`
 - `future`
+- `contract`
 
 You can retrieve all the account types by selecting the keys from `exchange.options['accountsByType']
 
