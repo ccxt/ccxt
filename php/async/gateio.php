@@ -1111,7 +1111,7 @@ class gateio extends Exchange {
 
     public function fetch_currencies($params = array ()) {
         // sandbox/testnet only supports future markets
-        $apiBackup = $this->safe_string($this->urls, 'apiBackup');
+        $apiBackup = $this->safe_value($this->urls, 'apiBackup');
         if ($apiBackup !== null) {
             return null;
         }

@@ -1096,7 +1096,7 @@ class gateio(Exchange):
 
     def fetch_currencies(self, params={}):
         # sandbox/testnet only supports future markets
-        apiBackup = self.safe_string(self.urls, 'apiBackup')
+        apiBackup = self.safe_value(self.urls, 'apiBackup')
         if apiBackup is not None:
             return None
         response = self.publicSpotGetCurrencies(params)
