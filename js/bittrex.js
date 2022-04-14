@@ -1041,7 +1041,7 @@ module.exports = class bittrex extends Exchange {
         //     }
         //
         //
-        const id = this.safeString (transaction, 'id');
+        const id = this.safeString2 (transaction, 'id', 'clientWithdrawalId');
         const amount = this.safeNumber (transaction, 'quantity');
         const address = this.safeString (transaction, 'cryptoAddress');
         const txid = this.safeString (transaction, 'txId');
