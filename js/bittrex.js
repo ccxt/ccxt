@@ -1029,6 +1029,30 @@ module.exports = class bittrex extends Exchange {
         //         "InvalidAddress" : false
         //     }
         //
+        // withdraw
+        //
+        //     {
+        //         "id": "string (uuid)",
+        //         "currencySymbol": "string",
+        //         "quantity": "number (double)",
+        //         "cryptoAddress": "string",
+        //         "cryptoAddressTag": "string",
+        //         "fundsTransferMethodId": "string (uuid)",
+        //         "txCost": "number (double)",
+        //         "txId": "string",
+        //         "status": "string",
+        //         "createdAt": "string (date-time)",
+        //         "completedAt": "string (date-time)",
+        //         "clientWithdrawalId": "string (uuid)",
+        //         "target": "string",
+        //         "accountId": "string (uuid)",
+        //         "error": {
+        //             "code": "string",
+        //             "detail": "string",
+        //             "data": "object"
+        //         }
+        //     }
+        //
         const id = this.safeString (transaction, 'id');
         const amount = this.safeNumber (transaction, 'quantity');
         const address = this.safeString (transaction, 'cryptoAddress');
@@ -1384,6 +1408,31 @@ module.exports = class bittrex extends Exchange {
             request['cryptoAddressTag'] = tag;
         }
         const response = await this.privatePostWithdrawals (this.extend (request, params));
+        //
+        //  [
+        //      {
+        //         "id": "string (uuid)",
+        //         "currencySymbol": "string",
+        //         "quantity": "number (double)",
+        //         "cryptoAddress": "string",
+        //         "cryptoAddressTag": "string",
+        //         "fundsTransferMethodId": "string (uuid)",
+        //         "txCost": "number (double)",
+        //         "txId": "string",
+        //         "status": "string",
+        //         "createdAt": "string (date-time)",
+        //         "completedAt": "string (date-time)",
+        //         "clientWithdrawalId": "string (uuid)",
+        //         "target": "string",
+        //         "accountId": "string (uuid)",
+        //         "error": {
+        //             "code": "string",
+        //             "detail": "string",
+        //             "data": "object"
+        //         }
+        //      }
+        //  ]
+        //
         return this.parseTransaction (response, currency);
     }
 
