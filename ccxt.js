@@ -282,7 +282,7 @@ const exchanges = {
 
 //-----------------------------------------------------------------------------
 
-const ccxt = Object.assign ({ version, Exchange, Precise, 'exchanges': Object.keys (exchanges) }, exchanges, functions, errors)
+const ccxt = Object.assign ({ version, Exchange, Precise, 'exchanges': Object.keys (exchanges)}, exchanges, functions, errors)
 
 export {
     version,

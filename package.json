@@ -8,6 +8,18 @@
     ".": {
       "import": "./ccxt.js",
       "require": "./ccxt.cjs"
+    },
+    "./transpile": {
+      "import": "./build/transpile.js"
+    },
+    "./vss": {
+      "import": "./build/vss.js"
+    },
+    "./fsLocal": {
+      "import": "./build/fsLocal.js"
+    },
+    "./exportHelper": {
+      "import": "./build/exportHelper.js"
     }
   },
   "engines": {

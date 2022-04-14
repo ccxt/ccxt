@@ -5,9 +5,6 @@
 // ----------------------------------------------------------------------------
 
 import fs from 'fs'
-// import asTable from 'as-table'
-// import { replaceInFile } from './fsLocal.js'
-// import execSync from 'child_process'
 import log       from 'ololog'
 import ansi      from 'ansicolor'
 import { pathToFileURL } from 'url'
@@ -33,8 +30,6 @@ import {
     exportWikiToGitHub
 
 } from './export-helper.js'
-
-const { keys, values, entries, fromEntries } = Object
 
 const unlimitedLog = log.unlimited;
 
