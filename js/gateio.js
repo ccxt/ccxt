@@ -828,7 +828,7 @@ module.exports = class gateio extends ccxt.gateio {
         }
         const time = this.seconds ();
         const event = 'subscribe';
-        const signaturePayload = 'channel=' + channel + '&event=' + event + '&time=' + time.toString ();
+        const signaturePayload = 'channel=' + channel + '&' + 'event=' + event + '&' + 'time=' + time.toString ();
         const signature = this.hmac (this.encode (signaturePayload), this.encode (this.secret), 'sha512', 'hex');
         const auth = {
             'method': 'api_key',
