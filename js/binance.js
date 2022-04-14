@@ -2716,9 +2716,9 @@ module.exports = class binance extends Exchange {
         const validOrderTypes = this.safeValue (market['info'], 'orderTypes');
         if (!this.inArray (uppercaseType, validOrderTypes)) {
             if (type.toUpperCase () !== uppercaseType) {
-                throw new InvalidOrder (this.id + ' params.stopPrice' + ' is not valid for' + type + 'orders in market ' + symbol);
+                throw new InvalidOrder (this.id + ' stopPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders');
             } else {
-                throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type in market ' + symbol);
+                throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market');
             }
         }
         const request = {
