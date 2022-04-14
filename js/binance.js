@@ -2703,7 +2703,8 @@ module.exports = class binance extends Exchange {
                 type = 'LIMIT_MAKER';
             }
         }
-        let uppercaseType = type.toUpperCase ();
+        const initialUppercaseType = type.toUpperCase ();
+        let uppercaseType = initialUppercaseType;
         const stopPrice = this.safeNumber (params, 'stopPrice');
         if (stopPrice !== undefined) {
             params = this.omit (params, 'stopPrice');
@@ -2715,7 +2716,7 @@ module.exports = class binance extends Exchange {
         }
         const validOrderTypes = this.safeValue (market['info'], 'orderTypes');
         if (!this.inArray (uppercaseType, validOrderTypes)) {
-            if (type.toUpperCase () !== uppercaseType) {
+            if (initialUppercaseType !== uppercaseType) {
                 throw new InvalidOrder (this.id + ' stopPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders');
             } else {
                 throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market');
