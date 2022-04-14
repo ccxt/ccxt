@@ -3106,14 +3106,16 @@ module.exports = class gateio extends Exchange {
         params = this.omit (params, [ 'is_stop_order', 'stop' ]);
         const market = this.market (symbol);
         let clientOrderId = this.safeString2 (params, 'text', 'clientOrderId');
+        let orderId = id;
         if (clientOrderId !== undefined) {
             params = this.omit (params, [ 'text', 'clientOrderId' ]);
             if (clientOrderId[0] !== 't') {
                 clientOrderId = 't-' + clientOrderId;
             }
+            orderId = clientOrderId;
         }
         const request = {
-            'order_id': clientOrderId || id,
+            'order_id': orderId,
         };
         if (market['spot'] || market['margin']) {
             request['currency_pair'] = market['id'];
