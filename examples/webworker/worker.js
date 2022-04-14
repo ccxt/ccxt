@@ -4,17 +4,19 @@ console.log("Loaded ccxt version:", self.ccxt.version);
 
 var exchangeInstance = undefined;
 
-
+// handler of received messages
 self.onmessage = async function handler(msg) {
   await handleMessageFromMain(msg)
 }
 
+// get messages from the main script
 async function handleMessageFromMain(msg) {
   console.log(msg.data);
   var [exchange, symbol, interval] = msg.data;
   console.log('Worker received:', symbol,exchange, interval)
   interval = parseInt(interval)
   await processTicker(symbol, exchange)  
+  // schedule process ticker execution
   setInterval (async () => {
     await processTicker(symbol, exchange)  
   }, interval)
@@ -29,10 +31,12 @@ async function processTicker(symbol, exchangeId) {
   var last = result['last']
   var timestamp = result['timestamp']
   var ourTimestamp = Date.now()
+  // send the data back to the main script
   postMessage([symbol, last, timestamp, ourTimestamp]);
 }
 
 async function fetchTicker(symbol){
+  // use ccxt to fetch ticker info
   var result = await exchangeInstance.fetchTicker(symbol)
   return result;
 }
