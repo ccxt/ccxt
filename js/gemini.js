@@ -921,6 +921,17 @@ module.exports = class gemini extends Exchange {
         //         "txHash":"0x28267179f92926d85c5516bqc063b2631935573d8915258e95d9572eedcc8cc"
         //     }
         //
+        //   for error (many variations of )
+        //     {
+        //         "result":"error",
+        //         "reason":"CryptoAddressWhitelistsNotEnabled",
+        //         "message":"Cryptocurrency withdrawal address whitelists are not enabled for account 24. Please contact support@gemini.com for information on setting up a withdrawal address whitelist."
+        //     }
+        //
+        const result = this.safeString (response, 'result');
+        if (result === 'error') {
+            throw new ExchangeError (this.id + ' withdraw returned an error: ' + this.json (response));
+        }
         return this.parseTransaction (response, currency);
     }
 
