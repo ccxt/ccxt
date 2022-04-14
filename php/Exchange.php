@@ -2363,14 +2363,6 @@ class Exchange {
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit, $tail);
     }
 
-    public function safe_status($status) {
-        return $this->extend(array(
-            'status'=> null,
-            'updated'=> $this->milliseconds(),
-            'eta'=> null,
-        ), $status);
-    }
-
     public function safe_market($marketId, $market = null, $delimiter = null) {
         if ($marketId !== null) {
             if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
@@ -3794,7 +3786,7 @@ class Exchange {
     public function sleep($milliseconds) {
         sleep($milliseconds / 1000);
     }
-    
+
     public function parse_borrow_interests($response, $market = null) {
         $interest = array();
         for ($i = 0; $i < count($response); $i++){
