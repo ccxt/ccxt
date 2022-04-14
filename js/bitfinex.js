@@ -1238,6 +1238,14 @@ module.exports = class bitfinex extends Exchange {
         //         "timestamp_created": "1561716066.0"
         //     }
         //
+        // withdraw
+        //
+        //     {
+        //         "status":"success",
+        //         "message":"Your withdrawal request has been successfully submitted.",
+        //         "withdrawal_id":586829
+        //     }
+        //
         const timestamp = this.safeTimestamp (transaction, 'timestamp_created');
         const updated = this.safeTimestamp (transaction, 'timestamp');
         const currencyId = this.safeString (transaction, 'currency');
@@ -1251,7 +1259,7 @@ module.exports = class bitfinex extends Exchange {
         const tag = this.safeString (transaction, 'description');
         return {
             'info': transaction,
-            'id': this.safeString (transaction, 'id'),
+            'id': this.safeString2 (transaction, 'id', 'withdrawal_id'),
             'txid': this.safeString (transaction, 'txid'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1291,6 +1299,7 @@ module.exports = class bitfinex extends Exchange {
         await this.loadMarkets ();
         // todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
         const name = this.getCurrencyName (code);
+        const currency = this.currency (code);
         const request = {
             'withdraw_type': name,
             'walletselected': 'exchange',
@@ -1301,6 +1310,13 @@ module.exports = class bitfinex extends Exchange {
             request['payment_id'] = tag;
         }
         const responses = await this.privatePostWithdraw (this.extend (request, params));
+        //
+        //     [{
+        //         "status":"success",
+        //         "message":"Your withdrawal request has been successfully submitted.",
+        //         "withdrawal_id":586829
+        //     }]
+        //
         const response = responses[0];
         const id = this.safeString (response, 'withdrawal_id');
         const message = this.safeString (response, 'message');
@@ -1312,10 +1328,7 @@ module.exports = class bitfinex extends Exchange {
             }
             throw new ExchangeError (this.id + ' withdraw returned an id of zero: ' + this.json (response));
         }
-        return {
-            'info': response,
-            'id': id,
-        };
+        return this.parseTransaction (response, currency);
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
