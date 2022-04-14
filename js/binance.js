@@ -2705,7 +2705,7 @@ module.exports = class binance extends Exchange {
         }
         let uppercaseType = type.toUpperCase ();
         const stopPrice = this.safeNumber (params, 'stopPrice');
-        if (stopPrice) {
+        if (stopPrice !== undefined) {
             params = this.omit (params, 'stopPrice');
             if (uppercaseType === 'MARKET') {
                 uppercaseType = market['contract'] ? 'STOP_MARKET' : 'STOP_LOSS';
