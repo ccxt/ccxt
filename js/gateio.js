@@ -1104,7 +1104,7 @@ module.exports = class gateio extends Exchange {
 
     async fetchCurrencies (params = {}) {
         // sandbox/testnet only supports future markets
-        const apiBackup = this.safeString (this.urls, 'apiBackup');
+        const apiBackup = this.safeValue (this.urls, 'apiBackup');
         if (apiBackup !== undefined) {
             return undefined;
         }
