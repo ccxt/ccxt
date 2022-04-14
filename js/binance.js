@@ -818,7 +818,7 @@ module.exports = class binance extends Exchange {
                     'delivery': 'CMFUTURE',
                     'mining': 'MINING',
                 },
-                'typesByAccount': {
+                'accountsById': {
                     'MAIN': 'spot',
                     'FUNDING': 'funding',
                     'MARGIN': 'margin',
@@ -3631,13 +3631,13 @@ module.exports = class binance extends Exchange {
         const type = this.safeString (transfer, 'type');
         let fromAccount = undefined;
         let toAccount = undefined;
-        const typesByAccount = this.safeValue (this.options, 'typesByAccount', {});
+        const accountsById = this.safeValue (this.options, 'accountsById', {});
         if (type !== undefined) {
             const parts = type.split ('_');
             fromAccount = this.safeValue (parts, 0);
             toAccount = this.safeValue (parts, 1);
-            fromAccount = this.safeString (typesByAccount, fromAccount, fromAccount);
-            toAccount = this.safeString (typesByAccount, toAccount, toAccount);
+            fromAccount = this.safeString (accountsById, fromAccount, fromAccount);
+            toAccount = this.safeString (accountsById, toAccount, toAccount);
         }
         const timestamp = this.safeInteger (transfer, 'timestamp');
         const status = this.parseTransferStatus (this.safeString (transfer, 'status'));
@@ -3702,17 +3702,19 @@ module.exports = class binance extends Exchange {
         let type = this.safeString (params, 'type');
         if (type === undefined) {
             const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+            const accountsById = this.safeValue (this.options, 'accountsById', {});
+            const accountIds = Object.keys (accountsById);
             fromAccount = fromAccount.toLowerCase ();
             toAccount = toAccount.toLowerCase ();
-            const fromId = this.safeString (accountsByType, fromAccount);
-            const toId = this.safeString (accountsByType, toAccount);
-            if (fromId === undefined) {
+            const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
+            const toId = this.safeString (accountsByType, toAccount, toAccount);
+            if (!(fromId in accountsById)) {
                 const keys = Object.keys (accountsByType);
-                throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', '));
+                throw new ExchangeError (this.id + ' transfer() fromAccount must be one of ' + keys.join (', '));
             }
-            if (toId === undefined) {
+            if (!(toId in accountsById)) {
                 const keys = Object.keys (accountsByType);
-                throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', '));
+                throw new ExchangeError (this.id + ' transfer() toAccount must be one of ' + keys.join (', '));
             }
             type = fromId + '_' + toId;
         }
