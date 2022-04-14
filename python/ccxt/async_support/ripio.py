@@ -14,7 +14,6 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.decimal_to_precision import TICK_SIZE
-from ccxt.base.precise import Precise
 
 
 class ripio(Exchange):
@@ -445,7 +444,22 @@ class ripio(Exchange):
 
     def parse_trade(self, trade, market=None):
         #
-        # public fetchTrades, private fetchMyTrades
+        #
+        # fetchTrades(public)
+        #
+        #      {
+        #          "created_at":1649899167,
+        #          "amount":"0.00852",
+        #          "price":"3106.000000",
+        #          "side":"SELL",
+        #          "pair":"ETH_USDC",
+        #          "taker_fee":"0",
+        #          "taker_side":"SELL",
+        #          "maker_fee":"0"
+        #      }
+        #
+        #
+        # fetchMyTrades(private)
         #
         #     {
         #         "created_at":1601322501,
@@ -481,20 +495,17 @@ class ripio(Exchange):
             side = side.lower()
         priceString = self.safe_string_2(trade, 'price', 'match_price')
         amountString = self.safe_string_2(trade, 'amount', 'exchanged')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         marketId = self.safe_string(trade, 'pair')
         market = self.safe_market(marketId, market)
-        feeCost = self.safe_number(trade, takerOrMaker + '_fee')
+        feeCostString = self.safe_string(trade, takerOrMaker + '_fee')
         orderId = self.safe_string(trade, takerOrMaker)
         fee = None
-        if feeCost is not None:
+        if feeCostString is not None:
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': market['base'] if (side == 'buy') else market['quote'],
             }
-        return {
+        return self.safe_trade({
             'id': id,
             'order': orderId,
             'timestamp': timestamp,
@@ -502,13 +513,13 @@ class ripio(Exchange):
             'symbol': market['symbol'],
             'type': None,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'takerOrMaker': takerOrMaker,
             'fee': fee,
             'info': trade,
-        }
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
@@ -518,20 +529,18 @@ class ripio(Exchange):
         }
         response = await self.publicGetTradehistoryPair(self.extend(request, params))
         #
-        #     [
-        #         {
-        #             "created_at":1601322501,
-        #             "amount":"0.00276",
-        #             "price":"10850.020000",
-        #             "side":"SELL",
-        #             "pair":"BTC_USDC",
-        #             "taker_fee":"0",
-        #             "taker_side":"SELL",
-        #             "maker_fee":"0",
-        #             "taker":2577953,
-        #             "maker":2577937
-        #         }
-        #     ]
+        #      [
+        #          {
+        #              "created_at":1649899167,
+        #              "amount":"0.00852",
+        #              "price":"3106.000000",
+        #              "side":"SELL",
+        #              "pair":"ETH_USDC",
+        #              "taker_fee":"0",
+        #              "taker_side":"SELL",
+        #              "maker_fee":"0"
+        #          }
+        #      ]
         #
         return self.parse_trades(response, market, since, limit)
 
