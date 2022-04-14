@@ -3107,8 +3107,17 @@ class gateio extends Exchange {
         $stop = $this->safe_value_2($params, 'is_stop_order', 'stop', false);
         $params = $this->omit($params, array( 'is_stop_order', 'stop' ));
         $market = $this->market($symbol);
+        $clientOrderId = $this->safe_string_2($params, 'text', 'clientOrderId');
+        $orderId = $id;
+        if ($clientOrderId !== null) {
+            $params = $this->omit($params, array( 'text', 'clientOrderId' ));
+            if ($clientOrderId[0] !== 't') {
+                $clientOrderId = 't-' . $clientOrderId;
+            }
+            $orderId = $clientOrderId;
+        }
         $request = array(
-            'order_id' => $id,
+            'order_id' => $orderId,
         );
         if ($market['spot'] || $market['margin']) {
             $request['currency_pair'] = $market['id'];
