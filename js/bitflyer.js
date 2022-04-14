@@ -643,11 +643,12 @@ module.exports = class bitflyer extends Exchange {
             // 'bank_account_id': 1234,
         };
         const response = await this.privatePostWithdraw (this.extend (request, params));
-        const id = this.safeString (response, 'message_id');
-        return {
-            'info': response,
-            'id': id,
-        };
+        //
+        //     {
+        //         "message_id": "69476620-5056-4003-bcbe-42658a2b041b"
+        //     }
+        //
+        return this.parseTransaction (response, currency);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -752,7 +753,13 @@ module.exports = class bitflyer extends Exchange {
         //     "event_date": "2015-12-24T01:40:40.397"
         //   }
         //
-        const id = this.safeString (transaction, 'id');
+        // withdraw
+        //
+        //   {
+        //     "message_id": "69476620-5056-4003-bcbe-42658a2b041b"
+        //   }
+        //
+        const id = this.safeString2 (transaction, 'id', 'message_id');
         const address = this.safeString (transaction, 'address');
         const currencyId = this.safeString (transaction, 'currency_code');
         const code = this.safeCurrencyCode (currencyId, currency);
