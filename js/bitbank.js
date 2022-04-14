@@ -680,6 +680,22 @@ module.exports = class bitbank extends Exchange {
     }
 
     parseTransaction (transaction, currency = undefined) {
+        //
+        // withdraw
+        //
+        //     {
+        //         "uuid": "string",
+        //         "asset": "btc",
+        //         "amount": 0,
+        //         "account_uuid": "string",
+        //         "fee": 0,
+        //         "status": "DONE",
+        //         "label": "string",
+        //         "txid": "string",
+        //         "address": "string",
+        //         "requested_at": 0
+        //     }
+        //
         const txid = this.safeString (transaction, 'txid');
         currency = this.safeCurrency (undefined, currency);
         return {
