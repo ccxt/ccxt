@@ -8,7 +8,7 @@ import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.0.29'
+__version__ = '1.0.66'
 
 # -----------------------------------------------------------------------------
 
@@ -58,7 +58,6 @@ from ccxt import OrderNotFillable                   # noqa: F401
 
 # CCXT exchanges
 
-from ccxt.async_support.ascendex import ascendex                          # noqa: F401
 from ccxt.async_support.bibox import bibox                                # noqa: F401
 from ccxt.async_support.bigone import bigone                              # noqa: F401
 from ccxt.async_support.bit2c import bit2c                                # noqa: F401
@@ -101,7 +100,6 @@ from ccxt.async_support.delta import delta                                # noqa
 from ccxt.async_support.deribit import deribit                            # noqa: F401
 from ccxt.async_support.digifinex import digifinex                        # noqa: F401
 from ccxt.async_support.eqonex import eqonex                              # noqa: F401
-from ccxt.async_support.equos import equos                                # noqa: F401
 from ccxt.async_support.exmo import exmo                                  # noqa: F401
 from ccxt.async_support.flowbtc import flowbtc                            # noqa: F401
 from ccxt.async_support.fmfwio import fmfwio                              # noqa: F401
@@ -144,6 +142,7 @@ from ccxt.async_support.zonda import zonda                                # noqa
 # CCXT Pro exchanges
 
 from ccxtpro.aax import aax                                               # noqa: F401
+from ccxtpro.ascendex import ascendex                                     # noqa: F401
 from ccxtpro.bequant import bequant                                       # noqa: F401
 from ccxtpro.binance import binance                                       # noqa: F401
 from ccxtpro.binancecoinm import binancecoinm                             # noqa: F401

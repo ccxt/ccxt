@@ -145,7 +145,7 @@ class binance extends \ccxt\async\binance {
             'id' => (string) $requestId,
             'messageHash' => $messageHash,
             'name' => $name,
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'method' => array($this, 'handle_order_book_subscription'),
             'limit' => $limit,
             'type' => $type,

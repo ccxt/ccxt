@@ -170,7 +170,7 @@ class poloniex extends \ccxt\async\poloniex {
         }
         $orders = yield $this->subscribe_private($messageHash, array());
         if ($this->newUpdates) {
-            $limit = $orders->getLimit ();
+            $limit = $orders->getLimit ($symbol, $limit);
         }
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
     }
@@ -185,7 +185,7 @@ class poloniex extends \ccxt\async\poloniex {
         }
         $trades = yield $this->subscribe_private($messageHash, array());
         if ($this->newUpdates) {
-            $limit = $trades->getLimit ();
+            $limit = $trades->getLimit ($symbol, $limit);
         }
         return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
     }
