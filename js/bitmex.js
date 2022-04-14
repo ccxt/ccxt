@@ -1734,6 +1734,7 @@ module.exports = class bitmex extends Exchange {
         if (code !== 'BTC') {
             throw new ExchangeError (this.id + ' supoprts BTC withdrawals only, other currencies coming soon...');
         }
+        const currency = this.currency (code);
         const request = {
             'currency': 'XBt', // temporarily
             'amount': amount,
@@ -1742,10 +1743,7 @@ module.exports = class bitmex extends Exchange {
             // 'fee': 0.001, // bitcoin network fee
         };
         const response = await this.privatePostUserRequestWithdrawal (this.extend (request, params));
-        return {
-            'info': response,
-            'id': this.safeString (response, 'transactID'),
-        };
+        return this.parseTransaction (response, currency);
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
