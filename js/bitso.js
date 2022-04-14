@@ -936,9 +936,32 @@ module.exports = class bitso extends Exchange {
         };
         const classMethod = 'privatePost' + method + 'Withdrawal';
         const response = await this[classMethod] (this.extend (request, params));
+        const payload = this.safeValue (response, 'payload');
+        return this.parseTransaction (payload);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        currency = this.safeCurrency (undefined, currency);
         return {
-            'info': response,
-            'id': this.safeString (response['payload'], 'wid'),
+            'id': this.safeString (transaction, 'wid'),
+            'txid': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'network': undefined,
+            'addressFrom': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'amount': undefined,
+            'type': undefined,
+            'currency': currency['code'],
+            'status': undefined,
+            'updated': undefined,
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'comment': undefined,
+            'fee': undefined,
+            'info': transaction,
         };
     }
 
