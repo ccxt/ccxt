@@ -446,7 +446,22 @@ module.exports = class ripio extends Exchange {
 
     parseTrade (trade, market = undefined) {
         //
-        // public fetchTrades, private fetchMyTrades
+        //
+        // fetchTrades (public)
+        //
+        //      {
+        //          "created_at":1649899167,
+        //          "amount":"0.00852",
+        //          "price":"3106.000000",
+        //          "side":"SELL",
+        //          "pair":"ETH_USDC",
+        //          "taker_fee":"0",
+        //          "taker_side":"SELL",
+        //          "maker_fee":"0"
+        //      }
+        //
+        //
+        // fetchMyTrades (private)
         //
         //     {
         //         "created_at":1601322501,
@@ -483,21 +498,18 @@ module.exports = class ripio extends Exchange {
         }
         const priceString = this.safeString2 (trade, 'price', 'match_price');
         const amountString = this.safeString2 (trade, 'amount', 'exchanged');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const marketId = this.safeString (trade, 'pair');
         market = this.safeMarket (marketId, market);
-        const feeCost = this.safeNumber (trade, takerOrMaker + '_fee');
+        const feeCostString = this.safeString (trade, takerOrMaker + '_fee');
         const orderId = this.safeString (trade, takerOrMaker);
         let fee = undefined;
-        if (feeCost !== undefined) {
+        if (feeCostString !== undefined) {
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': (side === 'buy') ? market['base'] : market['quote'],
             };
         }
-        return {
+        return this.safeTrade ({
             'id': id,
             'order': orderId,
             'timestamp': timestamp,
@@ -505,13 +517,13 @@ module.exports = class ripio extends Exchange {
             'symbol': market['symbol'],
             'type': undefined,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'takerOrMaker': takerOrMaker,
             'fee': fee,
             'info': trade,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -522,20 +534,18 @@ module.exports = class ripio extends Exchange {
         };
         const response = await this.publicGetTradehistoryPair (this.extend (request, params));
         //
-        //     [
-        //         {
-        //             "created_at":1601322501,
-        //             "amount":"0.00276",
-        //             "price":"10850.020000",
-        //             "side":"SELL",
-        //             "pair":"BTC_USDC",
-        //             "taker_fee":"0",
-        //             "taker_side":"SELL",
-        //             "maker_fee":"0",
-        //             "taker":2577953,
-        //             "maker":2577937
-        //         }
-        //     ]
+        //      [
+        //          {
+        //              "created_at":1649899167,
+        //              "amount":"0.00852",
+        //              "price":"3106.000000",
+        //              "side":"SELL",
+        //              "pair":"ETH_USDC",
+        //              "taker_fee":"0",
+        //              "taker_side":"SELL",
+        //              "maker_fee":"0"
+        //          }
+        //      ]
         //
         return this.parseTrades (response, market, since, limit);
     }
