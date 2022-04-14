@@ -302,13 +302,13 @@ module.exports = class aax extends Exchange {
             'precisionMode': TICK_SIZE,
             'options': {
                 'defaultType': 'spot', // 'spot', 'future'
-                'types': {
+                'accountsByType': {
                     'spot': 'SPTP',
                     'future': 'FUTP',
                     'otc': 'F2CP',
                     'saving': 'VLTP',
                 },
-                'accounts': {
+                'accountsById': {
                     'SPTP': 'spot',
                     'FUTP': 'future',
                     'F2CP': 'otc',
@@ -320,8 +320,7 @@ module.exports = class aax extends Exchange {
                     'SOL': 'SPL',
                 },
                 'transfer': {
-                    'fillFromAccountToAccount': true,
-                    'fillAmount': true,
+                    'fillResponseFromRequest': true,
                 },
             },
         });
@@ -458,7 +457,7 @@ module.exports = class aax extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const settle = this.safeCurrencyCode (settleId);
             const status = this.safeString (market, 'status');
-            const marketType = this.safeString (market, 'type');
+            const marketType = this.safeString (market, 'accountsByType');
             let inverse = undefined;
             let linear = undefined;
             let quanto = undefined;
@@ -934,7 +933,7 @@ module.exports = class aax extends Exchange {
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
-        const types = this.safeValue (this.options, 'types', {});
+        const types = this.safeValue (this.options, 'accountsByType', {});
         const purseType = this.safeString (types, type, type);
         const request = {
             'purseType': purseType,
@@ -2452,16 +2451,18 @@ module.exports = class aax extends Exchange {
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const accountTypes = this.safeValue (this.options, 'types', {});
-        const fromId = this.safeString (accountTypes, fromAccount);
-        const toId = this.safeString (accountTypes, toAccount);
-        if (fromId === undefined) {
+        const accountTypes = this.safeValue (this.options, 'accountsByType', {});
+        const accountsById = this.safeValue (this.options, 'accountsById', {});
+        const accountIds = Object.keys (accountsById);
+        const fromId = this.safeString (accountTypes, fromAccount, fromAccount);
+        const toId = this.safeString (accountTypes, toAccount, toAccount);
+        if (!(fromId in accountIds)) {
             const keys = Object.keys (accountTypes);
-            throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', '));
+            throw new ExchangeError (this.id + ' transfer() fromAccount must be one of ' + keys.join (', '));
         }
-        if (toId === undefined) {
+        if (!(toId in accountIds)) {
             const keys = Object.keys (accountTypes);
-            throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', '));
+            throw new ExchangeError (this.id + ' transfer() toAccount must be one of ' + keys.join (', '));
         }
         const request = {
             'currency': currency['id'],
@@ -2484,18 +2485,17 @@ module.exports = class aax extends Exchange {
         const data = this.safeValue (response, 'data', {});
         const transfer = this.parseTransfer (data, currency);
         const transferOptions = this.safeValue (this.options, 'transfer', {});
-        const fillFromAccountToAccount = this.safeValue (transferOptions, 'fillFromAccountToAccount', true);
-        const fillAmount = this.safeValue (transferOptions, 'fillAmount', true);
-        if (fillFromAccountToAccount) {
+        const fillResponseFromRequest = this.safeValue (transferOptions, 'fillResponseFromRequest', true);
+        if (fillResponseFromRequest) {
             if (transfer['fromAccount'] === undefined) {
                 transfer['fromAccount'] = fromAccount;
             }
             if (transfer['toAccount'] === undefined) {
                 transfer['toAccount'] = toAccount;
             }
-        }
-        if (fillAmount && transfer['amount'] === undefined) {
-            transfer['amount'] = amount;
+            if (transfer['amount'] === undefined) {
+                transfer['amount'] = amount;
+            }
         }
         transfer['status'] = this.parseTransferStatus (this.safeString (response, 'code'));
         return transfer;
