@@ -277,6 +277,9 @@ class mexc extends Exchange {
                 'fetchOrdersByState' => array(
                     'method' => 'spotPrivateGetOrderList', // contractPrivateGetPlanorderListOrders
                 ),
+                'cancelOrder' => array(
+                    'method' => 'spotPrivateDeleteOrderCancel', // contractPrivatePostOrderCancel contractPrivatePostPlanorderCancel
+                ),
             ),
             'commonCurrencies' => array(
                 'BEYONDPROTOCOL' => 'BEYOND',
@@ -369,6 +372,7 @@ class mexc extends Exchange {
             $this->status = array_merge($this->status, array(
                 'status' => $status,
                 'updated' => $this->milliseconds(),
+                'info' => $response,
             ));
         }
         return $this->status;
@@ -1873,21 +1877,77 @@ class mexc extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
-        yield $this->load_markets();
-        $request = array();
-        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_order_ids');
-        if ($clientOrderId !== null) {
-            $params = $this->omit($params, array( 'clientOrderId', 'client_order_ids' ));
-            $request['client_order_ids'] = $clientOrderId;
-        } else {
-            $request['order_ids'] = $id;
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
-        $response = yield $this->spotPrivateDeleteOrderCancel (array_merge($request, $params));
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $options = $this->safe_value($this->options, 'cancelOrder', array());
+        $defaultMethod = $this->safe_string($options, 'method', 'spotPrivateDeleteOrderCancel');
+        $method = $this->safe_string($params, 'method', $defaultMethod);
+        $stop = $this->safe_value($params, 'stop');
+        $request = array();
+        if ($market['type'] === 'spot') {
+            $method = 'spotPrivateDeleteOrderCancel';
+            $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_order_ids');
+            if ($clientOrderId !== null) {
+                $params = $this->omit($params, array( 'clientOrderId', 'client_order_ids' ));
+                $request['client_order_ids'] = $clientOrderId;
+            } else {
+                $request['order_ids'] = $id;
+            }
+        } else if ($stop) {
+            $method = 'contractPrivatePostPlanorderCancel';
+            $request = array();
+            if (gettype($id) === 'array' && count(array_filter(array_keys($id), 'is_string')) == 0) {
+                for ($i = 0; $i < count($id); $i++) {
+                    $request[] = array(
+                        'symbol' => $market['id'],
+                        'orderId' => $id[$i],
+                    );
+                }
+            } else if (gettype($id) === 'string') {
+                $request[] = array(
+                    'symbol' => $market['id'],
+                    'orderId' => $id,
+                );
+            }
+        } else if ($market['type'] === 'swap') {
+            $method = 'contractPrivatePostOrderCancel';
+            $request = array( $id );
+        }
+        $response = yield $this->$method ($request); // dont extend with $params, otherwise ARRAY will be turned into OBJECT
         //
-        //    array("code":200,"data":array("965245851c444078a11a7d771323613b":"success"))
+        // Spot
         //
-        $data = $this->safe_value($response, 'data');
-        return $this->parse_order($data);
+        //     array("code":200,"data":array("965245851c444078a11a7d771323613b":"success"))
+        //
+        // Swap
+        //
+        //     {
+        //         "success" => true,
+        //         "code" => 0,
+        //         "data" => array(
+        //             {
+        //                 "orderId" => 268726891790294528,
+        //                 "errorCode" => 0,
+        //                 "errorMsg" => "success"
+        //             }
+        //         )
+        //     }
+        //
+        // Trigger
+        //
+        //     {
+        //         "success" => true,
+        //         "code" => 0
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        if ($stop) {
+            $data = $response;
+        }
+        return $this->parse_order($data, $market);
     }
 
     public function parse_order_status($status, $market = null) {
@@ -2009,9 +2069,24 @@ class mexc extends Exchange {
         //         "updateTime" => 1649230287000
         //     }
         //
-        // cancelOrder
+        // spot cancelOrder
         //
         //     array("965245851c444078a11a7d771323613b":"success")
+        //
+        // swap cancelOrder
+        //
+        //     {
+        //         "orderId" => 268726891790294528,
+        //         "errorCode" => 0,
+        //         "errorMsg" => "success"
+        //     }
+        //
+        // trigger cancelOrder
+        //
+        //     {
+        //         "success" => true,
+        //         "code" => 0
+        //     }
         //
         $id = $this->safe_string_2($order, 'data', 'id');
         $status = null;

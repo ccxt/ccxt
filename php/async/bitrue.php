@@ -343,6 +343,7 @@ class bitrue extends Exchange {
         $this->status = array_merge($this->status, array(
             'status' => $formattedStatus,
             'updated' => $this->milliseconds(),
+            'info' => $response,
         ));
         return $this->status;
     }
@@ -1623,10 +1624,7 @@ class bitrue extends Exchange {
         }
         $response = yield $this->v1PrivatePostWithdrawCommit (array_merge($request, $params));
         //     array( id => '9a67628b16ba4988ae20d329333f16bc' )
-        return array(
-            'info' => $response,
-            'id' => $this->safe_string($response, 'id'),
-        );
+        return $this->parse_transaction($response, $currency);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

@@ -2692,22 +2692,24 @@ class ftx extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result');
-        $interest = array();
-        for ($i = 0; $i < count($result); $i++) {
-            $payment = $result[$i];
-            $coin = $this->safe_string($payment, 'coin');
-            $datetime = $this->safe_string($payment, 'time');
-            $interest[] = array(
-                'account' => null,
-                'currency' => $this->safe_currency_code($coin),
-                'interest' => $this->safe_number($payment, 'cost'),
-                'interestRate' => $this->safe_number($payment, 'rate'),
-                'amountBorrowed' => $this->safe_number($payment, 'size'),
-                'timestamp' => $this->parse8601($datetime),
-                'datetime' => $datetime,
-                'info' => $payment,
-            );
-        }
+        $interest = $this->parse_borrow_interests($result);
         return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
+    }
+
+    public function parse_borrow_interest($info, $market = null) {
+        $coin = $this->safe_string($info, 'coin');
+        $datetime = $this->safe_string($info, 'time');
+        return array(
+            'account' => 'cross',
+            'symbol' => null,
+            'marginType' => 'cross',
+            'currency' => $this->safe_currency_code($coin),
+            'interest' => $this->safe_number($info, 'cost'),
+            'interestRate' => $this->safe_number($info, 'rate'),
+            'amountBorrowed' => $this->safe_number($info, 'size'),
+            'timestamp' => $this->parse8601($datetime),
+            'datetime' => $datetime,
+            'info' => $info,
+        );
     }
 }

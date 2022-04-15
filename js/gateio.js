@@ -1103,7 +1103,7 @@ export default class gateio extends Exchange {
 
     async fetchCurrencies (params = {}) {
         // sandbox/testnet only supports future markets
-        const apiBackup = this.safeString (this.urls, 'apiBackup');
+        const apiBackup = this.safeValue (this.urls, 'apiBackup');
         if (apiBackup !== undefined) {
             return undefined;
         }
@@ -1645,11 +1645,13 @@ export default class gateio extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 10, max 100
         }
+        request['with_id'] = true;
         const response = await this[method] (this.extend (request, params));
         //
         // SPOT
         //
         //     {
+        //         "id":6358770031
         //         "current": 1634345973275,
         //         "update": 1634345973271,
         //         "asks": [
@@ -1680,6 +1682,7 @@ export default class gateio extends Exchange {
         // Perpetual Swap
         //
         //     {
+        //         "id":6358770031
         //         "current": 1634350208.745,
         //         "asks": [
         //             {"s":24909,"p": "61264.8"},
@@ -1714,7 +1717,10 @@ export default class gateio extends Exchange {
         }
         const priceKey = spotOrMargin ? 0 : 'p';
         const amountKey = spotOrMargin ? 1 : 's';
-        return this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', priceKey, amountKey);
+        const nonce = this.safeInteger (response, 'id');
+        const result = this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', priceKey, amountKey);
+        result['nonce'] = nonce;
+        return result;
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -3098,8 +3104,17 @@ export default class gateio extends Exchange {
         const stop = this.safeValue2 (params, 'is_stop_order', 'stop', false);
         params = this.omit (params, [ 'is_stop_order', 'stop' ]);
         const market = this.market (symbol);
+        let clientOrderId = this.safeString2 (params, 'text', 'clientOrderId');
+        let orderId = id;
+        if (clientOrderId !== undefined) {
+            params = this.omit (params, [ 'text', 'clientOrderId' ]);
+            if (clientOrderId[0] !== 't') {
+                clientOrderId = 't-' + clientOrderId;
+            }
+            orderId = clientOrderId;
+        }
         const request = {
-            'order_id': id,
+            'order_id': orderId,
         };
         if (market['spot'] || market['margin']) {
             request['currency_pair'] = market['id'];

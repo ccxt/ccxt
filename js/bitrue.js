@@ -338,6 +338,7 @@ export default class bitrue extends Exchange {
         this.status = this.extend (this.status, {
             'status': formattedStatus,
             'updated': this.milliseconds (),
+            'info': response,
         });
         return this.status;
     }
@@ -1618,10 +1619,7 @@ export default class bitrue extends Exchange {
         }
         const response = await this.v1PrivatePostWithdrawCommit (this.extend (request, params));
         //     { id: '9a67628b16ba4988ae20d329333f16bc' }
-        return {
-            'info': response,
-            'id': this.safeString (response, 'id'),
-        };
+        return this.parseTransaction (response, currency);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

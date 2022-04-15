@@ -57,7 +57,10 @@ class bitbns(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
                 'fetchWithdrawals': True,
+                'transfer': False,
             },
             'timeframes': {
             },
@@ -168,6 +171,7 @@ class bitbns(Exchange):
             self.status = self.extend(self.status, {
                 'status': status,
                 'updated': self.milliseconds(),
+                'info': response,
             })
         return self.status
 

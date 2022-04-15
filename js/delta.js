@@ -211,6 +211,7 @@ export default class delta extends Exchange {
         this.status = this.extend (this.status, {
             'status': status,
             'updated': updated,
+            'info': response,
         });
         return this.status;
     }

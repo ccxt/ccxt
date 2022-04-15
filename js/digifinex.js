@@ -718,7 +718,7 @@ export default class digifinex extends Exchange {
     }
 
     async fetchStatus (params = {}) {
-        await this.publicGetPing (params);
+        const response = await this.publicGetPing (params);
         //
         //     {
         //         "msg": "pong",
@@ -728,6 +728,7 @@ export default class digifinex extends Exchange {
         this.status = this.extend (this.status, {
             'status': 'ok',
             'updated': this.milliseconds (),
+            'info': response,
         });
         return this.status;
     }

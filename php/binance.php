@@ -2075,6 +2075,7 @@ class binance extends Exchange {
             $this->status = array_merge($this->status, array(
                 'status' => $status,
                 'updated' => $this->milliseconds(),
+                'info' => $response,
             ));
         }
         return $this->status;
@@ -2365,7 +2366,7 @@ class binance extends Exchange {
         $id = $this->safe_string_2($trade, 'id', 'tradeId', $id);
         $side = null;
         $orderId = $this->safe_string($trade, 'orderId');
-        $buyerMaker = $this->safe_value($trade, 'm', 'isBuyerMaker');
+        $buyerMaker = $this->safe_value_2($trade, 'm', 'isBuyerMaker');
         $takerOrMaker = null;
         if ($buyerMaker !== null) {
             $side = $buyerMaker ? 'sell' : 'buy'; // this is reversed intentionally
@@ -2710,10 +2711,24 @@ class binance extends Exchange {
                 $type = 'LIMIT_MAKER';
             }
         }
-        $uppercaseType = strtoupper($type);
+        $initialUppercaseType = strtoupper($type);
+        $uppercaseType = $initialUppercaseType;
+        $stopPrice = $this->safe_number($params, 'stopPrice');
+        if ($stopPrice !== null) {
+            $params = $this->omit($params, 'stopPrice');
+            if ($uppercaseType === 'MARKET') {
+                $uppercaseType = $market['contract'] ? 'STOP_MARKET' : 'STOP_LOSS';
+            } else if ($uppercaseType === 'LIMIT') {
+                $uppercaseType = $market['contract'] ? 'STOP' : 'STOP_LOSS_LIMIT';
+            }
+        }
         $validOrderTypes = $this->safe_value($market['info'], 'orderTypes');
         if (!$this->in_array($uppercaseType, $validOrderTypes)) {
-            throw new InvalidOrder($this->id . ' ' . $type . ' is not a valid order $type in $market ' . $symbol);
+            if ($initialUppercaseType !== $uppercaseType) {
+                throw new InvalidOrder($this->id . ' $stopPrice parameter is not allowed for ' . $symbol . ' ' . $type . ' orders');
+            } else {
+                throw new InvalidOrder($this->id . ' ' . $type . ' is not a valid order $type for the ' . $symbol . ' market');
+            }
         }
         $request = array(
             'symbol' => $market['id'],
@@ -2830,11 +2845,9 @@ class binance extends Exchange {
             $request['timeInForce'] = $this->options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         if ($stopPriceIsRequired) {
-            $stopPrice = $this->safe_number($params, 'stopPrice');
             if ($stopPrice === null) {
                 throw new InvalidOrder($this->id . ' createOrder() requires a $stopPrice extra param for a ' . $type . ' order');
             } else {
-                $params = $this->omit($params, 'stopPrice');
                 $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
             }
         }
@@ -3543,6 +3556,10 @@ class binance extends Exchange {
         //       "updateTime" => "1627501027000"
         //     }
         //
+        // withdraw
+        //
+        //    array( $id => '9a67628b16ba4988ae20d329333f16bc' )
+        //
         $id = $this->safe_string_2($transaction, 'id', 'orderNo');
         $address = $this->safe_string($transaction, 'address');
         $tag = $this->safe_string($transaction, 'addressTag'); // set but unused
@@ -3994,10 +4011,7 @@ class binance extends Exchange {
         }
         $response = $this->sapiPostCapitalWithdrawApply (array_merge($request, $params));
         //     array( id => '9a67628b16ba4988ae20d329333f16bc' )
-        return array(
-            'info' => $response,
-            'id' => $this->safe_string($response, 'id'),
-        );
+        return $this->parse_transaction($response, $currency);
     }
 
     public function parse_trading_fee($fee, $market = null) {
@@ -5569,22 +5583,24 @@ class binance extends Exchange {
         //     }
         //
         $rows = $this->safe_value($response, 'rows');
-        $interest = array();
-        for ($i = 0; $i < count($rows); $i++) {
-            $row = $rows[$i];
-            $timestamp = $this->safe_number($row, 'interestAccuredTime');
-            $account = ($symbol === null) ? 'cross' : $symbol;
-            $interest[] = array(
-                'account' => $account,
-                'currency' => $this->safe_currency_code($this->safe_string($row, 'asset')),
-                'interest' => $this->safe_number($row, 'interest'),
-                'interestRate' => $this->safe_number($row, 'interestRate'),
-                'amountBorrowed' => $this->safe_number($row, 'principal'),
-                'timestamp' => $timestamp,
-                'datetime' => $this->iso8601($timestamp),
-                'info' => $row,
-            );
-        }
+        $interest = $this->parse_borrow_interests($rows, $market);
         return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
+    }
+
+    public function parse_borrow_interest($info, $market) {
+        $symbol = $this->safe_string($info, 'isolatedSymbol');
+        $timestamp = $this->safe_number($info, 'interestAccuredTime');
+        return array(
+            'account' => ($symbol === null) ? 'cross' : $symbol,
+            'symbol' => $symbol,
+            'marginType' => ($symbol === null) ? 'cross' : 'isolated',
+            'currency' => $this->safe_currency_code($this->safe_string($info, 'asset')),
+            'interest' => $this->safe_number($info, 'interest'),
+            'interestRate' => $this->safe_number($info, 'interestRate'),
+            'amountBorrowed' => $this->safe_number($info, 'principal'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $info,
+        );
     }
 }

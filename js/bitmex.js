@@ -49,6 +49,9 @@ export default class bitmex extends Exchange {
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTransactions': 'emulated',
+                'fetchTransfer': false,
+                'fetchTransfers': false,
+                'transfer': false,
                 'withdraw': true,
             },
             'timeframes': {
@@ -957,9 +960,6 @@ export default class bitmex extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (!market['active']) {
-            throw new BadSymbol (this.id + ' fetchTicker() symbol ' + symbol + ' is not tradable');
-        }
         const tickers = await this.fetchTickers ([ market['symbol'] ], params);
         const ticker = this.safeValue (tickers, market['symbol']);
         if (ticker === undefined) {
@@ -1733,6 +1733,7 @@ export default class bitmex extends Exchange {
         if (code !== 'BTC') {
             throw new ExchangeError (this.id + ' supoprts BTC withdrawals only, other currencies coming soon...');
         }
+        const currency = this.currency (code);
         const request = {
             'currency': 'XBt', // temporarily
             'amount': amount,
@@ -1741,10 +1742,7 @@ export default class bitmex extends Exchange {
             // 'fee': 0.001, // bitcoin network fee
         };
         const response = await this.privatePostUserRequestWithdrawal (this.extend (request, params));
-        return {
-            'info': response,
-            'id': this.safeString (response, 'transactID'),
-        };
+        return this.parseTransaction (response, currency);
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.78.63';
+$version = '1.79.20';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.78.63';
+    const VERSION = '1.79.20';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -274,6 +274,7 @@ class Exchange {
         'onJsonResponse' => 'on_json_response',
         'setMarkets' => 'set_markets',
         'loadMarketsHelper' => 'load_markets_helper',
+        'fetchPermissions' => 'fetch_permissions',
         'loadMarkets' => 'load_markets',
         'loadAccounts' => 'load_accounts',
         'fetchBidsAsks' => 'fetch_bids_asks',
@@ -329,6 +330,8 @@ class Exchange {
         'parseDepositAddresses' => 'parse_deposit_addresses',
         'parseTrades' => 'parse_trades',
         'parseTransactions' => 'parse_transactions',
+        'safeTransfer' => 'safe_transfer',
+        'safeTransaction' => 'safe_transaction',
         'parseTransfers' => 'parse_transfers',
         'parseLedger' => 'parse_ledger',
         'parseOrders' => 'parse_orders',
@@ -378,6 +381,7 @@ class Exchange {
         'loadTimeDifference' => 'load_time_difference',
         'parseLeverageTiers' => 'parse_leverage_tiers',
         'fetchMarketLeverageTiers' => 'fetch_market_leverage_tiers',
+        'parseBorrowInterests' => 'parse_borrow_interests',
     );
 
     public static function split($string, $delimiters = array(' ')) {
@@ -1248,6 +1252,7 @@ class Exchange {
             'fetchOrderBooks' => null,
             'fetchOrders' => null,
             'fetchOrderTrades' => null,
+            'fetchPermissions' => null,
             'fetchPosition' => null,
             'fetchPositions' => null,
             'fetchPositionsRisk' => null,
@@ -1894,6 +1899,10 @@ class Exchange {
         return $this->markets;
     }
 
+    public function fetch_permissions($params = array()) {
+        throw new NotSupported($this->id . ' fetch_permissions() not supported yet');
+    }
+
     public function load_markets($reload = false, $params = array()) {
         if (!$reload && $this->markets) {
             if (!$this->markets_by_id) {
@@ -2264,6 +2273,45 @@ class Exchange {
         $code = isset($currency) ? $currency['code'] : null;
         $tail = $since === null;
         return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
+    }
+
+    public function safe_transfer($transfer, $currency = null) {
+        $currency = $this->safe_currency(null, $currency);
+        return $this->extend(array(
+            'id'=> null,
+            'timestamp'=> null,
+            'datetime'=> null,
+            'currency'=> $currency['code'],
+            'amount'=> null,
+            'fromAccount'=> null,
+            'toAccount'=> null,
+            'status'=> null,
+            'info'=> null,
+        ), $transfer);
+    }
+
+    public function safe_transaction($transaction, $currency = null) {
+        $currency = $this->safe_currency(null, $currency);
+        return $this->extend(array(
+            'id'=> null,
+            'currency'=> $currency['code'],
+            'amount'=> null,
+            'network'=> null,
+            'address'=> null,
+            'addressTo'=> null,
+            'addressFrom'=> null,
+            'tag'=> null,
+            'tagTo'=> null,
+            'tagFrom'=> null,
+            'status'=> null,
+            'type'=> null,
+            'updated'=> null,
+            'txid'=> null,
+            'timestamp'=> null,
+            'datetime'=> null,
+            'fee'=> null,
+            'info'=> null,
+        ), $transaction);
     }
 
     public function parse_transfers($transfers, $currency = null, $since = null, $limit = null, $params = array()) {
@@ -3736,5 +3784,14 @@ class Exchange {
 
     public function sleep($milliseconds) {
         sleep($milliseconds / 1000);
+    }
+
+    public function parse_borrow_interests($response, $market = null) {
+        $interest = array();
+        for ($i = 0; $i < count($response); $i++){
+            $row = $response[$i];
+            array_push($interest, $this->parseBorrowInterest ($row, $market));
+        }
+        return $interest;
     }
 }

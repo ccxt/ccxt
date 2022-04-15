@@ -782,10 +782,10 @@ export default class blockchaincom extends Exchange {
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
-        const currencyid = this.currencyId (code);
+        const currency = this.currency (code);
         const request = {
             'amount': amount,
-            'currency': currencyid,
+            'currency': currency['id'],
             // 'beneficiary': address/id,
             'sendMax': false,
         };
@@ -801,12 +801,7 @@ export default class blockchaincom extends Exchange {
         //         timestamp: "1634218452595"
         //     },
         //
-        const withdrawalId = this.safeString (response, 'withdrawalId');
-        const result = {
-            'info': response,
-            'id': withdrawalId,
-        };
-        return result;
+        return this.parseTransaction (response, currency);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {

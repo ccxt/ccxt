@@ -187,6 +187,7 @@ export class Exchange {
                 'fetchOrderBooks': undefined,
                 'fetchOrders': undefined,
                 'fetchOrderTrades': undefined,
+                'fetchPermissions': undefined,
                 'fetchPosition': undefined,
                 'fetchPositions': undefined,
                 'fetchPositionsRisk': undefined,
@@ -882,6 +883,10 @@ export class Exchange {
         return this.setMarkets (markets, currencies)
     }
 
+    async fetchPermissions (params = {}) {
+        throw new NotSupported (this.id + ' fetchPermissions() not supported yet')
+    }
+
     // is async (returns a promise)
     loadMarkets (reload = false, params = {}) {
         if ((reload && !this.reloadingMarkets) || !this.marketsLoading) {
@@ -1471,6 +1476,45 @@ export class Exchange {
         const code = (currency !== undefined) ? currency['code'] : undefined;
         const tail = since === undefined;
         return this.filterByCurrencySinceLimit (result, code, since, limit, tail);
+    }
+
+    safeTransfer (transfer, currency = undefined) {
+        currency = this.safeCurrency (undefined, currency);
+        return this.extend ({
+            'id': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': currency['code'],
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': undefined,
+            'info': undefined,
+        }, transfer);
+    }
+
+    safeTransaction (transaction, currency = undefined) {
+        currency = this.safeCurrency (undefined, currency);
+        return this.extend ({
+            'id': undefined,
+            'currency': currency['code'],
+            'amount': undefined,
+            'network': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'addressFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
+            'status': undefined,
+            'type': undefined,
+            'updated': undefined,
+            'txid': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fee': undefined,
+            'info': undefined,
+        }, transaction);
     }
 
     parseTransfers (transfers, currency = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2295,5 +2339,14 @@ export class Exchange {
             throw new NotSupported (this.id + ' fetchMarketLeverageTiers() is not supported yet');
         }
 
+    }
+
+    parseBorrowInterests (response, market = undefined) {
+        const interest = [];
+        for (let i = 0; i < response.length; i++) {
+            const row = response[i];
+            interest.push (this.parseBorrowInterest (row, market));
+        }
+        return interest;
     }
 }

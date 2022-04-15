@@ -390,7 +390,7 @@ export default class deribit extends Exchange {
         const request = {
             // 'expected_result': false, // true will trigger an error for testing purposes
         };
-        await this.publicGetTest (this.extend (request, params));
+        const response = await this.publicGetTest (this.extend (request, params));
         //
         //     {
         //         jsonrpc: '2.0',
@@ -404,6 +404,7 @@ export default class deribit extends Exchange {
         this.status = this.extend (this.status, {
             'status': 'ok',
             'updated': this.milliseconds (),
+            'info': response,
         });
         return this.status;
     }

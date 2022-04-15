@@ -49,7 +49,10 @@ export default class bitbns extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
+                'fetchTransfer': false,
+                'fetchTransfers': false,
                 'fetchWithdrawals': true,
+                'transfer': false,
             },
             'timeframes': {
             },
@@ -161,6 +164,7 @@ export default class bitbns extends Exchange {
             this.status = this.extend (this.status, {
                 'status': status,
                 'updated': this.milliseconds (),
+                'info': response,
             });
         }
         return this.status;

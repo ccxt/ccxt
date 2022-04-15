@@ -270,6 +270,9 @@ export default class mexc extends Exchange {
                 'fetchOrdersByState': {
                     'method': 'spotPrivateGetOrderList', // contractPrivateGetPlanorderListOrders
                 },
+                'cancelOrder': {
+                    'method': 'spotPrivateDeleteOrderCancel', // contractPrivatePostOrderCancel contractPrivatePostPlanorderCancel
+                },
             },
             'commonCurrencies': {
                 'BEYONDPROTOCOL': 'BEYOND',
@@ -362,6 +365,7 @@ export default class mexc extends Exchange {
             this.status = this.extend (this.status, {
                 'status': status,
                 'updated': this.milliseconds (),
+                'info': response,
             });
         }
         return this.status;
@@ -1866,21 +1870,77 @@ export default class mexc extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {};
-        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_ids');
-        if (clientOrderId !== undefined) {
-            params = this.omit (params, [ 'clientOrderId', 'client_order_ids' ]);
-            request['client_order_ids'] = clientOrderId;
-        } else {
-            request['order_ids'] = id;
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
-        const response = await this.spotPrivateDeleteOrderCancel (this.extend (request, params));
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const options = this.safeValue (this.options, 'cancelOrder', {});
+        const defaultMethod = this.safeString (options, 'method', 'spotPrivateDeleteOrderCancel');
+        let method = this.safeString (params, 'method', defaultMethod);
+        const stop = this.safeValue (params, 'stop');
+        let request = {};
+        if (market['type'] === 'spot') {
+            method = 'spotPrivateDeleteOrderCancel';
+            const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_ids');
+            if (clientOrderId !== undefined) {
+                params = this.omit (params, [ 'clientOrderId', 'client_order_ids' ]);
+                request['client_order_ids'] = clientOrderId;
+            } else {
+                request['order_ids'] = id;
+            }
+        } else if (stop) {
+            method = 'contractPrivatePostPlanorderCancel';
+            request = [];
+            if (Array.isArray (id)) {
+                for (let i = 0; i < id.length; i++) {
+                    request.push ({
+                        'symbol': market['id'],
+                        'orderId': id[i],
+                    });
+                }
+            } else if (typeof id === 'string') {
+                request.push ({
+                    'symbol': market['id'],
+                    'orderId': id,
+                });
+            }
+        } else if (market['type'] === 'swap') {
+            method = 'contractPrivatePostOrderCancel';
+            request = [ id ];
+        }
+        const response = await this[method] (request); // dont extend with params, otherwise ARRAY will be turned into OBJECT
         //
-        //    {"code":200,"data":{"965245851c444078a11a7d771323613b":"success"}}
+        // Spot
         //
-        const data = this.safeValue (response, 'data');
-        return this.parseOrder (data);
+        //     {"code":200,"data":{"965245851c444078a11a7d771323613b":"success"}}
+        //
+        // Swap
+        //
+        //     {
+        //         "success": true,
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "orderId": 268726891790294528,
+        //                 "errorCode": 0,
+        //                 "errorMsg": "success"
+        //             }
+        //         ]
+        //     }
+        //
+        // Trigger
+        //
+        //     {
+        //         "success": true,
+        //         "code": 0
+        //     }
+        //
+        let data = this.safeValue (response, 'data', []);
+        if (stop) {
+            data = response;
+        }
+        return this.parseOrder (data, market);
     }
 
     parseOrderStatus (status, market = undefined) {
@@ -2002,9 +2062,24 @@ export default class mexc extends Exchange {
         //         "updateTime": 1649230287000
         //     }
         //
-        // cancelOrder
+        // spot cancelOrder
         //
         //     {"965245851c444078a11a7d771323613b":"success"}
+        //
+        // swap cancelOrder
+        //
+        //     {
+        //         "orderId": 268726891790294528,
+        //         "errorCode": 0,
+        //         "errorMsg": "success"
+        //     }
+        //
+        // trigger cancelOrder
+        //
+        //     {
+        //         "success": true,
+        //         "code": 0
+        //     }
         //
         let id = this.safeString2 (order, 'data', 'id');
         let status = undefined;

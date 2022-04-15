@@ -220,6 +220,7 @@ class delta(Exchange):
         self.status = self.extend(self.status, {
             'status': status,
             'updated': updated,
+            'info': response,
         })
         return self.status
 

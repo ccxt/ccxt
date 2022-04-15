@@ -382,6 +382,7 @@ export default class wazirx extends Exchange {
         this.status = this.extend (this.status, {
             'status': status,
             'updated': this.milliseconds (),
+            'info': response,
         });
         return this.status;
     }

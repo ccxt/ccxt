@@ -17,7 +17,7 @@ export default class idex extends Exchange {
             // public data endpoints 5 requests a second => 1000ms / 5 = 200ms between requests roughly (without Authentication)
             // all endpoints 10 requests a second => (1000ms / rateLimit) / 10 => 1 / 2 (with Authentication)
             'rateLimit': 200,
-            'version': 'v2',
+            'version': 'v3',
             'pro': true,
             'certified': true,
             'requiresWeb3': true,

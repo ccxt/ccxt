@@ -1077,10 +1077,7 @@ class coinbasepro(Exchange):
         response = await getattr(self, method)(self.extend(request, params))
         if not response:
             raise ExchangeError(self.id + ' withdraw() error: ' + self.json(response))
-        return {
-            'info': response,
-            'id': response['id'],
-        }
+        return self.parse_transaction(response, currency)
 
     def parse_ledger_entry_type(self, type):
         types = {

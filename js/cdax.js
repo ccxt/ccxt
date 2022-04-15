@@ -1489,7 +1489,7 @@ export default class cdax extends Exchange {
         const network = this.safeStringUpper (transaction, 'chain');
         return {
             'info': transaction,
-            'id': this.safeString (transaction, 'id'),
+            'id': this.safeString2 (transaction, 'id', 'data'),
             'txid': this.safeString (transaction, 'tx-hash'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1563,11 +1563,7 @@ export default class cdax extends Exchange {
             params = this.omit (params, 'network');
         }
         const response = await this.privatePostDwWithdrawApiCreate (this.extend (request, params));
-        const id = this.safeString (response, 'data');
-        return {
-            'info': response,
-            'id': id,
-        };
+        return this.parseTransaction (response, currency);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

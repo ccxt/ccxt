@@ -72,6 +72,7 @@ export default class vcc extends Exchange {
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'transfer': false,
+                'withdraw': false,
             },
             'timeframes': {
                 '1m': '60000',

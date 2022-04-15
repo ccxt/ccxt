@@ -53,7 +53,10 @@ class bitbns extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
+                'fetchTransfer' => false,
+                'fetchTransfers' => false,
                 'fetchWithdrawals' => true,
+                'transfer' => false,
             ),
             'timeframes' => array(
             ),
@@ -165,6 +168,7 @@ class bitbns extends Exchange {
             $this->status = array_merge($this->status, array(
                 'status' => $status,
                 'updated' => $this->milliseconds(),
+                'info' => $response,
             ));
         }
         return $this->status;

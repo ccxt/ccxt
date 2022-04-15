@@ -2067,6 +2067,7 @@ export default class binance extends Exchange {
             this.status = this.extend (this.status, {
                 'status': status,
                 'updated': this.milliseconds (),
+                'info': response,
             });
         }
         return this.status;
@@ -2357,7 +2358,7 @@ export default class binance extends Exchange {
         id = this.safeString2 (trade, 'id', 'tradeId', id);
         let side = undefined;
         const orderId = this.safeString (trade, 'orderId');
-        const buyerMaker = this.safeValue (trade, 'm', 'isBuyerMaker');
+        const buyerMaker = this.safeValue2 (trade, 'm', 'isBuyerMaker');
         let takerOrMaker = undefined;
         if (buyerMaker !== undefined) {
             side = buyerMaker ? 'sell' : 'buy'; // this is reversed intentionally
@@ -2702,10 +2703,24 @@ export default class binance extends Exchange {
                 type = 'LIMIT_MAKER';
             }
         }
-        const uppercaseType = type.toUpperCase ();
+        const initialUppercaseType = type.toUpperCase ();
+        let uppercaseType = initialUppercaseType;
+        const stopPrice = this.safeNumber (params, 'stopPrice');
+        if (stopPrice !== undefined) {
+            params = this.omit (params, 'stopPrice');
+            if (uppercaseType === 'MARKET') {
+                uppercaseType = market['contract'] ? 'STOP_MARKET' : 'STOP_LOSS';
+            } else if (uppercaseType === 'LIMIT') {
+                uppercaseType = market['contract'] ? 'STOP' : 'STOP_LOSS_LIMIT';
+            }
+        }
         const validOrderTypes = this.safeValue (market['info'], 'orderTypes');
         if (!this.inArray (uppercaseType, validOrderTypes)) {
-            throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type in market ' + symbol);
+            if (initialUppercaseType !== uppercaseType) {
+                throw new InvalidOrder (this.id + ' stopPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders');
+            } else {
+                throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market');
+            }
         }
         const request = {
             'symbol': market['id'],
@@ -2822,11 +2837,9 @@ export default class binance extends Exchange {
             request['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         if (stopPriceIsRequired) {
-            const stopPrice = this.safeNumber (params, 'stopPrice');
             if (stopPrice === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order');
             } else {
-                params = this.omit (params, 'stopPrice');
                 request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
             }
         }
@@ -3535,6 +3548,10 @@ export default class binance extends Exchange {
         //       "updateTime": "1627501027000"
         //     }
         //
+        // withdraw
+        //
+        //    { id: '9a67628b16ba4988ae20d329333f16bc' }
+        //
         const id = this.safeString2 (transaction, 'id', 'orderNo');
         const address = this.safeString (transaction, 'address');
         let tag = this.safeString (transaction, 'addressTag'); // set but unused
@@ -3986,10 +4003,7 @@ export default class binance extends Exchange {
         }
         const response = await this.sapiPostCapitalWithdrawApply (this.extend (request, params));
         //     { id: '9a67628b16ba4988ae20d329333f16bc' }
-        return {
-            'info': response,
-            'id': this.safeString (response, 'id'),
-        };
+        return this.parseTransaction (response, currency);
     }
 
     parseTradingFee (fee, market = undefined) {
@@ -5562,22 +5576,24 @@ export default class binance extends Exchange {
         //     }
         //
         const rows = this.safeValue (response, 'rows');
-        const interest = [];
-        for (let i = 0; i < rows.length; i++) {
-            const row = rows[i];
-            const timestamp = this.safeNumber (row, 'interestAccuredTime');
-            const account = (symbol === undefined) ? 'cross' : symbol;
-            interest.push ({
-                'account': account,
-                'currency': this.safeCurrencyCode (this.safeString (row, 'asset')),
-                'interest': this.safeNumber (row, 'interest'),
-                'interestRate': this.safeNumber (row, 'interestRate'),
-                'amountBorrowed': this.safeNumber (row, 'principal'),
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-                'info': row,
-            });
-        }
+        const interest = this.parseBorrowInterests (rows, market);
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
+    }
+
+    parseBorrowInterest (info, market) {
+        const symbol = this.safeString (info, 'isolatedSymbol');
+        const timestamp = this.safeNumber (info, 'interestAccuredTime');
+        return {
+            'account': (symbol === undefined) ? 'cross' : symbol,
+            'symbol': symbol,
+            'marginType': (symbol === undefined) ? 'cross' : 'isolated',
+            'currency': this.safeCurrencyCode (this.safeString (info, 'asset')),
+            'interest': this.safeNumber (info, 'interest'),
+            'interestRate': this.safeNumber (info, 'interestRate'),
+            'amountBorrowed': this.safeNumber (info, 'principal'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': info,
+        };
     }
 }

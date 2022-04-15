@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.78.63'
+__version__ = '1.79.20'
 
 # -----------------------------------------------------------------------------
 
@@ -295,6 +295,7 @@ class Exchange(object):
         'fetchOrderBooks': None,
         'fetchOrders': None,
         'fetchOrderTrades': None,
+        'fetchPermissions': None,
         'fetchPosition': None,
         'fetchPositions': None,
         'fetchPositionsRisk': None,
@@ -1498,6 +1499,9 @@ class Exchange(object):
         self.codes = sorted(self.currencies.keys())
         return self.markets
 
+    def fetch_permissions(self, params={}):
+        raise NotSupported('fetch_permissions() not supported yet')
+
     def load_markets(self, reload=False, params={}):
         if not reload:
             if self.markets:
@@ -1992,6 +1996,43 @@ class Exchange(object):
         symbol = market['symbol'] if market else None
         tail = since is None
         return self.filter_by_symbol_since_limit(array, symbol, since, limit, tail)
+
+    def safe_transfer(self, transfer, currency=None):
+        currency = self.safe_currency(None, currency)
+        return self.extend({
+            'id': None,
+            'timestamp': None,
+            'datetime': None,
+            'currency': currency['code'],
+            'amount': None,
+            'fromAccount': None,
+            'toAccount': None,
+            'status': None,
+            'info': None,
+        }, transfer)
+
+    def safe_transaction(self, transaction, currency=None):
+        currency = self.safe_currency(None, currency)
+        return self.extend({
+            'id': None,
+            'currency': currency['code'],
+            'amount': None,
+            'network': None,
+            'address': None,
+            'addressTo': None,
+            'addressFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'tagFrom': None,
+            'status': None,
+            'type': None,
+            'updated': None,
+            'txid': None,
+            'timestamp': None,
+            'datetime': None,
+            'fee': None,
+            'info': None,
+        }, transaction)
 
     def parse_transactions(self, transactions, currency=None, since=None, limit=None, params={}):
         array = self.to_array(transactions)
@@ -2804,3 +2845,10 @@ class Exchange(object):
             return self.safe_value(tiers, symbol)
         else:
             raise NotSupported(self.id + 'fetch_market_leverage_tiers() is not supported yet')
+
+    def parse_borrow_interests(self, response, market=None):
+        interest = []
+        for i in range(len(response)):
+            row = response[i]
+            interest.append(self.parse_borrow_interest(row, market))
+        return interest

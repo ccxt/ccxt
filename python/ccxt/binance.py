@@ -2048,6 +2048,7 @@ class binance(Exchange):
             self.status = self.extend(self.status, {
                 'status': status,
                 'updated': self.milliseconds(),
+                'info': response,
             })
         return self.status
 
@@ -2317,7 +2318,7 @@ class binance(Exchange):
         id = self.safe_string_2(trade, 'id', 'tradeId', id)
         side = None
         orderId = self.safe_string(trade, 'orderId')
-        buyerMaker = self.safe_value(trade, 'm', 'isBuyerMaker')
+        buyerMaker = self.safe_value_2(trade, 'm', 'isBuyerMaker')
         takerOrMaker = None
         if buyerMaker is not None:
             side = 'sell' if buyerMaker else 'buy'  # self is reversed intentionally
@@ -2635,10 +2636,21 @@ class binance(Exchange):
             # only supported for spot/margin api(all margin markets are spot markets)
             if postOnly:
                 type = 'LIMIT_MAKER'
-        uppercaseType = type.upper()
+        initialUppercaseType = type.upper()
+        uppercaseType = initialUppercaseType
+        stopPrice = self.safe_number(params, 'stopPrice')
+        if stopPrice is not None:
+            params = self.omit(params, 'stopPrice')
+            if uppercaseType == 'MARKET':
+                uppercaseType = 'STOP_MARKET' if market['contract'] else 'STOP_LOSS'
+            elif uppercaseType == 'LIMIT':
+                uppercaseType = 'STOP' if market['contract'] else 'STOP_LOSS_LIMIT'
         validOrderTypes = self.safe_value(market['info'], 'orderTypes')
         if not self.in_array(uppercaseType, validOrderTypes):
-            raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type in market ' + symbol)
+            if initialUppercaseType != uppercaseType:
+                raise InvalidOrder(self.id + ' stopPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders')
+            else:
+                raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market')
         request = {
             'symbol': market['id'],
             'type': uppercaseType,
@@ -2739,11 +2751,9 @@ class binance(Exchange):
         if timeInForceIsRequired:
             request['timeInForce'] = self.options['defaultTimeInForce']  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
         if stopPriceIsRequired:
-            stopPrice = self.safe_number(params, 'stopPrice')
             if stopPrice is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order')
             else:
-                params = self.omit(params, 'stopPrice')
                 request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_order(response, market)
@@ -3396,6 +3406,10 @@ class binance(Exchange):
         #       "updateTime": "1627501027000"
         #     }
         #
+        # withdraw
+        #
+        #    {id: '9a67628b16ba4988ae20d329333f16bc'}
+        #
         id = self.safe_string_2(transaction, 'id', 'orderNo')
         address = self.safe_string(transaction, 'address')
         tag = self.safe_string(transaction, 'addressTag')  # set but unused
@@ -3811,10 +3825,7 @@ class binance(Exchange):
             params = self.omit(params, 'network')
         response = self.sapiPostCapitalWithdrawApply(self.extend(request, params))
         #     {id: '9a67628b16ba4988ae20d329333f16bc'}
-        return {
-            'info': response,
-            'id': self.safe_string(response, 'id'),
-        }
+        return self.parse_transaction(response, currency)
 
     def parse_trading_fee(self, fee, market=None):
         #
@@ -5236,19 +5247,21 @@ class binance(Exchange):
         #     }
         #
         rows = self.safe_value(response, 'rows')
-        interest = []
-        for i in range(0, len(rows)):
-            row = rows[i]
-            timestamp = self.safe_number(row, 'interestAccuredTime')
-            account = 'cross' if (symbol is None) else symbol
-            interest.append({
-                'account': account,
-                'currency': self.safe_currency_code(self.safe_string(row, 'asset')),
-                'interest': self.safe_number(row, 'interest'),
-                'interestRate': self.safe_number(row, 'interestRate'),
-                'amountBorrowed': self.safe_number(row, 'principal'),
-                'timestamp': timestamp,
-                'datetime': self.iso8601(timestamp),
-                'info': row,
-            })
+        interest = self.parse_borrow_interests(rows, market)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
+
+    def parse_borrow_interest(self, info, market):
+        symbol = self.safe_string(info, 'isolatedSymbol')
+        timestamp = self.safe_number(info, 'interestAccuredTime')
+        return {
+            'account': 'cross' if (symbol is None) else symbol,
+            'symbol': symbol,
+            'marginType': 'cross' if (symbol is None) else 'isolated',
+            'currency': self.safe_currency_code(self.safe_string(info, 'asset')),
+            'interest': self.safe_number(info, 'interest'),
+            'interestRate': self.safe_number(info, 'interestRate'),
+            'amountBorrowed': self.safe_number(info, 'principal'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': info,
+        }

@@ -323,6 +323,11 @@ export default class bitfinex2 extends bitfinex {
                     'derivatives': 'margin',
                     'future': 'margin',
                 },
+                'swap': {
+                    'fetchMarkets': {
+                        'settlementCurrencies': [ 'BTC', 'USDT', 'EURT' ],
+                    },
+                },
             },
             'exceptions': {
                 'exact': {
@@ -342,6 +347,10 @@ export default class bitfinex2 extends bitfinex {
                     'symbol: invalid': BadSymbol,
                     'Invalid order': InvalidOrder,
                 },
+            },
+            'commonCurrencies': {
+                'EUTFO': 'EURT',
+                'USTF0': 'USDT',
             },
         });
     }
@@ -373,6 +382,7 @@ export default class bitfinex2 extends bitfinex {
         this.status = this.extend (this.status, {
             'status': formattedStatus,
             'updated': this.milliseconds (),
+            'info': response,
         });
         return this.status;
     }
@@ -392,7 +402,6 @@ export default class bitfinex2 extends bitfinex {
                 spot = false;
             }
             const swap = !spot;
-            const type = spot ? 'spot' : 'swap';
             let baseId = undefined;
             let quoteId = undefined;
             if (id.indexOf (':') >= 0) {
@@ -403,11 +412,22 @@ export default class bitfinex2 extends bitfinex {
                 baseId = id.slice (0, 3);
                 quoteId = id.slice (3, 6);
             }
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
+            let base = this.safeCurrencyCode (baseId);
+            let quote = this.safeCurrencyCode (quoteId);
+            const splitBase = base.split ('F0');
+            const splitQuote = quote.split ('F0');
+            base = this.safeString (splitBase, 0);
+            quote = this.safeString (splitQuote, 0);
+            let symbol = base + '/' + quote;
             baseId = this.getCurrencyId (baseId);
             quoteId = this.getCurrencyId (quoteId);
+            let settleId = undefined;
+            let settle = undefined;
+            if (swap) {
+                settleId = quoteId;
+                settle = this.safeCurrencyCode (settleId);
+                symbol = symbol + ':' + settle;
+            }
             const minOrderSizeString = this.safeString (market, 'minimum_order_size');
             const maxOrderSizeString = this.safeString (market, 'maximum_order_size');
             result.push ({
@@ -415,22 +435,21 @@ export default class bitfinex2 extends bitfinex {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'settle': undefined, // TODO
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': undefined, // TODO
-                'type': type,
+                'settleId': settleId,
+                'type': spot ? 'spot' : 'swap',
                 'spot': spot,
-                'margin': this.safeValue (market, 'margin'),
+                'margin': this.safeValue (market, 'margin', false),
                 'swap': swap,
                 'future': false,
                 'option': false,
                 'active': true,
                 'contract': swap,
-                'linear': spot ? undefined : true, // TODO
-                'inverse': spot ? undefined : false, // TODO
-                'contractSize': undefined, // TODO
-                'maintenanceMarginRate': undefined,
+                'linear': swap ? true : undefined,
+                'inverse': swap ? false : undefined,
+                'contractSize': swap ? this.parseNumber ('1') : undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,

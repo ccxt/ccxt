@@ -4401,17 +4401,10 @@ class huobi(Exchange):
         #    }
         #
         data = self.safe_value(response, 'data')
-        interest = self.parse_borrow_interests(data, marginType, market)
+        interest = self.parse_borrow_interests(data, market)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
 
-    def parse_borrow_interests(self, response, marginType, market=None):
-        interest = []
-        for i in range(0, len(response)):
-            row = response[i]
-            interest.append(self.parse_borrow_interest(row, marginType, market))
-        return interest
-
-    def parse_borrow_interest(self, info, marginType, market=None):
+    def parse_borrow_interest(self, info, market=None):
         # isolated
         #    {
         #        "interest-rate":"0.000040830000000000",
@@ -4454,12 +4447,14 @@ class huobi(Exchange):
         #   }
         #
         marketId = self.safe_string(info, 'symbol')
-        market = self.safe_market(marketId, market)
-        symbol = market['symbol']
-        account = marginType if (marginType == 'cross') else symbol
+        marginType = 'cross' if (marketId is None) else 'isolated'
+        market = self.safe_market(marketId)
+        symbol = self.safe_string(market, 'symbol')
         timestamp = self.safe_number(info, 'accrued-at')
         return {
-            'account': account,  # isolated symbol, will not be returned for crossed margin
+            'account': symbol if (marginType == 'isolated') else 'cross',  # deprecated
+            'symbol': symbol,
+            'marginType': marginType,
             'currency': self.safe_currency_code(self.safe_string(info, 'currency')),
             'interest': self.safe_number(info, 'interest-amount'),
             'interestRate': self.safe_number(info, 'interest-rate'),

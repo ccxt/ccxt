@@ -3,7 +3,6 @@
 
 import { Exchange } from './base/Exchange.js';
 import { ArgumentsRequired, InsufficientFunds, OrderNotFound, NotSupported } from './base/errors.js';
-import { Precise } from './base/Precise.js';
 
 // ---------------------------------------------------------------------------
 
@@ -476,10 +475,52 @@ export default class kuna extends Exchange {
             'market': market['id'],
         };
         const response = await this.publicGetTrades (this.extend (request, params));
+        //
+        //      [
+        //          {
+        //              "id":11353466,
+        //              "price":"3000.16",
+        //              "volume":"0.000397",
+        //              "funds":"1.19106352",
+        //              "market":"ethusdt",
+        //              "created_at":"2022-04-12T18:32:36Z",
+        //              "side":null,
+        //              "trend":"sell"
+        //          },
+        //      ]
+        //
         return this.parseTrades (response, market, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades (public)
+        //
+        //      {
+        //          "id":11353466,
+        //          "price":"3000.16",
+        //          "volume":"0.000397",
+        //          "funds":"1.19106352",
+        //          "market":"ethusdt",
+        //          "created_at":"2022-04-12T18:32:36Z",
+        //          "side":null,
+        //          "trend":"sell"
+        //      }
+        //
+        // fetchMyTrades (private)
+        //
+        //      {
+        //          "id":11353719,
+        //          "price":"0.13566",
+        //          "volume":"99.0",
+        //          "funds":"13.43034",
+        //          "market":"dogeusdt",
+        //          "created_at":"2022-04-12T18:58:44Z",
+        //          "side":"ask",
+        //          "order_id":1665670371,
+        //          "trend":"buy"
+        //      }
+        //
         const timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
         let symbol = undefined;
         if (market) {
@@ -495,15 +536,10 @@ export default class kuna extends Exchange {
         }
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'volume');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        let cost = this.safeNumber (trade, 'funds');
-        if (cost === undefined) {
-            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
-        }
+        const costString = this.safeNumber (trade, 'funds');
         const orderId = this.safeString (trade, 'order_id');
         const id = this.safeString (trade, 'id');
-        return {
+        return this.safeTrade ({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -513,11 +549,11 @@ export default class kuna extends Exchange {
             'side': side,
             'order': orderId,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': undefined,
-        };
+        }, market);
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -659,6 +695,21 @@ export default class kuna extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        //
+        //      [
+        //          {
+        //              "id":11353719,
+        //              "price":"0.13566",
+        //              "volume":"99.0",
+        //              "funds":"13.43034",
+        //              "market":"dogeusdt",
+        //              "created_at":"2022-04-12T18:58:44Z",
+        //              "side":"ask",
+        //              "order_id":1665670371,
+        //              "trend":"buy"
+        //          },
+        //      ]
+        //
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }

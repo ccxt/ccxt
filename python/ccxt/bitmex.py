@@ -61,6 +61,9 @@ class bitmex(Exchange):
                 'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchTransactions': 'emulated',
+                'fetchTransfer': False,
+                'fetchTransfers': False,
+                'transfer': False,
                 'withdraw': True,
             },
             'timeframes': {
@@ -926,8 +929,6 @@ class bitmex(Exchange):
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        if not market['active']:
-            raise BadSymbol(self.id + ' fetchTicker() symbol ' + symbol + ' is not tradable')
         tickers = self.fetch_tickers([market['symbol']], params)
         ticker = self.safe_value(tickers, market['symbol'])
         if ticker is None:
@@ -1655,6 +1656,7 @@ class bitmex(Exchange):
         # currency = self.currency(code)
         if code != 'BTC':
             raise ExchangeError(self.id + ' supoprts BTC withdrawals only, other currencies coming soon...')
+        currency = self.currency(code)
         request = {
             'currency': 'XBt',  # temporarily
             'amount': amount,
@@ -1663,10 +1665,7 @@ class bitmex(Exchange):
             # 'fee': 0.001,  # bitcoin network fee
         }
         response = self.privatePostUserRequestWithdrawal(self.extend(request, params))
-        return {
-            'info': response,
-            'id': self.safe_string(response, 'transactID'),
-        }
+        return self.parse_transaction(response, currency)
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:

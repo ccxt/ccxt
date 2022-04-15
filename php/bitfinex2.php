@@ -329,6 +329,11 @@ class bitfinex2 extends bitfinex {
                     'derivatives' => 'margin',
                     'future' => 'margin',
                 ),
+                'swap' => array(
+                    'fetchMarkets' => array(
+                        'settlementCurrencies' => array( 'BTC', 'USDT', 'EURT' ),
+                    ),
+                ),
             ),
             'exceptions' => array(
                 'exact' => array(
@@ -348,6 +353,10 @@ class bitfinex2 extends bitfinex {
                     'symbol => invalid' => '\\ccxt\\BadSymbol',
                     'Invalid order' => '\\ccxt\\InvalidOrder',
                 ),
+            ),
+            'commonCurrencies' => array(
+                'EUTFO' => 'EURT',
+                'USTF0' => 'USDT',
             ),
         ));
     }
@@ -379,6 +388,7 @@ class bitfinex2 extends bitfinex {
         $this->status = array_merge($this->status, array(
             'status' => $formattedStatus,
             'updated' => $this->milliseconds(),
+            'info' => $response,
         ));
         return $this->status;
     }
@@ -398,7 +408,6 @@ class bitfinex2 extends bitfinex {
                 $spot = false;
             }
             $swap = !$spot;
-            $type = $spot ? 'spot' : 'swap';
             $baseId = null;
             $quoteId = null;
             if (mb_strpos($id, ':') !== false) {
@@ -411,9 +420,20 @@ class bitfinex2 extends bitfinex {
             }
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            $splitBase = explode('F0', $base);
+            $splitQuote = explode('F0', $quote);
+            $base = $this->safe_string($splitBase, 0);
+            $quote = $this->safe_string($splitQuote, 0);
             $symbol = $base . '/' . $quote;
             $baseId = $this->get_currency_id($baseId);
             $quoteId = $this->get_currency_id($quoteId);
+            $settleId = null;
+            $settle = null;
+            if ($swap) {
+                $settleId = $quoteId;
+                $settle = $this->safe_currency_code($settleId);
+                $symbol = $symbol . ':' . $settle;
+            }
             $minOrderSizeString = $this->safe_string($market, 'minimum_order_size');
             $maxOrderSizeString = $this->safe_string($market, 'maximum_order_size');
             $result[] = array(
@@ -421,22 +441,21 @@ class bitfinex2 extends bitfinex {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
-                'settle' => null, // TODO
+                'settle' => $settle,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'settleId' => null, // TODO
-                'type' => $type,
+                'settleId' => $settleId,
+                'type' => $spot ? 'spot' : 'swap',
                 'spot' => $spot,
-                'margin' => $this->safe_value($market, 'margin'),
+                'margin' => $this->safe_value($market, 'margin', false),
                 'swap' => $swap,
                 'future' => false,
                 'option' => false,
                 'active' => true,
                 'contract' => $swap,
-                'linear' => $spot ? null : true, // TODO
-                'inverse' => $spot ? null : false, // TODO
-                'contractSize' => null, // TODO
-                'maintenanceMarginRate' => null,
+                'linear' => $swap ? true : null,
+                'inverse' => $swap ? false : null,
+                'contractSize' => $swap ? $this->parse_number('1') : null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,

@@ -286,6 +286,9 @@ class mexc(Exchange):
                 'fetchOrdersByState': {
                     'method': 'spotPrivateGetOrderList',  # contractPrivateGetPlanorderListOrders
                 },
+                'cancelOrder': {
+                    'method': 'spotPrivateDeleteOrderCancel',  # contractPrivatePostOrderCancel contractPrivatePostPlanorderCancel
+                },
             },
             'commonCurrencies': {
                 'BEYONDPROTOCOL': 'BEYOND',
@@ -376,6 +379,7 @@ class mexc(Exchange):
             self.status = self.extend(self.status, {
                 'status': status,
                 'updated': self.milliseconds(),
+                'info': response,
             })
         return self.status
 
@@ -1782,20 +1786,71 @@ class mexc(Exchange):
         return self.parse_order(response, market)
 
     async def cancel_order(self, id, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
+        market = self.market(symbol)
+        options = self.safe_value(self.options, 'cancelOrder', {})
+        defaultMethod = self.safe_string(options, 'method', 'spotPrivateDeleteOrderCancel')
+        method = self.safe_string(params, 'method', defaultMethod)
+        stop = self.safe_value(params, 'stop')
         request = {}
-        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_ids')
-        if clientOrderId is not None:
-            params = self.omit(params, ['clientOrderId', 'client_order_ids'])
-            request['client_order_ids'] = clientOrderId
-        else:
-            request['order_ids'] = id
-        response = await self.spotPrivateDeleteOrderCancel(self.extend(request, params))
+        if market['type'] == 'spot':
+            method = 'spotPrivateDeleteOrderCancel'
+            clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_ids')
+            if clientOrderId is not None:
+                params = self.omit(params, ['clientOrderId', 'client_order_ids'])
+                request['client_order_ids'] = clientOrderId
+            else:
+                request['order_ids'] = id
+        elif stop:
+            method = 'contractPrivatePostPlanorderCancel'
+            request = []
+            if isinstance(id, list):
+                for i in range(0, len(id)):
+                    request.append({
+                        'symbol': market['id'],
+                        'orderId': id[i],
+                    })
+            elif isinstance(id, str):
+                request.append({
+                    'symbol': market['id'],
+                    'orderId': id,
+                })
+        elif market['type'] == 'swap':
+            method = 'contractPrivatePostOrderCancel'
+            request = [id]
+        response = await getattr(self, method)(request)  # dont self.extend with params, otherwise ARRAY will be turned into OBJECT
         #
-        #    {"code":200,"data":{"965245851c444078a11a7d771323613b":"success"}}
+        # Spot
         #
-        data = self.safe_value(response, 'data')
-        return self.parse_order(data)
+        #     {"code":200,"data":{"965245851c444078a11a7d771323613b":"success"}}
+        #
+        # Swap
+        #
+        #     {
+        #         "success": True,
+        #         "code": 0,
+        #         "data": [
+        #             {
+        #                 "orderId": 268726891790294528,
+        #                 "errorCode": 0,
+        #                 "errorMsg": "success"
+        #             }
+        #         ]
+        #     }
+        #
+        # Trigger
+        #
+        #     {
+        #         "success": True,
+        #         "code": 0
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        if stop:
+            data = response
+        return self.parse_order(data, market)
 
     def parse_order_status(self, status, market=None):
         statuses = {}
@@ -1914,9 +1969,24 @@ class mexc(Exchange):
         #         "updateTime": 1649230287000
         #     }
         #
-        # cancelOrder
+        # spot cancelOrder
         #
         #     {"965245851c444078a11a7d771323613b":"success"}
+        #
+        # swap cancelOrder
+        #
+        #     {
+        #         "orderId": 268726891790294528,
+        #         "errorCode": 0,
+        #         "errorMsg": "success"
+        #     }
+        #
+        # trigger cancelOrder
+        #
+        #     {
+        #         "success": True,
+        #         "code": 0
+        #     }
         #
         id = self.safe_string_2(order, 'data', 'id')
         status = None
