@@ -1350,10 +1350,11 @@ module.exports = class idex extends Exchange {
         let type = undefined;
         if ('depositId' in transaction) {
             type = 'deposit';
-        } else if ('withdrawalId' in transaction) {
+        } else if (('withdrawId' in transaction) || ('withdrawalId' in transaction)) {
             type = 'withdrawal';
         }
-        const id = this.safeString2 (transaction, 'depositId', 'withdrawId');
+        let id = this.safeString2 (transaction, 'depositId', 'withdrawId');
+        id = this.safeString (transaction, 'withdrawalId', id);
         const code = this.safeCurrencyCode (this.safeString (transaction, 'asset'), currency);
         const amount = this.safeNumber (transaction, 'quantity');
         const txid = this.safeString (transaction, 'txId');
