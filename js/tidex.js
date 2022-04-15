@@ -794,15 +794,56 @@ module.exports = class tidex extends Exchange {
         //                     "tx":null,
         //                     "error":null
         //                 },
-        //             "in_blockchain":false
+        //                 "in_blockchain":false
         //             }
         //         }
         //     }
         //
         const result = this.safeValue (response, 'return', {});
+        const withdrawInfo = this.safeValue (result, 'withdraw_info', {});
+        return this.parseTransaction (withdrawInfo, currency);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        //     {
+        //         "id":1111,
+        //         "asset_id":1,
+        //         "asset":"BTC",
+        //         "amount":0.0093,
+        //         "fee":0.0007,
+        //         "create_time":1575128018,
+        //         "status":"Created",
+        //         "data":{
+        //             "address":"1KFHE7w8BhaENAswwryaoccDb6qcT6DbYY",
+        //             "memo":"memo",
+        //             "tx":null,
+        //             "error":null
+        //         },
+        //         "in_blockchain":false
+        //     }
+        //
+        currency = this.safeCurrency (undefined, currency);
         return {
-            'info': response,
-            'id': this.safeString (result, 'withdraw_id'),
+            'id': this.safeString (transaction, 'id'),
+            'txid': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'network': undefined,
+            'addressFrom': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'amount': undefined,
+            'type': undefined,
+            'currency': currency['code'],
+            'status': undefined,
+            'updated': undefined,
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'comment': undefined,
+            'fee': undefined,
+            'info': transaction,
         };
     }
 
