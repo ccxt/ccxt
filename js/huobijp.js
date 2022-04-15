@@ -1548,7 +1548,7 @@ module.exports = class huobijp extends Exchange {
         const network = this.safeStringUpper (transaction, 'chain');
         return {
             'info': transaction,
-            'id': this.safeString (transaction, 'id'),
+            'id': this.safeString2 (transaction, 'id', 'data'),
             'txid': this.safeString (transaction, 'tx-hash'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
