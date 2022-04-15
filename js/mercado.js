@@ -598,6 +598,19 @@ module.exports = class mercado extends Exchange {
     }
 
     parseTransaction (transaction, currency = undefined) {
+        //
+        //     {
+        //         "id": 1,
+        //         "coin": "BRL",
+        //         "quantity": "300.56",
+        //         "net_quantity": "291.68",
+        //         "fee": "8.88",
+        //         "account": "bco: 341, ag: 1111, cta: 23456-X",
+        //         "status": 1,
+        //         "created_timestamp": "1453912088",
+        //         "updated_timestamp": "1453912088"
+        //     }
+        //
         currency = this.safeCurrency (undefined, currency);
         return {
             'id': this.safeString (transaction, 'id'),
