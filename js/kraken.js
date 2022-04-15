@@ -2014,7 +2014,7 @@ module.exports = class kraken extends Exchange {
             const response = await this.privatePostWithdraw (this.extend (request, params));
             //
             //     {
-            //         "error": [ ],
+            //         "error": [],
             //         "result": {
             //             "refid": "AGBSO6T-UFMTTQ-I7KGS6"
             //         }
