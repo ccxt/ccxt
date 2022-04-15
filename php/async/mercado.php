@@ -577,9 +577,65 @@ class mercado extends Exchange {
             }
         }
         $response = yield $this->privatePostWithdrawCoin (array_merge($request, $params));
+        //
+        //     {
+        //         "response_data" => {
+        //             "withdrawal" => array(
+        //                 "id" => 1,
+        //                 "coin" => "BRL",
+        //                 "quantity" => "300.56",
+        //                 "net_quantity" => "291.68",
+        //                 "fee" => "8.88",
+        //                 "account" => "bco => 341, ag => 1111, cta => 23456-X",
+        //                 "status" => 1,
+        //                 "created_timestamp" => "1453912088",
+        //                 "updated_timestamp" => "1453912088"
+        //             }
+        //         ),
+        //         "status_code" => 100,
+        //         "server_unix_timestamp" => "1453912088"
+        //     }
+        //
+        $responseData = $this->safe_value($response, 'response_data', array());
+        $withdrawal = $this->safe_value($responseData, 'withdrawal');
+        return $this->parse_transaction($withdrawal, $currency);
+    }
+
+    public function parse_transaction($transaction, $currency = null) {
+        //
+        //     {
+        //         "id" => 1,
+        //         "coin" => "BRL",
+        //         "quantity" => "300.56",
+        //         "net_quantity" => "291.68",
+        //         "fee" => "8.88",
+        //         "account" => "bco => 341, ag => 1111, cta => 23456-X",
+        //         "status" => 1,
+        //         "created_timestamp" => "1453912088",
+        //         "updated_timestamp" => "1453912088"
+        //     }
+        //
+        $currency = $this->safe_currency(null, $currency);
         return array(
-            'info' => $response,
-            'id' => $response['response_data']['withdrawal']['id'],
+            'id' => $this->safe_string($transaction, 'id'),
+            'txid' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'network' => null,
+            'addressFrom' => null,
+            'address' => null,
+            'addressTo' => null,
+            'amount' => null,
+            'type' => null,
+            'currency' => $currency['code'],
+            'status' => null,
+            'updated' => null,
+            'tagFrom' => null,
+            'tag' => null,
+            'tagTo' => null,
+            'comment' => null,
+            'fee' => null,
+            'info' => $transaction,
         );
     }
 
