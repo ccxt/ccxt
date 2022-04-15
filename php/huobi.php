@@ -589,10 +589,10 @@ class huobi extends \ccxt\async\huobi {
             $subType = $market['linear'] ? 'linear' : 'inverse';
             $marketId = $market['lowercaseId'];
         } else {
-            $type = $this->safe_string_2($this->options, 'watchOrders', 'defaultType', 'spot');
+            $type = $this->safe_string($this->options, 'defaultType', 'spot');
             $type = $this->safe_string($params, 'type', $type);
-            $subType = $this->safe_string_2($this->options, 'watchOrders', 'subType', 'linear');
-            $subType = $this->safe_string($params, 'subType', $type);
+            $subType = $this->safe_string_2($this->options, 'subType', 'defaultSubType', 'linear');
+            $subType = $this->safe_string($params, 'subType', $subType);
             $params = $this->omit($params, ['type', 'subType']);
         }
         if ($type === 'spot') {
@@ -600,6 +600,7 @@ class huobi extends \ccxt\async\huobi {
             if ($mode === null) {
                 $mode = $this->safe_string_2($this->options, 'watchMyTrades', 'mode', 0);
                 $mode = $this->safe_string($params, 'mode', $mode);
+                $params = $this->omit($params, 'mode');
             }
             $messageHash = 'trade.clearing' . '#' . $marketId . '#' . $mode;
             $channel = $messageHash;
@@ -621,7 +622,7 @@ class huobi extends \ccxt\async\huobi {
     public function get_order_channel_and_message_hash($type, $subType, $market = null, $params = array ()) {
         $messageHash = null;
         $channel = null;
-        $orderType = $this->safe_string_2($this->options, 'watchOrders', 'orderType', 'orders'); // orders or matchOrders
+        $orderType = $this->safe_string($this->options, 'orderType', 'orders'); // orders or matchOrders
         $orderType = $this->safe_string($params, 'orderType', $orderType);
         $params = $this->omit($params, 'orderType');
         $marketCode = ($market !== null) ? $market['lowercaseId'] : null;
@@ -671,10 +672,10 @@ class huobi extends \ccxt\async\huobi {
             $suffix = $market['lowercaseId'];
             $subType = $market['linear'] ? 'linear' : 'inverse';
         } else {
-            $type = $this->safe_string_2($this->options, 'watchOrders', 'defaultType', 'spot');
+            $type = $this->safe_string($this->options, 'defaultType', 'spot');
             $type = $this->safe_string($params, 'type', $type);
-            $subType = $this->safe_string_2($this->options, 'watchOrders', 'subType', 'linear');
-            $subType = $this->safe_string($params, 'subType', $type);
+            $subType = $this->safe_string_2($this->options, 'subType', 'defaultSubType', 'linear');
+            $subType = $this->safe_string($params, 'subType', $subType);
             $params = $this->omit($params, ['type', 'subType']);
         }
         $messageHash = null;

@@ -550,16 +550,17 @@ class huobi(Exchange, ccxt.huobi):
             subType = 'linear' if market['linear'] else 'inverse'
             marketId = market['lowercaseId']
         else:
-            type = self.safe_string_2(self.options, 'watchOrders', 'defaultType', 'spot')
+            type = self.safe_string(self.options, 'defaultType', 'spot')
             type = self.safe_string(params, 'type', type)
-            subType = self.safe_string_2(self.options, 'watchOrders', 'subType', 'linear')
-            subType = self.safe_string(params, 'subType', type)
+            subType = self.safe_string_2(self.options, 'subType', 'defaultSubType', 'linear')
+            subType = self.safe_string(params, 'subType', subType)
             params = self.omit(params, ['type', 'subType'])
         if type == 'spot':
             mode = None
             if mode is None:
                 mode = self.safe_string_2(self.options, 'watchMyTrades', 'mode', 0)
                 mode = self.safe_string(params, 'mode', mode)
+                params = self.omit(params, 'mode')
             messageHash = 'trade.clearing' + '#' + marketId + '#' + mode
             channel = messageHash
         else:
@@ -577,7 +578,7 @@ class huobi(Exchange, ccxt.huobi):
     def get_order_channel_and_message_hash(self, type, subType, market=None, params={}):
         messageHash = None
         channel = None
-        orderType = self.safe_string_2(self.options, 'watchOrders', 'orderType', 'orders')  # orders or matchOrders
+        orderType = self.safe_string(self.options, 'orderType', 'orders')  # orders or matchOrders
         orderType = self.safe_string(params, 'orderType', orderType)
         params = self.omit(params, 'orderType')
         marketCode = market['lowercaseId'] if (market is not None) else None
@@ -622,10 +623,10 @@ class huobi(Exchange, ccxt.huobi):
             suffix = market['lowercaseId']
             subType = 'linear' if market['linear'] else 'inverse'
         else:
-            type = self.safe_string_2(self.options, 'watchOrders', 'defaultType', 'spot')
+            type = self.safe_string(self.options, 'defaultType', 'spot')
             type = self.safe_string(params, 'type', type)
-            subType = self.safe_string_2(self.options, 'watchOrders', 'subType', 'linear')
-            subType = self.safe_string(params, 'subType', type)
+            subType = self.safe_string_2(self.options, 'subType', 'defaultSubType', 'linear')
+            subType = self.safe_string(params, 'subType', subType)
             params = self.omit(params, ['type', 'subType'])
         messageHash = None
         channel = None
