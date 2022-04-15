@@ -23,7 +23,7 @@ module.exports = class bit4you extends Exchange {
                 'walletAddress': false,
             },
             'has': {
-                'CORS': undefined,
+                'CORS': true,
                 'spot': true,
                 'margin': undefined,
                 'swap': undefined,
@@ -143,11 +143,9 @@ module.exports = class bit4you extends Exchange {
 
     async fetchMarkets (params = {}) {
         const markets = await this.publicGetMarketList ();
-        const marketIds = Object.keys (markets);
         const result = [];
-        for (let i = 0; i < marketIds.length; i++) {
-            const marketId = marketIds[i];
-            const market = this.safeValue (markets, marketId);
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
             const parts = this.safeStringLower (market, 'iso').split ('-');
             const id = parts[0] + parts[1];
             const baseId = parts[0];
@@ -156,19 +154,19 @@ module.exports = class bit4you extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const active = true;
-            const config = market.config;
+            const config = this.safeValue (market, 'config');
             const precision = {
-                'price': (this.safeNumber (config, 'rate_step').length - 2) || 8,
-                'amount': (this.safeNumber (config, 'base_qty_step').length - 2) || 8,
-                'cost': (this.safeNumber (config, 'quote_qty_step').length - 2) || 8,
+                'price': 8,
+                'amount': 8,
+                'cost': 8,
             };
             const limits = {
                 'price': {
-                    'min': this.safeNumber (config, 'config.rate_min') || 0,
-                    'max': this.safeNumber (config, 'config.rate_max') || 0,
+                    'min': this.safeNumber (config, 'rate_min') || 0,
+                    'max': this.safeNumber (config, 'rate_max') || 0,
                 },
                 'amount': {
-                    'min': this.safeNumber (config, 'config.base_qty_min') || 0,
+                    'min': this.safeNumber (config, 'base_qty_min') || 0,
                 },
                 'cost': {
                     'min': this.safeNumber (config, 'quote_qty_min') || 0,
@@ -364,12 +362,9 @@ module.exports = class bit4you extends Exchange {
 
     parseTickers (response, symbols = undefined, params = {}) {
         const result = {};
-        const keys = Object.keys (response);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const ticker = response[key];
-            const marketId = this.safeString (ticker, 'market', key);
-            const market = this.safeMarket (marketId, undefined, '-');
+        for (let i = 0; i < response.length; i++) {
+            const ticker = response[i];
+            const market = this.safeMarket (this.safeString (ticker, 'market'), undefined, '-');
             const symbol = market['symbol'];
             result[symbol] = this.extend (this.parseTicker (ticker, market), params);
         }
@@ -419,11 +414,9 @@ module.exports = class bit4you extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.privatePostOrderList (this.extend (request, params));
-        const orderIds = Object.keys (response);
         const result = [];
-        for (let i = 0; i < orderIds.length; i++) {
-            const key = orderIds[i];
-            const order = response[key];
+        for (let i = 0; i < response.length; i++) {
+            const order = response[i];
             result.push (this.parseOrder (order));
         }
         return result;
@@ -442,11 +435,9 @@ module.exports = class bit4you extends Exchange {
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const request = params;
         const response = await this.privatePostOrderPending (this.extend (request, params));
-        const orderIds = Object.keys (response);
         const result = [];
-        for (let i = 0; i < orderIds.length; i++) {
-            const key = orderIds[i];
-            const order = response[key];
+        for (let i = 0; i < response.length; i++) {
+            const order = response[i];
             result.push (this.parseOrder (order));
         }
         return result;
@@ -455,11 +446,9 @@ module.exports = class bit4you extends Exchange {
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const request = params;
         const response = await this.privatePostPortfolioHistory (request);
-        const orderIds = Object.keys (response);
         const result = [];
-        for (let i = 0; i < orderIds.length; i++) {
-            const key = orderIds[i];
-            const order = response[key];
+        for (let i = 0; i < response.length; i++) {
+            const order = response[i];
             result.push (this.parseOrder (order));
         }
         return this.parseOrder (result);
@@ -580,10 +569,8 @@ module.exports = class bit4you extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        const marketIds = Object.keys (response);
-        for (let i = 0; i < marketIds.length; i++) {
-            const key = marketIds[i];
-            const balance = response[key];
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
             const symbol = this.safeString (balance, 'iso');
             const code = this.safeCurrencyCode (symbol);
             const account = this.account ();
@@ -609,7 +596,7 @@ module.exports = class bit4you extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         if (method === 'POST') {
             body = JSON.parse (this.json (query));
-            body.simulation = this.simulation;
+            body['simulation'] = this.simulation;
         }
         headers = {
             'Content-Type': 'application/json',
@@ -619,7 +606,7 @@ module.exports = class bit4you extends Exchange {
                 fullPath += '?' + this.urlencode (query);
             }
         }
-        const url = this.urls['api'].url + fullPath;
+        const url = this.urls['api']['url'] + fullPath;
         if (api === 'private') {
             const authorization = this.safeString (this.headers, 'Authorization');
             if (authorization !== undefined) {
