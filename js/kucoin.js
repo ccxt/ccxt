@@ -1102,6 +1102,34 @@ module.exports = class kucoin extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoin#createOrder
+         * @description Create an order on the exchange
+         * @param {str} symbol Unified CCXT market symbol
+         * @param {str} type "limit" or "market"
+         * @param {str} side "buy" or "sell"
+         * @param {float} amount the amount of currency to trade
+         * @param {float} price *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+         * @param {dict} params  Extra parameters specific to the exchange API endpoint
+         * @param {float} params.leverage Leverage size of the order
+         * @param {float} params.stopPrice The price at which a trigger order is triggered at
+         * @param {str} params.timeInForce GTC, GTT, IOC, or FOK, default is GTC, limit orders only
+         * @param {str} params.postOnly Post only flag, invalid when timeInForce is IOC or FOK
+         * @param {str} params.clientOid client order id, defaults to uuid if not passed
+         * @param {str} params.remark remark for the order, length cannot exceed 100 utf8 characters
+         * @param {str} params.stop  Either loss or entry, the default is loss. Requires stopPrice to be defined
+         * @param {str} params.stp '', // self trade prevention, CN, CO, CB or DC
+         * @param {str} params.tradeType 'TRADE', // TRADE, MARGIN_TRADE // not used with margin orders
+         * @param {float} params.cancelAfter long, // cancel after n seconds, requires timeInForce to be GTT
+         * @param {bool} params.hidden false, // Order will not be displayed in the order book
+         * @param {bool} params.iceberg false, // Only a portion of the order is displayed in the order book
+         * @param {str} params.visibleSize this.amountToPrecision (symbol, visibleSize), // The maximum visible size of an iceberg order
+         * @param {str} params.funds // Amount of quote currency to use
+         * @param {str} params.marginMode 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
+         * @param {bool} params.autoBorrow false, // The system will first borrow you funds at the optimal interest rate and then place an order for you
+         * @returns an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const marketId = this.marketId (symbol);
         // required param, cannot be used twice
@@ -1112,28 +1140,6 @@ module.exports = class kucoin extends Exchange {
             'side': side,
             'symbol': marketId,
             'type': type, // limit or market
-            // 'remark': '', // optional remark for the order, length cannot exceed 100 utf8 characters
-            // 'stp': '', // self trade prevention, CN, CO, CB or DC
-            // To improve the system performance and to accelerate order placing and processing, KuCoin has added a new interface for margin orders
-            // The current one will no longer accept margin orders by May 1st, 2021 (UTC)
-            // At the time, KuCoin will notify users via the announcement, please pay attention to it
-            // 'tradeType': 'TRADE', // TRADE, MARGIN_TRADE // not used with margin orders
-            // limit orders ---------------------------------------------------
-            // 'timeInForce': 'GTC', // GTC, GTT, IOC, or FOK (default is GTC), limit orders only
-            // 'cancelAfter': long, // cancel after n seconds, requires timeInForce to be GTT
-            // 'postOnly': false, // Post only flag, invalid when timeInForce is IOC or FOK
-            // 'hidden': false, // Order will not be displayed in the order book
-            // 'iceberg': false, // Only a portion of the order is displayed in the order book
-            // 'visibleSize': this.amountToPrecision (symbol, visibleSize), // The maximum visible size of an iceberg order
-            // market orders --------------------------------------------------
-            // 'size': this.amountToPrecision (symbol, amount), // Amount in base currency
-            // 'funds': this.costToPrecision (symbol, cost), // Amount of quote currency to use
-            // stop orders ----------------------------------------------------
-            // 'stop': 'loss', // loss or entry, the default is loss, requires stopPrice
-            // 'stopPrice': this.priceToPrecision (symbol, amount), // need to be defined if stop is specified
-            // margin orders --------------------------------------------------
-            // 'marginMode': 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
-            // 'autoBorrow': false, // The system will first borrow you funds at the optimal interest rate and then place an order for you
         };
         const quoteAmount = this.safeNumber2 (params, 'cost', 'funds');
         let amountString = undefined;
@@ -1153,9 +1159,15 @@ module.exports = class kucoin extends Exchange {
             request['size'] = amountString;
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        let method = 'privatePostOrders';
+        const stopPrice = this.safeString (params, 'stopPrice');
         const tradeType = this.safeString (params, 'tradeType');
-        if (tradeType === 'MARGIN_TRADE') {
+        params = this.omit (params, 'stopPrice');
+        let method = 'privatePostOrders';
+        if (stopPrice !== undefined) {
+            request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+            request['stop'] = 'loss';
+            method = 'privatePostStopOrder';
+        } else if (tradeType === 'MARGIN_TRADE') {
             method = 'privatePostMarginOrder';
         }
         const response = await this[method] (this.extend (request, params));
