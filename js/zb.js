@@ -1906,13 +1906,21 @@ module.exports = class zb extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const stop = this.safeValue (params, 'stop');
         if (market['spot']) {
             throw new NotSupported (this.id + ' cancelAllOrders() is not supported on ' + market['type'] + ' markets');
         }
         const request = {
             'symbol': market['id'],
+            // 'ids': [ 6904603200733782016, 6819506476072247297 ], // STOP
+            // 'side': params['side'], // STOP, for stop orders: 1 Open long (buy), 2 Open short (sell), 3 Close long (sell), 4 Close Short (Buy). One-Way Positions: 5 Buy, 6 Sell, 0 Close Only
         };
-        return await this.contractV2PrivatePostTradeCancelAllOrders (this.extend (request, params));
+        let method = 'contractV2PrivatePostTradeCancelAllOrders';
+        if (stop) {
+            method = 'contractV2PrivatePostTradeCancelAlgos';
+        }
+        const query = this.omit (params, 'stop');
+        return await this[method] (this.extend (request, query));
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -2134,7 +2142,7 @@ module.exports = class zb extends Exchange {
             method = 'contractV2PrivateGetTradeGetOrderAlgos';
             const orderType = this.safeInteger (params, 'orderType');
             if (orderType === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOrders() requires an orderType parameter for stop orders');
+                throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires an orderType parameter for stop orders');
             }
             const side = this.safeInteger (params, 'side');
             const bizType = this.safeInteger (params, 'bizType');
