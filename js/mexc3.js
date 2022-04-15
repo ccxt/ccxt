@@ -3137,6 +3137,12 @@ module.exports = class mexc3 extends Exchange {
         //         "create_time":"2021-10-11T20:45:08.000+00:00"
         //     }
         //
+        // withdraw
+        //
+        //     {
+        //         "withdrawId":"25fb2831fb6d4fc7aa4094612a26c81d"
+        //     }
+        //
         const id = this.safeString (transaction, 'id');
         const type = (id === undefined) ? 'deposit' : 'withdrawal';
         const timestamp = this.parse8601 (this.safeString (transaction, 'create_time'));
@@ -3560,10 +3566,7 @@ module.exports = class mexc3 extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        return {
-            'info': data,
-            'id': this.safeString (data, 'withdrawId'),
-        };
+        return this.parseTransaction (data, currency);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
