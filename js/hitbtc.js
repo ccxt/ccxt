@@ -766,6 +766,8 @@ module.exports = class hitbtc extends Exchange {
 
     parseTransaction (transaction, currency = undefined) {
         //
+        // transactions
+        //
         //     {
         //         id: 'd53ee9df-89bf-4d09-886e-849f8be64647',
         //         index: 1044718371,
