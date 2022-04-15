@@ -1729,15 +1729,12 @@ class kucoin extends Exchange {
         //     {
         //         "code" =>  200000,
         //         "data" => {
-        //             "withdrawalId" =>  "abcdefghijklmnopqrstuvwxyz"
+        //             "withdrawalId" =>  "5bffb63303aa675e8bbe18f9"
         //         }
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        return array(
-            'id' => $this->safe_string($data, 'withdrawalId'),
-            'info' => $response,
-        );
+        return $this->parse_transaction($data, $currency);
     }
 
     public function parse_transaction_status($status) {
@@ -1782,6 +1779,12 @@ class kucoin extends Exchange {
         //         "createdAt" => 1546503758000,
         //         "updatedAt" => 1546504603000
         //         "remark":"foobar"
+        //     }
+        //
+        // withdraw
+        //
+        //     {
+        //         "withdrawalId" =>  "5bffb63303aa675e8bbe18f9"
         //     }
         //
         $currencyId = $this->safe_string($transaction, 'currency');
