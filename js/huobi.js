@@ -583,10 +583,10 @@ module.exports = class huobi extends ccxt.huobi {
             subType = market['linear'] ? 'linear' : 'inverse';
             marketId = market['lowercaseId'];
         } else {
-            type = this.safeString2 (this.options, 'watchOrders', 'defaultType', 'spot');
+            type = this.safeString (this.options, 'defaultType', 'spot');
             type = this.safeString (params, 'type', type);
-            subType = this.safeString2 (this.options, 'watchOrders', 'subType', 'linear');
-            subType = this.safeString (params, 'subType', type);
+            subType = this.safeString2 (this.options, 'subType', 'defaultSubType', 'linear');
+            subType = this.safeString (params, 'subType', subType);
             params = this.omit (params, ['type', 'subType']);
         }
         if (type === 'spot') {
@@ -594,6 +594,7 @@ module.exports = class huobi extends ccxt.huobi {
             if (mode === undefined) {
                 mode = this.safeString2 (this.options, 'watchMyTrades', 'mode', 0);
                 mode = this.safeString (params, 'mode', mode);
+                params = this.omit (params, 'mode');
             }
             messageHash = 'trade.clearing' + '#' + marketId + '#' + mode;
             channel = messageHash;
@@ -615,7 +616,7 @@ module.exports = class huobi extends ccxt.huobi {
     getOrderChannelAndMessageHash (type, subType, market = undefined, params = {}) {
         let messageHash = undefined;
         let channel = undefined;
-        let orderType = this.safeString2 (this.options, 'watchOrders', 'orderType', 'orders'); // orders or matchOrders
+        let orderType = this.safeString (this.options, 'orderType', 'orders'); // orders or matchOrders
         orderType = this.safeString (params, 'orderType', orderType);
         params = this.omit (params, 'orderType');
         const marketCode = (market !== undefined) ? market['lowercaseId'] : undefined;
@@ -665,10 +666,10 @@ module.exports = class huobi extends ccxt.huobi {
             suffix = market['lowercaseId'];
             subType = market['linear'] ? 'linear' : 'inverse';
         } else {
-            type = this.safeString2 (this.options, 'watchOrders', 'defaultType', 'spot');
+            type = this.safeString (this.options, 'defaultType', 'spot');
             type = this.safeString (params, 'type', type);
-            subType = this.safeString2 (this.options, 'watchOrders', 'subType', 'linear');
-            subType = this.safeString (params, 'subType', type);
+            subType = this.safeString2 (this.options, 'subType', 'defaultSubType', 'linear');
+            subType = this.safeString (params, 'subType', subType);
             params = this.omit (params, ['type', 'subType']);
         }
         let messageHash = undefined;
