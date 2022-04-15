@@ -1314,9 +1314,46 @@ class zonda(Exchange):
                 address += '?dt=' + str(tag)
             request['address'] = address
         response = getattr(self, method)(self.extend(request, params))
+        #
+        #     {
+        #         "status": "Ok",
+        #         "data": {
+        #           "id": "65e01087-afb0-4ab2-afdb-cc925e360296"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data')
+        return self.parse_transaction(data, currency)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        # withdraw
+        #
+        #     {
+        #         "id": "65e01087-afb0-4ab2-afdb-cc925e360296"
+        #     }
+        #
+        currency = self.safe_currency(None, currency)
         return {
-            'info': response,
-            'id': None,
+            'id': self.safe_string(transaction, 'id'),
+            'txid': None,
+            'timestamp': None,
+            'datetime': None,
+            'network': None,
+            'addressFrom': None,
+            'address': None,
+            'addressTo': None,
+            'amount': None,
+            'type': None,
+            'currency': currency['code'],
+            'status': None,
+            'updated': None,
+            'tagFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'comment': None,
+            'fee': None,
+            'info': transaction,
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
