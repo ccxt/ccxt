@@ -1726,7 +1726,7 @@ module.exports = class kucoin extends Exchange {
         //     {
         //         "code":  200000,
         //         "data": {
-        //             "withdrawalId":  "abcdefghijklmnopqrstuvwxyz"
+        //             "withdrawalId":  "5bffb63303aa675e8bbe18f9"
         //         }
         //     }
         //
@@ -1781,7 +1781,7 @@ module.exports = class kucoin extends Exchange {
         // withdraw
         //
         //     {
-        //         "withdrawalId":  "abcdefghijklmnopqrstuvwxyz"
+        //         "withdrawalId":  "5bffb63303aa675e8bbe18f9"
         //     }
         //
         const currencyId = this.safeString (transaction, 'currency');
