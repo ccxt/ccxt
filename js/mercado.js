@@ -573,9 +573,52 @@ module.exports = class mercado extends Exchange {
             }
         }
         const response = await this.privatePostWithdrawCoin (this.extend (request, params));
+        //
+        //     {
+        //         "response_data": {
+        //             "withdrawal": {
+        //                 "id": 1,
+        //                 "coin": "BRL",
+        //                 "quantity": "300.56",
+        //                 "net_quantity": "291.68",
+        //                 "fee": "8.88",
+        //                 "account": "bco: 341, ag: 1111, cta: 23456-X",
+        //                 "status": 1,
+        //                 "created_timestamp": "1453912088",
+        //                 "updated_timestamp": "1453912088"
+        //             }
+        //         },
+        //         "status_code": 100,
+        //         "server_unix_timestamp": "1453912088"
+        //     }
+        //
+        const data = this.safeValue (response, 'response_data');
+        const withdrawalData = this.safeValue (data, 'withdrawal');
+        return this.parseTransaction (withdrawalData, currency);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        currency = this.safeCurrency (undefined, currency);
         return {
-            'info': response,
-            'id': response['response_data']['withdrawal']['id'],
+            'id': this.safeString (transaction, 'id'),
+            'txid': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'network': undefined,
+            'addressFrom': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'amount': undefined,
+            'type': undefined,
+            'currency': currency['code'],
+            'status': undefined,
+            'updated': undefined,
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'comment': undefined,
+            'fee': undefined,
+            'info': transaction,
         };
     }
 
