@@ -37,6 +37,9 @@ function exportExchanges (replacements, unlimitedLog) {
 }
 
 async function createExchanges (ids, ccxt) {
+
+    const module = await import('../ccxt.js')
+    ccxt = module.default
     try {
 
         const createExchange = (id) => {
@@ -52,7 +55,7 @@ async function createExchanges (ids, ccxt) {
 
 }
 
-function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, certifiedExchangesPaths, exchangesByCountriesPaths, proExchangesPaths }, logExportExchanges) {
+function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, certifiedExchangesPaths, exchangesByCountriesPaths, proExchangesPaths }, log) {
 
     // const aliases = [ 'hitbtc2', 'huobipro' ] // aliases are not shown tables for deduplication
 
@@ -67,7 +70,7 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
             , allExchangesReplacement = totalString + supportedExchangesMarkdownTable + "$1"
             , allExchangesRegex = new RegExp ("[^\n]+[\n]{2}\\| logo[^`]+\\|([\n][\n]|[\n]$|$)", 'm')
         for (const path of allExchangesPaths) {
-            logExportExchanges (path, allExchangesRegex, allExchangesReplacement, logExportExchanges)
+            logExportExchanges (path, allExchangesRegex, allExchangesReplacement, log)
         }
     }
 
@@ -81,7 +84,7 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
             , proExchangesReplacement = totalString + proExchangesMarkdownTable + "$1"
             , proExchangesRegex = new RegExp ("[^\n]+[\n]{2}\\|[^`]+\\|([\n][\n]|[\n]$|$)", 'm')
         for (const path of proExchangesPaths) {
-            logExportExchanges (path, proExchangesRegex, proExchangesReplacement, logExportExchanges)
+            logExportExchanges (path, proExchangesRegex, proExchangesReplacement, log)
         }
     }
 
@@ -91,7 +94,7 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
             , certifiedExchangesReplacement = '$1' + certifiedExchangesMarkdownTable + "\n"
             , certifiedExchangesRegex = new RegExp ("^(## Certified Cryptocurrency Exchanges\n{3})(?:\\|.+\\|$\n)+", 'm')
         for (const path of certifiedExchangesPaths) {
-            logExportExchanges (path, certifiedExchangesRegex, certifiedExchangesReplacement, logExportExchanges)
+            logExportExchanges (path, certifiedExchangesRegex, certifiedExchangesReplacement, log)
         }
     }
 

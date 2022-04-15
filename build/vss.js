@@ -7,7 +7,6 @@
 import fs from 'fs'
 import log from 'ololog'
 import ansi from 'ansicolor'
-import { execSync } from 'child_process'
 import { copyFile } from './fsLocal.js'
 import { pathToFileURL } from 'url'
 import { URL } from 'url'
@@ -81,7 +80,6 @@ const href = (url.href.indexOf('.') !== -1) ? url.href.substring(0, url.href.las
 if (metaUrl === href) {
 
     // if called directly like `node module`
-
     await vssEverything ()
 
 } else {
