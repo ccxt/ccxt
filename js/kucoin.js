@@ -1206,32 +1206,63 @@ module.exports = class kucoin extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoin#cancelOrder
+         * @description Cancels an order
+         * @param {str} id Order id
+         * @param {str} symbol Not used by kucoin
+         * @param {dict} params Exchange specific parameters
+         * @param {bool} params.stop True if cancelling a stop order
+         * @returns Response fromt the exchange
+         */
         await this.loadMarkets ();
         const request = {};
         const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
+        const stop = this.safeValue (params, 'stop');
         let method = 'privateDeleteOrdersOrderId';
         if (clientOrderId !== undefined) {
             request['clientOid'] = clientOrderId;
-            method = 'privateDeleteOrdersClientOrderClientOid';
+            if (stop) {
+                method = 'privateDeleteStopOrderCancelOrderByClientOid';
+            } else {
+                method = 'privateDeleteOrdersClientOrderClientOid';
+            }
         } else {
+            if (stop) {
+                method = 'privateDeleteStopOrderOrderId';
+            }
             request['orderId'] = id;
         }
-        params = this.omit (params, [ 'clientOid', 'clientOrderId' ]);
+        params = this.omit (params, [ 'clientOid', 'clientOrderId', 'stop' ]);
         return await this[method] (this.extend (request, params));
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoin#cancelAllOrders
+         * @description Cancels all open orders, or cancels all orders in a market for one symbol, stop orders must be cancelled separately
+         * @param {str} symbol Unified symbol indicating the market to cancel orders in
+         * @param {dict} params Exchange specific parameters
+         * @param {bool} params.stop true if cancelling all stop orders
+         * @param {str} params.tradeType The type of trading, "TRADE" for Spot Trading, "MARGIN_TRADE" for Margin Trading
+         * @param {str} params.orderIds *stop orders only* Comma seperated order IDs
+         * @returns Response from the exchange
+         */
         await this.loadMarkets ();
-        const request = {
-            // 'symbol': market['id'],
-            // 'tradeType': 'TRADE', // default is to cancel the spot trading order
-        };
+        const request = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        return await this.privateDeleteOrders (this.extend (request, params));
+        let method = 'privateDeleteOrders';
+        const stop = this.safeValue (params, 'stop');
+        if (stop) {
+            method = 'privateDeleteStopOrderCancel';
+        }
+        return await this[method] (this.extend (request, params));
     }
 
     async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
