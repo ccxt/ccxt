@@ -592,9 +592,9 @@ module.exports = class mercado extends Exchange {
         //         "server_unix_timestamp": "1453912088"
         //     }
         //
-        const data = this.safeValue (response, 'response_data');
-        const withdrawalData = this.safeValue (data, 'withdrawal');
-        return this.parseTransaction (withdrawalData, currency);
+        const responseData = this.safeValue (response, 'response_data', {});
+        const withdrawal = this.safeValue (responseData, 'withdrawal');
+        return this.parseTransaction (withdrawal, currency);
     }
 
     parseTransaction (transaction, currency = undefined) {
