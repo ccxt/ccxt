@@ -1736,7 +1736,8 @@ module.exports = class kraken extends Exchange {
         //
         // fetchWithdrawals
         //
-        //     { method: "Ether",
+        //     {
+        //       method: "Ether",
         //       aclass: "currency",
         //        asset: "XETH",
         //        refid: "A2BF34S-O7LBNQ-UE4Y4O",
@@ -1745,10 +1746,15 @@ module.exports = class kraken extends Exchange {
         //       amount: "9.9950000000",
         //          fee: "0.0050000000",
         //         time:  1530481750,
-        //       status: "Success"                                                             }
+        //       status: "Success"
+        //  status-prop: 'on-hold' // this field might not be present in some cases
+        //     }
         //
-        // withdrawals may also have an additional 'status-prop' field present
+        // withdraw
         //
+        //     {
+        //         "refid": "AGBSO6T-UFMTTQ-I7KGS6"
+        //     }
         //
         const id = this.safeString (transaction, 'refid');
         const txid = this.safeString (transaction, 'txid');
@@ -2005,12 +2011,16 @@ module.exports = class kraken extends Exchange {
                 // 'address': address, // they don't allow withdrawals to direct addresses
             };
             const response = await this.privatePostWithdraw (this.extend (request, params));
+            //
+            //     {
+            //         "error": [ ],
+            //         "result": {
+            //             "refid": "AGBSO6T-UFMTTQ-I7KGS6"
+            //         }
+            //     }
+            //
             const result = this.safeValue (response, 'result', {});
-            const id = this.safeString (result, 'refid');
-            return {
-                'info': result,
-                'id': id,
-            };
+            return this.parseTransaction (result, currency);
         }
         throw new ExchangeError (this.id + " withdraw() requires a 'key' parameter (withdrawal key name, as set up on your account)");
     }
