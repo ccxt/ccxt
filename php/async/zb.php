@@ -45,6 +45,7 @@ class zb extends Exchange {
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
                 'fetchBorrowRates' => true,
+                'fetchCanceledOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
@@ -2113,6 +2114,156 @@ class zb extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
+    public function fetch_canceled_orders($symbol = null, $since = null, $limit = 10, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchCanceledOrders() requires a $symbol argument');
+        }
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $reduceOnly = $this->safe_value($params, 'reduceOnly');
+        $stop = $this->safe_value($params, 'stop');
+        $request = array(
+            'pageSize' => $limit, // SPOT and STOP, default pageSize is 10, doesn't work with other values now
+            // 'currency' => $market['id'], // SPOT
+            // 'pageIndex' => 1, // SPOT, default pageIndex is 1
+            // 'symbol' => $market['id'], // STOP
+            // 'side' => $params['side'], // STOP, for $stop orders => 1 Open long (buy), 2 Open short (sell), 3 Close long (sell), 4 Close Short (Buy). One-Way Positions => 5 Buy, 6 Sell, 0 Close Only
+            // 'orderType' => 1, // STOP, 1 => Plan order, 2 => SP/SL
+            // 'bizType' => 1, // Plan order, 1 => TP, 2 => SL
+            // 'status' => 1, // STOP, 1 => untriggered, 2 => cancelled, 3:triggered, 4:failed, 5:completed
+            // 'startTime' => $since, // STOP
+            // 'endTime' => $params['endTime'], // STOP
+            // 'pageNum' => 1, // STOP, default 1
+        );
+        $marketIdField = $market['spot'] ? 'currency' : 'symbol';
+        $request[$marketIdField] = $market['id'];
+        $pageNumField = $market['spot'] ? 'pageIndex' : 'pageNum';
+        $request[$pageNumField] = 1;
+        $method = 'spotV1PrivateGetGetOrdersIgnoreTradeType';
+        if ($stop) {
+            $method = 'contractV2PrivateGetTradeGetOrderAlgos';
+            $orderType = $this->safe_integer($params, 'orderType');
+            if ($orderType === null) {
+                throw new ArgumentsRequired($this->id . ' fetchCanceledOrders() requires an $orderType parameter for $stop orders');
+            }
+            $side = $this->safe_integer($params, 'side');
+            $bizType = $this->safe_integer($params, 'bizType');
+            if ($side === 'sell' && $reduceOnly) {
+                $request['side'] = 3; // close long
+            } else if ($side === 'buy' && $reduceOnly) {
+                $request['side'] = 4; // close short
+            } else if ($side === 'buy') {
+                $request['side'] = 1; // open long
+            } else if ($side === 'sell') {
+                $request['side'] = 2; // open short
+            } else if ($side === 5) {
+                $request['side'] = 5; // one way position buy
+            } else if ($side === 6) {
+                $request['side'] = 6; // one way position sell
+            } else if ($side === 0) {
+                $request['side'] = 0; // one way position close only
+            }
+            if ($orderType === 1) {
+                $request['orderType'] = 1;
+            } else if ($orderType === 2 || $bizType) {
+                $request['orderType'] = 2;
+                $request['bizType'] = $bizType;
+            }
+            $request['status'] = 2;
+        }
+        // tradeType 交易类型1/0[buy/sell]
+        if (is_array($params) && array_key_exists('tradeType', $params)) {
+            $method = 'spotV1PrivateGetGetOrdersNew';
+        }
+        $response = null;
+        try {
+            $response = yield $this->$method (array_merge($request, $params));
+        } catch (Exception $e) {
+            if ($e instanceof OrderNotFound) {
+                return array();
+            }
+            throw $e;
+        }
+        $query = $this->omit($params, array( 'reduceOnly', 'stop', 'side', 'orderType', 'bizType' ));
+        $response = yield $this->$method (array_merge($request, $query));
+        //
+        // Spot
+        //
+        //     array(
+        //         {
+        //             "acctType" => 0,
+        //             "currency" => "btc_usdt",
+        //             "fees" => 0,
+        //             "id" => "202202234857482656",
+        //             "price" => 30000.0,
+        //             "status" => 1,
+        //             "total_amount" => 0.0006,
+        //             "trade_amount" => 0.0000,
+        //             "trade_date" => 1645610254524,
+        //             "trade_money" => 0.000000,
+        //             "type" => 1,
+        //             "useZbFee" => false,
+        //             "webId" => 0
+        //         }
+        //     )
+        //
+        // Algo order
+        //
+        //     {
+        //         "code" => 10000,
+        //         "data" => array(
+        //             "list" => array(
+        //                 array(
+        //                     "action" => 1,
+        //                     "algoPrice" => "30000",
+        //                     "amount" => "0.003",
+        //                     "bizType" => 0,
+        //                     "canCancel" => true,
+        //                     "createTime" => "1649913941109",
+        //                     "errorCode" => 0,
+        //                     "id" => "6920240642849449984",
+        //                     "isLong" => false,
+        //                     "leverage" => 10,
+        //                     "marketId" => "100",
+        //                     "modifyTime" => "1649913941109",
+        //                     "orderType" => 1,
+        //                     "priceType" => 2,
+        //                     "side" => 5,
+        //                     "sourceType" => 4,
+        //                     "status" => 2,
+        //                     "submitPrice" => "41270.53",
+        //                     "symbol" => "BTC_USDT",
+        //                     "tradedAmount" => "0",
+        //                     "triggerCondition" => "<=",
+        //                     "triggerPrice" => "31000",
+        //                     "triggerTime" => "0",
+        //                     "userId" => "6896693805014120448"
+        //                 ),
+        //             ),
+        //             "pageNum" => 1,
+        //             "pageSize" => 10
+        //         ),
+        //         "desc" => "操作成功"
+        //     }
+        //
+        if ($stop) {
+            $data = $this->safe_value($response, 'data', array());
+            $response = $this->safe_value($data, 'list', array());
+        }
+        $result = array();
+        if ($market['type'] === 'spot') {
+            for ($i = 0; $i < count($response); $i++) {
+                $entry = $response[$i];
+                $status = $this->safe_string($entry, 'status');
+                if ($status === '1') {
+                    $result[] = $entry;
+                }
+            }
+            $response = $result;
+        }
+        return $this->parse_orders($response, $market, $since, $limit);
+    }
+
     public function fetch_closed_orders($symbol = null, $since = null, $limit = 10, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
@@ -2143,7 +2294,7 @@ class zb extends Exchange {
             $method = 'contractV2PrivateGetTradeGetOrderAlgos';
             $orderType = $this->safe_integer($params, 'orderType');
             if ($orderType === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrders() requires an $orderType parameter for $stop orders');
+                throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires an $orderType parameter for $stop orders');
             }
             $side = $this->safe_integer($params, 'side');
             $bizType = $this->safe_integer($params, 'bizType');
