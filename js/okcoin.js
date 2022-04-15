@@ -2614,10 +2614,7 @@ module.exports = class okcoin extends Exchange {
         //         "result":true
         //     }
         //
-        return {
-            'info': response,
-            'id': this.safeString (response, 'withdrawal_id'),
-        };
+        return this.parseTransaction (response, currency);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
