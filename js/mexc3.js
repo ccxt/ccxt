@@ -3143,7 +3143,7 @@ module.exports = class mexc3 extends Exchange {
         //         "withdrawId":"25fb2831fb6d4fc7aa4094612a26c81d"
         //     }
         //
-        const id = this.safeString (transaction, 'id');
+        const id = this.safeString2 (transaction, 'id', 'withdrawId');
         const type = (id === undefined) ? 'deposit' : 'withdrawal';
         const timestamp = this.parse8601 (this.safeString (transaction, 'create_time'));
         const updated = this.parse8601 (this.safeString (transaction, 'update_time'));
