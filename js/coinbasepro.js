@@ -1133,10 +1133,7 @@ module.exports = class coinbasepro extends Exchange {
         if (!response) {
             throw new ExchangeError (this.id + ' withdraw() error: ' + this.json (response));
         }
-        return {
-            'info': response,
-            'id': response['id'],
-        };
+        return this.parseTransaction (response, currency);
     }
 
     parseLedgerEntryType (type) {
