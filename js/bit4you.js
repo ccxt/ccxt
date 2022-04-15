@@ -115,19 +115,15 @@ module.exports = class bit4you extends Exchange {
             request['to'] = limit;
         }
         const response = await this.publicGetUdfHistory (this.extend (request, params));
-        return this.parseOHLCV (response, market);
-    }
-
-    parseOHLCV (ohlcv, market = undefined) {
         const result = [];
-        const timestamp = this.safeValue (ohlcv, 't');
+        const timestamp = this.safeValue (response, 't');
         for (let i = 0; i < timestamp.length; i++) {
             const t = timestamp[i];
-            const o = this.safeValue (ohlcv, 'o');
-            const h = this.safeValue (ohlcv, 'h');
-            const lo = this.safeValue (ohlcv, 'l');
-            const c = this.safeValue (ohlcv, 'c');
-            const v = this.safeValue (ohlcv, 'v');
+            const o = this.safeValue (response, 'o');
+            const h = this.safeValue (response, 'h');
+            const lo = this.safeValue (response, 'l');
+            const c = this.safeValue (response, 'c');
+            const v = this.safeValue (response, 'v');
             const item = [
                 t,
                 o[i],
@@ -138,7 +134,7 @@ module.exports = class bit4you extends Exchange {
             ];
             result.push (item);
         }
-        return result;
+        return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
     async fetchMarkets (params = {}) {
@@ -146,10 +142,10 @@ module.exports = class bit4you extends Exchange {
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            const parts = this.safeStringLower (market, 'iso').split ('-');
-            const id = parts[0] + parts[1];
-            const baseId = parts[0];
-            const quoteId = parts[1];
+            const iso = this.safeMarket (this.safeString (market, 'iso'), undefined, '-');
+            const baseId = this.safeStringLower (iso, 'base');
+            const quoteId = this.safeStringLower (iso, 'quote');
+            const id = baseId + quoteId;
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
@@ -592,11 +588,13 @@ module.exports = class bit4you extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        if (this.safeValue (params, 'simulation') === undefined) {
+            params['simulation'] = this.simulation;
+        }
         let fullPath = '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (method === 'POST') {
-            body = JSON.parse (this.json (query));
-            body['simulation'] = this.simulation;
+            body = query;
         }
         headers = {
             'Content-Type': 'application/json',
