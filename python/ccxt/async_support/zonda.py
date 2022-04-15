@@ -28,18 +28,49 @@ class zonda(Exchange):
             'countries': ['EE'],  # Estonia
             'rateLimit': 1000,
             'has': {
-                'cancelOrder': True,
                 'CORS': True,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
+                'cancelOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
                 'fetchLedger': True,
+                'fetchLeverage': False,
+                'fetchLeverageTiers': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrderBook': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': False,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
+                'transfer': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -57,10 +88,10 @@ class zonda(Exchange):
                 '3d': '259200',
                 '1w': '604800',
             },
-            'hostname': 'zondaglobal.com',
+            'hostname': 'zonda.exchange',
             'urls': {
                 'referral': 'https://auth.zondaglobal.com/ref/jHlbB4mIkdS1',
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/159202310-a0e38007-5e7c-4ba9-a32f-c8263a0291fe.jpg',
                 'www': 'https://zondaglobal.com',
                 'api': {
                     'public': 'https://{hostname}/API/Public',
@@ -103,6 +134,7 @@ class zonda(Exchange):
                         'trading/ticker',
                         'trading/ticker/{symbol}',
                         'trading/stats',
+                        'trading/stats/{symbol}',
                         'trading/orderbook/{symbol}',
                         'trading/transactions/{symbol}',
                         'trading/candle/history/{symbol}/{resolution}',
@@ -198,6 +230,9 @@ class zonda(Exchange):
             },
             'options': {
                 'fiatCurrencies': ['EUR', 'USD', 'GBP', 'PLN'],
+                'transfer': {
+                    'fillResponseFromRequest': True,
+                },
             },
             'exceptions': {
                 '400': ExchangeError,  # At least one parameter wasn't set
@@ -258,42 +293,55 @@ class zonda(Exchange):
         items = self.safe_value(response, 'items')
         keys = list(items.keys())
         for i in range(0, len(keys)):
-            key = keys[i]
-            item = items[key]
+            id = keys[i]
+            item = items[id]
             market = self.safe_value(item, 'market', {})
             first = self.safe_value(market, 'first', {})
             second = self.safe_value(market, 'second', {})
             baseId = self.safe_string(first, 'currency')
             quoteId = self.safe_string(second, 'currency')
-            id = baseId + quoteId
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            precision = {
-                'amount': self.safe_integer(first, 'scale'),
-                'price': self.safe_integer(second, 'scale'),
-            }
             fees = self.safe_value(self.fees, 'trading', {})
             if self.in_array(base, fiatCurrencies) or self.in_array(quote, fiatCurrencies):
                 fees = self.safe_value(self.fees, 'fiat', {})
-            maker = self.safe_number(fees, 'maker')
-            taker = self.safe_number(fees, 'taker')
             # todo: check that the limits have ben interpreted correctly
             # todo: parse the fees page
             result.append({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'precision': precision,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
                 'active': None,
-                'maker': maker,
-                'taker': taker,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'taker': self.safe_number(fees, 'taker'),
+                'maker': self.safe_number(fees, 'maker'),
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'optionType': None,
+                'strike': None,
+                'precision': {
+                    'amount': self.safe_integer(first, 'scale'),
+                    'price': self.safe_integer(second, 'scale'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': self.safe_number(first, 'minOffer'),
                         'max': None,
@@ -343,7 +391,7 @@ class zonda(Exchange):
         amount = self.safe_string(order, 'startAmount')
         remaining = self.safe_string(order, 'currentAmount')
         postOnly = self.safe_value(order, 'postOnly')
-        return self.safe_order2({
+        return self.safe_order({
             'id': self.safe_string(order, 'id'),
             'clientOrderId': None,
             'info': order,
@@ -401,9 +449,7 @@ class zonda(Exchange):
             return result
         return self.filter_by_symbol(result, symbol)
 
-    async def fetch_balance(self, params={}):
-        await self.load_markets()
-        response = await self.v1_01PrivateGetBalancesBITBAYBalance(params)
+    def parse_balance(self, response):
         balances = self.safe_value(response, 'balances')
         if balances is None:
             raise ExchangeError(self.id + ' empty balance response ' + self.json(response))
@@ -416,56 +462,109 @@ class zonda(Exchange):
             account['used'] = self.safe_string(balance, 'lockedFunds')
             account['free'] = self.safe_string(balance, 'availableFunds')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
+
+    async def fetch_balance(self, params={}):
+        await self.load_markets()
+        response = await self.v1_01PrivateGetBalancesBITBAYBalance(params)
+        return self.parse_balance(response)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         request = {
-            'id': self.market_id(symbol),
+            'symbol': self.market_id(symbol),
         }
-        orderbook = await self.publicGetIdOrderbook(self.extend(request, params))
-        return self.parse_order_book(orderbook, symbol)
-
-    def parse_ticker(self, ticker, market=None):
-        symbol = self.safe_symbol(None, market)
-        timestamp = self.milliseconds()
-        baseVolume = self.safe_number(ticker, 'volume')
-        vwap = self.safe_number(ticker, 'vwap')
-        quoteVolume = None
-        if baseVolume is not None and vwap is not None:
-            quoteVolume = baseVolume * vwap
-        last = self.safe_number(ticker, 'last')
-        return self.safe_ticker({
+        response = await self.v1_01PublicGetTradingOrderbookSymbol(self.extend(request, params))
+        #
+        #     {
+        #         "status":"Ok",
+        #         "sell":[
+        #             {"ra":"43988.93","ca":"0.00100525","sa":"0.00100525","pa":"0.00100525","co":1},
+        #             {"ra":"43988.94","ca":"0.00114136","sa":"0.00114136","pa":"0.00114136","co":1},
+        #             {"ra":"43989","ca":"0.010578","sa":"0.010578","pa":"0.010578","co":1},
+        #         ],
+        #         "buy":[
+        #             {"ra":"42157.33","ca":"2.83147881","sa":"2.83147881","pa":"2.83147881","co":2},
+        #             {"ra":"42096.0","ca":"0.00011878","sa":"0.00011878","pa":"0.00011878","co":1},
+        #             {"ra":"42022.0","ca":"0.00011899","sa":"0.00011899","pa":"0.00011899","co":1},
+        #         ],
+        #         "timestamp":"1642299886122",
+        #         "seqNo":"27641254"
+        #     }
+        #
+        rawBids = self.safe_value(response, 'buy', [])
+        rawAsks = self.safe_value(response, 'sell', [])
+        timestamp = self.safe_integer(response, 'timestamp')
+        return {
             'symbol': symbol,
+            'bids': self.parse_bids_asks(rawBids, 'ra', 'ca'),
+            'asks': self.parse_bids_asks(rawAsks, 'ra', 'ca'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'max'),
-            'low': self.safe_number(ticker, 'min'),
-            'bid': self.safe_number(ticker, 'bid'),
+            'nonce': self.safe_integer(response, 'seqNo'),
+        }
+
+    def parse_ticker(self, ticker, market=None):
+        #
+        #     {
+        #         m: 'ETH-PLN',
+        #         h: '13485.13',
+        #         l: '13100.01',
+        #         v: '126.10710939',
+        #         r24h: '13332.72'
+        #       }
+        #
+        open = self.safe_string(ticker, 'r24h')
+        high = self.safe_string(ticker, 'h')
+        low = self.safe_string(ticker, 'l')
+        volume = self.safe_string(ticker, 'v')
+        marketId = self.safe_string(ticker, 'm')
+        market = self.safe_market(marketId, market, '-')
+        symbol = market['symbol']
+        return self.safe_ticker({
+            'symbol': symbol,
+            'timestamp': None,
+            'datetime': None,
+            'high': high,
+            'low': low,
+            'bid': None,
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'ask'),
+            'ask': None,
             'askVolume': None,
-            'vwap': vwap,
-            'open': None,
-            'close': last,
-            'last': last,
+            'vwap': None,
+            'open': open,
+            'close': None,
+            'last': None,
             'previousClose': None,
             'change': None,
             'percentage': None,
-            'average': self.safe_number(ticker, 'average'),
-            'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
+            'average': None,
+            'baseVolume': volume,
+            'quoteVolume': None,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'id': market['id'],
+            'symbol': market['id'],
         }
-        response = await self.publicGetIdTicker(self.extend(request, params))
-        return self.parse_ticker(response, market)
+        response = await self.v1_01PublicGetTradingStatsSymbol(self.extend(request, params))
+        #
+        #     {
+        #       status: 'Ok',
+        #       stats: {
+        #         m: 'ETH-PLN',
+        #         h: '13485.13',
+        #         l: '13100.01',
+        #         v: '126.10710939',
+        #         r24h: '13332.72'
+        #       }
+        #     }
+        #
+        stats = self.safe_value(response, 'stats')
+        return self.parse_ticker(stats, market)
 
     async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
         balanceCurrencies = []
@@ -1094,6 +1193,105 @@ class zonda(Exchange):
             'PLN': True,
         }
         return self.safe_value(fiatCurrencies, currency, False)
+
+    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'source': fromAccount,
+            'destination': toAccount,
+            'currency': code,
+            'funds': self.currency_to_precision(code, amount),
+        }
+        response = await self.v1_01PrivatePostBalancesBITBAYBalanceTransferSourceDestination(self.extend(request, params))
+        #
+        #     {
+        #         "status": "Ok",
+        #         "from": {
+        #             "id": "ad9397c5-3bd9-4372-82ba-22da6a90cb56",
+        #             "userId": "4bc43956-423f-47fd-9faa-acd37c58ed9f",
+        #             "availableFunds": 0.01803472,
+        #             "totalFunds": 0.01804161,
+        #             "lockedFunds": 0.00000689,
+        #             "currency": "BTC",
+        #             "type": "CRYPTO",
+        #             "name": "BTC",
+        #             "balanceEngine": "BITBAY"
+        #         },
+        #         "to": {
+        #             "id": "01931d52-536b-4ca5-a9f4-be28c86d0cc3",
+        #             "userId": "4bc43956-423f-47fd-9faa-acd37c58ed9f",
+        #             "availableFunds": 0.0001,
+        #             "totalFunds": 0.0001,
+        #             "lockedFunds": 0,
+        #             "currency": "BTC",
+        #             "type": "CRYPTO",
+        #             "name": "Prowizja",
+        #             "balanceEngine": "BITBAY"
+        #         },
+        #         "errors": null
+        #     }
+        #
+        transfer = self.parse_transfer(response, currency)
+        transferOptions = self.safe_value(self.options, 'transfer', {})
+        fillResponseFromRequest = self.safe_value(transferOptions, 'fillResponseFromRequest', True)
+        if fillResponseFromRequest:
+            transfer['amount'] = amount
+        return transfer
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        #     {
+        #         "status": "Ok",
+        #         "from": {
+        #             "id": "ad9397c5-3bd9-4372-82ba-22da6a90cb56",
+        #             "userId": "4bc43956-423f-47fd-9faa-acd37c58ed9f",
+        #             "availableFunds": 0.01803472,
+        #             "totalFunds": 0.01804161,
+        #             "lockedFunds": 0.00000689,
+        #             "currency": "BTC",
+        #             "type": "CRYPTO",
+        #             "name": "BTC",
+        #             "balanceEngine": "BITBAY"
+        #         },
+        #         "to": {
+        #             "id": "01931d52-536b-4ca5-a9f4-be28c86d0cc3",
+        #             "userId": "4bc43956-423f-47fd-9faa-acd37c58ed9f",
+        #             "availableFunds": 0.0001,
+        #             "totalFunds": 0.0001,
+        #             "lockedFunds": 0,
+        #             "currency": "BTC",
+        #             "type": "CRYPTO",
+        #             "name": "Prowizja",
+        #             "balanceEngine": "BITBAY"
+        #         },
+        #         "errors": null
+        #     }
+        #
+        status = self.safe_string(transfer, 'status')
+        fromAccount = self.safe_value(transfer, 'from', {})
+        fromId = self.safe_string(fromAccount, 'id')
+        to = self.safe_value(transfer, 'to', {})
+        toId = self.safe_string(to, 'id')
+        currencyId = self.safe_string(fromAccount, 'currency')
+        return {
+            'info': transfer,
+            'id': None,
+            'timestamp': None,
+            'datetime': None,
+            'currency': self.safe_currency_code(currencyId, currency),
+            'amount': None,
+            'fromAccount': fromId,
+            'toAccount': toId,
+            'status': self.parse_transfer_status(status),
+        }
+
+    def parse_transfer_status(self, status):
+        statuses = {
+            'Ok': 'ok',
+            'Fail': 'failed',
+        }
+        return self.safe_string(statuses, status, status)
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
         tag, params = self.handle_withdraw_tag_and_params(tag, params)

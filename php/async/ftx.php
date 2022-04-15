@@ -9,6 +9,7 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
+use \ccxt\BadResponse;
 use \ccxt\InvalidOrder;
 use \ccxt\Precise;
 
@@ -19,7 +20,11 @@ class ftx extends Exchange {
             'id' => 'ftx',
             'name' => 'FTX',
             'countries' => array( 'BS' ), // Bahamas
-            'rateLimit' => 100,
+            //  hard limit of 7 requests per 200ms => 35 requests per 1000ms => 1000ms / 35 = 28.5714 ms between requests
+            // 10 withdrawal requests per 30 seconds = (1000ms / rateLimit) / (1/3) = 90.1
+            // cancels do not count towards rateLimit
+            // only 'order-making' requests count towards ratelimit
+            'rateLimit' => 28.57,
             'certified' => true,
             'pro' => true,
             'hostname' => 'ftx.com', // or ftx.us
@@ -38,26 +43,35 @@ class ftx extends Exchange {
                 ),
             ),
             'has' => array(
+                'CORS' => null,
+                'spot' => true,
                 'margin' => true,
                 'swap' => true,
                 'future' => true,
+                'option' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => true,
                 'fetchBorrowRate' => true,
+                'fetchBorrowRateHistories' => true,
+                'fetchBorrowRateHistory' => true,
                 'fetchBorrowRates' => true,
                 'fetchClosedOrders' => null,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
                 'fetchFundingFees' => null,
-                'fetchFundingRate' => true,
                 'fetchFundingHistory' => true,
+                'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
-                'fetchFundingRates' => null,
+                'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => true,
+                'fetchLeverageTiers' => false,
+                'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -66,16 +80,25 @@ class ftx extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchOrderTrades' => true,
+                'fetchPosition' => false,
                 'fetchPositions' => true,
+                'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => false,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
+                'fetchTransfer' => null,
+                'fetchTransfers' => null,
                 'fetchWithdrawals' => true,
+                'reduceMargin' => false,
                 'setLeverage' => true,
                 'setMarginMode' => false, // FTX only supports cross margin
+                'setPositionMode' => false,
+                'transfer' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -89,182 +112,187 @@ class ftx extends Exchange {
                 '3d' => '259200',
                 '1w' => '604800',
                 '2w' => '1209600',
+                // the exchange does not align candles to the start of the month
+                // it can only fetch candles in fixed intervals of multiples of whole days
+                // that works for all timeframes, except the monthly timeframe
+                // because months have varying numbers of days
                 '1M' => '2592000',
             ),
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'coins',
+                        'coins' => 1,
                         // markets
-                        'markets',
-                        'markets/{market_name}',
-                        'markets/{market_name}/orderbook', // ?depth={depth}
-                        'markets/{market_name}/trades', // ?limit={limit}&start_time={start_time}&end_time={end_time}
-                        'markets/{market_name}/candles', // ?resolution={resolution}&limit={limit}&start_time={start_time}&end_time={end_time}
+                        'markets' => 1,
+                        'markets/{market_name}' => 1,
+                        'markets/{market_name}/orderbook' => 1, // ?depth={depth}
+                        'markets/{market_name}/trades' => 1, // ?limit={limit}&start_time={start_time}&end_time={end_time}
+                        'markets/{market_name}/candles' => 1, // ?resolution={resolution}&limit={limit}&start_time={start_time}&end_time={end_time}
                         // futures
-                        'futures',
-                        'futures/{future_name}',
-                        'futures/{future_name}/stats',
-                        'funding_rates',
-                        'indexes/{index_name}/weights',
-                        'expired_futures',
-                        'indexes/{market_name}/candles', // ?resolution={resolution}&limit={limit}&start_time={start_time}&end_time={end_time}
+                        'futures' => 1,
+                        'futures/{future_name}' => 1,
+                        'futures/{future_name}/stats' => 1,
+                        'funding_rates' => 1,
+                        'indexes/{index_name}/weights' => 1,
+                        'expired_futures' => 1,
+                        'indexes/{market_name}/candles' => 1, // ?resolution={resolution}&limit={limit}&start_time={start_time}&end_time={end_time}
                         // wallet
-                        'wallet/coins',
+                        'wallet/coins' => 1,
                         // leverage tokens
-                        'lt/tokens',
-                        'lt/{token_name}',
+                        'lt/tokens' => 1,
+                        'lt/{token_name}' => 1,
                         // etfs
-                        'etfs/rebalance_info',
+                        'etfs/rebalance_info' => 1,
                         // options
-                        'options/requests',
-                        'options/trades',
-                        'options/historical_volumes/BTC',
-                        'stats/24h_options_volume',
-                        'options/open_interest/BTC',
-                        'options/historical_open_interest/BTC',
+                        'options/requests' => 1,
+                        'options/trades' => 1,
+                        'options/historical_volumes/BTC' => 1,
+                        'stats/24h_options_volume' => 1,
+                        'options/open_interest/BTC' => 1,
+                        'options/historical_open_interest/BTC' => 1,
                         // spot margin
-                        'spot_margin/history',
-                        'spot_margin/borrow_summary',
+                        'spot_margin/history' => 1,
+                        'spot_margin/borrow_summary' => 1,
                         // nfts
-                        'nft/nfts',
-                        'nft/{nft_id}',
-                        'nft/{nft_id}/trades',
-                        'nft/all_trades',
-                        'nft/{nft_id}/account_info',
-                        'nft/collections',
+                        'nft/nfts' => 1,
+                        'nft/{nft_id}' => 1,
+                        'nft/{nft_id}/trades' => 1,
+                        'nft/all_trades' => 1,
+                        'nft/{nft_id}/account_info' => 1,
+                        'nft/collections' => 1,
                         // ftx pay
-                        'ftxpay/apps/{user_specific_id}/details',
-                        // pnl
-                        'pnl/historical_changes',
+                        'ftxpay/apps/{user_specific_id}/details' => 1,
                     ),
                     'post' => array(
-                        'ftxpay/apps/{user_specific_id}/orders',
+                        'ftxpay/apps/{user_specific_id}/orders' => 1,
                     ),
                 ),
                 'private' => array(
                     'get' => array(
                         // subaccounts
-                        'subaccounts',
-                        'subaccounts/{nickname}/balances',
+                        'subaccounts' => 1,
+                        'subaccounts/{nickname}/balances' => 1,
                         // account
-                        'account',
-                        'positions',
+                        'account' => 1,
+                        'positions' => 1,
                         // wallet
-                        'wallet/balances',
-                        'wallet/all_balances',
-                        'wallet/deposit_address/{coin}', // ?method={method}
-                        'wallet/deposits',
-                        'wallet/withdrawals',
-                        'wallet/airdrops',
-                        'wallet/withdrawal_fee',
-                        'wallet/saved_addresses',
+                        'wallet/balances' => 1,
+                        'wallet/all_balances' => 1,
+                        'wallet/deposit_address/{coin}' => 1, // ?method={method}
+                        'wallet/deposits' => 1,
+                        'wallet/withdrawals' => 1,
+                        'wallet/airdrops' => 1,
+                        'wallet/withdrawal_fee' => 1,
+                        'wallet/saved_addresses' => 1,
                         // orders
-                        'orders', // ?market={market}
-                        'orders/history', // ?market={market}
-                        'orders/{order_id}',
-                        'orders/by_client_id/{client_order_id}',
+                        'orders' => 1, // ?market={market}
+                        'orders/history' => 1, // ?market={market}
+                        'orders/{order_id}' => 1,
+                        'orders/by_client_id/{client_order_id}' => 1,
                         // conditional orders
-                        'conditional_orders', // ?market={market}
-                        'conditional_orders/{conditional_order_id}/triggers',
-                        'conditional_orders/history', // ?market={market}
-                        'fills', // ?market={market}
-                        'funding_payments',
+                        'conditional_orders' => 1, // ?market={market}
+                        'conditional_orders/{conditional_order_id}/triggers' => 1,
+                        'conditional_orders/history' => 1, // ?market={market}
+                        'fills' => 1, // ?market={market}
+                        'funding_payments' => 1,
                         // leverage tokens
-                        'lt/balances',
-                        'lt/creations',
-                        'lt/redemptions',
+                        'lt/balances' => 1,
+                        'lt/creations' => 1,
+                        'lt/redemptions' => 1,
                         // options
-                        'options/my_requests',
-                        'options/requests/{request_id}/quotes',
-                        'options/my_quotes',
-                        'options/account_info',
-                        'options/positions',
-                        'options/fills',
+                        'options/my_requests' => 1,
+                        'options/requests/{request_id}/quotes' => 1,
+                        'options/my_quotes' => 1,
+                        'options/account_info' => 1,
+                        'options/positions' => 1,
+                        'options/fills' => 1,
                         // staking
-                        'staking/stakes',
-                        'staking/unstake_requests',
-                        'staking/balances',
-                        'staking/staking_rewards',
+                        'staking/stakes' => 1,
+                        'staking/unstake_requests' => 1,
+                        'staking/balances' => 1,
+                        'staking/staking_rewards' => 1,
                         // otc
-                        'otc/quotes/{quoteId}',
+                        'otc/quotes/{quoteId}' => 1,
                         // spot margin
-                        'spot_margin/borrow_rates',
-                        'spot_margin/lending_rates',
-                        'spot_margin/market_info', // ?market={market}
-                        'spot_margin/borrow_history',
-                        'spot_margin/lending_history',
-                        'spot_margin/offers',
-                        'spot_margin/lending_info',
+                        'spot_margin/borrow_rates' => 1,
+                        'spot_margin/lending_rates' => 1,
+                        'spot_margin/market_info' => 1, // ?market={market}
+                        'spot_margin/borrow_history' => 1,
+                        'spot_margin/lending_history' => 1,
+                        'spot_margin/offers' => 1,
+                        'spot_margin/lending_info' => 1,
                         // nfts
-                        'nft/balances',
-                        'nft/bids',
-                        'nft/deposits',
-                        'nft/withdrawals',
-                        'nft/fills',
-                        'nft/gallery/{gallery_id}',
-                        'nft/gallery_settings',
+                        'nft/balances' => 1,
+                        'nft/bids' => 1,
+                        'nft/deposits' => 1,
+                        'nft/withdrawals' => 1,
+                        'nft/fills' => 1,
+                        'nft/gallery/{gallery_id}' => 1,
+                        'nft/gallery_settings' => 1,
                         // latency statistics
-                        'stats/latency_stats',
+                        'stats/latency_stats' => 1,
+                        // pnl
+                        'pnl/historical_changes' => 1,
                     ),
                     'post' => array(
                         // subaccounts
-                        'subaccounts',
-                        'subaccounts/update_name',
-                        'subaccounts/transfer',
+                        'subaccounts' => 1,
+                        'subaccounts/update_name' => 1,
+                        'subaccounts/transfer' => 1,
                         // account
-                        'account/leverage',
+                        'account/leverage' => 1,
                         // wallet
-                        'wallet/withdrawals',
-                        'wallet/saved_addresses',
+                        'wallet/deposit_address/list' => 1,
+                        'wallet/withdrawals' => 90,
+                        'wallet/saved_addresses' => 1,
                         // orders
-                        'orders',
-                        'conditional_orders',
-                        'orders/{order_id}/modify',
-                        'orders/by_client_id/{client_order_id}/modify',
-                        'conditional_orders/{order_id}/modify',
+                        'orders' => 1,
+                        'conditional_orders' => 1,
+                        'orders/{order_id}/modify' => 1,
+                        'orders/by_client_id/{client_order_id}/modify' => 1,
+                        'conditional_orders/{order_id}/modify' => 1,
                         // leverage tokens
-                        'lt/{token_name}/create',
-                        'lt/{token_name}/redeem',
+                        'lt/{token_name}/create' => 1,
+                        'lt/{token_name}/redeem' => 1,
                         // options
-                        'options/requests',
-                        'options/requests/{request_id}/quotes',
-                        'options/quotes/{quote_id}/accept',
+                        'options/requests' => 1,
+                        'options/requests/{request_id}/quotes' => 1,
+                        'options/quotes/{quote_id}/accept' => 1,
                         // staking
-                        'staking/unstake_requests',
-                        'srm_stakes/stakes',
+                        'staking/unstake_requests' => 1,
+                        'srm_stakes/stakes' => 1,
                         // otc
-                        'otc/quotes/{quote_id}/accept',
-                        'otc/quotes',
+                        'otc/quotes/{quote_id}/accept' => 1,
+                        'otc/quotes' => 1,
                         // spot margin
-                        'spot_margin/offers',
+                        'spot_margin/offers' => 1,
                         // nfts
-                        'nft/offer',
-                        'nft/buy',
-                        'nft/auction',
-                        'nft/edit_auction',
-                        'nft/cancel_auction',
-                        'nft/bids',
-                        'nft/redeem',
-                        'nft/gallery_settings',
+                        'nft/offer' => 1,
+                        'nft/buy' => 1,
+                        'nft/auction' => 1,
+                        'nft/edit_auction' => 1,
+                        'nft/cancel_auction' => 1,
+                        'nft/bids' => 1,
+                        'nft/redeem' => 1,
+                        'nft/gallery_settings' => 1,
                         // ftx pay
-                        'ftxpay/apps/{user_specific_id}/orders',
+                        'ftxpay/apps/{user_specific_id}/orders' => 1,
                     ),
                     'delete' => array(
                         // subaccounts
-                        'subaccounts',
+                        'subaccounts' => 1,
                         // wallet
-                        'wallet/saved_addresses/{saved_address_id}',
+                        'wallet/saved_addresses/{saved_address_id}' => 1,
                         // orders
-                        'orders/{order_id}',
-                        'orders/by_client_id/{client_order_id}',
-                        'orders',
-                        'conditional_orders/{order_id}',
+                        'orders/{order_id}' => 1,
+                        'orders/by_client_id/{client_order_id}' => 1,
+                        'orders' => 1,
+                        'conditional_orders/{order_id}' => 1,
                         // options
-                        'options/requests/{request_id}',
-                        'options/quotes/{quote_id}',
+                        'options/requests/{request_id}' => 1,
+                        'options/quotes/{quote_id}' => 1,
                         // staking
-                        'staking/unstake_requests/{request_id}',
+                        'staking/unstake_requests/{request_id}' => 1,
                     ),
                 ),
             ),
@@ -280,7 +308,7 @@ class ftx extends Exchange {
                             array( $this->parse_number('2000000'), $this->parse_number('0.0006') ),
                             array( $this->parse_number('5000000'), $this->parse_number('0.00055') ),
                             array( $this->parse_number('10000000'), $this->parse_number('0.0005') ),
-                            array( $this->parse_number('25000000'), $this->parse_number('0.045') ),
+                            array( $this->parse_number('25000000'), $this->parse_number('0.0045') ),
                             array( $this->parse_number('50000000'), $this->parse_number('0.0004') ),
                         ),
                         'maker' => array(
@@ -299,12 +327,13 @@ class ftx extends Exchange {
             ),
             'exceptions' => array(
                 'exact' => array(
-                    'Please slow down' => '\\ccxt\\RateLimitExceeded', // array("error":"Please slow down","success":false)
+                    'Slow down' => '\\ccxt\\RateLimitExceeded', // array("error":"Slow down","success":false)
                     'Size too small for provide' => '\\ccxt\\InvalidOrder', // array("error":"Size too small for provide","success":false)
                     'Not enough balances' => '\\ccxt\\InsufficientFunds', // array("error":"Not enough balances","success":false)
                     'InvalidPrice' => '\\ccxt\\InvalidOrder', // array("error":"Invalid price","success":false)
                     'Size too small' => '\\ccxt\\InvalidOrder', // array("error":"Size too small","success":false)
                     'Size too large' => '\\ccxt\\InvalidOrder', // array("error":"Size too large","success":false)
+                    'Invalid price' => '\\ccxt\\InvalidOrder', // array("success":false,"error":"Invalid price")
                     'Missing parameter price' => '\\ccxt\\InvalidOrder', // array("error":"Missing parameter price","success":false)
                     'Order not found' => '\\ccxt\\OrderNotFound', // array("error":"Order not found","success":false)
                     'Order already closed' => '\\ccxt\\InvalidOrder', // array("error":"Order already closed","success":false)
@@ -326,7 +355,7 @@ class ftx extends Exchange {
                     'Invalid parameter' => '\\ccxt\\BadRequest', // array("error":"Invalid parameter start_time","success":false)
                     'The requested URL was not found on the server' => '\\ccxt\\BadRequest',
                     'No such coin' => '\\ccxt\\BadRequest',
-                    'No such subaccount' => '\\ccxt\\BadRequest',
+                    'No such subaccount' => '\\ccxt\\AuthenticationError',
                     'No such future' => '\\ccxt\\BadSymbol',
                     'No such market' => '\\ccxt\\BadSymbol',
                     'Do not send more than' => '\\ccxt\\RateLimitExceeded',
@@ -341,6 +370,10 @@ class ftx extends Exchange {
             'options' => array(
                 // support for canceling conditional orders
                 // https://github.com/ccxt/ccxt/issues/6669
+                'fetchMarkets' => array(
+                    // the expiry datetime may be null for expiring futures, https://github.com/ccxt/ccxt/pull/12692
+                    'throwOnUndefinedExpiry' => false,
+                ),
                 'cancelOrder' => array(
                     'method' => 'privateDeleteOrdersOrderId', // privateDeleteConditionalOrdersOrderId
                 ),
@@ -364,7 +397,13 @@ class ftx extends Exchange {
                     'OMNI' => 'omni',
                     'BEP2' => 'bep2',
                     'BNB' => 'bep2',
+                    'BEP20' => 'bsc',
+                    'BSC' => 'bsc',
                 ),
+            ),
+            'commonCurrencies' => array(
+                'AMC' => 'AMC Entertainment Holdings',
+                'STARS' => 'StarLaunch',
             ),
         ));
     }
@@ -396,6 +435,8 @@ class ftx extends Exchange {
                 'type' => null,
                 'name' => $name,
                 'active' => null,
+                'deposit' => null,
+                'withdraw' => null,
                 'fee' => null,
                 'precision' => null,
                 'limits' => array(
@@ -458,9 +499,9 @@ class ftx extends Exchange {
         //         name => "BTC-PERP",
         //         enabled =>  true,
         //         postOnly =>  false,
-        //         $priceIncrement => "1.0",
+        //         priceIncrement => "1.0",
         //         $sizeIncrement => "0.0001",
-        //         minProvideSize => "0.001",
+        //         $minProvideSize => "0.001",
         //         last => "60397.0",
         //         bid => "60387.0",
         //         ask => "60388.0",
@@ -478,52 +519,161 @@ class ftx extends Exchange {
         //         volumeUsd24h => "2892083192.6099"
         //     }
         //
+        $allFuturesResponse = null;
+        if ($this->has['future'] && ($this->hostname !== 'ftx.us')) {
+            $allFuturesResponse = yield $this->publicGetFutures ();
+        }
+        //
+        //    {
+        //        success => true,
+        //        $result => array(
+        //            array(
+        //                name => "1INCH-PERP",
+        //                underlying => "1INCH",
+        //                description => "1INCH Token Perpetual Futures",
+        //                $type => "perpetual",
+        //                $expiry => null,
+        //                $perpetual => true,
+        //                expired => false,
+        //                enabled => true,
+        //                postOnly => false,
+        //                priceIncrement => "0.0001",
+        //                $sizeIncrement => "1.0",
+        //                last => "2.5556",
+        //                bid => "2.5555",
+        //                ask => "2.5563",
+        //                index => "2.5612449804010833",
+        //                mark => "2.5587",
+        //                imfFactor => "0.0005",
+        //                lowerBound => "2.4315",
+        //                upperBound => "2.6893",
+        //                underlyingDescription => "1INCH Token",
+        //                expiryDescription => "Perpetual",
+        //                moveStart => null,
+        //                marginPrice => "2.5587",
+        //                positionLimitWeight => "20.0",
+        //                group => "perpetual",
+        //                change1h => "0.00799716356760164",
+        //                change24h => "0.004909276569004792",
+        //                changeBod => "0.008394419484511705",
+        //                volumeUsd24h => "17834492.0818",
+        //                volume => "7224898.0",
+        //                openInterest => "5597917.0",
+        //                openInterestUsd => "14323390.2279",
+        //            ),
+        //            ...
+        //        ),
+        //    }
+        //
         $result = array();
         $markets = $this->safe_value($response, 'result', array());
+        $allFutures = $this->safe_value($allFuturesResponse, 'result', array());
+        $allFuturesDict = $this->index_by($allFutures, 'name');
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
             $id = $this->safe_string($market, 'name');
+            $future = $this->safe_value($allFuturesDict, $id);
+            $marketType = $this->safe_string($market, 'type');
+            $contract = ($marketType === 'future');
             $baseId = $this->safe_string_2($market, 'baseCurrency', 'underlying');
             $quoteId = $this->safe_string($market, 'quoteCurrency', 'USD');
-            $type = $this->safe_string($market, 'type');
+            $settleId = $contract ? 'USD' : null;
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            // check if a $market is a spot or future $market
-            $symbol = ($type === 'future') ? $this->safe_string($market, 'name') : ($base . '/' . $quote);
-            $active = $this->safe_value($market, 'enabled');
-            $sizeIncrement = $this->safe_number($market, 'sizeIncrement');
-            $priceIncrement = $this->safe_number($market, 'priceIncrement');
-            $precision = array(
-                'amount' => $sizeIncrement,
-                'price' => $priceIncrement,
-            );
+            $settle = $this->safe_currency_code($settleId);
+            $spot = !$contract;
+            $margin = !$contract;
+            $perpetual = $this->safe_value($future, 'perpetual', false);
+            $swap = $perpetual;
+            $option = false;
+            $isFuture = $contract && !$swap;
+            $expiry = null;
+            $expiryDatetime = $this->safe_string($future, 'expiry');
+            $type = 'spot';
+            $symbol = $base . '/' . $quote;
+            if ($swap) {
+                $type = 'swap';
+                $symbol = $base . '/' . $quote . ':' . $settle;
+            } else if ($isFuture) {
+                $type = 'future';
+                $expiry = $this->parse8601($expiryDatetime);
+                if ($expiry === null) {
+                    // it is likely a $future that is expiring in this moment
+                    $options = $this->safe_value($this->options, 'fetchMarkets', array());
+                    $throwOnUndefinedExpiry = $this->safe_value($options, 'throwOnUndefinedExpiry', false);
+                    if ($throwOnUndefinedExpiry) {
+                        throw new BadResponse($this->id . " $symbol '" . $id . "' is a $future $contract with an invalid $expiry datetime.");
+                    } else {
+                        continue;
+                    }
+                }
+                $parsedId = explode('-', $id);
+                $length = is_array($parsedId) ? count($parsedId) : 0;
+                if ($length > 2) {
+                    // handling for MOVE contracts
+                    // BTC-MOVE-2022Q1
+                    // BTC-MOVE-0106
+                    // BTC-MOVE-WK-0121
+                    array_pop($parsedId);
+                    // remove $expiry
+                    // array( 'BTC', 'MOVE' )
+                    // array( 'BTC', 'MOVE' )
+                    // array( 'BTC', 'MOVE', 'WK' )
+                    $base = implode('-', $parsedId);
+                }
+                $symbol = $base . '/' . $quote . ':' . $settle . '-' . $this->yymmdd($expiry, '');
+            }
+            // check if a $market is a $spot or $future $market
+            $sizeIncrement = $this->safe_string($market, 'sizeIncrement');
+            $minProvideSize = $this->safe_string($market, 'minProvideSize');
+            $minAmountString = $sizeIncrement;
+            if ($minProvideSize !== null) {
+                $minAmountString = Precise::string_gt($minProvideSize, $sizeIncrement) ? $sizeIncrement : $minProvideSize;
+            }
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => $settle,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settleId' => $settleId,
                 'type' => $type,
-                'future' => ($type === 'future'),
-                'spot' => ($type === 'spot'),
-                'active' => $active,
-                'precision' => $precision,
+                'spot' => $spot,
+                'margin' => $margin,
+                'swap' => $swap,
+                'future' => $isFuture,
+                'option' => $option,
+                'active' => $this->safe_value($market, 'enabled'),
+                'contract' => $contract,
+                'linear' => $contract ? true : null,
+                'inverse' => $contract ? false : null,
+                'contractSize' => $this->parse_number('1'),
+                'expiry' => $expiry,
+                'expiryDatetime' => $this->iso8601($expiry),
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => $this->parse_number($sizeIncrement),
+                    'price' => $this->safe_number($market, 'priceIncrement'),
+                ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => $this->parse_number('1'),
+                        'max' => $this->parse_number('20'),
+                    ),
                     'amount' => array(
-                        'min' => $sizeIncrement,
+                        'min' => $this->parse_number($minAmountString),
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => $priceIncrement,
+                        'min' => null,
                         'max' => null,
                     ),
                     'cost' => array(
                         'min' => null,
                         'max' => null,
-                    ),
-                    'leverage' => array(
-                        'max' => 20,
                     ),
                 ),
                 'info' => $market,
@@ -536,7 +686,7 @@ class ftx extends Exchange {
         //
         //     {
         //         "ask":171.29,
-        //         "baseCurrency":null, // $base currency for spot markets
+        //         "baseCurrency":null, // base currency for spot markets
         //         "bid":171.24,
         //         "change1h":-0.0012244897959183673,
         //         "change24h":-0.031603346901854366,
@@ -546,7 +696,7 @@ class ftx extends Exchange {
         //         "name":"ETH-PERP",
         //         "price":171.29,
         //         "priceIncrement":0.01,
-        //         "quoteCurrency":null, // $quote currency for spot markets
+        //         "quoteCurrency":null, // quote currency for spot markets
         //         "quoteVolume24h":8570651.12113,
         //         "sizeIncrement":0.001,
         //         "type":"future",
@@ -554,41 +704,27 @@ class ftx extends Exchange {
         //         "volumeUsd24h":8570651.12113,
         //     }
         //
-        $symbol = null;
         $marketId = $this->safe_string($ticker, 'name');
         if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
             $market = $this->markets_by_id[$marketId];
-        } else {
-            $type = $this->safe_string($ticker, 'type');
-            if ($type === 'future') {
-                $symbol = $marketId;
-            } else {
-                $base = $this->safe_currency_code($this->safe_string($ticker, 'baseCurrency'));
-                $quote = $this->safe_currency_code($this->safe_string($ticker, 'quoteCurrency'));
-                if (($base !== null) && ($quote !== null)) {
-                    $symbol = $base . '/' . $quote;
-                }
-            }
         }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
-        $last = $this->safe_number($ticker, 'last');
+        $symbol = $this->safe_symbol($marketId, $market);
+        $last = $this->safe_string($ticker, 'last');
         $timestamp = $this->safe_timestamp($ticker, 'time', $this->milliseconds());
-        $percentage = $this->safe_number($ticker, 'change24h');
+        $percentage = $this->safe_string($ticker, 'change24h');
         if ($percentage !== null) {
-            $percentage *= 100;
+            $percentage = Precise::string_mul($percentage, '100');
         }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'bid'),
-            'bidVolume' => $this->safe_number($ticker, 'bidSize'),
-            'ask' => $this->safe_number($ticker, 'ask'),
-            'askVolume' => $this->safe_number($ticker, 'askSize'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'bid'),
+            'bidVolume' => $this->safe_string($ticker, 'bidSize'),
+            'ask' => $this->safe_string($ticker, 'ask'),
+            'askVolume' => $this->safe_string($ticker, 'askSize'),
             'vwap' => null,
             'open' => null,
             'close' => $last,
@@ -598,9 +734,9 @@ class ftx extends Exchange {
             'percentage' => $percentage,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => $this->safe_number($ticker, 'quoteVolume24h'),
+            'quoteVolume' => $this->safe_string($ticker, 'quoteVolume24h'),
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -744,22 +880,29 @@ class ftx extends Exchange {
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
         list($market, $marketId) = $this->get_market_params($symbol, 'market_name', $params);
+        // max 1501 candles, including the current candle when $since is not specified
+        $maxLimit = 5000;
+        $defaultLimit = 1500;
+        $limit = ($limit === null) ? $defaultLimit : min ($limit, $maxLimit);
         $request = array(
             'resolution' => $this->timeframes[$timeframe],
             'market_name' => $marketId,
+            // 'start_time' => intval($since / 1000),
+            // 'end_time' => $this->seconds(),
+            'limit' => $limit,
         );
         $price = $this->safe_string($params, 'price');
         $params = $this->omit($params, 'price');
-        // max 1501 candles, including the current candle when $since is not specified
-        $limit = ($limit === null) ? 1501 : $limit;
-        if ($since === null) {
-            $request['end_time'] = $this->seconds();
-            $request['limit'] = $limit;
-            $request['start_time'] = $request['end_time'] - $limit * $this->parse_timeframe($timeframe);
-        } else {
-            $request['start_time'] = intval($since / 1000);
-            $request['limit'] = $limit;
-            $request['end_time'] = $this->sum($request['start_time'], $limit * $this->parse_timeframe($timeframe));
+        if ($since !== null) {
+            $startTime = intval($since / 1000);
+            $request['start_time'] = $startTime;
+            $duration = $this->parse_timeframe($timeframe);
+            $endTime = $this->sum($startTime, $limit * $duration);
+            $request['end_time'] = min ($endTime, $this->seconds());
+            if ($duration > 86400) {
+                $wholeDaysInTimeframe = intval($duration / 86400);
+                $request['limit'] = min ($limit * $wholeDaysInTimeframe, $maxLimit);
+            }
         }
         $method = 'publicGetMarketsMarketNameCandles';
         if ($price === 'index') {
@@ -896,45 +1039,36 @@ class ftx extends Exchange {
         //         "baseCurrency" => "BCHA",
         //         "quoteCurrency" => "USD"
         //     }
+        //
         $id = $this->safe_string($trade, 'id');
         $takerOrMaker = $this->safe_string($trade, 'liquidity');
-        $marketId = $this->safe_string($trade, 'market');
-        $symbol = null;
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
-        } else {
-            $base = $this->safe_currency_code($this->safe_string($trade, 'baseCurrency'));
-            $quote = $this->safe_currency_code($this->safe_string($trade, 'quoteCurrency'));
-            if (($base !== null) && ($quote !== null)) {
-                $symbol = $base . '/' . $quote;
-            } else {
-                $symbol = $marketId;
-            }
+        // a workaround for the OTC trades, they don't have a $symbol
+        $baseId = $this->safe_string($trade, 'baseCurrency');
+        $quoteId = $this->safe_string($trade, 'quoteCurrency');
+        $defaultMarketId = null;
+        if (($baseId !== null) && ($quoteId !== null)) {
+            $defaultMarketId = $baseId . '/' . $quoteId;
         }
+        $marketId = $this->safe_string($trade, 'market', $defaultMarketId);
+        $market = $this->safe_market($marketId, $market, '/');
+        $symbol = $market['symbol'];
         $timestamp = $this->parse8601($this->safe_string($trade, 'time'));
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'size');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
         $side = $this->safe_string($trade, 'side');
         $fee = null;
-        $feeCost = $this->safe_number($trade, 'fee');
-        if ($feeCost !== null) {
+        $feeCostString = $this->safe_string($trade, 'fee');
+        if ($feeCostString !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'feeCurrency');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $feeCurrencyCode,
-                'rate' => $this->safe_number($trade, 'feeRate'),
+                'rate' => $this->safe_string($trade, 'feeRate'),
             );
         }
         $orderId = $this->safe_string($trade, 'orderId');
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -944,11 +1078,11 @@ class ftx extends Exchange {
             'type' => null,
             'takerOrMaker' => $takerOrMaker,
             'side' => $side,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -958,6 +1092,11 @@ class ftx extends Exchange {
             'market_name' => $marketId,
         );
         if ($since !== null) {
+            // the exchange aligns results to end_time returning 5000 trades max
+            // the user must set the end_time (in seconds) close enough to start_time
+            // for a proper pagination, fetch the most recent trades first
+            // then set the end_time parameter to the timestamp of the last trade
+            // start_time and end_time must be in seconds, divided by a thousand
             $request['start_time'] = intval($since / 1000);
             // start_time doesn't work without end_time
             $request['end_time'] = $this->seconds();
@@ -1034,11 +1173,21 @@ class ftx extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        return array(
-            'info' => $response,
-            'maker' => $this->safe_number($result, 'makerFee'),
-            'taker' => $this->safe_number($result, 'takerFee'),
-        );
+        $maker = $this->safe_number($result, 'makerFee');
+        $taker = $this->safe_number($result, 'takerFee');
+        $tradingFees = array();
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
+            $tradingFees[$symbol] = array(
+                'info' => $response,
+                'symbol' => $symbol,
+                'maker' => $maker,
+                'taker' => $taker,
+                'percentage' => true,
+                'tierBased' => true,
+            );
+        }
+        return $tradingFees;
     }
 
     public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -1055,6 +1204,7 @@ class ftx extends Exchange {
         $request = array();
         if ($symbol !== null) {
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $request['future'] = $market['id'];
         }
         if ($since !== null) {
@@ -1086,11 +1236,10 @@ class ftx extends Exchange {
         for ($i = 0; $i < count($result); $i++) {
             $entry = $result[$i];
             $marketId = $this->safe_string($entry, 'future');
-            $symbol = $this->safe_symbol($marketId);
             $timestamp = $this->parse8601($this->safe_string($result[$i], 'time'));
             $rates[] = array(
                 'info' => $entry,
-                'symbol' => $symbol,
+                'symbol' => $this->safe_symbol($marketId),
                 'fundingRate' => $this->safe_number($entry, 'rate'),
                 'timestamp' => $timestamp,
                 'datetime' => $this->iso8601($timestamp),
@@ -1098,6 +1247,22 @@ class ftx extends Exchange {
         }
         $sorted = $this->sort_by($rates, 'timestamp');
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+    }
+
+    public function parse_balance($response) {
+        $result = array(
+            'info' => $response,
+        );
+        $balances = $this->safe_value($response, 'result', array());
+        for ($i = 0; $i < count($balances); $i++) {
+            $balance = $balances[$i];
+            $code = $this->safe_currency_code($this->safe_string($balance, 'coin'));
+            $account = $this->account();
+            $account['free'] = $this->safe_string_2($balance, 'availableWithoutBorrow', 'free');
+            $account['total'] = $this->safe_string($balance, 'total');
+            $result[$code] = $account;
+        }
+        return $this->safe_balance($result);
     }
 
     public function fetch_balance($params = array ()) {
@@ -1115,19 +1280,7 @@ class ftx extends Exchange {
         //         ),
         //     }
         //
-        $result = array(
-            'info' => $response,
-        );
-        $balances = $this->safe_value($response, 'result', array());
-        for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
-            $code = $this->safe_currency_code($this->safe_string($balance, 'coin'));
-            $account = $this->account();
-            $account['free'] = $this->safe_string_2($balance, 'availableWithoutBorrow', 'free');
-            $account['total'] = $this->safe_string($balance, 'total');
-            $result[$code] = $account;
-        }
-        return $this->parse_balance($result);
+        return $this->parse_balance($response);
     }
 
     public function parse_order_status($status) {
@@ -1259,20 +1412,13 @@ class ftx extends Exchange {
                 $status = 'canceled';
             }
         }
-        $symbol = null;
         $marketId = $this->safe_string($order, 'market');
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-            } else {
-                // support for delisted $market ids
-                // https://github.com/ccxt/ccxt/issues/7113
-                $symbol = $marketId;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
+        if ($symbol === null) {
+            // support for delisted $market ids
+            // https://github.com/ccxt/ccxt/issues/7113
+            $symbol = $marketId;
         }
         $side = $this->safe_string($order, 'side');
         $type = $this->safe_string($order, 'type');
@@ -1282,7 +1428,7 @@ class ftx extends Exchange {
         $clientOrderId = $this->safe_string($order, 'clientId');
         $stopPrice = $this->safe_number($order, 'triggerPrice');
         $postOnly = $this->safe_value($order, 'postOnly');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -1409,6 +1555,13 @@ class ftx extends Exchange {
         //
         $result = $this->safe_value($response, 'result', array());
         return $this->parse_order($result, $market);
+    }
+
+    public function create_reduce_only_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $request = array(
+            'reduceOnly' => true,
+        );
+        return yield $this->create_order($symbol, $type, $side, $amount, $price, array_merge($request, $params));
     }
 
     public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -1571,7 +1724,7 @@ class ftx extends Exchange {
             $request['order_id'] = $id;
         } else {
             $request['client_order_id'] = $clientOrderId;
-            $params = $this->omit($params, [ 'client_order_id', 'clientOrderId']);
+            $params = $this->omit($params, array( 'client_order_id', 'clientOrderId' ));
             $method = 'privateGetOrdersByClientIdClientOrderId';
         }
         $response = yield $this->$method (array_merge($request, $params));
@@ -1702,6 +1855,13 @@ class ftx extends Exchange {
         return $this->parse_orders($result, $market, $since, $limit);
     }
 
+    public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'orderId' => $id,
+        );
+        return yield $this->fetch_my_trades($symbol, $since, $limit, array_merge($request, $params));
+    }
+
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
         list($market, $marketId) = $this->get_market_params($symbol, 'market', $params);
@@ -1739,6 +1899,73 @@ class ftx extends Exchange {
         //
         $trades = $this->safe_value($response, 'result', array());
         return $this->parse_trades($trades, $market, $since, $limit);
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        yield $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'coin' => $currency['id'],
+            'source' => $fromAccount,
+            'destination' => $toAccount,
+            'size' => $amount,
+        );
+        $response = yield $this->privatePostSubaccountsTransfer (array_merge($request, $params));
+        //
+        //     {
+        //         success => true,
+        //         $result => {
+        //             id => '31222278',
+        //             coin => 'USDT',
+        //             size => '1.0',
+        //             time => '2022-04-01T11:18:27.194188+00:00',
+        //             notes => 'Transfer from main account to testSubaccount',
+        //             status => 'complete'
+        //         }
+        //     }
+        //
+        $result = $this->safe_value($response, 'result', array());
+        return $this->parse_transfer($result, $currency);
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        //     {
+        //         id => '31222278',
+        //         coin => 'USDT',
+        //         size => '1.0',
+        //         time => '2022-04-01T11:18:27.194188+00:00',
+        //         $notes => 'Transfer from main account to testSubaccount',
+        //         $status => 'complete'
+        //     }
+        //
+        $currencyId = $this->safe_string($transfer, 'coin');
+        $notes = $this->safe_string($transfer, 'notes', '');
+        $status = $this->safe_string($transfer, 'status');
+        $fromTo = str_replace('Transfer from ', '', $notes);
+        $parts = explode(' to ', $fromTo);
+        $fromAccount = $this->safe_string($parts, 0);
+        $fromAccount = str_replace(' account', '', $fromAccount);
+        $toAccount = $this->safe_string($parts, 1);
+        $toAccount = str_replace(' account', '', $toAccount);
+        return array(
+            'info' => $transfer,
+            'id' => $this->safe_string($transfer, 'id'),
+            'timestamp' => null,
+            'datetime' => $this->safe_string($transfer, 'time'),
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'amount' => $this->safe_number($transfer, 'size'),
+            'fromAccount' => $fromAccount,
+            'toAccount' => $toAccount,
+            'status' => $this->parse_transfer_status($status),
+        );
+    }
+
+    public function parse_transfer_status($status) {
+        $statuses = array(
+            'complete' => 'ok',
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
@@ -1896,7 +2123,7 @@ class ftx extends Exchange {
             'leverage' => $leverage,
             'unrealizedPnl' => $this->parse_number($unrealizedPnlString),
             'contracts' => $this->parse_number($contractsString),
-            'contractSize' => $this->parse_number('1'),
+            'contractSize' => $this->safe_value($market, 'contractSize'),
             'marginRatio' => $marginRatio,
             'liquidationPrice' => $this->parse_number($liquidationPriceString),
             'markPrice' => $this->parse_number($markPriceString),
@@ -1926,21 +2153,34 @@ class ftx extends Exchange {
         //         "success" => true,
         //         "result" => {
         //             "address" => "0x83a127952d266A6eA306c40Ac62A4a70668FE3BE",
-        //             "tag" => "null"
+        //             "tag" => null,
+        //             "method" => "erc20",
+        //             "coin" => null
         //         }
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
+        $networkId = $this->safe_string($result, 'method');
         $address = $this->safe_string($result, 'address');
-        $tag = $this->safe_string($result, 'tag');
         $this->check_address($address);
         return array(
             'currency' => $code,
             'address' => $address,
-            'tag' => $tag,
-            'network' => null,
+            'tag' => $this->safe_string($result, 'tag'),
+            'network' => $this->safe_network($networkId),
             'info' => $response,
         );
+    }
+
+    public function safe_network($networkId) {
+        $networksById = array(
+            'trx' => 'TRC20',
+            'erc20' => 'ERC20',
+            'sol' => 'SOL',
+            'bsc' => 'BEP20',
+            'bep2' => 'BEP2',
+        );
+        return $this->safe_string($networksById, $networkId, $networkId);
     }
 
     public function parse_transaction_status($status) {
@@ -2032,6 +2272,7 @@ class ftx extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => null,
             'addressFrom' => null,
             'address' => $address,
             'addressTo' => $address,
@@ -2210,7 +2451,7 @@ class ftx extends Exchange {
         $result = array();
         for ($i = 0; $i < count($incomes); $i++) {
             $entry = $incomes[$i];
-            $parsed = $this->parse_income ($entry, $market);
+            $parsed = $this->parse_income($entry, $market);
             $result[] = $parsed;
         }
         $sorted = $this->sort_by($result, 'timestamp');
@@ -2230,7 +2471,7 @@ class ftx extends Exchange {
         }
         $response = yield $this->privateGetFundingPayments (array_merge($request, $params));
         $result = $this->safe_value($response, 'result', array());
-        return $this->parse_incomes ($result, $market, $since, $limit);
+        return $this->parse_incomes($result, $market, $since, $limit);
     }
 
     public function parse_funding_rate($fundingRate, $market = null) {
@@ -2250,13 +2491,8 @@ class ftx extends Exchange {
         //       "openInterest" => "48307.96"
         //     }
         //
-        $nextFundingRate = $this->safe_number($fundingRate, 'nextFundingRate');
-        $nextFundingRateDatetimeRaw = $this->safe_string($fundingRate, 'nextFundingTime');
-        $nextFundingRateTimestamp = $this->parse8601($nextFundingRateDatetimeRaw);
-        $previousFundingTimestamp = null;
-        if ($nextFundingRateTimestamp !== null) {
-            $previousFundingTimestamp = $nextFundingRateTimestamp - 3600000;
-        }
+        $fundingRateDatetimeRaw = $this->safe_string($fundingRate, 'nextFundingTime');
+        $fundingRateTimestamp = $this->parse8601($fundingRateDatetimeRaw);
         $estimatedSettlePrice = $this->safe_number($fundingRate, 'predictedExpirationPrice');
         return array(
             'info' => $fundingRate,
@@ -2267,12 +2503,15 @@ class ftx extends Exchange {
             'estimatedSettlePrice' => $estimatedSettlePrice,
             'timestamp' => null,
             'datetime' => null,
+            'fundingRate' => $this->safe_number($fundingRate, 'nextFundingRate'),
+            'fundingTimestamp' => $fundingRateTimestamp,
+            'fundingDatetime' => $this->iso8601($fundingRateTimestamp),
+            'nextFundingRate' => null,
+            'nextFundingTimestamp' => null,
+            'nextFundingDatetime' => null,
             'previousFundingRate' => null,
-            'nextFundingRate' => $nextFundingRate,
-            'previousFundingTimestamp' => $previousFundingTimestamp, // subtract 8 hours
-            'nextFundingTimestamp' => $nextFundingRateTimestamp,
-            'previousFundingDatetime' => $this->iso8601($previousFundingTimestamp),
-            'nextFundingDatetime' => $this->iso8601($nextFundingRateTimestamp),
+            'previousFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
         );
     }
 
@@ -2300,35 +2539,177 @@ class ftx extends Exchange {
 
     public function fetch_borrow_rates($params = array ()) {
         yield $this->load_markets();
-        $response = yield $this->privateGetSpotMarginBorrowRates ();
+        $response = yield $this->privateGetSpotMarginBorrowRates ($params);
         //
-        // {
-        //     "success":true,
-        //     "result":array(
-        //         {
-        //             "coin" => "1INCH",
-        //             "previous" => 0.0000462375,
-        //             "estimate" => 0.0000462375
-        //         }
-        //         ...
-        //     )
-        // }
+        //     {
+        //         "success":true,
+        //         "result":array(
+        //             array("coin":"1INCH","previous":4.8763e-6,"estimate":4.8048e-6),
+        //             array("coin":"AAPL","previous":0.0000326469,"estimate":0.0000326469),
+        //             array("coin":"AAVE","previous":1.43e-6,"estimate":1.43e-6),
+        //         )
+        //     }
         //
-        $timestamp = $this->milliseconds();
         $result = $this->safe_value($response, 'result');
-        $rates = array();
-        for ($i = 0; $i < count($result); $i++) {
-            $rate = $result[$i];
-            $code = $this->safe_currency_code($this->safe_string($rate, 'coin'));
-            $rates[$code] = array(
-                'currency' => $code,
-                'rate' => $this->safe_number($rate, 'previous'),
-                'period' => 3600000,
-                'timestamp' => $timestamp,
-                'datetime' => $this->iso8601($timestamp),
-                'info' => $rate,
-            );
+        return $this->parse_borrow_rates($result, 'coin');
+    }
+
+    public function fetch_borrow_rate_histories($codes = null, $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        $request = array();
+        $endTime = $this->safe_number_2($params, 'till', 'end_time');
+        if ($limit > 48) {
+            throw new BadRequest($this->id . ' fetchBorrowRateHistories() $limit cannot exceed 48');
         }
-        return $rates;
+        $millisecondsPerHour = 3600000;
+        $millisecondsPer2Days = 172800000;
+        if (($endTime - $since) > $millisecondsPer2Days) {
+            throw new BadRequest($this->id . ' fetchBorrowRateHistories() requires the time range between the $since time and the end time to be less than 48 hours');
+        }
+        if ($since !== null) {
+            $request['start_time'] = intval($since / 1000);
+            if ($endTime === null) {
+                $now = $this->milliseconds();
+                $sinceLimit = ($limit === null) ? 2 : $limit;
+                $endTime = $this->sum($since, $millisecondsPerHour * ($sinceLimit - 1));
+                $endTime = min ($endTime, $now);
+            }
+        } else {
+            if ($limit !== null) {
+                if ($endTime === null) {
+                    $endTime = $this->milliseconds();
+                }
+                $startTime = $this->sum(($endTime - $millisecondsPerHour * $limit), 1000);
+                $request['start_time'] = intval($startTime / 1000);
+            }
+        }
+        if ($endTime !== null) {
+            $request['end_time'] = intval($endTime / 1000);
+        }
+        $response = yield $this->publicGetSpotMarginHistory (array_merge($request, $params));
+        //
+        //    {
+        //        "success" => true,
+        //        "result" => array(
+        //            array(
+        //                "coin" => "PYPL",
+        //                "time" => "2022-01-24T13:00:00+00:00",
+        //                "size" => 0.00500172,
+        //                "rate" => 1e-6
+        //            ),
+        //            ...
+        //        )
+        //    }
+        //
+        $result = $this->safe_value($response, 'result');
+        return $this->parse_borrow_rate_histories($result, $codes, $since, $limit);
+    }
+
+    public function fetch_borrow_rate_history($code, $since = null, $limit = null, $params = array ()) {
+        $histories = yield $this->fetch_borrow_rate_histories($since, $limit, $params);
+        $borrowRateHistory = $this->safe_value($histories, $code);
+        if ($borrowRateHistory === null) {
+            throw new BadRequest($this->id . ' fetchBorrowRateHistory() returned no data for ' . $code);
+        }
+        return $borrowRateHistory;
+    }
+
+    public function parse_borrow_rate_histories($response, $codes, $since, $limit) {
+        // How to calculate borrow rate
+        // https://help.ftx.com/hc/en-us/articles/360053007671-Spot-Margin-Trading-Explainer
+        $takerFee = (string) $this->fees['trading']['taker'];
+        $spotMarginBorrowRate = Precise::string_mul('500', $takerFee);
+        $borrowRateHistories = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $item = $response[$i];
+            $code = $this->safe_currency_code($this->safe_string($item, 'coin'));
+            if ($codes === null || $codes->includes ($code)) {
+                if (!(is_array($borrowRateHistories) && array_key_exists($code, $borrowRateHistories))) {
+                    $borrowRateHistories[$code] = array();
+                }
+                $lendingRate = $this->safe_string($item, 'rate');
+                $borrowRate = Precise::string_mul($lendingRate, Precise::string_add('1', $spotMarginBorrowRate));
+                $borrowRateStructure = array_merge($this->parse_borrow_rate($item), array( 'rate' => $borrowRate ));
+                $borrowRateHistories[$code][] = $borrowRateStructure;
+            }
+        }
+        $keys = is_array($borrowRateHistories) ? array_keys($borrowRateHistories) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $code = $keys[$i];
+            $borrowRateHistories[$code] = $this->filter_by_currency_since_limit($borrowRateHistories[$code], $code, $since, $limit);
+        }
+        return $borrowRateHistories;
+    }
+
+    public function parse_borrow_rates($response, $codeKey) {
+        $result = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $item = $response[$i];
+            $currency = $this->safe_string($item, $codeKey);
+            $code = $this->safe_currency_code($currency);
+            $borrowRate = $this->parse_borrow_rate($item);
+            $result[$code] = $borrowRate;
+        }
+        return $result;
+    }
+
+    public function parse_borrow_rate($info, $currency = null) {
+        //
+        //    {
+        //        "coin" => "1INCH",
+        //        "previous" => 0.0000462375,
+        //        "estimate" => 0.0000462375
+        //    }
+        //
+        $coin = $this->safe_string($info, 'coin');
+        $datetime = $this->safe_string($info, 'time');
+        $timestamp = $this->parse8601($datetime);
+        return array(
+            'currency' => $this->safe_currency_code($coin),
+            'rate' => $this->safe_number($info, 'previous'),
+            'period' => 3600000,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $info,
+        );
+    }
+
+    public function fetch_borrow_interest($code = null, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        $request = array();
+        if ($since !== null) {
+            $request['start_time'] = intval($since / 1000);
+        }
+        $response = yield $this->privateGetSpotMarginBorrowHistory (array_merge($request, $params));
+        //
+        //     {
+        //         "success":true,
+        //         "result":array(
+        //             array("coin":"USDT","time":"2021-12-26T01:00:00+00:00","size":4593.74214725,"rate":3.3003e-6,"cost":0.0151607272085692,"feeUsd":0.0151683341034461),
+        //             array("coin":"USDT","time":"2021-12-26T00:00:00+00:00","size":4593.97110361,"rate":3.3003e-6,"cost":0.0151614828332441,"feeUsd":0.015169697173028324),
+        //             array("coin":"USDT","time":"2021-12-25T23:00:00+00:00","size":4594.20005922,"rate":3.3003e-6,"cost":0.0151622384554438,"feeUsd":0.015170200298479137),
+        //         )
+        //     }
+        //
+        $result = $this->safe_value($response, 'result');
+        $interest = $this->parse_borrow_interests($result);
+        return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
+    }
+
+    public function parse_borrow_interest($info, $market = null) {
+        $coin = $this->safe_string($info, 'coin');
+        $datetime = $this->safe_string($info, 'time');
+        return array(
+            'account' => 'cross',
+            'symbol' => null,
+            'marginType' => 'cross',
+            'currency' => $this->safe_currency_code($coin),
+            'interest' => $this->safe_number($info, 'cost'),
+            'interestRate' => $this->safe_number($info, 'rate'),
+            'amountBorrowed' => $this->safe_number($info, 'size'),
+            'timestamp' => $this->parse8601($datetime),
+            'datetime' => $datetime,
+            'info' => $info,
+        );
     }
 }

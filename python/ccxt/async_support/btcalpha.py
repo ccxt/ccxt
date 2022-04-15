@@ -21,19 +21,49 @@ class btcalpha(Exchange):
             'countries': ['US'],
             'version': 'v1',
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
                 'cancelOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': None,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': False,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
             },
             'timeframes': {
                 '1m': '1',
@@ -99,6 +129,21 @@ class btcalpha(Exchange):
 
     async def fetch_markets(self, params={}):
         response = await self.publicGetPairs(params)
+        #
+        #    [
+        #        {
+        #            "name": "1INCH_USDT",
+        #            "currency1": "1INCH",
+        #            "currency2": "USDT",
+        #            "price_precision": 4,
+        #            "amount_precision": 2,
+        #            "minimum_order_size": "0.01000000",
+        #            "maximum_order_size": "900000.00000000",
+        #            "minimum_order_value": "10.00000000",
+        #            "liquidity_type": 10
+        #        },
+        #    ]
+        #
         result = []
         for i in range(0, len(response)):
             market = response[i]
@@ -107,24 +152,42 @@ class btcalpha(Exchange):
             quoteId = self.safe_string(market, 'currency2')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
             pricePrecision = self.safe_string(market, 'price_precision')
             priceLimit = self.parse_precision(pricePrecision)
-            precision = {
-                'amount': 8,
-                'price': int(pricePrecision),
-            }
             amountLimit = self.safe_string(market, 'minimum_order_size')
             result.append({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
                 'active': True,
-                'precision': precision,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': int('8'),
+                    'price': int(pricePrecision),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': self.parse_number(amountLimit),
                         'max': self.safe_number(market, 'maximum_order_size'),
@@ -139,8 +202,6 @@ class btcalpha(Exchange):
                     },
                 },
                 'info': market,
-                'baseId': None,
-                'quoteId': None,
             })
         return result
 
@@ -188,11 +249,8 @@ class btcalpha(Exchange):
         #          "my_side": "buy"
         #      }
         #
-        symbol = None
-        if market is None:
-            market = self.safe_value(self.markets_by_id, trade['pair'])
-        if market is not None:
-            symbol = market['symbol']
+        marketId = self.safe_string(trade, 'pair')
+        market = self.safe_market(marketId, market, '_')
         timestamp = self.safe_timestamp(trade, 'timestamp')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
@@ -203,7 +261,7 @@ class btcalpha(Exchange):
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'order': id,
             'type': 'limit',
             'side': side,
@@ -267,9 +325,7 @@ class btcalpha(Exchange):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    async def fetch_balance(self, params={}):
-        await self.load_markets()
-        response = await self.privateGetWallets(params)
+    def parse_balance(self, response):
         result = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
@@ -279,7 +335,12 @@ class btcalpha(Exchange):
             account['used'] = self.safe_string(balance, 'reserve')
             account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
+
+    async def fetch_balance(self, params={}):
+        await self.load_markets()
+        response = await self.privateGetWallets(params)
+        return self.parse_balance(response)
 
     def parse_order_status(self, status):
         statuses = {
@@ -335,7 +396,7 @@ class btcalpha(Exchange):
         id = self.safe_string_2(order, 'oid', 'id')
         trades = self.safe_value(order, 'trades')
         side = self.safe_string_2(order, 'my_side', 'type')
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'datetime': self.iso8601(timestamp),

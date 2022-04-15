@@ -10,20 +10,43 @@ module.exports = class xena extends Exchange {
             'id': 'xena',
             'name': 'Xena Exchange',
             'countries': [ 'VC', 'UK' ],
-            'rateLimit': 100,
+            // per second rate limits are far lower than the equivalent hourly
+            // requests per second rounded down (3dp)
+            // relative weight costs rounded up (3dp)
+            // 1 hour = 3600 seconds
+            // Order Cancellations: 100k per hour => 100 000 / 3600 = 27.777 requests per second => rateLimit = 1000ms / 27.777 = 36.001008 ms between requests => 36.1 (safety)
+            // New Orders: 30k per hour => 30 000 / 3600 = 8.333 requests per second => cost = 27.777 / 8.333 = 3.333373335 => 3.334
+            // Heartbeat: 30k per hour => 30 000 / 3600 = 8.333 requests per second => cost = 27.777 / 8.333 = 3.333373335 => 3.334
+            // Candles: 5000 per hour => 5000 /  3600 = 1.388 requests per second => cost = 27.777 / 1.388 = 20.01224784 => 20.013
+            // Dom (market data): 5000 per hour => 5000 /  3600 = 1.388 requests per second => cost = 27.777 / 1.388 = 20.01224784 => 20.013
+            // All snapshot requests (balances, active orders and trade history, positions): 500 per hour => 0.138 requests per second => cost = 27.777 / 0.138 = 201.2826087 => 201.283
+            'rateLimit': 36.1,
             'has': {
+                'CORS': undefined,
+                'spot': false,
+                'margin': false,
+                'swap': undefined, // has but not fully implemented
+                'future': undefined, // has but not fully implemented
+                'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'CORS': undefined,
                 'createDepositAddress': true,
                 'createOrder': true,
                 'editOrder': true,
+                'fetchAccounts': true,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchLedger': true,
+                'fetchLeverageTiers': true,
+                'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -33,6 +56,8 @@ module.exports = class xena extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': false,
                 'fetchWithdrawals': true,
                 'withdraw': true,
             },
@@ -48,7 +73,7 @@ module.exports = class xena extends Exchange {
                 },
                 'www': 'https://xena.exchange',
                 'doc': 'https://support.xena.exchange/support/solutions/44000808700',
-                'fees': 'https://trading.xena.exchange/en/platform-specification/fee-schedule',
+                'fees': 'https://trading.xena.exchange/en/contracts/terms-and-condition',
             },
             'timeframes': {
                 '1m': '1m',
@@ -63,57 +88,57 @@ module.exports = class xena extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'common/currencies',
-                        'common/instruments',
-                        'common/features',
-                        'common/commissions',
-                        'common/news',
-                        'market-data/candles/{marketId}/{timeframe}',
-                        'market-data/market-watch',
-                        'market-data/dom/{symbol}',
-                        'market-data/candles/{symbol}/{timeframe}',
-                        'market-data/trades/{symbol}',
-                        'market-data/server-time',
-                        'market-data/v2/candles/{symbol}/{timeframe}',
-                        'market-data/v2/trades/{symbol}',
-                        'market-data/v2/dom/{symbol}/',
-                        'market-data/v2/server-time',
-                    ],
+                    'get': {
+                        'common/currencies': 20.013,
+                        'common/instruments': 20.013,
+                        'common/features': 20.013,
+                        'common/commissions': 20.013,
+                        'common/news': 20.013,
+                        'market-data/candles/{marketId}/{timeframe}': 20.013,
+                        'market-data/market-watch': 20.013,
+                        'market-data/dom/{symbol}': 20.013,
+                        'market-data/candles/{symbol}/{timeframe}': 20.013,
+                        'market-data/trades/{symbol}': 20.013,
+                        'market-data/server-time': 20.013,
+                        'market-data/v2/candles/{symbol}/{timeframe}': 20.013,
+                        'market-data/v2/trades/{symbol}': 20.013,
+                        'market-data/v2/dom/{symbol}/': 20.013,
+                        'market-data/v2/server-time': 20.013,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'trading/accounts/{accountId}/order',
-                        'trading/accounts/{accountId}/active-orders',
-                        'trading/accounts/{accountId}/last-order-statuses',
-                        'trading/accounts/{accountId}/positions',
-                        'trading/accounts/{accountId}/positions-history',
-                        'trading/accounts/{accountId}/margin-requirements',
-                        'trading/accounts',
-                        'trading/accounts/{accountId}/balance',
-                        'trading/accounts/{accountId}/trade-history',
-                        // 'trading/accounts/{accountId}/trade-history?symbol=BTC/USDT&client_order_id=EMBB8Veke&trade_id=220143254',
-                        'transfers/accounts',
-                        'transfers/accounts/{accountId}',
-                        'transfers/accounts/{accountId}/deposit-address/{currency}',
-                        'transfers/accounts/{accountId}/deposits',
-                        'transfers/accounts/{accountId}/trusted-addresses',
-                        'transfers/accounts/{accountId}/withdrawals',
-                        'transfers/accounts/{accountId}/balance-history',
-                        // 'transfers/accounts/{accountId}/balance-history?currency={currency}&from={time}&to={time}&kind={kind}&kind={kind}',
-                        // 'transfers/accounts/{accountId}/balance-history?page={page}&limit={limit}',
-                        // 'transfers/accounts/{accountId}/balance-history?txid=3e1db982c4eed2d6355e276c5bae01a52a27c9cef61574b0e8c67ee05fc26ccf',
-                    ],
-                    'post': [
-                        'trading/order/new',
-                        'trading/order/heartbeat',
-                        'trading/order/cancel',
-                        'trading/order/mass-cancel',
-                        'trading/order/replace',
-                        'trading/position/maintenance',
-                        'transfers/accounts/{accountId}/withdrawals',
-                        'transfers/accounts/{accountId}/deposit-address/{currency}',
-                    ],
+                    'get': {
+                        'trading/accounts/{accountId}/order': 50,
+                        'trading/accounts/{accountId}/active-orders': 50,
+                        'trading/accounts/{accountId}/last-order-statuses': 50,
+                        'trading/accounts/{accountId}/positions': 50,
+                        'trading/accounts/{accountId}/positions-history': 50,
+                        'trading/accounts/{accountId}/margin-requirements': 50,
+                        'trading/accounts': 50,
+                        'trading/accounts/{accountId}/balance': 50, // TESTING (50 works)
+                        'trading/accounts/{accountId}/trade-history': 50,
+                        // 'trading/accounts/{accountId}/trade-history?symbol=BTC/USDT&client_order_id=EMBB8Veke&trade_id=2205043254': 50,
+                        'transfers/accounts': 50,
+                        'transfers/accounts/{accountId}': 50,
+                        'transfers/accounts/{accountId}/deposit-address/{currency}': 50,
+                        'transfers/accounts/{accountId}/deposits': 100, // TESTING
+                        'transfers/accounts/{accountId}/trusted-addresses': 50,
+                        'transfers/accounts/{accountId}/withdrawals': 50,
+                        'transfers/accounts/{accountId}/balance-history': 50,
+                        // 'transfers/accounts/{accountId}/balance-history?currency={currency}&from={time}&to={time}&kind={kind}&kind={kind}': 50,
+                        // 'transfers/accounts/{accountId}/balance-history?page={page}&limit={limit}': 50,
+                        // 'transfers/accounts/{accountId}/balance-history?txid=3e50db982c4eed2d6355e276c5bae01a52a27c9cef61574b0e8c67ee05fc26ccf': 50,
+                    },
+                    'post': {
+                        'trading/order/new': 3.334,
+                        'trading/order/heartbeat': 3.334,
+                        'trading/order/cancel': 1,
+                        'trading/order/mass-cancel': 1,
+                        'trading/order/replace': 3.334,
+                        'trading/position/maintenance': 3.334,
+                        'transfers/accounts/{accountId}/withdrawals': 3.334,
+                        'transfers/accounts/{accountId}/deposit-address/{currency}': 3.334,
+                    },
                 },
             },
             'fees': {
@@ -169,6 +194,12 @@ module.exports = class xena extends Exchange {
         const response = await this.publicGetCommonInstruments (params);
         //
         //     [
+        //         {
+        //             "type": "Index",
+        //             "symbol": ".ADAUSD",
+        //             "tickSize": 4,
+        //             "enabled": true
+        //         },
         //         {
         //             "id":"ETHUSD_3M_250920",
         //             "type":"Margin",
@@ -259,58 +290,75 @@ module.exports = class xena extends Exchange {
             const marginType = this.safeString (market, 'marginType');
             const baseId = this.safeString (market, 'baseCurrency');
             const quoteId = this.safeString (market, 'quoteCurrency');
+            const settleId = this.safeString (market, 'settlCurrency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            const settle = this.safeCurrencyCode (settleId);
+            const expiryDate = this.safeString (market, 'expiryDate');
+            const expiryTimestamp = this.parse8601 (expiryDate);
             let symbol = id;
+            let future = false;
+            let swap = false;
             if (type === 'margin') {
+                symbol = base + '/' + quote + ':' + settle;
                 if (marginType === 'XenaFuture') {
+                    symbol = symbol + '-' + this.yymmdd (expiryTimestamp);
                     type = 'future';
+                    future = true;
                 } else if (marginType === 'XenaListedPerpetual') {
                     type = 'swap';
-                    symbol = base + '/' + quote;
+                    swap = true;
                 }
             }
-            const future = (type === 'future');
-            const swap = (type === 'swap');
-            const pricePrecision = this.safeInteger2 (market, 'tickSize', 'pricePrecision');
-            const precision = {
-                'price': pricePrecision,
-                'amount': 0,
-            };
-            const maxCost = this.safeNumber (market, 'maxOrderQty');
-            const minCost = this.safeNumber (market, 'minOrderQuantity');
-            const limits = {
-                'amount': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'price': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': minCost,
-                    'max': maxCost,
-                },
-            };
-            const active = this.safeValue (market, 'enabled', false);
             const inverse = this.safeValue (market, 'inverse', false);
+            const contract = swap || future;
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': settleId,
                 'numericId': numericId,
-                'active': active,
                 'type': type,
                 'spot': false,
-                'future': future,
+                'margin': false,
                 'swap': swap,
-                'inverse': inverse,
-                'precision': precision,
-                'limits': limits,
+                'future': future,
+                'option': false,
+                'active': this.safeValue (market, 'enabled', false),
+                'contract': contract,
+                'linear': contract ? !inverse : undefined,
+                'inverse': contract ? inverse : undefined,
+                'contractSize': this.safeNumber (market, 'contractValue'),
+                'expiry': expiryTimestamp,
+                'expiryDatetime': this.iso8601 (expiryTimestamp),
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': parseInt ('0'),
+                    'price': this.safeInteger2 (market, 'tickSize', 'pricePrecision'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': this.safeNumber (market, 'minOrderQuantity'),
+                        'max': this.safeNumber (market, 'maxOrderQty'),
+                    },
+                },
                 'info': market,
             });
         }
@@ -363,6 +411,8 @@ module.exports = class xena extends Exchange {
                 'info': currency,
                 'name': name,
                 'active': active,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': this.safeNumber (withdraw, 'commission'),
                 'precision': precision,
                 'limits': {
@@ -399,20 +449,20 @@ module.exports = class xena extends Exchange {
         const timestamp = this.milliseconds ();
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeNumber (ticker, 'lastPx');
-        const open = this.safeNumber (ticker, 'firstPx');
-        const buyVolume = this.safeNumber (ticker, 'buyVolume');
-        const sellVolume = this.safeNumber (ticker, 'sellVolume');
+        const last = this.safeString (ticker, 'lastPx');
+        const open = this.safeString (ticker, 'firstPx');
+        const buyVolume = this.safeString (ticker, 'buyVolume');
+        const sellVolume = this.safeString (ticker, 'sellVolume');
         const baseVolume = this.sum (buyVolume, sellVolume);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'highPx'),
-            'low': this.safeNumber (ticker, 'lowPx'),
-            'bid': this.safeNumber (ticker, 'bid'),
+            'high': this.safeString (ticker, 'highPx'),
+            'low': this.safeString (ticker, 'lowPx'),
+            'bid': this.safeString (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'ask'),
+            'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': open,
@@ -425,7 +475,7 @@ module.exports = class xena extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': undefined,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -500,7 +550,10 @@ module.exports = class xena extends Exchange {
         const mdEntry = this.safeValue (response, 'mdEntry', []);
         const mdEntriesByType = this.groupBy (mdEntry, 'mdEntryType');
         const lastUpdateTime = this.safeInteger (response, 'lastUpdateTime');
-        const timestamp = parseInt (lastUpdateTime / 1000000);
+        let timestamp = undefined;
+        if (lastUpdateTime !== undefined) {
+            timestamp = parseInt (lastUpdateTime / 1000000);
+        }
         return this.parseOrderBook (mdEntriesByType, symbol, timestamp, '0', '1', 'mdEntryPx', 'mdEntrySize');
     }
 
@@ -565,6 +618,28 @@ module.exports = class xena extends Exchange {
         return account['id'];
     }
 
+    parseBalance (response) {
+        const result = { 'info': response };
+        let timestamp = undefined;
+        const balances = this.safeValue (response, 'balances', []);
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const lastUpdateTime = this.safeString (balance, 'lastUpdateTime');
+            const lastUpdated = lastUpdateTime.slice (0, 13);
+            const currentTimestamp = parseInt (lastUpdated);
+            timestamp = (timestamp === undefined) ? currentTimestamp : Math.max (timestamp, currentTimestamp);
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'available');
+            account['used'] = this.safeString (balance, 'onHold');
+            result[code] = account;
+        }
+        result['timestamp'] = timestamp;
+        result['datetime'] = this.iso8601 (timestamp);
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
@@ -588,28 +663,12 @@ module.exports = class xena extends Exchange {
         //         ]
         //     }
         //
-        const result = { 'info': response };
-        let timestamp = undefined;
-        const balances = this.safeValue (response, 'balances', []);
-        for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
-            const lastUpdateTime = this.safeString (balance, 'lastUpdateTime');
-            const lastUpdated = lastUpdateTime.slice (0, 13);
-            const currentTimestamp = parseInt (lastUpdated);
-            timestamp = (timestamp === undefined) ? currentTimestamp : Math.max (timestamp, currentTimestamp);
-            const currencyId = this.safeString (balance, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeString (balance, 'available');
-            account['used'] = this.safeString (balance, 'onHold');
-            result[code] = account;
-        }
-        result['timestamp'] = timestamp;
-        result['datetime'] = this.iso8601 (timestamp);
-        return this.parseBalance (result);
+        return this.parseBalance (response);
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades (public)
         //
         //     {
         //         "mdUpdateAction":"0",
@@ -621,7 +680,7 @@ module.exports = class xena extends Exchange {
         //         "aggressorSide":"1"
         //     }
         //
-        // fetchMyTrades
+        // fetchMyTrades (private)
         //
         //     {
         //         "msgType":"8",
@@ -662,22 +721,19 @@ module.exports = class xena extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const priceString = this.safeString2 (trade, 'lastPx', 'mdEntryPx');
         const amountString = this.safeString2 (trade, 'lastQty', 'mdEntrySize');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         let fee = undefined;
-        const feeCost = this.safeNumber (trade, 'commission');
-        if (feeCost !== undefined) {
+        const feeCostString = this.safeString (trade, 'commission');
+        if (feeCostString !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'commCurrency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
-            const feeRate = this.safeNumber (trade, 'commRate');
+            const feeRateString = this.safeString (trade, 'commRate');
             fee = {
-                'cost': feeCost,
-                'rate': feeRate,
+                'cost': feeCostString,
+                'rate': feeRateString,
                 'currency': feeCurrencyCode,
             };
         }
-        return {
+        return this.safeTrade ({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -687,11 +743,11 @@ module.exports = class xena extends Exchange {
             'order': orderId,
             'side': side,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -938,7 +994,7 @@ module.exports = class xena extends Exchange {
         } else if (type === '4') {
             type = 'stop-limit';
         }
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
@@ -1456,12 +1512,14 @@ module.exports = class xena extends Exchange {
         const amount = this.safeNumber (transaction, 'amount');
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const fee = undefined;
+        const network = this.safeString (transaction, 'blockchain');
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': network,
             'addressFrom': addressFrom,
             'addressTo': addressTo,
             'address': address,
@@ -1639,6 +1697,188 @@ module.exports = class xena extends Exchange {
         //     ]
         //
         return this.parseLedger (response, currency, since, limit);
+    }
+
+    async fetchLeverageTiers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetCommonInstruments (params);
+        //
+        //    [
+        //        {
+        //            "id": "XBTUSD_3M_240622",
+        //            "type": "Margin",
+        //            "marginType": "XenaFuture",
+        //            "symbol": "XBTUSD_3M_240622",
+        //            "baseCurrency": "BTC",
+        //            "quoteCurrency": "USD",
+        //            "settlCurrency": "USDC",
+        //            "tickSize": 0,
+        //            "minOrderQuantity": "0.0001",
+        //            "orderQtyStep": "0.0001",
+        //            "limitOrderMaxDistance": "10",
+        //            "priceInputMask": "00000.0",
+        //            "enabled": true,
+        //            "liquidationMaxDistance": "0.01",
+        //            "contractValue": "1",
+        //            "contractCurrency": "BTC",
+        //            "lotSize": "1",
+        //            "maxOrderQty": "10",
+        //            "maxPosVolume": "200",
+        //            "mark": ".XBTUSD_3M_240622",
+        //            "underlying": ".BTC3_TWAP",
+        //            "openInterest": ".XBTUSD_3M_240622_OpenInterest",
+        //            "addUvmToFreeMargin": "ProfitAndLoss",
+        //            "margin": {
+        //                "netting": "PositionsAndOrders",
+        //                "rates": [
+        //                    { "maxVolume": "10", "initialRate": "0.05", "maintenanceRate": "0.025" },
+        //                    { "maxVolume": "20", "initialRate": "0.1", "maintenanceRate": "0.05" },
+        //                    { "maxVolume": "30", "initialRate": "0.2", "maintenanceRate": "0.1" },
+        //                    { "maxVolume": "40", "initialRate": "0.3", "maintenanceRate": "0.15" },
+        //                    { "maxVolume": "60", "initialRate": "0.4", "maintenanceRate": "0.2" },
+        //                    { "maxVolume": "150", "initialRate": "0.5", "maintenanceRate": "0.25" },
+        //                    { "maxVolume": "200", "initialRate": "1", "maintenanceRate": "0.5" }
+        //               ],
+        //               "rateMultipliers": {
+        //                    "LimitBuy": "1",
+        //                    "LimitSell": "1",
+        //                    "Long": "1",
+        //                    "MarketBuy": "1",
+        //                    "MarketSell": "1",
+        //                    "Short": "1",
+        //                    "StopBuy": "0",
+        //                    "StopSell": "0"
+        //                }
+        //            },
+        //            "clearing": { "enabled": true, "index": ".XBTUSD_3M_240622" },
+        //            "riskAdjustment": { "enabled": true, "index": ".RiskAdjustment_IR" },
+        //            "expiration": { "enabled": true, "index": ".BTC3_TWAP" },
+        //            "pricePrecision": 1,
+        //            "priceRange": {
+        //                "enabled": true,
+        //                "distance": "0.2",
+        //                "movingBoundary": "0",
+        //                "lowIndex": ".XBTUSD_3M_240622_LOWRANGE",
+        //                "highIndex": ".XBTUSD_3M_240622_HIGHRANGE"
+        //            },
+        //            "priceLimits": {
+        //                "enabled": true,
+        //                "distance": "0.5",
+        //                "movingBoundary": "0",
+        //                "lowIndex": ".XBTUSD_3M_240622_LOWLIMIT",
+        //                "highIndex": ".XBTUSD_3M_240622_HIGHLIMIT"
+        //            },
+        //            "serie": "XBTUSD",
+        //            "tradingStartDate": "2021-12-31 07:00:00",
+        //            "expiryDate": "2022-06-24 08:00:00"
+        //           },
+        //           ...
+        //        ]
+        //
+        return this.parseLeverageTiers (response, symbols, 'symbol');
+    }
+
+    parseMarketLeverageTiers (info, market) {
+        /**
+         * @ignore
+         * @method
+         * @param {dict} info Exchange market response for 1 market
+         * @param {dict} market CCXT market
+         */
+        //
+        //    {
+        //        "id": "XBTUSD_3M_240622",
+        //        "type": "Margin",
+        //        "marginType": "XenaFuture",
+        //        "symbol": "XBTUSD_3M_240622",
+        //        "baseCurrency": "BTC",
+        //        "quoteCurrency": "USD",
+        //        "settlCurrency": "USDC",
+        //        "tickSize": 0,
+        //        "minOrderQuantity": "0.0001",
+        //        "orderQtyStep": "0.0001",
+        //        "limitOrderMaxDistance": "10",
+        //        "priceInputMask": "00000.0",
+        //        "enabled": true,
+        //        "liquidationMaxDistance": "0.01",
+        //        "contractValue": "1",
+        //        "contractCurrency": "BTC",
+        //        "lotSize": "1",
+        //        "maxOrderQty": "10",
+        //        "maxPosVolume": "200",
+        //        "mark": ".XBTUSD_3M_240622",
+        //        "underlying": ".BTC3_TWAP",
+        //        "openInterest": ".XBTUSD_3M_240622_OpenInterest",
+        //        "addUvmToFreeMargin": "ProfitAndLoss",
+        //        "margin": {
+        //            "netting": "PositionsAndOrders",
+        //            "rates": [
+        //                { "maxVolume": "10", "initialRate": "0.05", "maintenanceRate": "0.025" },
+        //                { "maxVolume": "20", "initialRate": "0.1", "maintenanceRate": "0.05" },
+        //                { "maxVolume": "30", "initialRate": "0.2", "maintenanceRate": "0.1" },
+        //                { "maxVolume": "40", "initialRate": "0.3", "maintenanceRate": "0.15" },
+        //                { "maxVolume": "60", "initialRate": "0.4", "maintenanceRate": "0.2" },
+        //                { "maxVolume": "150", "initialRate": "0.5", "maintenanceRate": "0.25" },
+        //                { "maxVolume": "200", "initialRate": "1", "maintenanceRate": "0.5" }
+        //            ],
+        //            "rateMultipliers": {
+        //                "LimitBuy": "1",
+        //                "LimitSell": "1",
+        //                "Long": "1",
+        //                "MarketBuy": "1",
+        //                "MarketSell": "1",
+        //                "Short": "1",
+        //                "StopBuy": "0",
+        //                "StopSell": "0"
+        //            }
+        //        },
+        //        "clearing": { "enabled": true, "index": ".XBTUSD_3M_240622" },
+        //        "riskAdjustment": { "enabled": true, "index": ".RiskAdjustment_IR" },
+        //        "expiration": { "enabled": true, "index": ".BTC3_TWAP" },
+        //        "pricePrecision": 1,
+        //        "priceRange": {
+        //            "enabled": true,
+        //            "distance": "0.2",
+        //            "movingBoundary": "0",
+        //            "lowIndex": ".XBTUSD_3M_240622_LOWRANGE",
+        //            "highIndex": ".XBTUSD_3M_240622_HIGHRANGE"
+        //        },
+        //        "priceLimits": {
+        //            "enabled": true,
+        //            "distance": "0.5",
+        //            "movingBoundary": "0",
+        //            "lowIndex": ".XBTUSD_3M_240622_LOWLIMIT",
+        //            "highIndex": ".XBTUSD_3M_240622_HIGHLIMIT"
+        //        },
+        //        "serie": "XBTUSD",
+        //        "tradingStartDate": "2021-12-31 07:00:00",
+        //        "expiryDate": "2022-06-24 08:00:00"
+        //    }
+        //
+        const margin = this.safeValue (info, 'margin');
+        const rates = this.safeValue (margin, 'rates');
+        let floor = 0;
+        const id = this.safeString (info, 'symbol');
+        market = this.safeMarket (id, market);
+        const tiers = [];
+        if (rates !== undefined) {
+            for (let j = 0; j < rates.length; j++) {
+                const tier = rates[j];
+                const cap = this.safeNumber (tier, 'maxVolume');
+                const initialRate = this.safeString (tier, 'initialRate');
+                tiers.push ({
+                    'tier': this.sum (j, 1),
+                    'currency': market['base'],
+                    'notionalFloor': floor,
+                    'notionalCap': cap,
+                    'maintenanceMarginRate': this.safeNumber (tier, 'maintenanceRate'),
+                    'maxLeverage': this.parseNumber (Precise.stringDiv ('1', initialRate)),
+                    'info': tier,
+                });
+                floor = cap;
+            }
+        }
+        return tiers;
     }
 
     nonce () {

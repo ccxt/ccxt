@@ -16,34 +16,65 @@ class bitvavo extends Exchange {
             'id' => 'bitvavo',
             'name' => 'Bitvavo',
             'countries' => array( 'NL' ), // Netherlands
-            'rateLimit' => 60.1, // 1000 requests per second
+            'rateLimit' => 60, // 1000 requests per minute
             'version' => 'v2',
             'certified' => true,
             'pro' => true,
             'has' => array(
+                'CORS' => null,
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'CORS' => null,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'editOrder' => true,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchLeverage' => false,
+                'fetchLeverageTiers' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPosition' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => true,
+                'fetchTransfer' => false,
+                'fetchTransfers' => false,
                 'fetchWithdrawals' => true,
-                'privateAPI' => true,
-                'publicAPI' => true,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
+                'transfer' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -86,6 +117,7 @@ class bitvavo extends Exchange {
                 ),
                 'private' => array(
                     'get' => array(
+                        'account' => 1,
                         'order' => 1,
                         'orders' => 5,
                         'ordersOpen' => array( 'cost' => 1, 'noMarket' => 25 ),
@@ -117,25 +149,25 @@ class bitvavo extends Exchange {
                     'tiers' => array(
                         'taker' => array(
                             array( $this->parse_number('0'), $this->parse_number('0.0025') ),
-                            array( $this->parse_number('50000'), $this->parse_number('0.0024') ),
-                            array( $this->parse_number('100000'), $this->parse_number('0.0022') ),
-                            array( $this->parse_number('250000'), $this->parse_number('0.0020') ),
-                            array( $this->parse_number('500000'), $this->parse_number('0.0018') ),
-                            array( $this->parse_number('1000000'), $this->parse_number('0.0016') ),
-                            array( $this->parse_number('2500000'), $this->parse_number('0.0014') ),
-                            array( $this->parse_number('5000000'), $this->parse_number('0.0012') ),
-                            array( $this->parse_number('10000000'), $this->parse_number('0.0010') ),
+                            array( $this->parse_number('100000'), $this->parse_number('0.0020') ),
+                            array( $this->parse_number('250000'), $this->parse_number('0.0016') ),
+                            array( $this->parse_number('500000'), $this->parse_number('0.0012') ),
+                            array( $this->parse_number('1000000'), $this->parse_number('0.0010') ),
+                            array( $this->parse_number('2500000'), $this->parse_number('0.0008') ),
+                            array( $this->parse_number('5000000'), $this->parse_number('0.0006') ),
+                            array( $this->parse_number('10000000'), $this->parse_number('0.0005') ),
+                            array( $this->parse_number('25000000'), $this->parse_number('0.0004') ),
                         ),
                         'maker' => array(
-                            array( $this->parse_number('0'), $this->parse_number('0.0020') ),
-                            array( $this->parse_number('50000'), $this->parse_number('0.0015') ),
+                            array( $this->parse_number('0'), $this->parse_number('0.0015') ),
                             array( $this->parse_number('100000'), $this->parse_number('0.0010') ),
-                            array( $this->parse_number('250000'), $this->parse_number('0.0006') ),
-                            array( $this->parse_number('500000'), $this->parse_number('0.0003') ),
-                            array( $this->parse_number('1000000'), $this->parse_number('0.0001') ),
-                            array( $this->parse_number('2500000'), $this->parse_number('-0.0001') ),
-                            array( $this->parse_number('5000000'), $this->parse_number('-0.0003') ),
-                            array( $this->parse_number('10000000'), $this->parse_number('-0.0005') ),
+                            array( $this->parse_number('250000'), $this->parse_number('0.0008') ),
+                            array( $this->parse_number('500000'), $this->parse_number('0.0006') ),
+                            array( $this->parse_number('1000000'), $this->parse_number('0.0005') ),
+                            array( $this->parse_number('2500000'), $this->parse_number('0.0004') ),
+                            array( $this->parse_number('5000000'), $this->parse_number('0.0004') ),
+                            array( $this->parse_number('10000000'), $this->parse_number('0.0003') ),
+                            array( $this->parse_number('25000000'), $this->parse_number('0.0003') ),
                         ),
                     ),
                 ),
@@ -284,31 +316,45 @@ class bitvavo extends Exchange {
             $quoteId = $this->safe_string($market, 'quote');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
             $status = $this->safe_string($market, 'status');
-            $active = ($status === 'trading');
             $baseCurrency = $this->safe_value($currenciesById, $baseId);
             $amountPrecision = null;
             if ($baseCurrency !== null) {
                 $amountPrecision = $this->safe_integer($baseCurrency, 'decimals', 8);
             }
-            $precision = array(
-                'price' => $this->safe_integer($market, 'pricePrecision'),
-                'amount' => $amountPrecision,
-            );
             $result[] = array(
                 'id' => $id,
-                'symbol' => $symbol,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'info' => $market,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
-                'active' => $active,
-                'precision' => $precision,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'active' => ($status === 'trading'),
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => $amountPrecision,
+                    'price' => $this->safe_integer($market, 'pricePrecision'),
+                ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
                         'min' => $this->safe_number($market, 'minOrderInBaseAsset'),
                         'max' => null,
@@ -322,6 +368,7 @@ class bitvavo extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'info' => $market,
             );
         }
         return $result;
@@ -381,6 +428,8 @@ class bitvavo extends Exchange {
                 'code' => $code,
                 'name' => $name,
                 'active' => $active,
+                'deposit' => $deposit,
+                'withdraw' => $withdrawal,
                 'fee' => $this->safe_number($currency, 'withdrawalFee'),
                 'precision' => $precision,
                 'limits' => array(
@@ -446,22 +495,21 @@ class bitvavo extends Exchange {
         $marketId = $this->safe_string($ticker, 'market');
         $symbol = $this->safe_symbol($marketId, $market, '-');
         $timestamp = $this->safe_integer($ticker, 'timestamp');
-        $last = $this->safe_number($ticker, 'last');
-        $baseVolume = $this->safe_number($ticker, 'volume');
-        $quoteVolume = $this->safe_number($ticker, 'volumeQuote');
-        $vwap = $this->vwap($baseVolume, $quoteVolume);
-        $open = $this->safe_number($ticker, 'open');
+        $last = $this->safe_string($ticker, 'last');
+        $baseVolume = $this->safe_string($ticker, 'volume');
+        $quoteVolume = $this->safe_string($ticker, 'volumeQuote');
+        $open = $this->safe_string($ticker, 'open');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'bid'),
-            'bidVolume' => $this->safe_number($ticker, 'bidSize'),
-            'ask' => $this->safe_number($ticker, 'ask'),
-            'askVolume' => $this->safe_number($ticker, 'askSize'),
-            'vwap' => $vwap,
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'bid'),
+            'bidVolume' => $this->safe_string($ticker, 'bidSize'),
+            'ask' => $this->safe_string($ticker, 'ask'),
+            'askVolume' => $this->safe_string($ticker, 'askSize'),
+            'vwap' => null,
             'open' => $open,
             'close' => $last,
             'last' => $last,
@@ -472,7 +520,7 @@ class bitvavo extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -593,7 +641,7 @@ class bitvavo extends Exchange {
         $timestamp = $this->safe_integer($trade, 'timestamp');
         $side = $this->safe_string($trade, 'side');
         $id = $this->safe_string_2($trade, 'id', 'fillId');
-        $marketId = $this->safe_integer($trade, 'market');
+        $marketId = $this->safe_string($trade, 'market');
         $symbol = $this->safe_symbol($marketId, $market, '-');
         $taker = $this->safe_value($trade, 'taker');
         $takerOrMaker = null;
@@ -626,6 +674,36 @@ class bitvavo extends Exchange {
             'cost' => null,
             'fee' => $fee,
         ), $market);
+    }
+
+    public function fetch_trading_fees($params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetAccount ($params);
+        //
+        //     {
+        //         "fees" => {
+        //           "taker" => "0.0025",
+        //           "maker" => "0.0015",
+        //           "volume" => "10000.00"
+        //         }
+        //     }
+        //
+        $fees = $this->safe_value($response, 'fees');
+        $maker = $this->safe_number($fees, 'maker');
+        $taker = $this->safe_number($fees, 'taker');
+        $result = array();
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
+            $result[$symbol] = array(
+                'info' => $response,
+                'symbol' => $symbol,
+                'maker' => $maker,
+                'taker' => $taker,
+                'percentage' => true,
+                'tierBased' => true,
+            );
+        }
+        return $result;
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -712,18 +790,7 @@ class bitvavo extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_balance($params = array ()) {
-        $this->load_markets();
-        $response = $this->privateGetBalance ($params);
-        //
-        //     array(
-        //         {
-        //             "symbol" => "BTC",
-        //             "available" => "1.57593193",
-        //             "inOrder" => "0.74832374"
-        //         }
-        //     )
-        //
+    public function parse_balance($response) {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -738,7 +805,22 @@ class bitvavo extends Exchange {
             $account['used'] = $this->safe_string($balance, 'inOrder');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetBalance ($params);
+        //
+        //     array(
+        //         {
+        //             "symbol" => "BTC",
+        //             "available" => "1.57593193",
+        //             "inOrder" => "0.74832374"
+        //         }
+        //     )
+        //
+        return $this->parse_balance($response);
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
@@ -1175,7 +1257,7 @@ class bitvavo extends Exchange {
         $postOnly = $this->safe_value($order, 'postOnly');
         // https://github.com/ccxt/ccxt/issues/8489
         $stopPrice = $this->safe_number($order, 'triggerPrice');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -1301,7 +1383,7 @@ class bitvavo extends Exchange {
         //         }
         //     )
         //
-        return $this->parse_transactions($response, $currency, $since, $limit);
+        return $this->parse_transactions($response, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1336,7 +1418,7 @@ class bitvavo extends Exchange {
         //         }
         //     )
         //
-        return $this->parse_transactions($response, $currency, $since, $limit);
+        return $this->parse_transactions($response, $currency, $since, $limit, array( 'type' => 'deposit' ));
     }
 
     public function parse_transaction_status($status) {
@@ -1405,10 +1487,10 @@ class bitvavo extends Exchange {
             );
         }
         $type = null;
-        if (is_array($transaction) && array_key_exists('success', $transaction)) {
+        if ((is_array($transaction) && array_key_exists('success', $transaction)) || (is_array($transaction) && array_key_exists('address', $transaction))) {
             $type = 'withdrawal';
         } else {
-            $type = ($status === null) ? 'deposit' : 'withdrawal';
+            $type = 'deposit';
         }
         $tag = $this->safe_string($transaction, 'paymentId');
         return array(

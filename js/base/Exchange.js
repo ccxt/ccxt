@@ -62,41 +62,68 @@ module.exports = class Exchange {
             'pro': false, // if it is integrated with CCXT Pro for WebSocket support
             'alias': false, // whether this exchange is an alias to another exchange
             'has': {
-                'privateAPI': true,
                 'publicAPI': true,
+                'privateAPI': true,
+                'CORS': undefined,
+                'spot': undefined,
                 'margin': undefined,
                 'swap': undefined,
                 'future': undefined,
+                'option': undefined,
+                'addMargin': undefined,
                 'cancelAllOrders': undefined,
                 'cancelOrder': true,
                 'cancelOrders': undefined,
-                'CORS': undefined,
                 'createDepositAddress': undefined,
                 'createLimitOrder': true,
                 'createMarketOrder': true,
                 'createOrder': true,
-                'deposit': undefined,
                 'editOrder': 'emulated',
+                'fetchAccounts': undefined,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
+                'fetchBorrowInterest': undefined,
                 'fetchBorrowRate': undefined,
+                'fetchBorrowRateHistory': undefined,
+                'fetchBorrowRatesPerSymbol': undefined,
                 'fetchBorrowRates': undefined,
+                'fetchCanceledOrders': undefined,
+                'fetchClosedOrder': undefined,
                 'fetchClosedOrders': undefined,
                 'fetchCurrencies': 'emulated',
+                'fetchDeposit': undefined,
                 'fetchDepositAddress': undefined,
+                'fetchDepositAddresses': undefined,
+                'fetchDepositAddressesByNetwork': undefined,
                 'fetchDeposits': undefined,
+                'fetchFundingFee': undefined,
                 'fetchFundingFees': undefined,
+                'fetchFundingHistory': undefined,
+                'fetchFundingRate': undefined,
+                'fetchFundingRateHistory': undefined,
+                'fetchFundingRates': undefined,
+                'fetchIndexOHLCV': undefined,
                 'fetchL2OrderBook': true,
                 'fetchLedger': undefined,
+                'fetchLedgerEntry': undefined,
+                'fetchLeverageTiers': undefined,
+                'fetchMarketLeverageTiers': undefined,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': undefined,
                 'fetchMyTrades': undefined,
                 'fetchOHLCV': 'emulated',
+                'fetchOpenOrder': undefined,
                 'fetchOpenOrders': undefined,
                 'fetchOrder': undefined,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': undefined,
                 'fetchOrders': undefined,
                 'fetchOrderTrades': undefined,
+                'fetchPermissions': undefined,
+                'fetchPosition': undefined,
+                'fetchPositions': undefined,
+                'fetchPositionsRisk': undefined,
+                'fetchPremiumIndexOHLCV': undefined,
                 'fetchStatus': 'emulated',
                 'fetchTicker': true,
                 'fetchTickers': undefined,
@@ -106,9 +133,16 @@ module.exports = class Exchange {
                 'fetchTradingFees': undefined,
                 'fetchTradingLimits': undefined,
                 'fetchTransactions': undefined,
+                'fetchTransfers': undefined,
+                'fetchWithdrawal': undefined,
                 'fetchWithdrawals': undefined,
                 'loadMarkets': true,
+                'reduceMargin': undefined,
+                'setLeverage': undefined,
+                'setMarginMode': undefined,
+                'setPositionMode': undefined,
                 'signIn': undefined,
+                'transfer': undefined,
                 'withdraw': undefined,
             },
             'urls': {
@@ -189,6 +223,7 @@ module.exports = class Exchange {
             'precisionMode': DECIMAL_PLACES,
             'paddingMode': NO_PADDING,
             'limits': {
+                'leverage': { 'min': undefined, 'max': undefined },
                 'amount': { 'min': undefined, 'max': undefined },
                 'price': { 'min': undefined, 'max': undefined },
                 'cost': { 'min': undefined, 'max': undefined },
@@ -236,6 +271,8 @@ module.exports = class Exchange {
 
         // do not delete this line, it is needed for users to be able to define their own fetchImplementation
         this.fetchImplementation = defaultFetch
+        this.validateServerSsl = true
+        this.validateClientSsl = false
 
         this.timeout       = 10000 // milliseconds
         this.verbose       = false
@@ -298,6 +335,10 @@ module.exports = class Exchange {
 
         const agentOptions = {
             'keepAlive': true,
+        }
+
+        if (!this.validateServerSsl) {
+            agentOptions['rejectUnauthorized'] = false;
         }
 
         if (!this.httpAgent && defaultFetch.http && isNode) {
@@ -499,7 +540,9 @@ module.exports = class Exchange {
                     const path = value[k].trim ()
                     this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths)
                 }
-            } else if (key.match (/^(?:get|post|put|delete|options|head|patch)$/i)) {
+            // the options HTTP method conflicts with the 'options' API url path
+            // } else if (key.match (/^(?:get|post|put|delete|options|head|patch)$/i)) {
+            } else if (key.match (/^(?:get|post|put|delete|head|patch)$/i)) {
                 const endpoints = Object.keys (value);
                 for (let j = 0; j < endpoints.length; j++) {
                     const endpoint = endpoints[j]
@@ -671,8 +714,10 @@ module.exports = class Exchange {
             if (this.verbose) {
                 this.log ("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, "\nResponseHeaders:\n", responseHeaders, "\nResponseBody:\n", responseBody, "\n")
             }
-            this.handleErrors (response.status, response.statusText, url, method, responseHeaders, responseBody, json, requestHeaders, requestBody)
-            this.handleHttpStatusCode (response.status, response.statusText, url, method, responseBody)
+            const skipFurtherErrorHandling = this.handleErrors (response.status, response.statusText, url, method, responseHeaders, responseBody, json, requestHeaders, requestBody)
+            if (!skipFurtherErrorHandling) {
+                this.handleHttpStatusCode (response.status, response.statusText, url, method, responseBody)
+            }
             return json || responseBody
         })
     }
@@ -687,8 +732,32 @@ module.exports = class Exchange {
 
     setMarkets (markets, currencies = undefined) {
         const values = Object.values (markets).map ((market) => deepExtend ({
-            'limits': this.limits,
+            'id': undefined,
+            'symbol': undefined,
+            'base': undefined,
+            'quote': undefined,
+            'baseId': undefined,
+            'quoteId': undefined,
+            'active': undefined,
+            'type': undefined,
+            'linear': undefined,
+            'inverse': undefined,
+            'spot': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'margin': false,
+            'contract': false,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'optionType': undefined,
+            'strike': undefined,
+            'settle': undefined,
+            'settleId': undefined,
             'precision': this.precision,
+            'limits': this.limits,
+            'info': undefined,
         }, this.fees['trading'], market))
         this.markets = indexBy (values, 'symbol')
         this.markets_by_id = indexBy (markets, 'id')
@@ -744,6 +813,10 @@ module.exports = class Exchange {
         }
         const markets = await this.fetchMarkets (params)
         return this.setMarkets (markets, currencies)
+    }
+
+    async fetchPermissions (params = {}) {
+        throw new NotSupported (this.id + ' fetchPermissions() not supported yet')
     }
 
     // is async (returns a promise)
@@ -968,11 +1041,12 @@ module.exports = class Exchange {
     }
 
     market (symbol) {
-
         if (this.markets === undefined) {
             throw new ExchangeError (this.id + ' markets not loaded')
         }
-
+        if (this.markets_by_id === undefined) {
+            throw new ExchangeError (this.id + ' markets not loaded')
+        }
         if (typeof symbol === 'string') {
             if (symbol in this.markets) {
                 return this.markets[symbol]
@@ -980,7 +1054,6 @@ module.exports = class Exchange {
                 return this.markets_by_id[symbol]
             }
         }
-
         throw new BadSymbol (this.id + ' does not have market symbol ' + symbol)
     }
 
@@ -999,6 +1072,13 @@ module.exports = class Exchange {
 
     implodeHostname (url) {
         return this.implodeParams (url, { 'hostname': this.hostname })
+    }
+
+    resolvePath (path, params) {
+        return [
+            this.implodeParams (path, params),
+            this.omit (params, this.extractParams (path))
+        ];
     }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
@@ -1030,7 +1110,7 @@ module.exports = class Exchange {
         }
     }
 
-    parseBalance (balance, legacy = false) {
+    safeBalance (balance) {
 
         const codes = Object.keys (this.omit (balance, [ 'info', 'timestamp', 'datetime', 'free', 'used', 'total' ]));
 
@@ -1042,29 +1122,17 @@ module.exports = class Exchange {
             const code = codes[i]
             if (balance[code].total === undefined) {
                 if (balance[code].free !== undefined && balance[code].used !== undefined) {
-                    if (legacy) {
-                        balance[code].total = this.sum (balance[code].free, balance[code].used)
-                    } else {
-                        balance[code].total = Precise.stringAdd (balance[code].free, balance[code].used)
-                    }
+                    balance[code].total = Precise.stringAdd (balance[code].free, balance[code].used)
                 }
             }
             if (balance[code].free === undefined) {
                 if (balance[code].total !== undefined && balance[code].used !== undefined) {
-                    if (legacy) {
-                        balance[code].free = this.sum (balance[code].total, -balance[code].used)
-                    } else {
-                        balance[code].free = Precise.stringSub (balance[code].total, balance[code].used)
-                    }
+                    balance[code].free = Precise.stringSub (balance[code].total, balance[code].used)
                 }
             }
             if (balance[code].used === undefined) {
                 if (balance[code].total !== undefined && balance[code].free !== undefined) {
-                    if (legacy) {
-                        balance[code].used = this.sum (balance[code].total, -balance[code].free)
-                    } else {
-                        balance[code].used = Precise.stringSub (balance[code].total, balance[code].free)
-                    }
+                    balance[code].used = Precise.stringSub (balance[code].total, balance[code].free)
                 }
             }
             balance[code].free = this.parseNumber (balance[code].free)
@@ -1074,7 +1142,6 @@ module.exports = class Exchange {
             balance.used[code] = balance[code].used
             balance.total[code] = balance[code].total
         }
-
         return balance
     }
 
@@ -1191,57 +1258,119 @@ module.exports = class Exchange {
         return indexed ? indexBy (result, key) : result
     }
 
-    safeTicker (ticker, market = undefined) {
-        let symbol = this.safeValue (ticker, 'symbol');
-        if (symbol === undefined) {
-            symbol = this.safeSymbol (undefined, market);
-        }
-        const timestamp = this.safeInteger (ticker, 'timestamp');
-        const baseVolume = this.safeValue (ticker, 'baseVolume');
-        const quoteVolume = this.safeValue (ticker, 'quoteVolume');
-        let vwap = this.safeValue (ticker, 'vwap');
-        if (vwap === undefined) {
-            vwap = this.vwap (baseVolume, quoteVolume);
-        }
-        let open = this.safeValue (ticker, 'open');
-        let close = this.safeValue (ticker, 'close');
-        let last = this.safeValue (ticker, 'last');
-        let change = this.safeValue (ticker, 'change');
-        let percentage = this.safeValue (ticker, 'percentage');
-        let average = this.safeValue (ticker, 'average');
-        if ((last !== undefined) && (close === undefined)) {
-            close = last;
-        } else if ((last === undefined) && (close !== undefined)) {
-            last = close;
-        }
-        if ((last !== undefined) && (open !== undefined)) {
-            if (change === undefined) {
-                change = last - open;
+    safeTicker (ticker, market = undefined, legacy = true) {
+        if (legacy) {
+            let symbol = this.safeValue (ticker, 'symbol');
+            if (symbol === undefined) {
+                symbol = this.safeSymbol (undefined, market);
             }
-            if (average === undefined) {
-                average = this.sum (last, open) / 2;
+            const timestamp = this.safeInteger (ticker, 'timestamp');
+            let baseVolume = this.safeValue (ticker, 'baseVolume');
+            let quoteVolume = this.safeValue (ticker, 'quoteVolume');
+            let vwap = this.safeValue (ticker, 'vwap');
+            if (vwap === undefined) {
+                vwap = this.vwap (baseVolume, quoteVolume);
             }
+            let open = this.safeValue (ticker, 'open');
+            let close = this.safeValue (ticker, 'close');
+            let last = this.safeValue (ticker, 'last');
+            let change = this.safeValue (ticker, 'change');
+            let percentage = this.safeValue (ticker, 'percentage');
+            let average = this.safeValue (ticker, 'average');
+            if ((last !== undefined) && (close === undefined)) {
+                close = last;
+            } else if ((last === undefined) && (close !== undefined)) {
+                last = close;
+            }
+            if ((last !== undefined) && (open !== undefined)) {
+                if (change === undefined) {
+                    change = last - open;
+                }
+                if (average === undefined) {
+                    average = this.sum (last, open) / 2;
+                }
+            }
+            if ((percentage === undefined) && (change !== undefined) && (open !== undefined) && (open > 0)) {
+                percentage = change / open * 100;
+            }
+            if ((change === undefined) && (percentage !== undefined) && (last !== undefined)) {
+                change = percentage / 100 * last;
+            }
+            if ((open === undefined) && (last !== undefined) && (change !== undefined)) {
+                open = last - change;
+            }
+            if ((vwap !== undefined) && (baseVolume !== undefined) && (quoteVolume === undefined)) {
+                quoteVolume = vwap / baseVolume;
+            }
+            if ((vwap !== undefined) && (quoteVolume !== undefined) && (baseVolume === undefined)) {
+                baseVolume = quoteVolume / vwap;
+            }
+            ticker['symbol'] = symbol;
+            ticker['timestamp'] = timestamp;
+            ticker['datetime'] = this.iso8601 (timestamp);
+            ticker['open'] = open;
+            ticker['close'] = close;
+            ticker['last'] = last;
+            ticker['vwap'] = vwap;
+            ticker['change'] = change;
+            ticker['percentage'] = percentage;
+            ticker['average'] = average;
+            return ticker;
+        } else {
+            let open = this.safeValue (ticker, 'open');
+            let close = this.safeValue (ticker, 'close');
+            let last = this.safeValue (ticker, 'last');
+            let change = this.safeValue (ticker, 'change');
+            let percentage = this.safeValue (ticker, 'percentage');
+            let average = this.safeValue (ticker, 'average');
+            let vwap = this.safeValue (ticker, 'vwap');
+            const baseVolume = this.safeValue (ticker, 'baseVolume');
+            const quoteVolume = this.safeValue (ticker, 'quoteVolume');
+            if (vwap === undefined) {
+                vwap = Precise.stringDiv (quoteVolume, baseVolume);
+            }
+            if ((last !== undefined) && (close === undefined)) {
+                close = last;
+            } else if ((last === undefined) && (close !== undefined)) {
+                last = close;
+            }
+            if ((last !== undefined) && (open !== undefined)) {
+                if (change === undefined) {
+                    change = Precise.stringSub (last, open);
+                }
+                if (average === undefined) {
+                    average = Precise.stringDiv (Precise.stringAdd (last, open), '2');
+                }
+            }
+            if ((percentage === undefined) && (change !== undefined) && (open !== undefined) && (Precise.stringGt (open, '0'))) {
+                percentage = Precise.stringMul (Precise.stringDiv (change, open), '100');
+            }
+            if ((change === undefined) && (percentage !== undefined) && (last !== undefined)) {
+                change = Precise.stringDiv (Precise.stringMul (percentage, last), '100');
+            }
+            if ((open === undefined) && (last !== undefined) && (change !== undefined)) {
+                open = Precise.stringSub (last, change);
+            }
+            // timestamp and symbol operations don't belong in safeTicker
+            // they should be done in the derived classes
+            return this.extend (ticker, {
+                'bid': this.safeNumber (ticker, 'bid'),
+                'bidVolume': this.safeNumber (ticker, 'bidVolume'),
+                'ask': this.safeNumber (ticker, 'ask'),
+                'askVolume': this.safeNumber (ticker, 'askVolume'),
+                'high': this.safeNumber (ticker, 'high'),
+                'low': this.safeNumber (ticker, 'low'),
+                'open': this.parseNumber (open),
+                'close': this.parseNumber (close),
+                'last': this.parseNumber (last),
+                'change': this.parseNumber (change),
+                'percentage': this.parseNumber (percentage),
+                'average': this.parseNumber (average),
+                'vwap': this.parseNumber (vwap),
+                'baseVolume': this.parseNumber (baseVolume),
+                'quoteVolume': this.parseNumber (quoteVolume),
+            });
         }
-        if ((percentage === undefined) && (change !== undefined) && (open !== undefined) && (open > 0)) {
-            percentage = change / open * 100;
-        }
-        if ((change === undefined) && (percentage !== undefined) && (last !== undefined)) {
-            change = percentage / 100 * last;
-        }
-        if ((open === undefined) && (last !== undefined) && (change !== undefined)) {
-            open = last - change;
-        }
-        ticker['symbol'] = symbol;
-        ticker['timestamp'] = timestamp;
-        ticker['datetime'] = this.iso8601 (timestamp);
-        ticker['open'] = open;
-        ticker['close'] = close;
-        ticker['last'] = last;
-        ticker['vwap'] = vwap;
-        ticker['change'] = change;
-        ticker['percentage'] = percentage;
-        ticker['average'] = average;
-        return ticker;
     }
 
     parseTickers (tickers, symbols = undefined, params = {}) {
@@ -1266,7 +1395,7 @@ module.exports = class Exchange {
     }
 
     parseTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
-        let result = Object.values (trades || []).map ((trade) => this.extend (this.parseTrade (trade, market), params))
+        let result = Object.values (trades || []).map ((trade) => this.merge (this.parseTrade (trade, market), params))
         result = sortBy2 (result, 'timestamp', 'id')
         const symbol = (market !== undefined) ? market['symbol'] : undefined
         const tail = since === undefined
@@ -1279,6 +1408,45 @@ module.exports = class Exchange {
         const code = (currency !== undefined) ? currency['code'] : undefined;
         const tail = since === undefined;
         return this.filterByCurrencySinceLimit (result, code, since, limit, tail);
+    }
+
+    safeTransfer (transfer, currency = undefined) {
+        currency = this.safeCurrency (undefined, currency);
+        return this.extend ({
+            'id': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': currency['code'],
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': undefined,
+            'info': undefined,
+        }, transfer);
+    }
+
+    safeTransaction (transaction, currency = undefined) {
+        currency = this.safeCurrency (undefined, currency);
+        return this.extend ({
+            'id': undefined,
+            'currency': currency['code'],
+            'amount': undefined,
+            'network': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'addressFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
+            'status': undefined,
+            'type': undefined,
+            'updated': undefined,
+            'txid': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fee': undefined,
+            'info': undefined,
+        }, transaction);
     }
 
     parseTransfers (transfers, currency = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1362,17 +1530,30 @@ module.exports = class Exchange {
             if (this.markets_by_id !== undefined && marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId]
             } else if (delimiter !== undefined) {
-                const [ baseId, quoteId ] = marketId.split (delimiter)
-                const base = this.safeCurrencyCode (baseId)
-                const quote = this.safeCurrencyCode (quoteId)
-                const symbol = base + '/' + quote
-                return {
-                    'id': marketId,
-                    'symbol': symbol,
-                    'base': base,
-                    'quote': quote,
-                    'baseId': baseId,
-                    'quoteId': quoteId,
+                const parts = marketId.split (delimiter)
+                if (parts.length === 2) {
+                    const baseId = this.safeString (parts, 0);
+                    const quoteId = this.safeString (parts, 1);
+                    const base = this.safeCurrencyCode (baseId)
+                    const quote = this.safeCurrencyCode (quoteId)
+                    const symbol = base + '/' + quote
+                    return {
+                        'id': marketId,
+                        'symbol': symbol,
+                        'base': base,
+                        'quote': quote,
+                        'baseId': baseId,
+                        'quoteId': quoteId,
+                    }
+                } else {
+                    return {
+                        'id': marketId,
+                        'symbol': marketId,
+                        'base': undefined,
+                        'quote': undefined,
+                        'baseId': undefined,
+                        'quoteId': undefined,
+                    }
                 }
             }
         }
@@ -1581,6 +1762,45 @@ module.exports = class Exchange {
         }
     }
 
+    getNetwork (network, code) {
+        network = network.toUpperCase ();
+        const aliases = {
+            'ETHEREUM': 'ETH',
+            'ETHER': 'ETH',
+            'ERC20': 'ETH',
+            'ETH': 'ETH',
+            'TRC20': 'TRX',
+            'TRON': 'TRX',
+            'TRX': 'TRX',
+            'BEP20': 'BSC',
+            'BSC': 'BSC',
+            'HRC20': 'HT',
+            'HECO': 'HT',
+            'SPL': 'SOL',
+            'SOL': 'SOL',
+            'TERRA': 'LUNA',
+            'LUNA': 'LUNA',
+            'POLYGON': 'MATIC',
+            'MATIC': 'MATIC',
+            'EOS': 'EOS',
+            'WAVES': 'WAVES',
+            'AVALANCHE': 'AVAX',
+            'AVAX': 'AVAX',
+            'QTUM': 'QTUM',
+            'CHZ': 'CHZ',
+            'NEO': 'NEO',
+            'ONT': 'ONT',
+            'RON': 'RON',
+        };
+        if (network === code) {
+            return network;
+        } else if (network in aliases) {
+            return aliases[network];
+        } else {
+            throw new NotSupported (this.id + ' network ' + network + ' is not yet supported');
+        }
+    }
+
     reduceFeesByCurrency (fees, string = false) {
         //
         // this function takes a list of fee structures having the following format
@@ -1705,9 +1925,15 @@ module.exports = class Exchange {
             const reducedLength = reducedFees.length;
             for (let i = 0; i < reducedLength; i++) {
                 reducedFees[i]['cost'] = this.safeNumber (reducedFees[i], 'cost');
+                if ('rate' in reducedFees[i]) {
+                    reducedFees[i]['rate'] = this.safeNumber (reducedFees[i], 'rate');
+                }
             }
             if (!parseFee && (reducedLength === 0)) {
                 fee['cost'] = this.safeNumber (fee, 'cost');
+                if ('rate' in fee) {
+                    fee['rate'] = this.safeNumber (fee, 'rate');
+                }
                 reducedFees.push (fee);
             }
             if (parseFees) {
@@ -1719,6 +1945,9 @@ module.exports = class Exchange {
             const tradeFee = this.safeValue (trade, 'fee');
             if (tradeFee !== undefined) {
                 tradeFee['cost'] = this.safeNumber (tradeFee, 'cost');
+                if ('rate' in tradeFee) {
+                    tradeFee['rate'] = this.safeNumber (tradeFee, 'rate');
+                }
                 trade['fee'] = tradeFee;
             }
         }
@@ -1728,133 +1957,7 @@ module.exports = class Exchange {
         return trade;
     }
 
-    safeOrder (order) {
-        // Cost
-        // Remaining
-        // Average
-        // Price
-        // Amount
-        // Filled
-        //
-        // first we try to calculate the order fields from the trades
-        let amount = this.safeValue (order, 'amount');
-        let remaining = this.safeValue (order, 'remaining');
-        let filled = this.safeValue (order, 'filled');
-        let cost = this.safeValue (order, 'cost');
-        let average = this.safeValue (order, 'average');
-        let price = this.safeValue (order, 'price');
-        let lastTradeTimeTimestamp = this.safeInteger (order, 'lastTradeTimestamp');
-        const parseFilled = (filled === undefined);
-        const parseCost = (cost === undefined);
-        const parseLastTradeTimeTimestamp = (lastTradeTimeTimestamp === undefined);
-        const parseFee = this.safeValue (order, 'fee') === undefined;
-        const parseFees = this.safeValue (order, 'fees') === undefined;
-        const shouldParseFees = parseFee || parseFees;
-        const fees = this.safeValue (order, 'fees', []);
-        if (parseFilled || parseCost || shouldParseFees) {
-            const trades = this.safeValue (order, 'trades');
-            if (Array.isArray (trades)) {
-                if (parseFilled) {
-                    filled = 0;
-                }
-                if (parseCost) {
-                    cost = 0;
-                }
-                for (let i = 0; i < trades.length; i++) {
-                    const trade = trades[i];
-                    const tradeAmount = this.safeValue (trade, 'amount');
-                    if (parseFilled && (tradeAmount !== undefined)) {
-                        filled = this.sum (filled, tradeAmount);
-                    }
-                    const tradeCost = this.safeValue (trade, 'cost');
-                    if (parseCost && (tradeCost !== undefined)) {
-                        cost = this.sum (cost, tradeCost);
-                    }
-                    const tradeTimestamp = this.safeValue (trade, 'timestamp');
-                    if (parseLastTradeTimeTimestamp && (tradeTimestamp !== undefined)) {
-                        if (lastTradeTimeTimestamp === undefined) {
-                            lastTradeTimeTimestamp = tradeTimestamp;
-                        } else {
-                            lastTradeTimeTimestamp = Math.max (lastTradeTimeTimestamp, tradeTimestamp);
-                        }
-                    }
-                    if (shouldParseFees) {
-                        const tradeFees = this.safeValue (trade, 'fees');
-                        if (tradeFees !== undefined) {
-                            for (let j = 0; j < tradeFees.length; j++) {
-                                const tradeFee = tradeFees[j];
-                                fees.push (this.extend ({}, tradeFee));
-                            }
-                        } else {
-                            const tradeFee = this.safeValue (trade, 'fee');
-                            if (tradeFee !== undefined) {
-                                fees.push (this.extend ({}, tradeFee));
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        if (shouldParseFees) {
-            const reducedFees = this.reduceFees ? this.reduceFeesByCurrency (fees) : fees;
-            const reducedLength = reducedFees.length;
-            if (!parseFee && (reducedLength === 0)) {
-                reducedFees.push (order['fee']);
-            }
-            if (parseFees) {
-                order['fees'] = reducedFees;
-            }
-            if (parseFee && (reducedLength === 1)) {
-                order['fee'] = reducedFees[0];
-            }
-        }
-        if (amount === undefined) {
-            // ensure amount = filled + remaining
-            if (filled !== undefined && remaining !== undefined) {
-                amount = this.sum (filled, remaining);
-            } else if (this.safeString (order, 'status') === 'closed') {
-                amount = filled;
-            }
-        }
-        if (filled === undefined) {
-            if (amount !== undefined && remaining !== undefined) {
-                filled = Math.max (this.sum (amount, -remaining), 0);
-            }
-        }
-        if (remaining === undefined) {
-            if (amount !== undefined && filled !== undefined) {
-                remaining = Math.max (this.sum (amount, -filled), 0);
-            }
-        }
-        // ensure that the average field is calculated correctly
-        if (average === undefined) {
-            if ((filled !== undefined) && (cost !== undefined) && (filled > 0)) {
-                average = cost / filled;
-            }
-        }
-        // also ensure the cost field is calculated correctly
-        const costPriceExists = (average !== undefined) || (price !== undefined);
-        if (parseCost && (filled !== undefined) && costPriceExists) {
-            cost = (average === undefined) ? (price * filled) : (average * filled);
-        }
-        // support for market orders
-        const orderType = this.safeValue (order, 'type');
-        const emptyPrice = (price === undefined) || (price === 0.0);
-        if (emptyPrice && (orderType === 'market')) {
-            price = average;
-        }
-        return this.extend (order, {
-            'lastTradeTimestamp': lastTradeTimeTimestamp,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'average': average,
-            'filled': filled,
-            'remaining': remaining,
-        });
-    }
-
-    safeOrder2 (order, market = undefined) {
+    safeOrder (order, market = undefined) {
         // parses numbers as strings
         // it is important pass the trades as unparsed rawTrades
         let amount = this.omitZero (this.safeString (order, 'amount'));
@@ -1886,6 +1989,19 @@ module.exports = class Exchange {
             });
             this.number = oldNumber;
             if (Array.isArray (trades) && trades.length) {
+                // move properties that are defined in trades up into the order
+                if (order['symbol'] === undefined) {
+                    order['symbol'] = trades[0]['symbol'];
+                }
+                if (order['side'] === undefined) {
+                    order['side'] = trades[0]['side'];
+                }
+                if (order['type'] === undefined) {
+                    order['type'] = trades[0]['type'];
+                }
+                if (order['id'] === undefined) {
+                    order['id'] = trades[0]['order'];
+                }
                 if (parseFilled) {
                     filled = '0';
                 }
@@ -1932,9 +2048,15 @@ module.exports = class Exchange {
             const reducedLength = reducedFees.length;
             for (let i = 0; i < reducedLength; i++) {
                 reducedFees[i]['cost'] = this.parseNumber (reducedFees[i]['cost']);
+                if ('rate' in reducedFees[i]) {
+                    reducedFees[i]['rate'] = this.parseNumber (reducedFees['i']['rate'])
+                }
             }
             if (!parseFee && (reducedLength === 0)) {
                 fee['cost'] = this.safeNumber (fee, 'cost');
+                if ('rate' in fee) {
+                    fee['rate'] = this.parseNumber (fee['rate'])
+                }
                 reducedFees.push (fee);
             }
             if (parseFees) {
@@ -1990,7 +2112,7 @@ module.exports = class Exchange {
         }
         // support for market orders
         const orderType = this.safeValue (order, 'type');
-        const emptyPrice = (price === undefined) || Precise.stringEquals (price, '0');
+        const emptyPrice = (price === "market_price") || (price === undefined) || Precise.stringEquals (price, '0');
         if (emptyPrice && (orderType === 'market')) {
             price = average;
         }
@@ -2002,6 +2124,17 @@ module.exports = class Exchange {
             entry['cost'] = this.safeNumber (entry, 'cost');
             const fee = this.safeValue (entry, 'fee', {});
             fee['cost'] = this.safeNumber (fee, 'cost');
+            if ('rate' in fee) {
+                fee['rate'] = this.safeNumber (fee, 'rate');
+            }
+            entry['fee'] = fee;
+        }
+        // timeInForceHandling
+        let timeInForce = this.safeString (order, 'timeInForce');
+        if (this.safeValue (order, 'postOnly', false)) {
+            timeInForce = 'PO';
+        } else if (this.safeString (order, 'type') === 'market') {
+            timeInForce = 'IOC';
         }
         return this.extend (order, {
             'lastTradeTimestamp': lastTradeTimeTimestamp,
@@ -2011,6 +2144,7 @@ module.exports = class Exchange {
             'average': this.parseNumber (average),
             'filled': this.parseNumber (filled),
             'remaining': this.parseNumber (remaining),
+            'timeInForce': timeInForce,
             'trades': trades,
         });
     }
@@ -2072,21 +2206,79 @@ module.exports = class Exchange {
     async fetchBorrowRate (code, params = {}) {
         await this.loadMarkets ();
         if (!this.has['fetchBorrowRates']) {
-            throw new NotSupported (this.id + 'fetchBorrowRate() is not supported yet')
+            throw new NotSupported (this.id + ' fetchBorrowRate() is not supported yet')
         }
         const borrowRates = await this.fetchBorrowRates (params);
         const rate = this.safeValue (borrowRates, code);
         if (rate === undefined) {
-            throw new ExchangeError (this.id + 'fetchBorrowRate() could not find the borrow rate for currency code ' + code);
+            throw new ExchangeError (this.id + ' fetchBorrowRate() could not find the borrow rate for currency code ' + code);
         }
         return rate;
     }
 
     handleMarketTypeAndParams (methodName, market = undefined, params = {}) {
-        const defaultType = this.safeString2 (this.options, methodName, 'defaultType', 'spot');
-        const marketType = (market === undefined) ? defaultType : market['type'];
-        const type = this.safeString (params, 'type', marketType);
-        params = this.omit (params, 'type');
+        const defaultType = this.safeString2 (this.options, 'defaultType', 'type', 'spot');
+        const methodOptions = this.safeValue (this.options, methodName);
+        let methodType = defaultType;
+        if (methodOptions !== undefined) {
+            if (typeof methodOptions === 'string') {
+                methodType = methodOptions;
+            } else {
+                methodType = this.safeString2 (methodOptions, 'defaultType', 'type', methodType);
+            }
+        }
+        const marketType = (market === undefined) ? methodType : market['type'];
+        const type = this.safeString2 (params, 'defaultType', 'type', marketType);
+        params = this.omit (params, [ 'defaultType', 'type' ]);
         return [ type, params ];
+    }
+
+    async loadTimeDifference (params = {}) {
+        const serverTime = await this.fetchTime (params);
+        const after = this.milliseconds ();
+        this.options['timeDifference'] = after - serverTime;
+        return this.options['timeDifference'];
+    }
+
+    parseLeverageTiers (response, symbols, marketIdKey) {
+        const tiers = {};
+        for (let i = 0; i < response.length; i++) {
+            const item = response[i];
+            const id = this.safeString (item, marketIdKey);
+            const market = this.safeMarket (id);
+            const symbol = market['symbol'];
+            let symbolsLength = 0;
+            if (symbols !== undefined) {
+                symbolsLength = symbols.length;
+            }
+            const contract = this.safeValue (market, 'contract', false);
+            if (contract && (symbolsLength === 0 || symbols.includes (symbol))) {
+                tiers[symbol] = this.parseMarketLeverageTiers (item, market);
+            }
+        }
+        return tiers;
+    }
+
+    async fetchMarketLeverageTiers (symbol, params = {}) {
+        if (this.has['fetchLeverageTiers']) {
+            const market = await this.market (symbol);
+            if (!market['contract']) {
+                throw new BadSymbol (this.id + ' fetchLeverageTiers() supports contract markets only');
+            }
+            const tiers = await this.fetchLeverageTiers ([ symbol ]);
+            return this.safeValue (tiers, symbol);
+        } else {
+            throw new NotSupported (this.id + ' fetchMarketLeverageTiers() is not supported yet');
+        }
+
+    }
+
+    parseBorrowInterests (response, market = undefined) {
+        const interest = [];
+        for (let i = 0; i < response.length; i++) {
+            const row = response[i];
+            interest.push (this.parseBorrowInterest (row, market));
+        }
+        return interest;
     }
 }

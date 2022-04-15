@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, ArgumentsRequired, InvalidNonce, BadRequest, ExchangeNotAvailable, PermissionDenied, AccountSuspended, RateLimitExceeded, InsufficientFunds } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, ArgumentsRequired, InvalidNonce, BadRequest, ExchangeNotAvailable, PermissionDenied, AccountSuspended, RateLimitExceeded, InsufficientFunds, BadSymbol } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -17,20 +17,34 @@ module.exports = class latoken extends Exchange {
             'version': 'v2',
             'rateLimit': 1000,
             'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': undefined, // has but unimplemented
+                'future': undefined,
+                'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOpenOrders': true,
-                'fetchOrderBook': true,
                 'fetchOrder': true,
+                'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTime': true,
                 'fetchTrades': true,
+                'fetchTradingFee': true,
+                'fetchTradingFees': false,
                 'fetchTransactions': true,
             },
             'urls': {
@@ -118,10 +132,22 @@ module.exports = class latoken extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'BUX': 'Buxcoin',
+                'CBT': 'Community Business Token',
+                'CTC': 'CyberTronchain',
+                'DMD': 'Diamond Coin',
+                'FREN': 'Frenchie',
+                'GDX': 'GoldenX',
+                'GEC': 'Geco One',
+                'GEM': 'NFTmall',
+                'GMT': 'GMT Token',
+                'IMC': 'IMCoin',
                 'MT': 'Monarch',
                 'TPAY': 'Tetra Pay',
                 'TRADE': 'Smart Trade Coin',
                 'TSL': 'Treasure SL',
+                'UNO': 'Unobtanium',
+                'WAR': 'Warrior Token',
             },
             'exceptions': {
                 'exact': {
@@ -150,6 +176,7 @@ module.exports = class latoken extends Exchange {
                     'invalid API key, signature or digest': AuthenticationError, // {"result":false,"message":"invalid API key, signature or digest","error":"BAD_REQUEST","status":"FAILURE"}
                     'request expired or bad': InvalidNonce, // {"result":false,"message":"request expired or bad <timeAlive>/<timestamp> format","error":"BAD_REQUEST","status":"FAILURE"}
                     'For input string': BadRequest, // {"result":false,"message":"Internal error","error":"For input string: \"NaN\"","status":"FAILURE"}
+                    'Unable to resolve currency by tag': BadSymbol, // {"message":"Unable to resolve currency by tag (undefined)","error":"NOT_FOUND","status":"FAILURE"}
                 },
             },
             'options': {
@@ -161,6 +188,9 @@ module.exports = class latoken extends Exchange {
                 'accounts': {
                     'ACCOUNT_TYPE_WALLET': 'wallet',
                     'ACCOUNT_TYPE_SPOT': 'spot',
+                },
+                'fetchTradingFee': {
+                    'method': 'fetchPrivateTradingFee', // or 'fetchPublicTradingFee'
                 },
             },
         });
@@ -178,13 +208,6 @@ module.exports = class latoken extends Exchange {
         //     }
         //
         return this.safeInteger (response, 'serverTime');
-    }
-
-    async loadTimeDifference (params = {}) {
-        const serverTime = await this.fetchTime (params);
-        const after = this.milliseconds ();
-        this.options['timeDifference'] = after - serverTime;
-        return this.options['timeDifference'];
     }
 
     async fetchMarkets (params = {}) {
@@ -258,42 +281,56 @@ module.exports = class latoken extends Exchange {
             if (baseCurrency !== undefined && quoteCurrency !== undefined) {
                 const base = this.safeCurrencyCode (this.safeString (baseCurrency, 'tag'));
                 const quote = this.safeCurrencyCode (this.safeString (quoteCurrency, 'tag'));
-                const symbol = base + '/' + quote;
-                const precision = {
-                    'price': this.safeNumber (market, 'priceTick'),
-                    'amount': this.safeNumber (market, 'quantityTick'),
-                };
                 const lowercaseQuote = quote.toLowerCase ();
                 const capitalizedQuote = this.capitalize (lowercaseQuote);
-                const limits = {
-                    'amount': {
-                        'min': this.safeNumber (market, 'minOrderQuantity'),
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': this.safeNumber (market, 'minOrderCost' + capitalizedQuote),
-                        'max': this.safeNumber (market, 'maxOrderCost' + capitalizedQuote),
-                    },
-                };
                 const status = this.safeString (market, 'status');
-                const active = (status === 'PAIR_STATUS_ACTIVE');
                 result.push ({
                     'id': id,
-                    'info': market,
-                    'symbol': symbol,
+                    'symbol': base + '/' + quote,
                     'base': base,
                     'quote': quote,
+                    'settle': undefined,
                     'baseId': baseId,
                     'quoteId': quoteId,
+                    'settleId': undefined,
                     'type': 'spot',
                     'spot': true,
-                    'active': active, // assuming true
-                    'precision': precision,
-                    'limits': limits,
+                    'margin': false,
+                    'swap': false,
+                    'future': false,
+                    'option': false,
+                    'active': (status === 'PAIR_STATUS_ACTIVE'), // assuming true
+                    'contract': false,
+                    'linear': undefined,
+                    'inverse': undefined,
+                    'contractSize': undefined,
+                    'expiry': undefined,
+                    'expiryDatetime': undefined,
+                    'strike': undefined,
+                    'optionType': undefined,
+                    'precision': {
+                        'amount': this.safeNumber (market, 'quantityTick'),
+                        'price': this.safeNumber (market, 'priceTick'),
+                    },
+                    'limits': {
+                        'leverage': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'amount': {
+                            'min': this.safeNumber (market, 'minOrderQuantity'),
+                            'max': undefined,
+                        },
+                        'price': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'cost': {
+                            'min': this.safeNumber (market, 'minOrderCost' + capitalizedQuote),
+                            'max': this.safeNumber (market, 'maxOrderCost' + capitalizedQuote),
+                        },
+                    },
+                    'info': market,
                 });
             }
         }
@@ -375,6 +412,8 @@ module.exports = class latoken extends Exchange {
                 'name': name,
                 'type': type,
                 'active': active,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': fee,
                 'precision': precision,
                 'limits': {
@@ -448,7 +487,7 @@ module.exports = class latoken extends Exchange {
         }
         result['timestamp'] = maxTimestamp;
         result['datetime'] = this.iso8601 (maxTimestamp);
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -496,15 +535,15 @@ module.exports = class latoken extends Exchange {
         //
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeNumber (ticker, 'lastPrice');
-        const change = this.safeNumber (ticker, 'change24h');
+        const last = this.safeString (ticker, 'lastPrice');
+        const change = this.safeString (ticker, 'change24h');
         const timestamp = this.nonce ();
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'low': this.safeNumber (ticker, 'low'),
-            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'high': this.safeString (ticker, 'high'),
             'bid': undefined,
             'bidVolume': undefined,
             'ask': undefined,
@@ -518,9 +557,9 @@ module.exports = class latoken extends Exchange {
             'percentage': undefined,
             'average': undefined,
             'baseVolume': undefined,
-            'quoteVolume': this.safeNumber (ticker, 'volume24h'),
+            'quoteVolume': this.safeString (ticker, 'volume24h'),
             'info': ticker,
-        });
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -675,6 +714,64 @@ module.exports = class latoken extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    async fetchTradingFee (symbol, params = {}) {
+        let method = this.safeString (params, 'method');
+        params = this.omit (params, 'method');
+        if (method === undefined) {
+            const options = this.safeValue (this.options, 'fetchTradingFee', {});
+            method = this.safeString (options, 'method', 'fetchPrivateTradingFee');
+        }
+        return await this[method] (symbol, params);
+    }
+
+    async fetchPublicTradingFee (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'currency': market['baseId'],
+            'quote': market['quoteId'],
+        };
+        const response = await this.publicGetTradeFeeCurrencyQuote (this.extend (request, params));
+        //
+        //     {
+        //         makerFee: '0.004900000000000000',
+        //         takerFee: '0.004900000000000000',
+        //         type: 'FEE_SCHEME_TYPE_PERCENT_QUOTE',
+        //         take: 'FEE_SCHEME_TAKE_PROPORTION'
+        //     }
+        //
+        return {
+            'info': response,
+            'symbol': symbol,
+            'maker': this.safeNumber (response, 'makerFee'),
+            'taker': this.safeNumber (response, 'takerFee'),
+        };
+    }
+
+    async fetchPrivateTradingFee (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'currency': market['baseId'],
+            'quote': market['quoteId'],
+        };
+        const response = await this.privateGetAuthTradeFeeCurrencyQuote (this.extend (request, params));
+        //
+        //     {
+        //         makerFee: '0.004900000000000000',
+        //         takerFee: '0.004900000000000000',
+        //         type: 'FEE_SCHEME_TYPE_PERCENT_QUOTE',
+        //         take: 'FEE_SCHEME_TAKE_PROPORTION'
+        //     }
+        //
+        return {
+            'info': response,
+            'symbol': symbol,
+            'maker': this.safeNumber (response, 'makerFee'),
+            'taker': this.safeNumber (response, 'takerFee'),
+        };
+    }
+
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
@@ -803,7 +900,8 @@ module.exports = class latoken extends Exchange {
         let side = undefined;
         if (orderSide !== undefined) {
             const parts = orderSide.split ('_');
-            side = this.safeStringLower (parts, parts.length - 1);
+            const partsLength = parts.length;
+            side = this.safeStringLower (parts, partsLength - 1);
         }
         const type = this.parseOrderType (this.safeString (order, 'type'));
         const price = this.safeString (order, 'price');
@@ -821,7 +919,7 @@ module.exports = class latoken extends Exchange {
         }
         const clientOrderId = this.safeString (order, 'clientOrderId');
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'condition'));
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
@@ -1124,6 +1222,7 @@ module.exports = class latoken extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': undefined,
             'addressFrom': addressFrom,
             'addressTo': addressTo,
             'address': addressTo,

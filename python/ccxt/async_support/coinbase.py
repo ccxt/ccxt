@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -33,23 +26,38 @@ class coinbase(Exchange):
                 'CB-VERSION': '2018-05-30',
             },
             'has': {
-                'cancelOrder': None,
                 'CORS': True,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
+                'cancelOrder': None,
                 'createDepositAddress': True,
                 'createOrder': None,
-                'deposit': None,
+                'createReduceOnlyOrder': False,
                 'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': None,
                 'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': None,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': None,
                 'fetchDeposits': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
                 'fetchL2OrderBook': False,
                 'fetchLedger': True,
+                'fetchLeverage': False,
+                'fetchLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyBuys': True,
@@ -60,13 +68,22 @@ class coinbase(Exchange):
                 'fetchOrder': None,
                 'fetchOrderBook': False,
                 'fetchOrders': None,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': None,
+                'fetchTradingFee': False,
+                'fetchTradingFees': False,
                 'fetchTransactions': None,
                 'fetchWithdrawals': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'withdraw': None,
             },
             'urls': {
@@ -436,8 +453,13 @@ class coinbase(Exchange):
             'txid': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'address': None,
+            'addressTo': None,
+            'addressFrom': None,
             'tag': None,
+            'tagTo': None,
+            'tagFrom': None,
             'type': type,
             'amount': amount,
             'currency': currency,
@@ -538,24 +560,39 @@ class coinbase(Exchange):
                     quoteCurrency = data[j]
                     quoteId = self.safe_string(quoteCurrency, 'id')
                     quote = self.safe_currency_code(quoteId)
-                    symbol = base + '/' + quote
-                    id = baseId + '-' + quoteId
                     result.append({
-                        'id': id,
-                        'symbol': symbol,
+                        'id': baseId + '-' + quoteId,
+                        'symbol': base + '/' + quote,
                         'base': base,
                         'quote': quote,
+                        'settle': None,
                         'baseId': baseId,
                         'quoteId': quoteId,
+                        'settleId': None,
                         'type': 'spot',
                         'spot': True,
+                        'margin': False,
+                        'swap': False,
+                        'future': False,
+                        'option': False,
                         'active': None,
-                        'info': quoteCurrency,
+                        'contract': False,
+                        'linear': None,
+                        'inverse': None,
+                        'contractSize': None,
+                        'expiry': None,
+                        'expiryDatetime': None,
+                        'strike': None,
+                        'optionType': None,
                         'precision': {
                             'amount': None,
                             'price': None,
                         },
                         'limits': {
+                            'leverage': {
+                                'min': None,
+                                'max': None,
+                            },
                             'amount': {
                                 'min': None,
                                 'max': None,
@@ -568,10 +605,8 @@ class coinbase(Exchange):
                                 'min': self.safe_number(quoteCurrency, 'min_size'),
                                 'max': None,
                             },
-                            'leverage': {
-                                'max': 1,
-                            },
                         },
+                        'info': quoteCurrency,
                     })
         return result
 
@@ -640,6 +675,8 @@ class coinbase(Exchange):
                 'type': type,
                 'name': name,
                 'active': True,
+                'deposit': None,
+                'withdraw': None,
                 'fee': None,
                 'precision': None,
                 'limits': {
@@ -726,17 +763,14 @@ class coinbase(Exchange):
         bid = None
         last = None
         timestamp = self.milliseconds()
-        if isinstance(ticker, basestring):
-            inverted = Precise.string_div('1', ticker)  # the currency requested, USD or other, is the base currency
-            last = self.parse_number(inverted)
-        else:
+        if not isinstance(ticker, str):
             spot, buy, sell = ticker
             spotData = self.safe_value(spot, 'data', {})
             buyData = self.safe_value(buy, 'data', {})
             sellData = self.safe_value(sell, 'data', {})
-            last = self.safe_number(spotData, 'amount')
-            bid = self.safe_number(buyData, 'amount')
-            ask = self.safe_number(sellData, 'amount')
+            last = self.safe_string(spotData, 'amount')
+            bid = self.safe_string(buyData, 'amount')
+            ask = self.safe_string(sellData, 'amount')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -758,7 +792,7 @@ class coinbase(Exchange):
             'baseVolume': None,
             'quoteVolume': None,
             'info': ticker,
-        })
+        }, market, False)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
@@ -788,7 +822,7 @@ class coinbase(Exchange):
                         account['free'] = Precise.string_add(account['free'], total)
                         account['total'] = Precise.string_add(account['total'], total)
                     result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()

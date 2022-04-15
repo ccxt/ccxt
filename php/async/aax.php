@@ -6,8 +6,10 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
+use \ccxt\BadSymbol;
 use \ccxt\OrderNotFound;
 use \ccxt\Precise;
 
@@ -22,29 +24,90 @@ class aax extends Exchange {
             'rateLimit' => 500,
             'version' => 'v2',
             'hostname' => 'aaxpro.com', // aax.com
-            'certified' => true,
             'pro' => true,
             'has' => array(
+                'CORS' => null,
+                'spot' => true,
+                'margin' => false,
+                'swap' => true,
+                'future' => false,
+                'option' => false,
+                'addMargin' => null,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'cancelOrders' => null,
+                'createDepositAddress' => null,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'editOrder' => true,
+                'fetchAccounts' => null,
                 'fetchBalance' => true,
+                'fetchBidsAsks' => null,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchCanceledOrders' => true,
+                'fetchClosedOrder' => null,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
+                'fetchDeposit' => null,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => null,
+                'fetchDepositAddressesByNetwork' => null,
+                'fetchDeposits' => true,
+                'fetchFundingFee' => null,
+                'fetchFundingFees' => null,
+                'fetchFundingHistory' => true,
+                'fetchFundingRate' => true,
+                'fetchFundingRateHistory' => true,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchL3OrderBook' => null,
+                'fetchLedger' => null,
+                'fetchLedgerEntry' => null,
+                'fetchLeverage' => null,
+                'fetchLeverageTiers' => true,
+                'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
+                'fetchMyBuys' => null,
+                'fetchMySells' => null,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenOrder' => null,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
+                'fetchOrderBooks' => null,
                 'fetchOrders' => true,
+                'fetchOrderTrades' => null,
+                'fetchPosition' => true,
+                'fetchPositions' => true,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => true,
                 'fetchTicker' => 'emulated',
                 'fetchTickers' => true,
+                'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => false,
+                'fetchTradingLimits' => null,
+                'fetchTransactions' => null,
+                'fetchTransfer' => false,
+                'fetchTransfers' => true,
+                'fetchWithdrawal' => null,
+                'fetchWithdrawals' => true,
+                'fetchWithdrawalWhitelist' => null,
+                'reduceMargin' => null,
+                'setLeverage' => true,
+                'setMarginMode' => false,
+                'setPositionMode' => null,
+                'signIn' => null,
+                'transfer' => true,
+                'withdraw' => null,
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -95,6 +158,7 @@ class aax extends Exchange {
                     'get' => array(
                         'currencies',
                         'announcement/maintenance', // System Maintenance Notice
+                        'time',
                         'instruments', // Retrieve all trading pairs information
                         'market/orderbook', // Order Book
                         'futures/position/openInterest', // Open Interest
@@ -105,7 +169,9 @@ class aax extends Exchange {
                         'market/markPrice', // Get Current Mark Price
                         'futures/funding/predictedFunding/{symbol}', // Get Predicted Funding Rate
                         'futures/funding/prevFundingRate/{symbol}', // Get Last Funding Rate
-                        'market/candles/index', // Get Current Index Candlestick
+                        'futures/funding/fundingRate',
+                        'market/candles/index', // * Deprecated
+                        'market/index/candles',
                     ),
                 ),
                 'private' => array(
@@ -113,6 +179,9 @@ class aax extends Exchange {
                         'user/info', // Retrieve user information
                         'account/balances', // Get Account Balances
                         'account/deposit/address', // undocumented
+                        'account/deposits', // Get account deposits history
+                        'account/transfer',
+                        'account/withdraws', // Get account withdrawals history
                         'spot/trades', // Retrieve trades details for a spot order
                         'spot/openOrders', // Retrieve spot open orders
                         'spot/orders', // Retrieve historical spot orders
@@ -121,6 +190,7 @@ class aax extends Exchange {
                         'futures/trades', // Retrieve trade details for a futures order
                         'futures/openOrders', // Retrieve futures open orders
                         'futures/orders', // Retrieve historical futures orders
+                        'futures/funding/fundingFee',
                         'futures/funding/predictedFundingFee/{symbol}', // Get predicted funding fee
                     ),
                     'post' => array(
@@ -254,8 +324,25 @@ class aax extends Exchange {
                     'TRX' => 'TRC20',
                     'SOL' => 'SPL',
                 ),
+                'transfer' => array(
+                    'fillFromAccountToAccount' => true,
+                    'fillAmount' => true,
+                ),
             ),
         ));
+    }
+
+    public function fetch_time($params = array ()) {
+        $response = yield $this->publicGetTime ($params);
+        //
+        //    {
+        //        "code" => 1,
+        //        "data" => 1573542445411,  // unit => millisecond
+        //        "message" => "success",
+        //        "ts" => 1573542445411
+        //    }
+        //
+        return $this->safe_integer($response, 'data');
     }
 
     public function fetch_status($params = array ()) {
@@ -278,6 +365,7 @@ class aax extends Exchange {
         $endTime = $this->parse8601($this->safe_string($data, 'endTime'));
         $update = array(
             'updated' => $this->safe_integer($response, 'ts', $timestamp),
+            'info' => $response,
         );
         if ($endTime !== null) {
             $startTimeIsOk = ($startTime === null) ? true : ($timestamp < $startTime);
@@ -370,53 +458,67 @@ class aax extends Exchange {
             $id = $this->safe_string($market, 'symbol');
             $baseId = $this->safe_string($market, 'base');
             $quoteId = $this->safe_string($market, 'quote');
+            $settleId = $this->safe_string($market, 'settleCurrency');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            $settle = $this->safe_currency_code($settleId);
             $status = $this->safe_string($market, 'status');
-            $active = ($status === 'enable');
-            $taker = $this->safe_number($market, 'takerFee');
-            $maker = $this->safe_number($market, 'makerFee');
-            $type = $this->safe_string($market, 'type');
+            $marketType = $this->safe_string($market, 'type');
             $inverse = null;
             $linear = null;
             $quanto = null;
-            $spot = ($type === 'spot');
-            $futures = ($type === 'futures');
+            $spot = ($marketType === 'spot');
+            $swap = ($marketType === 'futures');
             $settleType = $this->safe_string_lower($market, 'settleType');
             if ($settleType !== null) {
                 $inverse = ($settleType === 'inverse');
                 $linear = ($settleType === 'vanilla');
                 $quanto = ($settleType === 'quanto');
             }
-            $symbol = $id;
-            if ($type === 'spot') {
-                $symbol = $base . '/' . $quote;
+            $symbol = $base . '/' . $quote;
+            $type = 'spot';
+            $contractSize = null;
+            if ($swap) {
+                $symbol = $symbol . ':' . $settle;
+                $type = 'swap';
+                $contractSize = $this->safe_number($market, 'multiplier');
             }
-            $precision = array(
-                'amount' => $this->safe_number($market, 'lotSize'),
-                'price' => $this->safe_number($market, 'tickSize'),
-            );
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => $settle,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settleId' => $settleId,
                 'type' => $type,
                 'spot' => $spot,
-                'futures' => $futures,
-                'inverse' => $inverse,
+                'margin' => false,
+                'swap' => $swap,
+                'future' => false,
+                'option' => false,
+                'active' => ($status === 'enable'),
+                'contract' => $swap,
                 'linear' => $linear,
+                'inverse' => $inverse,
+                'taker' => $this->safe_number($market, 'takerFee'),
+                'maker' => $this->safe_number($market, 'makerFee'),
+                'contractSize' => $contractSize,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
                 'quanto' => $quanto,
-                'precision' => $precision,
-                'info' => $market,
-                'active' => $active,
-                'taker' => $taker,
-                'maker' => $maker,
-                'percentage' => false,
-                'tierBased' => true,
+                'precision' => array(
+                    'amount' => $this->safe_number($market, 'lotSize'),
+                    'price' => $this->safe_number($market, 'tickSize'),
+                ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
                         'min' => $this->safe_string($market, 'minQuantity'),
                         'max' => $this->safe_string($market, 'maxQuantity'),
@@ -430,6 +532,7 @@ class aax extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'info' => $market,
             );
         }
         return $result;
@@ -478,6 +581,8 @@ class aax extends Exchange {
             $fee = $this->safe_number($currency, 'withdrawFee');
             $visible = $this->safe_value($currency, 'visible');
             $active = ($enableWithdraw && $enableDeposit && $visible);
+            $deposit = ($enableDeposit && $visible);
+            $withdraw = ($enableWithdraw && $visible);
             $network = $this->safe_string($currency, 'network');
             $result[$code] = array(
                 'id' => $id,
@@ -486,6 +591,8 @@ class aax extends Exchange {
                 'precision' => $precision,
                 'info' => $currency,
                 'active' => $active,
+                'deposit' => $deposit,
+                'withdraw' => $withdraw,
                 'fee' => $fee,
                 'network' => $network,
                 'limits' => array(
@@ -520,15 +627,15 @@ class aax extends Exchange {
         $timestamp = $this->safe_integer($ticker, 't');
         $marketId = $this->safe_string($ticker, 's');
         $symbol = $this->safe_symbol($marketId, $market);
-        $last = $this->safe_number($ticker, 'c');
-        $open = $this->safe_number($ticker, 'o');
-        $quoteVolume = $this->safe_number($ticker, 'v');
+        $last = $this->safe_string($ticker, 'c');
+        $open = $this->safe_string($ticker, 'o');
+        $quoteVolume = $this->safe_string($ticker, 'v');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => null,
-            'high' => $this->safe_number($ticker, 'h'),
-            'low' => $this->safe_number($ticker, 'l'),
+            'high' => $this->safe_string($ticker, 'h'),
+            'low' => $this->safe_string($ticker, 'l'),
             'bid' => null,
             'bidVolume' => null,
             'ask' => null,
@@ -544,7 +651,7 @@ class aax extends Exchange {
             'baseVolume' => null,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -666,7 +773,6 @@ class aax extends Exchange {
         $id = $this->safe_string($trade, 'i', $id);
         $marketId = $this->safe_string($trade, 'symbol');
         $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
         $priceString = $this->safe_string_2($trade, 'p', 'filledPrice');
         $amountString = $this->safe_string_2($trade, 'q', 'filledQty');
         $orderId = $this->safe_string($trade, 'orderID');
@@ -690,12 +796,10 @@ class aax extends Exchange {
         $feeCost = $this->safe_string($trade, 'commission');
         if ($feeCost !== null) {
             $feeCurrency = null;
-            if ($market !== null) {
-                if ($side === 'buy') {
-                    $feeCurrency = $market['base'];
-                } else if ($side === 'sell') {
-                    $feeCurrency = $market['quote'];
-                }
+            if ($side === 'buy') {
+                $feeCurrency = $market['base'];
+            } else if ($side === 'sell') {
+                $feeCurrency = $market['quote'];
             }
             $fee = array(
                 'currency' => $feeCurrency,
@@ -707,7 +811,7 @@ class aax extends Exchange {
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => $orderType,
             'side' => $side,
             'order' => $orderId,
@@ -717,6 +821,38 @@ class aax extends Exchange {
             'cost' => null,
             'fee' => $fee,
         ), $market);
+    }
+
+    public function fetch_transfers($code = null, $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        $currency = null;
+        $request = array();
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency'] = $currency['id'];
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        $response = yield $this->privateGetAccountTransfer (array_merge($request, $params));
+        //
+        //      {
+        //          $code => '1',
+        //          data => [array(
+        //                  quantity => '0.000010000000',
+        //                  transferID => '480975741034369024',
+        //                  transferTime => '2022-03-24T13:53:07.042Z',
+        //                  fromPurse => 'VLTP',
+        //                  toPurse => 'SPTP',
+        //                  $currency => 'ETH'
+        //              ),
+        //          ],
+        //          message => 'success',
+        //          ts => '1648338516932'
+        //      }
+        //
+        $transfers = $this->safe_value($response, 'data', array());
+        return $this->parse_transfers($transfers, $currency, $since, $limit);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -764,7 +900,7 @@ class aax extends Exchange {
         );
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1h', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -850,7 +986,7 @@ class aax extends Exchange {
                 $result[$code] = $account;
             }
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -898,7 +1034,7 @@ class aax extends Exchange {
         $method = null;
         if ($market['spot']) {
             $method = 'privatePostSpotOrders';
-        } else if ($market['futures']) {
+        } else if ($market['contract']) {
             $method = 'privatePostFuturesOrders';
         }
         $response = yield $this->$method (array_merge($request, $params));
@@ -1009,7 +1145,7 @@ class aax extends Exchange {
         $method = null;
         if ($market['spot']) {
             $method = 'privatePutSpotOrders';
-        } else if ($market['futures']) {
+        } else if ($market['contract']) {
             $method = 'privatePutFuturesOrders';
         }
         $response = yield $this->$method (array_merge($request, $params));
@@ -1102,21 +1238,17 @@ class aax extends Exchange {
         $request = array(
             'orderID' => $id,
         );
-        $method = null;
-        $defaultType = $this->safe_string_2($this->options, 'cancelOrder', 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        $params = $this->omit($params, 'type');
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $type = $market['type'];
         }
-        if ($type === 'spot') {
-            $method = 'privateDeleteSpotOrdersCancelOrderID';
-        } else if ($type === 'futures') {
-            $method = 'privateDeleteFuturesOrdersCancelOrderID';
-        }
-        $response = yield $this->$method (array_merge($request, $params));
+        list($marketType, $query) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'privateDeleteSpotOrdersCancelOrderID',
+            'swap' => 'privateDeleteFuturesOrdersCancelOrderID',
+            'future' => 'privateDeleteFuturesOrdersCancelOrderID',
+        ));
+        $response = yield $this->$method (array_merge($request, $query));
         //
         // spot
         //
@@ -1212,7 +1344,7 @@ class aax extends Exchange {
         $method = null;
         if ($market['spot']) {
             $method = 'privateDeleteSpotOrdersCancelAll';
-        } else if ($market['futures']) {
+        } else if ($market['contract']) {
             $method = 'privateDeleteFuturesOrdersCancelAll';
         }
         $response = yield $this->$method (array_merge($request, $params));
@@ -1264,30 +1396,26 @@ class aax extends Exchange {
             // 'side' => 'null', // BUY, SELL
             // 'clOrdID' => $clientOrderId,
         );
-        $defaultType = $this->safe_string_2($this->options, 'fetchOpenOrders', 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        $params = $this->omit($params, 'type');
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
-            $type = $market['type'];
         }
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'privateGetSpotOpenOrders',
+            'swap' => 'privateGetFuturesOpenOrders',
+            'future' => 'privateGetFuturesOpenOrders',
+        ));
         $clientOrderId = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
         if ($clientOrderId !== null) {
             $request['clOrdID'] = $clientOrderId;
             $params = $this->omit($params, array( 'clOrdID', 'clientOrderId' ));
         }
-        $method = null;
-        if ($type === 'spot') {
-            $method = 'privateGetSpotOpenOrders';
-        } else if ($type === 'futures') {
-            $method = 'privateGetFuturesOpenOrders';
-        }
         if ($limit !== null) {
             $request['pageSize'] = $limit; // default 10
         }
-        $response = yield $this->$method (array_merge($request, $params));
+        $response = yield $this->$method (array_merge($request, $query));
         //
         // spot
         //
@@ -1416,21 +1544,17 @@ class aax extends Exchange {
             // 'side' => 'null', // BUY, SELL
             // 'clOrdID' => $clientOrderId,
         );
-        $method = null;
-        $defaultType = $this->safe_string_2($this->options, 'fetchOrders', 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        $params = $this->omit($params, 'type');
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
-            $type = $market['type'];
         }
-        if ($type === 'spot') {
-            $method = 'privateGetSpotOrders';
-        } else if ($type === 'futures') {
-            $method = 'privateGetFuturesOrders';
-        }
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchOrders', $market, $params);
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'privateGetSpotOrders',
+            'swap' => 'privateGetFuturesOrders',
+            'future' => 'privateGetFuturesOrders',
+        ));
         $clientOrderId = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
         if ($clientOrderId !== null) {
             $request['clOrdID'] = $clientOrderId;
@@ -1442,7 +1566,7 @@ class aax extends Exchange {
         if ($since !== null) {
             $request['startDate'] = $this->yyyymmdd($since);
         }
-        $response = yield $this->$method (array_merge($request, $params));
+        $response = yield $this->$method (array_merge($request, $query));
         //
         // spot
         //
@@ -1631,7 +1755,6 @@ class aax extends Exchange {
         $clientOrderId = $this->safe_string($order, 'clOrdID');
         $marketId = $this->safe_string($order, 'symbol');
         $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
         $price = $this->safe_string($order, 'price');
         $stopPrice = $this->safe_number($order, 'stopPrice');
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
@@ -1652,19 +1775,17 @@ class aax extends Exchange {
         $feeCost = $this->safe_number($order, 'commission');
         if ($feeCost !== null) {
             $feeCurrency = null;
-            if ($market !== null) {
-                if ($side === 'buy') {
-                    $feeCurrency = $market['base'];
-                } else if ($side === 'sell') {
-                    $feeCurrency = $market['quote'];
-                }
+            if ($side === 'buy') {
+                $feeCurrency = $market['base'];
+            } else if ($side === 'sell') {
+                $feeCurrency = $market['quote'];
             }
             $fee = array(
                 'currency' => $feeCurrency,
                 'cost' => $feeCost,
             );
         }
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'id' => $id,
             'info' => $order,
             'clientOrderId' => $clientOrderId,
@@ -1672,7 +1793,7 @@ class aax extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'status' => $status,
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => $type,
             'timeInForce' => $timeInForce,
             'postOnly' => $postOnly,
@@ -1703,28 +1824,24 @@ class aax extends Exchange {
             // 'orderType' => null, // MARKET, LIMIT, STOP, STOP-LIMIT
             // 'side' => 'null', // BUY, SELL
         );
-        $method = null;
-        $defaultType = $this->safe_string_2($this->options, 'fetchMyTrades', 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        $params = $this->omit($params, 'type');
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
-            $type = $market['type'];
         }
-        if ($type === 'spot') {
-            $method = 'privateGetSpotTrades';
-        } else if ($type === 'futures') {
-            $method = 'privateGetFuturesTrades';
-        }
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'privateGetSpotTrades',
+            'swap' => 'privateGetFuturesTrades',
+            'future' => 'privateGetFuturesTrades',
+        ));
         if ($limit !== null) {
             $request['pageSize'] = $limit; // default 10
         }
         if ($since !== null) {
             $request['startDate'] = $this->yyyymmdd($since);
         }
-        $response = yield $this->$method (array_merge($request, $params));
+        $response = yield $this->$method (array_merge($request, $query));
         //
         //     {
         //         "code":1,
@@ -1804,6 +1921,254 @@ class aax extends Exchange {
         return $this->parse_deposit_address($data, $currency);
     }
 
+    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        $request = array(
+            // status Not required -  Deposit status, "1 => pending,2 => confirmed, 3:failed"
+            // $currency => Not required -  String Currency
+            // $startTime Not required Integer Default => 90 days from current timestamp.
+            // endTime Not required Integer Default => present timestamp.
+        );
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency'] = $currency['id'];
+        }
+        if ($since !== null) {
+            $startTime = intval($since / 1000);
+            $request['startTime'] = $startTime;
+            $request['endTime'] = $this->sum($startTime, 90 * 24 * 60 * 60); // Only allows a 90 day window between start and end
+        }
+        $response = yield $this->privateGetAccountDeposits (array_merge($request, $params));
+        // {    "code" => 1,
+        //     "data" => [array(
+        //         "currency" => "USDT",
+        //         "network" => "USDT",
+        //         "quantity" => "19.000000000000",
+        //         "txHash" => "75eb2e5f037b025c535664c49a0f7cc8f601dae218a5f4fe82290ff652c43f3d",
+        //         "address" => "1GkB7Taf7uttcguKEb2DmmyRTnihskJ9Le",
+        //         "status" => "2",
+        //         "createdTime" => "2021-01-08T19:45:01.354Z",
+        //         "updatedTime" => "2021-01-08T20:03:05.000Z",
+        //     )]
+        //     "message" => "success",
+        //     "ts" => 1573561743499
+        // }
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_transactions($data, $code, $since, $limit);
+    }
+
+    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        $request = array(
+            // status Not required : "0 => Under Review, 1 => Manual Review, 2 => On Chain, 3 => Review Failed, 4 => On Chain, 5 => Completed, 6 => Failed"
+            // $currency => Not required -  String Currency
+            // $startTime Not required Integer Default => 30 days from current timestamp.
+            // endTime Not required Integer Default => present timestamp.
+            // Note difference between endTime and $startTime must be 90 days or less
+        );
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency'] = $currency['id'];
+        }
+        if ($since !== null) {
+            $startTime = intval($since / 1000);
+            $request['startTime'] = $startTime;
+            $request['endTime'] = $this->sum($startTime, 90 * 24 * 60 * 60); // Only allows a 90 day window between start and end
+        }
+        $response = yield $this->privateGetAccountWithdraws (array_merge($request, $params));
+        // {
+        //     "code":1,
+        //     "data" => array(
+        //       {
+        //            "currency":"USDT",
+        //            "network":"USDT",
+        //            "quantity":"19.000000000000",
+        //            "fee":"0.10000"
+        //            "txHash":"75eb2e5f037b025c535664c49a0f7cc8f601dae218a5f4fe82290ff652c43f3d",
+        //            "address":"1GkB7Taf7uttcguKEb2DmmyRTnihskJ9Le",
+        //            "addressTag" => "",
+        //            "status":"2",
+        //            "createdTime":"2021-01-08T19:45:01.354Z",
+        //            "updatedTime":"2021-01-08T20:03:05.000Z",
+        //       }
+        //  )
+        //     "message":"success",
+        //     "ts":1573561743499
+        //  }
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_transactions($data, $code, $since, $limit);
+    }
+
+    public function parse_transaction_status_by_type($status, $type = null) {
+        $statuses = array(
+            'deposit' => array(
+                '1' => 'pending',
+                '2' => 'ok',
+                '3' => 'failed',
+            ),
+            'withdrawal' => array(
+                '0' => 'pending', // under review
+                '1' => 'pending', // manual review
+                '2' => 'pending', // on chain
+                '3' => 'failed',  // failed
+                '4' => 'pending', // on chain
+                '5' => 'ok',      // completed
+                '6' => 'failed',  // failed
+            ),
+        );
+        return $this->safe_string($this->safe_value($statuses, $type, array()), $status, $status);
+    }
+
+    public function parse_address_by_type($address, $tag, $type = null) {
+        $addressFrom = null;
+        $addressTo = null;
+        $tagFrom = null;
+        $tagTo = null;
+        if ($type === 'deposit') {
+            $addressFrom = $address;
+            $tagFrom = $tag;
+        } else if ($type === 'withdrawal') {
+            $addressTo = $address;
+            $tagTo = $tag;
+        }
+        return array( $addressFrom, $tagFrom, $addressTo, $tagTo );
+    }
+
+    public function parse_transaction($transaction, $currency = null) {
+        //
+        // fetchDeposits
+        //
+        //    {
+        //         "currency" => "USDT",
+        //         "network" => "USDT",
+        //         "quantity" => "19.000000000000",
+        //         "txHash" => "75eb2e5f037b025c535664c49a0f7cc8f601dae218a5f4fe82290ff652c43f3d",
+        //         "address" => "1GkB7Taf7uttcguKEb2DmmyRTnihskJ9Le",
+        //         "status" => "2",
+        //         "createdTime" => "2021-01-08T19:45:01.354Z",
+        //         "updatedTime" => "2021-01-08T20:03:05.000Z",
+        //     }
+        //
+        // fetchWithdrawals
+        //
+        //     {
+        //         "currency":"USDT",
+        //         "network":"USDT",
+        //         "quantity":"19.000000000000",
+        //         "fee":"0.10000"
+        //         "txHash":"75eb2e5f037b025c535664c49a0f7cc8f601dae218a5f4fe82290ff652c43f3d",
+        //         "address":"1GkB7Taf7uttcguKEb2DmmyRTnihskJ9Le",
+        //         "addressTag" => "",
+        //         "status":"2",
+        //         "createdTime":"2021-01-08T19:45:01.354Z",
+        //         "updatedTime":"2021-01-08T20:03:05.000Z",
+        //      }
+        //
+        $fee = $this->safe_string($transaction, 'fee');
+        $type = 'withdrawal';
+        if ($fee === null) {
+            $type = 'deposit';
+        }
+        $code = $this->safe_currency_code($this->safe_string($transaction, 'currency'));
+        $txid = $this->safe_string($transaction, 'txHash');
+        $address = $this->safe_string($transaction, 'address');
+        $tag = $this->safe_string($transaction, 'addressTag'); // withdrawals only
+        list($addressFrom, $tagFrom, $addressTo, $tagTo) = $this->parse_address_by_type($address, $tag, $type);
+        $amountString = $this->safe_string($transaction, 'quantity');
+        $timestamp = $this->parse8601($this->safe_string($transaction, 'createdTime'));
+        $updated = $this->parse8601($this->safe_string($transaction, 'updatedTime'));
+        $status = $this->parse_transaction_status_by_type($this->safe_string($transaction, 'status'), $type);
+        $network = $this->safe_string($transaction, 'network');
+        return array(
+            'id' => null,
+            'info' => $transaction,
+            'txid' => $txid,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'network' => $network,
+            'addressFrom' => $addressFrom,
+            'address' => $address,
+            'addressTo' => $addressTo,
+            'amount' => $this->parse_number($amountString),
+            'type' => $type,
+            'currency' => $code,
+            'status' => $status,
+            'updated' => $updated,
+            'tagFrom' => $tagFrom,
+            'tag' => $tag,
+            'tagTo' => $tagTo,
+            'comment' => null,
+            'fee' => $fee,
+        );
+    }
+
+    public function fetch_funding_rate($symbol, $params = array ()) {
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['swap']) {
+            throw new BadRequest('Funding rates only exist for swap contracts');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = yield $this->publicGetFuturesFundingPrevFundingRateSymbol (array_merge($request, $params));
+        //
+        //    {
+        //        "code" => 1,
+        //        "data" => array(
+        //           "symbol" => "BTCUSDFP",
+        //           "markPrice" => "11192.5",
+        //           "fundingRate" => "0.001",
+        //           "fundingTime" => "2020-08-12T08:00:00Z",
+        //           "nextFundingTime" => "2020-08-12T16:00:00Z"
+        //        ),
+        //        "message" => "success",
+        //        "ts" => 1573542445411
+        //    }
+        //
+        $data = $this->safe_value($response, 'data');
+        return $this->parse_funding_rate($data);
+    }
+
+    public function parse_funding_rate($contract, $market = null) {
+        //
+        //    {
+        //        "symbol" => "BTCUSDFP",
+        //        "markPrice" => "11192.5",
+        //        "fundingRate" => "0.001",
+        //        "fundingTime" => "2020-08-12T08:00:00Z",
+        //        "nextFundingTime" => "2020-08-12T16:00:00Z"
+        //    }
+        //
+        $marketId = $this->safe_string($contract, 'symbol');
+        $symbol = $this->safe_symbol($marketId, $market);
+        $markPrice = $this->safe_number($contract, 'markPrice');
+        $fundingRate = $this->safe_number($contract, 'fundingRate');
+        $fundingDatetime = $this->safe_string($contract, 'fundingTime');
+        $nextFundingDatetime = $this->safe_string($contract, 'nextFundingTime');
+        return array(
+            'info' => $contract,
+            'symbol' => $symbol,
+            'markPrice' => $markPrice,
+            'indexPrice' => null,
+            'interestRate' => null,
+            'estimatedSettlePrice' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'fundingRate' => $fundingRate,
+            'fundingTimestamp' => $this->parse8601($fundingDatetime),
+            'fundingDatetime' => $fundingDatetime,
+            'nextFundingRate' => null,
+            'nextFundingTimestamp' => $this->parse8601($nextFundingDatetime),
+            'nextFundingDatetime' => $nextFundingDatetime,
+            'previousFundingRate' => null,
+            'previousFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
+        );
+    }
+
     public function parse_deposit_address($depositAddress, $currency = null) {
         //
         //     {
@@ -1828,6 +2193,522 @@ class aax extends Exchange {
             'tag' => $tag,
             'network' => $network,
         );
+    }
+
+    public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+        }
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        if ($since !== null) {
+            $request['startTime'] = intval($since / 1000);
+        }
+        $till = $this->safe_integer($params, 'till'); // unified in milliseconds
+        $endTime = $this->safe_string($params, 'endTime'); // exchange-specific in seconds
+        $params = $this->omit($params, array( 'endTime', 'till' ));
+        if ($till !== null) {
+            $request['endTime'] = intval($till / 1000);
+        } else if ($endTime !== null) {
+            $request['endTime'] = $endTime;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = yield $this->publicGetFuturesFundingFundingRate (array_merge($request, $params));
+        //
+        //    {
+        //        "code" => 1,
+        //        "data" => array(
+        //            array(
+        //                "fundingRate" => "0.00033992",
+        //                "fundingTime" => "2021-12-31T00:00:00.000Z",
+        //                "symbol" => "ETHUSDTFP"
+        //            ),
+        //        )
+        //    }
+        //
+        $data = $this->safe_value($response, 'data');
+        $rates = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $entry = $data[$i];
+            $marketId = $this->safe_string($entry, 'symbol');
+            $symbol = $this->safe_symbol($marketId);
+            $datetime = $this->safe_string($entry, 'fundingTime');
+            $rates[] = array(
+                'info' => $entry,
+                'symbol' => $symbol,
+                'fundingRate' => $this->safe_number($entry, 'fundingRate'),
+                'timestamp' => $this->parse8601($datetime),
+                'datetime' => $datetime,
+            );
+        }
+        $sorted = $this->sort_by($rates, 'timestamp');
+        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
+    }
+
+    public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires a $symbol argument');
+        }
+        if ($limit === null) {
+            $limit = 100; // Default
+        } else if ($limit > 1000) {
+            throw new BadRequest($this->id . ' fetchFundingHistory() $limit argument cannot exceed 1000');
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+            'limit' => $limit,
+        );
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        $response = yield $this->privateGetFuturesFundingFundingFee (array_merge($request, $params));
+        //
+        //    {
+        //        "code" => 1,
+        //        "data" => array(
+        //            {
+        //                "symbol" => "BTCUSDTFP",
+        //                "fundingRate":"0.001",
+        //                "fundingFee":"100",
+        //                "currency":"USDT",
+        //                "fundingTime" => "2020-08-12T08:00:00Z",
+        //                "markPrice" => "11192.5",
+        //            }
+        //        ),
+        //        "message" => "success",
+        //        "ts" => 1573542445411
+        //    }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $result = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $entry = $data[$i];
+            $datetime = $this->safe_string($entry, 'fundingTime');
+            $result[] = array(
+                'info' => $entry,
+                'symbol' => $symbol,
+                'code' => $this->safe_currency_code($this->safe_string($entry, 'currency')),
+                'timestamp' => $this->parse8601($datetime),
+                'datetime' => $datetime,
+                'id' => null,
+                'amount' => $this->safe_number($entry, 'fundingFee'),
+            );
+        }
+        return $result;
+    }
+
+    public function set_leverage($leverage, $symbol = null, $params = array ()) {
+        yield $this->load_markets();
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+        }
+        if (($leverage < 1) || ($leverage > 100)) {
+            throw new BadRequest($this->id . ' $leverage should be between 1 and 100');
+        }
+        $market = $this->market($symbol);
+        if ($market['type'] !== 'swap') {
+            throw new BadSymbol($this->id . ' setLeverage() supports swap contracts only');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+            'leverage' => $leverage,
+        );
+        return yield $this->privatePostFuturesPositionLeverage (array_merge($request, $params));
+    }
+
+    public function fetch_leverage_tiers($symbols = null, $params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->publicGetInstruments ($params);
+        //
+        //     {
+        //         "code":1,
+        //         "message":"success",
+        //         "ts":1610159448962,
+        //         "data":array(
+        //             array(
+        //                 "tickSize":"0.01",
+        //                 "lotSize":"1",
+        //                 "base":"BTC",
+        //                 "quote":"USDT",
+        //                 "minQuantity":"1.0000000000",
+        //                 "maxQuantity":"30000",
+        //                 "minPrice":"0.0100000000",
+        //                 "maxPrice":"999999.0000000000",
+        //                 "status":"readOnly",
+        //                 "symbol":"BTCUSDTFP",
+        //                 "code":"FP",
+        //                 "takerFee":"0.00040",
+        //                 "makerFee":"0.00020",
+        //                 "multiplier":"0.001000000000",
+        //                 "mmRate":"0.00500",
+        //                 "imRate":"0.01000",
+        //                 "type":"futures",
+        //                 "settleType":"Vanilla",
+        //                 "settleCurrency":"USDT"
+        //             ),
+        //             ...
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'data');
+        return $this->parse_leverage_tiers($data, $symbols, 'symbol');
+    }
+
+    public function parse_market_leverage_tiers($info, $market) {
+        /**
+         * @param {dict} $info Exchange $market response
+         * @param {dict} $market CCXT Market
+         */
+        //
+        //    {
+        //        "tickSize":"0.01",
+        //        "lotSize":"1",
+        //        "base":"BTC",
+        //        "quote":"USDT",
+        //        "minQuantity":"1.0000000000",
+        //        "maxQuantity":"30000",
+        //        "minPrice":"0.0100000000",
+        //        "maxPrice":"999999.0000000000",
+        //        "status":"readOnly",
+        //        "symbol":"BTCUSDTFP",
+        //        "code":"FP",
+        //        "takerFee":"0.00040",
+        //        "makerFee":"0.00020",
+        //        "multiplier":"0.001000000000",
+        //        "mmRate":"0.00500",
+        //        "imRate":"0.01000",
+        //        "type":"futures",
+        //        "settleType":"Vanilla",
+        //        "settleCurrency":"USDT"
+        //    }
+        //
+        $maintenanceMarginRate = $this->safe_string($info, 'mmRate');
+        $initialMarginRate = $this->safe_string($info, 'imRate');
+        $maxVol = $this->safe_string($info, 'maxQuantity');
+        $riskIncrVol = $maxVol; // TODO
+        $riskIncrMmr = '0.0'; // TODO
+        $riskIncrImr = '0.0'; // TODO
+        $floor = '0';
+        $tiers = array();
+        while (Precise::string_lt($floor, $maxVol)) {
+            $cap = Precise::string_add($floor, $riskIncrVol);
+            $tiers[] = array(
+                'tier' => $this->parse_number(Precise::string_div($cap, $riskIncrVol)),
+                'currency' => $market['base'],
+                'notionalFloor' => $this->parse_number($floor),
+                'notionalCap' => $this->parse_number($cap),
+                'maintenanceMarginRate' => $this->parse_number($maintenanceMarginRate),
+                'maxLeverage' => $this->parse_number(Precise::string_div('1', $initialMarginRate)),
+                'info' => $info,
+            );
+            $maintenanceMarginRate = Precise::string_add($maintenanceMarginRate, $riskIncrMmr);
+            $initialMarginRate = Precise::string_add($initialMarginRate, $riskIncrImr);
+            $floor = $cap;
+        }
+        return $tiers;
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //     array(
+        //          quantity => '0.000010000000',
+        //          transferID => '480975741034369024',
+        //          transferTime => '2022-03-24T13:53:07.042Z',
+        //          fromPurse => 'VLTP',
+        //          toPurse => 'SPTP',
+        //          $currency => 'ETH'
+        //     ),
+        $id = $this->safe_string($transfer, 'transferID');
+        $amount = $this->safe_number($transfer, 'quantity');
+        $timestamp = $this->parse8601($this->safe_string($transfer, 'transferTime'));
+        $accounts = $this->safe_value($this->options, 'accounts', array());
+        $fromId = $this->safe_string($transfer, 'fromPurse');
+        $toId = $this->safe_string($transfer, 'toPurse');
+        $fromAccount = $this->safe_string($accounts, $fromId);
+        $toAccount = $this->safe_string($accounts, $toId);
+        $currencyId = $this->safe_string($transfer, 'currency');
+        $currencyCode = $this->safe_currency_code($currencyId, $currency);
+        return array(
+            'info' => $transfer,
+            'id' => $id,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'currency' => $currencyCode,
+            'amount' => $amount,
+            'fromAccount' => $fromAccount,
+            'toAccount' => $toAccount,
+            'status' => null,
+        );
+    }
+
+    public function parse_transfer_status($status) {
+        $statuses = array(
+            '1' => 'ok',
+        );
+        return $this->safe_string($statuses, $status, 'canceled');
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        yield $this->load_markets();
+        $currency = $this->currency($code);
+        $accountTypes = $this->safe_value($this->options, 'types', array());
+        $fromId = $this->safe_string($accountTypes, $fromAccount);
+        $toId = $this->safe_string($accountTypes, $toAccount);
+        if ($fromId === null) {
+            $keys = is_array($accountTypes) ? array_keys($accountTypes) : array();
+            throw new ExchangeError($this->id . ' $fromAccount must be one of ' . implode(', ', $keys));
+        }
+        if ($toId === null) {
+            $keys = is_array($accountTypes) ? array_keys($accountTypes) : array();
+            throw new ExchangeError($this->id . ' $toAccount must be one of ' . implode(', ', $keys));
+        }
+        $request = array(
+            'currency' => $currency['id'],
+            'fromPurse' => $fromId,
+            'toPurse' => $toId,
+            'quantity' => $amount,
+        );
+        $response = yield $this->privatePostAccountTransfer (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 1,
+        //         "data" => array(
+        //             "transferID" => 888561,
+        //             "transferTime" => "2022-03-22T15:29:05.197Z"
+        //         ),
+        //         "message" => "success",
+        //         "ts" => 1647962945151
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $transfer = $this->parse_transfer($data, $currency);
+        $transferOptions = $this->safe_value($this->options, 'transfer', array());
+        $fillFromAccountToAccount = $this->safe_value($transferOptions, 'fillFromAccountToAccount', true);
+        $fillAmount = $this->safe_value($transferOptions, 'fillAmount', true);
+        if ($fillFromAccountToAccount) {
+            if ($transfer['fromAccount'] === null) {
+                $transfer['fromAccount'] = $fromAccount;
+            }
+            if ($transfer['toAccount'] === null) {
+                $transfer['toAccount'] = $toAccount;
+            }
+        }
+        if ($fillAmount && $transfer['amount'] === null) {
+            $transfer['amount'] = $amount;
+        }
+        $transfer['status'] = $this->parse_transfer_status($this->safe_string($response, 'code'));
+        return $transfer;
+    }
+
+    public function parse_position($position, $market = null) {
+        //
+        //    {
+        //        "autoMarginCall" => false,
+        //        "avgEntryPrice" => "3706.03",
+        //        "bankruptPrice" => "2963.3415880000",
+        //        "base" => "ETH",
+        //        "code" => "FP",
+        //        "commission" => "0.02964824",
+        //        "currentQty" => "2",
+        //        "funding" => "-0.04827355",
+        //        "fundingStatus" => null,
+        //        "id" => "385839395735639395",
+        //        "leverage" => "5",
+        //        "liquidationPrice" => "2983.07",
+        //        "marketPrice" => "3731.84",
+        //        "openTime" => "2021-12-31T18:57:25.930Z",
+        //        "posLeverage" => "5.00",
+        //        "posMargin" => "14.85376824",
+        //        "quote" => "USDT",
+        //        "realisedPnl" => "-0.07792179",
+        //        "riskLimit" => "10000000",
+        //        "riskyPrice" => "3272.25",
+        //        "settleType" => "VANILLA",
+        //        "stopLossPrice" => "0",
+        //        "stopLossSource" => 1,
+        //        "symbol" => "ETHUSDTFP",
+        //        "takeProfitPrice" => "0",
+        //        "takeProfitSource" => 1,
+        //        "unrealisedPnl" => "0.51620000",
+        //        "userID" => "3829384",
+        //        "ts" => 1641027194500
+        //    }
+        //
+        $contract = $this->safe_string($position, 'symbol');
+        $market = $this->safe_market($contract, $market);
+        $size = $this->safe_string($position, 'currentQty');
+        $side = null;
+        if (Precise::string_gt($size, '0')) {
+            $side = 'long';
+        } else if (Precise::string_lt($size, '0')) {
+            $side = 'short';
+        }
+        $leverage = $this->safe_string($position, 'leverage');
+        $unrealisedPnl = $this->safe_string($position, 'unrealisedPnl');
+        $currentQty = $this->safe_string($position, 'currentQty');
+        $contractSize = $this->safe_string($market, 'contractSize');
+        $initialQuote = Precise::string_mul($currentQty, $contractSize);
+        $marketPrice = $this->safe_string($position, 'marketPrice');
+        $notional = Precise::string_mul($initialQuote, $marketPrice);
+        $timestamp = $this->safe_integer($position, 'ts');
+        $liquidationPrice = $this->safe_string($position, 'liquidationPrice');
+        return array(
+            'info' => $position,
+            'symbol' => $this->safe_string($market, 'symbol'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'initialMargin' => null,
+            'initialMarginPercentage' => null,
+            'maintenanceMargin' => null,
+            'maintenanceMarginPercentage' => null,
+            'entryPrice' => $this->safe_number($position, 'avgEntryPrice'),
+            'notional' => $this->parse_number($notional),
+            'leverage' => $this->parse_number($leverage),
+            'unrealizedPnl' => $this->parse_number($unrealisedPnl),
+            'contracts' => $this->parse_number($size),
+            'contractSize' => $this->parse_number($contractSize),
+            'marginRatio' => null,
+            'liquidationPrice' => $liquidationPrice,
+            'markPrice' => $this->safe_number($position, 'marketPrice'),
+            'collateral' => $this->safe_number($position, 'posMargin'),
+            'marginType' => $this->safe_string($position, 'settleType'),
+            'side' => $side,
+            'percentage' => null,
+        );
+    }
+
+    public function fetch_position($symbol = null, $params = array ()) {
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = yield $this->privateGetFuturesPosition (array_merge($request, $params));
+        //
+        //    {
+        //        "code" => 1,
+        //        "data" => array(
+        //            {
+        //                "autoMarginCall" => false,
+        //                "avgEntryPrice" => "3706.03",
+        //                "bankruptPrice" => "2963.3415880000",
+        //                "base" => "ETH",
+        //                "code" => "FP",
+        //                "commission" => "0.02964824",
+        //                "currentQty" => "2",
+        //                "funding" => "-0.04827355",
+        //                "fundingStatus" => null,
+        //                "id" => "385839395735639395",
+        //                "leverage" => "5",
+        //                "liquidationPrice" => "2983.07",
+        //                "marketPrice" => "3731.84",
+        //                "openTime" => "2021-12-31T18:57:25.930Z",
+        //                "posLeverage" => "5.00",
+        //                "posMargin" => "14.85376824",
+        //                "quote" => "USDT",
+        //                "realisedPnl" => "-0.07792179",
+        //                "riskLimit" => "10000000",
+        //                "riskyPrice" => "3272.25",
+        //                "settleType" => "VANILLA",
+        //                "stopLossPrice" => "0",
+        //                "stopLossSource" => 1,
+        //                "symbol" => "ETHUSDTFP",
+        //                "takeProfitPrice" => "0",
+        //                "takeProfitSource" => 1,
+        //                "unrealisedPnl" => "0.51620000",
+        //                "userID" => "3829384"
+        //            }
+        //            ...
+        //        ),
+        //        "message" => "success",
+        //        "ts" => 1641026778068
+        //    }
+        //
+        $positions = $this->safe_value($response, 'data', array());
+        $timestamp = $this->safe_integer($response, 'ts');
+        $first = $this->safe_value($positions, 0);
+        $position = $this->parse_position($first);
+        return array_merge($position, array(
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        ));
+    }
+
+    public function fetch_positions($symbols = null, $params = array ()) {
+        yield $this->load_markets();
+        $request = array();
+        if ($symbols !== null) {
+            $symbol = null;
+            if (gettype($symbols) === 'array' && count(array_filter(array_keys($symbols), 'is_string')) == 0) {
+                $symbolsLength = is_array($symbols) ? count($symbols) : 0;
+                if ($symbolsLength > 1) {
+                    throw new BadRequest($this->id . ' fetchPositions $symbols argument cannot contain more than 1 symbol');
+                }
+                $symbol = $symbols[0];
+            } else {
+                $symbol = $symbols;
+            }
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        $response = yield $this->privateGetFuturesPosition (array_merge($request, $params));
+        //
+        //    {
+        //        "code" => 1,
+        //        "data" => array(
+        //            {
+        //                "autoMarginCall" => false,
+        //                "avgEntryPrice" => "3706.03",
+        //                "bankruptPrice" => "2963.3415880000",
+        //                "base" => "ETH",
+        //                "code" => "FP",
+        //                "commission" => "0.02964824",
+        //                "currentQty" => "2",
+        //                "funding" => "-0.04827355",
+        //                "fundingStatus" => null,
+        //                "id" => "385839395735639395",
+        //                "leverage" => "5",
+        //                "liquidationPrice" => "2983.07",
+        //                "marketPrice" => "3731.84",
+        //                "openTime" => "2021-12-31T18:57:25.930Z",
+        //                "posLeverage" => "5.00",
+        //                "posMargin" => "14.85376824",
+        //                "quote" => "USDT",
+        //                "realisedPnl" => "-0.07792179",
+        //                "riskLimit" => "10000000",
+        //                "riskyPrice" => "3272.25",
+        //                "settleType" => "VANILLA",
+        //                "stopLossPrice" => "0",
+        //                "stopLossSource" => 1,
+        //                "symbol" => "ETHUSDTFP",
+        //                "takeProfitPrice" => "0",
+        //                "takeProfitSource" => 1,
+        //                "unrealisedPnl" => "0.51620000",
+        //                "userID" => "3829384"
+        //            }
+        //            ...
+        //        ),
+        //        "message" => "success",
+        //        "ts" => 1641026778068
+        //    }
+        //
+        $result = array();
+        $positions = $this->safe_value($response, 'data', array());
+        $timestamp = $this->safe_integer($response, 'ts');
+        for ($i = 0; $i < count($positions); $i++) {
+            $position = $this->parse_position($positions[$i]);
+            $result[] = array_merge($position, array(
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+            ));
+        }
+        return $this->filter_by_array($result, 'symbol', $symbols, false);
     }
 
     public function nonce() {

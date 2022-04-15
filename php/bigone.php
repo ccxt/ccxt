@@ -19,6 +19,12 @@ class bigone extends Exchange {
             'version' => 'v3',
             'rateLimit' => 1200, // 500 request per 10 minutes
             'has' => array(
+                'CORS' => null,
+                'spot' => true,
+                'margin' => null, // has but unimplemented
+                'swap' => null, // has but unimplemented
+                'future' => null, // has but unimplemented
+                'option' => null,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
@@ -37,6 +43,8 @@ class bigone extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => false,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
             ),
@@ -116,7 +124,7 @@ class bigone extends Exchange {
                     "Price mulit with amount should larger than AssetPair's min_quote_value" => '\\ccxt\\InvalidOrder',
                     '10007' => '\\ccxt\\BadRequest', // parameter error, array("code":10007,"message":"Amount's scale must greater than AssetPair's base scale")
                     '10011' => '\\ccxt\\ExchangeError', // system error
-                    '10013' => '\\ccxt\\OrderNotFound', // array("code":10013,"message":"Resource not found")
+                    '10013' => '\\ccxt\\BadSymbol', // array("code":10013,"message":"Resource not found")
                     '10014' => '\\ccxt\\InsufficientFunds', // array("code":10014,"message":"Insufficient funds")
                     '10403' => '\\ccxt\\PermissionDenied', // permission denied
                     '10429' => '\\ccxt\\RateLimitExceeded', // too many requests
@@ -139,6 +147,7 @@ class bigone extends Exchange {
             'commonCurrencies' => array(
                 'CRE' => 'Cybereits',
                 'FXT' => 'FXTTOKEN',
+                'FREE' => 'FreeRossDAO',
                 'MBN' => 'Mobilian Coin',
                 'ONE' => 'BigONE Token',
             ),
@@ -167,6 +176,7 @@ class bigone extends Exchange {
         //                 ),
         //                 "base_scale":3,
         //                 "min_quote_value":"0.0001",
+        //                 "max_quote_value":"35"
         //             ),
         //         )
         //     }
@@ -183,40 +193,51 @@ class bigone extends Exchange {
             $quoteId = $this->safe_string($quoteAsset, 'symbol');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
-            $amountPrecisionString = $this->safe_string($market, 'base_scale');
-            $pricePrecisionString = $this->safe_string($market, 'quote_scale');
-            $amountLimit = $this->parse_precision($amountPrecisionString);
-            $priceLimit = $this->parse_precision($pricePrecisionString);
-            $precision = array(
-                'amount' => intval($amountPrecisionString),
-                'price' => intval($pricePrecisionString),
-            );
-            $minCost = $this->safe_number($market, 'min_quote_value');
             $entry = array(
                 'id' => $id,
                 'uuid' => $uuid,
-                'symbol' => $symbol,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
                 'active' => true,
-                'precision' => $precision,
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => $this->safe_integer($market, 'base_scale'),
+                    'price' => $this->safe_integer($market, 'quote_scale'),
+                ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
-                        'min' => $this->parse_number($amountLimit),
+                        'min' => null,
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => $this->parse_number($priceLimit),
+                        'min' => null,
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => $minCost,
-                        'max' => null,
+                        'min' => $this->safe_number($market, 'min_quote_value'),
+                        'max' => $this->safe_number($market, 'max_quote_value'),
                     ),
                 ),
                 'info' => $market,
@@ -259,31 +280,31 @@ class bigone extends Exchange {
         $marketId = $this->safe_string($ticker, 'asset_pair_name');
         $symbol = $this->safe_symbol($marketId, $market, '-');
         $timestamp = null;
-        $close = $this->safe_number($ticker, 'close');
+        $close = $this->safe_string($ticker, 'close');
         $bid = $this->safe_value($ticker, 'bid', array());
         $ask = $this->safe_value($ticker, 'ask', array());
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($bid, 'price'),
-            'bidVolume' => $this->safe_number($bid, 'quantity'),
-            'ask' => $this->safe_number($ask, 'price'),
-            'askVolume' => $this->safe_number($ask, 'quantity'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($bid, 'price'),
+            'bidVolume' => $this->safe_string($bid, 'quantity'),
+            'ask' => $this->safe_string($ask, 'price'),
+            'askVolume' => $this->safe_string($ask, 'quantity'),
             'vwap' => null,
-            'open' => $this->safe_number($ticker, 'open'),
+            'open' => $this->safe_string($ticker, 'open'),
             'close' => $close,
             'last' => $close,
             'previousClose' => null,
-            'change' => $this->safe_number($ticker, 'daily_change'),
+            'change' => $this->safe_string($ticker, 'daily_change'),
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_number($ticker, 'volume'),
+            'baseVolume' => $this->safe_string($ticker, 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -448,7 +469,7 @@ class bigone extends Exchange {
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
         $marketId = $this->safe_string($trade, 'asset_pair_name');
-        $symbol = $this->safe_symbol($marketId, $market, '-');
+        $market = $this->safe_market($marketId, $market, '-');
         $side = $this->safe_string($trade, 'side');
         $takerSide = $this->safe_string($trade, 'taker_side');
         $takerOrMaker = null;
@@ -483,7 +504,7 @@ class bigone extends Exchange {
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'order' => $orderId,
             'type' => 'limit',
             'side' => $side,
@@ -495,7 +516,7 @@ class bigone extends Exchange {
         );
         $makerCurrencyCode = null;
         $takerCurrencyCode = null;
-        if (($market !== null) && ($takerOrMaker !== null)) {
+        if ($takerOrMaker !== null) {
             if ($side === 'buy') {
                 if ($takerOrMaker === 'maker') {
                     $makerCurrencyCode = $market['base'];
@@ -639,6 +660,25 @@ class bigone extends Exchange {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
+    public function parse_balance($response) {
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
+        $balances = $this->safe_value($response, 'data', array());
+        for ($i = 0; $i < count($balances); $i++) {
+            $balance = $balances[$i];
+            $symbol = $this->safe_string($balance, 'asset_symbol');
+            $code = $this->safe_currency_code($symbol);
+            $account = $this->account();
+            $account['total'] = $this->safe_string($balance, 'balance');
+            $account['used'] = $this->safe_string($balance, 'locked_balance');
+            $result[$code] = $account;
+        }
+        return $this->safe_balance($result);
+    }
+
     public function fetch_balance($params = array ()) {
         $this->load_markets();
         $type = $this->safe_string($params, 'type', '');
@@ -655,22 +695,7 @@ class bigone extends Exchange {
         //         ),
         //     }
         //
-        $result = array(
-            'info' => $response,
-            'timestamp' => null,
-            'datetime' => null,
-        );
-        $balances = $this->safe_value($response, 'data', array());
-        for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
-            $symbol = $this->safe_string($balance, 'asset_symbol');
-            $code = $this->safe_currency_code($symbol);
-            $account = $this->account();
-            $account['total'] = $this->safe_string($balance, 'balance');
-            $account['used'] = $this->safe_string($balance, 'locked_balance');
-            $result[$code] = $account;
-        }
-        return $this->parse_balance($result);
+        return $this->parse_balance($response);
     }
 
     public function parse_order($order, $market = null) {
@@ -704,7 +729,7 @@ class bigone extends Exchange {
             $side = 'sell';
         }
         $lastTradeTimestamp = $this->parse8601($this->safe_string($order, 'updated_at'));
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -1010,7 +1035,7 @@ class bigone extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $dataLength = is_array($data) ? count($data) : 0;
         if ($dataLength < 1) {
-            throw new ExchangeError($this->id . 'fetchDepositAddress() returned empty $address response');
+            throw new ExchangeError($this->id . ' fetchDepositAddress() returned empty $address response');
         }
         $firstElement = $data[0];
         $address = $this->safe_string($firstElement, 'value');
@@ -1106,6 +1131,7 @@ class bigone extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => null,
             'addressFrom' => null,
             'address' => null,
             'addressTo' => $address,

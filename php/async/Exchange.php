@@ -28,11 +28,12 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.64.24';
+$version = '1.79.17';
 
-class Exchange extends \ccxt\Exchange {
+class Exchange extends \ccxt\Exchange
+{
 
-    const VERSION = '1.64.24';
+    const VERSION = '1.79.17';
 
     public static $loop;
     public static $kernel;
@@ -42,24 +43,28 @@ class Exchange extends \ccxt\Exchange {
     public $tokenBucket;
     public $throttle;
 
-    public static function get_loop() {
+    public static function get_loop()
+    {
         return React\EventLoop\Loop::get();
     }
 
-    public static function get_kernel() {
+    public static function get_kernel()
+    {
         if (!static::$kernel) {
             static::$kernel = Recoil\React\ReactKernel::create(static::get_loop());
         }
         return static::$kernel;
     }
 
-    public static function execute_and_run($arg) {
+    public static function execute_and_run($arg)
+    {
         $kernel = static::get_kernel();
         $kernel->execute($arg);
         $kernel->run();
     }
 
-    public function __construct($options = array()) {
+    public function __construct($options = array())
+    {
         if (!class_exists('React\\EventLoop\\Factory')) {
             throw new ccxt\NotSupported("React is not installed\n\ncomposer require --ignore-platform-reqs react/http:\"^1.4.0\"\n\n");
         }
@@ -98,7 +103,8 @@ class Exchange extends \ccxt\Exchange {
         $this->throttle = new Throttle($this->tokenBucket, static::$kernel);
     }
 
-    public function fetch($url, $method = 'GET', $headers = null, $body = null) {
+    public function fetch($url, $method = 'GET', $headers = null, $body = null)
+    {
 
         $headers = array_merge($this->headers, $headers ? $headers : array());
         if (!$headers) {
@@ -180,7 +186,8 @@ class Exchange extends \ccxt\Exchange {
         return isset($json_response) ? $json_response : $response_body;
     }
 
-    public function fetch2($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null, $config = array(), $context = array()) {
+    public function fetch2($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null, $config = array(), $context = array())
+    {
         if ($this->enableRateLimit) {
             $cost = $this->calculate_rate_limiter_cost($api, $method, $path, $params, $config, $context);
             yield call_user_func($this->throttle, $cost);
@@ -189,27 +196,36 @@ class Exchange extends \ccxt\Exchange {
         return yield $this->fetch($request['url'], $request['method'], $request['headers'], $request['body']);
     }
 
-    public function load_markets_helper($reload = false, $params = array()) {
+    public function fetch_permissions($params = array())
+    {
+        throw new NotSupported($this->id . ' fetch_permissions() not supported yet');
+    }
+
+
+    public function load_markets_helper($reload = false, $params = array())
+    {
         // copied from js
         if (!$reload && $this->markets) {
             if (!$this->markets_by_id) {
-                return $this->set_markets ($this->markets);
+                return $this->set_markets($this->markets);
             }
             return $this->markets;
         }
         $currencies = null;
         if (array_key_exists('fetchCurrencies', $this->has) && $this->has['fetchCurrencies'] === true) {
-            $currencies = yield $this->fetch_currencies ();
+            $currencies = yield $this->fetch_currencies();
         }
-        $markets = yield $this->fetch_markets ($params);
-        return $this->set_markets ($markets, $currencies);
+        $markets = yield $this->fetch_markets($params);
+        return $this->set_markets($markets, $currencies);
     }
 
-    public function loadMarkets($reload = false, $params = array()) {
+    public function loadMarkets($reload = false, $params = array())
+    {
         return yield $this->load_markets($reload, $params);
     }
 
-    public function load_markets($reload = false, $params = array()) {
+    public function load_markets($reload = false, $params = array())
+    {
         if (($reload && !$this->reloadingMarkets) || !$this->marketsLoading) {
             $this->reloadingMarkets = true;
             $this->marketsLoading = static::$kernel->execute($this->load_markets_helper($reload, $params))->promise()->then(function ($resolved) {
@@ -223,11 +239,13 @@ class Exchange extends \ccxt\Exchange {
         return $this->marketsLoading;
     }
 
-    public function loadAccounts($reload = false, $params = array()) {
+    public function loadAccounts($reload = false, $params = array())
+    {
         return yield $this->load_accounts($reload, $params);
     }
 
-    public function load_accounts($reload = false, $params = array()) {
+    public function load_accounts($reload = false, $params = array())
+    {
         if ($reload) {
             $this->accounts = yield $this->fetch_accounts($params);
         } else {
@@ -242,7 +260,8 @@ class Exchange extends \ccxt\Exchange {
         return $this->accounts;
     }
 
-    public function fetch_l2_order_book($symbol, $limit = null, $params = array()) {
+    public function fetch_l2_order_book($symbol, $limit = null, $params = array())
+    {
         $orderbook = yield $this->fetch_order_book($symbol, $limit, $params);
         return array_merge($orderbook, array(
             'bids' => $this->sort_by($this->aggregate($orderbook['bids']), 0, true),
@@ -250,12 +269,14 @@ class Exchange extends \ccxt\Exchange {
         ));
     }
 
-    public function fetch_partial_balance($part, $params = array()) {
+    public function fetch_partial_balance($part, $params = array())
+    {
         $balance = yield $this->fetch_balance($params);
         return $balance[$part];
     }
 
-    public function load_trading_limits($symbols = null, $reload = false, $params = array()) {
+    public function load_trading_limits($symbols = null, $reload = false, $params = array())
+    {
         yield;
         if ($this->has['fetchTradingLimits']) {
             if ($reload || !(is_array($this->options) && array_key_exists('limitsLoaded', $this->options))) {
@@ -272,16 +293,18 @@ class Exchange extends \ccxt\Exchange {
         return $this->markets;
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array())
+    {
         if (!$this->has['fetchTrades']) {
-            throw new NotSupported($this->$id . ' fetch_ohlcv() not supported yet');
+            throw new NotSupported($this->id . ' fetch_ohlcv() not supported yet');
         }
         yield $this->load_markets();
         $trades = yield $this->fetch_trades($symbol, $since, $limit, $params);
         return $this->build_ohlcv($trades, $timeframe, $since, $limit);
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array())
+    {
         if ($this->has['fetchTime']) {
             $time = yield $this->fetch_time($params);
             $this->status = array_merge($this->status, array(
@@ -291,7 +314,8 @@ class Exchange extends \ccxt\Exchange {
         return $this->status;
     }
 
-    public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array()) {
+    public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array())
+    {
         if (!$this->enableRateLimit) {
             throw new ExchangeError($this->id . ' edit_order() requires enableRateLimit = true');
         }
@@ -299,7 +323,8 @@ class Exchange extends \ccxt\Exchange {
         return yield $this->create_order($symbol, $type, $side, $amount, $price, $params);
     }
 
-    public function fetch_deposit_address($code, $params = array()) {
+    public function fetch_deposit_address($code, $params = array())
+    {
         if ($this->has['fetchDepositAddresses']) {
             $deposit_addresses = yield $this->fetch_deposit_addresses(array($code), $params);
             $deposit_address = $this->safe_value($deposit_addresses, $code);
@@ -309,13 +334,14 @@ class Exchange extends \ccxt\Exchange {
                 return $deposit_address;
             }
         } else {
-            throw new NotSupported ($this->id + ' fetchDepositAddress not supported yet');
+            throw new NotSupported($this->id + ' fetchDepositAddress not supported yet');
         }
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array())
+    {
         if ($this->has['fetchTickers']) {
-            $tickers = yield $this->fetch_tickers(array( $symbol ), $params);
+            $tickers = yield $this->fetch_tickers(array($symbol), $params);
             $ticker = $this->safe_value($tickers, $symbol);
             if ($ticker === null) {
                 throw new BadSymbol($this->id . ' fetchTickers could not find a $ticker for ' . $symbol);
@@ -325,5 +351,39 @@ class Exchange extends \ccxt\Exchange {
         } else {
             throw new NotSupported($this->id . ' fetchTicker not supported yet');
         }
+    }
+
+    public function load_time_difference($params = array())
+    {
+        $server_time = yield $this->fetch_time($params);
+        $after = $this->milliseconds();
+        $this->options['timeDifference'] = $after - $server_time;
+        return $this->options['timeDifference'];
+    }
+
+    public function fetch_market_leverage_tiers($symbol, $params = array())
+    {
+        if ($this->has['fetchLeverageTiers']) {
+            $market = yield $this->market($symbol);
+            if (!$market['contract']) {
+                throw new BadRequest($this->id + ' fetchLeverageTiers() supports contract markets only');
+            }
+            $tiers = yield $this->fetch_leverage_tiers(array($symbol));
+            return $this->safe_value($tiers, $symbol);
+        } else {
+            throw new NotSupported($this->id + 'fetch_market_leverage_tiers() is not supported yet');
+        }
+    }
+
+    public function sleep($milliseconds)
+    {
+        $time = $milliseconds / 1000;
+        $loop = $this->get_loop();
+        $timer = null;
+        return new React\Promise\Promise(function ($resolve) use ($loop, $time, &$timer) {
+            $timer = $loop->addTimer($time, function () use ($resolve) {
+                $resolve(null);
+            });
+        });
     }
 }

@@ -17,8 +17,13 @@ module.exports = class bibox extends Exchange {
             'version': 'v1',
             'hostname': 'bibox.com',
             'has': {
-                'cancelOrder': true,
                 'CORS': undefined,
+                'spot': true,
+                'margin': undefined, // has but unimplemented
+                'swap': undefined, // has but unimplemented
+                'future': undefined,
+                'option': undefined,
+                'cancelOrder': true,
                 'createMarketOrder': undefined, // or they will return https://github.com/ccxt/ccxt/issues/2338
                 'createOrder': true,
                 'fetchBalance': true,
@@ -38,6 +43,8 @@ module.exports = class bibox extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': false,
                 'fetchWithdrawals': true,
                 'withdraw': true,
             },
@@ -96,8 +103,8 @@ module.exports = class bibox extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'taker': this.parseNumber ('0.001'),
-                    'maker': this.parseNumber ('0.0008'),
+                    'taker': this.parseNumber ('0.002'),
+                    'maker': this.parseNumber ('0.001'),
                 },
                 'funding': {
                     'tierBased': false,
@@ -134,16 +141,14 @@ module.exports = class bibox extends Exchange {
                 'APENFT(NFT)': 'NFT',
                 'BOX': 'DefiBox',
                 'BPT': 'BlockPool Token',
-                'GTC': 'Game.com',
+                'GMT': 'GMT Token',
                 'KEY': 'Bihu',
                 'MTC': 'MTC Mesh Network', // conflict with MTC Docademic doc.com Token https://github.com/ccxt/ccxt/issues/6081 https://github.com/ccxt/ccxt/issues/3025
                 'NFT': 'NFT Protocol',
                 'PAI': 'PCHAIN',
                 'REVO': 'Revo Network',
+                'STAR': 'Starbase',
                 'TERN': 'Ternio-ERC20',
-            },
-            'options': {
-                'fetchCurrencies': 'fetchCurrenciesPrivate', // or 'fetchCurrenciesPrivate' with apiKey and secret
             },
         });
     }
@@ -210,37 +215,53 @@ module.exports = class bibox extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            let type = 'spot';
-            let spot = true;
+            const type = 'spot';
+            const spot = true;
             const areaId = this.safeInteger (market, 'area_id');
             if (areaId === 16) {
-                type = undefined;
-                spot = false;
+                // TODO: update to v3 api
+                continue;
             }
-            const precision = {
-                'amount': this.safeNumber (market, 'amount_scale'),
-                'price': this.safeNumber (market, 'decimal'),
-            };
             result.push ({
                 'id': id,
                 'numericId': numericId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': type,
                 'spot': spot,
-                'active': true,
-                'info': market,
-                'precision': precision,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': undefined,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeInteger (market, 'amount_scale'),
+                    'price': this.safeInteger (market, 'decimal'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
-                        'min': Math.pow (10, -precision['amount']),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'cost': {
@@ -248,6 +269,7 @@ module.exports = class bibox extends Exchange {
                         'max': undefined,
                     },
                 },
+                'info': market,
             });
         }
         return result;
@@ -256,34 +278,30 @@ module.exports = class bibox extends Exchange {
     parseTicker (ticker, market = undefined) {
         // we don't set values that are not defined by the exchange
         const timestamp = this.safeInteger (ticker, 'timestamp');
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        } else {
-            const baseId = this.safeString (ticker, 'coin_symbol');
-            const quoteId = this.safeString (ticker, 'currency_symbol');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            symbol = base + '/' + quote;
+        let marketId = undefined;
+        const baseId = this.safeString (ticker, 'coin_symbol');
+        const quoteId = this.safeString (ticker, 'currency_symbol');
+        if ((baseId !== undefined) && (quoteId !== undefined)) {
+            marketId = baseId + '_' + quoteId;
         }
-        const last = this.safeNumber (ticker, 'last');
-        const change = this.safeNumber (ticker, 'change');
-        const baseVolume = this.safeNumber2 (ticker, 'vol', 'vol24H');
+        market = this.safeMarket (marketId, market);
+        const last = this.safeString (ticker, 'last');
+        const change = this.safeString (ticker, 'change');
+        const baseVolume = this.safeString2 (ticker, 'vol', 'vol24H');
         let percentage = this.safeString (ticker, 'percent');
         if (percentage !== undefined) {
             percentage = percentage.replace ('%', '');
-            percentage = this.parseNumber (percentage);
         }
         return this.safeTicker ({
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'buy'),
-            'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'sell'),
-            'askVolume': undefined,
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'buy'),
+            'bidVolume': this.safeString (ticker, 'buy_amount'),
+            'ask': this.safeString (ticker, 'sell'),
+            'askVolume': this.safeString (ticker, 'sell_amount'),
             'vwap': undefined,
             'open': undefined,
             'close': last,
@@ -293,9 +311,9 @@ module.exports = class bibox extends Exchange {
             'percentage': percentage,
             'average': undefined,
             'baseVolume': baseVolume,
-            'quoteVolume': this.safeNumber (ticker, 'amount'),
+            'quoteVolume': this.safeString (ticker, 'amount'),
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -323,41 +341,25 @@ module.exports = class bibox extends Exchange {
         const timestamp = this.safeInteger2 (trade, 'time', 'createdAt');
         let side = this.safeInteger2 (trade, 'side', 'order_side');
         side = (side === 1) ? 'buy' : 'sell';
-        let symbol = undefined;
-        if (market === undefined) {
-            let marketId = this.safeString (trade, 'pair');
-            if (marketId === undefined) {
-                const baseId = this.safeString (trade, 'coin_symbol');
-                const quoteId = this.safeString (trade, 'currency_symbol');
-                if ((baseId !== undefined) && (quoteId !== undefined)) {
-                    marketId = baseId + '_' + quoteId;
-                }
-            }
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
+        let marketId = this.safeString (trade, 'pair');
+        if (marketId === undefined) {
+            const baseId = this.safeString (trade, 'coin_symbol');
+            const quoteId = this.safeString (trade, 'currency_symbol');
+            if ((baseId !== undefined) && (quoteId !== undefined)) {
+                marketId = baseId + '_' + quoteId;
             }
         }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        let fee = undefined;
-        const feeCostString = this.safeString (trade, 'fee');
-        let feeCurrency = this.safeString (trade, 'fee_symbol');
-        if (feeCurrency !== undefined) {
-            if (feeCurrency in this.currencies_by_id) {
-                feeCurrency = this.currencies_by_id[feeCurrency]['code'];
-            } else {
-                feeCurrency = this.safeCurrencyCode (feeCurrency);
-            }
-        }
-        const feeRate = undefined; // todo: deduce from market if market is defined
+        market = this.safeMarket (marketId, market);
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
+        let fee = undefined;
+        const feeCostString = this.safeString (trade, 'fee');
         if (feeCostString !== undefined) {
+            const feeCurrencyId = this.safeString (trade, 'fee_symbol');
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
                 'cost': Precise.stringNeg (feeCostString),
-                'currency': feeCurrency,
-                'rate': feeRate,
+                'currency': feeCurrencyCode,
             };
         }
         const id = this.safeString (trade, 'id');
@@ -367,7 +369,7 @@ module.exports = class bibox extends Exchange {
             'order': undefined, // Bibox does not have it (documented) yet
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': 'limit',
             'takerOrMaker': undefined,
             'side': side,
@@ -453,8 +455,11 @@ module.exports = class bibox extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        const method = this.safeString (this.options, 'fetchCurrencies', 'fetchCurrenciesPublic');
-        return await this[method] (params);
+        if (this.checkRequiredCredentials (false)) {
+            return await this.fetchCurrenciesPrivate (params);
+        } else {
+            return await this.fetchCurrenciesPublic (params);
+        }
     }
 
     async fetchCurrenciesPublic (params = {}) {
@@ -499,6 +504,8 @@ module.exports = class bibox extends Exchange {
                 'info': currency,
                 'name': name,
                 'active': active,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'fee': undefined,
                 'precision': precision,
                 'limits': {
@@ -517,7 +524,7 @@ module.exports = class bibox extends Exchange {
     }
 
     async fetchCurrenciesPrivate (params = {}) {
-        if (!this.apiKey || !this.secret) {
+        if (!this.checkRequiredCredentials (false)) {
             throw new AuthenticationError (this.id + " fetchCurrencies is an authenticated endpoint, therefore it requires 'apiKey' and 'secret' credentials. If you don't need currency details, set exchange.has['fetchCurrencies'] = false before calling its methods.");
         }
         const request = {
@@ -612,6 +619,24 @@ module.exports = class bibox extends Exchange {
         return result;
     }
 
+    parseBalance (response) {
+        const outerResult = this.safeValue (response, 'result');
+        const firstResult = this.safeValue (outerResult, 0, {});
+        const innerResult = this.safeValue (firstResult, 'result');
+        const result = { 'info': response };
+        const assetsList = this.safeValue (innerResult, 'assets_list', []);
+        for (let i = 0; i < assetsList.length; i++) {
+            const balance = assetsList[i];
+            const currencyId = this.safeString (balance, 'coin_symbol');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'balance');
+            account['used'] = this.safeString (balance, 'freeze');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const type = this.safeString (params, 'type', 'assets');
@@ -642,21 +667,7 @@ module.exports = class bibox extends Exchange {
         //         ]
         //     }
         //
-        const outerResult = this.safeValue (response, 'result');
-        const firstResult = this.safeValue (outerResult, 0, {});
-        const innerResult = this.safeValue (firstResult, 'result');
-        const result = { 'info': response };
-        const assetsList = this.safeValue (innerResult, 'assets_list', []);
-        for (let i = 0; i < assetsList.length; i++) {
-            const balance = assetsList[i];
-            const currencyId = this.safeString (balance, 'coin_symbol');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeString (balance, 'balance');
-            account['used'] = this.safeString (balance, 'freeze');
-            result[code] = account;
-        }
-        return this.parseBalance (result);
+        return this.parseBalance (response);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -826,8 +837,13 @@ module.exports = class bibox extends Exchange {
             'txid': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': undefined,
             'address': address,
+            'addressTo': undefined,
+            'addressFrom': undefined,
             'tag': tag,
+            'tagTo': undefined,
+            'tagFrom': undefined,
             'type': type,
             'amount': amount,
             'currency': code,
@@ -958,21 +974,13 @@ module.exports = class bibox extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let symbol = undefined;
-        if (market === undefined) {
-            let marketId = undefined;
-            const baseId = this.safeString (order, 'coin_symbol');
-            const quoteId = this.safeString (order, 'currency_symbol');
-            if ((baseId !== undefined) && (quoteId !== undefined)) {
-                marketId = baseId + '_' + quoteId;
-            }
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            }
+        let marketId = undefined;
+        const baseId = this.safeString (order, 'coin_symbol');
+        const quoteId = this.safeString (order, 'currency_symbol');
+        if ((baseId !== undefined) && (quoteId !== undefined)) {
+            marketId = baseId + '_' + quoteId;
         }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        market = this.safeMarket (marketId, market);
         const rawType = this.safeString (order, 'order_type');
         const type = (rawType === '1') ? 'market' : 'limit';
         const timestamp = this.safeInteger (order, 'createdAt');
@@ -985,7 +993,7 @@ module.exports = class bibox extends Exchange {
         const side = (rawSide === '1') ? 'buy' : 'sell';
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const id = this.safeString (order, 'id');
-        const feeCost = this.safeNumber (order, 'fee');
+        const feeCost = this.safeString (order, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = {
@@ -993,14 +1001,14 @@ module.exports = class bibox extends Exchange {
                 'currency': undefined,
             };
         }
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,

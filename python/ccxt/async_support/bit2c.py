@@ -4,19 +4,13 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.precise import Precise
 
 
 class bit2c(Exchange):
@@ -28,15 +22,48 @@ class bit2c(Exchange):
             'countries': ['IL'],  # Israel
             'rateLimit': 3000,
             'has': {
-                'cancelOrder': True,
                 'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
+                'cancelOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchLeverage': False,
+                'fetchLeverageTiers': False,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
                 'fetchOrderBook': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': True,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
+                'transfer': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg',
@@ -114,9 +141,27 @@ class bit2c(Exchange):
             },
         })
 
+    def parse_balance(self, response):
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
+        codes = list(self.currencies.keys())
+        for i in range(0, len(codes)):
+            code = codes[i]
+            account = self.account()
+            currency = self.currency(code)
+            uppercase = currency['id'].upper()
+            if uppercase in response:
+                account['free'] = self.safe_string(response, 'AVAILABLE_' + uppercase)
+                account['total'] = self.safe_string(response, uppercase)
+            result[code] = account
+        return self.safe_balance(result)
+
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        balance = await self.privateGetAccountBalanceV2(params)
+        response = await self.privateGetAccountBalanceV2(params)
         #
         #     {
         #         "AVAILABLE_NIS": 0.0,
@@ -159,22 +204,7 @@ class bit2c(Exchange):
         #         }
         #     }
         #
-        result = {
-            'info': balance,
-            'timestamp': None,
-            'datetime': None,
-        }
-        codes = list(self.currencies.keys())
-        for i in range(0, len(codes)):
-            code = codes[i]
-            account = self.account()
-            currency = self.currency(code)
-            uppercase = currency['id'].upper()
-            if uppercase in balance:
-                account['free'] = self.safe_string(balance, 'AVAILABLE_' + uppercase)
-                account['total'] = self.safe_string(balance, uppercase)
-            result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(response)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -187,21 +217,18 @@ class bit2c(Exchange):
     def parse_ticker(self, ticker, market=None):
         symbol = self.safe_symbol(None, market)
         timestamp = self.milliseconds()
-        averagePrice = self.safe_number(ticker, 'av')
-        baseVolume = self.safe_number(ticker, 'a')
-        quoteVolume = None
-        if baseVolume is not None and averagePrice is not None:
-            quoteVolume = baseVolume * averagePrice
-        last = self.safe_number(ticker, 'll')
+        averagePrice = self.safe_string(ticker, 'av')
+        baseVolume = self.safe_string(ticker, 'a')
+        last = self.safe_string(ticker, 'll')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': self.safe_number(ticker, 'h'),
+            'bid': self.safe_string(ticker, 'h'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'l'),
+            'ask': self.safe_string(ticker, 'l'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -212,9 +239,9 @@ class bit2c(Exchange):
             'percentage': None,
             'average': averagePrice,
             'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
+            'quoteVolume': None,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
@@ -237,9 +264,49 @@ class bit2c(Exchange):
         if limit is not None:
             request['limit'] = limit  # max 100000
         response = await getattr(self, method)(self.extend(request, params))
-        if isinstance(response, basestring):
+        if isinstance(response, str):
             raise ExchangeError(response)
         return self.parse_trades(response, market, since, limit)
+
+    async def fetch_trading_fees(self, params={}):
+        await self.load_markets()
+        response = await self.privateGetAccountBalance(params)
+        #
+        #     {
+        #         "AVAILABLE_NIS": 0.0,
+        #         "NIS": 0.0,
+        #         "LOCKED_NIS": 0.0,
+        #         "AVAILABLE_BTC": 0.0,
+        #         "BTC": 0.0,
+        #         "LOCKED_BTC": 0.0,
+        #         ...
+        #         "Fees": {
+        #             "BtcNis": {"FeeMaker": 1.0, "FeeTaker": 1.0},
+        #             "EthNis": {"FeeMaker": 1.0, "FeeTaker": 1.0},
+        #             ...
+        #         }
+        #     }
+        #
+        fees = self.safe_value(response, 'Fees', {})
+        keys = list(fees.keys())
+        result = {}
+        for i in range(0, len(keys)):
+            marketId = keys[i]
+            symbol = self.safe_symbol(marketId)
+            fee = self.safe_value(fees, marketId)
+            makerString = self.safe_string(fee, 'FeeMaker')
+            takerString = self.safe_string(fee, 'FeeTaker')
+            maker = self.parse_number(Precise.string_div(makerString, '100'))
+            taker = self.parse_number(Precise.string_div(takerString, '100'))
+            result[symbol] = {
+                'info': fee,
+                'symbol': symbol,
+                'taker': taker,
+                'maker': maker,
+                'percentage': True,
+                'tierBased': False,
+            }
+        return result
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -284,9 +351,7 @@ class bit2c(Exchange):
         timestamp = self.safe_integer(order, 'created')
         price = self.safe_string(order, 'price')
         amount = self.safe_string(order, 'amount')
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
+        market = self.safe_market(None, market)
         side = self.safe_value(order, 'type')
         if side == 0:
             side = 'buy'
@@ -294,14 +359,14 @@ class bit2c(Exchange):
             side = 'sell'
         id = self.safe_string(order, 'id')
         status = self.safe_string(order, 'status')
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
             'status': status,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': None,
             'timeInForce': None,
             'postOnly': None,
@@ -378,15 +443,13 @@ class bit2c(Exchange):
                     side = 'buy'
                 else:
                     side = 'sell'
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
+        market = self.safe_market(None, market)
         return self.safe_trade({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'order': orderId,
             'type': None,
             'side': side,

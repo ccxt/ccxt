@@ -15,31 +15,64 @@ module.exports = class gemini extends Exchange {
             'id': 'gemini',
             'name': 'Gemini',
             'countries': [ 'US' ],
-            'rateLimit': 1500, // 200 for private API
+            // 600 requests a minute = 10 requests per second => 1000ms / 10 = 100ms between requests (private endpoints)
+            // 120 requests a minute = 2 requests per second => ( 1000ms / rateLimit ) / 2 = 5 (public endpoints)
+            'rateLimit': 100,
             'version': 'v1',
             'has': {
-                'cancelOrder': true,
                 'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
+                'cancelOrder': true,
                 'createDepositAddress': true,
                 'createMarketOrder': undefined,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': undefined,
                 'fetchDepositAddress': undefined, // TODO
+                'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': undefined,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchLeverage': false,
+                'fetchLeverageTiers': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': undefined,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': undefined,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'withdraw': true,
             },
             'urls': {
@@ -76,64 +109,64 @@ module.exports = class gemini extends Exchange {
                     ],
                 },
                 'public': {
-                    'get': [
-                        'v1/symbols',
-                        'v1/symbols/details/{symbol}',
-                        'v1/pubticker/{symbol}',
-                        'v2/ticker/{symbol}',
-                        'v2/candles/{symbol}/{timeframe}',
-                        'v1/trades/{symbol}',
-                        'v1/auction/{symbol}',
-                        'v1/auction/{symbol}/history',
-                        'v1/pricefeed',
-                        'v1/book/{symbol}',
-                        'v1/earn/rates',
-                    ],
+                    'get': {
+                        'v1/symbols': 5,
+                        'v1/symbols/details/{symbol}': 5,
+                        'v1/pubticker/{symbol}': 5,
+                        'v2/ticker/{symbol}': 5,
+                        'v2/candles/{symbol}/{timeframe}': 5,
+                        'v1/trades/{symbol}': 5,
+                        'v1/auction/{symbol}': 5,
+                        'v1/auction/{symbol}/history': 5,
+                        'v1/pricefeed': 5,
+                        'v1/book/{symbol}': 5,
+                        'v1/earn/rates': 5,
+                    },
                 },
                 'private': {
-                    'post': [
-                        'v1/order/new',
-                        'v1/order/cancel',
-                        'v1/wrap/{symbol}',
-                        'v1/order/cancel/session',
-                        'v1/order/cancel/all',
-                        'v1/order/status',
-                        'v1/orders',
-                        'v1/mytrades',
-                        'v1/notionalvolume',
-                        'v1/tradevolume',
-                        'v1/clearing/new',
-                        'v1/clearing/status',
-                        'v1/clearing/cancel',
-                        'v1/clearing/confirm',
-                        'v1/balances',
-                        'v1/notionalbalances/{currency}',
-                        'v1/transfers',
-                        'v1/addresses/{network}',
-                        'v1/deposit/{network}/newAddress',
-                        'v1/deposit/{currency}/newAddress',
-                        'v1/withdraw/{currency}',
-                        'v1/account/transfer/{currency}',
-                        'v1/payments/addbank',
-                        'v1/payments/methods',
-                        'v1/payments/sen/withdraw',
-                        'v1/balances/earn',
-                        'v1/earn/interest',
-                        'v1/approvedAddresses/{network}/request',
-                        'v1/approvedAddresses/account/{network}',
-                        'v1/approvedAddresses/{network}/remove',
-                        'v1/account',
-                        'v1/account/create',
-                        'v1/account/list',
-                        'v1/heartbeat',
-                    ],
+                    'post': {
+                        'v1/order/new': 1,
+                        'v1/order/cancel': 1,
+                        'v1/wrap/{symbol}': 1,
+                        'v1/order/cancel/session': 1,
+                        'v1/order/cancel/all': 1,
+                        'v1/order/status': 1,
+                        'v1/orders': 1,
+                        'v1/mytrades': 1,
+                        'v1/notionalvolume': 1,
+                        'v1/tradevolume': 1,
+                        'v1/clearing/new': 1,
+                        'v1/clearing/status': 1,
+                        'v1/clearing/cancel': 1,
+                        'v1/clearing/confirm': 1,
+                        'v1/balances': 1,
+                        'v1/notionalbalances/{currency}': 1,
+                        'v1/transfers': 1,
+                        'v1/addresses/{network}': 1,
+                        'v1/deposit/{network}/newAddress': 1,
+                        'v1/deposit/{currency}/newAddress': 1,
+                        'v1/withdraw/{currency}': 1,
+                        'v1/account/transfer/{currency}': 1,
+                        'v1/payments/addbank': 1,
+                        'v1/payments/methods': 1,
+                        'v1/payments/sen/withdraw': 1,
+                        'v1/balances/earn': 1,
+                        'v1/earn/interest': 1,
+                        'v1/approvedAddresses/{network}/request': 1,
+                        'v1/approvedAddresses/account/{network}': 1,
+                        'v1/approvedAddresses/{network}/remove': 1,
+                        'v1/account': 1,
+                        'v1/account/create': 1,
+                        'v1/account/list': 1,
+                        'v1/heartbeat': 1,
+                    },
                 },
             },
             'precisionMode': TICK_SIZE,
             'fees': {
                 'trading': {
-                    'taker': 0.0035,
-                    'maker': 0.001,
+                    'taker': 0.004,
+                    'maker': 0.002,
                 },
             },
             'httpExceptions': {
@@ -266,34 +299,47 @@ module.exports = class gemini extends Exchange {
             const minAmount = this.safeNumber (minAmountParts, 0);
             const amountPrecisionString = cells[2].replace ('<td>', '');
             const amountPrecisionParts = amountPrecisionString.split (' ');
-            const amountPrecision = this.safeNumber (amountPrecisionParts, 0);
             const idLength = marketId.length - 0;
             const startingIndex = idLength - 3;
-            const quoteId = marketId.slice (startingIndex, idLength);
-            const quote = this.safeCurrencyCode (quoteId);
             const pricePrecisionString = cells[3].replace ('<td>', '');
             const pricePrecisionParts = pricePrecisionString.split (' ');
-            const pricePrecision = this.safeNumber (pricePrecisionParts, 0);
-            const baseId = marketId.replace (quoteId, '');
+            const quoteId = this.safeStringLower (pricePrecisionParts, 1, marketId.slice (startingIndex, idLength));
+            const baseId = this.safeStringLower (amountPrecisionParts, 1, marketId.replace (quoteId, ''));
             const base = this.safeCurrencyCode (baseId);
-            const symbol = base + '/' + quote;
-            const active = undefined;
+            const quote = this.safeCurrencyCode (quoteId);
             result.push ({
                 'id': marketId,
-                'info': row,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'active': active,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': undefined,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
                 'precision': {
-                    'amount': amountPrecision,
-                    'price': pricePrecision,
+                    'amount': this.safeNumber (amountPrecisionParts, 0),
+                    'price': this.safeNumber (pricePrecisionParts, 0),
                 },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': minAmount,
                         'max': undefined,
@@ -307,6 +353,7 @@ module.exports = class gemini extends Exchange {
                         'max': undefined,
                     },
                 },
+                'info': row,
             });
         }
         return result;
@@ -323,21 +370,39 @@ module.exports = class gemini extends Exchange {
             const quoteId = marketId.slice (idLength - 3, idLength);
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const precision = {
-                'amount': undefined,
-                'price': undefined,
-            };
             result.push ({
                 'id': marketId,
-                'info': market,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'precision': precision,
+                'settleId': undefined,
+                'type': 'spot',
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': undefined,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': undefined,
+                    'amount': undefined,
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': undefined,
                         'max': undefined,
@@ -351,7 +416,7 @@ module.exports = class gemini extends Exchange {
                         'max': undefined,
                     },
                 },
-                'active': undefined,
+                'info': market,
             });
         }
         return result;
@@ -475,52 +540,46 @@ module.exports = class gemini extends Exchange {
         const timestamp = this.safeInteger (volume, 'timestamp');
         let symbol = undefined;
         const marketId = this.safeStringLower (ticker, 'pair');
+        market = this.safeMarket (marketId, market);
         let baseId = undefined;
         let quoteId = undefined;
         let base = undefined;
         let quote = undefined;
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
+        if ((marketId !== undefined) && (market === undefined)) {
+            const idLength = marketId.length - 0;
+            if (idLength === 7) {
+                baseId = marketId.slice (0, 4);
+                quoteId = marketId.slice (4, 7);
             } else {
-                const idLength = marketId.length - 0;
-                if (idLength === 7) {
-                    baseId = marketId.slice (0, 4);
-                    quoteId = marketId.slice (4, 7);
-                } else {
-                    baseId = marketId.slice (0, 3);
-                    quoteId = marketId.slice (3, 6);
-                }
-                base = this.safeCurrencyCode (baseId);
-                quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
+                baseId = marketId.slice (0, 3);
+                quoteId = marketId.slice (3, 6);
             }
+            base = this.safeCurrencyCode (baseId);
+            quote = this.safeCurrencyCode (quoteId);
+            symbol = base + '/' + quote;
         }
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
-            baseId = market['baseId'].toUpperCase ();
-            quoteId = market['quoteId'].toUpperCase ();
-            base = market['base'];
-            quote = market['quote'];
+            baseId = this.safeStringUpper (market, 'baseId');
+            quoteId = this.safeStringUpper (market, 'quoteId');
         }
-        const price = this.safeNumber (ticker, 'price');
-        const last = this.safeNumber2 (ticker, 'last', 'close', price);
-        const percentage = this.safeNumber (ticker, 'percentChange24h');
-        const open = this.safeNumber (ticker, 'open');
-        const baseVolume = this.safeNumber (volume, baseId);
-        const quoteVolume = this.safeNumber (volume, quoteId);
-        const vwap = this.vwap (baseVolume, quoteVolume);
+        const price = this.safeString (ticker, 'price');
+        const last = this.safeString2 (ticker, 'last', 'close', price);
+        const percentage = this.safeString (ticker, 'percentChange24h');
+        const open = this.safeString (ticker, 'open');
+        const baseVolume = this.safeString (volume, baseId);
+        const quoteVolume = this.safeString (volume, quoteId);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'bid'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'ask'),
+            'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
-            'vwap': vwap,
+            'vwap': undefined,
             'open': open,
             'close': last,
             'last': last,
@@ -531,7 +590,7 @@ module.exports = class gemini extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -568,38 +627,54 @@ module.exports = class gemini extends Exchange {
         //         "type":"buy"
         //     }
         //
+        // private fetchTrades
+        //
+        //      {
+        //          "price":"3900.00",
+        //          "amount":"0.00996",
+        //          "timestamp":1638891173,
+        //          "timestampms":1638891173518,
+        //          "type":"Sell",
+        //          "aggressor":false,
+        //          "fee_currency":"EUR",
+        //          "fee_amount":"0.00",
+        //          "tid":73621746145,
+        //          "order_id":"73621746059",
+        //          "exchange":"gemini",
+        //          "is_auction_fill":false,
+        //          "is_clearing_fill":false,
+        //          "symbol":"ETHEUR",
+        //          "client_order_id":"1638891171610"
+        //      }
+        //
         const timestamp = this.safeInteger (trade, 'timestampms');
         const id = this.safeString (trade, 'tid');
         const orderId = this.safeString (trade, 'order_id');
         const feeCurrencyId = this.safeString (trade, 'fee_currency');
         const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
         const fee = {
-            'cost': this.safeNumber (trade, 'fee_amount'),
+            'cost': this.safeString (trade, 'fee_amount'),
             'currency': feeCurrencyCode,
         };
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
-        const type = undefined;
         const side = this.safeStringLower (trade, 'type');
         const symbol = this.safeSymbol (undefined, market);
-        return {
+        return this.safeTrade ({
             'id': id,
             'order': orderId,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'type': type,
+            'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
-            'price': price,
-            'cost': cost,
-            'amount': amount,
+            'price': priceString,
+            'cost': undefined,
+            'amount': amountString,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -625,9 +700,7 @@ module.exports = class gemini extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privatePostV1Balances (params);
+    parseBalance (response) {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
@@ -638,7 +711,65 @@ module.exports = class gemini extends Exchange {
             account['total'] = this.safeString (balance, 'amount');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
+    }
+
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privatePostV1Notionalvolume (params);
+        //
+        //      {
+        //          "web_maker_fee_bps": 25,
+        //          "web_taker_fee_bps": 35,
+        //          "web_auction_fee_bps": 25,
+        //          "api_maker_fee_bps": 10,
+        //          "api_taker_fee_bps": 35,
+        //          "api_auction_fee_bps": 20,
+        //          "fix_maker_fee_bps": 10,
+        //          "fix_taker_fee_bps": 35,
+        //          "fix_auction_fee_bps": 20,
+        //          "block_maker_fee_bps": 0,
+        //          "block_taker_fee_bps": 50,
+        //          "notional_30d_volume": 150.00,
+        //          "last_updated_ms": 1551371446000,
+        //          "date": "2019-02-28",
+        //          "notional_1d_volume": [
+        //              {
+        //                  "date": "2019-02-22",
+        //                  "notional_volume": 75.00
+        //              },
+        //              {
+        //                  "date": "2019-02-14",
+        //                  "notional_volume": 75.00
+        //              }
+        //          ]
+        //     }
+        //
+        const makerBps = this.safeString (response, 'api_maker_fee_bps');
+        const takerBps = this.safeString (response, 'api_taker_fee_bps');
+        const makerString = Precise.stringDiv (makerBps, '10000');
+        const takerString = Precise.stringDiv (takerBps, '10000');
+        const maker = this.parseNumber (makerString);
+        const taker = this.parseNumber (takerString);
+        const result = {};
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            result[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': maker,
+                'taker': taker,
+                'percentage': true,
+                'tierBased': true,
+            };
+        }
+        return result;
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privatePostV1Balances (params);
+        return this.parseBalance (response);
     }
 
     parseOrder (order, market = undefined) {
@@ -669,7 +800,7 @@ module.exports = class gemini extends Exchange {
         const id = this.safeString (order, 'order_id');
         const side = this.safeStringLower (order, 'side');
         const clientOrderId = this.safeString (order, 'client_order_id');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
@@ -822,8 +953,13 @@ module.exports = class gemini extends Exchange {
             'txid': this.safeString (transaction, 'txHash'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': undefined,
             'address': address,
+            'addressTo': undefined,
+            'addressFrom': undefined,
             'tag': undefined, // or is it defined?
+            'tagTo': undefined,
+            'tagFrom': undefined,
             'type': type, // direction of the transaction, ('deposit' | 'withdraw')
             'amount': this.safeNumber (transaction, 'amount'),
             'currency': code,
@@ -855,7 +991,7 @@ module.exports = class gemini extends Exchange {
         await this.loadMarkets ();
         const network = this.safeString (params, 'network');
         if (network === undefined) {
-            throw new ArgumentsRequired (this.id + 'fetchDepositAddressesByNetwork() requires a network parameter');
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddressesByNetwork() requires a network parameter');
         }
         params = this.omit (params, 'network');
         const networks = this.safeValue (this.options, 'networks', {});
@@ -866,7 +1002,7 @@ module.exports = class gemini extends Exchange {
             'network': networkId,
         };
         const response = await this.privatePostV1AddressesNetwork (this.extend (request, params));
-        const results = this.parseDepositAddresses (response, [code], false, { 'network': networkCode, 'currency': code });
+        const results = this.parseDepositAddresses (response, [ code ], false, { 'network': networkCode, 'currency': code });
         return this.groupBy (results, 'network');
     }
 
@@ -899,6 +1035,9 @@ module.exports = class gemini extends Exchange {
             }
         }
         url = this.urls['api'][api] + url;
+        if ((method === 'POST') || (method === 'DELETE')) {
+            body = this.json (query);
+        }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 

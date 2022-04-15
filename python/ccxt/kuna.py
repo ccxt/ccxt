@@ -8,7 +8,6 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
-from ccxt.base.precise import Precise
 
 
 class kuna(Exchange):
@@ -21,20 +20,41 @@ class kuna(Exchange):
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
-                'cancelOrder': True,
                 'CORS': None,
+                'spot': True,
+                'margin': None,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'cancelOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchL3OrderBook': True,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': 'emulated',
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': False,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setPositionMode': False,
                 'withdraw': None,
             },
             'timeframes': None,
@@ -240,8 +260,8 @@ class kuna(Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'taker': 0.25 / 100,
-                    'maker': 0.25 / 100,
+                    'taker': self.parse_number('0.0025'),
+                    'maker': self.parse_number('0.0025'),
                 },
                 'funding': {
                     'withdraw': {
@@ -282,6 +302,22 @@ class kuna(Exchange):
         quotes = ['btc', 'rub', 'uah', 'usd', 'usdt', 'usdc']
         markets = []
         response = self.publicGetTickers(params)
+        #
+        #    {
+        #        shibuah: {
+        #            at: '1644463685',
+        #            ticker: {
+        #                buy: '0.000911',
+        #                sell: '0.00092',
+        #                low: '0.000872',
+        #                high: '0.000963',
+        #                last: '0.000911',
+        #                vol: '1539278096.0',
+        #                price: '1434244.211249'
+        #            }
+        #        }
+        #    }
+        #
         ids = list(response.keys())
         for i in range(0, len(ids)):
             id = ids[i]
@@ -298,22 +334,39 @@ class kuna(Exchange):
                     baseId = id[0] + slicedId.replace(quoteId, '')
                     base = self.safe_currency_code(baseId)
                     quote = self.safe_currency_code(quoteId)
-                    symbol = base + '/' + quote
                     markets.append({
                         'id': id,
-                        'symbol': symbol,
+                        'symbol': base + '/' + quote,
                         'base': base,
                         'quote': quote,
+                        'settle': None,
                         'baseId': baseId,
                         'quoteId': quoteId,
+                        'settleId': None,
                         'type': 'spot',
                         'spot': True,
+                        'margin': False,
+                        'swap': False,
+                        'future': False,
+                        'option': False,
                         'active': None,
+                        'contract': False,
+                        'linear': None,
+                        'inverse': None,
+                        'contractSize': None,
+                        'expiry': None,
+                        'expiryDatetime': None,
+                        'strike': None,
+                        'optionType': None,
                         'precision': {
                             'amount': None,
                             'price': None,
                         },
                         'limits': {
+                            'leverage': {
+                                'min': None,
+                                'max': None,
+                            },
                             'amount': {
                                 'min': None,
                                 'max': None,
@@ -346,32 +399,30 @@ class kuna(Exchange):
     def parse_ticker(self, ticker, market=None):
         timestamp = self.safe_timestamp(ticker, 'at')
         ticker = ticker['ticker']
-        symbol = None
-        if market:
-            symbol = market['symbol']
-        last = self.safe_number(ticker, 'last')
-        return {
+        symbol = self.safe_symbol(None, market)
+        last = self.safe_string(ticker, 'last')
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'buy'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'buy'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'sell'),
+            'ask': self.safe_string(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
-            'open': self.safe_number(ticker, 'open'),
+            'open': self.safe_string(ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'vol'),
+            'baseVolume': self.safe_string(ticker, 'vol'),
             'quoteVolume': None,
             'info': ticker,
-        }
+        }, market, False)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
@@ -415,9 +466,51 @@ class kuna(Exchange):
             'market': market['id'],
         }
         response = self.publicGetTrades(self.extend(request, params))
+        #
+        #      [
+        #          {
+        #              "id":11353466,
+        #              "price":"3000.16",
+        #              "volume":"0.000397",
+        #              "funds":"1.19106352",
+        #              "market":"ethusdt",
+        #              "created_at":"2022-04-12T18:32:36Z",
+        #              "side":null,
+        #              "trend":"sell"
+        #          },
+        #      ]
+        #
         return self.parse_trades(response, market, since, limit)
 
     def parse_trade(self, trade, market=None):
+        #
+        # fetchTrades(public)
+        #
+        #      {
+        #          "id":11353466,
+        #          "price":"3000.16",
+        #          "volume":"0.000397",
+        #          "funds":"1.19106352",
+        #          "market":"ethusdt",
+        #          "created_at":"2022-04-12T18:32:36Z",
+        #          "side":null,
+        #          "trend":"sell"
+        #      }
+        #
+        # fetchMyTrades(private)
+        #
+        #      {
+        #          "id":11353719,
+        #          "price":"0.13566",
+        #          "volume":"99.0",
+        #          "funds":"13.43034",
+        #          "market":"dogeusdt",
+        #          "created_at":"2022-04-12T18:58:44Z",
+        #          "side":"ask",
+        #          "order_id":1665670371,
+        #          "trend":"buy"
+        #      }
+        #
         timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
         symbol = None
         if market:
@@ -431,14 +524,10 @@ class kuna(Exchange):
             side = self.safe_string(sideMap, side, side)
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'volume')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.safe_number(trade, 'funds')
-        if cost is None:
-            cost = self.parse_number(Precise.string_mul(priceString, amountString))
+        costString = self.safe_number(trade, 'funds')
         orderId = self.safe_string(trade, 'order_id')
         id = self.safe_string(trade, 'id')
-        return {
+        return self.safe_trade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -448,11 +537,11 @@ class kuna(Exchange):
             'side': side,
             'order': orderId,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': None,
-        }
+        }, market)
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()
@@ -471,9 +560,7 @@ class kuna(Exchange):
             ])
         return result
 
-    def fetch_balance(self, params={}):
-        self.load_markets()
-        response = self.privateGetMembersMe(params)
+    def parse_balance(self, response):
         balances = self.safe_value(response, 'accounts')
         result = {'info': balances}
         for i in range(0, len(balances)):
@@ -484,7 +571,12 @@ class kuna(Exchange):
             account['free'] = self.safe_string(balance, 'balance')
             account['used'] = self.safe_string(balance, 'locked')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
+
+    def fetch_balance(self, params={}):
+        self.load_markets()
+        response = self.privateGetMembersMe(params)
+        return self.parse_balance(response)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -529,7 +621,7 @@ class kuna(Exchange):
         type = self.safe_string(order, 'type')
         side = self.safe_string(order, 'side')
         id = self.safe_string(order, 'id')
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'timestamp': timestamp,
@@ -576,6 +668,21 @@ class kuna(Exchange):
         return self.parse_orders(response, market, since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        #
+        #      [
+        #          {
+        #              "id":11353719,
+        #              "price":"0.13566",
+        #              "volume":"99.0",
+        #              "funds":"13.43034",
+        #              "market":"dogeusdt",
+        #              "created_at":"2022-04-12T18:58:44Z",
+        #              "side":"ask",
+        #              "order_id":1665670371,
+        #              "trend":"buy"
+        #          },
+        #      ]
+        #
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()

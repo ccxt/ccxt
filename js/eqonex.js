@@ -16,11 +16,21 @@ module.exports = class eqonex extends Exchange {
             'countries': [ 'US', 'SG' ], // United States, Singapore
             'rateLimit': 10,
             'has': {
-                'cancelOrder': true,
                 'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': undefined, // has but not fully implemented
+                'future': undefined, // has but not fully implemented
+                'option': false,
+                'cancelOrder': true,
                 'createOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
@@ -34,7 +44,9 @@ module.exports = class eqonex extends Exchange {
                 'fetchOrders': true,
                 'fetchTicker': undefined,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
                 'fetchTradingFees': true,
+                'fetchTradingLimits': true,
                 'fetchWithdrawals': true,
                 'withdraw': true,
             },
@@ -46,6 +58,7 @@ module.exports = class eqonex extends Exchange {
                 '6h': 5,
                 '1d': 6,
                 '7d': 7,
+                '1w': 7,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/122649755-1a076c80-d138-11eb-8f2e-9a9166a03d79.jpg',
@@ -119,37 +132,51 @@ module.exports = class eqonex extends Exchange {
         };
         const response = await this.publicGetGetInstrumentPairs (this.extend (request, params));
         //
-        //     {
-        //         "instrumentPairs":[
-        //             {
-        //                 "instrumentId":52,
-        //                 "symbol":"BTC/USDC",
-        //                 "quoteId":1,
-        //                 "baseId":3,
-        //                 "price_scale":2,
-        //                 "quantity_scale":6,
-        //                 "securityStatus":1,
-        //                 "securityDesc":"BTC/USDC", // "BTC/USDC[F]"
-        //                 "assetType":"PAIR", // "PERPETUAL_SWAP"
-        //                 "currency":"BTC",
-        //                 "contAmtCurr":"USDC",
-        //                 "settlCurrency":"USDC",
-        //                 "commCurrency":"USDC",
-        //                 "cfiCode":"XXXXXX",
-        //                 "securityExchange":"XXXX",
-        //                 "instrumentPricePrecision":2,
-        //                 "minPriceIncrement":1.0,
-        //                 "minPriceIncrementAmount":1.0,
-        //                 "roundLot":1,
-        //                 "minTradeVol":0.001000,
-        //                 "maxTradeVol":0.000000
-        //                 // contracts onlye
-        //                 "qtyType":0,
-        //                 "contractMultiplier":1.0,
-        //                 "issueDate":1598608087000
-        //             },
-        //         ]
-        //     }
+        //    {
+        //        "instrumentPairs": [
+        //            {
+        //                "instrumentId":303,
+        //                "symbol":"BTC/USDC[220325]",
+        //                "quoteId":1,
+        //                "baseId":3,
+        //                "price_scale":2,
+        //                "quantity_scale":6,
+        //                "securityStatus":1,
+        //                "securityDesc":"BTC Dated Future",
+        //                "assetType":"DATED_FUTURE",
+        //                "currency":"BTC",
+        //                "contAmtCurr":"USDC",
+        //                "settlCurrency":"USDC",
+        //                "commCurrency":"USDC",
+        //                "cfiCode":"FFCPSX",
+        //                "securityExchange":"EQOS",
+        //                "micCode":"EQOD",
+        //                "instrumentPricePrecision":2,
+        //                "minPriceIncrement":1.0,
+        //                "minPriceIncrementAmount":1.0,
+        //                "roundLot":100,
+        //                "minTradeVol":0.000100,
+        //                "maxTradeVol":0.000000,
+        //                "qtyType":0,
+        //                "contractMultiplier":1.0,
+        //                "auctionStartTime":0,
+        //                "auctionDuration":0,
+        //                "auctionFrequency":0,
+        //                "auctionPrice":0,
+        //                "auctionVolume":0,
+        //                "marketStatus":"OPEN",
+        //                "underlyingSymbol":"BTC/USDC",
+        //                "underlyingSecurityId":52,
+        //                "underlyingSecuritySource":"M",
+        //                "underlyingSecurityExchange":"EQOC",
+        //                "issueDate":1643256000000,
+        //                "maturityDate":"2022-03-25",
+        //                "maturityTime":"2022-03-25T08:00:00Z",
+        //                "contractExpireTime":1648195200000
+        //            }
+        //            ...
+        //        ]
+        //    }
         //
         const instrumentPairs = this.safeValue (response, 'instrumentPairs', []);
         const markets = [];
@@ -162,65 +189,119 @@ module.exports = class eqonex extends Exchange {
 
     parseMarket (market) {
         //
-        //     {
-        //         "instrumentId":52,
-        //         "symbol":"BTC/USDC", // "BTC/USDC[F]"
-        //         "quoteId":1,
-        //         "baseId":3,
-        //         "price_scale":2,
-        //         "quantity_scale":6,
-        //         "securityStatus":1,
-        //         "securityDesc":"BTC/USDC", // "BTC/USDC[F]"
-        //         "assetType":"PAIR", // "PERPETUAL_SWAP"
-        //         "currency":"BTC",
-        //         "contAmtCurr":"USDC",
-        //         "settlCurrency":"USDC",
-        //         "commCurrency":"USDC",
-        //         "cfiCode":"XXXXXX",
-        //         "securityExchange":"XXXX",
-        //         "instrumentPricePrecision":2,
-        //         "minPriceIncrement":1.0,
-        //         "minPriceIncrementAmount":1.0,
-        //         "roundLot":1,
-        //         "minTradeVol":0.001000,
-        //         "maxTradeVol":0.000000
-        //         // contracts onlye
-        //         "qtyType":0,
-        //         "contractMultiplier":1.0,
-        //         "issueDate":1598608087000
-        //     }
+        //    {
+        //        "instrumentPairs": [
+        //            {
+        //                "instrumentId":303,
+        //                "symbol":"BTC/USDC[220325]",
+        //                "quoteId":1,
+        //                "baseId":3,
+        //                "price_scale":2,
+        //                "quantity_scale":6,
+        //                "securityStatus":1,
+        //                "securityDesc":"BTC Dated Future",
+        //                "assetType":"DATED_FUTURE",
+        //                "currency":"BTC",
+        //                "contAmtCurr":"USDC",
+        //                "settlCurrency":"USDC",
+        //                "commCurrency":"USDC",
+        //                "cfiCode":"FFCPSX",
+        //                "securityExchange":"EQOS",
+        //                "micCode":"EQOD",
+        //                "instrumentPricePrecision":2,
+        //                "minPriceIncrement":1.0,
+        //                "minPriceIncrementAmount":1.0,
+        //                "roundLot":100,
+        //                "minTradeVol":0.000100,
+        //                "maxTradeVol":0.000000,
+        //                "qtyType":0,
+        //                "contractMultiplier":1.0,
+        //                "auctionStartTime":0,
+        //                "auctionDuration":0,
+        //                "auctionFrequency":0,
+        //                "auctionPrice":0,
+        //                "auctionVolume":0,
+        //                "marketStatus":"OPEN",
+        //                "underlyingSymbol":"BTC/USDC",
+        //                "underlyingSecurityId":52,
+        //                "underlyingSecuritySource":"M",
+        //                "underlyingSecurityExchange":"EQOC",
+        //                "issueDate":1643256000000,
+        //                "maturityDate":"2022-03-25",
+        //                "maturityTime":"2022-03-25T08:00:00Z",
+        //                "contractExpireTime":1648195200000
+        //            }
+        //            ...
+        //        ]
+        //    }
         //
-        const id = this.safeString (market, 'instrumentId');
-        const uppercaseId = this.safeString (market, 'symbol');
         const assetType = this.safeString (market, 'assetType');
         const spot = (assetType === 'PAIR');
         const swap = (assetType === 'PERPETUAL_SWAP');
-        const type = swap ? 'swap' : 'spot';
+        const future = (assetType === 'DATED_FUTURE');
+        const contract = swap || future;
+        const id = this.safeString (market, 'instrumentId');
         const baseId = this.safeString (market, 'currency');
         const quoteId = this.safeString (market, 'contAmtCurr');
+        const settleId = contract ? this.safeString (market, 'settlCurrency') : undefined;
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const symbol = swap ? uppercaseId : (base + '/' + quote);
+        const settle = this.safeCurrencyCode (settleId);
+        let symbol = base + '/' + quote;
+        const uppercaseId = this.safeString (market, 'symbol');
+        let type = 'spot';
+        let linear = undefined;
+        let inverse = undefined;
+        const expiry = this.safeNumber (market, 'contractExpireTime');
+        if (contract) {
+            symbol = symbol + ':' + settle;
+            linear = (quote === settle);
+            inverse = !linear;
+            if (swap) {
+                type = 'swap';
+            } else if (future) {
+                symbol = symbol + '-' + this.yymmdd (expiry);
+                type = 'future';
+            } else {
+                symbol = uppercaseId;
+                type = assetType;
+            }
+        }
         const status = this.safeInteger (market, 'securityStatus');
-        const active = (status === 1);
-        const precision = {
-            'amount': this.safeInteger (market, 'quantity_scale'),
-            'price': this.safeInteger (market, 'price_scale'),
-        };
         return {
             'id': id,
             'uppercaseId': uppercaseId,
             'symbol': symbol,
             'base': base,
             'quote': quote,
+            'settle': settle,
             'baseId': baseId,
             'quoteId': quoteId,
+            'settleId': settleId,
             'type': type,
             'spot': spot,
+            'margin': false,
             'swap': swap,
-            'active': active,
-            'precision': precision,
+            'future': future,
+            'option': false,
+            'active': (status === 1),
+            'contract': contract,
+            'linear': linear,
+            'inverse': inverse,
+            'contractSize': this.safeNumber (market, 'contractMultiplier'),
+            'expiry': expiry,
+            'expiryDatetime': this.iso8601 (expiry),
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.safeInteger (market, 'quantity_scale'),
+                'price': this.safeInteger (market, 'price_scale'),
+            },
             'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
                 'amount': {
                     'min': this.safeNumber (market, 'minTradeVol'),
                     'max': undefined,
@@ -298,6 +379,8 @@ module.exports = class eqonex extends Exchange {
             'precision': precision,
             'fee': fee,
             'active': active,
+            'deposit': undefined,
+            'withdraw': undefined,
             'limits': {
                 'amount': {
                     'min': undefined,
@@ -364,7 +447,7 @@ module.exports = class eqonex extends Exchange {
         const low = this.parseNumber (this.convertFromScale (this.safeString (ohlcv, 3), market['precision']['price']));
         const close = this.parseNumber (this.convertFromScale (this.safeString (ohlcv, 4), market['precision']['price']));
         const volume = this.parseNumber (this.convertFromScale (this.safeString (ohlcv, 5), market['precision']['amount']));
-        return [timestamp, open, high, low, close, volume];
+        return [ timestamp, open, high, low, close, volume ];
     }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1, market = undefined) {
@@ -497,7 +580,7 @@ module.exports = class eqonex extends Exchange {
         let priceString = undefined;
         let amountString = undefined;
         let fee = undefined;
-        let symbol = undefined;
+        let marketId = undefined;
         if (Array.isArray (trade)) {
             id = this.safeString (trade, 3);
             priceString = this.convertFromScale (this.safeString (trade, 0), market['precision']['price']);
@@ -512,8 +595,7 @@ module.exports = class eqonex extends Exchange {
         } else {
             id = this.safeString (trade, 'execId');
             timestamp = this.safeInteger (trade, 'time');
-            const marketId = this.safeString (trade, 'symbol');
-            symbol = this.safeSymbol (marketId, market);
+            marketId = this.safeString (trade, 'symbol');
             orderId = this.safeString (trade, 'orderId');
             side = this.safeStringLower (trade, 'side');
             type = this.parseOrderType (this.safeString (trade, 'ordType'));
@@ -530,15 +612,13 @@ module.exports = class eqonex extends Exchange {
                 };
             }
         }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        market = this.safeMarket (marketId, market);
         return this.safeTrade ({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'order': orderId,
             'type': type,
             'side': side,
@@ -548,6 +628,29 @@ module.exports = class eqonex extends Exchange {
             'cost': undefined,
             'fee': fee,
         }, market);
+    }
+
+    parseBalance (response) {
+        const positions = this.safeValue (response, 'positions', []);
+        const result = {
+            'info': response,
+        };
+        for (let i = 0; i < positions.length; i++) {
+            const position = positions[i];
+            const assetType = this.safeString (position, 'assetType');
+            if (assetType === 'ASSET') {
+                const currencyId = this.safeString (position, 'symbol');
+                const code = this.safeCurrencyCode (currencyId);
+                const quantityString = this.safeString (position, 'quantity');
+                const availableQuantityString = this.safeString (position, 'availableQuantity');
+                const scale = this.safeInteger (position, 'quantity_scale');
+                const account = this.account ();
+                account['free'] = this.convertFromScale (availableQuantityString, scale);
+                account['total'] = this.convertFromScale (quantityString, scale);
+                result[code] = account;
+            }
+        }
+        return this.safeBalance (result);
     }
 
     async fetchBalance (params = {}) {
@@ -575,26 +678,7 @@ module.exports = class eqonex extends Exchange {
         //             },
         //         ]
         //     }
-        const positions = this.safeValue (response, 'positions', []);
-        const result = {
-            'info': response,
-        };
-        for (let i = 0; i < positions.length; i++) {
-            const position = positions[i];
-            const assetType = this.safeString (position, 'assetType');
-            if (assetType === 'ASSET') {
-                const currencyId = this.safeString (position, 'symbol');
-                const code = this.safeCurrencyCode (currencyId);
-                const quantityString = this.safeString (position, 'quantity');
-                const availableQuantityString = this.safeString (position, 'availableQuantity');
-                const scale = this.safeInteger (position, 'quantity_scale');
-                const account = this.account ();
-                account['free'] = this.convertFromScale (availableQuantityString, scale);
-                account['total'] = this.convertFromScale (quantityString, scale);
-                result[code] = account;
-            }
-        }
-        return this.parseBalance (result);
+        return this.parseBalance (response);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -1120,6 +1204,7 @@ module.exports = class eqonex extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': undefined,
             'addressFrom': undefined,
             'address': address,
             'addressTo': undefined,
@@ -1181,24 +1266,78 @@ module.exports = class eqonex extends Exchange {
     }
 
     async fetchTradingFees (params = {}) {
-        // getExchangeInfo
+        await this.loadMarkets ();
         const response = await this.publicGetGetExchangeInfo (params);
-        const tradingFees = this.safeValue (response, 'spotFees', []);
-        const taker = {};
-        const maker = {};
-        for (let i = 0; i < tradingFees.length; i++) {
-            const tradingFee = tradingFees[i];
-            if (this.safeString (tradingFee, 'tier') !== undefined) {
-                taker[tradingFee['tier']] = this.safeNumber (tradingFee, 'taker');
-                maker[tradingFee['tier']] = this.safeNumber (tradingFee, 'maker');
-            }
+        //
+        //     {
+        //         tradingLimits: [],
+        //         withdrawLimits: [{ All: '0.0', Type: 'percent' }],
+        //         futuresFees: [
+        //             { tier: '0', maker: '0.000300', taker: '0.000500' },
+        //             { tier: '1', maker: '0.000200', taker: '0.000400' },
+        //             { tier: '2', maker: '0.000180', taker: '0.000400' },
+        //         ],
+        //         spotFees: [
+        //             { tier: '0', maker: '0.000900', taker: '0.001500', volume: '0' },
+        //             { tier: '1', maker: '0.000600', taker: '0.001250', volume: '200000' },
+        //             { tier: '2', maker: '0.000540', taker: '0.001200', volume: '2500000' },
+        //         ],
+        //         referrals: { earning: '0.30', discount: '0.05', duration: '180' }
+        //     }
+        //
+        const spotFees = this.safeValue (response, 'spotFees', []);
+        const firstSpotFee = this.safeValue (spotFees, 0, {});
+        const spotMakerFee = this.safeNumber (firstSpotFee, 'maker');
+        const spotTakerFee = this.safeNumber (firstSpotFee, 'taker');
+        const futureFees = this.safeValue (response, 'futuresFees', []);
+        const firstFutureFee = this.safeValue (futureFees, 0, {});
+        const futureMakerFee = this.safeNumber (firstFutureFee, 'maker');
+        const futureTakerFee = this.safeNumber (firstFutureFee, 'taker');
+        const spotTakerTiers = [];
+        const spotMakerTiers = [];
+        const result = {};
+        for (let i = 0; i < spotFees.length; i++) {
+            const spotFee = spotFees[i];
+            const volume = this.safeNumber (spotFee, 'volume');
+            spotTakerTiers.push ([ volume, this.safeNumber (spotFee, 'taker') ]);
+            spotMakerTiers.push ([ volume, this.safeNumber (spotFee, 'maker') ]);
         }
-        return {
-            'info': tradingFees,
-            'tierBased': true,
-            'maker': maker,
-            'taker': taker,
+        const spotTiers = {
+            'taker': spotTakerTiers,
+            'maker': spotMakerTiers,
         };
+        const futureTakerTiers = [];
+        const futureMakerTiers = [];
+        for (let i = 0; i < futureFees.length; i++) {
+            const futureFee = futureFees[i];
+            futureTakerTiers.push ([ undefined, this.safeNumber (futureFee, 'taker') ]);
+            futureMakerTiers.push ([ undefined, this.safeNumber (futureFee, 'maker') ]);
+        }
+        const futureTiers = {
+            'taker': futureTakerTiers,
+            'maker': futureMakerTiers,
+        };
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            const market = this.market (symbol);
+            const fee = {
+                'info': response,
+                'symbol': symbol,
+                'percentage': true,
+                'tierBased': true,
+            };
+            if (this.safeValue (market, 'spot')) {
+                fee['maker'] = spotMakerFee;
+                fee['taker'] = spotTakerFee;
+                fee['tiers'] = spotTiers;
+            } else if (this.safeValue (market, 'contract')) {
+                fee['maker'] = futureMakerFee;
+                fee['taker'] = futureTakerFee;
+                fee['tiers'] = futureTiers;
+            }
+            result[symbol] = fee;
+        }
+        return result;
     }
 
     async fetchTradingLimits (symbols = undefined, params = {}) {
@@ -1338,7 +1477,7 @@ module.exports = class eqonex extends Exchange {
         }
         const stopPriceScale = this.safeInteger (order, 'stopPx_scale', 0);
         const stopPrice = this.parseNumber (this.convertFromScale (this.safeString (order, 'stopPx'), stopPriceScale));
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

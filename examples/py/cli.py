@@ -29,6 +29,9 @@ class Argv(object):
 
     table = False
     verbose = False
+    sandbox = False
+    testnet = False
+    test = False
     nonce = None
     exchange_id = None
     method = None
@@ -42,6 +45,10 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--table', action='store_true', help='output as table')
 parser.add_argument('--cors', action='store_true', help='enable CORS proxy')
 parser.add_argument('--verbose', action='store_true', help='enable verbose output')
+parser.add_argument('--debug', action='store_true', help='enable debug output')
+parser.add_argument('--sandbox', action='store_true', help='enable sandbox/testnet')
+parser.add_argument('--testnet', action='store_true', help='enable sandbox/testnet')
+parser.add_argument('--test', action='store_true', help='enable sandbox/testnet')
 parser.add_argument('exchange_id', type=str, help='exchange id in lowercase', nargs='?')
 parser.add_argument('method', type=str, help='method or property', nargs='?')
 parser.add_argument('args', type=str, help='arguments', nargs='*')
@@ -107,11 +114,19 @@ if argv.exchange_id not in ccxt.exchanges:
     print_usage()
     raise Exception('Exchange "' + argv.exchange_id + '" not found.')
 
-
 if argv.exchange_id in keys:
     config.update(keys[argv.exchange_id])
 
 exchange = getattr(ccxt, argv.exchange_id)(config)
+
+# check auth keys in env var
+requiredCredentials = exchange.requiredCredentials
+for credential, isRequired in requiredCredentials.items():
+    if isRequired and credential and not getattr(exchange, credential, None):
+        credentialEnvName = (argv.exchange_id + '_' + credential).upper() # example: KRAKEN_APIKEY
+        if credentialEnvName in os.environ:
+            credentialValue = os.environ[credentialEnvName]
+            setattr(exchange, credential, credentialValue)
 
 if argv.cors:
     exchange.proxy = 'https://cors-anywhere.herokuapp.com/';
@@ -139,7 +154,18 @@ for arg in argv.args:
     else:
         args.append(arg)
 
-exchange.load_markets()
+if argv.testnet or argv.sandbox or argv.test:
+    exchange.set_sandbox_mode(True)
+
+if argv.verbose and argv.debug:
+    exchange.verbose = argv.verbose
+
+markets_path = '.cache/' + exchange.id + '-markets.json'
+if os.path.exists(markets_path):
+    with open(markets_path, 'r') as f:
+        exchange.markets = json.load(f)
+else:
+    exchange.load_markets()
 
 exchange.verbose = argv.verbose  # now set verbose mode
 
@@ -147,6 +173,7 @@ if argv.method:
     method = getattr(exchange, argv.method)
     # if it is a method, call it
     if callable(method):
+        print(f"{argv.exchange_id}.{argv.method}({','.join(map(str, args))})")
         result = method(*args)
     else:  # otherwise it's a property, print it
         result = method

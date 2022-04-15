@@ -14,8 +14,15 @@ module.exports = class coinex extends Exchange {
             'name': 'CoinEx',
             'version': 'v1',
             'countries': [ 'CN' ],
-            'rateLimit': 1000,
+            'rateLimit': 50, // Normal limit frequency is single IP：200 times / 10 seconds
             'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': undefined, // has but unimplemented
+                'swap': undefined, // has but unimplemented
+                'future': undefined, // has but unimplemented
+                'option': undefined,
+                'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
@@ -30,6 +37,8 @@ module.exports = class coinex extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchTradingFee': true,
+                'fetchTradingFees': true,
                 'fetchWithdrawals': true,
                 'withdraw': true,
             },
@@ -63,102 +72,127 @@ module.exports = class coinex extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'common/currency/rate',
-                        'common/asset/config',
-                        'market/info',
-                        'market/list',
-                        'market/ticker',
-                        'market/ticker/all',
-                        'market/depth',
-                        'market/deals',
-                        'market/kline',
-                    ],
+                    'get': {
+                        'amm/market': 1,
+                        'common/currency/rate': 1,
+                        'common/asset/config': 1,
+                        'common/maintain/info': 1,
+                        'common/temp-maintain/info': 1,
+                        'margin/market': 1,
+                        'market/info': 1,
+                        'market/list': 1,
+                        'market/ticker': 1,
+                        'market/ticker/all': 1,
+                        'market/depth': 1,
+                        'market/deals': 1,
+                        'market/kline': 1,
+                        'market/detail': 1,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'balance/coin/deposit',
-                        'balance/coin/withdraw',
-                        'balance/info',
-                        'future/account',
-                        'future/config',
-                        'future/limitprice',
-                        'future/loan/history',
-                        'future/market',
-                        'margin/account',
-                        'margin/config',
-                        'margin/loan/history',
-                        'margin/market',
-                        'order',
-                        'order/deals',
-                        'order/finished',
-                        'order/finished/{id}',
-                        'order/pending',
-                        'order/status',
-                        'order/status/batch',
-                        'order/user/deals',
-                        'sub_account/balance',
-                        'sub_account/transfer/history',
-                    ],
-                    'post': [
-                        'balance/coin/withdraw',
-                        'future/flat',
-                        'future/loan',
-                        'future/transfer',
-                        'margin/flat',
-                        'margin/loan',
-                        'margin/transfer',
-                        'order/batchlimit',
-                        'order/ioc',
-                        'order/limit',
-                        'order/market',
-                        'sub_account/transfer',
-                    ],
-                    'delete': [
-                        'balance/coin/withdraw',
-                        'order/pending/batch',
-                        'order/pending',
-                    ],
+                    'get': {
+                        'account/amm/balance': 1,
+                        'account/investment/balance': 1,
+                        'account/balance/history': 1,
+                        'account/market/fee': 1,
+                        'balance/coin/deposit': 1,
+                        'balance/coin/withdraw': 1,
+                        'balance/info': 1,
+                        'balance/deposit/address/{coin_type}': 1,
+                        'contract/transfer/history': 1,
+                        'credit/info': 1,
+                        'credit/balance': 1,
+                        'investment/transfer/history': 1,
+                        'margin/account': 1,
+                        'margin/config': 1,
+                        'margin/loan/history': 1,
+                        'margin/transfer/history': 1,
+                        'order': 1,
+                        'order/deals': 1,
+                        'order/finished': 1,
+                        'order/pending': 1,
+                        'order/status': 1,
+                        'order/status/batch': 1,
+                        'order/user/deals': 1,
+                        'order/stop/finished': 1,
+                        'order/stop/pending': 1,
+                        'order/user/trade/fee': 1,
+                        'order/market/trade/info': 1,
+                        'sub_account/balance': 1,
+                        'sub_account/transfer/history': 1,
+                        'sub_account/auth/api/{user_auth_id}': 1,
+                    },
+                    'post': {
+                        'balance/coin/withdraw': 1,
+                        'contract/balance/transfer': 1,
+                        'margin/flat': 1,
+                        'margin/loan': 1,
+                        'margin/transfer': 1,
+                        'order/limit/batch': 1,
+                        'order/ioc': 1,
+                        'order/limit': 1,
+                        'order/market': 1,
+                        'order/stop/limit': 1,
+                        'order/stop/market': 1,
+                        'sub_account/transfer': 1,
+                        'sub_account/register': 1,
+                        'sub_account/unfrozen': 1,
+                        'sub_account/frozen': 1,
+                        'sub_account/auth/api': 1,
+                    },
+                    'put': {
+                        'balance/deposit/address/{coin_type}': 1,
+                        'sub_account/auth/api/{user_auth_id}': 1,
+                        'v1/account/settings': 1,
+                    },
+                    'delete': {
+                        'balance/coin/withdraw': 1,
+                        'order/pending/batch': 1,
+                        'order/pending': 1,
+                        'order/stop/pending': 1,
+                        'order/stop/pending/{id}': 1,
+                        'sub_account/auth/api/{user_auth_id}': 1,
+                    },
                 },
                 'perpetualPublic': {
-                    'get': [
-                        'ping',
-                        'time',
-                        'market/list',
-                        'market/limit_config',
-                        'market/ticker',
-                        'market/ticker/all',
-                        'market/depth',
-                        'market/deals',
-                        'market/funding_history',
-                        'market/user_deals',
-                        'market/kline',
-                    ],
+                    'get': {
+                        'ping': 1,
+                        'time': 1,
+                        'market/list': 1,
+                        'market/limit_config': 1,
+                        'market/ticker': 1,
+                        'market/ticker/all': 1,
+                        'market/depth': 1,
+                        'market/deals': 1,
+                        'market/funding_history': 1,
+                        'market/user_deals': 1,
+                        'market/kline': 1,
+                    },
                 },
                 'perpetualPrivate': {
-                    'get': [
-                        'asset/query',
-                        'order/pending',
-                        'order/finished',
-                        'order/stop_pending',
-                        'order/status',
-                        'position/pending',
-                        'position/funding',
-                    ],
-                    'post': [
-                        'market/adjust_leverage',
-                        'market/position_expect',
-                        'order/put_limit',
-                        'order/put_market',
-                        'order/put_stop_limit',
-                        'order/cancel',
-                        'order/cancel_all',
-                        'order/cancel_stop',
-                        'order/cancel_stop_all',
-                        'order/close_limit',
-                        'order/close_market',
-                        'position/adjust_margin',
-                    ],
+                    'get': {
+                        'asset/query': 1,
+                        'order/pending': 1,
+                        'order/finished': 1,
+                        'order/stop_pending': 1,
+                        'order/status': 1,
+                        'position/pending': 1,
+                        'position/funding': 1,
+                    },
+                    'post': {
+                        'market/adjust_leverage': 1,
+                        'market/position_expect': 1,
+                        'order/put_limit': 1,
+                        'order/put_market': 1,
+                        'order/put_stop_limit': 1,
+                        'order/cancel': 1,
+                        'order/cancel_all': 1,
+                        'order/cancel_stop': 1,
+                        'order/cancel_stop_all': 1,
+                        'order/close_limit': 1,
+                        'order/close_market': 1,
+                        'position/adjust_margin': 1,
+                    },
                 },
             },
             'fees': {
@@ -231,35 +265,55 @@ module.exports = class coinex extends Exchange {
             if (tradingName === id) {
                 symbol = id;
             }
-            const precision = {
-                'amount': this.safeInteger (market, 'trading_decimal'),
-                'price': this.safeInteger (market, 'pricing_decimal'),
-            };
-            const active = undefined;
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'active': active,
+                'margin': undefined,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': undefined,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
                 'taker': this.safeNumber (market, 'taker_fee_rate'),
                 'maker': this.safeNumber (market, 'maker_fee_rate'),
-                'info': market,
-                'precision': precision,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeInteger (market, 'trading_decimal'),
+                    'price': this.safeInteger (market, 'pricing_decimal'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': this.safeNumber (market, 'min_amount'),
                         'max': undefined,
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
                         'max': undefined,
                     },
                 },
+                'info': market,
             });
         }
         return result;
@@ -267,21 +321,18 @@ module.exports = class coinex extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         const timestamp = this.safeInteger (ticker, 'date');
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (undefined, market);
         ticker = this.safeValue (ticker, 'ticker', {});
-        const last = this.safeNumber (ticker, 'last');
-        return {
+        const last = this.safeString (ticker, 'last');
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'buy'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'sell'),
+            'ask': this.safeString (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -291,10 +342,10 @@ module.exports = class coinex extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeNumber2 (ticker, 'vol', 'volume'),
+            'baseVolume': this.safeString2 (ticker, 'vol', 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -439,6 +490,78 @@ module.exports = class coinex extends Exchange {
         return this.parseTrades (response['data'], market, since, limit);
     }
 
+    async fetchTradingFee (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+        };
+        const response = await this.publicGetMarketDetail (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //           "name": "BTCUSDC",
+        //           "min_amount": "0.0005",
+        //           "maker_fee_rate": "0.002",
+        //           "taker_fee_rate": "0.002",
+        //           "pricing_name": "USDC",
+        //           "pricing_decimal": 2,
+        //           "trading_name": "BTC",
+        //           "trading_decimal": 8
+        //         },
+        //         "message": "OK"
+        //      }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseTradingFee (data);
+    }
+
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetMarketInfo (params);
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "WAVESBTC": {
+        //                 "name": "WAVESBTC",
+        //                 "min_amount": "1",
+        //                 "maker_fee_rate": "0.001",
+        //                 "taker_fee_rate": "0.001",
+        //                 "pricing_name": "BTC",
+        //                 "pricing_decimal": 8,
+        //                 "trading_name": "WAVES",
+        //                 "trading_decimal": 8
+        //             }
+        //             ...
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const result = {};
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            const market = this.market (symbol);
+            const fee = this.safeValue (data, market['id'], {});
+            result[symbol] = this.parseTradingFee (fee, market);
+        }
+        return result;
+    }
+
+    parseTradingFee (fee, market = undefined) {
+        const marketId = this.safeValue (fee, 'name');
+        const symbol = this.safeSymbol (marketId, market);
+        return {
+            'info': fee,
+            'symbol': symbol,
+            'maker': this.safeNumber (fee, 'maker_fee_rate'),
+            'taker': this.safeNumber (fee, 'taker_fee_rate'),
+            'percentage': true,
+            'tierBased': true,
+        };
+    }
+
     parseOHLCV (ohlcv, market = undefined) {
         //
         //     [
@@ -558,7 +681,7 @@ module.exports = class coinex extends Exchange {
         buyAccount['total'] = this.safeString (total, 'buy_type');
         result[buyCurrencyCode] = buyAccount;
         //
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchSpotBalance (params = {}) {
@@ -596,7 +719,7 @@ module.exports = class coinex extends Exchange {
             account['used'] = this.safeString (balance, 'frozen');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchBalance (params = {}) {
@@ -651,28 +774,24 @@ module.exports = class coinex extends Exchange {
         const filledString = this.safeString (order, 'deal_amount');
         const averageString = this.safeString (order, 'avg_price');
         const remainingString = this.safeString (order, 'left');
-        let symbol = undefined;
         const marketId = this.safeString (order, 'market');
         market = this.safeMarket (marketId, market);
         const feeCurrencyId = this.safeString (order, 'fee_asset');
         let feeCurrency = this.safeCurrencyCode (feeCurrencyId);
-        if (market !== undefined) {
-            symbol = market['symbol'];
-            if (feeCurrency === undefined) {
-                feeCurrency = market['quote'];
-            }
+        if (feeCurrency === undefined) {
+            feeCurrency = market['quote'];
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const type = this.safeString (order, 'order_type');
         const side = this.safeString (order, 'type');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': this.safeString (order, 'id'),
             'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
             'status': status,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,
@@ -1000,8 +1119,13 @@ module.exports = class coinex extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': undefined,
             'address': address,
+            'addressTo': undefined,
+            'addressFrom': undefined,
             'tag': tag,
+            'tagTo': undefined,
+            'tagFrom': undefined,
             'type': type,
             'amount': amount,
             'currency': code,

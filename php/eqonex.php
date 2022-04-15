@@ -18,11 +18,21 @@ class eqonex extends Exchange {
             'countries' => array( 'US', 'SG' ), // United States, Singapore
             'rateLimit' => 10,
             'has' => array(
-                'cancelOrder' => true,
                 'CORS' => null,
+                'spot' => true,
+                'margin' => false,
+                'swap' => null, // has but not fully implemented
+                'future' => null, // has but not fully implemented
+                'option' => false,
+                'cancelOrder' => true,
                 'createOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
@@ -36,7 +46,9 @@ class eqonex extends Exchange {
                 'fetchOrders' => true,
                 'fetchTicker' => null,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
+                'fetchTradingLimits' => true,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
             ),
@@ -48,6 +60,7 @@ class eqonex extends Exchange {
                 '6h' => 5,
                 '1d' => 6,
                 '7d' => 7,
+                '1w' => 7,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/122649755-1a076c80-d138-11eb-8f2e-9a9166a03d79.jpg',
@@ -121,37 +134,51 @@ class eqonex extends Exchange {
         );
         $response = $this->publicGetGetInstrumentPairs (array_merge($request, $params));
         //
-        //     {
-        //         "instrumentPairs":[
-        //             array(
-        //                 "instrumentId":52,
-        //                 "symbol":"BTC/USDC",
-        //                 "quoteId":1,
-        //                 "baseId":3,
-        //                 "price_scale":2,
-        //                 "quantity_scale":6,
-        //                 "securityStatus":1,
-        //                 "securityDesc":"BTC/USDC", // "BTC/USDC[F]"
-        //                 "assetType":"PAIR", // "PERPETUAL_SWAP"
-        //                 "currency":"BTC",
-        //                 "contAmtCurr":"USDC",
-        //                 "settlCurrency":"USDC",
-        //                 "commCurrency":"USDC",
-        //                 "cfiCode":"XXXXXX",
-        //                 "securityExchange":"XXXX",
-        //                 "instrumentPricePrecision":2,
-        //                 "minPriceIncrement":1.0,
-        //                 "minPriceIncrementAmount":1.0,
-        //                 "roundLot":1,
-        //                 "minTradeVol":0.001000,
-        //                 "maxTradeVol":0.000000
-        //                 // contracts onlye
-        //                 "qtyType":0,
-        //                 "contractMultiplier":1.0,
-        //                 "issueDate":1598608087000
-        //             ),
-        //         ]
-        //     }
+        //    {
+        //        "instrumentPairs" => [
+        //            {
+        //                "instrumentId":303,
+        //                "symbol":"BTC/USDC[220325]",
+        //                "quoteId":1,
+        //                "baseId":3,
+        //                "price_scale":2,
+        //                "quantity_scale":6,
+        //                "securityStatus":1,
+        //                "securityDesc":"BTC Dated Future",
+        //                "assetType":"DATED_FUTURE",
+        //                "currency":"BTC",
+        //                "contAmtCurr":"USDC",
+        //                "settlCurrency":"USDC",
+        //                "commCurrency":"USDC",
+        //                "cfiCode":"FFCPSX",
+        //                "securityExchange":"EQOS",
+        //                "micCode":"EQOD",
+        //                "instrumentPricePrecision":2,
+        //                "minPriceIncrement":1.0,
+        //                "minPriceIncrementAmount":1.0,
+        //                "roundLot":100,
+        //                "minTradeVol":0.000100,
+        //                "maxTradeVol":0.000000,
+        //                "qtyType":0,
+        //                "contractMultiplier":1.0,
+        //                "auctionStartTime":0,
+        //                "auctionDuration":0,
+        //                "auctionFrequency":0,
+        //                "auctionPrice":0,
+        //                "auctionVolume":0,
+        //                "marketStatus":"OPEN",
+        //                "underlyingSymbol":"BTC/USDC",
+        //                "underlyingSecurityId":52,
+        //                "underlyingSecuritySource":"M",
+        //                "underlyingSecurityExchange":"EQOC",
+        //                "issueDate":1643256000000,
+        //                "maturityDate":"2022-03-25",
+        //                "maturityTime":"2022-03-25T08:00:00Z",
+        //                "contractExpireTime":1648195200000
+        //            }
+        //            ...
+        //        ]
+        //    }
         //
         $instrumentPairs = $this->safe_value($response, 'instrumentPairs', array());
         $markets = array();
@@ -164,65 +191,119 @@ class eqonex extends Exchange {
 
     public function parse_market($market) {
         //
-        //     {
-        //         "instrumentId":52,
-        //         "symbol":"BTC/USDC", // "BTC/USDC[F]"
-        //         "quoteId":1,
-        //         "baseId":3,
-        //         "price_scale":2,
-        //         "quantity_scale":6,
-        //         "securityStatus":1,
-        //         "securityDesc":"BTC/USDC", // "BTC/USDC[F]"
-        //         "assetType":"PAIR", // "PERPETUAL_SWAP"
-        //         "currency":"BTC",
-        //         "contAmtCurr":"USDC",
-        //         "settlCurrency":"USDC",
-        //         "commCurrency":"USDC",
-        //         "cfiCode":"XXXXXX",
-        //         "securityExchange":"XXXX",
-        //         "instrumentPricePrecision":2,
-        //         "minPriceIncrement":1.0,
-        //         "minPriceIncrementAmount":1.0,
-        //         "roundLot":1,
-        //         "minTradeVol":0.001000,
-        //         "maxTradeVol":0.000000
-        //         // contracts onlye
-        //         "qtyType":0,
-        //         "contractMultiplier":1.0,
-        //         "issueDate":1598608087000
-        //     }
+        //    {
+        //        "instrumentPairs" => [
+        //            {
+        //                "instrumentId":303,
+        //                "symbol":"BTC/USDC[220325]",
+        //                "quoteId":1,
+        //                "baseId":3,
+        //                "price_scale":2,
+        //                "quantity_scale":6,
+        //                "securityStatus":1,
+        //                "securityDesc":"BTC Dated Future",
+        //                "assetType":"DATED_FUTURE",
+        //                "currency":"BTC",
+        //                "contAmtCurr":"USDC",
+        //                "settlCurrency":"USDC",
+        //                "commCurrency":"USDC",
+        //                "cfiCode":"FFCPSX",
+        //                "securityExchange":"EQOS",
+        //                "micCode":"EQOD",
+        //                "instrumentPricePrecision":2,
+        //                "minPriceIncrement":1.0,
+        //                "minPriceIncrementAmount":1.0,
+        //                "roundLot":100,
+        //                "minTradeVol":0.000100,
+        //                "maxTradeVol":0.000000,
+        //                "qtyType":0,
+        //                "contractMultiplier":1.0,
+        //                "auctionStartTime":0,
+        //                "auctionDuration":0,
+        //                "auctionFrequency":0,
+        //                "auctionPrice":0,
+        //                "auctionVolume":0,
+        //                "marketStatus":"OPEN",
+        //                "underlyingSymbol":"BTC/USDC",
+        //                "underlyingSecurityId":52,
+        //                "underlyingSecuritySource":"M",
+        //                "underlyingSecurityExchange":"EQOC",
+        //                "issueDate":1643256000000,
+        //                "maturityDate":"2022-03-25",
+        //                "maturityTime":"2022-03-25T08:00:00Z",
+        //                "contractExpireTime":1648195200000
+        //            }
+        //            ...
+        //        ]
+        //    }
         //
-        $id = $this->safe_string($market, 'instrumentId');
-        $uppercaseId = $this->safe_string($market, 'symbol');
         $assetType = $this->safe_string($market, 'assetType');
         $spot = ($assetType === 'PAIR');
         $swap = ($assetType === 'PERPETUAL_SWAP');
-        $type = $swap ? 'swap' : 'spot';
+        $future = ($assetType === 'DATED_FUTURE');
+        $contract = $swap || $future;
+        $id = $this->safe_string($market, 'instrumentId');
         $baseId = $this->safe_string($market, 'currency');
         $quoteId = $this->safe_string($market, 'contAmtCurr');
+        $settleId = $contract ? $this->safe_string($market, 'settlCurrency') : null;
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        $symbol = $swap ? $uppercaseId : ($base . '/' . $quote);
+        $settle = $this->safe_currency_code($settleId);
+        $symbol = $base . '/' . $quote;
+        $uppercaseId = $this->safe_string($market, 'symbol');
+        $type = 'spot';
+        $linear = null;
+        $inverse = null;
+        $expiry = $this->safe_number($market, 'contractExpireTime');
+        if ($contract) {
+            $symbol = $symbol . ':' . $settle;
+            $linear = ($quote === $settle);
+            $inverse = !$linear;
+            if ($swap) {
+                $type = 'swap';
+            } else if ($future) {
+                $symbol = $symbol . '-' . $this->yymmdd($expiry);
+                $type = 'future';
+            } else {
+                $symbol = $uppercaseId;
+                $type = $assetType;
+            }
+        }
         $status = $this->safe_integer($market, 'securityStatus');
-        $active = ($status === 1);
-        $precision = array(
-            'amount' => $this->safe_integer($market, 'quantity_scale'),
-            'price' => $this->safe_integer($market, 'price_scale'),
-        );
         return array(
             'id' => $id,
             'uppercaseId' => $uppercaseId,
             'symbol' => $symbol,
             'base' => $base,
             'quote' => $quote,
+            'settle' => $settle,
             'baseId' => $baseId,
             'quoteId' => $quoteId,
+            'settleId' => $settleId,
             'type' => $type,
             'spot' => $spot,
+            'margin' => false,
             'swap' => $swap,
-            'active' => $active,
-            'precision' => $precision,
+            'future' => $future,
+            'option' => false,
+            'active' => ($status === 1),
+            'contract' => $contract,
+            'linear' => $linear,
+            'inverse' => $inverse,
+            'contractSize' => $this->safe_number($market, 'contractMultiplier'),
+            'expiry' => $expiry,
+            'expiryDatetime' => $this->iso8601($expiry),
+            'strike' => null,
+            'optionType' => null,
+            'precision' => array(
+                'amount' => $this->safe_integer($market, 'quantity_scale'),
+                'price' => $this->safe_integer($market, 'price_scale'),
+            ),
             'limits' => array(
+                'leverage' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
                 'amount' => array(
                     'min' => $this->safe_number($market, 'minTradeVol'),
                     'max' => null,
@@ -300,6 +381,8 @@ class eqonex extends Exchange {
             'precision' => $precision,
             'fee' => $fee,
             'active' => $active,
+            'deposit' => null,
+            'withdraw' => null,
             'limits' => array(
                 'amount' => array(
                     'min' => null,
@@ -366,7 +449,7 @@ class eqonex extends Exchange {
         $low = $this->parse_number($this->convert_from_scale($this->safe_string($ohlcv, 3), $market['precision']['price']));
         $close = $this->parse_number($this->convert_from_scale($this->safe_string($ohlcv, 4), $market['precision']['price']));
         $volume = $this->parse_number($this->convert_from_scale($this->safe_string($ohlcv, 5), $market['precision']['amount']));
-        return [$timestamp, $open, $high, $low, $close, $volume];
+        return array( $timestamp, $open, $high, $low, $close, $volume );
     }
 
     public function parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1, $market = null) {
@@ -499,7 +582,7 @@ class eqonex extends Exchange {
         $priceString = null;
         $amountString = null;
         $fee = null;
-        $symbol = null;
+        $marketId = null;
         if (gettype($trade) === 'array' && count(array_filter(array_keys($trade), 'is_string')) == 0) {
             $id = $this->safe_string($trade, 3);
             $priceString = $this->convert_from_scale($this->safe_string($trade, 0), $market['precision']['price']);
@@ -515,7 +598,6 @@ class eqonex extends Exchange {
             $id = $this->safe_string($trade, 'execId');
             $timestamp = $this->safe_integer($trade, 'time');
             $marketId = $this->safe_string($trade, 'symbol');
-            $symbol = $this->safe_symbol($marketId, $market);
             $orderId = $this->safe_string($trade, 'orderId');
             $side = $this->safe_string_lower($trade, 'side');
             $type = $this->parse_order_type($this->safe_string($trade, 'ordType'));
@@ -532,15 +614,13 @@ class eqonex extends Exchange {
                 );
             }
         }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $market = $this->safe_market($marketId, $market);
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'order' => $orderId,
             'type' => $type,
             'side' => $side,
@@ -550,6 +630,29 @@ class eqonex extends Exchange {
             'cost' => null,
             'fee' => $fee,
         ), $market);
+    }
+
+    public function parse_balance($response) {
+        $positions = $this->safe_value($response, 'positions', array());
+        $result = array(
+            'info' => $response,
+        );
+        for ($i = 0; $i < count($positions); $i++) {
+            $position = $positions[$i];
+            $assetType = $this->safe_string($position, 'assetType');
+            if ($assetType === 'ASSET') {
+                $currencyId = $this->safe_string($position, 'symbol');
+                $code = $this->safe_currency_code($currencyId);
+                $quantityString = $this->safe_string($position, 'quantity');
+                $availableQuantityString = $this->safe_string($position, 'availableQuantity');
+                $scale = $this->safe_integer($position, 'quantity_scale');
+                $account = $this->account();
+                $account['free'] = $this->convert_from_scale($availableQuantityString, $scale);
+                $account['total'] = $this->convert_from_scale($quantityString, $scale);
+                $result[$code] = $account;
+            }
+        }
+        return $this->safe_balance($result);
     }
 
     public function fetch_balance($params = array ()) {
@@ -577,26 +680,7 @@ class eqonex extends Exchange {
         //             ),
         //         )
         //     }
-        $positions = $this->safe_value($response, 'positions', array());
-        $result = array(
-            'info' => $response,
-        );
-        for ($i = 0; $i < count($positions); $i++) {
-            $position = $positions[$i];
-            $assetType = $this->safe_string($position, 'assetType');
-            if ($assetType === 'ASSET') {
-                $currencyId = $this->safe_string($position, 'symbol');
-                $code = $this->safe_currency_code($currencyId);
-                $quantityString = $this->safe_string($position, 'quantity');
-                $availableQuantityString = $this->safe_string($position, 'availableQuantity');
-                $scale = $this->safe_integer($position, 'quantity_scale');
-                $account = $this->account();
-                $account['free'] = $this->convert_from_scale($availableQuantityString, $scale);
-                $account['total'] = $this->convert_from_scale($quantityString, $scale);
-                $result[$code] = $account;
-            }
-        }
-        return $this->parse_balance($result);
+        return $this->parse_balance($response);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -1122,6 +1206,7 @@ class eqonex extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => null,
             'addressFrom' => null,
             'address' => $address,
             'addressTo' => null,
@@ -1183,24 +1268,78 @@ class eqonex extends Exchange {
     }
 
     public function fetch_trading_fees($params = array ()) {
-        // getExchangeInfo
+        $this->load_markets();
         $response = $this->publicGetGetExchangeInfo ($params);
-        $tradingFees = $this->safe_value($response, 'spotFees', array());
-        $taker = array();
-        $maker = array();
-        for ($i = 0; $i < count($tradingFees); $i++) {
-            $tradingFee = $tradingFees[$i];
-            if ($this->safe_string($tradingFee, 'tier') !== null) {
-                $taker[$tradingFee['tier']] = $this->safe_number($tradingFee, 'taker');
-                $maker[$tradingFee['tier']] = $this->safe_number($tradingFee, 'maker');
-            }
+        //
+        //     {
+        //         tradingLimits => array(),
+        //         withdrawLimits => [array( All => '0.0', Type => 'percent' )],
+        //         futuresFees => array(
+        //             array( tier => '0', maker => '0.000300', taker => '0.000500' ),
+        //             array( tier => '1', maker => '0.000200', taker => '0.000400' ),
+        //             array( tier => '2', maker => '0.000180', taker => '0.000400' ),
+        //         ),
+        //         $spotFees => array(
+        //             array( tier => '0', maker => '0.000900', taker => '0.001500', $volume => '0' ),
+        //             array( tier => '1', maker => '0.000600', taker => '0.001250', $volume => '200000' ),
+        //             array( tier => '2', maker => '0.000540', taker => '0.001200', $volume => '2500000' ),
+        //         ),
+        //         referrals => array( earning => '0.30', discount => '0.05', duration => '180' )
+        //     }
+        //
+        $spotFees = $this->safe_value($response, 'spotFees', array());
+        $firstSpotFee = $this->safe_value($spotFees, 0, array());
+        $spotMakerFee = $this->safe_number($firstSpotFee, 'maker');
+        $spotTakerFee = $this->safe_number($firstSpotFee, 'taker');
+        $futureFees = $this->safe_value($response, 'futuresFees', array());
+        $firstFutureFee = $this->safe_value($futureFees, 0, array());
+        $futureMakerFee = $this->safe_number($firstFutureFee, 'maker');
+        $futureTakerFee = $this->safe_number($firstFutureFee, 'taker');
+        $spotTakerTiers = array();
+        $spotMakerTiers = array();
+        $result = array();
+        for ($i = 0; $i < count($spotFees); $i++) {
+            $spotFee = $spotFees[$i];
+            $volume = $this->safe_number($spotFee, 'volume');
+            $spotTakerTiers[] = array( $volume, $this->safe_number($spotFee, 'taker') );
+            $spotMakerTiers[] = array( $volume, $this->safe_number($spotFee, 'maker') );
         }
-        return array(
-            'info' => $tradingFees,
-            'tierBased' => true,
-            'maker' => $maker,
-            'taker' => $taker,
+        $spotTiers = array(
+            'taker' => $spotTakerTiers,
+            'maker' => $spotMakerTiers,
         );
+        $futureTakerTiers = array();
+        $futureMakerTiers = array();
+        for ($i = 0; $i < count($futureFees); $i++) {
+            $futureFee = $futureFees[$i];
+            $futureTakerTiers[] = array( null, $this->safe_number($futureFee, 'taker') );
+            $futureMakerTiers[] = array( null, $this->safe_number($futureFee, 'maker') );
+        }
+        $futureTiers = array(
+            'taker' => $futureTakerTiers,
+            'maker' => $futureMakerTiers,
+        );
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
+            $market = $this->market($symbol);
+            $fee = array(
+                'info' => $response,
+                'symbol' => $symbol,
+                'percentage' => true,
+                'tierBased' => true,
+            );
+            if ($this->safe_value($market, 'spot')) {
+                $fee['maker'] = $spotMakerFee;
+                $fee['taker'] = $spotTakerFee;
+                $fee['tiers'] = $spotTiers;
+            } else if ($this->safe_value($market, 'contract')) {
+                $fee['maker'] = $futureMakerFee;
+                $fee['taker'] = $futureTakerFee;
+                $fee['tiers'] = $futureTiers;
+            }
+            $result[$symbol] = $fee;
+        }
+        return $result;
     }
 
     public function fetch_trading_limits($symbols = null, $params = array ()) {
@@ -1340,7 +1479,7 @@ class eqonex extends Exchange {
         }
         $stopPriceScale = $this->safe_integer($order, 'stopPx_scale', 0);
         $stopPrice = $this->parse_number($this->convert_from_scale($this->safe_string($order, 'stopPx'), $stopPriceScale));
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,

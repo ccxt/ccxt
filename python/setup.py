@@ -30,7 +30,7 @@ with open(package_json, encoding='utf-8') as f:
 project_urls = {
     'Homepage': 'https://ccxt.com',
     'Documentation': 'https://docs.ccxt.com/en/latest/manual.html',
-    'Discord': 'https://discord.gg/dhzSKYU',
+    'Discord': 'https://discord.gg/ccxt',
     'Twitter': 'https://twitter.com/ccxt_official',
     'Funding': 'https://opencollective.com/ccxt',
 }
@@ -79,7 +79,7 @@ setup(
     packages=find_packages(exclude=['ccxt.async_support*'] if is_python_2 else []),
 
     install_requires=[
-        'setuptools>=38.5.1',
+        'setuptools>=60.9.0',
         'certifi>=2018.1.18',
         'requests>=2.18.4',
         'cryptography>=2.6.1'

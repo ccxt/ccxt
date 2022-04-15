@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet } = require ('./base/errors');
 const { TRUNCATE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -20,40 +20,65 @@ module.exports = class binance extends Exchange {
             'pro': true,
             // new metainfo interface
             'has': {
+                'CORS': undefined,
+                'spot': true,
                 'margin': true,
                 'swap': true,
                 'future': true,
+                'option': undefined,
                 'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'CORS': undefined,
+                'cancelOrders': undefined,
+                'createDepositAddress': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
+                'fetchAccounts': undefined,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
+                'fetchBorrowInterest': true,
                 'fetchBorrowRate': true,
+                'fetchBorrowRateHistories': true,
+                'fetchBorrowRateHistory': true,
                 'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
+                'fetchCanceledOrders': false,
+                'fetchClosedOrder': undefined,
                 'fetchClosedOrders': 'emulated',
                 'fetchCurrencies': true,
+                'fetchDeposit': false,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
+                'fetchFundingFee': undefined,
                 'fetchFundingFees': true,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': true,
-                'fetchIsolatedPositions': true,
+                'fetchL3OrderBook': undefined,
+                'fetchLedger': undefined,
+                'fetchLeverage': false,
+                'fetchLeverageTiers': true,
+                'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
+                'fetchMyBuys': undefined,
+                'fetchMySells': undefined,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenOrder': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchOrderBooks': false,
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
+                'fetchPosition': undefined,
                 'fetchPositions': true,
+                'fetchPositionsRisk': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
                 'fetchTicker': true,
@@ -62,13 +87,17 @@ module.exports = class binance extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
+                'fetchTradingLimits': undefined,
                 'fetchTransactions': false,
                 'fetchTransfers': true,
+                'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
+                'fetchWithdrawalWhitelist': false,
                 'reduceMargin': true,
                 'setLeverage': true,
                 'setMarginMode': true,
                 'setPositionMode': true,
+                'signIn': false,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -94,6 +123,8 @@ module.exports = class binance extends Exchange {
                 'test': {
                     'dapiPublic': 'https://testnet.binancefuture.com/dapi/v1',
                     'dapiPrivate': 'https://testnet.binancefuture.com/dapi/v1',
+                    'vapiPublic': 'https://testnet.binanceops.com/vapi/v1',
+                    'vapiPrivate': 'https://testnet.binanceops.com/vapi/v1',
                     'fapiPublic': 'https://testnet.binancefuture.com/fapi/v1',
                     'fapiPrivate': 'https://testnet.binancefuture.com/fapi/v1',
                     'fapiPrivateV2': 'https://testnet.binancefuture.com/fapi/v2',
@@ -104,8 +135,11 @@ module.exports = class binance extends Exchange {
                 'api': {
                     'wapi': 'https://api.binance.com/wapi/v3',
                     'sapi': 'https://api.binance.com/sapi/v1',
+                    'sapiV3': 'https://api.binance.com/sapi/v3',
                     'dapiPublic': 'https://dapi.binance.com/dapi/v1',
                     'dapiPrivate': 'https://dapi.binance.com/dapi/v1',
+                    'vapiPublic': 'https://vapi.binance.com/vapi/v1',
+                    'vapiPrivate': 'https://vapi.binance.com/vapi/v1',
                     'dapiPrivateV2': 'https://dapi.binance.com/dapi/v2',
                     'dapiData': 'https://dapi.binance.com/futures/data',
                     'fapiPublic': 'https://fapi.binance.com/fapi/v1',
@@ -117,10 +151,10 @@ module.exports = class binance extends Exchange {
                     'v1': 'https://api.binance.com/api/v1',
                 },
                 'www': 'https://www.binance.com',
-                // 'referral': {
-                //     'url': 'https://www.binance.com/en/register?ref=BLEJC98C',
-                //     'discount': 0.2,
-                // },
+                'referral': {
+                    'url': 'https://www.binance.com/en/register?ref=D7YA7CLY',
+                    'discount': 0.1,
+                },
                 'doc': [
                     'https://binance-docs.github.io/apidocs/spot/en',
                 ],
@@ -131,114 +165,127 @@ module.exports = class binance extends Exchange {
             'api': {
                 // the API structure below will need 3-layer apidefs
                 'sapi': {
+                    // IP (api) = 1200 per minute => (rateLimit = 50)
+                    // IP (sapi) request rate limit of 12 000 per minute
+                    // 1 IP (sapi) => cost = 0.1
+                    // 10 IP (sapi) => cost = 1
+                    // UID (sapi) request rate limit of 180 000 per minute
+                    // 1 UID (sapi) => cost = 1200 / 180 000 = 0.006667
                     'get': {
-                        'accountSnapshot': 1,
-                        'system/status': 1,
+                        'system/status': 0.1,
                         // these endpoints require this.apiKey
-                        'margin/asset': 1,
+                        'accountSnapshot': 240, // Weight(IP): 2400 => cost = 0.1 * 2400 = 240
+                        'margin/asset': 1, // Weight(IP): 10 => cost = 0.1 * 10 = 1
                         'margin/pair': 1,
-                        'margin/allAssets': 1,
-                        'margin/allPairs': 1,
+                        'margin/allAssets': 0.1,
+                        'margin/allPairs': 0.1,
                         'margin/priceIndex': 1,
                         // these endpoints require this.apiKey + this.secret
                         'asset/assetDividend': 1,
-                        'asset/dribblet': 1,
-                        'asset/transfer': 1,
-                        'asset/assetDetail': 1,
-                        'asset/tradeFee': 1,
-                        'asset/get-funding-asset': 1,
+                        'asset/dribblet': 0.1,
+                        'asset/transfer': 0.1,
+                        'asset/assetDetail': 0.1,
+                        'asset/tradeFee': 0.1,
                         'margin/loan': 1,
                         'margin/repay': 1,
                         'margin/account': 1,
-                        'margin/transfer': 1,
-                        'margin/interestHistory': 1,
-                        'margin/forceLiquidationRec': 1,
+                        'margin/transfer': 0.1,
+                        'margin/interestHistory': 0.1,
+                        'margin/forceLiquidationRec': 0.1,
                         'margin/order': 1,
                         'margin/openOrders': 1,
-                        'margin/allOrders': 1,
+                        'margin/allOrders': 20, // Weight(IP): 200 => cost = 0.1 * 200 = 20
                         'margin/myTrades': 1,
-                        'margin/maxBorrowable': 5,
+                        'margin/maxBorrowable': 5, // Weight(IP): 50 => cost = 0.1 * 50 = 5
                         'margin/maxTransferable': 5,
-                        'margin/isolated/transfer': 1,
+                        'margin/isolated/transfer': 0.1,
                         'margin/isolated/account': 1,
                         'margin/isolated/pair': 1,
                         'margin/isolated/allPairs': 1,
-                        'margin/isolated/accountLimit': 1,
-                        'margin/interestRateHistory': 1,
-                        'margin/orderList': 2,
-                        'margin/allOrderList': 10,
-                        'margin/openOrderList': 3,
-                        'loan/income': 1,
-                        'fiat/orders': 1,
-                        'fiat/payments': 1,
-                        'futures/transfer': 5,
+                        'margin/isolated/accountLimit': 0.1,
+                        'margin/interestRateHistory': 0.1,
+                        'margin/orderList': 1,
+                        'margin/allOrderList': 20, // Weight(IP): 200 => cost = 0.1 * 200 = 20
+                        'margin/openOrderList': 1,
+                        'margin/crossMarginData': { 'cost': 0.1, 'noCoin': 0.5 },
+                        'margin/isolatedMarginData': { 'cost': 0.1, 'noCoin': 1 },
+                        'margin/isolatedMarginTier': 0.1,
+                        'loan/income': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
+                        'fiat/orders': 0.1,
+                        'fiat/payments': 0.1,
+                        'futures/transfer': 1,
                         'futures/loan/borrow/history': 1,
                         'futures/loan/repay/history': 1,
                         'futures/loan/wallet': 1,
                         'futures/loan/configs': 1,
-                        'futures/loan/calcAdjustLevel': 1,
-                        'futures/loan/calcMaxAdjustAmount': 1,
+                        'futures/loan/calcAdjustLevel': 5, // Weight(IP): 50 => cost = 0.1 * 50 = 5
+                        'futures/loan/calcMaxAdjustAmount': 5,
                         'futures/loan/adjustCollateral/history': 1,
                         'futures/loan/liquidationHistory': 1,
+                        'rebate/taxQuery': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         // https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
                         'capital/config/getall': 1, // get networks for withdrawing USDT ERC20 vs USDT Omni
                         'capital/deposit/address': 1,
-                        'capital/deposit/hisrec': 1,
-                        'capital/deposit/subAddress': 1,
-                        'capital/deposit/subHisrec': 1,
-                        'capital/withdraw/history': 1,
-                        'convert/tradeFlow': 1,
-                        'account/status': 1,
-                        'account/apiTradingStatus': 1,
-                        'account/apiRestrictions/ipRestriction': 1,
-                        'bnbBurn': 1,
-                        'sub-account/assets': 1,
+                        'capital/deposit/hisrec': 0.1,
+                        'capital/deposit/subAddress': 0.1,
+                        'capital/deposit/subHisrec': 0.1,
+                        'capital/withdraw/history': 0.1,
+                        'convert/tradeFlow': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
+                        'account/status': 0.1,
+                        'account/apiTradingStatus': 0.1,
+                        'account/apiRestrictions/ipRestriction': 0.1,
+                        'bnbBurn': 0.1,
+                        // 'sub-account/assets': 1, (v3 endpoint)
                         'sub-account/futures/account': 1,
-                        'sub-account/futures/accountSummary': 1,
+                        'sub-account/futures/accountSummary': 0.1,
                         'sub-account/futures/positionRisk': 1,
-                        'sub-account/futures/internalTransfer': 1,
-                        'sub-account/list': 1,
+                        'sub-account/futures/internalTransfer': 0.1,
+                        'sub-account/list': 0.1,
                         'sub-account/margin/account': 1,
                         'sub-account/margin/accountSummary': 1,
-                        'sub-account/spotSummary': 5,
+                        'sub-account/spotSummary': 0.1,
                         'sub-account/status': 1,
-                        'sub-account/sub/transfer/history': 1,
-                        'sub-account/transfer/subUserHistory': 1,
-                        'sub-account/universalTransfer': 1,
+                        'sub-account/sub/transfer/history': 0.1,
+                        'sub-account/transfer/subUserHistory': 0.1,
+                        'sub-account/universalTransfer': 0.1,
+                        'managed-subaccount/asset': 0.1,
                         // lending endpoints
-                        'lending/daily/product/list': 1,
-                        'lending/daily/userLeftQuota': 1,
-                        'lending/daily/userRedemptionQuota': 1,
-                        'lending/daily/token/position': 1,
-                        'lending/union/account': 1,
-                        'lending/union/purchaseRecord': 1,
-                        'lending/union/redemptionRecord': 1,
-                        'lending/union/interestHistory': 1,
-                        'lending/project/list': 1,
-                        'lending/project/position/list': 1,
+                        'lending/daily/product/list': 0.1,
+                        'lending/daily/userLeftQuota': 0.1,
+                        'lending/daily/userRedemptionQuota': 0.1,
+                        'lending/daily/token/position': 0.1,
+                        'lending/union/account': 0.1,
+                        'lending/union/purchaseRecord': 0.1,
+                        'lending/union/redemptionRecord': 0.1,
+                        'lending/union/interestHistory': 0.1,
+                        'lending/project/list': 0.1,
+                        'lending/project/position/list': 0.1,
                         // mining endpoints
-                        'mining/pub/algoList': 1,
-                        'mining/pub/coinList': 1,
-                        'mining/worker/detail': 5,
-                        'mining/worker/list': 5,
-                        'mining/payment/list': 5,
-                        'mining/statistics/user/status': 5,
-                        'mining/statistics/user/list': 5,
+                        'mining/pub/algoList': 0.1,
+                        'mining/pub/coinList': 0.1,
+                        'mining/worker/detail': 0.5, // Weight(IP): 5 => cost = 0.1 * 5 = 0.5
+                        'mining/worker/list': 0.5,
+                        'mining/payment/list': 0.5,
+                        'mining/statistics/user/status': 0.5,
+                        'mining/statistics/user/list': 0.5,
+                        'mining/payment/uid': 0.5,
                         // liquid swap endpoints
-                        'bswap/pools': 1,
-                        'bswap/liquidity': { 'cost': 1, 'noPoolId': 10 },
-                        'bswap/liquidityOps': 2,
-                        'bswap/quote': 2,
-                        'bswap/swap': 1,
-                        'bswap/poolConfigure': 1,
-                        'bswap/addLiquidityPreview': 1,
-                        'bswap/removeLiquidityPreview': 1,
+                        'bswap/pools': 0.1,
+                        'bswap/liquidity': { 'cost': 0.1, 'noPoolId': 1 },
+                        'bswap/liquidityOps': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
+                        'bswap/quote': 1.00005, // Weight(UID): 150 => cost = 0.006667 * 150 = 1.00005
+                        'bswap/swap': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
+                        'bswap/poolConfigure': 1.00005, // Weight(UID): 150 => cost = 0.006667 * 150 = 1.00005
+                        'bswap/addLiquidityPreview': 1.00005, // Weight(UID): 150 => cost = 0.006667 * 150 = 1.00005
+                        'bswap/removeLiquidityPreview': 1.00005, // Weight(UID): 150 => cost = 0.006667 * 150 = 1.00005
+                        'bswap/unclaimedRewards': 6.667, // Weight(UID): 1000 => cost = 0.006667 * 1000 = 6.667
+                        'bswap/claimedHistory': 6.667, // Weight(UID): 1000 => cost = 0.006667 * 1000 = 6.667
                         // leveraged token endpoints
-                        'blvt/tokenInfo': 1,
-                        'blvt/subscribe/record': 1,
-                        'blvt/redeem/record': 1,
-                        'blvt/userLimit': 1,
-                        // broker api
+                        'blvt/tokenInfo': 0.1,
+                        'blvt/subscribe/record': 0.1,
+                        'blvt/redeem/record': 0.1,
+                        'blvt/userLimit': 0.1,
+                        // broker api TODO (NOT IN DOCS)
                         'apiReferral/ifNewUser': 1,
                         'apiReferral/customization': 1,
                         'apiReferral/userCustomization': 1,
@@ -246,7 +293,7 @@ module.exports = class binance extends Exchange {
                         'apiReferral/rebate/historicalRecord': 1,
                         'apiReferral/kickback/recentRecord': 1,
                         'apiReferral/kickback/historicalRecord': 1,
-                        // brokerage API
+                        // brokerage API TODO https://binance-docs.github.io/Brokerage-API/General/ does not state ratelimits
                         'broker/subAccountApi': 1,
                         'broker/subAccount': 1,
                         'broker/subAccountApi/commission/futures': 1,
@@ -266,59 +313,64 @@ module.exports = class binance extends Exchange {
                         'broker/universalTransfer': 1,
                         // v2 not supported yet
                         // GET /sapi/v2/broker/subAccount/futuresSummary
-                        'account/apiRestrictions': 1,
-                        // subaccounts
-                        'managed-subaccount/asset': 1,
+                        'account/apiRestrictions': 0.1,
                         // c2c / p2p
-                        'c2c/orderMatch/listUserOrderHistory': 1,
+                        'c2c/orderMatch/listUserOrderHistory': 0.1,
+                        // nft endpoints
+                        'nft/history/transactions': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
+                        'nft/history/deposit': 20.001,
+                        'nft/history/withdraw': 20.001,
+                        'nft/user/getAsset': 20.001,
+                        'pay/transactions': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
+                        'giftcard/verify': 0.1,
                     },
                     'post': {
-                        'asset/dust': 1,
-                        'asset/transfer': 1,
-                        'asset/get-funding-asset': 1,
-                        'account/disableFastWithdrawSwitch': 1,
-                        'account/enableFastWithdrawSwitch': 1,
-                        'account/apiRestrictions/ipRestriction': 1,
-                        'account/apiRestrictions/ipRestriction/ipList': 1,
-                        'capital/withdraw/apply': 1,
-                        'margin/transfer': 1,
-                        'margin/loan': 1,
-                        'margin/repay': 1,
-                        'margin/order': 4,
-                        'margin/order/oco': 1,
-                        'margin/isolated/create': 1,
-                        'margin/isolated/transfer': 1,
-                        'margin/isolated/account': 1,
-                        'bnbBurn': 1,
-                        'sub-account/margin/transfer': 1,
-                        'sub-account/margin/enable': 1,
-                        // 'sub-account/margin/enable': 1,
-                        'sub-account/futures/enable': 1,
-                        'sub-account/futures/transfer': 1,
-                        'sub-account/futures/internalTransfer': 1,
-                        'sub-account/transfer/subToSub': 1,
-                        'sub-account/transfer/subToMaster': 1,
-                        'sub-account/universalTransfer': 1,
-                        'managed-subaccount/deposit': 1,
-                        'managed-subaccount/withdraw': 1,
-                        'userDataStream': 1,
-                        'userDataStream/isolated': 1,
-                        'futures/transfer': 1,
-                        'futures/loan/borrow': 20,
-                        'futures/loan/repay': 20,
-                        'futures/loan/adjustCollateral': 20,
+                        'asset/dust': 0.06667, // Weight(UID): 10 => cost = 0.006667 * 10 = 0.06667
+                        'asset/transfer': 0.1,
+                        'asset/get-funding-asset': 0.1,
+                        'account/disableFastWithdrawSwitch': 0.1,
+                        'account/enableFastWithdrawSwitch': 0.1,
+                        // 'account/apiRestrictions/ipRestriction': 1, discontinued
+                        // 'account/apiRestrictions/ipRestriction/ipList': 1, discontinued
+                        'capital/withdraw/apply': 0.1,
+                        'margin/transfer': 1, // Weight(IP): 600 => cost = 0.1 * 600 = 60
+                        'margin/loan': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
+                        'margin/repay': 20.001,
+                        'margin/order': 0.040002, // Weight(UID): 6 => cost = 0.006667 * 6 = 0.040002
+                        'margin/order/oco': 0.040002,
+                        // 'margin/isolated/create': 1, discontinued
+                        'margin/isolated/transfer': 4.0002, // Weight(UID): 600 => cost = 0.006667 * 600 = 4.0002
+                        'margin/isolated/account': 2.0001, // Weight(UID): 300 => cost = 0.006667 * 300 = 2.0001
+                        'bnbBurn': 0.1,
+                        'sub-account/margin/transfer': 4.0002, // Weight(UID): 600 => cost =  0.006667 * 600 = 4.0002
+                        'sub-account/margin/enable': 0.1,
+                        'sub-account/futures/enable': 0.1,
+                        'sub-account/futures/transfer': 0.1,
+                        'sub-account/futures/internalTransfer': 0.1,
+                        'sub-account/transfer/subToSub': 0.1,
+                        'sub-account/transfer/subToMaster': 0.1,
+                        'sub-account/universalTransfer': 0.1,
+                        'managed-subaccount/deposit': 0.1,
+                        'managed-subaccount/withdraw': 0.1,
+                        'userDataStream': 0.1,
+                        'userDataStream/isolated': 0.1,
+                        'futures/transfer': 0.1,
+                        'futures/loan/borrow': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
+                        'futures/loan/repay': 20.001,
+                        'futures/loan/adjustCollateral': 20.001,
                         // lending
-                        'lending/customizedFixed/purchase': 1,
-                        'lending/daily/purchase': 1,
-                        'lending/daily/redeem': 1,
+                        'lending/customizedFixed/purchase': 0.1,
+                        'lending/daily/purchase': 0.1,
+                        'lending/daily/redeem': 0.1,
                         // liquid swap endpoints
-                        'bswap/liquidityAdd': 2,
-                        'bswap/liquidityRemove': 2,
-                        'bswap/swap': 2,
+                        'bswap/liquidityAdd': 60, // Weight(UID): 1000 + (Additional: 1 request every 3 seconds =  0.333 requests per second) => cost = ( 1000 / rateLimit ) / 0.333 = 60.0000006
+                        'bswap/liquidityRemove': 60, // Weight(UID): 1000 + (Additional: 1 request every three seconds)
+                        'bswap/swap': 60, // Weight(UID): 1000 + (Additional: 1 request every three seconds)
+                        'bswap/claimRewards': 6.667, // Weight(UID): 1000 => cost = 0.006667 * 1000 = 6.667
                         // leveraged token endpoints
-                        'blvt/subscribe': 1,
-                        'blvt/redeem': 1,
-                        // brokerage API
+                        'blvt/subscribe': 0.1,
+                        'blvt/redeem': 0.1,
+                        // brokerage API TODO: NO MENTION OF RATELIMITS IN BROKERAGE DOCS
                         'apiReferral/customization': 1,
                         'apiReferral/userCustomization': 1,
                         'apiReferral/rebate/historicalRecord': 1,
@@ -342,22 +394,30 @@ module.exports = class binance extends Exchange {
                         'broker/universalTransfer': 1,
                         'broker/subAccountApi/permission/universalTransfer': 1,
                         'broker/subAccountApi/permission/vanillaOptions': 1,
+                        //
+                        'giftcard/createCode': 0.1,
+                        'giftcard/redeemCode': 0.1,
                     },
                     'put': {
-                        'userDataStream': 1,
-                        'userDataStream/isolated': 1,
+                        'userDataStream': 0.1,
+                        'userDataStream/isolated': 0.1,
                     },
                     'delete': {
-                        'account/apiRestrictions/ipRestriction/ipList': 1,
-                        'margin/openOrders': 1,
-                        'margin/order': 1,
-                        'margin/orderList': 1,
-                        'margin/isolated/account': 1,
-                        'userDataStream': 1,
-                        'userDataStream/isolated': 1,
-                        // brokerage API
+                        // 'account/apiRestrictions/ipRestriction/ipList': 1, discontinued
+                        'margin/openOrders': 0.1,
+                        'margin/order': 0.0066667, // Weight(UID): 1 => cost = 0.006667
+                        'margin/orderList': 0.0066667,
+                        'margin/isolated/account': 2.0001, // Weight(UID): 300 => cost =  0.006667 * 300 = 2.0001
+                        'userDataStream': 0.1,
+                        'userDataStream/isolated': 0.1,
+                        // brokerage API TODO NO MENTION OF RATELIMIT IN BROKERAGE DOCS
                         'broker/subAccountApi': 1,
                         'broker/subAccountApi/ipRestriction/ipList': 1,
+                    },
+                },
+                'sapiV3': {
+                    'get': {
+                        'sub-account/assets': 1,
                     },
                 },
                 // deprecated
@@ -547,6 +607,47 @@ module.exports = class binance extends Exchange {
                         'positionRisk': 1,
                     },
                 },
+                'vapiPublic': {
+                    'get': [
+                        'ping',
+                        'time',
+                        'optionInfo',
+                        'exchangeInfo',
+                        'index',
+                        'ticker',
+                        'mark',
+                        'depth',
+                        'klines',
+                        'trades',
+                        'historicalTrades',
+                    ],
+                },
+                'vapiPrivate': {
+                    'get': [
+                        'account',
+                        'position',
+                        'order',
+                        'openOrders',
+                        'historyOrders',
+                        'userTrades',
+                    ],
+                    'post': [
+                        'transfer',
+                        'bill',
+                        'order',
+                        'batchOrders',
+                        'userDataStream',
+                    ],
+                    'put': [
+                        'userDataStream',
+                    ],
+                    'delete': [
+                        'order',
+                        'batchOrders',
+                        'allOpenOrders',
+                        'userDataStream',
+                    ],
+                },
                 'public': {
                     'get': {
                         'ping': 1,
@@ -585,7 +686,7 @@ module.exports = class binance extends Exchange {
                     },
                     'post': {
                         'order/oco': 1,
-                        'order': 4,
+                        'order': 1,
                         'order/test': 1,
                     },
                     'delete': {
@@ -673,6 +774,7 @@ module.exports = class binance extends Exchange {
                         },
                     },
                 },
+                'option': {},
             },
             'commonCurrencies': {
                 'BCC': 'BCC', // kept for backward-compatibility https://github.com/ccxt/ccxt/issues/4848
@@ -686,6 +788,12 @@ module.exports = class binance extends Exchange {
                 'defaultType': 'spot', // 'spot', 'future', 'margin', 'delivery'
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
+                // not an error
+                // https://github.com/ccxt/ccxt/issues/11268
+                // https://github.com/ccxt/ccxt/pull/11624
+                // POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
+                // binanceusdm
+                'throwMarginModeAlreadySet': false,
                 'fetchPositions': 'positionRisk', // or 'account'
                 'recvWindow': 5 * 1000, // 5 sec, binance default
                 'timeDifference': 0, // the difference between system clock and Binance clock
@@ -875,57 +983,201 @@ module.exports = class binance extends Exchange {
                     "You don't have permission.": PermissionDenied, // {"msg":"You don't have permission.","success":false}
                     'Market is closed.': ExchangeNotAvailable, // {"code":-1013,"msg":"Market is closed."}
                     'Too many requests. Please try again later.': DDoSProtection, // {"msg":"Too many requests. Please try again later.","success":false}
+                    'This action disabled is on this account.': AccountSuspended, // {"code":-2010,"msg":"This action disabled is on this account."}
                     '-1000': ExchangeNotAvailable, // {"code":-1000,"msg":"An unknown error occured while processing the request."}
-                    '-1001': ExchangeNotAvailable, // 'Internal error; unable to process your request. Please try again.'
-                    '-1002': AuthenticationError, // 'You are not authorized to execute this request.'
+                    '-1001': ExchangeNotAvailable, // {"code":-1001,"msg":"'Internal error; unable to process your request. Please try again.'"}
+                    '-1002': AuthenticationError, // {"code":-1002,"msg":"'You are not authorized to execute this request.'"}
                     '-1003': RateLimitExceeded, // {"code":-1003,"msg":"Too much request weight used, current limit is 1200 request weight per 1 MINUTE. Please use the websocket for live updates to avoid polling the API."}
-                    '-1013': InvalidOrder, // createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
-                    '-1015': RateLimitExceeded, // 'Too many new orders; current limit is %s orders per %s.'
-                    '-1016': ExchangeNotAvailable, // 'This service is no longer available.',
-                    '-1020': BadRequest, // 'This operation is not supported.'
-                    '-1021': InvalidNonce, // 'your time is ahead of server'
+                    '-1004': DDoSProtection, // {"code":-1004,"msg":"Server is busy, please wait and try again"}
+                    '-1005': PermissionDenied, // {"code":-1005,"msg":"No such IP has been white listed"}
+                    '-1006': BadResponse, // {"code":-1006,"msg":"An unexpected response was received from the message bus. Execution status unknown."}
+                    '-1007': RequestTimeout, // {"code":-1007,"msg":"Timeout waiting for response from backend server. Send status unknown; execution status unknown."}
+                    '-1010': BadResponse, // {"code":-1010,"msg":"ERROR_MSG_RECEIVED."}
+                    '-1011': PermissionDenied, // {"code":-1011,"msg":"This IP cannot access this route."}
+                    '-1013': InvalidOrder, // {"code":-1013,"msg":"createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL"}
+                    '-1014': InvalidOrder, // {"code":-1014,"msg":"Unsupported order combination."}
+                    '-1015': RateLimitExceeded, // {"code":-1015,"msg":"'Too many new orders; current limit is %s orders per %s.'"}
+                    '-1016': ExchangeNotAvailable, // {"code":-1016,"msg":"'This service is no longer available.',"}
+                    '-1020': BadRequest, // {"code":-1020,"msg":"'This operation is not supported.'"}
+                    '-1021': InvalidNonce, // {"code":-1021,"msg":"'your time is ahead of server'"}
                     '-1022': AuthenticationError, // {"code":-1022,"msg":"Signature for this request is not valid."}
-                    '-1100': BadRequest, // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
-                    '-1101': BadRequest, // Too many parameters; expected %s and received %s.
-                    '-1102': BadRequest, // Param %s or %s must be sent, but both were empty
-                    '-1103': BadRequest, // An unknown parameter was sent.
-                    '-1104': BadRequest, // Not all sent parameters were read, read 8 parameters but was sent 9
-                    '-1105': BadRequest, // Parameter %s was empty.
-                    '-1106': BadRequest, // Parameter %s sent when not required.
-                    '-1111': BadRequest, // Precision is over the maximum defined for this asset.
-                    '-1112': InvalidOrder, // No orders on book for symbol.
-                    '-1114': BadRequest, // TimeInForce parameter sent when not required.
-                    '-1115': BadRequest, // Invalid timeInForce.
-                    '-1116': BadRequest, // Invalid orderType.
-                    '-1117': BadRequest, // Invalid side.
-                    '-1118': BadRequest, // New client order ID was empty.
-                    '-1119': BadRequest, // Original client order ID was empty.
-                    '-1120': BadRequest, // Invalid interval.
-                    '-1121': BadSymbol, // Invalid symbol.
-                    '-1125': AuthenticationError, // This listenKey does not exist.
-                    '-1127': BadRequest, // More than %s hours between startTime and endTime.
-                    '-1128': BadRequest, // {"code":-1128,"msg":"Combination of optional parameters invalid."}
-                    '-1130': BadRequest, // Data sent for paramter %s is not valid.
-                    '-1131': BadRequest, // recvWindow must be less than 60000
+                    '-1023': BadRequest, // {"code":-1023,"msg":"Start time is greater than end time."}
+                    '-1099': AuthenticationError, // {"code":-1099,"msg":"Not found, authenticated, or authorized"}
+                    '-1100': BadRequest, // {"code":-1100,"msg":"createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'"}
+                    '-1101': BadRequest, // {"code":-1101,"msg":"Too many parameters; expected %s and received %s."}
+                    '-1102': BadRequest, // {"code":-1102,"msg":"Param %s or %s must be sent, but both were empty"}
+                    '-1103': BadRequest, // {"code":-1103,"msg":"An unknown parameter was sent."}
+                    '-1104': BadRequest, // {"code":-1104,"msg":"Not all sent parameters were read, read 8 parameters but was sent 9"}
+                    '-1105': BadRequest, // {"code":-1105,"msg":"Parameter %s was empty."}
+                    '-1106': BadRequest, // {"code":-1106,"msg":"Parameter %s sent when not required."}
+                    '-1108': BadRequest, // {"code":-1108,"msg":"Invalid asset."}
+                    '-1109': AuthenticationError, // {"code":-1109,"msg":"Invalid account."}
+                    '-1110': BadRequest, // {"code":-1110,"msg":"Invalid symbolType."}
+                    '-1111': BadRequest, // {"code":-1111,"msg":"Precision is over the maximum defined for this asset."}
+                    '-1112': InvalidOrder, // {"code":-1112,"msg":"No orders on book for symbol."}
+                    '-1113': BadRequest, // {"code":-1113,"msg":"Withdrawal amount must be negative."}
+                    '-1114': BadRequest, // {"code":-1114,"msg":"TimeInForce parameter sent when not required."}
+                    '-1115': BadRequest, // {"code":-1115,"msg":"Invalid timeInForce."}
+                    '-1116': BadRequest, // {"code":-1116,"msg":"Invalid orderType."}
+                    '-1117': BadRequest, // {"code":-1117,"msg":"Invalid side."}
+                    '-1118': BadRequest, // {"code":-1118,"msg":"New client order ID was empty."}
+                    '-1119': BadRequest, // {"code":-1119,"msg":"Original client order ID was empty."}
+                    '-1120': BadRequest, // {"code":-1120,"msg":"Invalid interval."}
+                    '-1121': BadSymbol, // {"code":-1121,"msg":"Invalid symbol."}
+                    '-1125': AuthenticationError, // {"code":-1125,"msg":"This listenKey does not exist."}
+                    '-1127': BadRequest, // {"code":-1127,"msg":"More than %s hours between startTime and endTime."}
+                    '-1128': BadRequest, // {"code":-1128,"msg":"{"code":-1128,"msg":"Combination of optional parameters invalid."}"}
+                    '-1130': BadRequest, // {"code":-1130,"msg":"Data sent for paramter %s is not valid."}
+                    '-1131': BadRequest, // {"code":-1131,"msg":"recvWindow must be less than 60000"}
+                    '-1136': BadRequest, // {"code":-1136,"msg":"Invalid newOrderRespType"}
                     '-2008': AuthenticationError, // {"code":-2008,"msg":"Invalid Api-Key ID."}
-                    '-2010': ExchangeError, // generic error code for createOrder -> 'Account has insufficient balance for requested action.', {"code":-2010,"msg":"Rest API trading is not enabled."}, etc...
-                    '-2011': OrderNotFound, // cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
-                    '-2013': OrderNotFound, // fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'
-                    '-2014': AuthenticationError, // { "code":-2014, "msg": "API-key format invalid." }
-                    '-2015': AuthenticationError, // "Invalid API-key, IP, or permissions for action."
+                    '-2010': ExchangeError, // {"code":-2010,"msg":"generic error code for createOrder -> 'Account has insufficient balance for requested action.', {"code":-2010,"msg":"Rest API trading is not enabled."}, etc..."}
+                    '-2011': OrderNotFound, // {"code":-2011,"msg":"cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'"}
+                    '-2013': OrderNotFound, // {"code":-2013,"msg":"fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'"}
+                    '-2014': AuthenticationError, // {"code":-2014,"msg":"API-key format invalid."}
+                    '-2015': AuthenticationError, // {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
+                    '-2016': BadRequest, // {"code":-2016,"msg":"No trading window could be found for the symbol. Try ticker/24hrs instead."}
+                    '-2018': InsufficientFunds, // {"code":-2018,"msg":"Balance is insufficient"}
                     '-2019': InsufficientFunds, // {"code":-2019,"msg":"Margin is insufficient."}
+                    '-2020': OrderNotFillable, // {"code":-2020,"msg":"Unable to fill."}
+                    '-2021': OrderImmediatelyFillable, // {"code":-2021,"msg":"Order would immediately trigger."}
+                    '-2022': InvalidOrder, // {"code":-2022,"msg":"ReduceOnly Order is rejected."}
+                    '-2023': InsufficientFunds, // {"code":-2023,"msg":"User in liquidation mode now."}
+                    '-2024': InsufficientFunds, // {"code":-2024,"msg":"Position is not sufficient."}
+                    '-2025': InvalidOrder, // {"code":-2025,"msg":"Reach max open order limit."}
+                    '-2026': InvalidOrder, // {"code":-2026,"msg":"This OrderType is not supported when reduceOnly."}
+                    '-2027': InvalidOrder, // {"code":-2027,"msg":"Exceeded the maximum allowable position at current leverage."}
+                    '-2028': InsufficientFunds, // {"code":-2028,"msg":"Leverage is smaller than permitted: insufficient margin balance"}
+                    '-3000': ExchangeError, // {"code":-3000,"msg":"Internal server error."}
+                    '-3001': AuthenticationError, // {"code":-3001,"msg":"Please enable 2FA first."}
+                    '-3002': BadSymbol, // {"code":-3002,"msg":"We don't have this asset."}
+                    '-3003': BadRequest, // {"code":-3003,"msg":"Margin account does not exist."}
+                    '-3004': ExchangeError, // {"code":-3004,"msg":"Trade not allowed."}
                     '-3005': InsufficientFunds, // {"code":-3005,"msg":"Transferring out not allowed. Transfer out amount exceeds max amount."}
                     '-3006': InsufficientFunds, // {"code":-3006,"msg":"Your borrow amount has exceed maximum borrow amount."}
+                    '-3007': ExchangeError, // {"code":-3007,"msg":"You have pending transaction, please try again later.."}
                     '-3008': InsufficientFunds, // {"code":-3008,"msg":"Borrow not allowed. Your borrow amount has exceed maximum borrow amount."}
+                    '-3009': BadRequest, // {"code":-3009,"msg":"This asset are not allowed to transfer into margin account currently."}
                     '-3010': ExchangeError, // {"code":-3010,"msg":"Repay not allowed. Repay amount exceeds borrow amount."}
+                    '-3011': BadRequest, // {"code":-3011,"msg":"Your input date is invalid."}
+                    '-3012': ExchangeError, // {"code":-3012,"msg":"Borrow is banned for this asset."}
+                    '-3013': BadRequest, // {"code":-3013,"msg":"Borrow amount less than minimum borrow amount."}
+                    '-3014': AccountSuspended, // {"code":-3014,"msg":"Borrow is banned for this account."}
                     '-3015': ExchangeError, // {"code":-3015,"msg":"Repay amount exceeds borrow amount."}
-                    '-3022': AccountSuspended, // You account's trading is banned.
-                    '-4028': BadRequest, // {"code":-4028,"msg":"Leverage 100 is not valid"}
+                    '-3016': BadRequest, // {"code":-3016,"msg":"Repay amount less than minimum repay amount."}
+                    '-3017': ExchangeError, // {"code":-3017,"msg":"This asset are not allowed to transfer into margin account currently."}
+                    '-3018': AccountSuspended, // {"code":-3018,"msg":"Transferring in has been banned for this account."}
+                    '-3019': AccountSuspended, // {"code":-3019,"msg":"Transferring out has been banned for this account."}
                     '-3020': InsufficientFunds, // {"code":-3020,"msg":"Transfer out amount exceeds max amount."}
+                    '-3021': BadRequest, // {"code":-3021,"msg":"Margin account are not allowed to trade this trading pair."}
+                    '-3022': AccountSuspended, // {"code":-3022,"msg":"You account's trading is banned."}
+                    '-3023': BadRequest, // {"code":-3023,"msg":"You can't transfer out/place order under current margin level."}
+                    '-3024': ExchangeError, // {"code":-3024,"msg":"The unpaid debt is too small after this repayment."}
+                    '-3025': BadRequest, // {"code":-3025,"msg":"Your input date is invalid."}
+                    '-3026': BadRequest, // {"code":-3026,"msg":"Your input param is invalid."}
+                    '-3027': BadSymbol, // {"code":-3027,"msg":"Not a valid margin asset."}
+                    '-3028': BadSymbol, // {"code":-3028,"msg":"Not a valid margin pair."}
+                    '-3029': ExchangeError, // {"code":-3029,"msg":"Transfer failed."}
+                    '-3036': AccountSuspended, // {"code":-3036,"msg":"This account is not allowed to repay."}
+                    '-3037': ExchangeError, // {"code":-3037,"msg":"PNL is clearing. Wait a second."}
+                    '-3038': BadRequest, // {"code":-3038,"msg":"Listen key not found."}
                     '-3041': InsufficientFunds, // {"code":-3041,"msg":"Balance is not enough"}
-                    '-5013': InsufficientFunds, // Asset transfer failed: insufficient balance"
-                    '-11008': InsufficientFunds, // {"code":-11008,"msg":"Exceeding the account's maximum borrowable limit."}
-                    '-4051': InsufficientFunds, // {"code":-4051,"msg":"Isolated balance insufficient."}
+                    '-3042': BadRequest, // {"code":-3042,"msg":"PriceIndex not available for this margin pair."}
+                    '-3043': BadRequest, // {"code":-3043,"msg":"Transferring in not allowed."}
+                    '-3044': DDoSProtection, // {"code":-3044,"msg":"System busy."}
+                    '-3045': ExchangeError, // {"code":-3045,"msg":"The system doesn't have enough asset now."}
+                    '-3999': ExchangeError, // {"code":-3999,"msg":"This function is only available for invited users."}
+                    '-4001': BadRequest, // {"code":-4001 ,"msg":"Invalid operation."}
+                    '-4002': BadRequest, // {"code":-4002 ,"msg":"Invalid get."}
+                    '-4003': BadRequest, // {"code":-4003 ,"msg":"Your input email is invalid."}
+                    '-4004': AuthenticationError, // {"code":-4004,"msg":"You don't login or auth."}
+                    '-4005': RateLimitExceeded, // {"code":-4005 ,"msg":"Too many new requests."}
+                    '-4006': BadRequest, // {"code":-4006 ,"msg":"Support main account only."}
+                    '-4007': BadRequest, // {"code":-4007 ,"msg":"Address validation is not passed."}
+                    '-4008': BadRequest, // {"code":-4008 ,"msg":"Address tag validation is not passed."}
+                    '-4010': BadRequest, // {"code":-4010 ,"msg":"White list mail has been confirmed."} // [TODO] possible bug: it should probably be "has not been confirmed"
+                    '-4011': BadRequest, // {"code":-4011 ,"msg":"White list mail is invalid."}
+                    '-4012': BadRequest, // {"code":-4012 ,"msg":"White list is not opened."}
+                    '-4013': AuthenticationError, // {"code":-4013 ,"msg":"2FA is not opened."}
+                    '-4014': PermissionDenied, // {"code":-4014 ,"msg":"Withdraw is not allowed within 2 min login."}
+                    '-4015': ExchangeError, // {"code":-4015 ,"msg":"Withdraw is limited."}
+                    '-4016': PermissionDenied, // {"code":-4016 ,"msg":"Within 24 hours after password modification, withdrawal is prohibited."}
+                    '-4017': PermissionDenied, // {"code":-4017 ,"msg":"Within 24 hours after the release of 2FA, withdrawal is prohibited."}
+                    '-4018': BadSymbol, // {"code":-4018,"msg":"We don't have this asset."}
+                    '-4019': BadSymbol, // {"code":-4019,"msg":"Current asset is not open for withdrawal."}
+                    '-4021': BadRequest, // {"code":-4021,"msg":"Asset withdrawal must be an %s multiple of %s."}
+                    '-4022': BadRequest, // {"code":-4022,"msg":"Not less than the minimum pick-up quantity %s."}
+                    '-4023': ExchangeError, // {"code":-4023,"msg":"Within 24 hours, the withdrawal exceeds the maximum amount."}
+                    '-4024': InsufficientFunds, // {"code":-4024,"msg":"You don't have this asset."}
+                    '-4025': InsufficientFunds, // {"code":-4025,"msg":"The number of hold asset is less than zero."}
+                    '-4026': InsufficientFunds, // {"code":-4026,"msg":"You have insufficient balance."}
+                    '-4027': ExchangeError, // {"code":-4027,"msg":"Failed to obtain tranId."}
+                    '-4028': BadRequest, // {"code":-4028,"msg":"The amount of withdrawal must be greater than the Commission."}
+                    '-4029': BadRequest, // {"code":-4029,"msg":"The withdrawal record does not exist."}
+                    '-4030': ExchangeError, // {"code":-4030,"msg":"Confirmation of successful asset withdrawal. [TODO] possible bug in docs"}
+                    '-4031': ExchangeError, // {"code":-4031,"msg":"Cancellation failed."}
+                    '-4032': ExchangeError, // {"code":-4032,"msg":"Withdraw verification exception."}
+                    '-4033': BadRequest, // {"code":-4033,"msg":"Illegal address."}
+                    '-4034': ExchangeError, // {"code":-4034,"msg":"The address is suspected of fake."}
+                    '-4035': PermissionDenied, // {"code":-4035,"msg":"This address is not on the whitelist. Please join and try again."}
+                    '-4036': BadRequest, // {"code":-4036,"msg":"The new address needs to be withdrawn in {0} hours."}
+                    '-4037': ExchangeError, // {"code":-4037,"msg":"Re-sending Mail failed."}
+                    '-4038': ExchangeError, // {"code":-4038,"msg":"Please try again in 5 minutes."}
+                    '-4039': BadRequest, // {"code":-4039,"msg":"The user does not exist."}
+                    '-4040': BadRequest, // {"code":-4040,"msg":"This address not charged."}
+                    '-4041': ExchangeError, // {"code":-4041,"msg":"Please try again in one minute."}
+                    '-4042': ExchangeError, // {"code":-4042,"msg":"This asset cannot get deposit address again."}
+                    '-4043': BadRequest, // {"code":-4043,"msg":"More than 100 recharge addresses were used in 24 hours."}
+                    '-4044': BadRequest, // {"code":-4044,"msg":"This is a blacklist country."}
+                    '-4045': ExchangeError, // {"code":-4045,"msg":"Failure to acquire assets."}
+                    '-4046': AuthenticationError, // {"code":-4046,"msg":"Agreement not confirmed."}
+                    '-4047': BadRequest, // {"code":-4047,"msg":"Time interval must be within 0-90 days"}
+                    '-5001': BadRequest, // {"code":-5001,"msg":"Don't allow transfer to micro assets."}
+                    '-5002': InsufficientFunds, // {"code":-5002,"msg":"You have insufficient balance."}
+                    '-5003': InsufficientFunds, // {"code":-5003,"msg":"You don't have this asset."}
+                    '-5004': BadRequest, // {"code":-5004,"msg":"The residual balances of %s have exceeded 0.001BTC, Please re-choose."}
+                    '-5005': InsufficientFunds, // {"code":-5005,"msg":"The residual balances of %s is too low, Please re-choose."}
+                    '-5006': BadRequest, // {"code":-5006,"msg":"Only transfer once in 24 hours."}
+                    '-5007': BadRequest, // {"code":-5007,"msg":"Quantity must be greater than zero."}
+                    '-5008': InsufficientFunds, // {"code":-5008,"msg":"Insufficient amount of returnable assets."}
+                    '-5009': BadRequest, // {"code":-5009,"msg":"Product does not exist."}
+                    '-5010': ExchangeError, // {"code":-5010,"msg":"Asset transfer fail."}
+                    '-5011': BadRequest, // {"code":-5011,"msg":"future account not exists."}
+                    '-5012': ExchangeError, // {"code":-5012,"msg":"Asset transfer is in pending."}
+                    '-5013': InsufficientFunds, // {"code":-5013,"msg":"Asset transfer failed: insufficient balance""} // undocumented
+                    '-5021': BadRequest, // {"code":-5021,"msg":"This parent sub have no relation"}
+                    '-6001': BadRequest, // {"code":-6001,"msg":"Daily product not exists."}
+                    '-6003': BadRequest, // {"code":-6003,"msg":"Product not exist or you don't have permission"}
+                    '-6004': ExchangeError, // {"code":-6004,"msg":"Product not in purchase status"}
+                    '-6005': InvalidOrder, // {"code":-6005,"msg":"Smaller than min purchase limit"}
+                    '-6006': BadRequest, // {"code":-6006,"msg":"Redeem amount error"}
+                    '-6007': BadRequest, // {"code":-6007,"msg":"Not in redeem time"}
+                    '-6008': BadRequest, // {"code":-6008,"msg":"Product not in redeem status"}
+                    '-6009': RateLimitExceeded, // {"code":-6009,"msg":"Request frequency too high"}
+                    '-6011': BadRequest, // {"code":-6011,"msg":"Exceeding the maximum num allowed to purchase per user"}
+                    '-6012': InsufficientFunds, // {"code":-6012,"msg":"Balance not enough"}
+                    '-6013': ExchangeError, // {"code":-6013,"msg":"Purchasing failed"}
+                    '-6014': BadRequest, // {"code":-6014,"msg":"Exceed up-limit allowed to purchased"}
+                    '-6015': BadRequest, // {"code":-6015,"msg":"Empty request body"}
+                    '-6016': BadRequest, // {"code":-6016,"msg":"Parameter err"}
+                    '-6017': BadRequest, // {"code":-6017,"msg":"Not in whitelist"}
+                    '-6018': BadRequest, // {"code":-6018,"msg":"Asset not enough"}
+                    '-6019': AuthenticationError, // {"code":-6019,"msg":"Need confirm"}
+                    '-6020': BadRequest, // {"code":-6020,"msg":"Project not exists"}
+                    '-7001': BadRequest, // {"code":-7001,"msg":"Date range is not supported."}
+                    '-7002': BadRequest, // {"code":-7002,"msg":"Data request type is not supported."}
+                    '-10017': BadRequest, // {"code":-10017,"msg":"Repay amount should not be larger than liability."}
+                    '-11008': InsufficientFunds, // {"code":-11008,"msg":"Exceeding the account's maximum borrowable limit."} // undocumented
+                    '-12014': RateLimitExceeded, // {"code":-12014,"msg":"More than 1 request in 3 seconds"}
+                    '-13000': BadRequest, // {"code":-13000,"msg":"Redeption of the token is forbiden now"}
+                    '-13001': BadRequest, // {"code":-13001,"msg":"Exceeds individual 24h redemption limit of the token"}
+                    '-13002': BadRequest, // {"code":-13002,"msg":"Exceeds total 24h redemption limit of the token"}
+                    '-13003': BadRequest, // {"code":-13003,"msg":"Subscription of the token is forbiden now"}
+                    '-13004': BadRequest, // {"code":-13004,"msg":"Exceeds individual 24h subscription limit of the token"}
+                    '-13005': BadRequest, // {"code":-13005,"msg":"Exceeds total 24h subscription limit of the token"}
+                    '-13006': InvalidOrder, // {"code":-13006,"msg":"Subscription amount is too small"}
+                    '-13007': AuthenticationError, // {"code":-13007,"msg":"The Agreement is not signed"}
+                    '100001003': BadRequest, // {"code":100001003,"msg":"Verification failed"} // undocumented
                 },
                 'broad': {
                     'has no operation privilege': PermissionDenied,
@@ -964,13 +1216,6 @@ module.exports = class binance extends Exchange {
         }
         const response = await this[method] (query);
         return this.safeInteger (response, 'serverTime');
-    }
-
-    async loadTimeDifference (params = {}) {
-        const serverTime = await this.fetchTime (params);
-        const after = this.milliseconds ();
-        this.options['timeDifference'] = after - serverTime;
-        return this.options['timeDifference'];
     }
 
     async fetchCurrencies (params = {}) {
@@ -1092,7 +1337,7 @@ module.exports = class binance extends Exchange {
                 isWithdrawEnabled = isWithdrawEnabled || withdrawEnable;
                 fees[network] = withdrawFee;
                 const isDefault = this.safeValue (networkItem, 'isDefault');
-                if (isDefault || fee === undefined) {
+                if (isDefault || (fee === undefined)) {
                     fee = withdrawFee;
                 }
             }
@@ -1105,6 +1350,8 @@ module.exports = class binance extends Exchange {
                 'precision': precision,
                 'info': entry,
                 'active': active,
+                'deposit': isDepositEnabled,
+                'withdraw': isWithdrawEnabled,
                 'networks': networkList,
                 'fee': fee,
                 'fees': fees,
@@ -1154,6 +1401,7 @@ module.exports = class binance extends Exchange {
         //                 "icebergAllowed":true,
         //                 "ocoAllowed":true,
         //                 "quoteOrderQtyMarketAllowed":true,
+        //                 "allowTrailingStop":false,
         //                 "isSpotTradingAllowed":true,
         //                 "isMarginTradingAllowed":true,
         //                 "filters":[
@@ -1163,8 +1411,10 @@ module.exports = class binance extends Exchange {
         //                     {"filterType":"MIN_NOTIONAL","minNotional":"0.00010000","applyToMarket":true,"avgPriceMins":5},
         //                     {"filterType":"ICEBERG_PARTS","limit":10},
         //                     {"filterType":"MARKET_LOT_SIZE","minQty":"0.00000000","maxQty":"63100.00000000","stepSize":"0.00000000"},
+        //                     {"filterType":"MAX_NUM_ORDERS","maxNumOrders":200},
         //                     {"filterType":"MAX_NUM_ALGO_ORDERS","maxNumAlgoOrders":5}
-        //                 ]
+        //                 ],
+        //                 "permissions":["SPOT","MARGIN"]}
         //             },
         //         ],
         //     }
@@ -1288,10 +1538,13 @@ module.exports = class binance extends Exchange {
             const lowercaseId = this.safeStringLower (market, 'symbol');
             const baseId = this.safeString (market, 'baseAsset');
             const quoteId = this.safeString (market, 'quoteAsset');
+            const settleId = this.safeString (market, 'marginAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            const settle = this.safeCurrencyCode (settleId);
+            const contract = future || delivery;
             const contractType = this.safeString (market, 'contractType');
-            const idSymbol = (future || delivery) && (contractType !== 'PERPETUAL');
+            const idSymbol = contract && (contractType !== 'PERPETUAL');
             let symbol = undefined;
             let expiry = undefined;
             if (idSymbol) {
@@ -1302,51 +1555,63 @@ module.exports = class binance extends Exchange {
             }
             const filters = this.safeValue (market, 'filters', []);
             const filtersByType = this.indexBy (filters, 'filterType');
-            const precision = {
-                'base': this.safeInteger (market, 'baseAssetPrecision'),
-                'quote': this.safeInteger (market, 'quotePrecision'),
-                'amount': this.safeInteger (market, 'quantityPrecision'),
-                'price': this.safeInteger (market, 'pricePrecision'),
-            };
             const status = this.safeString2 (market, 'status', 'contractStatus');
-            const active = (status === 'TRADING');
-            const margin = this.safeValue (market, 'isMarginTradingAllowed', false);
             let contractSize = undefined;
             let fees = this.fees;
-            if (future || delivery) {
-                contractSize = this.safeString (market, 'contractSize', '1');
+            if (contract) {
+                contractSize = this.safeNumber (market, 'contractSize', this.parseNumber ('1'));
                 fees = this.fees[type];
             }
-            const maker = fees['trading']['maker'];
-            const taker = fees['trading']['taker'];
-            const settleId = this.safeString (market, 'marginAsset');
-            const settle = this.safeCurrencyCode (settleId);
+            let active = (status === 'TRADING');
+            if (spot) {
+                const permissions = this.safeValue (market, 'permissions', []);
+                for (let j = 0; j < permissions.length; j++) {
+                    if (permissions[j] === 'TRD_GRP_003') {
+                        active = false;
+                        break;
+                    }
+                }
+            }
+            const isMarginTradingAllowed = this.safeValue (market, 'isMarginTradingAllowed', false);
             const entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'info': market,
-                'spot': spot,
+                'settleId': settleId,
                 'type': type,
-                'margin': margin,
+                'spot': spot,
+                'margin': spot && isMarginTradingAllowed,
+                'swap': future,
                 'future': future,
                 'delivery': delivery,
-                'linear': future,
-                'inverse': delivery,
+                'option': false,
+                'active': active,
+                'contract': contract,
+                'linear': contract ? future : undefined,
+                'inverse': contract ? delivery : undefined,
+                'taker': fees['trading']['taker'],
+                'maker': fees['trading']['maker'],
+                'contractSize': contractSize,
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601 (expiry),
-                'settleId': settleId,
-                'settle': settle,
-                'active': active,
-                'precision': precision,
-                'contractSize': contractSize,
-                'maker': maker,
-                'taker': taker,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeInteger (market, 'quantityPrecision'),
+                    'price': this.safeInteger (market, 'pricePrecision'),
+                    'base': this.safeInteger (market, 'baseAssetPrecision'),
+                    'quote': this.safeInteger (market, 'quotePrecision'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': undefined,
                         'max': undefined,
@@ -1360,6 +1625,7 @@ module.exports = class binance extends Exchange {
                         'max': undefined,
                     },
                 },
+                'info': market,
             };
             if ('PRICE_FILTER' in filtersByType) {
                 const filter = this.safeValue (filtersByType, 'PRICE_FILTER', {});
@@ -1398,6 +1664,69 @@ module.exports = class binance extends Exchange {
             result.push (entry);
         }
         return result;
+    }
+
+    parseBalance (response, type = undefined) {
+        const result = {
+            'info': response,
+        };
+        let timestamp = undefined;
+        if ((type === 'spot') || (type === 'margin')) {
+            timestamp = this.safeInteger (response, 'updateTime');
+            const balances = this.safeValue2 (response, 'balances', 'userAssets', []);
+            for (let i = 0; i < balances.length; i++) {
+                const balance = balances[i];
+                const currencyId = this.safeString (balance, 'asset');
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['free'] = this.safeString (balance, 'free');
+                account['used'] = this.safeString (balance, 'locked');
+                result[code] = account;
+            }
+        } else if (type === 'savings') {
+            const positionAmountVos = this.safeValue (response, 'positionAmountVos');
+            for (let i = 0; i < positionAmountVos.length; i++) {
+                const entry = positionAmountVos[i];
+                const currencyId = this.safeString (entry, 'asset');
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                const usedAndTotal = this.safeString (entry, 'amount');
+                account['total'] = usedAndTotal;
+                account['used'] = usedAndTotal;
+                result[code] = account;
+            }
+        } else if (type === 'funding') {
+            for (let i = 0; i < response.length; i++) {
+                const entry = response[i];
+                const account = this.account ();
+                const currencyId = this.safeString (entry, 'asset');
+                const code = this.safeCurrencyCode (currencyId);
+                account['free'] = this.safeString (entry, 'free');
+                const frozen = this.safeString (entry, 'freeze');
+                const withdrawing = this.safeString (entry, 'withdrawing');
+                const locked = this.safeString (entry, 'locked');
+                account['used'] = Precise.stringAdd (frozen, Precise.stringAdd (locked, withdrawing));
+                result[code] = account;
+            }
+        } else {
+            let balances = response;
+            if (!Array.isArray (response)) {
+                balances = this.safeValue (response, 'assets', []);
+            }
+            for (let i = 0; i < balances.length; i++) {
+                const balance = balances[i];
+                const currencyId = this.safeString (balance, 'asset');
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['free'] = this.safeString (balance, 'availableBalance');
+                account['used'] = this.safeString (balance, 'initialMargin');
+                account['total'] = this.safeString2 (balance, 'marginBalance', 'balance');
+                result[code] = account;
+            }
+        }
+        result['timestamp'] = timestamp;
+        result['datetime'] = this.iso8601 (timestamp);
+        return this.safeBalance (result);
     }
 
     async fetchBalance (params = {}) {
@@ -1603,66 +1932,7 @@ module.exports = class binance extends Exchange {
         //       }
         //     ]
         //
-        const result = {
-            'info': response,
-        };
-        let timestamp = undefined;
-        if ((type === 'spot') || (type === 'margin')) {
-            timestamp = this.safeInteger (response, 'updateTime');
-            const balances = this.safeValue2 (response, 'balances', 'userAssets', []);
-            for (let i = 0; i < balances.length; i++) {
-                const balance = balances[i];
-                const currencyId = this.safeString (balance, 'asset');
-                const code = this.safeCurrencyCode (currencyId);
-                const account = this.account ();
-                account['free'] = this.safeString (balance, 'free');
-                account['used'] = this.safeString (balance, 'locked');
-                result[code] = account;
-            }
-        } else if (type === 'savings') {
-            const positionAmountVos = this.safeValue (response, 'positionAmountVos');
-            for (let i = 0; i < positionAmountVos.length; i++) {
-                const entry = positionAmountVos[i];
-                const currencyId = this.safeString (entry, 'asset');
-                const code = this.safeCurrencyCode (currencyId);
-                const account = this.account ();
-                const usedAndTotal = this.safeString (entry, 'amount');
-                account['total'] = usedAndTotal;
-                account['used'] = usedAndTotal;
-                result[code] = account;
-            }
-        } else if (type === 'funding') {
-            for (let i = 0; i < response.length; i++) {
-                const entry = response[i];
-                const account = this.account ();
-                const currencyId = this.safeString (entry, 'asset');
-                const code = this.safeCurrencyCode (currencyId);
-                account['free'] = this.safeString (entry, 'free');
-                const frozen = this.safeString (entry, 'freeze');
-                const withdrawing = this.safeString (entry, 'withdrawing');
-                const locked = this.safeString (entry, 'locked');
-                account['used'] = Precise.stringAdd (frozen, Precise.stringAdd (locked, withdrawing));
-                result[code] = account;
-            }
-        } else {
-            let balances = response;
-            if (!Array.isArray (response)) {
-                balances = this.safeValue (response, 'assets', []);
-            }
-            for (let i = 0; i < balances.length; i++) {
-                const balance = balances[i];
-                const currencyId = this.safeString (balance, 'asset');
-                const code = this.safeCurrencyCode (currencyId);
-                const account = this.account ();
-                account['free'] = this.safeString (balance, 'availableBalance');
-                account['used'] = this.safeString (balance, 'initialMargin');
-                account['total'] = this.safeString2 (balance, 'marginBalance', 'balance');
-                result[code] = account;
-            }
-        }
-        result['timestamp'] = timestamp;
-        result['datetime'] = this.iso8601 (timestamp);
-        return this.parseBalance (result);
+        return this.parseBalance (response, type);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -1672,7 +1942,7 @@ module.exports = class binance extends Exchange {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit; // default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
+            request['limit'] = limit; // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
         }
         let method = 'publicGetDepth';
         if (market['linear']) {
@@ -1755,39 +2025,39 @@ module.exports = class binance extends Exchange {
         const timestamp = this.safeInteger (ticker, 'closeTime');
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeNumber (ticker, 'lastPrice');
+        const last = this.safeString (ticker, 'lastPrice');
         const isCoinm = ('baseVolume' in ticker);
         let baseVolume = undefined;
         let quoteVolume = undefined;
         if (isCoinm) {
-            baseVolume = this.safeNumber (ticker, 'baseVolume');
-            quoteVolume = this.safeNumber (ticker, 'volume');
+            baseVolume = this.safeString (ticker, 'baseVolume');
+            quoteVolume = this.safeString (ticker, 'volume');
         } else {
-            baseVolume = this.safeNumber (ticker, 'volume');
-            quoteVolume = this.safeNumber (ticker, 'quoteVolume');
+            baseVolume = this.safeString (ticker, 'volume');
+            quoteVolume = this.safeString (ticker, 'quoteVolume');
         }
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'highPrice'),
-            'low': this.safeNumber (ticker, 'lowPrice'),
-            'bid': this.safeNumber (ticker, 'bidPrice'),
-            'bidVolume': this.safeNumber (ticker, 'bidQty'),
-            'ask': this.safeNumber (ticker, 'askPrice'),
-            'askVolume': this.safeNumber (ticker, 'askQty'),
-            'vwap': this.safeNumber (ticker, 'weightedAvgPrice'),
-            'open': this.safeNumber (ticker, 'openPrice'),
+            'high': this.safeString (ticker, 'highPrice'),
+            'low': this.safeString (ticker, 'lowPrice'),
+            'bid': this.safeString (ticker, 'bidPrice'),
+            'bidVolume': this.safeString (ticker, 'bidQty'),
+            'ask': this.safeString (ticker, 'askPrice'),
+            'askVolume': this.safeString (ticker, 'askQty'),
+            'vwap': this.safeString (ticker, 'weightedAvgPrice'),
+            'open': this.safeString (ticker, 'openPrice'),
             'close': last,
             'last': last,
-            'previousClose': this.safeNumber (ticker, 'prevClosePrice'), // previous day close
-            'change': this.safeNumber (ticker, 'priceChange'),
-            'percentage': this.safeNumber (ticker, 'priceChangePercent'),
+            'previousClose': this.safeString (ticker, 'prevClosePrice'), // previous day close
+            'change': this.safeString (ticker, 'priceChange'),
+            'percentage': this.safeString (ticker, 'priceChangePercent'),
             'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchStatus (params = {}) {
@@ -1798,6 +2068,7 @@ module.exports = class binance extends Exchange {
             this.status = this.extend (this.status, {
                 'status': status,
                 'updated': this.milliseconds (),
+                'info': response,
             });
         }
         return this.status;
@@ -1929,11 +2200,14 @@ module.exports = class binance extends Exchange {
             // It didn't work before without the endTime
             // https://github.com/ccxt/ccxt/issues/8454
             //
-            // if (since > 0) {
-            //     const endTime = this.sum (since, limit * duration * 1000 - 1);
-            //     const now = this.milliseconds ();
-            //     request['endTime'] = Math.min (now, endTime);
-            // }
+            if (market['inverse']) {
+                if (since > 0) {
+                    const duration = this.parseTimeframe (timeframe);
+                    const endTime = this.sum (since, limit * duration * 1000 - 1);
+                    const now = this.milliseconds ();
+                    request['endTime'] = Math.min (now, endTime);
+                }
+            }
         }
         let method = 'publicGetKlines';
         if (price === 'mark') {
@@ -2085,10 +2359,11 @@ module.exports = class binance extends Exchange {
         id = this.safeString2 (trade, 'id', 'tradeId', id);
         let side = undefined;
         const orderId = this.safeString (trade, 'orderId');
-        if ('m' in trade) {
-            side = trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally
-        } else if ('isBuyerMaker' in trade) {
-            side = trade['isBuyerMaker'] ? 'sell' : 'buy';
+        const buyerMaker = this.safeValue2 (trade, 'm', 'isBuyerMaker');
+        let takerOrMaker = undefined;
+        if (buyerMaker !== undefined) {
+            side = buyerMaker ? 'sell' : 'buy'; // this is reversed intentionally
+            takerOrMaker = 'taker';
         } else if ('side' in trade) {
             side = this.safeStringLower (trade, 'side');
         } else {
@@ -2103,7 +2378,6 @@ module.exports = class binance extends Exchange {
                 'currency': this.safeCurrencyCode (this.safeString (trade, 'commissionAsset')),
             };
         }
-        let takerOrMaker = undefined;
         if ('isMaker' in trade) {
             takerOrMaker = trade['isMaker'] ? 'maker' : 'taker';
         }
@@ -2150,12 +2424,6 @@ module.exports = class binance extends Exchange {
         }
         let method = this.safeString (this.options, 'fetchTradesMethod', defaultMethod);
         if (method === 'publicGetAggTrades') {
-            if (since !== undefined) {
-                request['startTime'] = since;
-                // https://github.com/ccxt/ccxt/issues/6400
-                // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
-                request['endTime'] = this.sum (since, 3600000);
-            }
             if (type === 'future') {
                 method = 'fapiPublicGetAggTrades';
             } else if (type === 'delivery') {
@@ -2167,6 +2435,12 @@ module.exports = class binance extends Exchange {
             } else if (type === 'delivery') {
                 method = 'dapiPublicGetHistoricalTrades';
             }
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+            // https://github.com/ccxt/ccxt/issues/6400
+            // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
+            request['endTime'] = this.sum (since, 3600000);
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default = 500, maximum = 1000
@@ -2353,14 +2627,18 @@ module.exports = class binance extends Exchange {
         const side = this.safeStringLower (order, 'side');
         const fills = this.safeValue (order, 'fills', []);
         const clientOrderId = this.safeString (order, 'clientOrderId');
-        const timeInForce = this.safeString (order, 'timeInForce');
-        const postOnly = (type === 'limit_maker') || (timeInForce === 'GTX');
+        let timeInForce = this.safeString (order, 'timeInForce');
+        if (timeInForce === 'GTX') {
+            // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
+            timeInForce = 'PO';
+        }
+        const postOnly = (type === 'limit_maker') || (timeInForce === 'PO');
         if (type === 'limit_maker') {
             type = 'limit';
         }
         const stopPriceString = this.safeString (order, 'stopPrice');
         const stopPrice = this.parseNumber (this.omitZero (stopPriceString));
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -2396,22 +2674,22 @@ module.exports = class binance extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const defaultType = this.safeString2 (this.options, 'createOrder', 'defaultType', 'spot');
-        const orderType = this.safeString (params, 'type', defaultType);
+        const marketType = this.safeString (params, 'type', defaultType);
         const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
         const postOnly = this.safeValue (params, 'postOnly', false);
         params = this.omit (params, [ 'type', 'newClientOrderId', 'clientOrderId', 'postOnly' ]);
         const reduceOnly = this.safeValue (params, 'reduceOnly');
         if (reduceOnly !== undefined) {
-            if ((orderType !== 'future') && (orderType !== 'delivery')) {
-                throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + orderType + ' orders, reduceOnly orders are supported for futures and perpetuals only');
+            if ((marketType !== 'future') && (marketType !== 'delivery')) {
+                throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + marketType + ' orders, reduceOnly orders are supported for future and delivery markets only');
             }
         }
         let method = 'privatePostOrder';
-        if (orderType === 'future') {
+        if (marketType === 'future') {
             method = 'fapiPrivatePostOrder';
-        } else if (orderType === 'delivery') {
+        } else if (marketType === 'delivery') {
             method = 'dapiPrivatePostOrder';
-        } else if (orderType === 'margin') {
+        } else if (marketType === 'margin') {
             method = 'sapiPostMarginOrder';
         }
         // the next 5 lines are added to support for testing orders
@@ -2426,10 +2704,24 @@ module.exports = class binance extends Exchange {
                 type = 'LIMIT_MAKER';
             }
         }
-        const uppercaseType = type.toUpperCase ();
+        const initialUppercaseType = type.toUpperCase ();
+        let uppercaseType = initialUppercaseType;
+        const stopPrice = this.safeNumber (params, 'stopPrice');
+        if (stopPrice !== undefined) {
+            params = this.omit (params, 'stopPrice');
+            if (uppercaseType === 'MARKET') {
+                uppercaseType = market['contract'] ? 'STOP_MARKET' : 'STOP_LOSS';
+            } else if (uppercaseType === 'LIMIT') {
+                uppercaseType = market['contract'] ? 'STOP' : 'STOP_LOSS_LIMIT';
+            }
+        }
         const validOrderTypes = this.safeValue (market['info'], 'orderTypes');
         if (!this.inArray (uppercaseType, validOrderTypes)) {
-            throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type in market ' + symbol);
+            if (initialUppercaseType !== uppercaseType) {
+                throw new InvalidOrder (this.id + ' stopPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders');
+            } else {
+                throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market');
+            }
         }
         const request = {
             'symbol': market['id'],
@@ -2439,7 +2731,7 @@ module.exports = class binance extends Exchange {
         if (clientOrderId === undefined) {
             const broker = this.safeValue (this.options, 'broker');
             if (broker !== undefined) {
-                const brokerId = this.safeString (broker, orderType);
+                const brokerId = this.safeString (broker, marketType);
                 if (brokerId !== undefined) {
                     request['newClientOrderId'] = brokerId + this.uuid22 ();
                 }
@@ -2447,7 +2739,7 @@ module.exports = class binance extends Exchange {
         } else {
             request['newClientOrderId'] = clientOrderId;
         }
-        if ((orderType === 'spot') || (orderType === 'margin')) {
+        if ((marketType === 'spot') || (marketType === 'margin')) {
             request['newOrderRespType'] = this.safeValue (this.options['newOrderRespType'], type, 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         } else {
             // delivery and future
@@ -2479,15 +2771,19 @@ module.exports = class binance extends Exchange {
         //     TRAILING_STOP_MARKET callbackRate
         //
         if (uppercaseType === 'MARKET') {
-            const quoteOrderQty = this.safeValue (this.options, 'quoteOrderQty', false);
-            if (quoteOrderQty) {
-                const quoteOrderQty = this.safeNumber (params, 'quoteOrderQty');
-                const precision = market['precision']['price'];
-                if (quoteOrderQty !== undefined) {
-                    request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQty, TRUNCATE, precision, this.precisionMode);
-                    params = this.omit (params, 'quoteOrderQty');
-                } else if (price !== undefined) {
-                    request['quoteOrderQty'] = this.decimalToPrecision (amount * price, TRUNCATE, precision, this.precisionMode);
+            if (market['spot']) {
+                const quoteOrderQty = this.safeValue (this.options, 'quoteOrderQty', false);
+                if (quoteOrderQty) {
+                    const quoteOrderQty = this.safeNumber (params, 'quoteOrderQty');
+                    const precision = market['precision']['price'];
+                    if (quoteOrderQty !== undefined) {
+                        request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQty, TRUNCATE, precision, this.precisionMode);
+                        params = this.omit (params, 'quoteOrderQty');
+                    } else if (price !== undefined) {
+                        request['quoteOrderQty'] = this.decimalToPrecision (amount * price, TRUNCATE, precision, this.precisionMode);
+                    } else {
+                        quantityIsRequired = true;
+                    }
                 } else {
                     quantityIsRequired = true;
                 }
@@ -2542,11 +2838,9 @@ module.exports = class binance extends Exchange {
             request['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         if (stopPriceIsRequired) {
-            const stopPrice = this.safeNumber (params, 'stopPrice');
             if (stopPrice === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order');
             } else {
-                params = this.omit (params, 'stopPrice');
                 request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
             }
         }
@@ -3255,6 +3549,10 @@ module.exports = class binance extends Exchange {
         //       "updateTime": "1627501027000"
         //     }
         //
+        // withdraw
+        //
+        //    { id: '9a67628b16ba4988ae20d329333f16bc' }
+        //
         const id = this.safeString2 (transaction, 'id', 'orderNo');
         const address = this.safeString (transaction, 'address');
         let tag = this.safeString (transaction, 'addressTag'); // set but unused
@@ -3292,12 +3590,14 @@ module.exports = class binance extends Exchange {
         const updated = this.safeInteger2 (transaction, 'successTime', 'updateTime');
         let internal = this.safeInteger (transaction, 'transferType', false);
         internal = internal ? true : false;
+        const network = this.safeString (transaction, 'network');
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': network,
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
@@ -3704,10 +4004,7 @@ module.exports = class binance extends Exchange {
         }
         const response = await this.sapiPostCapitalWithdrawApply (this.extend (request, params));
         //     { id: '9a67628b16ba4988ae20d329333f16bc' }
-        return {
-            'info': response,
-            'id': this.safeString (response, 'id'),
-        };
+        return this.parseTransaction (response, currency);
     }
 
     parseTradingFee (fee, market = undefined) {
@@ -3979,6 +4276,7 @@ module.exports = class binance extends Exchange {
         }
         if (symbol !== undefined) {
             const market = this.market (symbol);
+            symbol = market['symbol'];
             request['symbol'] = market['id'];
             if (market['linear']) {
                 method = 'fapiPublicGetFundingRate';
@@ -4069,9 +4367,8 @@ module.exports = class binance extends Exchange {
         const indexPrice = this.safeNumber (premiumIndex, 'indexPrice');
         const interestRate = this.safeNumber (premiumIndex, 'interestRate');
         const estimatedSettlePrice = this.safeNumber (premiumIndex, 'estimatedSettlePrice');
-        const nextFundingRate = this.safeNumber (premiumIndex, 'lastFundingRate');
-        const nextFundingTime = this.safeInteger (premiumIndex, 'nextFundingTime');
-        const previousFundingTime = nextFundingTime - (8 * 3600000);
+        const fundingRate = this.safeNumber (premiumIndex, 'lastFundingRate');
+        const fundingTime = this.safeInteger (premiumIndex, 'nextFundingTime');
         return {
             'info': premiumIndex,
             'symbol': symbol,
@@ -4081,12 +4378,15 @@ module.exports = class binance extends Exchange {
             'estimatedSettlePrice': estimatedSettlePrice,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'fundingRate': fundingRate,
+            'fundingTimestamp': fundingTime,
+            'fundingDatetime': this.iso8601 (fundingTime),
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
             'previousFundingRate': undefined,
-            'nextFundingRate': nextFundingRate,
-            'previousFundingTimestamp': previousFundingTime, // subtract 8 hours
-            'nextFundingTimestamp': nextFundingTime,
-            'previousFundingDatetime': this.iso8601 (previousFundingTime),
-            'nextFundingDatetime': this.iso8601 (nextFundingTime),
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
         };
     }
 
@@ -4166,7 +4466,7 @@ module.exports = class binance extends Exchange {
         //
         const marketId = this.safeString (position, 'symbol');
         market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol');
         const leverageString = this.safeString (position, 'leverage');
         const leverage = parseInt (leverageString);
         const initialMarginString = this.safeString (position, 'initialMargin');
@@ -4176,6 +4476,7 @@ module.exports = class binance extends Exchange {
         if (!rational) {
             initialMarginPercentageString = Precise.stringDiv (Precise.stringAdd (initialMarginPercentageString, '1e-8'), '1', 8);
         }
+        // as oppose to notionalValue
         const usdm = ('notional' in position);
         const maintenanceMarginString = this.safeString (position, 'maintMargin');
         const maintenanceMargin = this.parseNumber (maintenanceMarginString);
@@ -4183,14 +4484,13 @@ module.exports = class binance extends Exchange {
         let entryPrice = this.parseNumber (entryPriceString);
         const notionalString = this.safeString2 (position, 'notional', 'notionalValue');
         const notionalStringAbs = Precise.stringAbs (notionalString);
-        const notionalFloat = parseFloat (notionalString);
-        const notionalFloatAbs = parseFloat (notionalStringAbs);
-        const notional = this.parseNumber (Precise.stringAbs (notionalString));
+        const notional = this.parseNumber (notionalStringAbs);
         let contractsString = this.safeString (position, 'positionAmt');
         let contractsStringAbs = Precise.stringAbs (contractsString);
         if (contractsString === undefined) {
             const entryNotional = Precise.stringMul (Precise.stringMul (leverageString, initialMarginString), entryPriceString);
-            contractsString = Precise.stringDiv (entryNotional, market['contractSize']);
+            const contractSize = this.safeString (market, 'contractSize');
+            contractsString = Precise.stringDiv (entryNotional, contractSize);
             contractsStringAbs = Precise.stringDiv (Precise.stringAdd (contractsString, '0.5'), '1', 0);
         }
         const contracts = this.parseNumber (contractsStringAbs);
@@ -4199,7 +4499,7 @@ module.exports = class binance extends Exchange {
         let maintenanceMarginPercentageString = undefined;
         for (let i = 0; i < leverageBracket.length; i++) {
             const bracket = leverageBracket[i];
-            if (notionalFloatAbs < bracket[0]) {
+            if (Precise.stringLt (notionalStringAbs, bracket[0])) {
                 break;
             }
             maintenanceMarginPercentageString = bracket[1];
@@ -4230,10 +4530,12 @@ module.exports = class binance extends Exchange {
         let percentage = undefined;
         let liquidationPriceStringRaw = undefined;
         let liquidationPrice = undefined;
-        if (notionalFloat === 0.0) {
+        const contractSize = this.safeValue (market, 'contractSize');
+        const contractSizeString = this.numberToString (contractSize);
+        if (Precise.stringEquals (notionalString, '0')) {
             entryPrice = undefined;
         } else {
-            side = (notionalFloat < 0) ? 'short' : 'long';
+            side = Precise.stringLt (notionalString, '0') ? 'short' : 'long';
             marginRatio = this.parseNumber (Precise.stringDiv (Precise.stringAdd (Precise.stringDiv (maintenanceMarginString, collateralString), '5e-5'), '1', 4));
             percentage = this.parseNumber (Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMarginString, 4), '100'));
             if (usdm) {
@@ -4268,7 +4570,7 @@ module.exports = class binance extends Exchange {
                     onePlusMaintenanceMarginPercentageString = Precise.stringSub ('-1', maintenanceMarginPercentageString);
                     entryPriceSignString = Precise.stringMul ('-1', entryPriceSignString);
                 }
-                const size = Precise.stringMul (contractsStringAbs, market['contractSize']);
+                const size = Precise.stringMul (contractsStringAbs, contractSizeString);
                 const leftSide = Precise.stringMul (size, onePlusMaintenanceMarginPercentageString);
                 const rightSide = Precise.stringSub (Precise.stringMul (Precise.stringDiv ('1', entryPriceSignString), size), walletBalance);
                 liquidationPriceStringRaw = Precise.stringDiv (leftSide, rightSide);
@@ -4304,7 +4606,7 @@ module.exports = class binance extends Exchange {
             'leverage': this.parseNumber (leverageString),
             'unrealizedPnl': unrealizedPnl,
             'contracts': contracts,
-            'contractSize': this.parseNumber (market['contractSize']),
+            'contractSize': contractSize,
             'marginRatio': marginRatio,
             'liquidationPrice': liquidationPrice,
             'markPrice': undefined,
@@ -4357,17 +4659,15 @@ module.exports = class binance extends Exchange {
         //
         const marketId = this.safeString (position, 'symbol');
         market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol');
         const leverageBrackets = this.safeValue (this.options, 'leverageBrackets', {});
         const leverageBracket = this.safeValue (leverageBrackets, symbol, []);
         const notionalString = this.safeString2 (position, 'notional', 'notionalValue');
         const notionalStringAbs = Precise.stringAbs (notionalString);
-        const notionalFloatAbs = parseFloat (notionalStringAbs);
-        const notionalFloat = parseFloat (notionalString);
         let maintenanceMarginPercentageString = undefined;
         for (let i = 0; i < leverageBracket.length; i++) {
             const bracket = leverageBracket[i];
-            if (notionalFloatAbs < bracket[0]) {
+            if (Precise.stringLt (notionalStringAbs, bracket[0])) {
                 break;
             }
             maintenanceMarginPercentageString = bracket[1];
@@ -4384,16 +4684,21 @@ module.exports = class binance extends Exchange {
         let collateralString = undefined;
         const marginType = this.safeString (position, 'marginType');
         let side = undefined;
-        if (notionalFloat > 0) {
+        if (Precise.stringGt (notionalString, '0')) {
             side = 'long';
-        } else if (notionalFloat < 0) {
+        } else if (Precise.stringLt (notionalString, '0')) {
             side = 'short';
         }
         const entryPriceString = this.safeString (position, 'entryPrice');
         const entryPrice = this.parseNumber (entryPriceString);
+        const contractSize = this.safeValue (market, 'contractSize');
+        const contractSizeString = this.numberToString (contractSize);
+        // as oppose to notionalValue
+        const linear = ('notional' in position);
         if (marginType === 'cross') {
             // calculate collateral
-            if (market['linear']) {
+            const precision = this.safeValue (market, 'precision');
+            if (linear) {
                 // walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
                 let onePlusMaintenanceMarginPercentageString = undefined;
                 let entryPriceSignString = entryPriceString;
@@ -4405,7 +4710,8 @@ module.exports = class binance extends Exchange {
                 }
                 const inner = Precise.stringMul (liquidationPriceString, onePlusMaintenanceMarginPercentageString);
                 const leftSide = Precise.stringAdd (inner, entryPriceSignString);
-                collateralString = Precise.stringDiv (Precise.stringMul (leftSide, contractsAbs), '1', market['precision']['quote']);
+                const quotePrecision = this.safeInteger (precision, 'quote');
+                collateralString = Precise.stringDiv (Precise.stringMul (leftSide, contractsAbs), '1', quotePrecision);
             } else {
                 // walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
                 let onePlusMaintenanceMarginPercentageString = undefined;
@@ -4416,15 +4722,15 @@ module.exports = class binance extends Exchange {
                     onePlusMaintenanceMarginPercentageString = Precise.stringSub ('-1', maintenanceMarginPercentageString);
                     entryPriceSignString = Precise.stringMul ('-1', entryPriceSignString);
                 }
-                const leftSide = Precise.stringMul (contractsAbs, market['contractSize']);
+                const leftSide = Precise.stringMul (contractsAbs, contractSizeString);
                 const rightSide = Precise.stringSub (Precise.stringDiv ('1', entryPriceSignString), Precise.stringDiv (onePlusMaintenanceMarginPercentageString, liquidationPriceString));
-                collateralString = Precise.stringDiv (Precise.stringMul (leftSide, rightSide), '1', market['precision']['base']);
+                const basePrecision = this.safeInteger (precision, 'base');
+                collateralString = Precise.stringDiv (Precise.stringMul (leftSide, rightSide), '1', basePrecision);
             }
         } else {
             collateralString = this.safeString (position, 'isolatedMargin');
         }
         collateralString = (collateralString === undefined) ? '0' : collateralString;
-        const collateralFloat = parseFloat (collateralString);
         const collateral = this.parseNumber (collateralString);
         const markPrice = this.parseNumber (this.omitZero (this.safeString (position, 'markPrice')));
         let timestamp = this.safeInteger (position, 'updateTime');
@@ -4443,7 +4749,7 @@ module.exports = class binance extends Exchange {
         const initialMargin = this.parseNumber (initialMarginString);
         let marginRatio = undefined;
         let percentage = undefined;
-        if (collateralFloat !== 0.0) {
+        if (!Precise.stringEquals (collateralString, '0')) {
             marginRatio = this.parseNumber (Precise.stringDiv (Precise.stringAdd (Precise.stringDiv (maintenanceMarginString, collateralString), '5e-5'), '1', 4));
             percentage = this.parseNumber (Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMarginString, 4), '100'));
         }
@@ -4453,7 +4759,7 @@ module.exports = class binance extends Exchange {
             'info': position,
             'symbol': symbol,
             'contracts': contracts,
-            'contractSize': this.parseNumber (market['contractSize']),
+            'contractSize': contractSize,
             'unrealizedPnl': unrealizedPnl,
             'leverage': this.parseNumber (leverageString),
             'liquidationPrice': liquidationPrice,
@@ -4502,8 +4808,7 @@ module.exports = class binance extends Exchange {
                 const result = [];
                 for (let j = 0; j < brackets.length; j++) {
                     const bracket = brackets[j];
-                    // we use floats here internally on purpose
-                    const floorValue = this.safeFloat2 (bracket, 'notionalFloor', 'qtyFloor');
+                    const floorValue = this.safeString2 (bracket, 'notionalFloor', 'qtyFloor');
                     const maintenanceMarginPercentage = this.safeString (bracket, 'maintMarginRatio');
                     result.push ([ floorValue, maintenanceMarginPercentage ]);
                 }
@@ -4511,6 +4816,82 @@ module.exports = class binance extends Exchange {
             }
         }
         return this.options['leverageBrackets'];
+    }
+
+    async fetchLeverageTiers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchLeverageTiers', undefined, params);
+        let method = undefined;
+        if (type === 'future') {
+            method = 'fapiPrivateGetLeverageBracket';
+        } else if (type === 'delivery') {
+            method = 'dapiPrivateV2GetLeverageBracket';
+        } else {
+            throw new NotSupported (this.id + ' fetchLeverageTiers() supports linear and inverse contracts only');
+        }
+        const response = await this[method] (query);
+        //
+        //    [
+        //        {
+        //            "symbol": "SUSHIUSDT",
+        //            "brackets": [
+        //                {
+        //                    "bracket": 1,
+        //                    "initialLeverage": 50,
+        //                    "notionalCap": 50000,
+        //                    "notionalFloor": 0,
+        //                    "maintMarginRatio": 0.01,
+        //                    "cum": 0.0
+        //                },
+        //                ...
+        //            ]
+        //        }
+        //    ]
+        //
+        return this.parseLeverageTiers (response, symbols, 'symbol');
+    }
+
+    parseMarketLeverageTiers (info, market) {
+        /**
+         * @ignore
+         * @method
+         * @param {dict} info Exchange response for 1 market
+         * @param {dict} market CCXT market
+         */
+        //
+        //    {
+        //        "symbol": "SUSHIUSDT",
+        //        "brackets": [
+        //            {
+        //                "bracket": 1,
+        //                "initialLeverage": 50,
+        //                "notionalCap": 50000,
+        //                "notionalFloor": 0,
+        //                "maintMarginRatio": 0.01,
+        //                "cum": 0.0
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        const marketId = this.safeString (info, 'symbol');
+        const safeSymbol = this.safeSymbol (marketId);
+        market = this.safeMarket (safeSymbol, market);
+        const brackets = this.safeValue (info, 'brackets');
+        const tiers = [];
+        for (let j = 0; j < brackets.length; j++) {
+            const bracket = brackets[j];
+            tiers.push ({
+                'tier': this.safeNumber (bracket, 'bracket'),
+                'currency': market['quote'],
+                'notionalFloor': this.safeNumber2 (bracket, 'notionalFloor', 'qtyFloor'),
+                'notionalCap': this.safeNumber (bracket, 'notionalCap'),
+                'maintenanceMarginRate': this.safeNumber (bracket, 'maintMarginRatio'),
+                'maxLeverage': this.safeNumber (bracket, 'initialLeverage'),
+                'info': bracket,
+            });
+        }
+        return tiers;
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
@@ -4551,7 +4932,7 @@ module.exports = class binance extends Exchange {
     async fetchPositionsRisk (symbols = undefined, params = {}) {
         if (symbols !== undefined) {
             if (!Array.isArray (symbols)) {
-                throw new ArgumentsRequired (this.id + ' fetchPositions requires an array argument for symbols');
+                throw new ArgumentsRequired (this.id + ' fetchPositionsRisk requires an array argument for symbols');
             }
         }
         await this.loadMarkets ();
@@ -4564,10 +4945,64 @@ module.exports = class binance extends Exchange {
         params = this.omit (params, 'type');
         if ((type === 'future') || (type === 'linear')) {
             method = 'fapiPrivateGetPositionRisk';
+            // ### Response examples ###
+            //
+            // For One-way position mode:
+            //     [
+            //         {
+            //             "entryPrice": "0.00000",
+            //             "marginType": "isolated",
+            //             "isAutoAddMargin": "false",
+            //             "isolatedMargin": "0.00000000",
+            //             "leverage": "10",
+            //             "liquidationPrice": "0",
+            //             "markPrice": "6679.50671178",
+            //             "maxNotionalValue": "20000000",
+            //             "positionAmt": "0.000",
+            //             "symbol": "BTCUSDT",
+            //             "unRealizedProfit": "0.00000000",
+            //             "positionSide": "BOTH",
+            //             "updateTime": 0
+            //        }
+            //     ]
+            //
+            // For Hedge position mode:
+            //     [
+            //         {
+            //             "entryPrice": "6563.66500",
+            //             "marginType": "isolated",
+            //             "isAutoAddMargin": "false",
+            //             "isolatedMargin": "15517.54150468",
+            //             "leverage": "10",
+            //             "liquidationPrice": "5930.78",
+            //             "markPrice": "6679.50671178",
+            //             "maxNotionalValue": "20000000",
+            //             "positionAmt": "20.000",
+            //             "symbol": "BTCUSDT",
+            //             "unRealizedProfit": "2316.83423560"
+            //             "positionSide": "LONG",
+            //             "updateTime": 1625474304765
+            //         },
+            //         {
+            //             "entryPrice": "0.00000",
+            //             "marginType": "isolated",
+            //             "isAutoAddMargin": "false",
+            //             "isolatedMargin": "5413.95799991",
+            //             "leverage": "10",
+            //             "liquidationPrice": "7189.95",
+            //             "markPrice": "6679.50671178",
+            //             "maxNotionalValue": "20000000",
+            //             "positionAmt": "-10.000",
+            //             "symbol": "BTCUSDT",
+            //             "unRealizedProfit": "-1156.46711780",
+            //             "positionSide": "SHORT",
+            //             "updateTime": 0
+            //         }
+            //     ]
         } else if ((type === 'delivery') || (type === 'inverse')) {
             method = 'dapiPrivateGetPositionRisk';
         } else {
-            throw NotSupported (this.id + ' fetchIsolatedPositions() supports linear and inverse contracts only');
+            throw NotSupported (this.id + ' fetchPositionsRisk() supports linear and inverse contracts only');
         }
         const response = await this[method] (this.extend (request, params));
         const result = [];
@@ -4644,6 +5079,9 @@ module.exports = class binance extends Exchange {
     }
 
     async setMarginMode (marginType, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
+        }
         //
         // { "code": -4048 , "msg": "Margin type cannot be changed if there exists position." }
         //
@@ -4652,8 +5090,11 @@ module.exports = class binance extends Exchange {
         // { "code": 200, "msg": "success" }
         //
         marginType = marginType.toUpperCase ();
+        if (marginType === 'CROSS') {
+            marginType = 'CROSSED';
+        }
         if ((marginType !== 'ISOLATED') && (marginType !== 'CROSSED')) {
-            throw new BadRequest (this.id + ' marginType must be either isolated or crossed');
+            throw new BadRequest (this.id + ' marginType must be either isolated or cross');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -4663,13 +5104,31 @@ module.exports = class binance extends Exchange {
         } else if (market['inverse']) {
             method = 'dapiPrivatePostMarginType';
         } else {
-            throw NotSupported (this.id + ' setMarginMode() supports linear and inverse contracts only');
+            throw new NotSupported (this.id + ' setMarginMode() supports linear and inverse contracts only');
         }
         const request = {
             'symbol': market['id'],
             'marginType': marginType,
         };
-        return await this[method] (this.extend (request, params));
+        let response = undefined;
+        try {
+            response = await this[method] (this.extend (request, params));
+        } catch (e) {
+            // not an error
+            // https://github.com/ccxt/ccxt/issues/11268
+            // https://github.com/ccxt/ccxt/pull/11624
+            // POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
+            // binanceusdm
+            if (e instanceof MarginModeAlreadySet) {
+                const throwMarginModeAlreadySet = this.safeValue (this.options, 'throwMarginModeAlreadySet', false);
+                if (throwMarginModeAlreadySet) {
+                    throw e;
+                } else {
+                    response = { 'code': -4046, 'msg': 'No need to change margin type.' };
+                }
+            }
+        }
+        return response;
     }
 
     async setPositionMode (hedged, symbol = undefined, params = {}) {
@@ -4733,25 +5192,22 @@ module.exports = class binance extends Exchange {
             } else {
                 throw new AuthenticationError (this.id + ' userDataStream endpoint requires `apiKey` credential');
             }
-        } else if ((api === 'private') || (api === 'sapi') || (api === 'wapi' && path !== 'systemStatus') || (api === 'dapiPrivate') || (api === 'dapiPrivateV2') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2')) {
+        } else if ((api === 'private') || (api === 'sapi' && path !== 'system/status') || (api === 'sapiV3') || (api === 'wapi' && path !== 'systemStatus') || (api === 'dapiPrivate') || (api === 'dapiPrivateV2') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2')) {
             this.checkRequiredCredentials ();
             let query = undefined;
-            const recvWindow = this.safeInteger (this.options, 'recvWindow', 5000);
+            const recvWindow = this.safeInteger (this.options, 'recvWindow');
+            const extendedParams = this.extend ({
+                'timestamp': this.nonce (),
+            }, params);
+            if (recvWindow !== undefined) {
+                extendedParams['recvWindow'] = recvWindow;
+            }
             if ((api === 'sapi') && (path === 'asset/dust')) {
-                query = this.urlencodeWithArrayRepeat (this.extend ({
-                    'timestamp': this.nonce (),
-                    'recvWindow': recvWindow,
-                }, params));
-            } else if ((path === 'batchOrders') || (path.indexOf ('sub-account') >= 0)) {
-                query = this.rawencode (this.extend ({
-                    'timestamp': this.nonce (),
-                    'recvWindow': recvWindow,
-                }, params));
+                query = this.urlencodeWithArrayRepeat (extendedParams);
+            } else if ((path === 'batchOrders') || (path.indexOf ('sub-account') >= 0) || (path === 'capital/withdraw/apply')) {
+                query = this.rawencode (extendedParams);
             } else {
-                query = this.urlencode (this.extend ({
-                    'timestamp': this.nonce (),
-                    'recvWindow': recvWindow,
-                }, params));
+                query = this.urlencode (extendedParams);
             }
             const signature = this.hmac (this.encode (query), this.encode (this.secret));
             query += '&' + 'signature=' + signature;
@@ -4787,7 +5243,7 @@ module.exports = class binance extends Exchange {
                 throw new InvalidOrder (this.id + ' order amount should be evenly divisible by lot size ' + body);
             }
             if (body.indexOf ('PRICE_FILTER') >= 0) {
-                throw new InvalidOrder (this.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use this.priceToPrecision (symbol, amount) ' + body);
+                throw new InvalidOrder (this.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use this.priceToPrecision (symbol, amount) ' + body);
             }
         }
         if (response === undefined) {
@@ -4822,7 +5278,7 @@ module.exports = class binance extends Exchange {
             // https://github.com/ccxt/ccxt/issues/6501
             // https://github.com/ccxt/ccxt/issues/7742
             if ((error === '200') || Precise.stringEquals (error, '0')) {
-                return;
+                return undefined;
             }
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             // despite that their message is very confusing, it is raised by Binance
@@ -4831,6 +5287,14 @@ module.exports = class binance extends Exchange {
                 throw new DDoSProtection (this.id + ' temporary banned: ' + body);
             }
             const feedback = this.id + ' ' + body;
+            if (message === 'No need to change margin type.') {
+                // not an error
+                // https://github.com/ccxt/ccxt/issues/11268
+                // https://github.com/ccxt/ccxt/pull/11624
+                // POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
+                // binanceusdm {"code":-4046,"msg":"No need to change margin type."}
+                throw new MarginModeAlreadySet (feedback);
+            }
             this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
             throw new ExchangeError (feedback);
         }
@@ -4840,7 +5304,9 @@ module.exports = class binance extends Exchange {
     }
 
     calculateRateLimiterCost (api, method, path, params, config = {}, context = {}) {
-        if (('noSymbol' in config) && !('symbol' in params)) {
+        if (('noCoin' in config) && !('coin' in params)) {
+            return config['noCoin'];
+        } else if (('noSymbol' in config) && !('symbol' in params)) {
             return config['noSymbol'];
         } else if (('noPoolId' in config) && !('poolId' in params)) {
             return config['noPoolId'];
@@ -4895,10 +5361,10 @@ module.exports = class binance extends Exchange {
         const response = await this[method] (this.extend (request, params));
         //
         //     {
-        //       "code": 200,
-        //       "msg": "Successfully modify position margin.",
-        //       "amount": 0.001,
-        //       "type": 1
+        //         "code": 200,
+        //         "msg": "Successfully modify position margin.",
+        //         "amount": 0.001,
+        //         "type": 1
         //     }
         //
         const rawType = this.safeInteger (response, 'type');
@@ -4933,25 +5399,202 @@ module.exports = class binance extends Exchange {
         };
         const response = await this.sapiGetMarginInterestRateHistory (this.extend (request, params));
         //
-        // [
-        //     {
-        //         "asset": "USDT",
-        //         "timestamp": 1638230400000,
-        //         "dailyInterestRate": "0.0006",
-        //         "vipLevel": 0
-        //     },
-        //     ...
-        // ]
+        //     [
+        //         {
+        //             "asset": "USDT",
+        //             "timestamp": 1638230400000,
+        //             "dailyInterestRate": "0.0006",
+        //             "vipLevel": 0
+        //         },
+        //     ]
         //
         const rate = this.safeValue (response, 0);
-        const timestamp = this.safeNumber (rate, 'timestamp');
+        return this.parseBorrowRate (rate);
+    }
+
+    async fetchBorrowRateHistory (code, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (limit === undefined) {
+            limit = 93;
+        } else if (limit > 93) {
+            // Binance API says the limit is 100, but "Illegal characters found in a parameter." is returned when limit is > 93
+            throw new BadRequest (this.id + ' fetchBorrowRateHistory limit parameter cannot exceed 92');
+        }
+        const currency = this.currency (code);
+        const request = {
+            'asset': currency['id'],
+            'limit': limit,
+        };
+        if (since !== undefined) {
+            request['startTime'] = since;
+            const endTime = this.sum (since, limit * 86400000) - 1; // required when startTime is further than 93 days in the past
+            const now = this.milliseconds ();
+            request['endTime'] = Math.min (endTime, now); // cannot have an endTime later than current time
+        }
+        const response = await this.sapiGetMarginInterestRateHistory (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "asset": "USDT",
+        //             "timestamp": 1638230400000,
+        //             "dailyInterestRate": "0.0006",
+        //             "vipLevel": 0
+        //         },
+        //     ]
+        //
+        return this.parseBorrowRateHistory (response);
+    }
+
+    parseBorrowRateHistory (response, code, since, limit) {
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const item = response[i];
+            const borrowRate = this.parseBorrowRate (item);
+            result.push (borrowRate);
+        }
+        const sorted = this.sortBy (result, 'timestamp');
+        return this.filterByCurrencySinceLimit (sorted, code, since, limit);
+    }
+
+    parseBorrowRate (info, currency = undefined) {
+        //
+        //    {
+        //        "asset": "USDT",
+        //        "timestamp": 1638230400000,
+        //        "dailyInterestRate": "0.0006",
+        //        "vipLevel": 0
+        //    }
+        //
+        const timestamp = this.safeNumber (info, 'timestamp');
+        currency = this.safeString (info, 'asset');
         return {
-            'currency': code,
-            'rate': this.safeNumber (rate, 'dailyInterestRate'),
+            'currency': this.safeCurrencyCode (currency),
+            'rate': this.safeNumber (info, 'dailyInterestRate'),
             'period': 86400000,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'info': info,
+        };
+    }
+
+    async createGiftCode (code, amount, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        // ensure you have enough token in your funding account before calling this code
+        const request = {
+            'token': currency['id'],
+            'amount': amount,
+        };
+        const response = await this.sapiPostGiftcardCreateCode (this.extend (request, params));
+        //
+        //     {
+        //         code: '000000',
+        //         message: 'success',
+        //         data: { referenceNo: '0033002404219823', code: 'AP6EXTLKNHM6CEX7' },
+        //         success: true
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        const giftcardCode = this.safeString (data, 'code');
+        const id = this.safeString (data, 'referenceNo');
+        return {
             'info': response,
+            'id': id,
+            'code': giftcardCode,
+            'currency': code,
+            'amount': amount,
+        };
+    }
+
+    async redeemGiftCode (giftcardCode, params = {}) {
+        const request = {
+            'code': giftcardCode,
+        };
+        const response = await this.sapiPostGiftcardRedeemCode (this.extend (request, params));
+        //
+        //     {
+        //         code: '000000',
+        //         message: 'success',
+        //         data: {
+        //             referenceNo: '0033002404219823',
+        //             identityNo: '10316431732801474560'
+        //         },
+        //         success: true
+        //     }
+        //
+        return response;
+    }
+
+    async verifyGiftCode (id, params = {}) {
+        const request = {
+            'referenceNo': id,
+        };
+        const response = await this.sapiGetGiftcardVerify (this.extend (request, params));
+        //
+        //     {
+        //         code: '000000',
+        //         message: 'success',
+        //         data: { valid: true },
+        //         success: true
+        //     }
+        //
+        return response;
+    }
+
+    async fetchBorrowInterest (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (code !== undefined) {
+            const currency = this.currency (code);
+            request['asset'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        if (symbol !== undefined) { // Isolated
+            market = this.market (symbol);
+            request['isolatedSymbol'] = market['id'];
+        }
+        const response = await this.sapiGetMarginInterestHistory (this.extend (request, params));
+        //
+        //     {
+        //         "rows":[
+        //             {
+        //                 "isolatedSymbol": "BNBUSDT", // isolated symbol, will not be returned for crossed margin
+        //                 "asset": "BNB",
+        //                 "interest": "0.02414667",
+        //                 "interestAccuredTime": 1566813600000,
+        //                 "interestRate": "0.01600000",
+        //                 "principal": "36.22000000",
+        //                 "type": "ON_BORROW"
+        //             }
+        //         ],
+        //         "total": 1
+        //     }
+        //
+        const rows = this.safeValue (response, 'rows');
+        const interest = this.parseBorrowInterests (rows, market);
+        return this.filterByCurrencySinceLimit (interest, code, since, limit);
+    }
+
+    parseBorrowInterest (info, market) {
+        const symbol = this.safeString (info, 'isolatedSymbol');
+        const timestamp = this.safeNumber (info, 'interestAccuredTime');
+        return {
+            'account': (symbol === undefined) ? 'cross' : symbol,
+            'symbol': symbol,
+            'marginType': (symbol === undefined) ? 'cross' : 'isolated',
+            'currency': this.safeCurrencyCode (this.safeString (info, 'asset')),
+            'interest': this.safeNumber (info, 'interest'),
+            'interestRate': this.safeNumber (info, 'interestRate'),
+            'amountBorrowed': this.safeNumber (info, 'principal'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': info,
         };
     }
 };

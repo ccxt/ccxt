@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\Precise;
 
 class bit2c extends Exchange {
 
@@ -18,15 +19,48 @@ class bit2c extends Exchange {
             'countries' => array( 'IL' ), // Israel
             'rateLimit' => 3000,
             'has' => array(
-                'cancelOrder' => true,
                 'CORS' => null,
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
+                'cancelOrder' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchLeverage' => false,
+                'fetchLeverageTiers' => false,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrderBook' => true,
+                'fetchPosition' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => true,
+                'fetchTransfer' => false,
+                'fetchTransfers' => false,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
+                'transfer' => false,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg',
@@ -105,9 +139,30 @@ class bit2c extends Exchange {
         ));
     }
 
+    public function parse_balance($response) {
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
+        $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
+        for ($i = 0; $i < count($codes); $i++) {
+            $code = $codes[$i];
+            $account = $this->account();
+            $currency = $this->currency($code);
+            $uppercase = strtoupper($currency['id']);
+            if (is_array($response) && array_key_exists($uppercase, $response)) {
+                $account['free'] = $this->safe_string($response, 'AVAILABLE_' . $uppercase);
+                $account['total'] = $this->safe_string($response, $uppercase);
+            }
+            $result[$code] = $account;
+        }
+        return $this->safe_balance($result);
+    }
+
     public function fetch_balance($params = array ()) {
         yield $this->load_markets();
-        $balance = yield $this->privateGetAccountBalanceV2 ($params);
+        $response = yield $this->privateGetAccountBalanceV2 ($params);
         //
         //     {
         //         "AVAILABLE_NIS" => 0.0,
@@ -150,24 +205,7 @@ class bit2c extends Exchange {
         //         }
         //     }
         //
-        $result = array(
-            'info' => $balance,
-            'timestamp' => null,
-            'datetime' => null,
-        );
-        $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
-        for ($i = 0; $i < count($codes); $i++) {
-            $code = $codes[$i];
-            $account = $this->account();
-            $currency = $this->currency($code);
-            $uppercase = strtoupper($currency['id']);
-            if (is_array($balance) && array_key_exists($uppercase, $balance)) {
-                $account['free'] = $this->safe_string($balance, 'AVAILABLE_' . $uppercase);
-                $account['total'] = $this->safe_string($balance, $uppercase);
-            }
-            $result[$code] = $account;
-        }
-        return $this->parse_balance($result);
+        return $this->parse_balance($response);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -182,22 +220,18 @@ class bit2c extends Exchange {
     public function parse_ticker($ticker, $market = null) {
         $symbol = $this->safe_symbol(null, $market);
         $timestamp = $this->milliseconds();
-        $averagePrice = $this->safe_number($ticker, 'av');
-        $baseVolume = $this->safe_number($ticker, 'a');
-        $quoteVolume = null;
-        if ($baseVolume !== null && $averagePrice !== null) {
-            $quoteVolume = $baseVolume * $averagePrice;
-        }
-        $last = $this->safe_number($ticker, 'll');
+        $averagePrice = $this->safe_string($ticker, 'av');
+        $baseVolume = $this->safe_string($ticker, 'a');
+        $last = $this->safe_string($ticker, 'll');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => $this->safe_number($ticker, 'h'),
+            'bid' => $this->safe_string($ticker, 'h'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'l'),
+            'ask' => $this->safe_string($ticker, 'l'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -208,9 +242,9 @@ class bit2c extends Exchange {
             'percentage' => null,
             'average' => $averagePrice,
             'baseVolume' => $baseVolume,
-            'quoteVolume' => $quoteVolume,
+            'quoteVolume' => null,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -241,6 +275,48 @@ class bit2c extends Exchange {
             throw new ExchangeError($response);
         }
         return $this->parse_trades($response, $market, $since, $limit);
+    }
+
+    public function fetch_trading_fees($params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->privateGetAccountBalance ($params);
+        //
+        //     {
+        //         "AVAILABLE_NIS" => 0.0,
+        //         "NIS" => 0.0,
+        //         "LOCKED_NIS" => 0.0,
+        //         "AVAILABLE_BTC" => 0.0,
+        //         "BTC" => 0.0,
+        //         "LOCKED_BTC" => 0.0,
+        //         ...
+        //         "Fees" => {
+        //             "BtcNis" => array( "FeeMaker" => 1.0, "FeeTaker" => 1.0 ),
+        //             "EthNis" => array( "FeeMaker" => 1.0, "FeeTaker" => 1.0 ),
+        //             ...
+        //         }
+        //     }
+        //
+        $fees = $this->safe_value($response, 'Fees', array());
+        $keys = is_array($fees) ? array_keys($fees) : array();
+        $result = array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $marketId = $keys[$i];
+            $symbol = $this->safe_symbol($marketId);
+            $fee = $this->safe_value($fees, $marketId);
+            $makerString = $this->safe_string($fee, 'FeeMaker');
+            $takerString = $this->safe_string($fee, 'FeeTaker');
+            $maker = $this->parse_number(Precise::string_div($makerString, '100'));
+            $taker = $this->parse_number(Precise::string_div($takerString, '100'));
+            $result[$symbol] = array(
+                'info' => $fee,
+                'symbol' => $symbol,
+                'taker' => $taker,
+                'maker' => $maker,
+                'percentage' => true,
+                'tierBased' => false,
+            );
+        }
+        return $result;
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -291,10 +367,7 @@ class bit2c extends Exchange {
         $timestamp = $this->safe_integer($order, 'created');
         $price = $this->safe_string($order, 'price');
         $amount = $this->safe_string($order, 'amount');
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $market = $this->safe_market(null, $market);
         $side = $this->safe_value($order, 'type');
         if ($side === 0) {
             $side = 'buy';
@@ -303,14 +376,14 @@ class bit2c extends Exchange {
         }
         $id = $this->safe_string($order, 'id');
         $status = $this->safe_string($order, 'status');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'status' => $status,
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => null,
             'timeInForce' => null,
             'postOnly' => null,
@@ -399,16 +472,13 @@ class bit2c extends Exchange {
                 }
             }
         }
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $market = $this->safe_market(null, $market);
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'order' => $orderId,
             'type' => null,
             'side' => $side,

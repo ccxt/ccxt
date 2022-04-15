@@ -15,7 +15,7 @@ const fs        = require ('fs')
     , execSync  = require ('child_process').execSync
     , log       = require ('ololog').unlimited
     , ansi      = require ('ansicolor').nice
-    , { keys, values, entries } = Object
+    , { keys, values, entries, fromEntries } = Object
     , { replaceInFile } = require ('./fs.js')
 
 // ----------------------------------------------------------------------------
@@ -172,8 +172,8 @@ function createMarkdownListOfExchanges (exchanges) {
 
 function createMarkdownListOfCertifiedExchanges (exchanges) {
     return exchanges.map ((exchange) => {
-        // const discount = getReferralDiscountBadgeLink (exchange)
-        return { ... createMarkdownExchange (exchange) /*, discount */ }
+        const discount = getReferralDiscountBadgeLink (exchange)
+        return { ... createMarkdownExchange (exchange), discount }
     })
 }
 
@@ -311,7 +311,7 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
 
     const certifiedExchanges = arrayOfExchanges.filter (exchange => exchange.certified)
     if (certifiedExchangesPaths && certifiedExchanges.length) {
-        const certifiedExchangesMarkdownTable = createMarkdownTable (certifiedExchanges, createMarkdownListOfCertifiedExchanges, [ 3 ])
+        const certifiedExchangesMarkdownTable = createMarkdownTable (certifiedExchanges, createMarkdownListOfCertifiedExchanges, [ 3, 6 ])
             , certifiedExchangesReplacement = '$1' + certifiedExchangesMarkdownTable + "\n"
             , certifiedExchangesRegex = new RegExp ("^(## Certified Cryptocurrency Exchanges\n{3})(?:\\|.+\\|$\n)+", 'm')
         for (const path of certifiedExchangesPaths) {
@@ -381,7 +381,7 @@ function exportKeywordsToPackageJson (exchanges) {
         keywords.add (ex.name)
     }
 
-    packageJSON.keywords = [...keywords]
+    packageJSON.keywords = values (fromEntries ([ ... keywords ].map (s => [ s.toLowerCase (), s ])));
     fs.writeFileSync ('./package.json', JSON.stringify (packageJSON, null, 2) + "\n")
 }
 

@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -24,8 +23,15 @@ class coinex(Exchange):
             'name': 'CoinEx',
             'version': 'v1',
             'countries': ['CN'],
-            'rateLimit': 1000,
+            'rateLimit': 50,  # Normal limit frequency is single IP：200 times / 10 seconds
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': None,  # has but unimplemented
+                'swap': None,  # has but unimplemented
+                'future': None,  # has but unimplemented
+                'option': None,
+                'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,
@@ -40,6 +46,8 @@ class coinex(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchTradingFee': True,
+                'fetchTradingFees': True,
                 'fetchWithdrawals': True,
                 'withdraw': True,
             },
@@ -73,102 +81,127 @@ class coinex(Exchange):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'common/currency/rate',
-                        'common/asset/config',
-                        'market/info',
-                        'market/list',
-                        'market/ticker',
-                        'market/ticker/all',
-                        'market/depth',
-                        'market/deals',
-                        'market/kline',
-                    ],
+                    'get': {
+                        'amm/market': 1,
+                        'common/currency/rate': 1,
+                        'common/asset/config': 1,
+                        'common/maintain/info': 1,
+                        'common/temp-maintain/info': 1,
+                        'margin/market': 1,
+                        'market/info': 1,
+                        'market/list': 1,
+                        'market/ticker': 1,
+                        'market/ticker/all': 1,
+                        'market/depth': 1,
+                        'market/deals': 1,
+                        'market/kline': 1,
+                        'market/detail': 1,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'balance/coin/deposit',
-                        'balance/coin/withdraw',
-                        'balance/info',
-                        'future/account',
-                        'future/config',
-                        'future/limitprice',
-                        'future/loan/history',
-                        'future/market',
-                        'margin/account',
-                        'margin/config',
-                        'margin/loan/history',
-                        'margin/market',
-                        'order',
-                        'order/deals',
-                        'order/finished',
-                        'order/finished/{id}',
-                        'order/pending',
-                        'order/status',
-                        'order/status/batch',
-                        'order/user/deals',
-                        'sub_account/balance',
-                        'sub_account/transfer/history',
-                    ],
-                    'post': [
-                        'balance/coin/withdraw',
-                        'future/flat',
-                        'future/loan',
-                        'future/transfer',
-                        'margin/flat',
-                        'margin/loan',
-                        'margin/transfer',
-                        'order/batchlimit',
-                        'order/ioc',
-                        'order/limit',
-                        'order/market',
-                        'sub_account/transfer',
-                    ],
-                    'delete': [
-                        'balance/coin/withdraw',
-                        'order/pending/batch',
-                        'order/pending',
-                    ],
+                    'get': {
+                        'account/amm/balance': 1,
+                        'account/investment/balance': 1,
+                        'account/balance/history': 1,
+                        'account/market/fee': 1,
+                        'balance/coin/deposit': 1,
+                        'balance/coin/withdraw': 1,
+                        'balance/info': 1,
+                        'balance/deposit/address/{coin_type}': 1,
+                        'contract/transfer/history': 1,
+                        'credit/info': 1,
+                        'credit/balance': 1,
+                        'investment/transfer/history': 1,
+                        'margin/account': 1,
+                        'margin/config': 1,
+                        'margin/loan/history': 1,
+                        'margin/transfer/history': 1,
+                        'order': 1,
+                        'order/deals': 1,
+                        'order/finished': 1,
+                        'order/pending': 1,
+                        'order/status': 1,
+                        'order/status/batch': 1,
+                        'order/user/deals': 1,
+                        'order/stop/finished': 1,
+                        'order/stop/pending': 1,
+                        'order/user/trade/fee': 1,
+                        'order/market/trade/info': 1,
+                        'sub_account/balance': 1,
+                        'sub_account/transfer/history': 1,
+                        'sub_account/auth/api/{user_auth_id}': 1,
+                    },
+                    'post': {
+                        'balance/coin/withdraw': 1,
+                        'contract/balance/transfer': 1,
+                        'margin/flat': 1,
+                        'margin/loan': 1,
+                        'margin/transfer': 1,
+                        'order/limit/batch': 1,
+                        'order/ioc': 1,
+                        'order/limit': 1,
+                        'order/market': 1,
+                        'order/stop/limit': 1,
+                        'order/stop/market': 1,
+                        'sub_account/transfer': 1,
+                        'sub_account/register': 1,
+                        'sub_account/unfrozen': 1,
+                        'sub_account/frozen': 1,
+                        'sub_account/auth/api': 1,
+                    },
+                    'put': {
+                        'balance/deposit/address/{coin_type}': 1,
+                        'sub_account/auth/api/{user_auth_id}': 1,
+                        'v1/account/settings': 1,
+                    },
+                    'delete': {
+                        'balance/coin/withdraw': 1,
+                        'order/pending/batch': 1,
+                        'order/pending': 1,
+                        'order/stop/pending': 1,
+                        'order/stop/pending/{id}': 1,
+                        'sub_account/auth/api/{user_auth_id}': 1,
+                    },
                 },
                 'perpetualPublic': {
-                    'get': [
-                        'ping',
-                        'time',
-                        'market/list',
-                        'market/limit_config',
-                        'market/ticker',
-                        'market/ticker/all',
-                        'market/depth',
-                        'market/deals',
-                        'market/funding_history',
-                        'market/user_deals',
-                        'market/kline',
-                    ],
+                    'get': {
+                        'ping': 1,
+                        'time': 1,
+                        'market/list': 1,
+                        'market/limit_config': 1,
+                        'market/ticker': 1,
+                        'market/ticker/all': 1,
+                        'market/depth': 1,
+                        'market/deals': 1,
+                        'market/funding_history': 1,
+                        'market/user_deals': 1,
+                        'market/kline': 1,
+                    },
                 },
                 'perpetualPrivate': {
-                    'get': [
-                        'asset/query',
-                        'order/pending',
-                        'order/finished',
-                        'order/stop_pending',
-                        'order/status',
-                        'position/pending',
-                        'position/funding',
-                    ],
-                    'post': [
-                        'market/adjust_leverage',
-                        'market/position_expect',
-                        'order/put_limit',
-                        'order/put_market',
-                        'order/put_stop_limit',
-                        'order/cancel',
-                        'order/cancel_all',
-                        'order/cancel_stop',
-                        'order/cancel_stop_all',
-                        'order/close_limit',
-                        'order/close_market',
-                        'position/adjust_margin',
-                    ],
+                    'get': {
+                        'asset/query': 1,
+                        'order/pending': 1,
+                        'order/finished': 1,
+                        'order/stop_pending': 1,
+                        'order/status': 1,
+                        'position/pending': 1,
+                        'position/funding': 1,
+                    },
+                    'post': {
+                        'market/adjust_leverage': 1,
+                        'market/position_expect': 1,
+                        'order/put_limit': 1,
+                        'order/put_market': 1,
+                        'order/put_stop_limit': 1,
+                        'order/cancel': 1,
+                        'order/cancel_all': 1,
+                        'order/cancel_stop': 1,
+                        'order/cancel_stop_all': 1,
+                        'order/close_limit': 1,
+                        'order/close_market': 1,
+                        'position/adjust_margin': 1,
+                    },
                 },
             },
             'fees': {
@@ -239,54 +272,72 @@ class coinex(Exchange):
             symbol = base + '/' + quote
             if tradingName == id:
                 symbol = id
-            precision = {
-                'amount': self.safe_integer(market, 'trading_decimal'),
-                'price': self.safe_integer(market, 'pricing_decimal'),
-            }
-            active = None
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'active': active,
+                'margin': None,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': None,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
                 'taker': self.safe_number(market, 'taker_fee_rate'),
                 'maker': self.safe_number(market, 'maker_fee_rate'),
-                'info': market,
-                'precision': precision,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.safe_integer(market, 'trading_decimal'),
+                    'price': self.safe_integer(market, 'pricing_decimal'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': self.safe_number(market, 'min_amount'),
                         'max': None,
                     },
                     'price': {
-                        'min': math.pow(10, -precision['price']),
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
                         'max': None,
                     },
                 },
+                'info': market,
             })
         return result
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.safe_integer(ticker, 'date')
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
+        symbol = self.safe_symbol(None, market)
         ticker = self.safe_value(ticker, 'ticker', {})
-        last = self.safe_number(ticker, 'last')
-        return {
+        last = self.safe_string(ticker, 'last')
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'buy'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'buy'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'sell'),
+            'ask': self.safe_string(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -296,10 +347,10 @@ class coinex(Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_number_2(ticker, 'vol', 'volume'),
+            'baseVolume': self.safe_string_2(ticker, 'vol', 'volume'),
             'quoteVolume': None,
             'info': ticker,
-        }
+        }, market, False)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -434,6 +485,74 @@ class coinex(Exchange):
         #
         return self.parse_trades(response['data'], market, since, limit)
 
+    def fetch_trading_fee(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'market': market['id'],
+        }
+        response = self.publicGetMarketDetail(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #           "name": "BTCUSDC",
+        #           "min_amount": "0.0005",
+        #           "maker_fee_rate": "0.002",
+        #           "taker_fee_rate": "0.002",
+        #           "pricing_name": "USDC",
+        #           "pricing_decimal": 2,
+        #           "trading_name": "BTC",
+        #           "trading_decimal": 8
+        #         },
+        #         "message": "OK"
+        #      }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_trading_fee(data)
+
+    def fetch_trading_fees(self, params={}):
+        self.load_markets()
+        response = self.publicGetMarketInfo(params)
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "WAVESBTC": {
+        #                 "name": "WAVESBTC",
+        #                 "min_amount": "1",
+        #                 "maker_fee_rate": "0.001",
+        #                 "taker_fee_rate": "0.001",
+        #                 "pricing_name": "BTC",
+        #                 "pricing_decimal": 8,
+        #                 "trading_name": "WAVES",
+        #                 "trading_decimal": 8
+        #             }
+        #             ...
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        result = {}
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            market = self.market(symbol)
+            fee = self.safe_value(data, market['id'], {})
+            result[symbol] = self.parse_trading_fee(fee, market)
+        return result
+
+    def parse_trading_fee(self, fee, market=None):
+        marketId = self.safe_value(fee, 'name')
+        symbol = self.safe_symbol(marketId, market)
+        return {
+            'info': fee,
+            'symbol': symbol,
+            'maker': self.safe_number(fee, 'maker_fee_rate'),
+            'taker': self.safe_number(fee, 'taker_fee_rate'),
+            'percentage': True,
+            'tierBased': True,
+        }
+
     def parse_ohlcv(self, ohlcv, market=None):
         #
         #     [
@@ -549,7 +668,7 @@ class coinex(Exchange):
         buyAccount['total'] = self.safe_string(total, 'buy_type')
         result[buyCurrencyCode] = buyAccount
         #
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def fetch_spot_balance(self, params={}):
         self.load_markets()
@@ -585,7 +704,7 @@ class coinex(Exchange):
             account['free'] = self.safe_string(balance, 'available')
             account['used'] = self.safe_string(balance, 'frozen')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def fetch_balance(self, params={}):
         accountType = self.safe_string(params, 'type', 'main')
@@ -636,26 +755,23 @@ class coinex(Exchange):
         filledString = self.safe_string(order, 'deal_amount')
         averageString = self.safe_string(order, 'avg_price')
         remainingString = self.safe_string(order, 'left')
-        symbol = None
         marketId = self.safe_string(order, 'market')
         market = self.safe_market(marketId, market)
         feeCurrencyId = self.safe_string(order, 'fee_asset')
         feeCurrency = self.safe_currency_code(feeCurrencyId)
-        if market is not None:
-            symbol = market['symbol']
-            if feeCurrency is None:
-                feeCurrency = market['quote']
+        if feeCurrency is None:
+            feeCurrency = market['quote']
         status = self.parse_order_status(self.safe_string(order, 'status'))
         type = self.safe_string(order, 'order_type')
         side = self.safe_string(order, 'type')
-        return self.safe_order2({
+        return self.safe_order({
             'id': self.safe_string(order, 'id'),
             'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
             'status': status,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'timeInForce': None,
             'postOnly': None,
@@ -955,8 +1071,13 @@ class coinex(Exchange):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'address': address,
+            'addressTo': None,
+            'addressFrom': None,
             'tag': tag,
+            'tagTo': None,
+            'tagFrom': None,
             'type': type,
             'amount': amount,
             'currency': code,
@@ -1006,7 +1127,7 @@ class coinex(Exchange):
         #                     "transfer_method": "onchain",
         #                     "tx_fee": "0",
         #                     "tx_id": "896371d0e23d64d1cac65a0b7c9e9093d835affb572fec89dd4547277fbdd2f6"
-        #                 }, /* many more data points */
+        #                 }, /* many more data points"""
         #             ],
         #             "total": ***,
         #             "total_page":***

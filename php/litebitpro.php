@@ -22,9 +22,14 @@ class litebitpro extends Exchange {
             'certified' => false,
             'pro' => false,
             'has' => array(
+                'CORS' => true,
+                'spot' => true,
+                'margin' => null,
+                'swap' => null,
+                'future' => null,
+                'option' => null,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'CORS' => true,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
@@ -643,7 +648,7 @@ class litebitpro extends Exchange {
         if ($clientId !== null) {
             $request['client_id'] = $clientId;
         }
-        $params = $this->omit($params, ['stop', 'stopPrice', 'stop_price', 'postOnly', 'post_only', 'timeInForce', 'time_in_force', 'expireAt', 'expire_at', 'client_id', 'clientOrderId' ]);
+        $params = $this->omit($params, array( 'stop', 'stopPrice', 'stop_price', 'postOnly', 'post_only', 'timeInForce', 'time_in_force', 'expireAt', 'expire_at', 'client_id', 'clientOrderId' ));
         if ($type === 'market') {
             $cost = null;
             if ($price !== null) {
@@ -698,7 +703,7 @@ class litebitpro extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
-            'orders' => [$id],
+            'orders' => array( $id ),
             'market' => $market['id'],
         );
         $this->privateDeleteOrders (array_merge($request, $params));
@@ -927,7 +932,7 @@ class litebitpro extends Exchange {
         $timeInForce = $this->safe_string($order, 'time_in_force');
         $postOnly = $this->safe_value($order, 'post_only');
         $stopPrice = $this->safe_number($order, 'stop_price');
-        return $this->safe_order2(array(
+        return $this->safeOrder2 (array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,

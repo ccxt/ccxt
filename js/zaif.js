@@ -14,20 +14,35 @@ module.exports = class zaif extends Exchange {
             'id': 'zaif',
             'name': 'Zaif',
             'countries': [ 'JP' ],
-            'rateLimit': 2000,
+            // 10 requests per second = 1000ms / 10 = 100ms between requests (public market endpoints)
+            'rateLimit': 100,
             'version': '1',
             'has': {
-                'cancelOrder': true,
                 'CORS': undefined,
+                'spot': true,
+                'margin': undefined, // has but unimplemented
+                'swap': false,
+                'future': false,
+                'option': false,
+                'cancelOrder': true,
                 'createMarketOrder': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchOpenOrders': true,
                 'fetchOrderBook': true,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': false,
                 'withdraw': true,
             },
             'urls': {
@@ -52,64 +67,64 @@ module.exports = class zaif extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'depth/{pair}',
-                        'currencies/{pair}',
-                        'currencies/all',
-                        'currency_pairs/{pair}',
-                        'currency_pairs/all',
-                        'last_price/{pair}',
-                        'ticker/{pair}',
-                        'trades/{pair}',
-                    ],
+                    'get': {
+                        'depth/{pair}': 1,
+                        'currencies/{pair}': 1,
+                        'currencies/all': 1,
+                        'currency_pairs/{pair}': 1,
+                        'currency_pairs/all': 1,
+                        'last_price/{pair}': 1,
+                        'ticker/{pair}': 1,
+                        'trades/{pair}': 1,
+                    },
                 },
                 'private': {
-                    'post': [
-                        'active_orders',
-                        'cancel_order',
-                        'deposit_history',
-                        'get_id_info',
-                        'get_info',
-                        'get_info2',
-                        'get_personal_info',
-                        'trade',
-                        'trade_history',
-                        'withdraw',
-                        'withdraw_history',
-                    ],
+                    'post': {
+                        'active_orders': 5, // 10 in 5 seconds = 2 per second => cost = 10 / 2 = 5
+                        'cancel_order': 5,
+                        'deposit_history': 5,
+                        'get_id_info': 5,
+                        'get_info': 10, // 10 in 10 seconds = 1 per second => cost = 10 / 1 = 10
+                        'get_info2': 5, // 20 in 10 seconds = 2 per second => cost = 10 / 2 = 5
+                        'get_personal_info': 5,
+                        'trade': 5,
+                        'trade_history': 50, // 12 in 60 seconds = 0.2 per second => cost = 10 / 0.2 = 50
+                        'withdraw': 5,
+                        'withdraw_history': 5,
+                    },
                 },
                 'ecapi': {
-                    'post': [
-                        'createInvoice',
-                        'getInvoice',
-                        'getInvoiceIdsByOrderNumber',
-                        'cancelInvoice',
-                    ],
+                    'post': {
+                        'createInvoice': 1, // unverified
+                        'getInvoice': 1,
+                        'getInvoiceIdsByOrderNumber': 1,
+                        'cancelInvoice': 1,
+                    },
                 },
                 'tlapi': {
-                    'post': [
-                        'get_positions',
-                        'position_history',
-                        'active_positions',
-                        'create_position',
-                        'change_position',
-                        'cancel_position',
-                    ],
+                    'post': {
+                        'get_positions': 66, // 10 in 60 seconds = 0.166 per second => cost = 10 / 0.166 = 66
+                        'position_history': 66, // 10 in 60 seconds
+                        'active_positions': 5, // 20 in 10 seconds
+                        'create_position': 33, // 3 in 10 seconds = 0.3 per second => cost = 10 / 0.3 = 33
+                        'change_position': 33, // 3 in 10 seconds
+                        'cancel_position': 33, // 3 in 10 seconds
+                    },
                 },
                 'fapi': {
-                    'get': [
-                        'groups/{group_id}',
-                        'last_price/{group_id}/{pair}',
-                        'ticker/{group_id}/{pair}',
-                        'trades/{group_id}/{pair}',
-                        'depth/{group_id}/{pair}',
-                    ],
+                    'get': {
+                        'groups/{group_id}': 1, // testing
+                        'last_price/{group_id}/{pair}': 1,
+                        'ticker/{group_id}/{pair}': 1,
+                        'trades/{group_id}/{pair}': 1,
+                        'depth/{group_id}/{pair}': 1,
+                    },
                 },
             },
             'options': {
                 // zaif schedule defines several market-specific fees
                 'fees': {
-                    'BTC/JPY': { 'maker': 0, 'taker': 0 },
+                    'BTC/JPY': { 'maker': 0, 'taker': 0.1 / 100 },
                     'BCH/JPY': { 'maker': 0, 'taker': 0.3 / 100 },
                     'BCH/BTC': { 'maker': 0, 'taker': 0.3 / 100 },
                     'PEPECASH/JPY': { 'maker': 0, 'taker': 0.01 / 100 },
@@ -158,27 +173,43 @@ module.exports = class zaif extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            const precision = {
-                'amount': -Math.log10 (this.safeNumber (market, 'item_unit_step')),
-                'price': this.safeInteger (market, 'aux_unit_point'),
-            };
             const fees = this.safeValue (this.options['fees'], symbol, this.fees['trading']);
-            const taker = fees['taker'];
-            const maker = fees['maker'];
+            const itemUnitStep = this.safeString (market, 'item_unit_step');
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'active': true, // can trade or not
-                'precision': precision,
-                'taker': taker,
-                'maker': maker,
+                'margin': undefined,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': undefined, // can trade or not
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'taker': fees['taker'],
+                'maker': fees['maker'],
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': Precise.stringMul (itemUnitStep, '-1e10'),
+                    'price': this.safeInteger (market, 'aux_unit_point'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': this.safeNumber (market, 'item_unit_min'),
                         'max': undefined,
@@ -198,9 +229,7 @@ module.exports = class zaif extends Exchange {
         return result;
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privatePostGetInfo (params);
+    parseBalance (response) {
         const balances = this.safeValue (response, 'return', {});
         const deposit = this.safeValue (balances, 'deposit');
         const result = {
@@ -224,7 +253,13 @@ module.exports = class zaif extends Exchange {
             }
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privatePostGetInfo (params);
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -236,29 +271,33 @@ module.exports = class zaif extends Exchange {
         return this.parseOrderBook (response, symbol);
     }
 
-    async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        const request = {
-            'pair': this.marketId (symbol),
-        };
-        const ticker = await this.publicGetTickerPair (this.extend (request, params));
+    parseTicker (ticker, market = undefined) {
+        //
+        // {
+        //     "last": 9e-08,
+        //     "high": 1e-07,
+        //     "low": 9e-08,
+        //     "vwap": 0.0,
+        //     "volume": 135250.0,
+        //     "bid": 9e-08,
+        //     "ask": 1e-07
+        // }
+        //
+        const symbol = this.safeSymbol (undefined, market);
         const timestamp = this.milliseconds ();
-        const vwap = this.safeNumber (ticker, 'vwap');
-        const baseVolume = this.safeNumber (ticker, 'volume');
-        let quoteVolume = undefined;
-        if (baseVolume !== undefined && vwap !== undefined) {
-            quoteVolume = baseVolume * vwap;
-        }
-        const last = this.safeNumber (ticker, 'last');
-        return {
+        const vwap = this.safeString (ticker, 'vwap');
+        const baseVolume = this.safeString (ticker, 'volume');
+        const quoteVolume = Precise.stringMul (baseVolume, vwap);
+        const last = this.safeString (ticker, 'last');
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'bid'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'ask'),
+            'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': vwap,
             'open': undefined,
@@ -271,22 +310,52 @@ module.exports = class zaif extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
+        }, market, false);
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'pair': market['id'],
         };
+        const ticker = await this.publicGetTickerPair (this.extend (request, params));
+        //
+        // {
+        //     "last": 9e-08,
+        //     "high": 1e-07,
+        //     "low": 9e-08,
+        //     "vwap": 0.0,
+        //     "volume": 135250.0,
+        //     "bid": 9e-08,
+        //     "ask": 1e-07
+        // }
+        //
+        return this.parseTicker (ticker, market);
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades (public)
+        //
+        //      {
+        //          "date": 1648559414,
+        //          "price": 5880375.0,
+        //          "amount": 0.017,
+        //          "tid": 176126557,
+        //          "currency_pair": "btc_jpy",
+        //          "trade_type": "ask"
+        //      }
+        //
         let side = this.safeString (trade, 'trade_type');
         side = (side === 'bid') ? 'buy' : 'sell';
         const timestamp = this.safeTimestamp (trade, 'date');
         const id = this.safeString2 (trade, 'id', 'tid');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const marketId = this.safeString (trade, 'currency_pair');
         const symbol = this.safeSymbol (marketId, market, '_');
-        return {
+        return this.safeTrade ({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -296,11 +365,11 @@ module.exports = class zaif extends Exchange {
             'side': side,
             'order': undefined,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': undefined,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -310,6 +379,18 @@ module.exports = class zaif extends Exchange {
             'pair': market['id'],
         };
         let response = await this.publicGetTradesPair (this.extend (request, params));
+        //
+        //      [
+        //          {
+        //              "date": 1648559414,
+        //              "price": 5880375.0,
+        //              "amount": 0.017,
+        //              "tid": 176126557,
+        //              "currency_pair": "btc_jpy",
+        //              "trade_type": "ask"
+        //          }, ...
+        //      ]
+        //
         const numTrades = response.length;
         if (numTrades === 1) {
             const firstTrade = response[0];
@@ -364,7 +445,7 @@ module.exports = class zaif extends Exchange {
         const price = this.safeString (order, 'price');
         const amount = this.safeString (order, 'amount');
         const id = this.safeString (order, 'id');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'timestamp': timestamp,

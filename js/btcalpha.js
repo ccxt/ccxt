@@ -16,19 +16,49 @@ module.exports = class btcalpha extends Exchange {
             'countries': [ 'US' ],
             'version': 'v1',
             'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchLeverage': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': undefined,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': false,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
             },
             'timeframes': {
                 '1m': '1',
@@ -95,6 +125,21 @@ module.exports = class btcalpha extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetPairs (params);
+        //
+        //    [
+        //        {
+        //            "name": "1INCH_USDT",
+        //            "currency1": "1INCH",
+        //            "currency2": "USDT",
+        //            "price_precision": 4,
+        //            "amount_precision": 2,
+        //            "minimum_order_size": "0.01000000",
+        //            "maximum_order_size": "900000.00000000",
+        //            "minimum_order_value": "10.00000000",
+        //            "liquidity_type": 10
+        //        },
+        //    ]
+        //
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
@@ -103,24 +148,42 @@ module.exports = class btcalpha extends Exchange {
             const quoteId = this.safeString (market, 'currency2');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
             const pricePrecision = this.safeString (market, 'price_precision');
             const priceLimit = this.parsePrecision (pricePrecision);
-            const precision = {
-                'amount': 8,
-                'price': parseInt (pricePrecision),
-            };
             const amountLimit = this.safeString (market, 'minimum_order_size');
             result.push ({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
                 'active': true,
-                'precision': precision,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': parseInt ('8'),
+                    'price': parseInt (pricePrecision),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': this.parseNumber (amountLimit),
                         'max': this.safeNumber (market, 'maximum_order_size'),
@@ -135,8 +198,6 @@ module.exports = class btcalpha extends Exchange {
                     },
                 },
                 'info': market,
-                'baseId': undefined,
-                'quoteId': undefined,
             });
         }
         return result;
@@ -191,13 +252,8 @@ module.exports = class btcalpha extends Exchange {
         //          "my_side": "buy"
         //      }
         //
-        let symbol = undefined;
-        if (market === undefined) {
-            market = this.safeValue (this.markets_by_id, trade['pair']);
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeString (trade, 'pair');
+        market = this.safeMarket (marketId, market, '_');
         const timestamp = this.safeTimestamp (trade, 'timestamp');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
@@ -208,7 +264,7 @@ module.exports = class btcalpha extends Exchange {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'order': id,
             'type': 'limit',
             'side': side,
@@ -280,9 +336,7 @@ module.exports = class btcalpha extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privateGetWallets (params);
+    parseBalance (response) {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
@@ -293,7 +347,13 @@ module.exports = class btcalpha extends Exchange {
             account['total'] = this.safeString (balance, 'balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetWallets (params);
+        return this.parseBalance (response);
     }
 
     parseOrderStatus (status) {
@@ -352,7 +412,7 @@ module.exports = class btcalpha extends Exchange {
         const id = this.safeString2 (order, 'oid', 'id');
         const trades = this.safeValue (order, 'trades');
         const side = this.safeString2 (order, 'my_side', 'type');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),

@@ -21,14 +21,25 @@ class exmo extends Exchange {
             'rateLimit' => 350, // once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
             'version' => 'v1.1',
             'has' => array(
-                'cancelOrder' => true,
                 'CORS' => null,
+                'spot' => true,
+                'margin' => null, // has but unimplemented
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'cancelOrder' => true,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchFundingFees' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -36,12 +47,17 @@ class exmo extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => true,
                 'fetchOrderTrades' => true,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
                 'fetchTransactions' => true,
+                'fetchTransfer' => false,
+                'fetchTransfers' => false,
                 'fetchWithdrawals' => true,
+                'transfer' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -69,7 +85,6 @@ class exmo extends Exchange {
                 'referral' => 'https://exmo.me/?ref=131685',
                 'doc' => array(
                     'https://exmo.me/en/api_doc?ref=131685',
-                    'https://github.com/exmo-dev/exmo_api_lib/tree/master/nodejs',
                 ),
                 'fees' => 'https://exmo.com/en/docs/fees',
             ),
@@ -141,10 +156,10 @@ class exmo extends Exchange {
             'fees' => array(
                 'trading' => array(
                     'feeSide' => 'get',
-                    'tierBased' => false,
+                    'tierBased' => true,
                     'percentage' => true,
-                    'maker' => $this->parse_number('0.002'),
-                    'taker' => $this->parse_number('0.002'),
+                    'maker' => $this->parse_number('0.004'),
+                    'taker' => $this->parse_number('0.004'),
                 ),
                 'funding' => array(
                     'tierBased' => false,
@@ -156,6 +171,12 @@ class exmo extends Exchange {
                     'ETH' => 'ERC20',
                     'TRX' => 'TRC20',
                 ),
+                'fetchTradingFees' => array(
+                    'method' => 'fetchPrivateTradingFees', // or 'fetchPublicTradingFees'
+                ),
+            ),
+            'commonCurrencies' => array(
+                'GMT' => 'GMT Token',
             ),
             'exceptions' => array(
                 'exact' => array(
@@ -186,10 +207,106 @@ class exmo extends Exchange {
     }
 
     public function fetch_trading_fees($params = array ()) {
-        return array(
-            'maker' => $this->fees['trading']['maker'],
-            'taker' => $this->fees['trading']['taker'],
-        );
+        $method = $this->safe_string($params, 'method');
+        $params = $this->omit($params, 'method');
+        if ($method === null) {
+            $options = $this->safe_value($this->options, 'fetchTradingFees', array());
+            $method = $this->safe_string($options, 'method', 'fetchPrivateTradingFees');
+        }
+        return $this->$method ($params);
+    }
+
+    public function fetch_private_trading_fees($params = array ()) {
+        $this->load_markets();
+        $response = $this->privatePostMarginPairList ($params);
+        //
+        //     {
+        //         $pairs => [{
+        //             name => 'EXM_USD',
+        //             buy_price => '0.02728391',
+        //             sell_price => '0.0276',
+        //             last_trade_price => '0.0276',
+        //             ticker_updated => '1646956050056696046',
+        //             is_fair_price => true,
+        //             max_price_precision => '8',
+        //             min_order_quantity => '1',
+        //             max_order_quantity => '50000',
+        //             min_order_price => '0.00000001',
+        //             max_order_price => '1000',
+        //             max_position_quantity => '50000',
+        //             trade_taker_fee => '0.05',
+        //             trade_maker_fee => '0',
+        //             liquidation_fee => '0.5',
+        //             max_leverage => '3',
+        //             default_leverage => '3',
+        //             liquidation_level => '5',
+        //             margin_call_level => '7.5',
+        //             position => '1',
+        //             updated => '1638976144797807397'
+        //         }
+        //         ...
+        //         ]
+        //     }
+        //
+        $pairs = $this->safe_value($response, 'pairs', array());
+        $result = array();
+        for ($i = 0; $i < count($pairs); $i++) {
+            $pair = $pairs[$i];
+            $marketId = $this->safe_string($pair, 'name');
+            $symbol = $this->safe_symbol($marketId, null, '_');
+            $makerString = $this->safe_string($pair, 'trade_maker_fee');
+            $takerString = $this->safe_string($pair, 'trade_taker_fee');
+            $maker = $this->parse_number(Precise::string_div($makerString, '100'));
+            $taker = $this->parse_number(Precise::string_div($takerString, '100'));
+            $result[$symbol] = array(
+                'info' => $pair,
+                'symbol' => $symbol,
+                'maker' => $maker,
+                'taker' => $taker,
+                'percentage' => true,
+                'tierBased' => true,
+            );
+        }
+        return $result;
+    }
+
+    public function fetch_public_trading_fees($params = array ()) {
+        $this->load_markets();
+        $response = $this->publicGetPairSettings ($params);
+        //
+        //     {
+        //         BTC_USD => array(
+        //             min_quantity => '0.00002',
+        //             max_quantity => '1000',
+        //             min_price => '1',
+        //             max_price => '150000',
+        //             max_amount => '500000',
+        //             min_amount => '1',
+        //             price_precision => '2',
+        //             commission_taker_percent => '0.3',
+        //             commission_maker_percent => '0.3'
+        //         ),
+        //     }
+        //
+        $result = array();
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
+            $market = $this->market($symbol);
+            $fee = $this->safe_value($response, $market['id'], array());
+            $makerString = $this->safe_string($fee, 'commission_maker_percent');
+            $takerString = $this->safe_string($fee, 'commission_taker_percent');
+            $maker = $this->parse_number(Precise::string_div($makerString, '100'));
+            $taker = $this->parse_number(Precise::string_div($takerString, '100'));
+            $result[$symbol] = array(
+                'info' => $fee,
+                'symbol' => $symbol,
+                'maker' => $maker,
+                'taker' => $taker,
+                'percentage' => true,
+                'tierBased' => true,
+            );
+        }
+        return $result;
     }
 
     public function parse_fixed_float_value($input) {
@@ -346,6 +463,8 @@ class exmo extends Exchange {
                 ),
             );
             $fee = null;
+            $depositEnabled = null;
+            $withdrawEnabled = null;
             if ($providers === null) {
                 $active = true;
                 $type = 'fiat';
@@ -359,6 +478,19 @@ class exmo extends Exchange {
                         $maxValue = null;
                     }
                     $activeProvider = $this->safe_value($provider, 'enabled');
+                    if ($type === 'deposit') {
+                        if ($activeProvider && !$depositEnabled) {
+                            $depositEnabled = true;
+                        } else if (!$activeProvider) {
+                            $depositEnabled = false;
+                        }
+                    } else if ($type === 'withdraw') {
+                        if ($activeProvider && !$withdrawEnabled) {
+                            $withdrawEnabled = true;
+                        } else if (!$activeProvider) {
+                            $withdrawEnabled = false;
+                        }
+                    }
                     if ($activeProvider) {
                         $active = true;
                         if (($limits[$type]['min'] === null) || ($minValue < $limits[$type]['min'])) {
@@ -379,6 +511,8 @@ class exmo extends Exchange {
                 'name' => $name,
                 'type' => $type,
                 'active' => $active,
+                'deposit' => $depositEnabled,
+                'withdraw' => $withdrawEnabled,
                 'fee' => $fee,
                 'precision' => 8,
                 'limits' => $limits,
@@ -416,21 +550,41 @@ class exmo extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $takerString = $this->safe_string($market, 'commission_taker_percent');
             $makerString = $this->safe_string($market, 'commission_maker_percent');
-            $taker = $this->parse_number(Precise::string_div($takerString, '100'));
-            $maker = $this->parse_number(Precise::string_div($makerString, '100'));
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
                 'active' => true,
-                'taker' => $taker,
-                'maker' => $maker,
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'taker' => $this->parse_number(Precise::string_div($takerString, '100')),
+                'maker' => $this->parse_number(Precise::string_div($makerString, '100')),
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => intval('8'),
+                    'price' => $this->safe_integer($market, 'price_precision'),
+                ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
                         'min' => $this->safe_number($market, 'min_quantity'),
                         'max' => $this->safe_number($market, 'max_quantity'),
@@ -443,10 +597,6 @@ class exmo extends Exchange {
                         'min' => $this->safe_number($market, 'min_amount'),
                         'max' => $this->safe_number($market, 'max_amount'),
                     ),
-                ),
-                'precision' => array(
-                    'amount' => 8,
-                    'price' => $this->safe_integer($market, 'price_precision'),
                 ),
                 'info' => $market,
             );
@@ -522,21 +672,7 @@ class exmo extends Exchange {
         );
     }
 
-    public function fetch_balance($params = array ()) {
-        $this->load_markets();
-        $response = $this->privatePostUserInfo ($params);
-        //
-        //     {
-        //         "uid":131685,
-        //         "server_date":1628999600,
-        //         "balances":array(
-        //             "EXM":"0",
-        //             "USD":"0",
-        //             "EUR":"0",
-        //             "GBP":"0",
-        //         ),
-        //     }
-        //
+    public function parse_balance($response) {
         $result = array( 'info' => $response );
         $free = $this->safe_value($response, 'balances', array());
         $used = $this->safe_value($response, 'reserved', array());
@@ -553,7 +689,25 @@ class exmo extends Exchange {
             }
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        $this->load_markets();
+        $response = $this->privatePostUserInfo ($params);
+        //
+        //     {
+        //         "uid":131685,
+        //         "server_date":1628999600,
+        //         "balances":array(
+        //             "EXM":"0",
+        //             "USD":"0",
+        //             "EUR":"0",
+        //             "GBP":"0",
+        //         ),
+        //     }
+        //
+        return $this->parse_balance($response);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -606,21 +760,31 @@ class exmo extends Exchange {
     }
 
     public function parse_ticker($ticker, $market = null) {
+        //
+        //     {
+        //         "buy_price":"0.00002996",
+        //         "sell_price":"0.00003002",
+        //         "last_trade":"0.00002992",
+        //         "high":"0.00003028",
+        //         "low":"0.00002935",
+        //         "avg":"0.00002963",
+        //         "vol":"1196546.3163222",
+        //         "vol_curr":"35.80066578",
+        //         "updated":1642291733
+        //     }
+        //
         $timestamp = $this->safe_timestamp($ticker, 'updated');
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
-        $last = $this->safe_number($ticker, 'last_trade');
-        return array(
-            'symbol' => $symbol,
+        $market = $this->safe_market(null, $market);
+        $last = $this->safe_string($ticker, 'last_trade');
+        return $this->safe_ticker(array(
+            'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'buy_price'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'buy_price'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'sell_price'),
+            'ask' => $this->safe_string($ticker, 'sell_price'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -629,23 +793,38 @@ class exmo extends Exchange {
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
-            'average' => $this->safe_number($ticker, 'avg'),
-            'baseVolume' => $this->safe_number($ticker, 'vol'),
-            'quoteVolume' => $this->safe_number($ticker, 'vol_curr'),
+            'average' => $this->safe_string($ticker, 'avg'),
+            'baseVolume' => $this->safe_string($ticker, 'vol'),
+            'quoteVolume' => $this->safe_string($ticker, 'vol_curr'),
             'info' => $ticker,
-        );
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetTicker ($params);
+        //
+        //     {
+        //         "ADA_BTC":{
+        //             "buy_price":"0.00002996",
+        //             "sell_price":"0.00003002",
+        //             "last_trade":"0.00002992",
+        //             "high":"0.00003028",
+        //             "low":"0.00002935",
+        //             "avg":"0.00002963",
+        //             "vol":"1196546.3163222",
+        //             "vol_curr":"35.80066578",
+        //             "updated":1642291733
+        //         }
+        //     }
+        //
         $result = array();
-        $ids = is_array($response) ? array_keys($response) : array();
-        for ($i = 0; $i < count($ids); $i++) {
-            $id = $ids[$i];
-            $market = $this->markets_by_id[$id];
+        $marketIds = is_array($response) ? array_keys($response) : array();
+        for ($i = 0; $i < count($marketIds); $i++) {
+            $marketId = $marketIds[$i];
+            $market = $this->safe_market($marketId, null, '_');
             $symbol = $market['symbol'];
-            $ticker = $response[$id];
+            $ticker = $this->safe_value($response, $marketId);
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
         return $this->filter_by_array($result, 'symbol', $symbols);
@@ -975,6 +1154,10 @@ class exmo extends Exchange {
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+        }
         $response = $this->privatePostUserOpenOrders ($params);
         $marketIds = is_array($response) ? array_keys($response) : array();
         $orders = array();
@@ -1316,6 +1499,7 @@ class exmo extends Exchange {
                 );
             }
         }
+        $network = $this->safe_string($transaction, 'provider');
         return array(
             'info' => $transaction,
             'id' => $id,
@@ -1323,6 +1507,7 @@ class exmo extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'currency' => $code,
             'amount' => $amount,
+            'network' => $network,
             'address' => $address,
             'addressTo' => $address,
             'addressFrom' => null,

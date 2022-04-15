@@ -23,6 +23,7 @@ import ccxt.async_support as ccxt  # noqa: E402
 from test_trade import test_trade  # noqa: E402
 from test_order import test_order  # noqa: E402
 from test_ohlcv import test_ohlcv  # noqa: E402
+from test_position import test_position  # noqa: E402
 from test_transaction import test_transaction  # noqa: E402
 
 # ------------------------------------------------------------------------------
@@ -289,6 +290,34 @@ async def test_orders(exchange, symbol):
 # ------------------------------------------------------------------------------
 
 
+async def test_positions(exchange, symbol):
+    if exchange.has['fetchPositions']:
+        skipped_exchanges = [
+        ]
+        if exchange.id in skipped_exchanges:
+            dump(green(exchange.id), green(symbol), 'fetch_positions() skipped')
+            return
+        delay = int(exchange.rateLimit / 1000)
+        await asyncio.sleep(delay)
+        # without symbol
+        dump(green(exchange.id), 'fetching positions...')
+        positions = await exchange.fetch_positions()
+        for position in positions:
+            test_position(exchange, position, None, int(time.time() * 1000))
+        dump(green(exchange.id), 'fetched', green(len(positions)), 'positions')
+
+        # with symbol
+        dump(green(exchange.id), green(symbol), 'fetching positions...')
+        positions = await exchange.fetch_positions([symbol])
+        for position in positions:
+            test_position(exchange, position, symbol, int(time.time() * 1000))
+        dump(green(exchange.id), green(symbol), 'fetched', green(len(positions)), 'positions')
+    else:
+        dump(green(exchange.id), green(symbol), 'fetch_positions() not supported')
+
+# ------------------------------------------------------------------------------
+
+
 async def test_closed_orders(exchange, symbol):
     if exchange.has['fetchClosedOrders']:
         delay = int(exchange.rateLimit / 1000)
@@ -336,29 +365,54 @@ async def test_transactions(exchange, code):
 # ------------------------------------------------------------------------------
 
 
+async def test_balance(exchange):
+    if exchange.has['fetchBalance']:
+        delay = int(exchange.rateLimit / 1000)
+        await asyncio.sleep(delay)
+
+        await exchange.fetch_balance()
+        dump(green(exchange.id), 'fetched balance')
+    else:
+        dump(green(exchange.id), 'fetch_balance() not supported')
+
+# ------------------------------------------------------------------------------
+
+
 async def test_symbol(exchange, symbol, code):
     dump(green('SYMBOL: ' + symbol))
     dump(green('CODE: ' + code))
+    dump('Testing fetch_ticker:' + symbol)
     await test_ticker(exchange, symbol)
+    dump('Testing fetch_tickers:' + symbol)
     await test_tickers(exchange, symbol)
+    dump('Testing fetch_ohlcv:' + symbol)
     await test_ohlcvs(exchange, symbol)
 
     if exchange.id == 'coinmarketcap':
         response = await exchange.fetchGlobal()
         dump(green(response))
     else:
+        dump('Testing fetch_order_book:' + symbol)
         await test_order_book(exchange, symbol)
+        dump('Testing fetch_trades:' + symbol)
         await test_trades(exchange, symbol)
         if (not hasattr(exchange, 'apiKey') or (len(exchange.apiKey) < 1)):
             return
         if exchange.has['signIn']:
+            dump('Testing sign_in')
             await exchange.sign_in()
+        dump('Testing fetch_orders:' + symbol)
         await test_orders(exchange, symbol)
+        dump('Testing fetch_open_orders:' + symbol)
         await test_open_orders(exchange, symbol)
+        dump('Testing fetch_closed_orders:' + symbol)
         await test_closed_orders(exchange, symbol)
+        dump('Testing fetch_transactions:' + code)
         await test_transactions(exchange, code)
-        await exchange.fetch_balance()
-        dump(green(exchange.id), 'fetched balance')
+        dump('Testing fetch_balance')
+        await test_balance(exchange)
+        dump('Testing fetch_positions:' + symbol)
+        await test_positions(exchange, symbol)
 
 # ------------------------------------------------------------------------------
 
@@ -367,11 +421,22 @@ async def load_exchange(exchange):
     await exchange.load_markets()
 
 
+def get_test_symbol(exchange, symbols):
+    symbol = None
+    for s in symbols:
+        market = exchange.safe_value(exchange.markets, s)
+        if market is not None:
+            active = exchange.safe_value(market, 'active')
+            if active or (active is None):
+                symbol = s
+                break
+    return symbol
+
+
 async def test_exchange(exchange, symbol=None):
 
     dump(green('EXCHANGE: ' + exchange.id))
     # delay = 2
-    keys = list(exchange.markets.keys())
 
     # ..........................................................................
     # public API
@@ -415,8 +480,7 @@ async def test_exchange(exchange, symbol=None):
             code = codes[i]
 
     if not symbol:
-        symbol = keys[0]
-        symbols = [
+        symbol = get_test_symbol(exchange, [
             'BTC/USD',
             'BTC/USDT',
             'BTC/CNY',
@@ -427,12 +491,35 @@ async def test_exchange(exchange, symbol=None):
             'BTC/JPY',
             'LTC/BTC',
             'USD/SLL',
-        ]
+            'EUR/USD',
+        ])
 
-        for s in symbols:
-            if s in keys:
-                symbol = s
-                break
+        if symbol is None:
+            for code in codes:
+                markets = list(exchange.markets.values())
+                activeMarkets = [market for market in markets if market['base'] == code]
+                if len(activeMarkets):
+                    activeSymbols = [market['symbol'] for market in activeMarkets]
+                    symbol = get_test_symbol(exchange, activeSymbols)
+                    break
+
+        if symbol is None:
+            markets = list(exchange.markets.values())
+            activeMarkets = [market for market in markets if market['base'] in codes]
+            activeSymbols = [market['symbol'] for market in activeMarkets]
+            symbol = get_test_symbol(exchange, activeSymbols)
+
+        if symbol is None:
+            markets = list(exchange.markets.values())
+            activeMarkets = [market for market in markets if not exchange.safe_value(market, 'active', False)]
+            activeSymbols = [market['symbol'] for market in activeMarkets]
+            symbol = get_test_symbol(exchange, activeSymbols)
+
+        if symbol is None:
+            symbol = get_test_symbol(exchange, exchange.symbols)
+
+        if symbol is None:
+            symbol = exchange.symbols[0]
 
     if symbol.find('.d') < 0:
         await test_symbol(exchange, symbol, code)
@@ -508,7 +595,7 @@ keys_local = os.path.join(keys_folder, 'keys.local.json')
 keys_file = keys_local if os.path.exists(keys_local) else keys_global
 
 # load the api keys from config
-with open(keys_file) as file:
+with open(keys_file, encoding='utf8') as file:
     config = json.load(file)
 
 # instantiate all exchanges

@@ -22,6 +22,8 @@ RUN pip3 install 'idna==2.9' --force-reinstall
 RUN pip3 install --upgrade setuptools
 RUN pip3 install tox
 RUN pip3 install aiohttp
+RUN pip3 install cryptography
+RUN pip3 install requests
 # Installs as a local Node & Python module, so that `require ('ccxt')` and `import ccxt` should work after that
 RUN npm install
 RUN ln -s /ccxt /usr/lib/node_modules/

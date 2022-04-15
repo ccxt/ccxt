@@ -20,8 +20,8 @@ const getPositiveAccounts = function (balance) {
 
     // instantiate the exchange
     let exchange = new ccxt.hitbtc2  ({
-        "apiKey": "b6aad581670b30fb25d1c91cdbe8ca5c",
-        "secret": "fa394ced37a488f9b5826a2d9ce39ae3",
+        "apiKey": "YOUR_API_KEY",
+        "secret": "YOUR_SECRET",
         "enableRateLimit": true,
     })
 

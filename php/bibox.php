@@ -21,8 +21,13 @@ class bibox extends Exchange {
             'version' => 'v1',
             'hostname' => 'bibox.com',
             'has' => array(
-                'cancelOrder' => true,
                 'CORS' => null,
+                'spot' => true,
+                'margin' => null, // has but unimplemented
+                'swap' => null, // has but unimplemented
+                'future' => null,
+                'option' => null,
+                'cancelOrder' => true,
                 'createMarketOrder' => null, // or they will return https://github.com/ccxt/ccxt/issues/2338
                 'createOrder' => true,
                 'fetchBalance' => true,
@@ -42,6 +47,8 @@ class bibox extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => false,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
             ),
@@ -100,8 +107,8 @@ class bibox extends Exchange {
                 'trading' => array(
                     'tierBased' => false,
                     'percentage' => true,
-                    'taker' => $this->parse_number('0.001'),
-                    'maker' => $this->parse_number('0.0008'),
+                    'taker' => $this->parse_number('0.002'),
+                    'maker' => $this->parse_number('0.001'),
                 ),
                 'funding' => array(
                     'tierBased' => false,
@@ -138,16 +145,14 @@ class bibox extends Exchange {
                 'APENFT(NFT)' => 'NFT',
                 'BOX' => 'DefiBox',
                 'BPT' => 'BlockPool Token',
-                'GTC' => 'Game.com',
+                'GMT' => 'GMT Token',
                 'KEY' => 'Bihu',
                 'MTC' => 'MTC Mesh Network', // conflict with MTC Docademic doc.com Token https://github.com/ccxt/ccxt/issues/6081 https://github.com/ccxt/ccxt/issues/3025
                 'NFT' => 'NFT Protocol',
                 'PAI' => 'PCHAIN',
                 'REVO' => 'Revo Network',
+                'STAR' => 'Starbase',
                 'TERN' => 'Ternio-ERC20',
-            ),
-            'options' => array(
-                'fetchCurrencies' => 'fetchCurrenciesPrivate', // or 'fetchCurrenciesPrivate' with apiKey and secret
             ),
         ));
     }
@@ -218,33 +223,49 @@ class bibox extends Exchange {
             $spot = true;
             $areaId = $this->safe_integer($market, 'area_id');
             if ($areaId === 16) {
-                $type = null;
-                $spot = false;
+                // TODO => update to v3 api
+                continue;
             }
-            $precision = array(
-                'amount' => $this->safe_number($market, 'amount_scale'),
-                'price' => $this->safe_number($market, 'decimal'),
-            );
             $result[] = array(
                 'id' => $id,
                 'numericId' => $numericId,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settleId' => null,
                 'type' => $type,
                 'spot' => $spot,
-                'active' => true,
-                'info' => $market,
-                'precision' => $precision,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'active' => null,
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => $this->safe_integer($market, 'amount_scale'),
+                    'price' => $this->safe_integer($market, 'decimal'),
+                ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
-                        'min' => pow(10, -$precision['amount']),
+                        'min' => null,
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => pow(10, -$precision['price']),
+                        'min' => null,
                         'max' => null,
                     ),
                     'cost' => array(
@@ -252,6 +273,7 @@ class bibox extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'info' => $market,
             );
         }
         return $result;
@@ -260,34 +282,30 @@ class bibox extends Exchange {
     public function parse_ticker($ticker, $market = null) {
         // we don't set values that are not defined by the exchange
         $timestamp = $this->safe_integer($ticker, 'timestamp');
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        } else {
-            $baseId = $this->safe_string($ticker, 'coin_symbol');
-            $quoteId = $this->safe_string($ticker, 'currency_symbol');
-            $base = $this->safe_currency_code($baseId);
-            $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
+        $marketId = null;
+        $baseId = $this->safe_string($ticker, 'coin_symbol');
+        $quoteId = $this->safe_string($ticker, 'currency_symbol');
+        if (($baseId !== null) && ($quoteId !== null)) {
+            $marketId = $baseId . '_' . $quoteId;
         }
-        $last = $this->safe_number($ticker, 'last');
-        $change = $this->safe_number($ticker, 'change');
-        $baseVolume = $this->safe_number_2($ticker, 'vol', 'vol24H');
+        $market = $this->safe_market($marketId, $market);
+        $last = $this->safe_string($ticker, 'last');
+        $change = $this->safe_string($ticker, 'change');
+        $baseVolume = $this->safe_string_2($ticker, 'vol', 'vol24H');
         $percentage = $this->safe_string($ticker, 'percent');
         if ($percentage !== null) {
             $percentage = str_replace('%', '', $percentage);
-            $percentage = $this->parse_number($percentage);
         }
         return $this->safe_ticker(array(
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'buy'),
-            'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'sell'),
-            'askVolume' => null,
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'buy'),
+            'bidVolume' => $this->safe_string($ticker, 'buy_amount'),
+            'ask' => $this->safe_string($ticker, 'sell'),
+            'askVolume' => $this->safe_string($ticker, 'sell_amount'),
             'vwap' => null,
             'open' => null,
             'close' => $last,
@@ -297,9 +315,9 @@ class bibox extends Exchange {
             'percentage' => $percentage,
             'average' => null,
             'baseVolume' => $baseVolume,
-            'quoteVolume' => $this->safe_number($ticker, 'amount'),
+            'quoteVolume' => $this->safe_string($ticker, 'amount'),
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -327,41 +345,25 @@ class bibox extends Exchange {
         $timestamp = $this->safe_integer_2($trade, 'time', 'createdAt');
         $side = $this->safe_integer_2($trade, 'side', 'order_side');
         $side = ($side === 1) ? 'buy' : 'sell';
-        $symbol = null;
-        if ($market === null) {
-            $marketId = $this->safe_string($trade, 'pair');
-            if ($marketId === null) {
-                $baseId = $this->safe_string($trade, 'coin_symbol');
-                $quoteId = $this->safe_string($trade, 'currency_symbol');
-                if (($baseId !== null) && ($quoteId !== null)) {
-                    $marketId = $baseId . '_' . $quoteId;
-                }
-            }
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
+        $marketId = $this->safe_string($trade, 'pair');
+        if ($marketId === null) {
+            $baseId = $this->safe_string($trade, 'coin_symbol');
+            $quoteId = $this->safe_string($trade, 'currency_symbol');
+            if (($baseId !== null) && ($quoteId !== null)) {
+                $marketId = $baseId . '_' . $quoteId;
             }
         }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
-        $fee = null;
-        $feeCostString = $this->safe_string($trade, 'fee');
-        $feeCurrency = $this->safe_string($trade, 'fee_symbol');
-        if ($feeCurrency !== null) {
-            if (is_array($this->currencies_by_id) && array_key_exists($feeCurrency, $this->currencies_by_id)) {
-                $feeCurrency = $this->currencies_by_id[$feeCurrency]['code'];
-            } else {
-                $feeCurrency = $this->safe_currency_code($feeCurrency);
-            }
-        }
-        $feeRate = null; // todo => deduce from $market if $market is defined
+        $market = $this->safe_market($marketId, $market);
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
+        $fee = null;
+        $feeCostString = $this->safe_string($trade, 'fee');
         if ($feeCostString !== null) {
+            $feeCurrencyId = $this->safe_string($trade, 'fee_symbol');
+            $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array(
                 'cost' => Precise::string_neg($feeCostString),
-                'currency' => $feeCurrency,
-                'rate' => $feeRate,
+                'currency' => $feeCurrencyCode,
             );
         }
         $id = $this->safe_string($trade, 'id');
@@ -371,7 +373,7 @@ class bibox extends Exchange {
             'order' => null, // Bibox does not have it (documented) yet
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => 'limit',
             'takerOrMaker' => null,
             'side' => $side,
@@ -457,8 +459,11 @@ class bibox extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
-        $method = $this->safe_string($this->options, 'fetchCurrencies', 'fetchCurrenciesPublic');
-        return $this->$method ($params);
+        if ($this->check_required_credentials(false)) {
+            return $this->fetch_currencies_private($params);
+        } else {
+            return $this->fetch_currencies_public($params);
+        }
     }
 
     public function fetch_currencies_public($params = array ()) {
@@ -503,6 +508,8 @@ class bibox extends Exchange {
                 'info' => $currency,
                 'name' => $name,
                 'active' => $active,
+                'deposit' => $deposit,
+                'withdraw' => $withdraw,
                 'fee' => null,
                 'precision' => $precision,
                 'limits' => array(
@@ -521,7 +528,7 @@ class bibox extends Exchange {
     }
 
     public function fetch_currencies_private($params = array ()) {
-        if (!$this->apiKey || !$this->secret) {
+        if (!$this->check_required_credentials(false)) {
             throw new AuthenticationError($this->id . " fetchCurrencies is an authenticated endpoint, therefore it requires 'apiKey' and 'secret' credentials. If you don't need $currency details, set exchange.has['fetchCurrencies'] = false before calling its methods.");
         }
         $request = array(
@@ -616,6 +623,24 @@ class bibox extends Exchange {
         return $result;
     }
 
+    public function parse_balance($response) {
+        $outerResult = $this->safe_value($response, 'result');
+        $firstResult = $this->safe_value($outerResult, 0, array());
+        $innerResult = $this->safe_value($firstResult, 'result');
+        $result = array( 'info' => $response );
+        $assetsList = $this->safe_value($innerResult, 'assets_list', array());
+        for ($i = 0; $i < count($assetsList); $i++) {
+            $balance = $assetsList[$i];
+            $currencyId = $this->safe_string($balance, 'coin_symbol');
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account();
+            $account['free'] = $this->safe_string($balance, 'balance');
+            $account['used'] = $this->safe_string($balance, 'freeze');
+            $result[$code] = $account;
+        }
+        return $this->safe_balance($result);
+    }
+
     public function fetch_balance($params = array ()) {
         $this->load_markets();
         $type = $this->safe_string($params, 'type', 'assets');
@@ -646,21 +671,7 @@ class bibox extends Exchange {
         //         )
         //     }
         //
-        $outerResult = $this->safe_value($response, 'result');
-        $firstResult = $this->safe_value($outerResult, 0, array());
-        $innerResult = $this->safe_value($firstResult, 'result');
-        $result = array( 'info' => $response );
-        $assetsList = $this->safe_value($innerResult, 'assets_list', array());
-        for ($i = 0; $i < count($assetsList); $i++) {
-            $balance = $assetsList[$i];
-            $currencyId = $this->safe_string($balance, 'coin_symbol');
-            $code = $this->safe_currency_code($currencyId);
-            $account = $this->account();
-            $account['free'] = $this->safe_string($balance, 'balance');
-            $account['used'] = $this->safe_string($balance, 'freeze');
-            $result[$code] = $account;
-        }
-        return $this->parse_balance($result);
+        return $this->parse_balance($response);
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
@@ -830,8 +841,13 @@ class bibox extends Exchange {
             'txid' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => null,
             'address' => $address,
+            'addressTo' => null,
+            'addressFrom' => null,
             'tag' => $tag,
+            'tagTo' => null,
+            'tagFrom' => null,
             'type' => $type,
             'amount' => $amount,
             'currency' => $code,
@@ -962,21 +978,13 @@ class bibox extends Exchange {
     }
 
     public function parse_order($order, $market = null) {
-        $symbol = null;
-        if ($market === null) {
-            $marketId = null;
-            $baseId = $this->safe_string($order, 'coin_symbol');
-            $quoteId = $this->safe_string($order, 'currency_symbol');
-            if (($baseId !== null) && ($quoteId !== null)) {
-                $marketId = $baseId . '_' . $quoteId;
-            }
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            }
+        $marketId = null;
+        $baseId = $this->safe_string($order, 'coin_symbol');
+        $quoteId = $this->safe_string($order, 'currency_symbol');
+        if (($baseId !== null) && ($quoteId !== null)) {
+            $marketId = $baseId . '_' . $quoteId;
         }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $market = $this->safe_market($marketId, $market);
         $rawType = $this->safe_string($order, 'order_type');
         $type = ($rawType === '1') ? 'market' : 'limit';
         $timestamp = $this->safe_integer($order, 'createdAt');
@@ -989,7 +997,7 @@ class bibox extends Exchange {
         $side = ($rawSide === '1') ? 'buy' : 'sell';
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $id = $this->safe_string($order, 'id');
-        $feeCost = $this->safe_number($order, 'fee');
+        $feeCost = $this->safe_string($order, 'fee');
         $fee = null;
         if ($feeCost !== null) {
             $fee = array(
@@ -997,14 +1005,14 @@ class bibox extends Exchange {
                 'currency' => null,
             );
         }
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => $type,
             'timeInForce' => null,
             'postOnly' => null,

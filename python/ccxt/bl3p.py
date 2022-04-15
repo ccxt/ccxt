@@ -19,13 +19,45 @@ class bl3p(Exchange):
             'version': '1',
             'comment': 'An exchange market by BitonicNL',
             'has': {
-                'cancelOrder': True,
                 'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
+                'cancelOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchLeverage': False,
+                'fetchMarkOHLCV': False,
                 'fetchOrderBook': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': True,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
+                'transfer': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg',
@@ -68,9 +100,7 @@ class bl3p(Exchange):
             },
         })
 
-    def fetch_balance(self, params={}):
-        self.load_markets()
-        response = self.privatePostGENMKTMoneyInfo(params)
+    def parse_balance(self, response):
         data = self.safe_value(response, 'data', {})
         wallets = self.safe_value(data, 'wallets')
         result = {'info': data}
@@ -86,7 +116,12 @@ class bl3p(Exchange):
             account['free'] = self.safe_string(available, 'value')
             account['total'] = self.safe_string(balance, 'value')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
+
+    def fetch_balance(self, params={}):
+        self.load_markets()
+        response = self.privatePostGENMKTMoneyInfo(params)
+        return self.parse_balance(response)
 
     def parse_bid_ask(self, bidask, priceKey=0, amountKey=1):
         price = self.safe_number(bidask, priceKey)
@@ -105,22 +140,35 @@ class bl3p(Exchange):
         orderbook = self.safe_value(response, 'data')
         return self.parse_order_book(orderbook, symbol, None, 'bids', 'asks', 'price_int', 'amount_int')
 
-    def fetch_ticker(self, symbol, params={}):
-        request = {
-            'market': self.market_id(symbol),
-        }
-        ticker = self.publicGetMarketTicker(self.extend(request, params))
+    def parse_ticker(self, ticker, market=None):
+        #
+        # {
+        #     "currency":"BTC",
+        #     "last":32654.55595,
+        #     "bid":32552.3642,
+        #     "ask":32703.58231,
+        #     "high":33500,
+        #     "low":31943,
+        #     "timestamp":1643372789,
+        #     "volume":{
+        #         "24h":2.27372413,
+        #         "30d":320.79375456
+        #     }
+        # }
+        #
+        symbol = self.safe_symbol(None, market)
         timestamp = self.safe_timestamp(ticker, 'timestamp')
-        last = self.safe_number(ticker, 'last')
-        return {
+        last = self.safe_string(ticker, 'last')
+        volume = self.safe_value(ticker, 'volume', {})
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'bid'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'ask'),
+            'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -130,39 +178,55 @@ class bl3p(Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_number(ticker['volume'], '24h'),
+            'baseVolume': self.safe_string(volume, '24h'),
             'quoteVolume': None,
             'info': ticker,
+        }, market, False)
+
+    def fetch_ticker(self, symbol, params={}):
+        market = self.market(symbol)
+        request = {
+            'market': market['id'],
         }
+        ticker = self.publicGetMarketTicker(self.extend(request, params))
+        #
+        # {
+        #     "currency":"BTC",
+        #     "last":32654.55595,
+        #     "bid":32552.3642,
+        #     "ask":32703.58231,
+        #     "high":33500,
+        #     "low":31943,
+        #     "timestamp":1643372789,
+        #     "volume":{
+        #         "24h":2.27372413,
+        #         "30d":320.79375456
+        #     }
+        # }
+        #
+        return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market=None):
         id = self.safe_string(trade, 'trade_id')
         timestamp = self.safe_integer(trade, 'date')
-        priceString = self.safe_string(trade, 'price_int')
-        priceString = Precise.string_div(priceString, '100000')
-        amountString = self.safe_string(trade, 'amount_int')
-        amountString = Precise.string_div(amountString, '100000000')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        return {
+        price = self.safe_string(trade, 'price_int')
+        amount = self.safe_string(trade, 'amount_int')
+        market = self.safe_market(None, market)
+        return self.safe_trade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': None,
             'side': None,
             'order': None,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': Precise.string_div(price, '100000'),
+            'amount': Precise.string_div(amount, '100000000'),
+            'cost': None,
             'fee': None,
-        }
+        }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         market = self.market(symbol)
@@ -170,6 +234,53 @@ class bl3p(Exchange):
             'market': market['id'],
         }, params))
         result = self.parse_trades(response['data']['trades'], market, since, limit)
+        return result
+
+    def fetch_trading_fees(self, params={}):
+        self.load_markets()
+        response = self.privatePostGENMKTMoneyInfo(params)
+        #
+        #     {
+        #         result: 'success',
+        #         data: {
+        #             user_id: '13396',
+        #             wallets: {
+        #                 BTC: {
+        #                     balance: {
+        #                         value_int: '0',
+        #                         display: '0.00000000 BTC',
+        #                         currency: 'BTC',
+        #                         value: '0.00000000',
+        #                         display_short: '0.00 BTC'
+        #                     },
+        #                     available: {
+        #                         value_int: '0',
+        #                         display: '0.00000000 BTC',
+        #                         currency: 'BTC',
+        #                         value: '0.00000000',
+        #                         display_short: '0.00 BTC'
+        #                     }
+        #                 },
+        #                 ...
+        #             },
+        #             trade_fee: '0.25'
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        feeString = self.safe_string(data, 'trade_fee')
+        fee = self.parse_number(Precise.string_div(feeString, '100'))
+        result = {}
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            result[symbol] = {
+                'info': data,
+                'symbol': symbol,
+                'maker': fee,
+                'taker': fee,
+                'percentage': True,
+                'tierBased': False,
+            }
         return result
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):

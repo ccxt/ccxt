@@ -4,19 +4,13 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.precise import Precise
 
 
 class qtrade(Exchange):
@@ -34,31 +28,62 @@ class qtrade(Exchange):
                 'www': 'https://qtrade.io',
                 'doc': 'https://qtrade-exchange.github.io/qtrade-docs',
                 'referral': 'https://qtrade.io/?ref=BKOQWVFGRH2C',
+                'fees': 'https://qtrade.io/fees',
             },
             'has': {
-                'cancelOrder': True,
                 'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
+                'cancelOrder': True,
                 'createMarketOrder': None,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDeposit': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchLeverage': False,
+                'fetchLeverageTiers': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchTradingFee': True,
+                'fetchTradingFees': False,
                 'fetchTransactions': None,
                 'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'withdraw': True,
             },
             'timeframes': {
@@ -114,8 +139,8 @@ class qtrade(Exchange):
                     'feeSide': 'quote',
                     'tierBased': True,
                     'percentage': True,
-                    'taker': 0.005,
-                    'maker': 0.0,
+                    'taker': self.parse_number('0.005'),
+                    'maker': self.parse_number('0.0'),
                 },
                 'funding': {
                     'withdraw': {},
@@ -180,29 +205,45 @@ class qtrade(Exchange):
             quoteId = self.safe_string(market, 'base_currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            precision = {
-                'amount': self.safe_integer(market, 'market_precision'),
-                'price': self.safe_integer(market, 'base_precision'),
-            }
             canView = self.safe_value(market, 'can_view', False)
             canTrade = self.safe_value(market, 'can_trade', False)
             active = canTrade and canView
             result.append({
-                'symbol': symbol,
                 'id': marketId,
                 'numericId': numericId,
-                'baseId': baseId,
-                'quoteId': quoteId,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
                 'active': active,
-                'precision': precision,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
                 'taker': self.safe_number(market, 'taker_fee'),
                 'maker': self.safe_number(market, 'maker_fee'),
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.safe_integer(market, 'market_precision'),
+                    'price': self.safe_integer(market, 'base_precision'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': self.safe_number(market, 'minimum_sell_value'),
                         'max': None,
@@ -273,10 +314,13 @@ class qtrade(Exchange):
             name = self.safe_string(currency, 'long_name')
             type = self.safe_string(currency, 'type')
             canWithdraw = self.safe_value(currency, 'can_withdraw', True)
+            withdrawDisabled = self.safe_value(currency, 'withdraw_disabled', False)
             depositDisabled = self.safe_value(currency, 'deposit_disabled', False)
+            deposit = not depositDisabled
+            withdraw = canWithdraw and not withdrawDisabled
             config = self.safe_value(currency, 'config', {})
             status = self.safe_string(currency, 'status')
-            active = canWithdraw and (status == 'ok') and not depositDisabled
+            active = withdraw and deposit and (status == 'ok')
             result[code] = {
                 'id': id,
                 'code': code,
@@ -286,6 +330,8 @@ class qtrade(Exchange):
                 'fee': self.safe_number(config, 'withdraw_fee'),
                 'precision': self.safe_integer(currency, 'precision'),
                 'active': active,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'limits': {
                     'amount': {
                         'min': self.safe_number(currency, 'minimum_order'),
@@ -407,30 +453,25 @@ class qtrade(Exchange):
         marketId = self.safe_string(ticker, 'id_hr')
         symbol = self.safe_symbol(marketId, market, '_')
         timestamp = self.safe_integer_product(ticker, 'last_change', 0.001)
-        previous = self.safe_number(ticker, 'day_open')
-        last = self.safe_number(ticker, 'last')
-        day_change = self.safe_number(ticker, 'day_change')
-        percentage = None
-        change = None
-        average = self.safe_number(ticker, 'day_avg_price')
-        if day_change is not None:
-            percentage = day_change * 100
-            if previous is not None:
-                change = day_change * previous
-        baseVolume = self.safe_number(ticker, 'day_volume_market')
-        quoteVolume = self.safe_number(ticker, 'day_volume_base')
-        vwap = self.vwap(baseVolume, quoteVolume)
+        previous = self.safe_string(ticker, 'day_open')
+        last = self.safe_string(ticker, 'last')
+        day_change = self.safe_string(ticker, 'day_change')
+        average = self.safe_string(ticker, 'day_avg_price')
+        baseVolume = self.safe_string(ticker, 'day_volume_market')
+        quoteVolume = self.safe_string(ticker, 'day_volume_base')
+        percentage = Precise.string_mul(day_change, '100')
+        change = Precise.string_mul(day_change, previous)
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'day_high'),
-            'low': self.safe_number(ticker, 'day_low'),
-            'bid': self.safe_number(ticker, 'bid'),
+            'high': self.safe_string(ticker, 'day_high'),
+            'low': self.safe_string(ticker, 'day_low'),
+            'bid': self.safe_string(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'ask'),
+            'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
-            'vwap': vwap,
+            'vwap': None,
             'open': previous,
             'close': last,
             'last': last,
@@ -441,7 +482,7 @@ class qtrade(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
@@ -658,24 +699,48 @@ class qtrade(Exchange):
             'fee': fee,
         }, market)
 
-    async def fetch_balance(self, params={}):
+    async def fetch_trading_fee(self, symbol, params={}):
         await self.load_markets()
-        response = await self.privateGetBalancesAll(params)
+        market = self.market(symbol)
+        request = {
+            'market_string': market['id'],
+        }
+        response = await self.publicGetMarketMarketString(self.extend(request, params))
         #
         #     {
-        #         "data":{
-        #             "balances": [
-        #                 {"balance": "100000000", "currency": "BCH"},
-        #                 {"balance": "99992435.78253015", "currency": "LTC"},
-        #                 {"balance": "99927153.76074182", "currency": "BTC"},
-        #             ],
-        #             "order_balances":[],
-        #             "limit_used":0,
-        #             "limit_remaining":4000,
-        #             "limit":4000
+        #         data: {
+        #             market: {
+        #                 id: '41',
+        #                 market_currency: 'ETH',
+        #                 base_currency: 'BTC',
+        #                 maker_fee: '0',
+        #                 taker_fee: '0.005',
+        #                 metadata: {},
+        #                 can_trade: True,
+        #                 can_cancel: True,
+        #                 can_view: True,
+        #                 market_string: 'ETH_BTC',
+        #                 minimum_sell_amount: '0.001',
+        #                 minimum_buy_value: '0.0001',
+        #                 market_precision: '18',
+        #                 base_precision: '8'
+        #             },
+        #             recent_trades: []
         #         }
         #     }
         #
+        data = self.safe_value(response, 'data', {})
+        marketData = self.safe_value(data, 'market', {})
+        return {
+            'info': marketData,
+            'symbol': symbol,
+            'maker': self.safe_number(marketData, 'maker_fee'),
+            'taker': self.safe_number(marketData, 'taker_fee'),
+            'percentage': True,
+            'tierBased': True,
+        }
+
+    def parse_balance(self, response):
         data = self.safe_value(response, 'data', {})
         balances = self.safe_value(data, 'balances', [])
         result = {
@@ -699,7 +764,27 @@ class qtrade(Exchange):
             account = result[code] if (code in result) else self.account()
             account['used'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
+
+    async def fetch_balance(self, params={}):
+        await self.load_markets()
+        response = await self.privateGetBalancesAll(params)
+        #
+        #     {
+        #         "data":{
+        #             "balances": [
+        #                 {"balance": "100000000", "currency": "BCH"},
+        #                 {"balance": "99992435.78253015", "currency": "LTC"},
+        #                 {"balance": "99927153.76074182", "currency": "BTC"},
+        #             ],
+        #             "order_balances":[],
+        #             "limit_used":0,
+        #             "limit_remaining":4000,
+        #             "limit":4000
+        #         }
+        #     }
+        #
+        return self.parse_balance(response)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type != 'limit':
@@ -824,9 +909,9 @@ class qtrade(Exchange):
             parts = sideType.split('_')
             side = self.safe_string(parts, 0)
             orderType = self.safe_string(parts, 1)
-        price = self.safe_number(order, 'price')
-        amount = self.safe_number(order, 'market_amount')
-        remaining = self.safe_number(order, 'market_amount_remaining')
+        price = self.safe_string(order, 'price')
+        amount = self.safe_string(order, 'market_amount')
+        remaining = self.safe_string(order, 'market_amount_remaining')
         open = self.safe_value(order, 'open', False)
         closeReason = self.safe_string(order, 'close_reason')
         status = None
@@ -840,11 +925,6 @@ class qtrade(Exchange):
         market = self.safe_market(marketId, market, '_')
         symbol = market['symbol']
         rawTrades = self.safe_value(order, 'trades', [])
-        parsedTrades = self.parse_trades(rawTrades, market, None, None, {
-            'order': id,
-            'side': side,
-            'type': orderType,
-        })
         return self.safe_order({
             'info': order,
             'id': id,
@@ -867,8 +947,8 @@ class qtrade(Exchange):
             'fee': None,
             'fees': None,
             'cost': None,
-            'trades': parsedTrades,
-        })
+            'trades': rawTrades,
+        }, market)
 
     async def cancel_order(self, id, symbol=None, params={}):
         request = {
@@ -1336,6 +1416,7 @@ class qtrade(Exchange):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'addressFrom': addressFrom,
             'addressTo': addressTo,
             'address': address,
@@ -1417,7 +1498,7 @@ class qtrade(Exchange):
             ])  # eslint-disable-line quotes
             hash = self.hash(self.encode(auth), 'sha256', 'base64')
             key = self.apiKey
-            if not isinstance(key, basestring):
+            if not isinstance(key, str):
                 key = str(key)
             signature = 'HMAC-SHA256 ' + key + ':' + hash
             headers = {

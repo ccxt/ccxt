@@ -13,7 +13,7 @@ module.exports = class zipmex extends ndax {
             'name': 'Zipmex',
             'countries': [ 'AU', 'SG', 'TH', 'ID' ], // Australia, Singapore, Thailand, Indonesia
             'certified': false,
-            'pro': false,
+            'pro': true,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/146103275-c39a34d9-68a4-4cd2-b1f1-c684548d311b.jpg',
                 'test': undefined,

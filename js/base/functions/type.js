@@ -6,7 +6,7 @@ const isNumber          = Number.isFinite
     , isInteger         = Number.isInteger
     , isArray           = Array.isArray
     , hasProps          = o => ((o !== undefined) && (o !== null))
-    , isString          = s =>                  (typeof s === 'string')
+    , isString          = s => (typeof s === 'string')
     , isObject          = o => ((o !== null) && (typeof o === 'object'))
     , isRegExp          = o => (o instanceof RegExp)
     , isDictionary      = o => (isObject (o) && (Object.getPrototypeOf (o) === Object.prototype) && !isArray (o) && !isRegExp (o))
@@ -19,8 +19,8 @@ const prop = (o, k) => (isObject (o) ? o[k] : undefined)
 
 /*  .............................................   */
 
-const asFloat   = x => ((isNumber (x) || isString (x)) ? parseFloat (x)     : NaN)
-    , asInteger = x => ((isNumber (x) || isString (x)) ? parseInt   (x, 10) : NaN)
+const asFloat   = x => ((isNumber (x) || (isString (x) && x.length !== 0)) ? parseFloat (x) : NaN)
+    , asInteger = x => ((isNumber (x) || (isString (x) && x.length !== 0)) ? Math.trunc (Number(x)) : NaN)
 
 /*  .............................................   */
 

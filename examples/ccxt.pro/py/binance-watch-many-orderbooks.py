@@ -21,7 +21,9 @@ def when_orderbook_changed(exchange_spot, symbol, orderbook):
 
 
 async def watch_one_orderbook(exchange_spot, symbol):
-    your_delay = 1000  # <-------------------------- 1000ms
+    # a call cost of 1 in the queue of subscriptions
+    # means one subscription per exchange.rateLimit milliseconds
+    your_delay = 1  
     await exchange_spot.throttle(your_delay)
     while True:
         try:

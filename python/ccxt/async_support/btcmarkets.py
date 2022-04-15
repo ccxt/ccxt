@@ -25,25 +25,52 @@ class btcmarkets(Exchange):
             'rateLimit': 1000,  # market data cached for 1 second(trades cached for 2 seconds)
             'version': 'v3',
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
                 'cancelOrder': True,
                 'cancelOrders': True,
-                'CORS': None,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': 'emulated',
                 'fetchDeposits': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/89731817-b3fb8480-da52-11ea-817f-783b08aaf32b.jpg',
@@ -254,6 +281,7 @@ class btcmarkets(Exchange):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'address': address,
             'addressTo': addressTo,
             'addressFrom': addressFrom,
@@ -304,39 +332,55 @@ class btcmarkets(Exchange):
             minPrice = None
             if quote == 'AUD':
                 minPrice = math.pow(10, -pricePrecision)
-            precision = {
-                'amount': amountPrecision,
-                'price': pricePrecision,
-            }
-            limits = {
-                'amount': {
-                    'min': minAmount,
-                    'max': maxAmount,
-                },
-                'price': {
-                    'min': minPrice,
-                    'max': None,
-                },
-                'cost': {
-                    'min': None,
-                    'max': None,
-                },
-            }
             result.append({
-                'info': market,
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
                 'active': None,
-                'maker': fees['maker'],
+                'contract': False,
+                'linear': None,
+                'inverse': None,
                 'taker': fees['taker'],
-                'limits': limits,
-                'precision': precision,
+                'maker': fees['maker'],
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': amountPrecision,
+                    'price': pricePrecision,
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': minAmount,
+                        'max': maxAmount,
+                    },
+                    'price': {
+                        'min': minPrice,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+                'info': market,
             })
         return result
 
@@ -349,9 +393,7 @@ class btcmarkets(Exchange):
         #
         return self.parse8601(self.safe_string(response, 'timestamp'))
 
-    async def fetch_balance(self, params={}):
-        await self.load_markets()
-        response = await self.privateGetAccountsMeBalances(params)
+    def parse_balance(self, response):
         result = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
@@ -361,7 +403,12 @@ class btcmarkets(Exchange):
             account['used'] = self.safe_string(balance, 'locked')
             account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
+
+    async def fetch_balance(self, params={}):
+        await self.load_markets()
+        response = await self.privateGetAccountsMeBalances(params)
+        return self.parse_balance(response)
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
@@ -455,36 +502,26 @@ class btcmarkets(Exchange):
         #         "timestamp":"2020-08-09T18:28:23.280000Z"
         #     }
         #
-        symbol = None
         marketId = self.safe_string(ticker, 'marketId')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId, quoteId = marketId.split('-')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        market = self.safe_market(marketId, market, '-')
+        symbol = market['symbol']
         timestamp = self.parse8601(self.safe_string(ticker, 'timestamp'))
-        last = self.safe_number(ticker, 'lastPrice')
-        baseVolume = self.safe_number(ticker, 'volume24h')
-        quoteVolume = self.safe_number(ticker, 'volumeQte24h')
-        vwap = self.vwap(baseVolume, quoteVolume)
-        change = self.safe_number(ticker, 'price24h')
-        percentage = self.safe_number(ticker, 'pricePct24h')
-        return {
+        last = self.safe_string(ticker, 'lastPrice')
+        baseVolume = self.safe_string(ticker, 'volume24h')
+        quoteVolume = self.safe_string(ticker, 'volumeQte24h')
+        change = self.safe_string(ticker, 'price24h')
+        percentage = self.safe_string(ticker, 'pricePct24h')
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high24h'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'bestBid'),
+            'high': self.safe_string(ticker, 'high24h'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'bestBid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'bestAsk'),
+            'ask': self.safe_string(ticker, 'bestAsk'),
             'askVolume': None,
-            'vwap': vwap,
+            'vwap': None,
             'open': None,
             'close': last,
             'last': last,
@@ -495,7 +532,7 @@ class btcmarkets(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
+        }, market, False)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
@@ -559,26 +596,8 @@ class btcmarkets(Exchange):
         #
         timestamp = self.parse8601(self.safe_string(trade, 'timestamp'))
         marketId = self.safe_string(trade, 'marketId')
-        symbol = None
-        base = None
-        quote = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId, quoteId = marketId.split('-')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
-            base = market['base']
-            quote = market['quote']
-        feeCurrencyCode = None
-        if quote == 'AUD':
-            feeCurrencyCode = quote
-        else:
-            feeCurrencyCode = base
+        market = self.safe_market(marketId, market, '-')
+        feeCurrencyCode = market['quote'] if (market['quote'] == 'AUD') else market['base']
         side = self.safe_string(trade, 'side')
         if side == 'Bid':
             side = 'buy'
@@ -602,7 +621,7 @@ class btcmarkets(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'order': orderId,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': None,
             'side': side,
             'price': priceString,
@@ -776,17 +795,7 @@ class btcmarkets(Exchange):
         #
         timestamp = self.parse8601(self.safe_string(order, 'creationTime'))
         marketId = self.safe_string(order, 'marketId')
-        symbol = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId, quoteId = marketId.split('-')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        market = self.safe_market(marketId, market, '-')
         side = self.safe_string(order, 'side')
         if side == 'Bid':
             side = 'buy'
@@ -802,14 +811,14 @@ class btcmarkets(Exchange):
         timeInForce = self.safe_string(order, 'timeInForce')
         stopPrice = self.safe_number(order, 'triggerPrice')
         postOnly = self.safe_value(order, 'postOnly')
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
@@ -898,21 +907,6 @@ class btcmarkets(Exchange):
         #     ]
         #
         return self.parse_trades(response, market, since, limit)
-
-    def lookup_symbol_from_market_id(self, marketId):
-        market = None
-        symbol = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId, quoteId = marketId.split('-')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
-        return symbol
 
     def nonce(self):
         return self.milliseconds()

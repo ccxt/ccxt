@@ -17,18 +17,49 @@ class zonda extends Exchange {
             'countries' => array( 'EE' ), // Estonia
             'rateLimit' => 1000,
             'has' => array(
-                'cancelOrder' => true,
                 'CORS' => true,
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
+                'cancelOrder' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
                 'fetchLedger' => true,
+                'fetchLeverage' => false,
+                'fetchLeverageTiers' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrderBook' => true,
+                'fetchPosition' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => false,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
+                'transfer' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -46,10 +77,10 @@ class zonda extends Exchange {
                 '3d' => '259200',
                 '1w' => '604800',
             ),
-            'hostname' => 'zondaglobal.com',
+            'hostname' => 'zonda.exchange',
             'urls' => array(
                 'referral' => 'https://auth.zondaglobal.com/ref/jHlbB4mIkdS1',
-                'logo' => 'https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/1294454/159202310-a0e38007-5e7c-4ba9-a32f-c8263a0291fe.jpg',
                 'www' => 'https://zondaglobal.com',
                 'api' => array(
                     'public' => 'https://{hostname}/API/Public',
@@ -92,6 +123,7 @@ class zonda extends Exchange {
                         'trading/ticker',
                         'trading/ticker/{symbol}',
                         'trading/stats',
+                        'trading/stats/{symbol}',
                         'trading/orderbook/{symbol}',
                         'trading/transactions/{symbol}',
                         'trading/candle/history/{symbol}/{resolution}',
@@ -187,6 +219,9 @@ class zonda extends Exchange {
             ),
             'options' => array(
                 'fiatCurrencies' => array( 'EUR', 'USD', 'GBP', 'PLN' ),
+                'transfer' => array(
+                    'fillResponseFromRequest' => true,
+                ),
             ),
             'exceptions' => array(
                 '400' => '\\ccxt\\ExchangeError', // At least one parameter wasn't set
@@ -248,43 +283,56 @@ class zonda extends Exchange {
         $items = $this->safe_value($response, 'items');
         $keys = is_array($items) ? array_keys($items) : array();
         for ($i = 0; $i < count($keys); $i++) {
-            $key = $keys[$i];
-            $item = $items[$key];
+            $id = $keys[$i];
+            $item = $items[$id];
             $market = $this->safe_value($item, 'market', array());
             $first = $this->safe_value($market, 'first', array());
             $second = $this->safe_value($market, 'second', array());
             $baseId = $this->safe_string($first, 'currency');
             $quoteId = $this->safe_string($second, 'currency');
-            $id = $baseId . $quoteId;
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
-            $precision = array(
-                'amount' => $this->safe_integer($first, 'scale'),
-                'price' => $this->safe_integer($second, 'scale'),
-            );
             $fees = $this->safe_value($this->fees, 'trading', array());
             if ($this->in_array($base, $fiatCurrencies) || $this->in_array($quote, $fiatCurrencies)) {
                 $fees = $this->safe_value($this->fees, 'fiat', array());
             }
-            $maker = $this->safe_number($fees, 'maker');
-            $taker = $this->safe_number($fees, 'taker');
             // todo => check that the limits have ben interpreted correctly
             // todo => parse the $fees page
             $result[] = array(
                 'id' => $id,
-                'symbol' => $symbol,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'precision' => $precision,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
                 'active' => null,
-                'maker' => $maker,
-                'taker' => $taker,
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'taker' => $this->safe_number($fees, 'taker'),
+                'maker' => $this->safe_number($fees, 'maker'),
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'optionType' => null,
+                'strike' => null,
+                'precision' => array(
+                    'amount' => $this->safe_integer($first, 'scale'),
+                    'price' => $this->safe_integer($second, 'scale'),
+                ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
                         'min' => $this->safe_number($first, 'minOffer'),
                         'max' => null,
@@ -337,7 +385,7 @@ class zonda extends Exchange {
         $amount = $this->safe_string($order, 'startAmount');
         $remaining = $this->safe_string($order, 'currentAmount');
         $postOnly = $this->safe_value($order, 'postOnly');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'id' => $this->safe_string($order, 'id'),
             'clientOrderId' => null,
             'info' => $order,
@@ -399,9 +447,7 @@ class zonda extends Exchange {
         return $this->filter_by_symbol($result, $symbol);
     }
 
-    public function fetch_balance($params = array ()) {
-        $this->load_markets();
-        $response = $this->v1_01PrivateGetBalancesBITBAYBalance ($params);
+    public function parse_balance($response) {
         $balances = $this->safe_value($response, 'balances');
         if ($balances === null) {
             throw new ExchangeError($this->id . ' empty $balance $response ' . $this->json($response));
@@ -416,60 +462,113 @@ class zonda extends Exchange {
             $account['free'] = $this->safe_string($balance, 'availableFunds');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        $this->load_markets();
+        $response = $this->v1_01PrivateGetBalancesBITBAYBalance ($params);
+        return $this->parse_balance($response);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
-            'id' => $this->market_id($symbol),
+            'symbol' => $this->market_id($symbol),
         );
-        $orderbook = $this->publicGetIdOrderbook (array_merge($request, $params));
-        return $this->parse_order_book($orderbook, $symbol);
+        $response = $this->v1_01PublicGetTradingOrderbookSymbol (array_merge($request, $params));
+        //
+        //     {
+        //         "status":"Ok",
+        //         "sell":array(
+        //             array("ra":"43988.93","ca":"0.00100525","sa":"0.00100525","pa":"0.00100525","co":1),
+        //             array("ra":"43988.94","ca":"0.00114136","sa":"0.00114136","pa":"0.00114136","co":1),
+        //             array("ra":"43989","ca":"0.010578","sa":"0.010578","pa":"0.010578","co":1),
+        //         ),
+        //         "buy":array(
+        //             array("ra":"42157.33","ca":"2.83147881","sa":"2.83147881","pa":"2.83147881","co":2),
+        //             array("ra":"42096.0","ca":"0.00011878","sa":"0.00011878","pa":"0.00011878","co":1),
+        //             array("ra":"42022.0","ca":"0.00011899","sa":"0.00011899","pa":"0.00011899","co":1),
+        //         ),
+        //         "timestamp":"1642299886122",
+        //         "seqNo":"27641254"
+        //     }
+        //
+        $rawBids = $this->safe_value($response, 'buy', array());
+        $rawAsks = $this->safe_value($response, 'sell', array());
+        $timestamp = $this->safe_integer($response, 'timestamp');
+        return array(
+            'symbol' => $symbol,
+            'bids' => $this->parse_bids_asks($rawBids, 'ra', 'ca'),
+            'asks' => $this->parse_bids_asks($rawAsks, 'ra', 'ca'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'nonce' => $this->safe_integer($response, 'seqNo'),
+        );
     }
 
     public function parse_ticker($ticker, $market = null) {
-        $symbol = $this->safe_symbol(null, $market);
-        $timestamp = $this->milliseconds();
-        $baseVolume = $this->safe_number($ticker, 'volume');
-        $vwap = $this->safe_number($ticker, 'vwap');
-        $quoteVolume = null;
-        if ($baseVolume !== null && $vwap !== null) {
-            $quoteVolume = $baseVolume * $vwap;
-        }
-        $last = $this->safe_number($ticker, 'last');
+        //
+        //     {
+        //         m => 'ETH-PLN',
+        //         h => '13485.13',
+        //         l => '13100.01',
+        //         v => '126.10710939',
+        //         r24h => '13332.72'
+        //       }
+        //
+        $open = $this->safe_string($ticker, 'r24h');
+        $high = $this->safe_string($ticker, 'h');
+        $low = $this->safe_string($ticker, 'l');
+        $volume = $this->safe_string($ticker, 'v');
+        $marketId = $this->safe_string($ticker, 'm');
+        $market = $this->safe_market($marketId, $market, '-');
+        $symbol = $market['symbol'];
         return $this->safe_ticker(array(
             'symbol' => $symbol,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'max'),
-            'low' => $this->safe_number($ticker, 'min'),
-            'bid' => $this->safe_number($ticker, 'bid'),
+            'timestamp' => null,
+            'datetime' => null,
+            'high' => $high,
+            'low' => $low,
+            'bid' => null,
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'ask'),
+            'ask' => null,
             'askVolume' => null,
-            'vwap' => $vwap,
-            'open' => null,
-            'close' => $last,
-            'last' => $last,
+            'vwap' => null,
+            'open' => $open,
+            'close' => null,
+            'last' => null,
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
-            'average' => $this->safe_number($ticker, 'average'),
-            'baseVolume' => $baseVolume,
-            'quoteVolume' => $quoteVolume,
+            'average' => null,
+            'baseVolume' => $volume,
+            'quoteVolume' => null,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
-            'id' => $market['id'],
+            'symbol' => $market['id'],
         );
-        $response = $this->publicGetIdTicker (array_merge($request, $params));
-        return $this->parse_ticker($response, $market);
+        $response = $this->v1_01PublicGetTradingStatsSymbol (array_merge($request, $params));
+        //
+        //     {
+        //       status => 'Ok',
+        //       $stats => {
+        //         m => 'ETH-PLN',
+        //         h => '13485.13',
+        //         l => '13100.01',
+        //         v => '126.10710939',
+        //         r24h => '13332.72'
+        //       }
+        //     }
+        //
+        $stats = $this->safe_value($response, 'stats');
+        return $this->parse_ticker($stats, $market);
     }
 
     public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1124,6 +1223,109 @@ class zonda extends Exchange {
             'PLN' => true,
         );
         return $this->safe_value($fiatCurrencies, $currency, false);
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'source' => $fromAccount,
+            'destination' => $toAccount,
+            'currency' => $code,
+            'funds' => $this->currency_to_precision($code, $amount),
+        );
+        $response = $this->v1_01PrivatePostBalancesBITBAYBalanceTransferSourceDestination (array_merge($request, $params));
+        //
+        //     {
+        //         "status" => "Ok",
+        //         "from" => array(
+        //             "id" => "ad9397c5-3bd9-4372-82ba-22da6a90cb56",
+        //             "userId" => "4bc43956-423f-47fd-9faa-acd37c58ed9f",
+        //             "availableFunds" => 0.01803472,
+        //             "totalFunds" => 0.01804161,
+        //             "lockedFunds" => 0.00000689,
+        //             "currency" => "BTC",
+        //             "type" => "CRYPTO",
+        //             "name" => "BTC",
+        //             "balanceEngine" => "BITBAY"
+        //         ),
+        //         "to" => array(
+        //             "id" => "01931d52-536b-4ca5-a9f4-be28c86d0cc3",
+        //             "userId" => "4bc43956-423f-47fd-9faa-acd37c58ed9f",
+        //             "availableFunds" => 0.0001,
+        //             "totalFunds" => 0.0001,
+        //             "lockedFunds" => 0,
+        //             "currency" => "BTC",
+        //             "type" => "CRYPTO",
+        //             "name" => "Prowizja",
+        //             "balanceEngine" => "BITBAY"
+        //         ),
+        //         "errors" => null
+        //     }
+        //
+        $transfer = $this->parse_transfer($response, $currency);
+        $transferOptions = $this->safe_value($this->options, 'transfer', array());
+        $fillResponseFromRequest = $this->safe_value($transferOptions, 'fillResponseFromRequest', true);
+        if ($fillResponseFromRequest) {
+            $transfer['amount'] = $amount;
+        }
+        return $transfer;
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        //     {
+        //         "status" => "Ok",
+        //         "from" => array(
+        //             "id" => "ad9397c5-3bd9-4372-82ba-22da6a90cb56",
+        //             "userId" => "4bc43956-423f-47fd-9faa-acd37c58ed9f",
+        //             "availableFunds" => 0.01803472,
+        //             "totalFunds" => 0.01804161,
+        //             "lockedFunds" => 0.00000689,
+        //             "currency" => "BTC",
+        //             "type" => "CRYPTO",
+        //             "name" => "BTC",
+        //             "balanceEngine" => "BITBAY"
+        //         ),
+        //         "to" => array(
+        //             "id" => "01931d52-536b-4ca5-a9f4-be28c86d0cc3",
+        //             "userId" => "4bc43956-423f-47fd-9faa-acd37c58ed9f",
+        //             "availableFunds" => 0.0001,
+        //             "totalFunds" => 0.0001,
+        //             "lockedFunds" => 0,
+        //             "currency" => "BTC",
+        //             "type" => "CRYPTO",
+        //             "name" => "Prowizja",
+        //             "balanceEngine" => "BITBAY"
+        //         ),
+        //         "errors" => null
+        //     }
+        //
+        $status = $this->safe_string($transfer, 'status');
+        $fromAccount = $this->safe_value($transfer, 'from', array());
+        $fromId = $this->safe_string($fromAccount, 'id');
+        $to = $this->safe_value($transfer, 'to', array());
+        $toId = $this->safe_string($to, 'id');
+        $currencyId = $this->safe_string($fromAccount, 'currency');
+        return array(
+            'info' => $transfer,
+            'id' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'amount' => null,
+            'fromAccount' => $fromId,
+            'toAccount' => $toId,
+            'status' => $this->parse_transfer_status($status),
+        );
+    }
+
+    public function parse_transfer_status($status) {
+        $statuses = array(
+            'Ok' => 'ok',
+            'Fail' => 'failed',
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {

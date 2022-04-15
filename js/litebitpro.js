@@ -20,9 +20,14 @@ module.exports = class litebitpro extends Exchange {
             'certified': false,
             'pro': false,
             'has': {
+                'CORS': true,
+                'spot': true,
+                'margin': undefined,
+                'swap': undefined,
+                'future': undefined,
+                'option': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'CORS': true,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
@@ -641,7 +646,7 @@ module.exports = class litebitpro extends Exchange {
         if (clientId !== undefined) {
             request['client_id'] = clientId;
         }
-        params = this.omit (params, ['stop', 'stopPrice', 'stop_price', 'postOnly', 'post_only', 'timeInForce', 'time_in_force', 'expireAt', 'expire_at', 'client_id', 'clientOrderId' ]);
+        params = this.omit (params, [ 'stop', 'stopPrice', 'stop_price', 'postOnly', 'post_only', 'timeInForce', 'time_in_force', 'expireAt', 'expire_at', 'client_id', 'clientOrderId' ]);
         if (type === 'market') {
             let cost = undefined;
             if (price !== undefined) {
@@ -696,7 +701,7 @@ module.exports = class litebitpro extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'orders': [id],
+            'orders': [ id ],
             'market': market['id'],
         };
         await this.privateDeleteOrders (this.extend (request, params));

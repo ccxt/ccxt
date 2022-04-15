@@ -17,13 +17,45 @@ module.exports = class bl3p extends Exchange {
             'version': '1',
             'comment': 'An exchange market by BitonicNL',
             'has': {
-                'cancelOrder': true,
                 'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
+                'cancelOrder': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchLeverage': false,
+                'fetchMarkOHLCV': false,
                 'fetchOrderBook': true,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': true,
+                'fetchTransfer': false,
+                'fetchTransfers': false,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
+                'transfer': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg',
@@ -67,9 +99,7 @@ module.exports = class bl3p extends Exchange {
         });
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privatePostGENMKTMoneyInfo (params);
+    parseBalance (response) {
         const data = this.safeValue (response, 'data', {});
         const wallets = this.safeValue (data, 'wallets');
         const result = { 'info': data };
@@ -86,7 +116,13 @@ module.exports = class bl3p extends Exchange {
             account['total'] = this.safeString (balance, 'value');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privatePostGENMKTMoneyInfo (params);
+        return this.parseBalance (response);
     }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
@@ -108,22 +144,35 @@ module.exports = class bl3p extends Exchange {
         return this.parseOrderBook (orderbook, symbol, undefined, 'bids', 'asks', 'price_int', 'amount_int');
     }
 
-    async fetchTicker (symbol, params = {}) {
-        const request = {
-            'market': this.marketId (symbol),
-        };
-        const ticker = await this.publicGetMarketTicker (this.extend (request, params));
+    parseTicker (ticker, market = undefined) {
+        //
+        // {
+        //     "currency":"BTC",
+        //     "last":32654.55595,
+        //     "bid":32552.3642,
+        //     "ask":32703.58231,
+        //     "high":33500,
+        //     "low":31943,
+        //     "timestamp":1643372789,
+        //     "volume":{
+        //         "24h":2.27372413,
+        //         "30d":320.79375456
+        //     }
+        // }
+        //
+        const symbol = this.safeSymbol (undefined, market);
         const timestamp = this.safeTimestamp (ticker, 'timestamp');
-        const last = this.safeNumber (ticker, 'last');
-        return {
+        const last = this.safeString (ticker, 'last');
+        const volume = this.safeValue (ticker, 'volume', {});
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'bid'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'ask'),
+            'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -133,41 +182,57 @@ module.exports = class bl3p extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker['volume'], '24h'),
+            'baseVolume': this.safeString (volume, '24h'),
             'quoteVolume': undefined,
             'info': ticker,
+        }, market, false);
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
         };
+        const ticker = await this.publicGetMarketTicker (this.extend (request, params));
+        //
+        // {
+        //     "currency":"BTC",
+        //     "last":32654.55595,
+        //     "bid":32552.3642,
+        //     "ask":32703.58231,
+        //     "high":33500,
+        //     "low":31943,
+        //     "timestamp":1643372789,
+        //     "volume":{
+        //         "24h":2.27372413,
+        //         "30d":320.79375456
+        //     }
+        // }
+        //
+        return this.parseTicker (ticker, market);
     }
 
     parseTrade (trade, market = undefined) {
         const id = this.safeString (trade, 'trade_id');
         const timestamp = this.safeInteger (trade, 'date');
-        let priceString = this.safeString (trade, 'price_int');
-        priceString = Precise.stringDiv (priceString, '100000');
-        let amountString = this.safeString (trade, 'amount_int');
-        amountString = Precise.stringDiv (amountString, '100000000');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        return {
+        const price = this.safeString (trade, 'price_int');
+        const amount = this.safeString (trade, 'amount_int');
+        market = this.safeMarket (undefined, market);
+        return this.safeTrade ({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': undefined,
             'side': undefined,
             'order': undefined,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': Precise.stringDiv (price, '100000'),
+            'amount': Precise.stringDiv (amount, '100000000'),
+            'cost': undefined,
             'fee': undefined,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -176,6 +241,55 @@ module.exports = class bl3p extends Exchange {
             'market': market['id'],
         }, params));
         const result = this.parseTrades (response['data']['trades'], market, since, limit);
+        return result;
+    }
+
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privatePostGENMKTMoneyInfo (params);
+        //
+        //     {
+        //         result: 'success',
+        //         data: {
+        //             user_id: '13396',
+        //             wallets: {
+        //                 BTC: {
+        //                     balance: {
+        //                         value_int: '0',
+        //                         display: '0.00000000 BTC',
+        //                         currency: 'BTC',
+        //                         value: '0.00000000',
+        //                         display_short: '0.00 BTC'
+        //                     },
+        //                     available: {
+        //                         value_int: '0',
+        //                         display: '0.00000000 BTC',
+        //                         currency: 'BTC',
+        //                         value: '0.00000000',
+        //                         display_short: '0.00 BTC'
+        //                     }
+        //                 },
+        //                 ...
+        //             },
+        //             trade_fee: '0.25'
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const feeString = this.safeString (data, 'trade_fee');
+        const fee = this.parseNumber (Precise.stringDiv (feeString, '100'));
+        const result = {};
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            result[symbol] = {
+                'info': data,
+                'symbol': symbol,
+                'maker': fee,
+                'taker': fee,
+                'percentage': true,
+                'tierBased': false,
+            };
+        }
         return result;
     }
 

@@ -15,23 +15,44 @@ module.exports = class hitbtc extends Exchange {
             'id': 'hitbtc',
             'name': 'HitBTC',
             'countries': [ 'HK' ],
-            'rateLimit': 1500,
+            // 300 requests per second => 1000ms / 300 = 3.333ms between requests on average (Trading)
+            // 100 requests per second => ( 1000ms / rateLimit ) / 100 => cost = 3.0003 (Market Data)
+            // 10 requests per second => ( 1000ms / rateLimit ) / 10 => cost = 30.003 (Other Requests)
+            'rateLimit': 3.333,
             'version': '2',
             'pro': true,
             'has': {
-                'cancelOrder': true,
                 'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
+                'cancelOrder': true,
                 'createDepositAddress': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': undefined,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchLeverage': false,
+                'fetchLeverageTiers': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrder': true,
@@ -40,12 +61,21 @@ module.exports = class hitbtc extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': undefined,
                 'fetchOrderTrades': true,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
+                'fetchTradingFees': false,
                 'fetchTransactions': true,
                 'fetchWithdrawals': undefined,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -74,8 +104,7 @@ module.exports = class hitbtc extends Exchange {
                 'www': 'https://hitbtc.com',
                 'referral': 'https://hitbtc.com/?ref_id=5a5d39a65d466',
                 'doc': [
-                    'https://api.hitbtc.com',
-                    'https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv2.md',
+                    'https://api.hitbtc.com/v2',
                 ],
                 'fees': [
                     'https://hitbtc.com/fees-and-limits',
@@ -84,84 +113,84 @@ module.exports = class hitbtc extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'currency', // Available Currencies
-                        'currency/{currency}', // Get currency info
-                        'symbol', // Available Currency Symbols
-                        'symbol/{symbol}', // Get symbol info
-                        'ticker', // Ticker list for all symbols
-                        'ticker/{symbol}', // Ticker for symbol
-                        'trades',
-                        'trades/{symbol}', // Trades
-                        'orderbook',
-                        'orderbook/{symbol}', // Orderbook
-                        'candles',
-                        'candles/{symbol}', // Candles
-                    ],
+                    'get': {
+                        'currency': 3, // Available Currencies
+                        'currency/{currency}': 3, // Get currency info
+                        'symbol': 3, // Available Currency Symbols
+                        'symbol/{symbol}': 3, // Get symbol info
+                        'ticker': 3, // Ticker list for all symbols
+                        'ticker/{symbol}': 3, // Ticker for symbol
+                        'trades': 3,
+                        'trades/{symbol}': 3, // Trades
+                        'orderbook': 3,
+                        'orderbook/{symbol}': 3, // Orderbook
+                        'candles': 3,
+                        'candles/{symbol}': 3, // Candles
+                    },
                 },
                 'private': {
-                    'get': [
-                        'trading/balance', // Get trading balance
-                        'order', // List your current open orders
-                        'order/{clientOrderId}', // Get a single order by clientOrderId
-                        'trading/fee/all', // Get trading fee rate
-                        'trading/fee/{symbol}', // Get trading fee rate
-                        'margin/account',
-                        'margin/account/{symbol}',
-                        'margin/position',
-                        'margin/position/{symbol}',
-                        'margin/order',
-                        'margin/order/{clientOrderId}',
-                        'history/order', // Get historical orders
-                        'history/trades', // Get historical trades
-                        'history/order/{orderId}/trades', // Get historical trades by specified order
-                        'account/balance', // Get main acccount balance
-                        'account/crypto/address/{currency}', // Get current address
-                        'account/crypto/addresses/{currency}', // Get last 10 deposit addresses for currency
-                        'account/crypto/used-addresses/{currency}', // Get last 10 unique addresses used for withdraw by currency
-                        'account/crypto/estimate-withdraw',
-                        'account/crypto/is-mine/{address}',
-                        'account/transactions', // Get account transactions
-                        'account/transactions/{id}', // Get account transaction by id
-                        'sub-acc',
-                        'sub-acc/acl',
-                        'sub-acc/balance/{subAccountUserID}',
-                        'sub-acc/deposit-address/{subAccountUserId}/{currency}',
-                    ],
-                    'post': [
-                        'order', // Create new order
-                        'margin/order',
-                        'account/crypto/address/{currency}', // Create new crypto deposit address
-                        'account/crypto/withdraw', // Withdraw crypto
-                        'account/crypto/transfer-convert',
-                        'account/transfer', // Transfer amount to trading account or to main account
-                        'account/transfer/internal',
-                        'sub-acc/freeze',
-                        'sub-acc/activate',
-                        'sub-acc/transfer',
-                    ],
-                    'put': [
-                        'order/{clientOrderId}', // Create new order
-                        'margin/account/{symbol}',
-                        'margin/order/{clientOrderId}',
-                        'account/crypto/withdraw/{id}', // Commit crypto withdrawal
-                        'sub-acc/acl/{subAccountUserId}',
-                    ],
-                    'delete': [
-                        'order', // Cancel all open orders
-                        'order/{clientOrderId}', // Cancel order
-                        'margin/account',
-                        'margin/account/{symbol}',
-                        'margin/position',
-                        'margin/position/{symbol}',
-                        'margin/order',
-                        'margin/order/{clientOrderId}',
-                        'account/crypto/withdraw/{id}', // Rollback crypto withdrawal
-                    ],
+                    'get': {
+                        'trading/balance': 30, // Get trading balance
+                        'order': 30, // List your current open orders
+                        'order/{clientOrderId}': 30, // Get a single order by clientOrderId
+                        'trading/fee/all': 30, // Get trading fee rate
+                        'trading/fee/{symbol}': 30, // Get trading fee rate
+                        'margin/account': 30,
+                        'margin/account/{symbol}': 30,
+                        'margin/position': 30,
+                        'margin/position/{symbol}': 30,
+                        'margin/order': 30,
+                        'margin/order/{clientOrderId}': 30,
+                        'history/order': 30, // Get historical orders
+                        'history/trades': 30, // Get historical trades
+                        'history/order/{orderId}/trades': 30, // Get historical trades by specified order
+                        'account/balance': 30, // Get main acccount balance
+                        'account/crypto/address/{currency}': 30, // Get current address
+                        'account/crypto/addresses/{currency}': 30, // Get last 10 deposit addresses for currency
+                        'account/crypto/used-addresses/{currency}': 30, // Get last 10 unique addresses used for withdraw by currency
+                        'account/crypto/estimate-withdraw': 30,
+                        'account/crypto/is-mine/{address}': 30,
+                        'account/transactions': 30, // Get account transactions
+                        'account/transactions/{id}': 30, // Get account transaction by id
+                        'sub-acc': 30,
+                        'sub-acc/acl': 30,
+                        'sub-acc/balance/{subAccountUserID}': 30,
+                        'sub-acc/deposit-address/{subAccountUserId}/{currency}': 30,
+                    },
+                    'post': {
+                        'order': 1, // Create new order
+                        'margin/order': 1,
+                        'account/crypto/address/{currency}': 1, // Create new crypto deposit address
+                        'account/crypto/withdraw': 1, // Withdraw crypto
+                        'account/crypto/transfer-convert': 1,
+                        'account/transfer': 1, // Transfer amount to trading account or to main account
+                        'account/transfer/internal': 1,
+                        'sub-acc/freeze': 1,
+                        'sub-acc/activate': 1,
+                        'sub-acc/transfer': 1,
+                    },
+                    'put': {
+                        'order/{clientOrderId}': 1, // Create new order
+                        'margin/account/{symbol}': 1,
+                        'margin/order/{clientOrderId}': 1,
+                        'account/crypto/withdraw/{id}': 1, // Commit crypto withdrawal
+                        'sub-acc/acl/{subAccountUserId}': 1,
+                    },
+                    'delete': {
+                        'order': 1, // Cancel all open orders
+                        'order/{clientOrderId}': 1, // Cancel order
+                        'margin/account': 1,
+                        'margin/account/{symbol}': 1,
+                        'margin/position': 1,
+                        'margin/position/{symbol}': 1,
+                        'margin/order': 1,
+                        'margin/order/{clientOrderId}': 1,
+                        'account/crypto/withdraw/{id}': 1, // Rollback crypto withdrawal
+                    },
                     // outdated?
-                    'patch': [
-                        'order/{clientOrderId}', // Cancel Replace order
-                    ],
+                    'patch': {
+                        'order/{clientOrderId}': 1, // Cancel Replace order
+                    },
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -211,12 +240,14 @@ module.exports = class hitbtc extends Exchange {
                 'BOX': 'BOX Token',
                 'CPT': 'Cryptaur', // conflict with CPT = Contents Protocol https://github.com/ccxt/ccxt/issues/4920 and https://github.com/ccxt/ccxt/issues/6081
                 'GET': 'Themis',
+                'GMT': 'GMT Token',
                 'HSR': 'HC',
                 'IQ': 'IQ.Cash',
                 'LNC': 'LinkerCoin',
                 'PLA': 'PlayChip',
                 'PNT': 'Penta',
                 'SBTC': 'Super Bitcoin',
+                'STEPN': 'GMT',
                 'STX': 'STOX',
                 'TV': 'Tokenville',
                 'USD': 'USDT',
@@ -233,6 +264,8 @@ module.exports = class hitbtc extends Exchange {
                 '2020': InvalidOrder, // "Price not a valid number"
                 '20002': OrderNotFound, // canceling non-existent order
                 '20001': InsufficientFunds, // {"error":{"code":20001,"message":"Insufficient funds","description":"Check that the funds are sufficient, given commissions"}}
+                '20010': BadSymbol, // {"error":{"code":20010,"message":"Exchange temporary closed","description":"Exchange market for this symbol is temporary closed"}}
+                '20045': InvalidOrder, // {"error":{"code":20045,"message":"Fat finger limit exceeded"}}
             },
         });
     }
@@ -265,8 +298,8 @@ module.exports = class hitbtc extends Exchange {
             const quoteId = this.safeString (market, 'quoteCurrency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            let symbol = base + '/' + quote;
             // bequant fix
+            let symbol = base + '/' + quote;
             if (id.indexOf ('_') >= 0) {
                 symbol = id;
             }
@@ -274,30 +307,43 @@ module.exports = class hitbtc extends Exchange {
             const stepString = this.safeString (market, 'tickSize');
             const lot = this.parseNumber (lotString);
             const step = this.parseNumber (stepString);
-            const precision = {
-                'price': step,
-                'amount': lot,
-            };
-            const taker = this.safeNumber (market, 'takeLiquidityRate');
-            const maker = this.safeNumber (market, 'provideLiquidityRate');
             const feeCurrencyId = this.safeString (market, 'feeCurrency');
-            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             result.push (this.extend (this.fees['trading'], {
-                'info': market,
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
                 'active': true,
-                'taker': taker,
-                'maker': maker,
-                'precision': precision,
-                'feeCurrency': feeCurrencyCode,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'taker': this.safeNumber (market, 'takeLiquidityRate'),
+                'maker': this.safeNumber (market, 'provideLiquidityRate'),
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'feeCurrency': this.safeCurrencyCode (feeCurrencyId),
+                'precision': {
+                    'amount': lot,
+                    'price': step,
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': lot,
                         'max': undefined,
@@ -311,6 +357,7 @@ module.exports = class hitbtc extends Exchange {
                         'max': undefined,
                     },
                 },
+                'info': market,
             }));
         }
         return result;
@@ -414,6 +461,8 @@ module.exports = class hitbtc extends Exchange {
                 'info': currency,
                 'name': name,
                 'active': active,
+                'deposit': payin,
+                'withdraw': payout,
                 'fee': this.safeNumber (currency, 'payoutFee'), // todo: redesign
                 'precision': precision,
                 'limits': {
@@ -444,6 +493,8 @@ module.exports = class hitbtc extends Exchange {
             'symbol': this.safeSymbol (undefined, market),
             'maker': this.safeNumber (fee, 'provideLiquidityRate'),
             'taker': this.safeNumber (fee, 'takeLiquidityRate'),
+            'percentage': true,
+            'tierBased': true,
         };
     }
 
@@ -461,6 +512,24 @@ module.exports = class hitbtc extends Exchange {
         //     }
         //
         return this.parseTradingFee (response, market);
+    }
+
+    parseBalance (response) {
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'available');
+            account['used'] = this.safeString (balance, 'reserved');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
     }
 
     async fetchBalance (params = {}) {
@@ -481,21 +550,7 @@ module.exports = class hitbtc extends Exchange {
         //         {"currency":"DGTX","available":"0","reserved":"0"},
         //     ]
         //
-        const result = {
-            'info': response,
-            'timestamp': undefined,
-            'datetime': undefined,
-        };
-        for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
-            const currencyId = this.safeString (balance, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeString (balance, 'available');
-            account['used'] = this.safeString (balance, 'reserved');
-            result[code] = account;
-        }
-        return this.parseBalance (result);
+        return this.parseBalance (response);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -559,22 +614,21 @@ module.exports = class hitbtc extends Exchange {
     parseTicker (ticker, market = undefined) {
         const timestamp = this.parse8601 (ticker['timestamp']);
         const symbol = this.safeSymbol (undefined, market);
-        const baseVolume = this.safeNumber (ticker, 'volume');
-        const quoteVolume = this.safeNumber (ticker, 'volumeQuote');
-        const open = this.safeNumber (ticker, 'open');
-        const last = this.safeNumber (ticker, 'last');
-        const vwap = this.vwap (baseVolume, quoteVolume);
+        const baseVolume = this.safeString (ticker, 'volume');
+        const quoteVolume = this.safeString (ticker, 'volumeQuote');
+        const open = this.safeString (ticker, 'open');
+        const last = this.safeString (ticker, 'last');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'bid'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'ask'),
+            'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
-            'vwap': vwap,
+            'vwap': undefined,
             'open': open,
             'close': last,
             'last': last,
@@ -585,7 +639,7 @@ module.exports = class hitbtc extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -643,16 +697,30 @@ module.exports = class hitbtc extends Exchange {
         //   price: '0.073365',
         //   fee: '0.000000147',
         //   timestamp: '2018-04-28T18:39:55.345Z' }
+        //
+        //  {
+        //      "id":1568938909,
+        //      "orderId":793293348428,
+        //      "clientOrderId":"fbc5c5b753e8476cb14697458cb928ef",
+        //      "symbol":"DOGEUSD",
+        //      "side":"sell",
+        //      "quantity":"100",
+        //      "price":"0.03904191",
+        //      "fee":"0.009760477500",
+        //      "timestamp":"2022-01-25T15:15:41.353Z",
+        //      "taker":true
+        //  }
+        //
         const timestamp = this.parse8601 (trade['timestamp']);
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         let fee = undefined;
-        const feeCost = this.safeNumber (trade, 'fee');
-        if (feeCost !== undefined) {
+        const feeCostString = this.safeString (trade, 'fee');
+        if (feeCostString !== undefined) {
             const feeCurrencyCode = market ? market['feeCurrency'] : undefined;
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             };
         }
@@ -662,12 +730,9 @@ module.exports = class hitbtc extends Exchange {
         const orderId = this.safeString (trade, 'clientOrderId');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'quantity');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const side = this.safeString (trade, 'side');
         const id = this.safeString (trade, 'id');
-        return {
+        return this.safeTrade ({
             'info': trade,
             'id': id,
             'order': orderId,
@@ -677,11 +742,11 @@ module.exports = class hitbtc extends Exchange {
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -781,8 +846,13 @@ module.exports = class hitbtc extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': undefined,
             'address': address,
+            'addressTo': undefined,
+            'addressFrom': undefined,
             'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
             'type': type,
             'amount': amount,
             'currency': code,
@@ -955,23 +1025,20 @@ module.exports = class hitbtc extends Exchange {
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const amount = this.safeNumber (order, 'quantity');
-        const filled = this.safeNumber (order, 'cumQuantity');
+        const amount = this.safeString (order, 'quantity');
+        const filled = this.safeString (order, 'cumQuantity');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         // we use clientOrderId as the order id with this exchange intentionally
         // because most of their endpoints will require clientOrderId
         // explained here: https://github.com/ccxt/ccxt/issues/5674
         const id = this.safeString (order, 'clientOrderId');
         const clientOrderId = id;
-        const price = this.safeNumber (order, 'price');
+        const price = this.safeString (order, 'price');
         const type = this.safeString (order, 'type');
         const side = this.safeString (order, 'side');
-        let trades = this.safeValue (order, 'tradesReport');
+        const trades = this.safeValue (order, 'tradesReport');
         const fee = undefined;
-        const average = this.safeNumber (order, 'avgPrice');
-        if (trades !== undefined) {
-            trades = this.parseTrades (trades, market);
-        }
+        const average = this.safeString (order, 'avgPrice');
         const timeInForce = this.safeString (order, 'timeInForce');
         return this.safeOrder ({
             'id': id,
@@ -994,7 +1061,7 @@ module.exports = class hitbtc extends Exchange {
             'fee': fee,
             'trades': trades,
             'info': order,
-        });
+        }, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

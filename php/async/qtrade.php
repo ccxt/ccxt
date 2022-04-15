@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\InvalidOrder;
+use \ccxt\Precise;
 
 class qtrade extends Exchange {
 
@@ -24,31 +25,62 @@ class qtrade extends Exchange {
                 'www' => 'https://qtrade.io',
                 'doc' => 'https://qtrade-exchange.github.io/qtrade-docs',
                 'referral' => 'https://qtrade.io/?ref=BKOQWVFGRH2C',
+                'fees' => 'https://qtrade.io/fees',
             ),
             'has' => array(
-                'cancelOrder' => true,
                 'CORS' => null,
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
+                'cancelOrder' => true,
                 'createMarketOrder' => null,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDeposit' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchLeverage' => false,
+                'fetchLeverageTiers' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPosition' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => true,
+                'fetchTradingFees' => false,
                 'fetchTransactions' => null,
                 'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -104,8 +136,8 @@ class qtrade extends Exchange {
                     'feeSide' => 'quote',
                     'tierBased' => true,
                     'percentage' => true,
-                    'taker' => 0.005,
-                    'maker' => 0.0,
+                    'taker' => $this->parse_number('0.005'),
+                    'maker' => $this->parse_number('0.0'),
                 ),
                 'funding' => array(
                     'withdraw' => array(),
@@ -171,29 +203,45 @@ class qtrade extends Exchange {
             $quoteId = $this->safe_string($market, 'base_currency');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
-            $precision = array(
-                'amount' => $this->safe_integer($market, 'market_precision'),
-                'price' => $this->safe_integer($market, 'base_precision'),
-            );
             $canView = $this->safe_value($market, 'can_view', false);
             $canTrade = $this->safe_value($market, 'can_trade', false);
             $active = $canTrade && $canView;
             $result[] = array(
-                'symbol' => $symbol,
                 'id' => $marketId,
                 'numericId' => $numericId,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
                 'active' => $active,
-                'precision' => $precision,
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
                 'taker' => $this->safe_number($market, 'taker_fee'),
                 'maker' => $this->safe_number($market, 'maker_fee'),
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => $this->safe_integer($market, 'market_precision'),
+                    'price' => $this->safe_integer($market, 'base_precision'),
+                ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
                         'min' => $this->safe_number($market, 'minimum_sell_value'),
                         'max' => null,
@@ -266,10 +314,13 @@ class qtrade extends Exchange {
             $name = $this->safe_string($currency, 'long_name');
             $type = $this->safe_string($currency, 'type');
             $canWithdraw = $this->safe_value($currency, 'can_withdraw', true);
+            $withdrawDisabled = $this->safe_value($currency, 'withdraw_disabled', false);
             $depositDisabled = $this->safe_value($currency, 'deposit_disabled', false);
+            $deposit = !$depositDisabled;
+            $withdraw = $canWithdraw && !$withdrawDisabled;
             $config = $this->safe_value($currency, 'config', array());
             $status = $this->safe_string($currency, 'status');
-            $active = $canWithdraw && ($status === 'ok') && !$depositDisabled;
+            $active = $withdraw && $deposit && ($status === 'ok');
             $result[$code] = array(
                 'id' => $id,
                 'code' => $code,
@@ -279,6 +330,8 @@ class qtrade extends Exchange {
                 'fee' => $this->safe_number($config, 'withdraw_fee'),
                 'precision' => $this->safe_integer($currency, 'precision'),
                 'active' => $active,
+                'deposit' => $deposit,
+                'withdraw' => $withdraw,
                 'limits' => array(
                     'amount' => array(
                         'min' => $this->safe_number($currency, 'minimum_order'),
@@ -407,32 +460,25 @@ class qtrade extends Exchange {
         $marketId = $this->safe_string($ticker, 'id_hr');
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $timestamp = $this->safe_integer_product($ticker, 'last_change', 0.001);
-        $previous = $this->safe_number($ticker, 'day_open');
-        $last = $this->safe_number($ticker, 'last');
-        $day_change = $this->safe_number($ticker, 'day_change');
-        $percentage = null;
-        $change = null;
-        $average = $this->safe_number($ticker, 'day_avg_price');
-        if ($day_change !== null) {
-            $percentage = $day_change * 100;
-            if ($previous !== null) {
-                $change = $day_change * $previous;
-            }
-        }
-        $baseVolume = $this->safe_number($ticker, 'day_volume_market');
-        $quoteVolume = $this->safe_number($ticker, 'day_volume_base');
-        $vwap = $this->vwap($baseVolume, $quoteVolume);
+        $previous = $this->safe_string($ticker, 'day_open');
+        $last = $this->safe_string($ticker, 'last');
+        $day_change = $this->safe_string($ticker, 'day_change');
+        $average = $this->safe_string($ticker, 'day_avg_price');
+        $baseVolume = $this->safe_string($ticker, 'day_volume_market');
+        $quoteVolume = $this->safe_string($ticker, 'day_volume_base');
+        $percentage = Precise::string_mul($day_change, '100');
+        $change = Precise::string_mul($day_change, $previous);
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'day_high'),
-            'low' => $this->safe_number($ticker, 'day_low'),
-            'bid' => $this->safe_number($ticker, 'bid'),
+            'high' => $this->safe_string($ticker, 'day_high'),
+            'low' => $this->safe_string($ticker, 'day_low'),
+            'bid' => $this->safe_string($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'ask'),
+            'ask' => $this->safe_string($ticker, 'ask'),
             'askVolume' => null,
-            'vwap' => $vwap,
+            'vwap' => null,
             'open' => $previous,
             'close' => $last,
             'last' => $last,
@@ -443,7 +489,7 @@ class qtrade extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -670,24 +716,49 @@ class qtrade extends Exchange {
         ), $market);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_trading_fee($symbol, $params = array ()) {
         yield $this->load_markets();
-        $response = yield $this->privateGetBalancesAll ($params);
+        $market = $this->market($symbol);
+        $request = array(
+            'market_string' => $market['id'],
+        );
+        $response = yield $this->publicGetMarketMarketString (array_merge($request, $params));
         //
         //     {
-        //         "data":{
-        //             "balances" => array(
-        //                 array( "balance" => "100000000", "currency" => "BCH" ),
-        //                 array( "balance" => "99992435.78253015", "currency" => "LTC" ),
-        //                 array( "balance" => "99927153.76074182", "currency" => "BTC" ),
+        //         $data => {
+        //             $market => array(
+        //                 id => '41',
+        //                 market_currency => 'ETH',
+        //                 base_currency => 'BTC',
+        //                 maker_fee => '0',
+        //                 taker_fee => '0.005',
+        //                 metadata => array(),
+        //                 can_trade => true,
+        //                 can_cancel => true,
+        //                 can_view => true,
+        //                 market_string => 'ETH_BTC',
+        //                 minimum_sell_amount => '0.001',
+        //                 minimum_buy_value => '0.0001',
+        //                 market_precision => '18',
+        //                 base_precision => '8'
         //             ),
-        //             "order_balances":array(),
-        //             "limit_used":0,
-        //             "limit_remaining":4000,
-        //             "limit":4000
+        //             recent_trades => array()
         //         }
         //     }
         //
+        $data = $this->safe_value($response, 'data', array());
+        $marketData = $this->safe_value($data, 'market', array());
+        return array(
+            'info' => $marketData,
+            'symbol' => $symbol,
+            'maker' => $this->safe_number($marketData, 'maker_fee'),
+            'taker' => $this->safe_number($marketData, 'taker_fee'),
+            'percentage' => true,
+            'tierBased' => true,
+        );
+    }
+
+    public function parse_balance($response) {
         $data = $this->safe_value($response, 'data', array());
         $balances = $this->safe_value($data, 'balances', array());
         $result = array(
@@ -713,7 +784,28 @@ class qtrade extends Exchange {
             $account['used'] = $this->safe_string($balance, 'balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->privateGetBalancesAll ($params);
+        //
+        //     {
+        //         "data":{
+        //             "balances" => array(
+        //                 array( "balance" => "100000000", "currency" => "BCH" ),
+        //                 array( "balance" => "99992435.78253015", "currency" => "LTC" ),
+        //                 array( "balance" => "99927153.76074182", "currency" => "BTC" ),
+        //             ),
+        //             "order_balances":array(),
+        //             "limit_used":0,
+        //             "limit_remaining":4000,
+        //             "limit":4000
+        //         }
+        //     }
+        //
+        return $this->parse_balance($response);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -842,9 +934,9 @@ class qtrade extends Exchange {
             $side = $this->safe_string($parts, 0);
             $orderType = $this->safe_string($parts, 1);
         }
-        $price = $this->safe_number($order, 'price');
-        $amount = $this->safe_number($order, 'market_amount');
-        $remaining = $this->safe_number($order, 'market_amount_remaining');
+        $price = $this->safe_string($order, 'price');
+        $amount = $this->safe_string($order, 'market_amount');
+        $remaining = $this->safe_string($order, 'market_amount_remaining');
         $open = $this->safe_value($order, 'open', false);
         $closeReason = $this->safe_string($order, 'close_reason');
         $status = null;
@@ -859,11 +951,6 @@ class qtrade extends Exchange {
         $market = $this->safe_market($marketId, $market, '_');
         $symbol = $market['symbol'];
         $rawTrades = $this->safe_value($order, 'trades', array());
-        $parsedTrades = $this->parse_trades($rawTrades, $market, null, null, array(
-            'order' => $id,
-            'side' => $side,
-            'type' => $orderType,
-        ));
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -886,8 +973,8 @@ class qtrade extends Exchange {
             'fee' => null,
             'fees' => null,
             'cost' => null,
-            'trades' => $parsedTrades,
-        ));
+            'trades' => $rawTrades,
+        ), $market);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
@@ -1374,6 +1461,7 @@ class qtrade extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => null,
             'addressFrom' => $addressFrom,
             'addressTo' => $addressTo,
             'address' => $address,

@@ -24,23 +24,38 @@ class coinbase extends Exchange {
                 'CB-VERSION' => '2018-05-30',
             ),
             'has' => array(
-                'cancelOrder' => null,
                 'CORS' => true,
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
+                'cancelOrder' => null,
                 'createDepositAddress' => true,
                 'createOrder' => null,
-                'deposit' => null,
+                'createReduceOnlyOrder' => false,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,
                 'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
                 'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => null,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => null,
                 'fetchDeposits' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchL2OrderBook' => false,
                 'fetchLedger' => true,
+                'fetchLeverage' => false,
+                'fetchLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyBuys' => true,
@@ -51,13 +66,22 @@ class coinbase extends Exchange {
                 'fetchOrder' => null,
                 'fetchOrderBook' => false,
                 'fetchOrders' => null,
+                'fetchPosition' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => null,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => false,
                 'fetchTransactions' => null,
                 'fetchWithdrawals' => true,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
                 'withdraw' => null,
             ),
             'urls' => array(
@@ -443,8 +467,13 @@ class coinbase extends Exchange {
             'txid' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => null,
             'address' => null,
+            'addressTo' => null,
+            'addressFrom' => null,
             'tag' => null,
+            'tagTo' => null,
+            'tagFrom' => null,
             'type' => $type,
             'amount' => $amount,
             'currency' => $currency,
@@ -549,24 +578,39 @@ class coinbase extends Exchange {
                     $quoteCurrency = $data[$j];
                     $quoteId = $this->safe_string($quoteCurrency, 'id');
                     $quote = $this->safe_currency_code($quoteId);
-                    $symbol = $base . '/' . $quote;
-                    $id = $baseId . '-' . $quoteId;
                     $result[] = array(
-                        'id' => $id,
-                        'symbol' => $symbol,
+                        'id' => $baseId . '-' . $quoteId,
+                        'symbol' => $base . '/' . $quote,
                         'base' => $base,
                         'quote' => $quote,
+                        'settle' => null,
                         'baseId' => $baseId,
                         'quoteId' => $quoteId,
+                        'settleId' => null,
                         'type' => 'spot',
                         'spot' => true,
+                        'margin' => false,
+                        'swap' => false,
+                        'future' => false,
+                        'option' => false,
                         'active' => null,
-                        'info' => $quoteCurrency,
+                        'contract' => false,
+                        'linear' => null,
+                        'inverse' => null,
+                        'contractSize' => null,
+                        'expiry' => null,
+                        'expiryDatetime' => null,
+                        'strike' => null,
+                        'optionType' => null,
                         'precision' => array(
                             'amount' => null,
                             'price' => null,
                         ),
                         'limits' => array(
+                            'leverage' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
                             'amount' => array(
                                 'min' => null,
                                 'max' => null,
@@ -579,10 +623,8 @@ class coinbase extends Exchange {
                                 'min' => $this->safe_number($quoteCurrency, 'min_size'),
                                 'max' => null,
                             ),
-                            'leverage' => array(
-                                'max' => 1,
-                            ),
                         ),
+                        'info' => $quoteCurrency,
                     );
                 }
             }
@@ -657,6 +699,8 @@ class coinbase extends Exchange {
                 'type' => $type,
                 'name' => $name,
                 'active' => true,
+                'deposit' => null,
+                'withdraw' => null,
                 'fee' => null,
                 'precision' => null,
                 'limits' => array(
@@ -748,17 +792,14 @@ class coinbase extends Exchange {
         $bid = null;
         $last = null;
         $timestamp = $this->milliseconds();
-        if (gettype($ticker) === 'string') {
-            $inverted = Precise::string_div('1', $ticker); // the currency requested, USD or other, is the base currency
-            $last = $this->parse_number($inverted);
-        } else {
+        if (gettype($ticker) !== 'string') {
             list($spot, $buy, $sell) = $ticker;
             $spotData = $this->safe_value($spot, 'data', array());
             $buyData = $this->safe_value($buy, 'data', array());
             $sellData = $this->safe_value($sell, 'data', array());
-            $last = $this->safe_number($spotData, 'amount');
-            $bid = $this->safe_number($buyData, 'amount');
-            $ask = $this->safe_number($sellData, 'amount');
+            $last = $this->safe_string($spotData, 'amount');
+            $bid = $this->safe_string($buyData, 'amount');
+            $ask = $this->safe_string($sellData, 'amount');
         }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -781,7 +822,7 @@ class coinbase extends Exchange {
             'baseVolume' => null,
             'quoteVolume' => null,
             'info' => $ticker,
-        ));
+        ), $market, false);
     }
 
     public function fetch_balance($params = array ()) {
@@ -816,7 +857,7 @@ class coinbase extends Exchange {
                 }
             }
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
@@ -826,7 +867,7 @@ class coinbase extends Exchange {
             $currency = $this->currency($code);
         }
         $request = yield $this->prepare_account_request_with_currency_code($code, $limit, $params);
-        $query = $this->omit($params, ['account_id', 'accountId']);
+        $query = $this->omit($params, array( 'account_id', 'accountId' ));
         // for pagination use parameter 'starting_after'
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
         // eg => instance.last_json_response.pagination.next_starting_after

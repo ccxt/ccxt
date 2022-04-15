@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError, BadSymbol } = require ('./base/errors');
-const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -14,23 +13,56 @@ module.exports = class indodax extends Exchange {
             'id': 'indodax',
             'name': 'INDODAX',
             'countries': [ 'ID' ], // Indonesia
+            // 10 requests per second for making trades => 1000ms / 10 = 100ms
+            // 180 requests per minute (public endpoints) = 2 requests per second => cost = (1000ms / rateLimit) / 2 = 5
+            'rateLimit': 100,
             'has': {
-                'cancelOrder': true,
                 'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
+                'cancelOrder': true,
                 'createMarketOrder': undefined,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchLeverage': false,
+                'fetchLeverageTiers': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': undefined,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': undefined,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': undefined,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': false,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'withdraw': true,
             },
             'version': '2.0', // as of 9 April 2018
@@ -46,26 +78,33 @@ module.exports = class indodax extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'server_time',
-                        'pairs',
-                        '{pair}/ticker',
-                        '{pair}/trades',
-                        '{pair}/depth',
-                    ],
+                    'get': {
+                        'server_time': 5,
+                        'pairs': 5,
+                        'price_increments': 5,
+                        'summaries': 5,
+                        'ticker_all': 5,
+                        '{pair}/ticker': 5,
+                        '{pair}/trades': 5,
+                        '{pair}/depth': 5,
+                    },
                 },
                 'private': {
-                    'post': [
-                        'getInfo',
-                        'transHistory',
-                        'trade',
-                        'tradeHistory',
-                        'getOrder',
-                        'openOrders',
-                        'cancelOrder',
-                        'orderHistory',
-                        'withdrawCoin',
-                    ],
+                    'post': {
+                        'getInfo': 4,
+                        'transHistory': 4, // TODO add fetchDeposits, fetchWithdrawals, fetchTransactionsbyType
+                        'trade': 1,
+                        'tradeHistory': 4, // TODO add fetchMyTrades
+                        'openOrders': 4,
+                        'orderHistory': 4,
+                        'getOrder': 4,
+                        'cancelOrder': 4,
+                        'withdrawFee': 4,
+                        'withdrawCoin': 4,
+                        'listDownline': 4,
+                        'checkDownline': 4,
+                        'createVoucher': 4, // partner only
+                    },
                 },
             },
             'fees': {
@@ -120,13 +159,6 @@ module.exports = class indodax extends Exchange {
         return this.safeInteger (response, 'server_time');
     }
 
-    async loadTimeDifference (params = {}) {
-        const serverTime = await this.fetchTime (params);
-        const after = this.milliseconds ();
-        this.options['timeDifference'] = after - serverTime;
-        return this.options['timeDifference'];
-    }
-
     async fetchMarkets (params = {}) {
         const response = await this.publicGetPairs (params);
         //
@@ -163,47 +195,81 @@ module.exports = class indodax extends Exchange {
             const quoteId = this.safeString (market, 'base_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const taker = this.safeNumber (market, 'trade_fee_percent');
             const isMaintenance = this.safeInteger (market, 'is_maintenance');
-            const active = (isMaintenance) ? false : true;
-            const pricePrecision = this.safeInteger (market, 'price_round');
-            const precision = {
-                'amount': 8,
-                'price': pricePrecision,
-            };
-            const limits = {
-                'amount': {
-                    'min': this.safeNumber (market, 'trade_min_traded_currency'),
-                    'max': undefined,
-                },
-                'price': {
-                    'min': this.safeNumber (market, 'trade_min_base_currency'),
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-            };
             result.push ({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'active': active,
-                'taker': taker,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': isMaintenance ? false : true,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'taker': this.safeNumber (market, 'trade_fee_percent'),
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
                 'percentage': true,
-                'precision': precision,
-                'limits': limits,
+                'precision': {
+                    'amount': parseInt ('8'),
+                    'price': this.safeInteger (market, 'price_round'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': this.safeNumber (market, 'trade_min_traded_currency'),
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': this.safeNumber (market, 'trade_min_base_currency'),
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
                 'info': market,
             });
         }
         return result;
+    }
+
+    parseBalance (response) {
+        const balances = this.safeValue (response, 'return', {});
+        const free = this.safeValue (balances, 'balance', {});
+        const used = this.safeValue (balances, 'balance_hold', {});
+        const timestamp = this.safeTimestamp (balances, 'server_time');
+        const result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        const currencyIds = Object.keys (free);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (free, currencyId);
+            account['used'] = this.safeString (used, currencyId);
+            result[code] = account;
+        }
+        return this.safeBalance (result);
     }
 
     async fetchBalance (params = {}) {
@@ -239,25 +305,7 @@ module.exports = class indodax extends Exchange {
         //         }
         //     }
         //
-        const balances = this.safeValue (response, 'return', {});
-        const free = this.safeValue (balances, 'balance', {});
-        const used = this.safeValue (balances, 'balance_hold', {});
-        const timestamp = this.safeTimestamp (balances, 'server_time');
-        const result = {
-            'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-        };
-        const currencyIds = Object.keys (free);
-        for (let i = 0; i < currencyIds.length; i++) {
-            const currencyId = currencyIds[i];
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeString (free, currencyId);
-            account['used'] = this.safeString (used, currencyId);
-            result[code] = account;
-        }
-        return this.parseBalance (result);
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -267,6 +315,48 @@ module.exports = class indodax extends Exchange {
         };
         const orderbook = await this.publicGetPairDepth (this.extend (request, params));
         return this.parseOrderBook (orderbook, symbol, undefined, 'buy', 'sell');
+    }
+
+    parseTicker (ticker, market = undefined) {
+        //
+        //     {
+        //         "high":"0.01951",
+        //         "low":"0.01877",
+        //         "vol_eth":"39.38839319",
+        //         "vol_btc":"0.75320886",
+        //         "last":"0.01896",
+        //         "buy":"0.01896",
+        //         "sell":"0.019",
+        //         "server_time":1565248908
+        //     }
+        //
+        const symbol = this.safeSymbol (undefined, market);
+        const timestamp = this.safeTimestamp (ticker, 'server_time');
+        const baseVolume = 'vol_' + market['baseId'].toLowerCase ();
+        const quoteVolume = 'vol_' + market['quoteId'].toLowerCase ();
+        const last = this.safeString (ticker, 'last');
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'buy'),
+            'bidVolume': undefined,
+            'ask': this.safeString (ticker, 'sell'),
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': undefined,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': this.safeString (ticker, baseVolume),
+            'quoteVolume': this.safeString (ticker, quoteVolume),
+            'info': ticker,
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -290,64 +380,27 @@ module.exports = class indodax extends Exchange {
         //         }
         //     }
         //
-        const ticker = response['ticker'];
-        const timestamp = this.safeTimestamp (ticker, 'server_time');
-        const baseVolume = 'vol_' + market['baseId'].toLowerCase ();
-        const quoteVolume = 'vol_' + market['quoteId'].toLowerCase ();
-        const last = this.safeNumber (ticker, 'last');
-        return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'buy'),
-            'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'sell'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': this.safeNumber (ticker, baseVolume),
-            'quoteVolume': this.safeNumber (ticker, quoteVolume),
-            'info': ticker,
-        };
+        const ticker = this.safeValue (response, 'ticker', {});
+        return this.parseTicker (ticker, market);
     }
 
     parseTrade (trade, market = undefined) {
         const timestamp = this.safeTimestamp (trade, 'date');
-        const id = this.safeString (trade, 'tid');
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        const type = undefined;
-        const side = this.safeString (trade, 'type');
-        const priceString = this.safeString (trade, 'price');
-        const amountString = this.safeString (trade, 'amount');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
-        return {
-            'id': id,
+        return this.safeTrade ({
+            'id': this.safeString (trade, 'tid'),
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'type': type,
-            'side': side,
+            'symbol': this.safeSymbol (undefined, market),
+            'type': undefined,
+            'side': this.safeString (trade, 'type'),
             'order': undefined,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': this.safeString (trade, 'price'),
+            'amount': this.safeString (trade, 'amount'),
+            'cost': undefined,
             'fee': undefined,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -422,7 +475,7 @@ module.exports = class indodax extends Exchange {
         const timestamp = this.safeInteger (order, 'submit_time');
         const fee = undefined;
         const id = this.safeString (order, 'order_id');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -503,6 +556,7 @@ module.exports = class indodax extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
+            symbol = market['symbol'];
             request['pair'] = market['id'];
         }
         const response = await this.privatePostOrderHistory (this.extend (request, params));

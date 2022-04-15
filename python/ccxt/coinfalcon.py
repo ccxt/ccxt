@@ -4,11 +4,11 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.precise import Precise
 
 
 class coinfalcon(Exchange):
@@ -21,19 +21,55 @@ class coinfalcon(Exchange):
             'rateLimit': 1000,
             'version': 'v1',
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
                 'cancelOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
+                'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
                 'fetchDeposits': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchLeverage': False,
+                'fetchLeverageTiers': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchTradinFee': False,
+                'fetchTradingFees': True,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
                 'fetchWithdrawals': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
+                'transfer': False,
                 'withdraw': True,
             },
             'urls': {
@@ -92,6 +128,26 @@ class coinfalcon(Exchange):
 
     def fetch_markets(self, params={}):
         response = self.publicGetMarkets(params)
+        #
+        #    {
+        #        "data": [
+        #            {
+        #                "name": "ETH-BTC",
+        #                "precision": 6,
+        #                "min_volume": "0.00000001",
+        #                "min_price": "0.000001",
+        #                "volume": "0.015713",
+        #                "last_price": "0.069322",
+        #                "highest_bid": "0.063892",
+        #                "lowest_ask": "0.071437",
+        #                "change_in_24h": "2.85",
+        #                "size_precision": 8,
+        #                "price_precision": 6
+        #            },
+        #            ...
+        #        ]
+        #    }
+        #
         markets = self.safe_value(response, 'data')
         result = []
         for i in range(0, len(markets)):
@@ -99,29 +155,45 @@ class coinfalcon(Exchange):
             baseId, quoteId = market['name'].split('-')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            precision = {
-                'amount': self.safe_integer(market, 'size_precision'),
-                'price': self.safe_integer(market, 'price_precision'),
-            }
             result.append({
                 'id': market['name'],
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
                 'active': True,
-                'precision': precision,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.safe_integer(market, 'size_precision'),
+                    'price': self.safe_integer(market, 'price_precision'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
-                        'min': math.pow(10, -precision['amount']),
+                        'min': self.safe_number(market, 'minPrice'),
                         'max': None,
                     },
                     'price': {
-                        'min': math.pow(10, -precision['price']),
+                        'min': self.safe_number(market, 'minVolume'),
                         'max': None,
                     },
                     'cost': {
@@ -134,41 +206,75 @@ class coinfalcon(Exchange):
         return result
 
     def parse_ticker(self, ticker, market=None):
+        #
+        #     {
+        #         "name":"ETH-BTC",
+        #         "precision":6,
+        #         "min_volume":"0.00000001",
+        #         "min_price":"0.000001",
+        #         "volume":"0.000452",
+        #         "last_price":"0.079059",
+        #         "highest_bid":"0.073472",
+        #         "lowest_ask":"0.079059",
+        #         "change_in_24h":"8.9",
+        #         "size_precision":8,
+        #         "price_precision":6
+        #     }
+        #
         marketId = self.safe_string(ticker, 'name')
-        symbol = self.safe_symbol(marketId, market, '-')
+        market = self.safe_market(marketId, market, '-')
         timestamp = self.milliseconds()
-        last = self.safe_number(ticker, 'last_price')
-        return {
-            'symbol': symbol,
+        last = self.safe_string(ticker, 'last_price')
+        return self.safe_ticker({
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': None,
+            'bid': self.safe_string(ticker, 'highest_bid'),
             'bidVolume': None,
-            'ask': None,
+            'ask': self.safe_string(ticker, 'lowest_ask'),
             'askVolume': None,
             'vwap': None,
             'open': None,
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': self.safe_number(ticker, 'change_in_24h'),
+            'change': self.safe_string(ticker, 'change_in_24h'),
             'percentage': None,
             'average': None,
             'baseVolume': None,
-            'quoteVolume': self.safe_number(ticker, 'volume'),
+            'quoteVolume': self.safe_string(ticker, 'volume'),
             'info': ticker,
-        }
+        }, market, False)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
-        tickers = self.fetch_tickers(params)
+        tickers = self.fetch_tickers([symbol], params)
         return tickers[symbol]
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
         response = self.publicGetMarkets(params)
+        #
+        #     {
+        #         "data":[
+        #             {
+        #                 "name":"ETH-BTC",
+        #                 "precision":6,
+        #                 "min_volume":"0.00000001",
+        #                 "min_price":"0.000001",
+        #                 "volume":"0.000452",
+        #                 "last_price":"0.079059",
+        #                 "highest_bid":"0.073472",
+        #                 "lowest_ask":"0.079059",
+        #                 "change_in_24h":"8.9",
+        #                 "size_precision":8,
+        #                 "price_precision":6
+        #             }
+        #         ]
+        #     }
+        #
         tickers = self.safe_value(response, 'data')
         result = {}
         for i in range(0, len(tickers)):
@@ -304,9 +410,37 @@ class coinfalcon(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    def fetch_balance(self, params={}):
+    def fetch_trading_fees(self, params={}):
         self.load_markets()
-        response = self.privateGetUserAccounts(params)
+        response = self.privateGetUserFees(params)
+        #
+        #    {
+        #        data: {
+        #            maker_fee: '0.0',
+        #            taker_fee: '0.2',
+        #            btc_volume_30d: '0.0'
+        #        }
+        #    }
+        #
+        data = self.safe_value(response, 'data', {})
+        makerString = self.safe_string(data, 'maker_fee')
+        takerString = self.safe_string(data, 'taker_fee')
+        maker = self.parse_number(Precise.string_div(makerString, '100'))
+        taker = self.parse_number(Precise.string_div(takerString, '100'))
+        result = {}
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            result[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': maker,
+                'taker': taker,
+                'percentage': True,
+                'tierBased': True,
+            }
+        return result
+
+    def parse_balance(self, response):
         result = {'info': response}
         balances = self.safe_value(response, 'data')
         for i in range(0, len(balances)):
@@ -318,7 +452,48 @@ class coinfalcon(Exchange):
             account['used'] = self.safe_string(balance, 'hold_balance')
             account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
+
+    def fetch_balance(self, params={}):
+        self.load_markets()
+        response = self.privateGetUserAccounts(params)
+        return self.parse_balance(response)
+
+    def parse_deposit_address(self, depositAddress, currency=None):
+        #
+        #     {
+        #         "address":"0x77b5051f97efa9cc52c9ad5b023a53fc15c200d3",
+        #         "tag":"0"
+        #     }
+        #
+        address = self.safe_string(depositAddress, 'address')
+        tag = self.safe_string(depositAddress, 'tag')
+        self.check_address(address)
+        return {
+            'currency': self.safe_currency_code(None, currency),
+            'address': address,
+            'tag': tag,
+            'network': None,
+            'info': depositAddress,
+        }
+
+    def fetch_deposit_address(self, code, params={}):
+        self.load_markets()
+        currency = self.safe_currency(code)
+        request = {
+            'currency': self.safe_string_lower(currency, 'id'),
+        }
+        response = self.privateGetAccountDepositAddress(self.extend(request, params))
+        #
+        #     {
+        #         data: {
+        #             address: '0x9918987bbe865a1a9301dc736cf6cf3205956694',
+        #             tag:null
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_deposit_address(data, currency)
 
     def parse_order_status(self, status):
         statuses = {
@@ -361,7 +536,7 @@ class coinfalcon(Exchange):
             type = type[0]
         side = self.safe_string(order, 'order_type')
         postOnly = self.safe_value(order, 'post_only')
-        return self.safe_order2({
+        return self.safe_order({
             'id': self.safe_string(order, 'id'),
             'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
@@ -448,7 +623,7 @@ class coinfalcon(Exchange):
         currency = None
         if code is not None:
             currency = self.currency(code)
-            request['currency'] = currency['id'].lower()
+            request['currency'] = self.safe_string_lower(currency, 'id')
         if since is not None:
             request['since_time'] = self.iso8601(since)
         response = self.privateGetAccountDeposits(self.extend(request, params))
@@ -482,7 +657,7 @@ class coinfalcon(Exchange):
         currency = None
         if code is not None:
             currency = self.currency(code)
-            request['currency'] = currency['id'].lower()
+            request['currency'] = self.safe_string_lower(currency, 'id')
         if since is not None:
             request['since_time'] = self.iso8601(since)
         response = self.privateGetAccountWithdrawals(self.extend(request, params))
@@ -511,7 +686,7 @@ class coinfalcon(Exchange):
         self.load_markets()
         currency = self.currency(code)
         request = {
-            'currency': currency['id'].lower(),
+            'currency': self.safeStingLower(currency, 'id'),
             'address': address,
             'amount': amount,
             # 'tag': 'string',  # withdraw tag/memo
@@ -596,8 +771,13 @@ class coinfalcon(Exchange):
             'txid': txid,
             'timestamp': None,
             'datetime': None,
+            'network': None,
             'address': address,
+            'addressTo': None,
+            'addressFrom': None,
             'tag': tag,
+            'tagTo': None,
+            'tagFrom': None,
             'type': type,
             'amount': amount,
             'currency': code,

@@ -11,6 +11,7 @@ from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
@@ -28,20 +29,34 @@ class latoken(Exchange):
             'version': 'v2',
             'rateLimit': 1000,
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': None,  # has but unimplemented
+                'future': None,
+                'option': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchCurrencies': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
-                'fetchOrderBook': True,
                 'fetchOrder': True,
+                'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTime': True,
                 'fetchTrades': True,
+                'fetchTradingFee': True,
+                'fetchTradingFees': False,
                 'fetchTransactions': True,
             },
             'urls': {
@@ -129,10 +144,22 @@ class latoken(Exchange):
                 },
             },
             'commonCurrencies': {
+                'BUX': 'Buxcoin',
+                'CBT': 'Community Business Token',
+                'CTC': 'CyberTronchain',
+                'DMD': 'Diamond Coin',
+                'FREN': 'Frenchie',
+                'GDX': 'GoldenX',
+                'GEC': 'Geco One',
+                'GEM': 'NFTmall',
+                'GMT': 'GMT Token',
+                'IMC': 'IMCoin',
                 'MT': 'Monarch',
                 'TPAY': 'Tetra Pay',
                 'TRADE': 'Smart Trade Coin',
                 'TSL': 'Treasure SL',
+                'UNO': 'Unobtanium',
+                'WAR': 'Warrior Token',
             },
             'exceptions': {
                 'exact': {
@@ -161,6 +188,7 @@ class latoken(Exchange):
                     'invalid API key, signature or digest': AuthenticationError,  # {"result":false,"message":"invalid API key, signature or digest","error":"BAD_REQUEST","status":"FAILURE"}
                     'request expired or bad': InvalidNonce,  # {"result":false,"message":"request expired or bad <timeAlive>/<timestamp> format","error":"BAD_REQUEST","status":"FAILURE"}
                     'For input string': BadRequest,  # {"result":false,"message":"Internal error","error":"For input string: \"NaN\"","status":"FAILURE"}
+                    'Unable to resolve currency by tag': BadSymbol,  # {"message":"Unable to resolve currency by tag(None)","error":"NOT_FOUND","status":"FAILURE"}
                 },
             },
             'options': {
@@ -172,6 +200,9 @@ class latoken(Exchange):
                 'accounts': {
                     'ACCOUNT_TYPE_WALLET': 'wallet',
                     'ACCOUNT_TYPE_SPOT': 'spot',
+                },
+                'fetchTradingFee': {
+                    'method': 'fetchPrivateTradingFee',  # or 'fetchPublicTradingFee'
                 },
             },
         })
@@ -187,12 +218,6 @@ class latoken(Exchange):
         #     }
         #
         return self.safe_integer(response, 'serverTime')
-
-    def load_time_difference(self, params={}):
-        serverTime = self.fetch_time(params)
-        after = self.milliseconds()
-        self.options['timeDifference'] = after - serverTime
-        return self.options['timeDifference']
 
     def fetch_markets(self, params={}):
         currencies = self.fetch_currencies_from_cache(params)
@@ -264,42 +289,56 @@ class latoken(Exchange):
             if baseCurrency is not None and quoteCurrency is not None:
                 base = self.safe_currency_code(self.safe_string(baseCurrency, 'tag'))
                 quote = self.safe_currency_code(self.safe_string(quoteCurrency, 'tag'))
-                symbol = base + '/' + quote
-                precision = {
-                    'price': self.safe_number(market, 'priceTick'),
-                    'amount': self.safe_number(market, 'quantityTick'),
-                }
                 lowercaseQuote = quote.lower()
                 capitalizedQuote = self.capitalize(lowercaseQuote)
-                limits = {
-                    'amount': {
-                        'min': self.safe_number(market, 'minOrderQuantity'),
-                        'max': None,
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': self.safe_number(market, 'minOrderCost' + capitalizedQuote),
-                        'max': self.safe_number(market, 'maxOrderCost' + capitalizedQuote),
-                    },
-                }
                 status = self.safe_string(market, 'status')
-                active = (status == 'PAIR_STATUS_ACTIVE')
                 result.append({
                     'id': id,
-                    'info': market,
-                    'symbol': symbol,
+                    'symbol': base + '/' + quote,
                     'base': base,
                     'quote': quote,
+                    'settle': None,
                     'baseId': baseId,
                     'quoteId': quoteId,
+                    'settleId': None,
                     'type': 'spot',
                     'spot': True,
-                    'active': active,  # assuming True
-                    'precision': precision,
-                    'limits': limits,
+                    'margin': False,
+                    'swap': False,
+                    'future': False,
+                    'option': False,
+                    'active': (status == 'PAIR_STATUS_ACTIVE'),  # assuming True
+                    'contract': False,
+                    'linear': None,
+                    'inverse': None,
+                    'contractSize': None,
+                    'expiry': None,
+                    'expiryDatetime': None,
+                    'strike': None,
+                    'optionType': None,
+                    'precision': {
+                        'amount': self.safe_number(market, 'quantityTick'),
+                        'price': self.safe_number(market, 'priceTick'),
+                    },
+                    'limits': {
+                        'leverage': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'amount': {
+                            'min': self.safe_number(market, 'minOrderQuantity'),
+                            'max': None,
+                        },
+                        'price': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'cost': {
+                            'min': self.safe_number(market, 'minOrderCost' + capitalizedQuote),
+                            'max': self.safe_number(market, 'maxOrderCost' + capitalizedQuote),
+                        },
+                    },
+                    'info': market,
                 })
         return result
 
@@ -376,6 +415,8 @@ class latoken(Exchange):
                 'name': name,
                 'type': type,
                 'active': active,
+                'deposit': None,
+                'withdraw': None,
                 'fee': fee,
                 'precision': precision,
                 'limits': {
@@ -444,7 +485,7 @@ class latoken(Exchange):
             result[code] = account
         result['timestamp'] = maxTimestamp
         result['datetime'] = self.iso8601(maxTimestamp)
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -489,15 +530,15 @@ class latoken(Exchange):
         #
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        last = self.safe_number(ticker, 'lastPrice')
-        change = self.safe_number(ticker, 'change24h')
+        last = self.safe_string(ticker, 'lastPrice')
+        change = self.safe_string(ticker, 'change24h')
         timestamp = self.nonce()
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'low': self.safe_number(ticker, 'low'),
-            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'high': self.safe_string(ticker, 'high'),
             'bid': None,
             'bidVolume': None,
             'ask': None,
@@ -511,9 +552,9 @@ class latoken(Exchange):
             'percentage': None,
             'average': None,
             'baseVolume': None,
-            'quoteVolume': self.safe_number(ticker, 'volume24h'),
+            'quoteVolume': self.safe_string(ticker, 'volume24h'),
             'info': ticker,
-        })
+        }, market, False)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -658,6 +699,60 @@ class latoken(Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
+    def fetch_trading_fee(self, symbol, params={}):
+        method = self.safe_string(params, 'method')
+        params = self.omit(params, 'method')
+        if method is None:
+            options = self.safe_value(self.options, 'fetchTradingFee', {})
+            method = self.safe_string(options, 'method', 'fetchPrivateTradingFee')
+        return getattr(self, method)(symbol, params)
+
+    def fetch_public_trading_fee(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'currency': market['baseId'],
+            'quote': market['quoteId'],
+        }
+        response = self.publicGetTradeFeeCurrencyQuote(self.extend(request, params))
+        #
+        #     {
+        #         makerFee: '0.004900000000000000',
+        #         takerFee: '0.004900000000000000',
+        #         type: 'FEE_SCHEME_TYPE_PERCENT_QUOTE',
+        #         take: 'FEE_SCHEME_TAKE_PROPORTION'
+        #     }
+        #
+        return {
+            'info': response,
+            'symbol': symbol,
+            'maker': self.safe_number(response, 'makerFee'),
+            'taker': self.safe_number(response, 'takerFee'),
+        }
+
+    def fetch_private_trading_fee(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'currency': market['baseId'],
+            'quote': market['quoteId'],
+        }
+        response = self.privateGetAuthTradeFeeCurrencyQuote(self.extend(request, params))
+        #
+        #     {
+        #         makerFee: '0.004900000000000000',
+        #         takerFee: '0.004900000000000000',
+        #         type: 'FEE_SCHEME_TYPE_PERCENT_QUOTE',
+        #         take: 'FEE_SCHEME_TAKE_PROPORTION'
+        #     }
+        #
+        return {
+            'info': response,
+            'symbol': symbol,
+            'maker': self.safe_number(response, 'makerFee'),
+            'taker': self.safe_number(response, 'takerFee'),
+        }
+
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         request = {
@@ -778,7 +873,8 @@ class latoken(Exchange):
         side = None
         if orderSide is not None:
             parts = orderSide.split('_')
-            side = self.safe_string_lower(parts, len(parts) - 1)
+            partsLength = len(parts)
+            side = self.safe_string_lower(parts, partsLength - 1)
         type = self.parse_order_type(self.safe_string(order, 'type'))
         price = self.safe_string(order, 'price')
         amount = self.safe_string(order, 'quantity')
@@ -793,7 +889,7 @@ class latoken(Exchange):
                 status = 'open'
         clientOrderId = self.safe_string(order, 'clientOrderId')
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'condition'))
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
@@ -1079,6 +1175,7 @@ class latoken(Exchange):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'addressFrom': addressFrom,
             'addressTo': addressTo,
             'address': addressTo,

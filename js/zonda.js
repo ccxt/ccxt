@@ -15,18 +15,49 @@ module.exports = class zonda extends Exchange {
             'countries': [ 'EE' ], // Estonia
             'rateLimit': 1000,
             'has': {
-                'cancelOrder': true,
                 'CORS': true,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
+                'cancelOrder': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
                 'fetchLedger': true,
+                'fetchLeverage': false,
+                'fetchLeverageTiers': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrderBook': true,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': false,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
+                'transfer': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -44,10 +75,10 @@ module.exports = class zonda extends Exchange {
                 '3d': '259200',
                 '1w': '604800',
             },
-            'hostname': 'zondaglobal.com',
+            'hostname': 'zonda.exchange',
             'urls': {
                 'referral': 'https://auth.zondaglobal.com/ref/jHlbB4mIkdS1',
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/159202310-a0e38007-5e7c-4ba9-a32f-c8263a0291fe.jpg',
                 'www': 'https://zondaglobal.com',
                 'api': {
                     'public': 'https://{hostname}/API/Public',
@@ -90,6 +121,7 @@ module.exports = class zonda extends Exchange {
                         'trading/ticker',
                         'trading/ticker/{symbol}',
                         'trading/stats',
+                        'trading/stats/{symbol}',
                         'trading/orderbook/{symbol}',
                         'trading/transactions/{symbol}',
                         'trading/candle/history/{symbol}/{resolution}',
@@ -185,6 +217,9 @@ module.exports = class zonda extends Exchange {
             },
             'options': {
                 'fiatCurrencies': [ 'EUR', 'USD', 'GBP', 'PLN' ],
+                'transfer': {
+                    'fillResponseFromRequest': true,
+                },
             },
             'exceptions': {
                 '400': ExchangeError, // At least one parameter wasn't set
@@ -246,43 +281,56 @@ module.exports = class zonda extends Exchange {
         const items = this.safeValue (response, 'items');
         const keys = Object.keys (items);
         for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const item = items[key];
+            const id = keys[i];
+            const item = items[id];
             const market = this.safeValue (item, 'market', {});
             const first = this.safeValue (market, 'first', {});
             const second = this.safeValue (market, 'second', {});
             const baseId = this.safeString (first, 'currency');
             const quoteId = this.safeString (second, 'currency');
-            const id = baseId + quoteId;
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const precision = {
-                'amount': this.safeInteger (first, 'scale'),
-                'price': this.safeInteger (second, 'scale'),
-            };
             let fees = this.safeValue (this.fees, 'trading', {});
             if (this.inArray (base, fiatCurrencies) || this.inArray (quote, fiatCurrencies)) {
                 fees = this.safeValue (this.fees, 'fiat', {});
             }
-            const maker = this.safeNumber (fees, 'maker');
-            const taker = this.safeNumber (fees, 'taker');
             // todo: check that the limits have ben interpreted correctly
             // todo: parse the fees page
             result.push ({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'precision': precision,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
                 'active': undefined,
-                'maker': maker,
-                'taker': taker,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'taker': this.safeNumber (fees, 'taker'),
+                'maker': this.safeNumber (fees, 'maker'),
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'optionType': undefined,
+                'strike': undefined,
+                'precision': {
+                    'amount': this.safeInteger (first, 'scale'),
+                    'price': this.safeInteger (second, 'scale'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': this.safeNumber (first, 'minOffer'),
                         'max': undefined,
@@ -335,7 +383,7 @@ module.exports = class zonda extends Exchange {
         const amount = this.safeString (order, 'startAmount');
         const remaining = this.safeString (order, 'currentAmount');
         const postOnly = this.safeValue (order, 'postOnly');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': this.safeString (order, 'id'),
             'clientOrderId': undefined,
             'info': order,
@@ -397,9 +445,7 @@ module.exports = class zonda extends Exchange {
         return this.filterBySymbol (result, symbol);
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.v1_01PrivateGetBalancesBITBAYBalance (params);
+    parseBalance (response) {
         const balances = this.safeValue (response, 'balances');
         if (balances === undefined) {
             throw new ExchangeError (this.id + ' empty balance response ' + this.json (response));
@@ -414,60 +460,113 @@ module.exports = class zonda extends Exchange {
             account['free'] = this.safeString (balance, 'availableFunds');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.v1_01PrivateGetBalancesBITBAYBalance (params);
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
-            'id': this.marketId (symbol),
+            'symbol': this.marketId (symbol),
         };
-        const orderbook = await this.publicGetIdOrderbook (this.extend (request, params));
-        return this.parseOrderBook (orderbook, symbol);
+        const response = await this.v1_01PublicGetTradingOrderbookSymbol (this.extend (request, params));
+        //
+        //     {
+        //         "status":"Ok",
+        //         "sell":[
+        //             {"ra":"43988.93","ca":"0.00100525","sa":"0.00100525","pa":"0.00100525","co":1},
+        //             {"ra":"43988.94","ca":"0.00114136","sa":"0.00114136","pa":"0.00114136","co":1},
+        //             {"ra":"43989","ca":"0.010578","sa":"0.010578","pa":"0.010578","co":1},
+        //         ],
+        //         "buy":[
+        //             {"ra":"42157.33","ca":"2.83147881","sa":"2.83147881","pa":"2.83147881","co":2},
+        //             {"ra":"42096.0","ca":"0.00011878","sa":"0.00011878","pa":"0.00011878","co":1},
+        //             {"ra":"42022.0","ca":"0.00011899","sa":"0.00011899","pa":"0.00011899","co":1},
+        //         ],
+        //         "timestamp":"1642299886122",
+        //         "seqNo":"27641254"
+        //     }
+        //
+        const rawBids = this.safeValue (response, 'buy', []);
+        const rawAsks = this.safeValue (response, 'sell', []);
+        const timestamp = this.safeInteger (response, 'timestamp');
+        return {
+            'symbol': symbol,
+            'bids': this.parseBidsAsks (rawBids, 'ra', 'ca'),
+            'asks': this.parseBidsAsks (rawAsks, 'ra', 'ca'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'nonce': this.safeInteger (response, 'seqNo'),
+        };
     }
 
     parseTicker (ticker, market = undefined) {
-        const symbol = this.safeSymbol (undefined, market);
-        const timestamp = this.milliseconds ();
-        const baseVolume = this.safeNumber (ticker, 'volume');
-        const vwap = this.safeNumber (ticker, 'vwap');
-        let quoteVolume = undefined;
-        if (baseVolume !== undefined && vwap !== undefined) {
-            quoteVolume = baseVolume * vwap;
-        }
-        const last = this.safeNumber (ticker, 'last');
+        //
+        //     {
+        //         m: 'ETH-PLN',
+        //         h: '13485.13',
+        //         l: '13100.01',
+        //         v: '126.10710939',
+        //         r24h: '13332.72'
+        //       }
+        //
+        const open = this.safeString (ticker, 'r24h');
+        const high = this.safeString (ticker, 'h');
+        const low = this.safeString (ticker, 'l');
+        const volume = this.safeString (ticker, 'v');
+        const marketId = this.safeString (ticker, 'm');
+        market = this.safeMarket (marketId, market, '-');
+        const symbol = market['symbol'];
         return this.safeTicker ({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'max'),
-            'low': this.safeNumber (ticker, 'min'),
-            'bid': this.safeNumber (ticker, 'bid'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'high': high,
+            'low': low,
+            'bid': undefined,
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'ask'),
+            'ask': undefined,
             'askVolume': undefined,
-            'vwap': vwap,
-            'open': undefined,
-            'close': last,
-            'last': last,
+            'vwap': undefined,
+            'open': open,
+            'close': undefined,
+            'last': undefined,
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
-            'average': this.safeNumber (ticker, 'average'),
-            'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
+            'average': undefined,
+            'baseVolume': volume,
+            'quoteVolume': undefined,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'id': market['id'],
+            'symbol': market['id'],
         };
-        const response = await this.publicGetIdTicker (this.extend (request, params));
-        return this.parseTicker (response, market);
+        const response = await this.v1_01PublicGetTradingStatsSymbol (this.extend (request, params));
+        //
+        //     {
+        //       status: 'Ok',
+        //       stats: {
+        //         m: 'ETH-PLN',
+        //         h: '13485.13',
+        //         l: '13100.01',
+        //         v: '126.10710939',
+        //         r24h: '13332.72'
+        //       }
+        //     }
+        //
+        const stats = this.safeValue (response, 'stats');
+        return this.parseTicker (stats, market);
     }
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1122,6 +1221,109 @@ module.exports = class zonda extends Exchange {
             'PLN': true,
         };
         return this.safeValue (fiatCurrencies, currency, false);
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'source': fromAccount,
+            'destination': toAccount,
+            'currency': code,
+            'funds': this.currencyToPrecision (code, amount),
+        };
+        const response = await this.v1_01PrivatePostBalancesBITBAYBalanceTransferSourceDestination (this.extend (request, params));
+        //
+        //     {
+        //         "status": "Ok",
+        //         "from": {
+        //             "id": "ad9397c5-3bd9-4372-82ba-22da6a90cb56",
+        //             "userId": "4bc43956-423f-47fd-9faa-acd37c58ed9f",
+        //             "availableFunds": 0.01803472,
+        //             "totalFunds": 0.01804161,
+        //             "lockedFunds": 0.00000689,
+        //             "currency": "BTC",
+        //             "type": "CRYPTO",
+        //             "name": "BTC",
+        //             "balanceEngine": "BITBAY"
+        //         },
+        //         "to": {
+        //             "id": "01931d52-536b-4ca5-a9f4-be28c86d0cc3",
+        //             "userId": "4bc43956-423f-47fd-9faa-acd37c58ed9f",
+        //             "availableFunds": 0.0001,
+        //             "totalFunds": 0.0001,
+        //             "lockedFunds": 0,
+        //             "currency": "BTC",
+        //             "type": "CRYPTO",
+        //             "name": "Prowizja",
+        //             "balanceEngine": "BITBAY"
+        //         },
+        //         "errors": null
+        //     }
+        //
+        const transfer = this.parseTransfer (response, currency);
+        const transferOptions = this.safeValue (this.options, 'transfer', {});
+        const fillResponseFromRequest = this.safeValue (transferOptions, 'fillResponseFromRequest', true);
+        if (fillResponseFromRequest) {
+            transfer['amount'] = amount;
+        }
+        return transfer;
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        //     {
+        //         "status": "Ok",
+        //         "from": {
+        //             "id": "ad9397c5-3bd9-4372-82ba-22da6a90cb56",
+        //             "userId": "4bc43956-423f-47fd-9faa-acd37c58ed9f",
+        //             "availableFunds": 0.01803472,
+        //             "totalFunds": 0.01804161,
+        //             "lockedFunds": 0.00000689,
+        //             "currency": "BTC",
+        //             "type": "CRYPTO",
+        //             "name": "BTC",
+        //             "balanceEngine": "BITBAY"
+        //         },
+        //         "to": {
+        //             "id": "01931d52-536b-4ca5-a9f4-be28c86d0cc3",
+        //             "userId": "4bc43956-423f-47fd-9faa-acd37c58ed9f",
+        //             "availableFunds": 0.0001,
+        //             "totalFunds": 0.0001,
+        //             "lockedFunds": 0,
+        //             "currency": "BTC",
+        //             "type": "CRYPTO",
+        //             "name": "Prowizja",
+        //             "balanceEngine": "BITBAY"
+        //         },
+        //         "errors": null
+        //     }
+        //
+        const status = this.safeString (transfer, 'status');
+        const fromAccount = this.safeValue (transfer, 'from', {});
+        const fromId = this.safeString (fromAccount, 'id');
+        const to = this.safeValue (transfer, 'to', {});
+        const toId = this.safeString (to, 'id');
+        const currencyId = this.safeString (fromAccount, 'currency');
+        return {
+            'info': transfer,
+            'id': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': undefined,
+            'fromAccount': fromId,
+            'toAccount': toId,
+            'status': this.parseTransferStatus (status),
+        };
+    }
+
+    parseTransferStatus (status) {
+        const statuses = {
+            'Ok': 'ok',
+            'Fail': 'failed',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {

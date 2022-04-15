@@ -23,18 +23,30 @@ module.exports = class cdax extends Exchange {
             'hostname': 'cdax.io',
             'pro': false,
             'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': undefined, // has but unimplemented
+                'swap': undefined,
+                'future': undefined,
+                'option': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
-                'CORS': undefined,
                 'createOrder': true,
+                'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
@@ -47,6 +59,8 @@ module.exports = class cdax extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': false,
                 'fetchTradingLimits': true,
                 'fetchWithdrawals': true,
                 'withdraw': true,
@@ -215,7 +229,6 @@ module.exports = class cdax extends Exchange {
                 'fetchOrdersByStatesMethod': 'private_get_order_orders', // 'private_get_order_history' // https://github.com/ccxt/ccxt/pull/5392
                 'fetchOpenOrdersMethod': 'fetch_open_orders_v1', // 'fetch_open_orders_v2' // https://github.com/ccxt/ccxt/issues/5388
                 'createMarketBuyOrderRequiresPrice': true,
-                'fetchMarketsMethod': 'publicGetCommonSymbols',
                 'fetchBalanceMethod': 'privateGetAccountAccountsIdBalance',
                 'createOrderMethod': 'privatePostOrderOrdersPlace',
                 'language': 'en-US',
@@ -266,39 +279,45 @@ module.exports = class cdax extends Exchange {
         };
         const response = await this.publicGetCommonExchange (this.extend (request, params));
         //
-        //     { status:   "ok",
-        //         data: {                                  symbol: "aidocbtc",
-        //                              'buy-limit-must-less-than':  1.1,
-        //                          'sell-limit-must-greater-than':  0.9,
-        //                         'limit-order-must-greater-than':  1,
-        //                            'limit-order-must-less-than':  5000000,
-        //                    'market-buy-order-must-greater-than':  0.0001,
-        //                       'market-buy-order-must-less-than':  100,
-        //                   'market-sell-order-must-greater-than':  1,
-        //                      'market-sell-order-must-less-than':  500000,
-        //                       'circuit-break-when-greater-than':  10000,
-        //                          'circuit-break-when-less-than':  10,
-        //                 'market-sell-order-rate-must-less-than':  0.1,
-        //                  'market-buy-order-rate-must-less-than':  0.1        } }
+        //    {
+        //        status:   "ok",
+        //        data: {
+        //            'symbol': "aidocbtc",
+        //            'buy-limit-must-less-than':  1.1,
+        //            'sell-limit-must-greater-than':  0.9,
+        //            'limit-order-must-greater-than':  1,
+        //            'limit-order-must-less-than':  5000000,
+        //            'market-buy-order-must-greater-than':  0.0001,
+        //            'market-buy-order-must-less-than':  100,
+        //            'market-sell-order-must-greater-than':  1,
+        //            'market-sell-order-must-less-than':  500000,
+        //            'circuit-break-when-greater-than':  10000,
+        //            'circuit-break-when-less-than':  10,
+        //            'market-sell-order-rate-must-less-than':  0.1,
+        //            'market-buy-order-rate-must-less-than':  0.1
+        //        }
+        //    }
         //
         return this.parseTradingLimits (this.safeValue (response, 'data', {}));
     }
 
     parseTradingLimits (limits, symbol = undefined, params = {}) {
         //
-        //   {                                  symbol: "aidocbtc",
-        //                  'buy-limit-must-less-than':  1.1,
-        //              'sell-limit-must-greater-than':  0.9,
-        //             'limit-order-must-greater-than':  1,
-        //                'limit-order-must-less-than':  5000000,
+        //    {
+        //        'symbol': "aidocbtc",
+        //        'buy-limit-must-less-than':  1.1,
+        //        'sell-limit-must-greater-than':  0.9,
+        //        'limit-order-must-greater-than':  1,
+        //        'limit-order-must-less-than':  5000000,
         //        'market-buy-order-must-greater-than':  0.0001,
-        //           'market-buy-order-must-less-than':  100,
-        //       'market-sell-order-must-greater-than':  1,
-        //          'market-sell-order-must-less-than':  500000,
-        //           'circuit-break-when-greater-than':  10000,
-        //              'circuit-break-when-less-than':  10,
-        //     'market-sell-order-rate-must-less-than':  0.1,
-        //      'market-buy-order-rate-must-less-than':  0.1        }
+        //        'market-buy-order-must-less-than':  100,
+        //        'market-sell-order-must-greater-than':  1,
+        //        'market-sell-order-must-less-than':  500000,
+        //        'circuit-break-when-greater-than':  10000,
+        //        'circuit-break-when-less-than':  10,
+        //        'market-sell-order-rate-must-less-than':  0.1,
+        //        'market-buy-order-rate-must-less-than':  0.1
+        //    }
         //
         return {
             'info': limits,
@@ -316,8 +335,36 @@ module.exports = class cdax extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const method = this.options['fetchMarketsMethod'];
-        const response = await this[method] (params);
+        const response = await this.publicGetCommonSymbols (params);
+        //
+        //    {
+        //        "status": "ok",
+        //        "data": [
+        //            {
+        //                "base-currency": "ckb",
+        //                "quote-currency": "usdt",
+        //                "price-precision": 6,
+        //                "amount-precision": 2,
+        //                "symbol-partition": "default",
+        //                "symbol": "ckbusdt",
+        //                "state": "online",
+        //                "value-precision": 8,
+        //                "min-order-amt": 1,
+        //                "max-order-amt": 140000000,
+        //                "min-order-value": 5,
+        //                "limit-order-min-order-amt": 1,
+        //                "limit-order-max-order-amt": 140000000,
+        //                "limit-order-max-buy-amt": 140000000,
+        //                "limit-order-max-sell-amt": 140000000,
+        //                "sell-market-min-order-amt": 1,
+        //                "sell-market-max-order-amt": 14000000,
+        //                "buy-market-max-order-value": 200000,
+        //                "api-trading": "enabled",
+        //                "tags": ""
+        //            },
+        //        ]
+        //    }
+        //
         const markets = this.safeValue (response, 'data');
         const numMarkets = markets.length;
         if (numMarkets < 1) {
@@ -328,51 +375,57 @@ module.exports = class cdax extends Exchange {
             const market = markets[i];
             const baseId = this.safeString (market, 'base-currency');
             const quoteId = this.safeString (market, 'quote-currency');
-            const id = baseId + quoteId;
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const precision = {
-                'amount': this.safeInteger (market, 'amount-precision'),
-                'price': this.safeInteger (market, 'price-precision'),
-                'cost': this.safeInteger (market, 'value-precision'),
-            };
-            const maker = (base === 'OMG') ? 0 : 0.2 / 100;
-            const taker = (base === 'OMG') ? 0 : 0.2 / 100;
-            const minAmount = this.safeNumber (market, 'min-order-amt', Math.pow (10, -precision['amount']));
-            const maxAmount = this.safeNumber (market, 'max-order-amt');
-            const minCost = this.safeNumber (market, 'min-order-value', 0);
             const state = this.safeString (market, 'state');
-            const active = (state === 'online');
             result.push ({
-                'id': id,
-                'symbol': symbol,
+                'id': baseId + quoteId,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'active': active,
-                'precision': precision,
-                'taker': taker,
-                'maker': maker,
+                'margin': undefined,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': (state === 'online'),
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'taker': (base === 'OMG') ? 0 : 0.002,
+                'maker': (base === 'OMG') ? 0 : 0.002,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeInteger (market, 'amount-precision'),
+                    'price': this.safeInteger (market, 'price-precision'),
+                    'cost': this.safeInteger (market, 'value-precision'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': this.parseNumber ('1'),
+                        'max': this.safeNumber (market, 'leverage-ratio', 1),
+                        'superMax': this.safeNumber (market, 'super-margin-leverage-ratio', 1),
+                    },
                     'amount': {
-                        'min': minAmount,
-                        'max': maxAmount,
+                        'min': this.safeNumber (market, 'min-order-amt'),
+                        'max': this.safeNumber (market, 'max-order-amt'),
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'cost': {
-                        'min': minCost,
+                        'min': this.safeNumber (market, 'min-order-value', 0),
                         'max': undefined,
-                    },
-                    'leverage': {
-                        'max': this.safeNumber (market, 'leverage-ratio', 1),
-                        'superMax': this.safeNumber (market, 'super-margin-leverage-ratio', 1),
                     },
                 },
                 'info': market,
@@ -423,38 +476,37 @@ module.exports = class cdax extends Exchange {
         let askVolume = undefined;
         if ('bid' in ticker) {
             if (Array.isArray (ticker['bid'])) {
-                bid = this.safeNumber (ticker['bid'], 0);
-                bidVolume = this.safeNumber (ticker['bid'], 1);
+                bid = this.safeString (ticker['bid'], 0);
+                bidVolume = this.safeString (ticker['bid'], 1);
             } else {
-                bid = this.safeNumber (ticker, 'bid');
-                bidVolume = this.safeValue (ticker, 'bidSize');
+                bid = this.safeString (ticker, 'bid');
+                bidVolume = this.safeString (ticker, 'bidSize');
             }
         }
         if ('ask' in ticker) {
             if (Array.isArray (ticker['ask'])) {
-                ask = this.safeNumber (ticker['ask'], 0);
-                askVolume = this.safeNumber (ticker['ask'], 1);
+                ask = this.safeString (ticker['ask'], 0);
+                askVolume = this.safeString (ticker['ask'], 1);
             } else {
-                ask = this.safeNumber (ticker, 'ask');
-                askVolume = this.safeValue (ticker, 'askSize');
+                ask = this.safeString (ticker, 'ask');
+                askVolume = this.safeString (ticker, 'askSize');
             }
         }
-        const open = this.safeNumber (ticker, 'open');
-        const close = this.safeNumber (ticker, 'close');
-        const baseVolume = this.safeNumber (ticker, 'amount');
-        const quoteVolume = this.safeNumber (ticker, 'vol');
-        const vwap = this.vwap (baseVolume, quoteVolume);
+        const open = this.safeString (ticker, 'open');
+        const close = this.safeString (ticker, 'close');
+        const baseVolume = this.safeString (ticker, 'amount');
+        const quoteVolume = this.safeString (ticker, 'vol');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
             'bid': bid,
             'bidVolume': bidVolume,
             'ask': ask,
             'askVolume': askVolume,
-            'vwap': vwap,
+            'vwap': undefined,
             'open': open,
             'close': close,
             'last': close,
@@ -465,7 +517,7 @@ module.exports = class cdax extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -738,7 +790,7 @@ module.exports = class cdax extends Exchange {
             }
         }
         result = this.sortBy (result, 'timestamp');
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (result, market['symbol'], since, limit);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -865,6 +917,8 @@ module.exports = class cdax extends Exchange {
                 // 'transfer': undefined,
                 'name': name,
                 'active': active,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
                 'fee': undefined, // todo need to fetch from fee endpoint
                 'precision': precision,
                 'limits': {
@@ -887,14 +941,7 @@ module.exports = class cdax extends Exchange {
         return result;
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        await this.loadAccounts ();
-        const method = this.options['fetchBalanceMethod'];
-        const request = {
-            'id': this.accounts[0]['id'],
-        };
-        const response = await this[method] (this.extend (request, params));
+    parseBalance (response) {
         const balances = this.safeValue (response['data'], 'list', []);
         const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
@@ -915,7 +962,18 @@ module.exports = class cdax extends Exchange {
             }
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        await this.loadAccounts ();
+        const method = this.options['fetchBalanceMethod'];
+        const request = {
+            'id': this.accounts[0]['id'],
+        };
+        const response = await this[method] (this.extend (request, params));
+        return this.parseBalance (response);
     }
 
     async fetchOrdersByStates (states, symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1088,7 +1146,6 @@ module.exports = class cdax extends Exchange {
         }
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
         const timestamp = this.safeInteger (order, 'created-at');
         const clientOrderId = this.safeString (order, 'client-order-id');
         const filledString = this.safeString2 (order, 'filled-amount', 'field-amount'); // typo in their API, filled amount
@@ -1101,23 +1158,20 @@ module.exports = class cdax extends Exchange {
         const feeCostString = this.safeString2 (order, 'filled-fees', 'field-fees'); // typo in their API, filled fees
         let fee = undefined;
         if (feeCostString !== undefined) {
-            let feeCurrency = undefined;
-            if (market !== undefined) {
-                feeCurrency = (side === 'sell') ? market['quote'] : market['base'];
-            }
+            const feeCurrency = (side === 'sell') ? market['quote'] : market['base'];
             fee = {
                 'cost': feeCostString,
                 'currency': feeCurrency,
             };
         }
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,
@@ -1432,14 +1486,21 @@ module.exports = class cdax extends Exchange {
         if (feeCost !== undefined) {
             feeCost = Math.abs (feeCost);
         }
+        const address = this.safeString (transaction, 'address');
+        const network = this.safeStringUpper (transaction, 'chain');
         return {
             'info': transaction,
-            'id': this.safeString (transaction, 'id'),
+            'id': this.safeString2 (transaction, 'id', 'data'),
             'txid': this.safeString (transaction, 'tx-hash'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'address': this.safeString (transaction, 'address'),
+            'network': network,
+            'address': address,
+            'addressTo': undefined,
+            'addressFrom': undefined,
             'tag': tag,
+            'tagTo': undefined,
+            'tagFrom': undefined,
             'type': type,
             'amount': this.safeNumber (transaction, 'amount'),
             'currency': code,
@@ -1503,11 +1564,7 @@ module.exports = class cdax extends Exchange {
             params = this.omit (params, 'network');
         }
         const response = await this.privatePostDwWithdrawApiCreate (this.extend (request, params));
-        const id = this.safeString (response, 'data');
-        return {
-            'info': response,
-            'id': id,
-        };
+        return this.parseTransaction (response, currency);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

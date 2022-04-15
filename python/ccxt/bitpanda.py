@@ -15,6 +15,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.precise import Precise
 
 
 class bitpanda(Exchange):
@@ -28,32 +29,63 @@ class bitpanda(Exchange):
             'version': 'v1',
             # new metainfo interface
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
-                'CORS': None,
                 'createDepositAddress': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrderTrades': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
                 'fetchTradingFees': True,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
                 'fetchWithdrawals': True,
                 'privateAPI': True,
                 'publicAPI': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
+                'transfer': False,
                 'withdraw': True,
             },
             'timeframes': {
@@ -318,40 +350,54 @@ class bitpanda(Exchange):
             id = baseId + '_' + quoteId
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            precision = {
-                'amount': self.safe_integer(market, 'amount_precision'),
-                'price': self.safe_integer(market, 'market_precision'),
-            }
-            limits = {
-                'amount': {
-                    'min': None,
-                    'max': None,
-                },
-                'price': {
-                    'min': None,
-                    'max': None,
-                },
-                'cost': {
-                    'min': self.safe_number(market, 'min_size'),
-                    'max': None,
-                },
-            }
             state = self.safe_string(market, 'state')
-            active = (state == 'ACTIVE')
             result.append({
-                'info': market,
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'precision': precision,
-                'limits': limits,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'active': active,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': (state == 'ACTIVE'),
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.safe_integer(market, 'amount_precision'),
+                    'price': self.safe_integer(market, 'market_precision'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': self.safe_number(market, 'min_size'),
+                        'max': None,
+                    },
+                },
+                'info': market,
             })
         return result
 
@@ -385,41 +431,22 @@ class bitpanda(Exchange):
         #         }
         #     ]
         #
-        feeGroupsById = self.index_by(response, 'fee_group_id')
-        feeGroupId = self.safe_value(self.options, 'fee_group_id', 'default')
-        feeGroup = self.safe_value(feeGroupsById, feeGroupId, {})
-        feeTiers = self.safe_value(feeGroup, 'fee_tiers')
+        first = self.safe_value(response, 0, {})
+        feeTiers = self.safe_value(first, 'fee_tiers')
+        tiers = self.parse_fee_tiers(feeTiers)
+        firstTier = self.safe_value(feeTiers, 0, {})
         result = {}
         for i in range(0, len(self.symbols)):
             symbol = self.symbols[i]
-            fee = {
-                'info': feeGroup,
+            result[symbol] = {
+                'info': first,
                 'symbol': symbol,
-                'maker': None,
-                'taker': None,
+                'maker': self.safe_number(firstTier, 'maker_fee'),
+                'taker': self.safe_number(firstTier, 'taker_fee'),
                 'percentage': True,
                 'tierBased': True,
+                'tiers': tiers,
             }
-            takerFees = []
-            makerFees = []
-            for i in range(0, len(feeTiers)):
-                tier = feeTiers[i]
-                volume = self.safe_number(tier, 'volume')
-                taker = self.safe_number(tier, 'taker_fee')
-                maker = self.safe_number(tier, 'maker_fee')
-                taker /= 100
-                maker /= 100
-                takerFees.append([volume, taker])
-                makerFees.append([volume, maker])
-                if i == 0:
-                    fee['taker'] = taker
-                    fee['maker'] = maker
-            tiers = {
-                'taker': takerFees,
-                'maker': makerFees,
-            }
-            fee['tiers'] = tiers
-            result[symbol] = fee
         return result
 
     def fetch_private_trading_fees(self, params={}):
@@ -447,31 +474,42 @@ class bitpanda(Exchange):
         #     }
         #
         activeFeeTier = self.safe_value(response, 'active_fee_tier', {})
-        result = {
-            'info': response,
-            'maker': self.safe_number(activeFeeTier, 'maker_fee'),
-            'taker': self.safe_number(activeFeeTier, 'taker_fee'),
-            'percentage': True,
-            'tierBased': True,
-        }
+        makerFee = self.safe_string(activeFeeTier, 'maker_fee')
+        takerFee = self.safe_string(activeFeeTier, 'taker_fee')
+        makerFee = Precise.string_div(makerFee, '100')
+        takerFee = Precise.string_div(takerFee, '100')
         feeTiers = self.safe_value(response, 'fee_tiers')
+        result = {}
+        tiers = self.parse_fee_tiers(feeTiers)
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            result[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': self.parse_number(makerFee),
+                'taker': self.parse_number(takerFee),
+                'percentage': True,
+                'tierBased': True,
+                'tiers': tiers,
+            }
+        return result
+
+    def parse_fee_tiers(self, feeTiers, market=None):
         takerFees = []
         makerFees = []
         for i in range(0, len(feeTiers)):
             tier = feeTiers[i]
             volume = self.safe_number(tier, 'volume')
-            taker = self.safe_number(tier, 'taker_fee')
-            maker = self.safe_number(tier, 'maker_fee')
-            taker /= 100
-            maker /= 100
-            takerFees.append([volume, taker])
-            makerFees.append([volume, maker])
-        tiers = {
-            'taker': takerFees,
+            taker = self.safe_string(tier, 'taker_fee')
+            maker = self.safe_string(tier, 'maker_fee')
+            maker = Precise.string_div(maker, '100')
+            taker = Precise.string_div(taker, '100')
+            makerFees.append([volume, self.parse_number(maker)])
+            takerFees.append([volume, self.parse_number(taker)])
+        return {
             'maker': makerFees,
+            'taker': takerFees,
         }
-        result['tiers'] = tiers
-        return result
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -497,23 +535,22 @@ class bitpanda(Exchange):
         timestamp = self.parse8601(self.safe_string(ticker, 'time'))
         marketId = self.safe_string(ticker, 'instrument_code')
         symbol = self.safe_symbol(marketId, market, '_')
-        last = self.safe_number(ticker, 'last_price')
-        percentage = self.safe_number(ticker, 'price_change_percentage')
-        change = self.safe_number(ticker, 'price_change')
-        baseVolume = self.safe_number(ticker, 'base_volume')
-        quoteVolume = self.safe_number(ticker, 'quote_volume')
-        vwap = self.vwap(baseVolume, quoteVolume)
+        last = self.safe_string(ticker, 'last_price')
+        percentage = self.safe_string(ticker, 'price_change_percentage')
+        change = self.safe_string(ticker, 'price_change')
+        baseVolume = self.safe_string(ticker, 'base_volume')
+        quoteVolume = self.safe_string(ticker, 'quote_volume')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'best_bid'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'best_bid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'best_ask'),
+            'ask': self.safe_string(ticker, 'best_ask'),
             'askVolume': None,
-            'vwap': vwap,
+            'vwap': None,
             'open': None,
             'close': last,
             'last': last,
@@ -524,7 +561,7 @@ class bitpanda(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -839,6 +876,19 @@ class bitpanda(Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
+    def parse_balance(self, response):
+        balances = self.safe_value(response, 'balances', [])
+        result = {'info': response}
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currencyId = self.safe_string(balance, 'currency_code')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_string(balance, 'available')
+            account['used'] = self.safe_string(balance, 'locked')
+            result[code] = account
+        return self.safe_balance(result)
+
     def fetch_balance(self, params={}):
         self.load_markets()
         response = self.privateGetAccountBalances(params)
@@ -858,17 +908,7 @@ class bitpanda(Exchange):
         #         ]
         #     }
         #
-        balances = self.safe_value(response, 'balances', [])
-        result = {'info': response}
-        for i in range(0, len(balances)):
-            balance = balances[i]
-            currencyId = self.safe_string(balance, 'currency_code')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['free'] = self.safe_string(balance, 'available')
-            account['used'] = self.safe_string(balance, 'locked')
-            result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(response)
 
     def parse_deposit_address(self, depositAddress, currency=None):
         code = None
@@ -1126,6 +1166,7 @@ class bitpanda(Exchange):
             'id': id,
             'currency': currency['code'],
             'amount': amount,
+            'network': None,
             'address': addressTo,
             'addressFrom': None,
             'addressTo': addressTo,
@@ -1239,7 +1280,7 @@ class bitpanda(Exchange):
         stopPrice = self.safe_number(rawOrder, 'trigger_price')
         postOnly = self.safe_value(rawOrder, 'is_post_only')
         rawTrades = self.safe_value(order, 'trades', [])
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,

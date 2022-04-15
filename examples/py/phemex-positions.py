@@ -26,13 +26,13 @@ exchange = ccxt.phemex({
 markets = exchange.load_markets()
 
 # example 1
-positions = exchange.fetch_positions(None, None, None, {'code':'BTC'})
+positions = exchange.fetch_positions(None, {'code':'BTC'})
 pprint(positions)
 
 print('------------------------------------------------------------')
 
 # example 2
-positions = exchange.fetch_positions(None, None, None, {'currency':'BTC'})
+positions = exchange.fetch_positions(None, {'currency':'BTC'})
 pprint(positions)
 
 print('------------------------------------------------------------')

@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.64.24'
+__version__ = '1.79.17'
 
 # -----------------------------------------------------------------------------
 
@@ -14,6 +14,7 @@ import aiohttp
 import ssl
 import sys
 import yarl
+from typing import Coroutine
 
 # -----------------------------------------------------------------------------
 
@@ -26,6 +27,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import BadRequest
 
 # -----------------------------------------------------------------------------
 
@@ -173,6 +175,9 @@ class Exchange(BaseExchange):
             return http_response
         return response.content
 
+    async def fetch_permissions(self, params={}):
+        raise NotSupported(self.id + ' fetch_permissions() is not supported yet')
+
     async def load_markets_helper(self, reload=False, params={}):
         if not reload:
             if self.markets:
@@ -255,7 +260,7 @@ class Exchange(BaseExchange):
         })
 
     async def perform_order_book_request(self, market, limit=None, params={}):
-        raise NotSupported(self.id + ' performOrderBookRequest not supported yet')
+        raise NotSupported(self.id + ' performOrderBookRequest() not supported yet')
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -290,20 +295,38 @@ class Exchange(BaseExchange):
         return await self.create_order(symbol, *args)
 
     async def fetch_balance(self, params={}):
-        raise NotSupported('fetch_balance() not supported yet')
+        raise NotSupported(self.id + ' fetch_balance() not supported yet')
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
-        raise NotSupported('create_order() not supported yet')
+        raise NotSupported(self.id + 'create_order() not supported yet')
+
+    def create_limit_order(self, symbol, side, amount, price, params={}) -> Coroutine:
+        return self.create_order(symbol, 'limit', side, amount, price, params)
+
+    def create_market_order(self, symbol, side, amount, price=None, params={}) -> Coroutine:
+        return self.create_order(symbol, 'market', side, amount, price, params)
+
+    def create_limit_buy_order(self, symbol, amount, price, params={}) -> Coroutine:
+        return self.create_order(symbol, 'limit', 'buy', amount, price, params)
+
+    def create_limit_sell_order(self, symbol, amount, price, params={}) -> Coroutine:
+        return self.create_order(symbol, 'limit', 'sell', amount, price, params)
+
+    def create_market_buy_order(self, symbol, amount, params={}) -> Coroutine:
+        return self.create_order(symbol, 'market', 'buy', amount, None, params)
+
+    def create_market_sell_order(self, symbol, amount, params={}) -> Coroutine:
+        return self.create_order(symbol, 'market', 'sell', amount, None, params)
 
     async def cancel_order(self, id, symbol=None, params={}):
-        raise NotSupported('cancel_order() not supported yet')
+        raise NotSupported(self.id + 'cancel_order() not supported yet')
 
     async def fetch_trading_fees(self, params={}):
-        raise NotSupported('fetch_trading_fees() not supported yet')
+        raise NotSupported(self.id + ' fetch_trading_fees() not supported yet')
 
     async def fetch_trading_fee(self, symbol, params={}):
         if not self.has['fetchTradingFees']:
-            raise NotSupported('fetch_trading_fee() not supported yet')
+            raise NotSupported(self.id + ' fetch_trading_fee() not supported yet')
         return await self.fetch_trading_fees(params)
 
     async def load_trading_limits(self, symbols=None, reload=False, params={}):
@@ -336,16 +359,16 @@ class Exchange(BaseExchange):
             else:
                 return ticker
         else:
-            raise NotSupported(self.id + ' fetchTicker not supported yet')
+            raise NotSupported(self.id + ' fetch_ticker() not supported yet')
 
     async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
-        raise NotSupported('fetch_transactions() is not supported yet')
+        raise NotSupported(self.id + ' fetch_transactions() is not supported yet')
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
-        raise NotSupported('fetch_deposits() is not supported yet')
+        raise NotSupported(self.id + ' fetch_deposits() is not supported yet')
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
-        raise NotSupported('fetch_withdrawals() is not supported yet')
+        raise NotSupported(self.id + ' fetch_withdrawals() is not supported yet')
 
     async def fetch_deposit_address(self, code, params={}):
         if self.has['fetchDepositAddresses']:
@@ -356,7 +379,23 @@ class Exchange(BaseExchange):
             else:
                 return deposit_address
         else:
-            raise NotSupported(self.id + ' fetchDepositAddress not supported yet')
+            raise NotSupported(self.id + ' fetch_deposit_address() not supported yet')
 
     async def sleep(self, milliseconds):
         return await asyncio.sleep(milliseconds / 1000)
+
+    async def load_time_difference(self, params={}):
+        server_time = await self.fetch_time(params)
+        after = self.milliseconds()
+        self.options['timeDifference'] = after - server_time
+        return self.options['timeDifference']
+
+    async def fetch_market_leverage_tiers(self, symbol, params={}):
+        if self.has['fetchLeverageTiers']:
+            market = await self.market(symbol)
+            if (not market['contract']):
+                raise BadRequest(self.id + ' fetch_leverage_tiers() supports contract markets only')
+            tiers = await self.fetch_leverage_tiers([symbol])
+            return self.safe_value(tiers, symbol)
+        else:
+            raise NotSupported(self.id + ' fetch_market_leverage_tiers() is not supported yet')

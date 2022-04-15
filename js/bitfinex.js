@@ -16,16 +16,21 @@ module.exports = class bitfinex extends Exchange {
             'name': 'Bitfinex',
             'countries': [ 'VG' ],
             'version': 'v1',
-            'rateLimit': 1500,
+            // cheapest is 90 requests a minute = 1.5 requests per second on average => ( 1000ms / 1.5) = 666.666 ms between requests on average
+            'rateLimit': 666.666,
             'pro': true,
             // new metainfo interface
             'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': undefined, // has but unimplemented
+                'swap': undefined, // has but unimplemented
+                'future': undefined,
+                'option': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'CORS': undefined,
                 'createDepositAddress': true,
                 'createOrder': true,
-                'deposit': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
@@ -33,6 +38,7 @@ module.exports = class bitfinex extends Exchange {
                 'fetchDeposits': undefined,
                 'fetchFundingFees': true,
                 'fetchIndexOHLCV': false,
+                'fetchLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -46,7 +52,7 @@ module.exports = class bitfinex extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': false,
                 'fetchTrades': true,
-                'fetchTradingFee': true,
+                'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': undefined,
@@ -86,81 +92,82 @@ module.exports = class bitfinex extends Exchange {
                 // v2 symbol ids require a 't' prefix
                 // just the public part of it (use bitfinex2 for everything else)
                 'v2': {
-                    'get': [
-                        'platform/status',
-                        'tickers',
-                        'ticker/{symbol}',
-                        'trades/{symbol}/hist',
-                        'book/{symbol}/{precision}',
-                        'book/{symbol}/P0',
-                        'book/{symbol}/P1',
-                        'book/{symbol}/P2',
-                        'book/{symbol}/P3',
-                        'book/{symbol}/R0',
-                        'stats1/{key}:{size}:{symbol}:{side}/{section}',
-                        'stats1/{key}:{size}:{symbol}/{section}',
-                        'stats1/{key}:{size}:{symbol}:long/last',
-                        'stats1/{key}:{size}:{symbol}:long/hist',
-                        'stats1/{key}:{size}:{symbol}:short/last',
-                        'stats1/{key}:{size}:{symbol}:short/hist',
-                        'candles/trade:{timeframe}:{symbol}/{section}',
-                        'candles/trade:{timeframe}:{symbol}/last',
-                        'candles/trade:{timeframe}:{symbol}/hist',
-                    ],
+                    'get': {
+                        'platform/status': 3, // 30 requests per minute
+                        'tickers': 1, // 90 requests a minute
+                        'ticker/{symbol}': 1,
+                        'tickers/hist': 1,
+                        'trades/{symbol}/hist': 1,
+                        'book/{symbol}/{precision}': 0.375, // 240 requests per minute = 4 requests per second (1000ms / rateLimit) / 4  = 0.37500375
+                        'book/{symbol}/P0': 0.375,
+                        'book/{symbol}/P1': 0.375,
+                        'book/{symbol}/P2': 0.375,
+                        'book/{symbol}/P3': 0.375,
+                        'book/{symbol}/R0': 0.375,
+                        'stats1/{key}:{size}:{symbol}:{side}/{section}': 1, // 90 requests a minute
+                        'stats1/{key}:{size}:{symbol}/{section}': 1,
+                        'stats1/{key}:{size}:{symbol}:long/last': 1,
+                        'stats1/{key}:{size}:{symbol}:long/hist': 1,
+                        'stats1/{key}:{size}:{symbol}:short/last': 1,
+                        'stats1/{key}:{size}:{symbol}:short/hist': 1,
+                        'candles/trade:{timeframe}:{symbol}/{section}': 1, // 90 requests a minute
+                        'candles/trade:{timeframe}:{symbol}/last': 1,
+                        'candles/trade:{timeframe}:{symbol}/hist': 1,
+                    },
                 },
                 'public': {
-                    'get': [
-                        'book/{symbol}',
-                        // 'candles/{symbol}',
-                        'lendbook/{currency}',
-                        'lends/{currency}',
-                        'pubticker/{symbol}',
-                        'stats/{symbol}',
-                        'symbols',
-                        'symbols_details',
-                        'tickers',
-                        'trades/{symbol}',
-                    ],
+                    'get': {
+                        'book/{symbol}': 1, // 90 requests a minute
+                        // 'candles/{symbol}':0,
+                        'lendbook/{currency}': 6, // 15 requests a minute
+                        'lends/{currency}': 3, // 30 requests a minute
+                        'pubticker/{symbol}': 3, // 30 requests a minute = 0.5 requests per second => (1000ms / rateLimit) / 0.5 = 3.00003
+                        'stats/{symbol}': 6, // 15 requests a minute = 0.25 requests per second => (1000ms / rateLimit ) /0.25 = 6.00006 (endpoint returns red html... or 'unknown symbol')
+                        'symbols': 18, // 5 requests a minute = 0.08333 requests per second => (1000ms / rateLimit) / 0.08333 = 18.0009
+                        'symbols_details': 18, // 5 requests a minute
+                        'tickers': 1, // endpoint not mentioned in v1 docs... but still responds
+                        'trades/{symbol}': 3, // 60 requests a minute = 1 request per second => (1000ms / rateLimit) / 1 = 1.5 ... but only works if set to 3
+                    },
                 },
                 'private': {
-                    'post': [
-                        'account_fees',
-                        'account_infos',
-                        'balances',
-                        'basket_manage',
-                        'credits',
-                        'deposit/new',
-                        'funding/close',
-                        'history',
-                        'history/movements',
-                        'key_info',
-                        'margin_infos',
-                        'mytrades',
-                        'mytrades_funding',
-                        'offer/cancel',
-                        'offer/new',
-                        'offer/status',
-                        'offers',
-                        'offers/hist',
-                        'order/cancel',
-                        'order/cancel/all',
-                        'order/cancel/multi',
-                        'order/cancel/replace',
-                        'order/new',
-                        'order/new/multi',
-                        'order/status',
-                        'orders',
-                        'orders/hist',
-                        'position/claim',
-                        'position/close',
-                        'positions',
-                        'summary',
-                        'taken_funds',
-                        'total_taken_funds',
-                        'transfer',
-                        'unused_taken_funds',
-                        'withdraw',
-                    ],
+                    'post': {
+                        'account_fees': 18,
+                        'account_infos': 6,
+                        'balances': 9.036, // 10 requests a minute = 0.166 requests per second => (1000ms / rateLimit) / 0.166 = 9.036
+                        'basket_manage': 6,
+                        'credits': 6,
+                        'deposit/new': 18,
+                        'funding/close': 6,
+                        'history': 6, // 15 requests a minute
+                        'history/movements': 6,
+                        'key_info': 6,
+                        'margin_infos': 3, // 30 requests a minute
+                        'mytrades': 3,
+                        'mytrades_funding': 6,
+                        'offer/cancel': 6,
+                        'offer/new': 6,
+                        'offer/status': 6,
+                        'offers': 6,
+                        'offers/hist': 90.03, // one request per minute
+                        'order/cancel': 0.2,
+                        'order/cancel/all': 0.2,
+                        'order/cancel/multi': 0.2,
+                        'order/cancel/replace': 0.2,
+                        'order/new': 0.2, // 450 requests a minute = 7.5 request a second => (1000ms / rateLimit) / 7.5 = 0.2000002
+                        'order/new/multi': 0.2,
+                        'order/status': 0.2,
+                        'orders': 0.2,
+                        'orders/hist': 90.03, // one request per minute = 0.1666 => (1000ms /  rateLimit) / 0.01666 = 90.03
+                        'position/claim': 18,
+                        'position/close': 18,
+                        'positions': 18,
+                        'summary': 18,
+                        'taken_funds': 6,
+                        'total_taken_funds': 6,
+                        'transfer': 18,
+                        'unused_taken_funds': 6,
+                        'withdraw': 18,
+                    },
                 },
             },
             'fees': {
@@ -172,30 +179,30 @@ module.exports = class bitfinex extends Exchange {
                     'taker': this.parseNumber ('0.002'),
                     'tiers': {
                         'taker': [
-                            [this.parseNumber ('0'), this.parseNumber ('0.002')],
-                            [this.parseNumber ('500000'), this.parseNumber ('0.002')],
-                            [this.parseNumber ('1000000'), this.parseNumber ('0.002')],
-                            [this.parseNumber ('2500000'), this.parseNumber ('0.002')],
-                            [this.parseNumber ('5000000'), this.parseNumber ('0.002')],
-                            [this.parseNumber ('7500000'), this.parseNumber ('0.002')],
-                            [this.parseNumber ('10000000'), this.parseNumber ('0.0018')],
-                            [this.parseNumber ('15000000'), this.parseNumber ('0.0016')],
-                            [this.parseNumber ('20000000'), this.parseNumber ('0.0014')],
-                            [this.parseNumber ('25000000'), this.parseNumber ('0.0012')],
-                            [this.parseNumber ('30000000'), this.parseNumber ('0.001')],
+                            [ this.parseNumber ('0'), this.parseNumber ('0.002') ],
+                            [ this.parseNumber ('500000'), this.parseNumber ('0.002') ],
+                            [ this.parseNumber ('1000000'), this.parseNumber ('0.002') ],
+                            [ this.parseNumber ('2500000'), this.parseNumber ('0.002') ],
+                            [ this.parseNumber ('5000000'), this.parseNumber ('0.002') ],
+                            [ this.parseNumber ('7500000'), this.parseNumber ('0.002') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0.0018') ],
+                            [ this.parseNumber ('15000000'), this.parseNumber ('0.0016') ],
+                            [ this.parseNumber ('20000000'), this.parseNumber ('0.0014') ],
+                            [ this.parseNumber ('25000000'), this.parseNumber ('0.0012') ],
+                            [ this.parseNumber ('30000000'), this.parseNumber ('0.001') ],
                         ],
                         'maker': [
-                            [this.parseNumber ('0'), this.parseNumber ('0.001')],
-                            [this.parseNumber ('500000'), this.parseNumber ('0.0008')],
-                            [this.parseNumber ('1000000'), this.parseNumber ('0.0006')],
-                            [this.parseNumber ('2500000'), this.parseNumber ('0.0004')],
-                            [this.parseNumber ('5000000'), this.parseNumber ('0.0002')],
-                            [this.parseNumber ('7500000'), this.parseNumber ('0')],
-                            [this.parseNumber ('10000000'), this.parseNumber ('0')],
-                            [this.parseNumber ('15000000'), this.parseNumber ('0')],
-                            [this.parseNumber ('20000000'), this.parseNumber ('0')],
-                            [this.parseNumber ('25000000'), this.parseNumber ('0')],
-                            [this.parseNumber ('30000000'), this.parseNumber ('0')],
+                            [ this.parseNumber ('0'), this.parseNumber ('0.001') ],
+                            [ this.parseNumber ('500000'), this.parseNumber ('0.0008') ],
+                            [ this.parseNumber ('1000000'), this.parseNumber ('0.0006') ],
+                            [ this.parseNumber ('2500000'), this.parseNumber ('0.0004') ],
+                            [ this.parseNumber ('5000000'), this.parseNumber ('0.0002') ],
+                            [ this.parseNumber ('7500000'), this.parseNumber ('0') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0') ],
+                            [ this.parseNumber ('15000000'), this.parseNumber ('0') ],
+                            [ this.parseNumber ('20000000'), this.parseNumber ('0') ],
+                            [ this.parseNumber ('25000000'), this.parseNumber ('0') ],
+                            [ this.parseNumber ('30000000'), this.parseNumber ('0') ],
                         ],
                     },
                 },
@@ -225,6 +232,7 @@ module.exports = class bitfinex extends Exchange {
                 'EDO': 'PNT',
                 'EUS': 'EURS',
                 'EUT': 'EURT',
+                'IDX': 'ID',
                 'IOT': 'IOTA',
                 'IQX': 'IQ',
                 'MNA': 'MANA',
@@ -360,6 +368,13 @@ module.exports = class bitfinex extends Exchange {
                     'limit': 'exchange limit',
                     'market': 'exchange market',
                 },
+                'fiat': {
+                    'USD': 'USD',
+                    'EUR': 'EUR',
+                    'JPY': 'JPY',
+                    'GBP': 'GBP',
+                    'CNH': 'CNH',
+                },
                 'accountsByType': {
                     'spot': 'exchange',
                     'margin': 'trading',
@@ -396,31 +411,73 @@ module.exports = class bitfinex extends Exchange {
         const response = await this.privatePostSummary (params);
         //
         //     {
-        //         time: '2019-02-20T15:50:19.152000Z',
-        //         trade_vol_30d: [
-        //             {
-        //                 curr: 'Total (USD)',
-        //                 vol: 0,
-        //                 vol_maker: 0,
-        //                 vol_BFX: 0,
-        //                 vol_BFX_maker: 0,
-        //                 vol_ETHFX: 0,
-        //                 vol_ETHFX_maker: 0
-        //             }
-        //         ],
-        //         fees_funding_30d: {},
-        //         fees_funding_total_30d: 0,
-        //         fees_trading_30d: {},
-        //         fees_trading_total_30d: 0,
-        //         maker_fee: 0.001,
-        //         taker_fee: 0.002
+        //          time: '2022-02-23T16:05:47.659000Z',
+        //          status: { resid_hint: null, login_last: '2022-02-23T16:05:48Z' },
+        //          is_locked: false,
+        //          leo_lev: '0',
+        //          leo_amount_avg: '0.0',
+        //          trade_vol_30d: [
+        //          {
+        //              curr: 'Total (USD)',
+        //              vol: '0.0',
+        //              vol_safe: '0.0',
+        //              vol_maker: '0.0',
+        //              vol_BFX: '0.0',
+        //              vol_BFX_safe: '0.0',
+        //              vol_BFX_maker: '0.0'
+        //          }
+        //          ],
+        //          fees_funding_30d: {},
+        //          fees_funding_total_30d: '0',
+        //          fees_trading_30d: {},
+        //          fees_trading_total_30d: '0',
+        //          rebates_trading_30d: {},
+        //          rebates_trading_total_30d: '0',
+        //          maker_fee: '0.001',
+        //          taker_fee: '0.002',
+        //          maker_fee_2crypto: '0.001',
+        //          maker_fee_2stablecoin: '0.001',
+        //          maker_fee_2fiat: '0.001',
+        //          maker_fee_2deriv: '0.0002',
+        //          taker_fee_2crypto: '0.002',
+        //          taker_fee_2stablecoin: '0.002',
+        //          taker_fee_2fiat: '0.002',
+        //          taker_fee_2deriv: '0.00065',
+        //          deriv_maker_rebate: '0.0002',
+        //          deriv_taker_fee: '0.00065',
+        //          trade_last: null
         //     }
         //
-        return {
-            'info': response,
-            'maker': this.safeNumber (response, 'maker_fee'),
-            'taker': this.safeNumber (response, 'taker_fee'),
-        };
+        const result = {};
+        const fiat = this.safeValue (this.options, 'fiat', {});
+        const makerFee = this.safeNumber (response, 'maker_fee');
+        const takerFee = this.safeNumber (response, 'taker_fee');
+        const makerFee2Fiat = this.safeNumber (response, 'maker_fee_2fiat');
+        const takerFee2Fiat = this.safeNumber (response, 'taker_fee_2fiat');
+        const makerFee2Deriv = this.safeNumber (response, 'maker_fee_2deriv');
+        const takerFee2Deriv = this.safeNumber (response, 'taker_fee_2deriv');
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            const market = this.market (symbol);
+            const fee = {
+                'info': response,
+                'symbol': symbol,
+                'percentage': true,
+                'tierBased': true,
+            };
+            if (market['quote'] in fiat) {
+                fee['maker'] = makerFee2Fiat;
+                fee['taker'] = takerFee2Fiat;
+            } else if (market['contract']) {
+                fee['maker'] = makerFee2Deriv;
+                fee['taker'] = takerFee2Deriv;
+            } else {
+                fee['maker'] = makerFee;
+                fee['taker'] = takerFee;
+            }
+            result[symbol] = fee;
+        }
+        return result;
     }
 
     async fetchMarkets (params = {}) {
@@ -463,44 +520,55 @@ module.exports = class bitfinex extends Exchange {
             }
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const precision = {
-                'price': this.safeInteger (market, 'price_precision'),
-                // https://docs.bitfinex.com/docs/introduction#amount-precision
-                // The amount field allows up to 8 decimals.
-                // Anything exceeding this will be rounded to the 8th decimal.
-                'amount': 8,
-            };
-            const minAmountString = this.safeString (market, 'minimum_order_size');
-            const maxAmountString = this.safeString (market, 'maximum_order_size');
-            const limits = {
-                'amount': {
-                    'min': this.parseNumber (minAmountString),
-                    'max': this.parseNumber (maxAmountString),
-                },
-                'price': {
-                    'min': this.parseNumber ('1e-8'),
-                    'max': undefined,
-                },
-            };
-            limits['cost'] = {
-                'min': undefined,
-                'max': undefined,
-            };
-            const margin = this.safeValue (market, 'margin');
             result.push ({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'active': true,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'margin': margin,
-                'precision': precision,
-                'limits': limits,
+                'margin': this.safeValue (market, 'margin'),
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': true,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    // https://docs.bitfinex.com/docs/introduction#amount-precision
+                    // The amount field allows up to 8 decimals.
+                    // Anything exceeding this will be rounded to the 8th decimal.
+                    'amount': parseInt ('8'),
+                    'price': this.safeInteger (market, 'price_precision'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': this.safeNumber (market, 'minimum_order_size'),
+                        'max': this.safeNumber (market, 'maximum_order_size'),
+                    },
+                    'price': {
+                        'min': this.parseNumber ('1e-8'),
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
                 'info': market,
             });
         }
@@ -571,7 +639,7 @@ module.exports = class bitfinex extends Exchange {
                 }
             }
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
@@ -677,11 +745,7 @@ module.exports = class bitfinex extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = this.safeNumber (ticker, 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
-        timestamp = parseInt (timestamp);
+        const timestamp = this.safeTimestamp (ticker, 'timestamp');
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -700,16 +764,16 @@ module.exports = class bitfinex extends Exchange {
                 }
             }
         }
-        const last = this.safeNumber (ticker, 'last_price');
+        const last = this.safeString (ticker, 'last_price');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'bid'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'ask'),
+            'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -718,11 +782,11 @@ module.exports = class bitfinex extends Exchange {
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
-            'average': this.safeNumber (ticker, 'mid'),
-            'baseVolume': this.safeNumber (ticker, 'volume'),
+            'average': this.safeString (ticker, 'mid'),
+            'baseVolume': this.safeString (ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     parseTrade (trade, market = undefined) {
@@ -944,7 +1008,7 @@ module.exports = class bitfinex extends Exchange {
         }
         const timestamp = this.safeTimestamp (order, 'timestamp');
         const id = this.safeString (order, 'id');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -1174,6 +1238,14 @@ module.exports = class bitfinex extends Exchange {
         //         "timestamp_created": "1561716066.0"
         //     }
         //
+        // withdraw
+        //
+        //     {
+        //         "status":"success",
+        //         "message":"Your withdrawal request has been successfully submitted.",
+        //         "withdrawal_id":586829
+        //     }
+        //
         const timestamp = this.safeTimestamp (transaction, 'timestamp_created');
         const updated = this.safeTimestamp (transaction, 'timestamp');
         const currencyId = this.safeString (transaction, 'currency');
@@ -1184,14 +1256,20 @@ module.exports = class bitfinex extends Exchange {
         if (feeCost !== undefined) {
             feeCost = Math.abs (feeCost);
         }
+        const tag = this.safeString (transaction, 'description');
         return {
             'info': transaction,
-            'id': this.safeString (transaction, 'id'),
+            'id': this.safeString2 (transaction, 'id', 'withdrawal_id'),
             'txid': this.safeString (transaction, 'txid'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': undefined,
             'address': this.safeString (transaction, 'address'), // todo: this is actually the tag for XRP transfers (the address is missing)
-            'tag': undefined, // refix it properly for the tag from description
+            'addressTo': undefined,
+            'addressFrom': undefined,
+            'tag': tag,
+            'tagTo': undefined,
+            'tagFrom': undefined,
             'type': type,
             'amount': this.safeNumber (transaction, 'amount'),
             'currency': code,
@@ -1221,6 +1299,7 @@ module.exports = class bitfinex extends Exchange {
         await this.loadMarkets ();
         // todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
         const name = this.getCurrencyName (code);
+        const currency = this.currency (code);
         const request = {
             'withdraw_type': name,
             'walletselected': 'exchange',
@@ -1231,6 +1310,13 @@ module.exports = class bitfinex extends Exchange {
             request['payment_id'] = tag;
         }
         const responses = await this.privatePostWithdraw (this.extend (request, params));
+        //
+        //     [{
+        //         "status":"success",
+        //         "message":"Your withdrawal request has been successfully submitted.",
+        //         "withdrawal_id":586829
+        //     }]
+        //
         const response = responses[0];
         const id = this.safeString (response, 'withdrawal_id');
         const message = this.safeString (response, 'message');
@@ -1242,10 +1328,7 @@ module.exports = class bitfinex extends Exchange {
             }
             throw new ExchangeError (this.id + ' withdraw returned an id of zero: ' + this.json (response));
         }
-        return {
-            'info': response,
-            'id': id,
-        };
+        return this.parseTransaction (response, currency);
     }
 
     async fetchPositions (symbols = undefined, params = {}) {

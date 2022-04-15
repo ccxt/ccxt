@@ -35,9 +35,14 @@ class litebitpro(Exchange):
             'certified': False,
             'pro': False,
             'has': {
+                'CORS': True,
+                'spot': True,
+                'margin': None,
+                'swap': None,
+                'future': None,
+                'option': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': True,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
@@ -881,7 +886,7 @@ class litebitpro(Exchange):
         timeInForce = self.safe_string(order, 'time_in_force')
         postOnly = self.safe_value(order, 'post_only')
         stopPrice = self.safe_number(order, 'stop_price')
-        return self.safe_order2({
+        return self.safeOrder2({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

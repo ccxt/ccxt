@@ -30,28 +30,62 @@ class vcc(Exchange):
             'rateLimit': 1000,
             'version': 'v3',
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'editOrder': None,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchLeverage': False,
+                'fetchLeverageTiers': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': None,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': 'emulated',
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchTradingFee': True,
                 'fetchTradingFees': None,
                 'fetchTransactions': True,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
                 'fetchWithdrawals': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
+                'transfer': False,
+                'withdraw': False,
             },
             'timeframes': {
                 '1m': '60000',
@@ -186,29 +220,45 @@ class vcc(Exchange):
             quoteId = self.safe_string(market, 'currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            active = self.safe_value(market, 'active')
             precision = self.safe_value(market, 'precision', {})
             limits = self.safe_value(market, 'limits', {})
             amountLimits = self.safe_value(limits, 'amount', {})
             priceLimits = self.safe_value(limits, 'price', {})
             costLimits = self.safe_value(limits, 'cost', {})
             entry = {
-                'info': market,
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settledId': None,
                 'type': 'spot',
                 'spot': True,
-                'active': active,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': self.safe_value(market, 'active'),
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
                 'precision': {
-                    'price': self.safe_integer(precision, 'price'),
                     'amount': self.safe_integer(precision, 'amount'),
+                    'price': self.safe_integer(precision, 'price'),
                     'cost': self.safe_integer(precision, 'cost'),
                 },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': self.safe_number(amountLimits, 'min'),
                         'max': None,
@@ -222,6 +272,7 @@ class vcc(Exchange):
                         'max': None,
                     },
                 },
+                'info': market,
             }
             result.append(entry)
         return result
@@ -255,14 +306,18 @@ class vcc(Exchange):
             id = self.safe_string_lower(ids, i)
             currency = self.safe_value(data, ids[i])
             code = self.safe_currency_code(id)
-            canDeposit = self.safe_value(currency, 'can_deposit')
-            canWithdraw = self.safe_value(currency, 'can_withdraw')
+            canDeposit = self.safe_integer(currency, 'can_deposit')
+            canWithdraw = self.safe_integer(currency, 'can_withdraw')
             active = (canDeposit and canWithdraw)
+            depositEnabled = (canDeposit == 1)
+            withdrawEnabled = (canWithdraw == 1)
             result[code] = {
                 'id': id,
                 'code': code,
                 'name': self.safe_string(currency, 'name'),
                 'active': active,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
                 'fee': self.safe_number(currency, 'withdrawal_fee'),
                 'precision': self.safe_integer(currency, 'decimal'),
                 'limits': {
@@ -293,20 +348,7 @@ class vcc(Exchange):
             'taker': self.safe_number(response, 'takeLiquidityRate'),
         }
 
-    def fetch_balance(self, params={}):
-        self.load_markets()
-        response = self.privateGetBalance(params)
-        #
-        #     {
-        #         "message":null,
-        #         "dataVersion":"7168e6c99e90f60673070944d987988eef7d91fa",
-        #         "data":{
-        #             "vnd":{"balance":0,"available_balance":0},
-        #             "btc":{"balance":0,"available_balance":0},
-        #             "eth":{"balance":0,"available_balance":0},
-        #         },
-        #     }
-        #
+    def parse_balance(self, response):
         data = self.safe_value(response, 'data')
         result = {
             'info': response,
@@ -322,7 +364,23 @@ class vcc(Exchange):
             account['free'] = self.safe_string(balance, 'available_balance')
             account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
+
+    def fetch_balance(self, params={}):
+        self.load_markets()
+        response = self.privateGetBalance(params)
+        #
+        #     {
+        #         "message":null,
+        #         "dataVersion":"7168e6c99e90f60673070944d987988eef7d91fa",
+        #         "data":{
+        #             "vnd":{"balance":0,"available_balance":0},
+        #             "btc":{"balance":0,"available_balance":0},
+        #             "eth":{"balance":0,"available_balance":0},
+        #         },
+        #     }
+        #
+        return self.parse_balance(response)
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
@@ -426,23 +484,22 @@ class vcc(Exchange):
         #     }
         #
         timestamp = self.milliseconds()
-        baseVolume = self.safe_number(ticker, 'base_volume')
-        quoteVolume = self.safe_number(ticker, 'quote_volume')
-        open = self.safe_number(ticker, 'open_price')
-        last = self.safe_number(ticker, 'last_price')
-        vwap = self.vwap(baseVolume, quoteVolume)
+        baseVolume = self.safe_string(ticker, 'base_volume')
+        quoteVolume = self.safe_string(ticker, 'quote_volume')
+        open = self.safe_string(ticker, 'open_price')
+        last = self.safe_string(ticker, 'last_price')
         symbol = self.safe_symbol(None, market)
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'max_price'),
-            'low': self.safe_number(ticker, 'min_price'),
-            'bid': self.safe_number(ticker, 'bid'),
+            'high': self.safe_string(ticker, 'max_price'),
+            'low': self.safe_string(ticker, 'min_price'),
+            'bid': self.safe_string(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'ask'),
+            'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
-            'vwap': vwap,
+            'vwap': None,
             'open': open,
             'close': last,
             'last': last,
@@ -453,7 +510,7 @@ class vcc(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
@@ -719,13 +776,15 @@ class vcc(Exchange):
                 'cost': feeCost,
                 'currency': code,
             }
-        type = amount > 'deposit' if 0 else 'withdrawal'
+        type = 'deposit' if (amount > 0) else 'withdrawal'
+        network = self.safe_string(transaction, 'network')
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': network,
             'address': address,
             'addressTo': address,
             'addressFrom': None,
@@ -963,7 +1022,7 @@ class vcc(Exchange):
         if updated != created:
             lastTradeTimestamp = updated
         stopPrice = self.safe_number(order, 'stopPrice')
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': id,
             'timestamp': created,

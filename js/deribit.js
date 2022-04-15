@@ -6,7 +6,6 @@ const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
 const { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, DDoSProtection, NotSupported, ExchangeNotAvailable, InsufficientFunds, BadRequest, InvalidAddress, OnMaintenance } = require ('./base/errors');
 const Precise = require ('./base/Precise');
-
 //  ---------------------------------------------------------------------------
 
 module.exports = class deribit extends Exchange {
@@ -17,19 +16,33 @@ module.exports = class deribit extends Exchange {
             'countries': [ 'NL' ], // Netherlands
             'version': 'v2',
             'userAgent': undefined,
-            'rateLimit': 500,
+            // 20 requests per second for non-matching-engine endpoints, 1000ms / 20 = 50ms between requests
+            // 5 requests per second for matching-engine endpoints, cost = (1000ms / rateLimit) / 5 = 4
+            'rateLimit': 50,
             'has': {
+                'CORS': true,
+                'spot': false,
+                'margin': false,
+                'swap': undefined,
+                'future': undefined,
+                'option': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'CORS': true,
                 'createDepositAddress': true,
                 'createOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchHistoricalVolatility': true,
                 'fetchIndexOHLCV': false,
+                'fetchLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -39,6 +52,7 @@ module.exports = class deribit extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': undefined,
                 'fetchOrderTrades': true,
+                'fetchPosition': true,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
@@ -46,6 +60,8 @@ module.exports = class deribit extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': true,
                 'fetchTransactions': undefined,
                 'fetchWithdrawals': true,
                 'withdraw': true,
@@ -81,145 +97,145 @@ module.exports = class deribit extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
+                    'get': {
                         // Authentication
-                        'auth',
-                        'exchange_token',
-                        'fork_token',
+                        'auth': 1,
+                        'exchange_token': 1,
+                        'fork_token': 1,
                         // Session management
-                        'set_heartbeat',
-                        'disable_heartbeat',
+                        'set_heartbeat': 1,
+                        'disable_heartbeat': 1,
                         // Supporting
-                        'get_time',
-                        'hello',
-                        'test',
+                        'get_time': 1,
+                        'hello': 1,
+                        'test': 1,
                         // Subscription management
-                        'subscribe',
-                        'unsubscribe',
-                        'unsubscribe_all',
+                        'subscribe': 1,
+                        'unsubscribe': 1,
+                        'unsubscribe_all': 1,
                         // Account management
-                        'get_announcements',
+                        'get_announcements': 1,
                         // Market data
-                        'get_book_summary_by_currency',
-                        'get_book_summary_by_instrument',
-                        'get_contract_size',
-                        'get_currencies',
-                        'get_delivery_prices',
-                        'get_funding_chart_data',
-                        'get_funding_rate_history',
-                        'get_funding_rate_value',
-                        'get_historical_volatility',
-                        'get_index',
-                        'get_index_price',
-                        'get_index_price_names',
-                        'get_instrument',
-                        'get_instruments',
-                        'get_last_settlements_by_currency',
-                        'get_last_settlements_by_instrument',
-                        'get_last_trades_by_currency',
-                        'get_last_trades_by_currency_and_time',
-                        'get_last_trades_by_instrument',
-                        'get_last_trades_by_instrument_and_time',
-                        'get_mark_price_history',
-                        'get_order_book',
-                        'get_trade_volumes',
-                        'get_tradingview_chart_data',
-                        'get_volatility_index_data',
-                        'ticker',
-                    ],
+                        'get_book_summary_by_currency': 1,
+                        'get_book_summary_by_instrument': 1,
+                        'get_contract_size': 1,
+                        'get_currencies': 1,
+                        'get_delivery_prices': 1,
+                        'get_funding_chart_data': 1,
+                        'get_funding_rate_history': 1,
+                        'get_funding_rate_value': 1,
+                        'get_historical_volatility': 1,
+                        'get_index': 1,
+                        'get_index_price': 1,
+                        'get_index_price_names': 1,
+                        'get_instrument': 1,
+                        'get_instruments': 1,
+                        'get_last_settlements_by_currency': 1,
+                        'get_last_settlements_by_instrument': 1,
+                        'get_last_trades_by_currency': 1,
+                        'get_last_trades_by_currency_and_time': 1,
+                        'get_last_trades_by_instrument': 1,
+                        'get_last_trades_by_instrument_and_time': 1,
+                        'get_mark_price_history': 1,
+                        'get_order_book': 1,
+                        'get_trade_volumes': 1,
+                        'get_tradingview_chart_data': 1,
+                        'get_volatility_index_data': 1,
+                        'ticker': 1,
+                    },
                 },
                 'private': {
-                    'get': [
+                    'get': {
                         // Authentication
-                        'logout',
+                        'logout': 1,
                         // Session management
-                        'enable_cancel_on_disconnect',
-                        'disable_cancel_on_disconnect',
-                        'get_cancel_on_disconnect',
+                        'enable_cancel_on_disconnect': 1,
+                        'disable_cancel_on_disconnect': 1,
+                        'get_cancel_on_disconnect': 1,
                         // Subscription management
-                        'subscribe',
-                        'unsubscribe',
-                        'unsubscribe_all',
+                        'subscribe': 1,
+                        'unsubscribe': 1,
+                        'unsubscribe_all': 1,
                         // Account management
-                        'change_api_key_name',
-                        'change_scope_in_api_key',
-                        'change_subaccount_name',
-                        'create_api_key',
-                        'create_subaccount',
-                        'disable_api_key',
-                        'disable_tfa_for_subaccount',
-                        'enable_affiliate_program',
-                        'enable_api_key',
-                        'get_access_log',
-                        'get_account_summary',
-                        'get_affiliate_program_info',
-                        'get_email_language',
-                        'get_new_announcements',
-                        'get_portfolio_margins',
-                        'get_position',
-                        'get_positions',
-                        'get_subaccounts',
-                        'get_subaccounts_details',
-                        'get_transaction_log',
-                        'list_api_keys',
-                        'remove_api_key',
-                        'remove_subaccount',
-                        'reset_api_key',
-                        'set_announcement_as_read',
-                        'set_api_key_as_default',
-                        'set_email_for_subaccount',
-                        'set_email_language',
-                        'set_password_for_subaccount',
-                        'toggle_notifications_from_subaccount',
-                        'toggle_subaccount_login',
+                        'change_api_key_name': 1,
+                        'change_scope_in_api_key': 1,
+                        'change_subaccount_name': 1,
+                        'create_api_key': 1,
+                        'create_subaccount': 1,
+                        'disable_api_key': 1,
+                        'disable_tfa_for_subaccount': 1,
+                        'enable_affiliate_program': 1,
+                        'enable_api_key': 1,
+                        'get_access_log': 1,
+                        'get_account_summary': 1,
+                        'get_affiliate_program_info': 1,
+                        'get_email_language': 1,
+                        'get_new_announcements': 1,
+                        'get_portfolio_margins': 1,
+                        'get_position': 1,
+                        'get_positions': 1,
+                        'get_subaccounts': 1,
+                        'get_subaccounts_details': 1,
+                        'get_transaction_log': 1,
+                        'list_api_keys': 1,
+                        'remove_api_key': 1,
+                        'remove_subaccount': 1,
+                        'reset_api_key': 1,
+                        'set_announcement_as_read': 1,
+                        'set_api_key_as_default': 1,
+                        'set_email_for_subaccount': 1,
+                        'set_email_language': 1,
+                        'set_password_for_subaccount': 1,
+                        'toggle_notifications_from_subaccount': 1,
+                        'toggle_subaccount_login': 1,
                         // Block Trade
-                        'execute_block_trade',
-                        'get_block_trade',
-                        'get_last_block_trades_by_currency',
-                        'invalidate_block_trade_signature',
-                        'verify_block_trade',
+                        'execute_block_trade': 4,
+                        'get_block_trade': 1,
+                        'get_last_block_trades_by_currency': 1,
+                        'invalidate_block_trade_signature': 1,
+                        'verify_block_trade': 4,
                         // Trading
-                        'buy',
-                        'sell',
-                        'edit',
-                        'edit_by_label',
-                        'cancel',
-                        'cancel_all',
-                        'cancel_all_by_currency',
-                        'cancel_all_by_instrument',
-                        'cancel_by_label',
-                        'close_position',
-                        'get_margins',
-                        'get_mmp_config',
-                        'get_open_orders_by_currency',
-                        'get_open_orders_by_instrument',
-                        'get_order_history_by_currency',
-                        'get_order_history_by_instrument',
-                        'get_order_margin_by_ids',
-                        'get_order_state',
-                        'get_stop_order_history', // deprecated
-                        'get_trigger_order_history',
-                        'get_user_trades_by_currency',
-                        'get_user_trades_by_currency_and_time',
-                        'get_user_trades_by_instrument',
-                        'get_user_trades_by_instrument_and_time',
-                        'get_user_trades_by_order',
-                        'reset_mmp',
-                        'set_mmp_config',
-                        'get_settlement_history_by_instrument',
-                        'get_settlement_history_by_currency',
+                        'buy': 4,
+                        'sell': 4,
+                        'edit': 4,
+                        'edit_by_label': 4,
+                        'cancel': 4,
+                        'cancel_all': 4,
+                        'cancel_all_by_currency': 4,
+                        'cancel_all_by_instrument': 4,
+                        'cancel_by_label': 4,
+                        'close_position': 4,
+                        'get_margins': 1,
+                        'get_mmp_config': 1,
+                        'get_open_orders_by_currency': 1,
+                        'get_open_orders_by_instrument': 1,
+                        'get_order_history_by_currency': 1,
+                        'get_order_history_by_instrument': 1,
+                        'get_order_margin_by_ids': 1,
+                        'get_order_state': 1,
+                        'get_stop_order_history': 1, // deprecated
+                        'get_trigger_order_history': 1,
+                        'get_user_trades_by_currency': 1,
+                        'get_user_trades_by_currency_and_time': 1,
+                        'get_user_trades_by_instrument': 1,
+                        'get_user_trades_by_instrument_and_time': 1,
+                        'get_user_trades_by_order': 1,
+                        'reset_mmp': 1,
+                        'set_mmp_config': 1,
+                        'get_settlement_history_by_instrument': 1,
+                        'get_settlement_history_by_currency': 1,
                         // Wallet
-                        'cancel_transfer_by_id',
-                        'cancel_withdrawal',
-                        'create_deposit_address',
-                        'get_current_deposit_address',
-                        'get_deposits',
-                        'get_transfers',
-                        'get_withdrawals',
-                        'submit_transfer_to_subaccount',
-                        'submit_transfer_to_user',
-                        'withdraw',
-                    ],
+                        'cancel_transfer_by_id': 1,
+                        'cancel_withdrawal': 1,
+                        'create_deposit_address': 1,
+                        'get_current_deposit_address': 1,
+                        'get_deposits': 1,
+                        'get_transfers': 1,
+                        'get_withdrawals': 1,
+                        'submit_transfer_to_subaccount': 1,
+                        'submit_transfer_to_user': 1,
+                        'withdraw': 1,
+                    },
                 },
             },
             'exceptions': {
@@ -342,6 +358,9 @@ module.exports = class deribit extends Exchange {
                 'fetchBalance': {
                     'code': 'BTC',
                 },
+                'fetchPositions': {
+                    'code': 'BTC',
+                },
             },
         });
     }
@@ -372,7 +391,7 @@ module.exports = class deribit extends Exchange {
         const request = {
             // 'expected_result': false, // true will trigger an error for testing purposes
         };
-        await this.publicGetTest (this.extend (request, params));
+        const response = await this.publicGetTest (this.extend (request, params));
         //
         //     {
         //         jsonrpc: '2.0',
@@ -386,6 +405,7 @@ module.exports = class deribit extends Exchange {
         this.status = this.extend (this.status, {
             'status': 'ok',
             'updated': this.milliseconds (),
+            'info': response,
         });
         return this.status;
     }
@@ -426,30 +446,75 @@ module.exports = class deribit extends Exchange {
             const instrumentsResponse = await this.publicGetGetInstruments (this.extend (request, params));
             //
             //     {
-            //         jsonrpc: '2.0',
-            //         result: [
+            //         "jsonrpc":"2.0",
+            //         "result":[
             //             {
-            //                 tick_size: 0.0005,
-            //                 taker_commission: 0.0004,
-            //                 strike: 300,
-            //                 settlement_period: 'week',
-            //                 quote_currency: 'USD',
-            //                 option_type: 'call',
-            //                 min_trade_amount: 1,
-            //                 maker_commission: 0.0004,
-            //                 kind: 'option',
-            //                 is_active: true,
-            //                 instrument_name: 'ETH-13MAR20-300-C',
-            //                 expiration_timestamp: 1584086400000,
-            //                 creation_timestamp: 1582790403000,
-            //                 contract_size: 1,
-            //                 base_currency: 'ETH'
+            //                 "tick_size":0.0005,
+            //                 "taker_commission":0.0003,
+            //                 "strike":52000.0,
+            //                 "settlement_period":"month",
+            //                 "settlement_currency":"BTC",
+            //                 "quote_currency":"BTC",
+            //                 "option_type":"put", // put, call
+            //                 "min_trade_amount":0.1,
+            //                 "maker_commission":0.0003,
+            //                 "kind":"option",
+            //                 "is_active":true,
+            //                 "instrument_name":"BTC-24JUN22-52000-P",
+            //                 "expiration_timestamp":1656057600000,
+            //                 "creation_timestamp":1648199543000,
+            //                 "counter_currency":"USD",
+            //                 "contract_size":1.0,
+            //                 "block_trade_commission":0.0003,
+            //                 "base_currency":"BTC"
+            //             },
+            //             {
+            //                 "tick_size":0.5,
+            //                 "taker_commission":0.0005,
+            //                 "settlement_period":"month", // month, week
+            //                 "settlement_currency":"BTC",
+            //                 "quote_currency":"USD",
+            //                 "min_trade_amount":10.0,
+            //                 "max_liquidation_commission":0.0075,
+            //                 "max_leverage":50,
+            //                 "maker_commission":0.0,
+            //                 "kind":"future",
+            //                 "is_active":true,
+            //                 "instrument_name":"BTC-27MAY22",
+            //                 "future_type":"reversed",
+            //                 "expiration_timestamp":1653638400000,
+            //                 "creation_timestamp":1648195209000,
+            //                 "counter_currency":"USD",
+            //                 "contract_size":10.0,
+            //                 "block_trade_commission":0.0001,
+            //                 "base_currency":"BTC"
+            //             },
+            //             {
+            //                 "tick_size":0.5,
+            //                 "taker_commission":0.0005,
+            //                 "settlement_period":"perpetual",
+            //                 "settlement_currency":"BTC",
+            //                 "quote_currency":"USD",
+            //                 "min_trade_amount":10.0,
+            //                 "max_liquidation_commission":0.0075,
+            //                 "max_leverage":50,
+            //                 "maker_commission":0.0,
+            //                 "kind":"future",
+            //                 "is_active":true,
+            //                 "instrument_name":"BTC-PERPETUAL",
+            //                 "future_type":"reversed",
+            //                 "expiration_timestamp":32503708800000,
+            //                 "creation_timestamp":1534242287000,
+            //                 "counter_currency":"USD",
+            //                 "contract_size":10.0,
+            //                 "block_trade_commission":0.0001,
+            //                 "base_currency":"BTC"
             //             },
             //         ],
-            //         usIn: 1583761889500586,
-            //         usOut: 1583761889505066,
-            //         usDiff: 4480,
-            //         testnet: false
+            //         "usIn":1648691472831791,
+            //         "usOut":1648691472831896,
+            //         "usDiff":105,
+            //         "testnet":false
             //     }
             //
             const instrumentsResult = this.safeValue (instrumentsResponse, 'result', []);
@@ -457,29 +522,70 @@ module.exports = class deribit extends Exchange {
                 const market = instrumentsResult[k];
                 const id = this.safeString (market, 'instrument_name');
                 const baseId = this.safeString (market, 'base_currency');
-                const quoteId = this.safeString (market, 'quote_currency');
+                const quoteId = this.safeString (market, 'counter_currency');
+                const settleId = this.safeString (market, 'settlement_currency');
                 const base = this.safeCurrencyCode (baseId);
                 const quote = this.safeCurrencyCode (quoteId);
-                const type = this.safeString (market, 'kind');
-                const future = (type === 'future');
-                const option = (type === 'option');
-                const active = this.safeValue (market, 'is_active');
+                const settle = this.safeCurrencyCode (settleId);
+                const kind = this.safeString (market, 'kind');
+                const settlementPeriod = this.safeValue (market, 'settlement_period');
+                const swap = (settlementPeriod === 'perpetual');
+                const future = !swap && (kind === 'future');
+                const option = (kind === 'option');
+                let symbol = base + '/' + quote + ':' + settle;
+                const expiry = this.safeInteger (market, 'expiration_timestamp');
+                let strike = undefined;
+                let optionType = undefined;
+                let type = 'swap';
+                if (option || future) {
+                    symbol = symbol + '-' + this.yymmdd (expiry, '');
+                    if (option) {
+                        type = 'option';
+                        strike = this.safeNumber (market, 'strike');
+                        optionType = this.safeString (market, 'option_type');
+                        const letter = (optionType === 'call') ? 'C' : 'P';
+                        symbol = symbol + ':' + this.numberToString (strike) + ':' + letter;
+                    } else {
+                        type = 'future';
+                    }
+                }
                 const minTradeAmount = this.safeNumber (market, 'min_trade_amount');
                 const tickSize = this.safeNumber (market, 'tick_size');
-                const precision = {
-                    'amount': minTradeAmount,
-                    'price': tickSize,
-                };
                 result.push ({
                     'id': id,
-                    'symbol': id,
+                    'symbol': symbol,
                     'base': base,
                     'quote': quote,
-                    'active': active,
-                    'precision': precision,
+                    'settle': settle,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
+                    'settleId': settleId,
+                    'type': type,
+                    'spot': false,
+                    'margin': false,
+                    'swap': swap,
+                    'future': future,
+                    'option': option,
+                    'active': this.safeValue (market, 'is_active'),
+                    'contract': true,
+                    'linear': false,
+                    'inverse': true,
                     'taker': this.safeNumber (market, 'taker_commission'),
                     'maker': this.safeNumber (market, 'maker_commission'),
+                    'contractSize': this.safeNumber (market, 'contract_size'),
+                    'expiry': expiry,
+                    'expiryDatetime': this.iso8601 (expiry),
+                    'strike': strike,
+                    'optionType': optionType,
+                    'precision': {
+                        'amount': minTradeAmount,
+                        'price': tickSize,
+                    },
                     'limits': {
+                        'leverage': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                         'amount': {
                             'min': minTradeAmount,
                             'max': undefined,
@@ -493,15 +599,26 @@ module.exports = class deribit extends Exchange {
                             'max': undefined,
                         },
                     },
-                    'type': type,
-                    'spot': false,
-                    'future': future,
-                    'option': option,
                     'info': market,
                 });
             }
         }
         return result;
+    }
+
+    parseBalance (response) {
+        const result = {
+            'info': response,
+        };
+        const balance = this.safeValue (response, 'result', {});
+        const currencyId = this.safeString (balance, 'currency');
+        const currencyCode = this.safeCurrencyCode (currencyId);
+        const account = this.account ();
+        account['free'] = this.safeString (balance, 'available_funds');
+        account['used'] = this.safeString (balance, 'maintenance_margin');
+        account['total'] = this.safeString (balance, 'equity');
+        result[currencyCode] = account;
+        return this.safeBalance (result);
     }
 
     async fetchBalance (params = {}) {
@@ -554,18 +671,7 @@ module.exports = class deribit extends Exchange {
         //         testnet: false
         //     }
         //
-        const result = {
-            'info': response,
-        };
-        const balance = this.safeValue (response, 'result', {});
-        const currencyId = this.safeString (balance, 'currency');
-        const currencyCode = this.safeCurrencyCode (currencyId);
-        const account = this.account ();
-        account['free'] = this.safeString (balance, 'available_funds');
-        account['used'] = this.safeString (balance, 'maintenance_margin');
-        account['total'] = this.safeString (balance, 'equity');
-        result[currencyCode] = account;
-        return this.parseBalance (result);
+        return this.parseBalance (response);
     }
 
     async createDepositAddress (code, params = {}) {
@@ -684,18 +790,18 @@ module.exports = class deribit extends Exchange {
         const timestamp = this.safeInteger2 (ticker, 'timestamp', 'creation_timestamp');
         const marketId = this.safeString (ticker, 'instrument_name');
         const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeNumber2 (ticker, 'last_price', 'last');
+        const last = this.safeString2 (ticker, 'last_price', 'last');
         const stats = this.safeValue (ticker, 'stats', ticker);
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber2 (stats, 'high', 'max_price'),
-            'low': this.safeNumber2 (stats, 'low', 'min_price'),
-            'bid': this.safeNumber2 (ticker, 'best_bid_price', 'bid_price'),
-            'bidVolume': this.safeNumber (ticker, 'best_bid_amount'),
-            'ask': this.safeNumber2 (ticker, 'best_ask_price', 'ask_price'),
-            'askVolume': this.safeNumber (ticker, 'best_ask_amount'),
+            'high': this.safeString2 (stats, 'high', 'max_price'),
+            'low': this.safeString2 (stats, 'low', 'min_price'),
+            'bid': this.safeString2 (ticker, 'best_bid_price', 'bid_price'),
+            'bidVolume': this.safeString (ticker, 'best_bid_amount'),
+            'ask': this.safeString2 (ticker, 'best_ask_price', 'ask_price'),
+            'askVolume': this.safeString (ticker, 'best_ask_amount'),
             'vwap': undefined,
             'open': undefined,
             'close': last,
@@ -705,9 +811,9 @@ module.exports = class deribit extends Exchange {
             'percentage': undefined,
             'average': undefined,
             'baseVolume': undefined,
-            'quoteVolume': this.safeNumber (stats, 'volume'),
+            'quoteVolume': this.safeString (stats, 'volume'),
             'info': ticker,
-        };
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -850,17 +956,19 @@ module.exports = class deribit extends Exchange {
         //
         // fetchTrades (public)
         //
-        //     {
-        //         'trade_seq': 39201926,
-        //         'trade_id':' 64135724',
-        //         'timestamp': 1583174775400,
-        //         'tick_direction': 1,
-        //         'price': 8865.0,
-        //         'instrument_name': 'BTC-PERPETUAL',
-        //         'index_price': 8863.31,
-        //         'direction': 'buy',
-        //         'amount': 10.0
-        //     }
+        //      {
+        //          "trade_seq":132564271,
+        //          "trade_id":"195402220",
+        //          "timestamp":1639684927932,
+        //          "tick_direction":0,
+        //          "price":47946.5,
+        //          "mark_price":47944.13,
+        //          "instrument_name":"BTC-PERPETUAL",
+        //          "index_price":47925.45,
+        //          "direction":"buy",
+        //          "amount":580.0
+        //      }
+        //
         //
         // fetchMyTrades, fetchOrderTrades (private)
         //
@@ -894,26 +1002,23 @@ module.exports = class deribit extends Exchange {
         const side = this.safeString (trade, 'direction');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const liquidity = this.safeString (trade, 'liquidity');
         let takerOrMaker = undefined;
         if (liquidity !== undefined) {
             // M = maker, T = taker, MT = both
             takerOrMaker = (liquidity === 'M') ? 'maker' : 'taker';
         }
-        const feeCost = this.safeNumber (trade, 'fee');
+        const feeCostString = this.safeString (trade, 'fee');
         let fee = undefined;
-        if (feeCost !== undefined) {
+        if (feeCostString !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fee_currency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             };
         }
-        return {
+        return this.safeTrade ({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -923,11 +1028,11 @@ module.exports = class deribit extends Exchange {
             'type': this.safeString (trade, 'order_type'),
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -946,33 +1051,143 @@ module.exports = class deribit extends Exchange {
         }
         const response = await this[method] (this.extend (request, params));
         //
-        //     {
-        //         'jsonrpc': '2.0',
-        //         'result': {
-        //             'trades': [
-        //                 {
-        //                     'trade_seq': 39201926,
-        //                     'trade_id':' 64135724',
-        //                     'timestamp': 1583174775400,
-        //                     'tick_direction': 1,
-        //                     'price': 8865.0,
-        //                     'instrument_name': 'BTC-PERPETUAL',
-        //                     'index_price': 8863.31,
-        //                     'direction': 'buy',
-        //                     'amount': 10.0
-        //                 },
-        //             ],
-        //             'has_more': true,
-        //         },
-        //         'usIn': 1583779594843931,
-        //         'usOut': 1583779594844446,
-        //         'usDiff': 515,
-        //         'testnet': false
-        //     }
+        //      {
+        //          "jsonrpc":"2.0",
+        //          "result": {
+        //              "trades": [
+        //                  {
+        //                      "trade_seq":132564271,
+        //                      "trade_id":"195402220",
+        //                      "timestamp":1639684927932,
+        //                      "tick_direction":0,
+        //                      "price":47946.5,
+        //                      "mark_price":47944.13,
+        //                      "instrument_name":"BTC-PERPETUAL",
+        //                      "index_price":47925.45,
+        //                      "direction":"buy","amount":580.0
+        //                  }
+        //              ],
+        //              "has_more":true
+        //          },
+        //          "usIn":1639684931934671,
+        //          "usOut":1639684931935337,
+        //          "usDiff":666,
+        //          "testnet":false
+        //      }
         //
         const result = this.safeValue (response, 'result', {});
         const trades = this.safeValue (result, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
+    }
+
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const code = this.codeFromOptions ('fetchTradingFees', params);
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+            'extended': true,
+        };
+        const response = await this.privateGetGetAccountSummary (this.extend (request, params));
+        //
+        //     {
+        //         jsonrpc: '2.0',
+        //         result: {
+        //             total_pl: 0,
+        //             session_upl: 0,
+        //             session_rpl: 0,
+        //             session_funding: 0,
+        //             portfolio_margining_enabled: false,
+        //             options_vega: 0,
+        //             options_theta: 0,
+        //             options_session_upl: 0,
+        //             options_session_rpl: 0,
+        //             options_pl: 0,
+        //             options_gamma: 0,
+        //             options_delta: 0,
+        //             margin_balance: 0.00062359,
+        //             maintenance_margin: 0,
+        //             limits: {
+        //                 non_matching_engine_burst: 300,
+        //                 non_matching_engine: 200,
+        //                 matching_engine_burst: 20,
+        //                 matching_engine: 2
+        //             },
+        //             initial_margin: 0,
+        //             futures_session_upl: 0,
+        //             futures_session_rpl: 0,
+        //             futures_pl: 0,
+        //             equity: 0.00062359,
+        //             deposit_address: '13tUtNsJSZa1F5GeCmwBywVrymHpZispzw',
+        //             delta_total: 0,
+        //             currency: 'BTC',
+        //             balance: 0.00062359,
+        //             available_withdrawal_funds: 0.00062359,
+        //             available_funds: 0.00062359,
+        //             fees: [
+        //                 currency: '',
+        //                 instrument_type: 'perpetual',
+        //                 fee_type: 'relative',
+        //                 maker_fee: 0,
+        //                 taker_fee: 0,
+        //             ],
+        //         },
+        //         usIn: 1583775838115975,
+        //         usOut: 1583775838116520,
+        //         usDiff: 545,
+        //         testnet: false
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const fees = this.safeValue (result, 'fees', []);
+        let perpetualFee = {};
+        let futureFee = {};
+        let optionFee = {};
+        for (let i = 0; i < fees.length; i++) {
+            const fee = fees[i];
+            const instrumentType = this.safeString (fee, 'instrument_type');
+            if (instrumentType === 'future') {
+                futureFee = {
+                    'info': fee,
+                    'maker': this.safeNumber (fee, 'maker_fee'),
+                    'taker': this.safeNumber (fee, 'taker_fee'),
+                };
+            } else if (instrumentType === 'perpetual') {
+                perpetualFee = {
+                    'info': fee,
+                    'maker': this.safeNumber (fee, 'maker_fee'),
+                    'taker': this.safeNumber (fee, 'taker_fee'),
+                };
+            } else if (instrumentType === 'option') {
+                optionFee = {
+                    'info': fee,
+                    'maker': this.safeNumber (fee, 'maker_fee'),
+                    'taker': this.safeNumber (fee, 'taker_fee'),
+                };
+            }
+        }
+        const parsedFees = {};
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            const market = this.market (symbol);
+            let fee = {
+                'info': market,
+                'symbol': symbol,
+                'percentage': true,
+                'tierBased': true,
+                'maker': market['maker'],
+                'taker': market['taker'],
+            };
+            if (market['swap']) {
+                fee = this.extend (fee, perpetualFee);
+            } else if (market['future']) {
+                fee = this.extend (fee, futureFee);
+            } else if (market['option']) {
+                fee = this.extend (fee, optionFee);
+            }
+            parsedFees[symbol] = fee;
+        }
+        return parsedFees;
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -1083,13 +1298,18 @@ module.exports = class deribit extends Exchange {
         const timestamp = this.safeInteger (order, 'creation_timestamp');
         const lastUpdate = this.safeInteger (order, 'last_update_timestamp');
         const id = this.safeString (order, 'order_id');
-        const price = this.safeNumber (order, 'price');
-        const average = this.safeNumber (order, 'average_price');
-        const amount = this.safeNumber (order, 'amount');
-        const filled = this.safeNumber (order, 'filled_amount');
+        let priceString = this.safeString (order, 'price');
+        if (priceString === 'market_price') {
+            // for market orders we get a literal 'market_price' string here
+            priceString = undefined;
+        }
+        const averageString = this.safeString (order, 'average_price');
+        const amountString = this.safeString (order, 'amount');
+        const filledString = this.safeString (order, 'filled_amount');
         let lastTradeTimestamp = undefined;
-        if (filled !== undefined) {
-            if (filled > 0) {
+        if (filledString !== undefined) {
+            const isFilledPositive = Precise.stringGt (filledString, '0');
+            if (isFilledPositive) {
                 lastTradeTimestamp = lastUpdate;
             }
         }
@@ -1097,12 +1317,12 @@ module.exports = class deribit extends Exchange {
         const marketId = this.safeString (order, 'instrument_name');
         market = this.safeMarket (marketId, market);
         const side = this.safeStringLower (order, 'direction');
-        let feeCost = this.safeNumber (order, 'commission');
+        let feeCostString = this.safeString (order, 'commission');
         let fee = undefined;
-        if (feeCost !== undefined) {
-            feeCost = Math.abs (feeCost);
+        if (feeCostString !== undefined) {
+            feeCostString = Precise.stringAbs (feeCostString);
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': market['base'],
             };
         }
@@ -1127,17 +1347,17 @@ module.exports = class deribit extends Exchange {
             'timeInForce': timeInForce,
             'postOnly': postOnly,
             'side': side,
-            'price': price,
+            'price': priceString,
             'stopPrice': stopPrice,
-            'amount': amount,
+            'amount': amountString,
             'cost': undefined,
-            'average': average,
-            'filled': filled,
+            'average': averageString,
+            'filled': filledString,
             'remaining': undefined,
             'status': status,
             'fee': fee,
             'trades': trades,
-        });
+        }, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -1416,8 +1636,7 @@ module.exports = class deribit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const trades = this.safeValue (result, 'trades', []);
-        return this.parseTrades (trades, undefined, since, limit);
+        return this.parseTrades (result, undefined, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1644,6 +1863,70 @@ module.exports = class deribit extends Exchange {
         };
     }
 
+    parsePosition (position, market = undefined) {
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 404,
+        //         "result": {
+        //             "average_price": 0,
+        //             "delta": 0,
+        //             "direction": "buy",
+        //             "estimated_liquidation_price": 0,
+        //             "floating_profit_loss": 0,
+        //             "index_price": 3555.86,
+        //             "initial_margin": 0,
+        //             "instrument_name": "BTC-PERPETUAL",
+        //             "leverage": 100,
+        //             "kind": "future",
+        //             "maintenance_margin": 0,
+        //             "mark_price": 3556.62,
+        //             "open_orders_margin": 0.000165889,
+        //             "realized_profit_loss": 0,
+        //             "settlement_price": 3555.44,
+        //             "size": 0,
+        //             "size_currency": 0,
+        //             "total_profit_loss": 0
+        //         }
+        //     }
+        //
+        const contract = this.safeString (position, 'instrument_name');
+        market = this.safeMarket (contract, market);
+        const size = this.safeString (position, 'size');
+        let side = this.safeString (position, 'direction');
+        side = (side === 'buy') ? 'long' : 'short';
+        const maintenanceRate = this.safeString (position, 'maintenance_margin');
+        const markPrice = this.safeString (position, 'mark_price');
+        const notionalString = Precise.stringMul (markPrice, size);
+        const unrealisedPnl = this.safeString (position, 'floating_profit_loss');
+        const initialMarginString = this.safeString (position, 'initial_margin');
+        const percentage = Precise.stringMul (Precise.stringDiv (unrealisedPnl, initialMarginString), '100');
+        const currentTime = this.milliseconds ();
+        return {
+            'info': position,
+            'symbol': this.safeString (market, 'symbol'),
+            'timestamp': currentTime,
+            'datetime': this.iso8601 (currentTime),
+            'initialMargin': this.parseNumber (initialMarginString),
+            'initialMarginPercentage': this.parseNumber (Precise.stringDiv (initialMarginString, notionalString)),
+            'maintenanceMargin': this.parseNumber (Precise.stringMul (maintenanceRate, notionalString)),
+            'maintenanceMarginPercentage': this.parseNumber (maintenanceRate),
+            'entryPrice': this.safeString (position, 'average_price'),
+            'notional': this.parseNumber (notionalString),
+            'leverage': this.safeNumber (position, 'leverage'),
+            'unrealizedPnl': this.parseNumber (unrealisedPnl),
+            'contracts': this.parseNumber (size),  // in USD for perpetuals on deribit
+            'contractSize': this.safeValue (market, 'contractSize'),
+            'marginRatio': undefined,
+            'liquidationPrice': this.safeNumber (position, 'estimated_liquidation_price'),
+            'markPrice': markPrice,
+            'collateral': undefined,
+            'marginType': undefined,
+            'side': side,
+            'percentage': this.parseNumber (percentage),
+        };
+    }
+
     async fetchPosition (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1677,17 +1960,39 @@ module.exports = class deribit extends Exchange {
         //         }
         //     }
         //
-        // todo unify parsePosition/parsePositions
         const result = this.safeValue (response, 'result');
+        return this.parsePosition (result);
+    }
+
+    parsePositions (positions) {
+        const result = [];
+        for (let i = 0; i < positions.length; i++) {
+            result.push (this.parsePosition (positions[i]));
+        }
         return result;
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const code = this.codeFromOptions ('fetchPositions', params);
+        let code = undefined;
+        if (symbols === undefined) {
+            code = this.codeFromOptions ('fetchPositions', params);
+        } else if (typeof symbols === 'string') {
+            code = symbols;
+        } else {
+            if (Array.isArray (symbols)) {
+                const length = symbols.length;
+                if (length !== 1) {
+                    throw new BadRequest (this.id + ' fetchPositions symbols argument cannot contain more than 1 symbol');
+                }
+                const market = this.market (symbols[0]);
+                code = market['base'];
+            }
+        }
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
+            // "kind" : "future", "option"
         };
         const response = await this.privateGetGetPositions (this.extend (request, params));
         //
@@ -1715,12 +2020,47 @@ module.exports = class deribit extends Exchange {
         //                 "size": 50,
         //                 "size_currency": 0.006687487,
         //                 "total_profit_loss": 0.000032781
-        //             }
+        //             },
         //         ]
         //     }
         //
-        // todo unify parsePosition/parsePositions
-        const result = this.safeValue (response, 'result', []);
+        const result = this.safeValue (response, 'result');
+        return this.parsePositions (result);
+    }
+
+    async fetchHistoricalVolatility (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.publicGetGetHistoricalVolatility (this.extend (request, params));
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "result": [
+        //             [1640142000000,63.828320460740585],
+        //             [1640142000000,63.828320460740585],
+        //             [1640145600000,64.03821964123213]
+        //         ],
+        //         "usIn": 1641515379467734,
+        //         "usOut": 1641515379468095,
+        //         "usDiff": 361,
+        //         "testnet": false
+        //     }
+        //
+        const volatilityResult = this.safeValue (response, 'result', {});
+        const result = [];
+        for (let i = 0; i < volatilityResult.length; i++) {
+            const timestamp = this.safeInteger (volatilityResult[i], 0);
+            const volatility = this.safeNumber (volatilityResult[i], 1);
+            result.push ({
+                'info': response,
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'volatility': volatility,
+            });
+        }
         return result;
     }
 

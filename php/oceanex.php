@@ -27,13 +27,23 @@ class oceanex extends Exchange {
                 'referral' => 'https://oceanex.pro/signup?referral=VE24QX',
             ),
             'has' => array(
+                'CORS' => null,
+                'spot' => true,
+                'margin' => false,
+                'swap' => null, // has but unimplemented
+                'future' => null,
+                'option' => null,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'createMarketOrder' => true,
                 'createOrder' => true,
-                'fetchAllTradingFees' => true,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchFundingFees' => null,
                 'fetchMarkets' => true,
@@ -47,7 +57,8 @@ class oceanex extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
-                'fetchTradingFees' => null,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => true,
                 'fetchTradingLimits' => null,
             ),
             'timeframes' => array(
@@ -100,8 +111,8 @@ class oceanex extends Exchange {
                 'trading' => array(
                     'tierBased' => false,
                     'percentage' => true,
-                    'maker' => 0.1 / 100,
-                    'taker' => 0.1 / 100,
+                    'maker' => $this->parse_number('0.001'),
+                    'taker' => $this->parse_number('0.001'),
                 ),
             ),
             'commonCurrencies' => array(
@@ -135,6 +146,19 @@ class oceanex extends Exchange {
     public function fetch_markets($params = array ()) {
         $request = array( 'show_details' => true );
         $response = $this->publicGetMarkets (array_merge($request, $params));
+        //
+        //    array(
+        //        $id => 'xtzusdt',
+        //        $name => 'XTZ/USDT',
+        //        ask_precision => '8',
+        //        bid_precision => '8',
+        //        enabled => true,
+        //        price_precision => '4',
+        //        amount_precision => '3',
+        //        usd_precision => '4',
+        //        minimum_trading_amount => '1.0'
+        //    ),
+        //
         $result = array();
         $markets = $this->safe_value($response, 'data');
         for ($i = 0; $i < count($markets); $i++) {
@@ -152,12 +176,25 @@ class oceanex extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
-                'active' => true,
-                'info' => $market,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'active' => null,
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
                 'precision' => array(
                     'amount' => $this->safe_integer($market, 'amount_precision'),
                     'price' => $this->safe_integer($market, 'price_precision'),
@@ -165,6 +202,10 @@ class oceanex extends Exchange {
                     'quote' => $this->safe_integer($market, 'bid_precision'),
                 ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
                         'min' => null,
                         'max' => null,
@@ -178,6 +219,7 @@ class oceanex extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'info' => $market,
             );
         }
         return $result;
@@ -264,28 +306,29 @@ class oceanex extends Exchange {
         //
         $ticker = $this->safe_value($data, 'ticker', array());
         $timestamp = $this->safe_timestamp($data, 'at');
-        return array(
-            'symbol' => $market['symbol'],
+        $symbol = $this->safe_symbol(null, $market);
+        return $this->safe_ticker(array(
+            'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'buy'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'buy'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'sell'),
+            'ask' => $this->safe_string($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
-            'close' => $this->safe_number($ticker, 'last'),
-            'last' => $this->safe_number($ticker, 'last'),
+            'close' => $this->safe_string($ticker, 'last'),
+            'last' => $this->safe_string($ticker, 'last'),
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_number($ticker, 'volume'),
+            'baseVolume' => $this->safe_string($ticker, 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ), $market, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -422,7 +465,7 @@ class oceanex extends Exchange {
         return $this->safe_timestamp($response, 'data');
     }
 
-    public function fetch_all_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()) {
         $response = $this->publicGetFeesTrading ($params);
         $data = $this->safe_value($response, 'data');
         $result = array();
@@ -437,6 +480,7 @@ class oceanex extends Exchange {
                 'symbol' => $symbol,
                 'maker' => $this->safe_number($maker, 'value'),
                 'taker' => $this->safe_number($taker, 'value'),
+                'percentage' => true,
             );
         }
         return $result;
@@ -447,9 +491,7 @@ class oceanex extends Exchange {
         return $this->safe_value($response, 'data');
     }
 
-    public function fetch_balance($params = array ()) {
-        $this->load_markets();
-        $response = $this->privateGetMembersMe ($params);
+    public function parse_balance($response) {
         $data = $this->safe_value($response, 'data');
         $balances = $this->safe_value($data, 'accounts');
         $result = array( 'info' => $response );
@@ -462,7 +504,13 @@ class oceanex extends Exchange {
             $account['used'] = $this->safe_string($balance, 'locked');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetMembersMe ($params);
+        return $this->parse_balance($response);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -617,7 +665,7 @@ class oceanex extends Exchange {
         $amount = $this->safe_string($order, 'volume');
         $remaining = $this->safe_string($order, 'remaining_volume');
         $filled = $this->safe_string($order, 'executed_volume');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $this->safe_string($order, 'id'),
             'clientOrderId' => null,

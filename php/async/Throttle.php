@@ -17,7 +17,7 @@ class Throttle {
             'delay' => 0.001,
             'cost' => 1.0,
             'tokens' => 0.0,
-            'maxCapacity' => 1000,
+            'maxCapacity' => 2000,
             'capacity' => 1.0,
         ), $config);
         $this->queue = new \SplQueue();
