@@ -1009,6 +1009,7 @@ class bittrex extends Exchange {
     public function parse_transaction($transaction, $currency = null) {
         //
         // fetchDeposits
+        //
         //     {
         //         "id" => "d00fdf2e-df9e-48f1-....",
         //         "currencySymbol" => "BTC",
@@ -1023,6 +1024,7 @@ class bittrex extends Exchange {
         //     }
         //
         // fetchWithdrawals
+        //
         //     {
         //         "PaymentUuid" : "e293da98-788c-4188-a8f9-8ec2c33fdfcf",
         //         "Currency" : "XC",
@@ -1037,7 +1039,18 @@ class bittrex extends Exchange {
         //         "InvalidAddress" : false
         //     }
         //
-        $id = $this->safe_string($transaction, 'id');
+        // withdraw
+        //
+        //     {
+        //         "currencySymbol" => "string",
+        //         "quantity" => "number (double)",
+        //         "cryptoAddress" => "string",
+        //         "cryptoAddressTag" => "string",
+        //         "fundsTransferMethodId" => "string (uuid)",
+        //         "clientWithdrawalId" => "string (uuid)"
+        //     }
+        //
+        $id = $this->safe_string_2($transaction, 'id', 'clientWithdrawalId');
         $amount = $this->safe_number($transaction, 'quantity');
         $address = $this->safe_string($transaction, 'cryptoAddress');
         $txid = $this->safe_string($transaction, 'txId');
@@ -1392,11 +1405,17 @@ class bittrex extends Exchange {
             $request['cryptoAddressTag'] = $tag;
         }
         $response = $this->privatePostWithdrawals (array_merge($request, $params));
-        $id = $this->safe_string($response, 'id');
-        return array(
-            'info' => $response,
-            'id' => $id,
-        );
+        //
+        //     {
+        //         "currencySymbol" => "string",
+        //         "quantity" => "number (double)",
+        //         "cryptoAddress" => "string",
+        //         "cryptoAddressTag" => "string",
+        //         "fundsTransferMethodId" => "string (uuid)",
+        //         "clientWithdrawalId" => "string (uuid)"
+        //     }
+        //
+        return $this->parse_transaction($response, $currency);
     }
 
     public function sign($path, $api = 'v3', $method = 'GET', $params = array (), $headers = null, $body = null) {

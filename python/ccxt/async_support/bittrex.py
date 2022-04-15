@@ -965,6 +965,7 @@ class bittrex(Exchange):
     def parse_transaction(self, transaction, currency=None):
         #
         # fetchDeposits
+        #
         #     {
         #         "id": "d00fdf2e-df9e-48f1-....",
         #         "currencySymbol": "BTC",
@@ -979,6 +980,7 @@ class bittrex(Exchange):
         #     }
         #
         # fetchWithdrawals
+        #
         #     {
         #         "PaymentUuid" : "e293da98-788c-4188-a8f9-8ec2c33fdfcf",
         #         "Currency" : "XC",
@@ -993,7 +995,18 @@ class bittrex(Exchange):
         #         "InvalidAddress" : False
         #     }
         #
-        id = self.safe_string(transaction, 'id')
+        # withdraw
+        #
+        #     {
+        #         "currencySymbol": "string",
+        #         "quantity": "number(double)",
+        #         "cryptoAddress": "string",
+        #         "cryptoAddressTag": "string",
+        #         "fundsTransferMethodId": "string(uuid)",
+        #         "clientWithdrawalId": "string(uuid)"
+        #     }
+        #
+        id = self.safe_string_2(transaction, 'id', 'clientWithdrawalId')
         amount = self.safe_number(transaction, 'quantity')
         address = self.safe_string(transaction, 'cryptoAddress')
         txid = self.safe_string(transaction, 'txId')
@@ -1315,11 +1328,17 @@ class bittrex(Exchange):
         if tag is not None:
             request['cryptoAddressTag'] = tag
         response = await self.privatePostWithdrawals(self.extend(request, params))
-        id = self.safe_string(response, 'id')
-        return {
-            'info': response,
-            'id': id,
-        }
+        #
+        #     {
+        #         "currencySymbol": "string",
+        #         "quantity": "number(double)",
+        #         "cryptoAddress": "string",
+        #         "cryptoAddressTag": "string",
+        #         "fundsTransferMethodId": "string(uuid)",
+        #         "clientWithdrawalId": "string(uuid)"
+        #     }
+        #
+        return self.parse_transaction(response, currency)
 
     def sign(self, path, api='v3', method='GET', params={}, headers=None, body=None):
         url = self.implode_params(self.urls['api'][api], {
