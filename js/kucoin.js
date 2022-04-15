@@ -1726,15 +1726,12 @@ module.exports = class kucoin extends Exchange {
         //     {
         //         "code":  200000,
         //         "data": {
-        //             "withdrawalId":  "abcdefghijklmnopqrstuvwxyz"
+        //             "withdrawalId":  "5bffb63303aa675e8bbe18f9"
         //         }
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        return {
-            'id': this.safeString (data, 'withdrawalId'),
-            'info': response,
-        };
+        return this.parseTransaction (data, currency);
     }
 
     parseTransactionStatus (status) {
@@ -1779,6 +1776,12 @@ module.exports = class kucoin extends Exchange {
         //         "createdAt": 1546503758000,
         //         "updatedAt": 1546504603000
         //         "remark":"foobar"
+        //     }
+        //
+        // withdraw
+        //
+        //     {
+        //         "withdrawalId":  "5bffb63303aa675e8bbe18f9"
         //     }
         //
         const currencyId = this.safeString (transaction, 'currency');
