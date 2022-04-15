@@ -1702,7 +1702,7 @@ module.exports = class kraken extends Exchange {
         //
         // fetchDeposits
         //
-        //     { 
+        //     {
         //         method: "Ether (Hex)",
         //         aclass: "currency",
         //         asset: "XETH",
@@ -1712,7 +1712,7 @@ module.exports = class kraken extends Exchange {
         //         amount: "7.9999257900",
         //         fee: "0.0000000000",
         //         time:  1529223212,
-        //         status: "Success"                                                       
+        //         status: "Success"
         //     }
         //
         // there can be an additional 'status-prop' field present
