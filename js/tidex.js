@@ -800,8 +800,8 @@ module.exports = class tidex extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'return', {});
-        const withdrawData = this.safeValue (result, 'withdraw_info', {});
-        return this.parseTransaction (withdrawData, currency);
+        const withdrawInfo = this.safeValue (result, 'withdraw_info', {});
+        return this.parseTransaction (withdrawInfo, currency);
     }
 
     parseTransaction (transaction, currency = undefined) {
