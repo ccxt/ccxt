@@ -925,6 +925,7 @@ module.exports = class bitso extends Exchange {
             'BCH': 'Bcash',
             'LTC': 'Litecoin',
         };
+        const currency = this.currency (code);
         const method = (code in methods) ? methods[code] : undefined;
         if (method === undefined) {
             throw new ExchangeError (this.id + ' not valid withdraw coin: ' + code);
@@ -955,7 +956,8 @@ module.exports = class bitso extends Exchange {
         //     }
         //
         const payload = this.safeValue (response, 'payload');
-        return this.parseTransaction (payload);
+        const firstData = this.safeValue (payload, 0);
+        return this.parseTransaction (firstData, currency);
     }
 
     parseTransaction (transaction, currency = undefined) {
