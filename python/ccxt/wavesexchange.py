@@ -2005,4 +2005,51 @@ class wavesexchange(Exchange):
             'timestamp': timestamp,
             'signature': signature,
         }
-        return self.nodePostTransactionsBroadcast(request)
+        result = self.nodePostTransactionsBroadcast(request)
+        #
+        #     {
+        #         "id": "string",
+        #         "signature": "string",
+        #         "fee": 0,
+        #         "timestamp": 1460678400000,
+        #         "recipient": "3P274YB5qseSE9DTTL3bpSjosZrYBPDpJ8k",
+        #         "amount": 0
+        #     }
+        #
+        return self.parse_transaction(result, currency)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        # withdraw
+        #
+        #     {
+        #         "id": "string",
+        #         "signature": "string",
+        #         "fee": 0,
+        #         "timestamp": 1460678400000,
+        #         "recipient": "3P274YB5qseSE9DTTL3bpSjosZrYBPDpJ8k",
+        #         "amount": 0
+        #     }
+        #
+        currency = self.safe_currency(None, currency)
+        return {
+            'id': None,
+            'txid': None,
+            'timestamp': None,
+            'datetime': None,
+            'network': None,
+            'addressFrom': None,
+            'address': None,
+            'addressTo': None,
+            'amount': None,
+            'type': None,
+            'currency': currency['code'],
+            'status': None,
+            'updated': None,
+            'tagFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'comment': None,
+            'fee': None,
+            'info': transaction,
+        }
