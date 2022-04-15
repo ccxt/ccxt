@@ -1404,13 +1404,37 @@ module.exports = class kucoin extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoin#fetchOrder
+         * @description fetch an order
+         * @param {str} id Order id
+         * @param {str} symbol not sent to exchange except for stop orders with clientOid, but used internally by CCXT to filter
+         * @param {dict} params exchange specific parameters
+         * @param {bool} params.stop true if fetching a stop order
+         * @param {bool} params.clientOid unique order id created by users to identify their orders
+         * @returns An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {};
         const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
+        const stop = this.safeValue (params, 'stop');
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        params = this.omit (params, 'stop');
         let method = 'privateGetOrdersOrderId';
         if (clientOrderId !== undefined) {
             request['clientOid'] = clientOrderId;
-            method = 'privateGetOrdersClientOrderClientOid';
+            if (stop) {
+                method = 'privateGetStopOrderQueryOrderByClientOid';
+                if (symbol) {
+                    request['symbol'] = market['id'];
+                }
+            } else {
+                method = 'privateGetOrdersClientOrderClientOid';
+            }
         } else {
             // a special case for undefined ids
             // otherwise a wrong endpoint for all orders will be triggered
@@ -1418,14 +1442,13 @@ module.exports = class kucoin extends Exchange {
             if (id === undefined) {
                 throw new InvalidOrder (this.id + ' fetchOrder() requires an order id');
             }
+            if (stop) {
+                method = 'privateGetStopOrderOrderId';
+            }
             request['orderId'] = id;
         }
         params = this.omit (params, [ 'clientOid', 'clientOrderId' ]);
         const response = await this[method] (this.extend (request, params));
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        }
         const responseData = this.safeValue (response, 'data');
         return this.parseOrder (responseData, market);
     }
