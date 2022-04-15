@@ -930,7 +930,7 @@ module.exports = class gemini extends Exchange {
         //
         const result = this.safeString (response, 'result');
         if (result === 'error') {
-            throw new ExchangeError (this.id + ' withdraw returned an error: ' + this.json (response));
+            throw new ExchangeError (this.id + ' withdraw() failed: ' + this.json (response));
         }
         return this.parseTransaction (response, currency);
     }
