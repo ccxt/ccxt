@@ -1449,7 +1449,10 @@ module.exports = class kucoin extends Exchange {
         }
         params = this.omit (params, [ 'clientOid', 'clientOrderId' ]);
         const response = await this[method] (this.extend (request, params));
-        const responseData = this.safeValue (response, 'data');
+        let responseData = this.safeValue (response, 'data');
+        if (method === 'privateGetStopOrderQueryOrderByClientOid') {
+            responseData = this.safeValue (responseData, 0);
+        }
         return this.parseOrder (responseData, market);
     }
 
@@ -1489,39 +1492,6 @@ module.exports = class kucoin extends Exchange {
         //         "createdAt": 1547026471000  // time
         //     }
         //
-        //    {
-        //        id: 'vs86koip04qlmsrn000h4ncq',
-        //        symbol: 'ADA-USDT',
-        //        userId: '613a896885d8660006151f01',
-        //        status: 'NEW',
-        //        type: 'limit',
-        //        side: 'sell',
-        //        price: '0.92000000000000000000',
-        //        size: '10.00000000000000000000',
-        //        funds: null,
-        //        stp: null,
-        //        timeInForce: 'GTC',
-        //        cancelAfter: -1,
-        //        postOnly: false,
-        //        hidden: false,
-        //        iceberg: false,
-        //        visibleSize: null,
-        //        channel: 'API',
-        //        clientOid: 'e5bc0f1e-dd22-4e4c-b3a6-eff3b2ae254a',
-        //        remark: null,
-        //        tags: null,
-        //        orderTime: 1650000181132000000,
-        //        domainId: 'kucoin',
-        //        tradeSource: 'USER',
-        //        tradeType: 'TRADE',
-        //        feeCurrency: 'USDT',
-        //        takerFeeRate: '0.00100000000000000000',
-        //        makerFeeRate: '0.00100000000000000000',
-        //        createdAt: 1650000181132,
-        //        stop: 'loss',
-        //        stopTriggerTime: null,
-        //        stopPrice: '0.92000000000000000000'
-        //    }
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '-');
         const orderId = this.safeString (order, 'id');
