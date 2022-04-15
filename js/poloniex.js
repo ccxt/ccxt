@@ -1392,10 +1392,7 @@ module.exports = class poloniex extends Exchange {
         //         withdrawalNumber: 13449869
         //     }
         //
-        return {
-            'info': response,
-            'id': this.safeString (response, 'withdrawalNumber'),
-        };
+        return this.parseTransaction (response, currency);
     }
 
     async fetchTransactionsHelper (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1564,6 +1561,14 @@ module.exports = class poloniex extends Exchange {
         //         "timestamp": 1523834337,
         //         "canResendEmail": 0,
         //         "withdrawalNumber": 11162900
+        //     }
+        //
+        // withdraw
+        //
+        //     {
+        //         response: 'Withdrew 1.00000000 USDT.',
+        //         email2FA: false,
+        //         withdrawalNumber: 13449869
         //     }
         //
         const timestamp = this.safeTimestamp (transaction, 'timestamp');
