@@ -19,7 +19,10 @@
       "import": "./build/fsLocal.js"
     },
     "./exportHelper": {
-      "import": "./build/exportHelper.js"
+      "import": "./build/export-helper.js"
+    },
+    "./exchangeTests": {
+      "import": "./js/test/Exchange/exportTests.js"
     }
   },
   "engines": {
