@@ -1244,12 +1244,12 @@ module.exports = class bigone extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const accountsById = this.safeValue (this.options, 'accountsByType', {});
-        const fromId = this.safeString (accountsById, fromAccount);
+        const fromId = this.safeString (accountsById, fromAccount, fromAccount);
         if (fromId === undefined) {
             const keys = Object.keys (accountsById);
             throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', '));
         }
-        const toId = this.safeString (accountsById, toAccount);
+        const toId = this.safeString (accountsById, toAccount, toAccount);
         if (toId === undefined) {
             const keys = Object.keys (accountsById);
             throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', '));
