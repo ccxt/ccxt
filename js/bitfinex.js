@@ -1311,13 +1311,15 @@ module.exports = class bitfinex extends Exchange {
         }
         const responses = await this.privatePostWithdraw (this.extend (request, params));
         //
-        //     [{
-        //         "status":"success",
-        //         "message":"Your withdrawal request has been successfully submitted.",
-        //         "withdrawal_id":586829
-        //     }]
+        //     [
+        //         {
+        //             "status":"success",
+        //             "message":"Your withdrawal request has been successfully submitted.",
+        //             "withdrawal_id":586829
+        //         }
+        //     ]
         //
-        const response = responses[0];
+        const response = this.safeValue (responses, 0, {});
         const id = this.safeString (response, 'withdrawal_id');
         const message = this.safeString (response, 'message');
         const errorMessage = this.findBroadlyMatchedKey (this.exceptions['broad'], message);
