@@ -2608,7 +2608,7 @@ module.exports = class okcoin extends Exchange {
             request['sub_account'] = fromAccount;
             request['from'] = '0';
             request['to'] = '6';
-        } else if (fromAccount === 'margin' || toAccount === 'margin') {
+        } else if (fromId === '5' || toId === '5') {
             let marketId = this.safeString2 (params, 'instrument_id', 'to_instrument_id');
             if (marketId === undefined) {
                 const symbol = this.safeString (params, 'symbol');
@@ -2619,10 +2619,10 @@ module.exports = class okcoin extends Exchange {
                     const market = this.market (symbol);
                     marketId = market['id'];
                 }
-                if (fromAccount === 'margin') {
+                if (fromId === '5') {
                     request['instrument_id'] = marketId;
                 }
-                if (toAccount === 'margin') {
+                if (toId === '5') {
                     request['to_instrument_id'] = marketId;
                 }
             }
