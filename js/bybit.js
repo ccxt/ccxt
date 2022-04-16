@@ -864,36 +864,64 @@ module.exports = class bybit extends Exchange {
             const id = this.safeString2 (market, 'name', 'symbol');
             const baseId = this.safeString2 (market, 'base_currency', 'baseCoin');
             const quoteId = this.safeString2 (market, 'quote_currency', 'quoteCoin');
-            const settleId = this.safeString (market, 'settleCoin');
+            let settleId = this.safeString (market, 'settleCoin');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const settle = this.safeCurrencyCode (settleId);
+            let settle = this.safeCurrencyCode (settleId);
             const linear = (quote in linearQuoteCurrencies);
-            const inverse = !linear;
             let symbol = base + '/' + quote;
             const baseQuote = base + quote;
             let type = 'swap';
             if (baseQuote !== id) {
-                symbol = id;
                 type = 'future';
             }
             const lotSizeFilter = this.safeValue (market, 'lot_size_filter', {});
             const priceFilter = this.safeValue (market, 'price_filter', {});
-            const precision = {
-                'amount': this.safeNumber (lotSizeFilter, 'qty_step'),
-                'price': this.safeNumber (priceFilter, 'tick_size'),
-            };
             const leverage = this.safeValue (market, 'leverage_filter', {});
             const status = this.safeString (market, 'status');
             let active = undefined;
             if (status !== undefined) {
                 active = (status === 'Trading');
             }
-            const spot = (type === 'spot');
             const swap = (type === 'swap');
             const future = (type === 'future');
             const option = (type === 'option');
             const contract = swap || future || option;
+            let expiry = undefined;
+            let expiryDatetime = undefined;
+            let strike = undefined;
+            let optionType = undefined;
+            if (contract) {
+                if (settle === undefined) {
+                    settleId = linear ? quoteId : baseId;
+                    settle = this.safeCurrencyCode (settleId);
+                }
+                symbol = symbol + ':' + settle;
+                if (future) {
+                    const alias = this.safeString (market, 'alias');
+                    const shortDate = alias.slice (-4);
+                    const date = this.iso8601 (this.milliseconds ());
+                    const splitDate = date.split ('-');
+                    const year = splitDate[0];
+                    const expiryMonth = shortDate.slice (0, 2);
+                    const expiryDay = shortDate.slice (2, 4);
+                    expiryDatetime = year + '-' + expiryMonth + '-' + expiryDay + 'T00:00:00Z';
+                    expiry = this.parse8601 (expiryDatetime);
+                    symbol = symbol + '-' + this.yymmdd (expiry);
+                } else if (option) {
+                    expiry = this.safeInteger (market, 'deliveryTime');
+                    expiryDatetime = this.iso8601 (expiry);
+                    const splitId = this.split (id, '-');
+                    strike = this.safeString (splitId, 2);
+                    const optionLetter = this.safeString (splitId, 3);
+                    symbol = symbol + '-' + this.yymmdd (expiry) + ':' + strike + ':' + optionLetter;
+                    if (optionLetter === 'P') {
+                        optionType = 'put';
+                    } else if (optionLetter === 'C') {
+                        optionType = 'call';
+                    }
+                }
+            }
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -903,26 +931,33 @@ module.exports = class bybit extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
-                'active': active,
-                'precision': precision,
-                'taker': this.safeNumber (market, 'taker_fee'),
-                'maker': this.safeNumber (market, 'maker_fee'),
                 'type': type,
-                'spot': spot,
+                'spot': (type === 'spot'),
                 'margin': undefined, // todo
-                'contract': contract,
-                'contractSize': undefined, // todo
                 'swap': swap,
                 'future': future,
                 'futures': future, // Deprecated, use future
                 'option': option,
+                'active': active,
+                'contract': contract,
                 'linear': linear,
-                'inverse': inverse,
-                'expiry': undefined, // todo
-                'expiryDatetime': undefined, // todo
-                'optionType': undefined,
-                'strike': undefined,
+                'inverse': !linear,
+                'taker': this.safeNumber (market, 'taker_fee'),
+                'maker': this.safeNumber (market, 'maker_fee'),
+                'contractSize': undefined, // todo
+                'expiry': expiry,
+                'expiryDatetime': expiryDatetime,
+                'strike': strike,
+                'optionType': optionType,
+                'precision': {
+                    'amount': this.safeNumber (lotSizeFilter, 'qty_step'),
+                    'price': this.safeNumber (priceFilter, 'tick_size'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': this.parseNumber ('1'),
+                        'max': this.safeNumber (leverage, 'max_leverage', 1),
+                    },
                     'amount': {
                         'min': this.safeNumber (lotSizeFilter, 'min_trading_qty'),
                         'max': this.safeNumber (lotSizeFilter, 'max_trading_qty'),
@@ -934,9 +969,6 @@ module.exports = class bybit extends Exchange {
                     'cost': {
                         'min': undefined,
                         'max': undefined,
-                    },
-                    'leverage': {
-                        'max': this.safeNumber (leverage, 'max_leverage', 1),
                     },
                 },
                 'info': market,
