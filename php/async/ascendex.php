@@ -238,9 +238,9 @@ class ascendex extends Exchange {
                     'method' => 'v1PrivateAccountGroupGetOrderHist', // 'v1PrivateAccountGroupGetAccountCategoryOrderHistCurrent'
                 ),
                 'defaultType' => 'spot', // 'spot', 'margin', 'swap'
-                'accountCategories' => array(
+                'accountsByType' => array(
                     'spot' => 'cash',
-                    'swap' => 'futures',
+                    'future' => 'futures',
                     'margin' => 'margin',
                 ),
                 'transfer' => array(
@@ -687,8 +687,8 @@ class ascendex extends Exchange {
         yield $this->load_accounts();
         list($marketType, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         $options = $this->safe_value($this->options, 'fetchBalance', array());
-        $accountCategories = $this->safe_value($this->options, 'accountCategories', array());
-        $accountCategory = $this->safe_string($accountCategories, $marketType, 'cash');
+        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $accountCategory = $this->safe_string($accountsByType, $marketType, 'cash');
         $account = $this->safe_value($this->accounts, 0, array());
         $accountGroup = $this->safe_string($account, 'id');
         $request = array(
@@ -1237,8 +1237,8 @@ class ascendex extends Exchange {
         $market = $this->market($symbol);
         list($style, $query) = $this->handle_market_type_and_params('createOrder', $market, $params);
         $options = $this->safe_value($this->options, 'createOrder', array());
-        $accountCategories = $this->safe_value($this->options, 'accountCategories', array());
-        $accountCategory = $this->safe_string($accountCategories, $style, 'cash');
+        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $accountCategory = $this->safe_string($accountsByType, $style, 'cash');
         $account = $this->safe_value($this->accounts, 0, array());
         $accountGroup = $this->safe_value($account, 'id');
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'id');
@@ -1376,8 +1376,8 @@ class ascendex extends Exchange {
         }
         list($type, $query) = $this->handle_market_type_and_params('fetchOrder', $market, $params);
         $options = $this->safe_value($this->options, 'fetchOrder', array());
-        $accountCategories = $this->safe_value($this->options, 'accountCategories', array());
-        $accountCategory = $this->safe_string($accountCategories, $type, 'cash');
+        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $accountCategory = $this->safe_string($accountsByType, $type, 'cash');
         $account = $this->safe_value($this->accounts, 0, array());
         $accountGroup = $this->safe_value($account, 'id');
         $request = array(
@@ -1481,8 +1481,8 @@ class ascendex extends Exchange {
         $account = $this->safe_value($this->accounts, 0, array());
         $accountGroup = $this->safe_value($account, 'id');
         list($type, $query) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
-        $accountCategories = $this->safe_value($this->options, 'accountCategories', array());
-        $accountCategory = $this->safe_string($accountCategories, $type, 'cash');
+        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $accountCategory = $this->safe_string($accountsByType, $type, 'cash');
         $request = array(
             'account-group' => $accountGroup,
             'account-category' => $accountCategory,
@@ -1612,8 +1612,8 @@ class ascendex extends Exchange {
             'margin' => $defaultMethod,
             'swap' => 'v2PrivateAccountGroupGetFuturesOrderHistCurrent',
         ));
-        $accountCategories = $this->safe_value($this->options, 'accountCategories', array());
-        $accountCategory = $this->safe_string($accountCategories, $type, 'cash');
+        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $accountCategory = $this->safe_string($accountsByType, $type, 'cash');
         if ($method === 'v1PrivateAccountGroupGetOrderHist') {
             if ($accountCategory !== null) {
                 $request['category'] = $accountCategory;
@@ -1747,8 +1747,8 @@ class ascendex extends Exchange {
         $market = $this->market($symbol);
         list($type, $query) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
         $options = $this->safe_value($this->options, 'cancelOrder', array());
-        $accountCategories = $this->safe_value($this->options, 'accountCategories', array());
-        $accountCategory = $this->safe_string($accountCategories, $type, 'cash');
+        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $accountCategory = $this->safe_string($accountsByType, $type, 'cash');
         $account = $this->safe_value($this->accounts, 0, array());
         $accountGroup = $this->safe_value($account, 'id');
         $request = array(
@@ -1856,8 +1856,8 @@ class ascendex extends Exchange {
         }
         list($type, $query) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
         $options = $this->safe_value($this->options, 'cancelAllOrders', array());
-        $accountCategories = $this->safe_value($this->options, 'accountCategories', array());
-        $accountCategory = $this->safe_string($accountCategories, $type, 'cash');
+        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $accountCategory = $this->safe_string($accountsByType, $type, 'cash');
         $account = $this->safe_value($this->accounts, 0, array());
         $accountGroup = $this->safe_value($account, 'id');
         $request = array(
@@ -2420,19 +2420,11 @@ class ascendex extends Exchange {
         $accountGroup = $this->safe_string($account, 'id');
         $currency = $this->currency($code);
         $amount = $this->currency_to_precision($code, $amount);
-        $accountCategories = $this->safe_value($this->options, 'accountCategories', array());
-        $fromId = $this->safe_string($accountCategories, $fromAccount);
-        $toId = $this->safe_string($accountCategories, $toAccount);
-        if ($fromId === null) {
-            $keys = is_array($accountCategories) ? array_keys($accountCategories) : array();
-            throw new ExchangeError($this->id . ' $fromAccount must be one of ' . implode(', ', $keys));
-        }
-        if ($toId === null) {
-            $keys = is_array($accountCategories) ? array_keys($accountCategories) : array();
-            throw new ExchangeError($this->id . ' $toAccount must be one of ' . implode(', ', $keys));
-        }
-        if ($fromAccount !== 'spot' && $toAccount !== 'spot') {
-            throw new ExchangeError('This exchange only supports direct balance $transfer between spot and swap, spot and margin');
+        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
+        $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
+        if ($fromId !== 'cash' && $toId !== 'cash') {
+            throw new ExchangeError($this->id . ' $transfer() only supports direct balance $transfer between spot and future, spot and margin');
         }
         $request = array(
             'account-group' => $accountGroup,
