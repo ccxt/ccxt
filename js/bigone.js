@@ -1246,7 +1246,6 @@ module.exports = class bigone extends Exchange {
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
         const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
         const toId = this.safeString (accountsByType, toAccount, toAccount);
-        const type = this.safeString (params, 'type');
         const subAccount = this.safeString (params, 'sub_account');
         const guid = this.safeString (params, 'guid', this.uuid ());
         const request = {
@@ -1255,11 +1254,8 @@ module.exports = class bigone extends Exchange {
             'from': fromId,
             'to': toId,
             'guid': guid,
-            'type': type,
+            // 'type': type, // NORMAL, MASTER_TO_SUB, SUB_TO_MASTER, SUB_INTERNAL, default is NORMAL
         };
-        if (type !== undefined) {
-            request['type'] = type;
-        }
         if (subAccount !== undefined) {
             request['sub_account'] = subAccount;
         }
