@@ -1945,15 +1945,17 @@ class ndax(Exchange):
         #         "NotionalProductId": 0
         #     }
         #
-        id = self.safe_string(transaction, 'DepositId')
+        id = None
         txid = None
         currencyId = self.safe_string(transaction, 'ProductId')
         code = self.safe_currency_code(currencyId, currency)
         timestamp = None
         type = None
         if 'DepositId' in transaction:
+            id = self.safe_string(transaction, 'DepositId')
             type = 'deposit'
         elif 'WithdrawId' in transaction:
+            id = self.safe_string(transaction, 'WithdrawId')
             type = 'withdrawal'
         templateFormString = self.safe_string(transaction, 'TemplateForm')
         address = None
@@ -2067,10 +2069,7 @@ class ndax(Exchange):
             'Payload': self.json(withdrawPayload),
         }
         response = self.privatePostCreateWithdrawTicket(self.deep_extend(withdrawRequest, params))
-        return {
-            'info': response,
-            'id': self.safe_string(response, 'Id'),
-        }
+        return self.parse_transaction(response, currency)
 
     def nonce(self):
         return self.milliseconds()

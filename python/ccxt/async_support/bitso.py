@@ -887,6 +887,7 @@ class bitso(Exchange):
             'BCH': 'Bcash',
             'LTC': 'Litecoin',
         }
+        currency = self.currency(code)
         method = methods[code] if (code in methods) else None
         if method is None:
             raise ExchangeError(self.id + ' not valid withdraw coin: ' + code)
@@ -897,9 +898,67 @@ class bitso(Exchange):
         }
         classMethod = 'privatePost' + method + 'Withdrawal'
         response = await getattr(self, classMethod)(self.extend(request, params))
+        #
+        #     {
+        #         "success": True,
+        #         "payload": [
+        #             {
+        #                 "wid": "c5b8d7f0768ee91d3b33bee648318688",
+        #                 "status": "pending",
+        #                 "created_at": "2016-04-08T17:52:31.000+00:00",
+        #                 "currency": "btc",
+        #                 "method": "Bitcoin",
+        #                 "amount": "0.48650929",
+        #                 "details": {
+        #                     "withdrawal_address": "18MsnATiNiKLqUHDTRKjurwMg7inCrdNEp",
+        #                     "tx_hash": "d4f28394693e9fb5fffcaf730c11f32d1922e5837f76ca82189d3bfe30ded433"
+        #                 }
+        #             },
+        #         ]
+        #     }
+        #
+        payload = self.safe_value(response, 'payload', [])
+        first = self.safe_value(payload, 0)
+        return self.parse_transaction(first, currency)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        # withdraw
+        #
+        #     {
+        #         "wid": "c5b8d7f0768ee91d3b33bee648318688",
+        #         "status": "pending",
+        #         "created_at": "2016-04-08T17:52:31.000+00:00",
+        #         "currency": "btc",
+        #         "method": "Bitcoin",
+        #         "amount": "0.48650929",
+        #         "details": {
+        #             "withdrawal_address": "18MsnATiNiKLqUHDTRKjurwMg7inCrdNEp",
+        #             "tx_hash": "d4f28394693e9fb5fffcaf730c11f32d1922e5837f76ca82189d3bfe30ded433"
+        #         }
+        #     }
+        #
+        currency = self.safe_currency(None, currency)
         return {
-            'info': response,
-            'id': self.safe_string(response['payload'], 'wid'),
+            'id': self.safe_string(transaction, 'wid'),
+            'txid': None,
+            'timestamp': None,
+            'datetime': None,
+            'network': None,
+            'addressFrom': None,
+            'address': None,
+            'addressTo': None,
+            'amount': None,
+            'type': None,
+            'currency': currency['code'],
+            'status': None,
+            'updated': None,
+            'tagFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'comment': None,
+            'fee': None,
+            'info': transaction,
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
