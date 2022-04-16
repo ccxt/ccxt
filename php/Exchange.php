@@ -2347,13 +2347,14 @@ class Exchange {
 
     public function parse_orders($orders, $market = null, $since = null, $limit = null, $params = array()) {
         $result = array();
-        if (count(array_filter(array_keys($orders), 'is_string')) == 0) {
+        $keys = array_keys($orders);
+        if ($keys === array_keys($keys)) {
             foreach ($orders as $order) {
                 $result[] = array_replace_recursive($this->parse_order($order, $market), $params);
             }
         } else {
             foreach ($orders as $id => $order) {
-                $result[] = array_replace_recursive($this->parse_order(array_replace_recursive(array('id' => $id), $order), $market), $params);
+                $result[] = array_replace_recursive($this->parse_order(array_replace_recursive(array('id' => (string) $id), $order), $market), $params);
             }
         }
         $result = $this->sort_by($result, 'timestamp');
