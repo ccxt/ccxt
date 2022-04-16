@@ -323,7 +323,7 @@ function cloneGitHubWiki (gitWikiPath, unlimitedLog) {
 
     if (!fs.existsSync (gitWikiPath)) {
         unlimitedLog.bright.cyan ('Cloning ccxt.wiki...')
-        execSync.execSync ('git clone https://github.com/ccxt/ccxt.wiki.git ' + gitWikiPath)
+        execSync ('git clone https://github.com/ccxt/ccxt.wiki.git ' + gitWikiPath)
     }
 }
 
