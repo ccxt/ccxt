@@ -18,7 +18,9 @@ async function watchTrades (exchange, symbol) {
 
 async function main () {
     const symbols = [ 'USDT/THB', 'BTC/THB', 'ETH/THB' ]
-    const exchange = new ccxtpro.zipmex()
+    const exchange = new ccxtpro.zipmex({
+        'newUpdates': true
+    })
     const markets = await exchange.loadMarkets ()
     exchange.verbose = true
     await Promise.all (symbols.map ((symbol) => watchTrades (exchange, symbol)))
