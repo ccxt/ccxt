@@ -1052,14 +1052,14 @@ module.exports = class coinex extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-        const fromId = this.safeNumber (accountsByType, fromAccount);
-        const toId = this.safeNumber (accountsByType, toAccount);
+        const fromId = this.safeValue (accountsByType, fromAccount, fromAccount);
+        const toId = this.safeValue (accountsByType, toAccount, toAccount);
         const request = {
             'coin_type': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
         };
         let method = undefined;
-        if (fromAccount === 'margin' || toAccount === 'margin') {
+        if (fromId === 'margin' || toId === 'margin') {
             method = 'privatePostMarginTransfer';
             let marketId = this.safeString (params, 'market');
             let market = undefined;
@@ -1077,21 +1077,21 @@ module.exports = class coinex extends Exchange {
                 if (this.markets_by_id !== undefined && (marketId in this.markets_by_id)) {
                     market = this.markets_by_id[marketId];
                 } else {
-                    throw new ExchangeError (this.id + ' market ' + marketId + ' not found');
+                    throw new ExchangeError (this.id + ' transfer() market ' + marketId + ' not found');
                 }
             }
             const accountId = this.safeString (market, 'accountId');
-            if (fromAccount === 'margin') {
+            if (fromId === 'margin') {
                 request['from_account'] = accountId;
                 request['to_account'] = toId;
-            } else if (toAccount === 'margin') {
+            } else if (toId === 'margin') {
                 request['from_account'] = fromId;
                 request['to_account'] = accountId;
             }
-        } else if (fromAccount === 'future' && toAccount === 'spot') {
+        } else if (fromId === 'future' && toId === 0) {
             method = 'privatePostContractBalanceTransfer';
             request['transfer_side'] = 'out';
-        } else if (fromAccount === 'spot' && toAccount === 'future') {
+        } else if (fromId === 0 && toId === 'future') {
             method = 'privatePostContractBalanceTransfer';
             request['transfer_side'] = 'in';
         } else if (fromAccount === 'main') {
@@ -1103,7 +1103,7 @@ module.exports = class coinex extends Exchange {
             request['transfer_side'] = 'in';
             request['transfer_account'] = fromAccount;
         } else {
-            throw new ExchangeError ('Only transfers between main account and sub accounts, between spot and future account and between spot and margin are allowed');
+            throw new ExchangeError (this.id + ' transfer() Only allows between main account and sub accounts, between spot and future account and between spot and margin.');
         }
         const response = await this[method] (this.extend (request, params));
         //
