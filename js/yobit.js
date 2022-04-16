@@ -747,7 +747,6 @@ module.exports = class yobit extends Exchange {
         //      }
         //
         const result = this.safeValue (response, 'return', {});
-        result['status'] = '2';
         return this.parseOrder (result);
     }
 
