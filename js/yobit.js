@@ -654,41 +654,29 @@ module.exports = class yobit extends Exchange {
             'rate': this.priceToPrecision (symbol, price),
         };
         const response = await this.privatePostTrade (this.extend (request, params));
-        let id = undefined;
-        let status = 'open';
-        let filled = 0.0;
-        let remaining = amount;
-        if ('return' in response) {
-            id = this.safeString (response['return'], 'order_id');
-            if (id === '0') {
-                id = this.safeString (response['return'], 'init_order_id');
-                status = 'closed';
-            }
-            filled = this.safeNumber (response['return'], 'received', 0.0);
-            remaining = this.safeNumber (response['return'], 'remains', amount);
-        }
-        const timestamp = this.milliseconds ();
-        return {
-            'id': id,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
-            'status': status,
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'cost': price * filled,
-            'amount': amount,
-            'remaining': remaining,
-            'filled': filled,
-            'fee': undefined,
-            // 'trades': this.parseTrades (order['trades'], market),
-            'info': response,
-            'clientOrderId': undefined,
-            'average': undefined,
-            'trades': undefined,
-        };
+        //
+        //      {
+        //          "success":1,
+        //          "return": {
+        //              "received":0,
+        //              "remains":10,
+        //              "order_id":1101103635125179,
+        //              "funds": {
+        //                  "usdt":27.84756553,
+        //                  "usdttrc20":0,
+        //                  "doge":19.98327206
+        //              },
+        //              "funds_incl_orders": {
+        //                  "usdt":30.35256553,
+        //                  "usdttrc20":0,
+        //                  "doge":19.98327206
+        //               },
+        //               "server_time":1650114256
+        //           }
+        //       }
+        //
+        const result = this.safeValue (response, 'return');
+        return this.parseOrder (result, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -717,6 +705,7 @@ module.exports = class yobit extends Exchange {
         //      }
         //
         const result = this.safeValue (response, 'return', {});
+        result['status'] = '2';
         return this.parseOrder (result);
     }
 
@@ -732,13 +721,49 @@ module.exports = class yobit extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
+        // createOrder (private)
+        //
+        //      {
+        //          "received":0,
+        //          "remains":10,
+        //          "order_id":1101103635125179,
+        //          "funds": {
+        //              "usdt":27.84756553,
+        //              "usdttrc20":0,
+        //              "doge":19.98327206
+        //          },
+        //          "funds_incl_orders": {
+        //              "usdt":30.35256553,
+        //              "usdttrc20":0,
+        //              "doge":19.98327206
+        //          },
+        //          "server_time":1650114256
+        //      }
+        //
         // fetchOrder (private)
         //
-        //
+        //      {
+        //          "id: "1101103635103335",  // id-field is manually added in fetchOrder () from exchange response id-order dictionary structure
+        //          "pair":"doge_usdt",
+        //          "type":"buy",
+        //          "start_amount":10,
+        //          "amount":10,
+        //          "rate":0.05,
+        //          "timestamp_created":"1650112553",
+        //          "status":0
+        //      }
         //
         // fetchOpenOrders (private)
         //
-        //
+        //      {
+        //          "id":"1101103635103335", // id-field is manually added in fetchOpenOrders () from exchange response id-order dictionary structure
+        //          "pair":"doge_usdt",
+        //          "type":"buy",
+        //          "amount":10,
+        //          "rate":0.05,
+        //          "timestamp_created":"1650112553",
+        //          "status":0
+        //      }
         //
         // cancelOrder (private)
         //
@@ -754,14 +779,23 @@ module.exports = class yobit extends Exchange {
         //              "usdttrc20":0,
         //              "doge":9.98327206
         //          }
+        //      }
         //
-        const id = this.safeString (order, 'id');
-        const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const timestamp = this.safeTimestamp (order, 'timestamp_created');
+        let id = this.safeString2 (order, 'id', 'order_id');
+        let status = this.parseOrderStatus (this.safeString (order, 'status', 'open'));
+        if (id === '0') {
+            id = this.safeString (order, 'init_order_id');
+            status = 'closed';
+        }
+        const timestamp = this.safeTimestamp2 (order, 'timestamp_created', 'server_time');
         const marketId = this.safeString (order, 'pair');
         const symbol = this.safeSymbol (marketId, market);
-        const remaining = this.safeString (order, 'amount');
         const amount = this.safeString (order, 'start_amount');
+        const remaining = this.safeString2 (order, 'amount', 'remains');
+        let filled = this.safeString (order, 'received', '0.0');
+        if (status === 'canceled') {
+            filled = undefined;
+        }
         const price = this.safeString (order, 'rate');
         const fee = undefined;
         const type = 'limit';
@@ -783,7 +817,7 @@ module.exports = class yobit extends Exchange {
             'cost': undefined,
             'amount': amount,
             'remaining': remaining,
-            'filled': undefined,
+            'filled': filled,
             'status': status,
             'fee': fee,
             'average': undefined,
@@ -799,6 +833,22 @@ module.exports = class yobit extends Exchange {
         const response = await this.privatePostOrderInfo (this.extend (request, params));
         id = id.toString ();
         const orders = this.safeValue (response, 'return', {});
+        //
+        //      {
+        //          "success":1,
+        //          "return": {
+        //              "1101103635103335": {
+        //                  "pair":"doge_usdt",
+        //                  "type":"buy",
+        //                  "start_amount":10,
+        //                  "amount":10,
+        //                  "rate":0.05,
+        //                  "timestamp_created":"1650112553",
+        //                  "status":0
+        //              }
+        //          }
+        //      }
+        //
         return this.parseOrder (this.extend ({ 'id': id }, orders[id]));
     }
 
@@ -840,7 +890,7 @@ module.exports = class yobit extends Exchange {
         const rawOrders = this.safeValue (response, 'return', {});
         const ids = Object.keys (rawOrders);
         const orders = [];
-        // TODO this does not work in python and PHP
+        // temporary work-around for PHP id-order bug in parseOrders in Exchange.js
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const order = this.safeValue (rawOrders, id, {});
