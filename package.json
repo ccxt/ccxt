@@ -9,17 +9,8 @@
       "import": "./ccxt.js",
       "require": "./ccxt.cjs"
     },
-    "./transpile": {
-      "import": "./build/transpile.js"
-    },
-    "./vss": {
-      "import": "./build/vss.js"
-    },
-    "./fsLocal": {
-      "import": "./build/fsLocal.js"
-    },
-    "./exportHelper": {
-      "import": "./build/export-helper.js"
+    "./buildUtils": {
+      "import": "./build/build-utils.js"
     },
     "./exchangeTests": {
       "import": "./js/test/Exchange/exportTests.js"
