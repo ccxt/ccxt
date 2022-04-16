@@ -1112,20 +1112,24 @@ module.exports = class kucoin extends Exchange {
          * @param {float} amount the amount of currency to trade
          * @param {float} price *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
          * @param {dict} params  Extra parameters specific to the exchange API endpoint
-         * @param {float} params.leverage Leverage size of the order
-         * @param {float} params.stopPrice The price at which a trigger order is triggered at
-         * @param {str} params.timeInForce GTC, GTT, IOC, or FOK, default is GTC, limit orders only
-         * @param {str} params.postOnly Post only flag, invalid when timeInForce is IOC or FOK
          * @param {str} params.clientOid client order id, defaults to uuid if not passed
          * @param {str} params.remark remark for the order, length cannot exceed 100 utf8 characters
-         * @param {str} params.stop  Either loss or entry, the default is loss. Requires stopPrice to be defined
-         * @param {str} params.stp '', // self trade prevention, CN, CO, CB or DC
          * @param {str} params.tradeType 'TRADE', // TRADE, MARGIN_TRADE // not used with margin orders
+         * limit orders ---------------------------------------------------
+         * @param {str} params.timeInForce GTC, GTT, IOC, or FOK, default is GTC, limit orders only
          * @param {float} params.cancelAfter long, // cancel after n seconds, requires timeInForce to be GTT
+         * @param {str} params.postOnly Post only flag, invalid when timeInForce is IOC or FOK
          * @param {bool} params.hidden false, // Order will not be displayed in the order book
          * @param {bool} params.iceberg false, // Only a portion of the order is displayed in the order book
          * @param {str} params.visibleSize this.amountToPrecision (symbol, visibleSize), // The maximum visible size of an iceberg order
+         * market orders --------------------------------------------------
          * @param {str} params.funds // Amount of quote currency to use
+         * stop orders ----------------------------------------------------
+         * @param {str} params.stop  Either loss or entry, the default is loss. Requires stopPrice to be defined
+         * @param {float} params.stopPrice The price at which a trigger order is triggered at
+         * margin orders --------------------------------------------------
+         * @param {float} params.leverage Leverage size of the order
+         * @param {str} params.stp '', // self trade prevention, CN, CO, CB or DC
          * @param {str} params.marginMode 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
          * @param {bool} params.autoBorrow false, // The system will first borrow you funds at the optimal interest rate and then place an order for you
          * @returns an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
