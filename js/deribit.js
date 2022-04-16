@@ -2080,10 +2080,7 @@ module.exports = class deribit extends Exchange {
             request['tfa'] = this.oath ();
         }
         const response = await this.privateGetWithdraw (this.extend (request, params));
-        return {
-            'info': response,
-            'id': this.safeString (response, 'id'),
-        };
+        return this.parseTransaction (response, currency);
     }
 
     nonce () {
