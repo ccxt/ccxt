@@ -1246,7 +1246,6 @@ module.exports = class bigone extends Exchange {
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
         const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
         const toId = this.safeString (accountsByType, toAccount, toAccount);
-        const subAccount = this.safeString (params, 'sub_account');
         const guid = this.safeString (params, 'guid', this.uuid ());
         const request = {
             'symbol': currency['id'],
@@ -1255,10 +1254,8 @@ module.exports = class bigone extends Exchange {
             'to': toId,
             'guid': guid,
             // 'type': type, // NORMAL, MASTER_TO_SUB, SUB_TO_MASTER, SUB_INTERNAL, default is NORMAL
+            // 'sub_acccunt': '', // when type is NORMAL, it should be empty, and when type is others it is required
         };
-        if (subAccount !== undefined) {
-            request['sub_account'] = subAccount;
-        }
         const response = await this.privatePostTransfer (this.extend (request, params));
         //
         //     {
