@@ -2599,13 +2599,13 @@ module.exports = class okcoin extends Exchange {
             'to': toId,
             'type': '0',
         };
-        if (fromAccount === 'main') {
+        if (fromId === 'main') {
             request['type'] = 1;
-            request['sub_account'] = toAccount;
+            request['sub_account'] = toId;
             request['to'] = '0';
-        } else if (toAccount === 'main') {
+        } else if (toId === 'main') {
             request['type'] = 2;
-            request['sub_account'] = fromAccount;
+            request['sub_account'] = fromId;
             request['from'] = '0';
             request['to'] = '6';
         } else if (fromId === '5' || toId === '5') {
