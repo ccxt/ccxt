@@ -1031,7 +1031,7 @@ module.exports = class Exchange {
         if (this.currencies === undefined) {
             throw new ExchangeError (this.id + ' currencies not loaded')
         }
-        if (typeof code === 'string')) {
+        if (typeof code === 'string') {
             if (code in this.currencies) {
                 return this.currencies[code];
             } else if (code in this.currencies_by_id) {
