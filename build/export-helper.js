@@ -2,7 +2,7 @@ import fs from 'fs'
 import { replaceInFile } from './fsLocal.js'
 import asTable from 'as-table'
 import { countries } from './countries.js'
-
+import { execSync } from 'child_process';
 
 const { keys, values, entries, fromEntries } = Object
 
