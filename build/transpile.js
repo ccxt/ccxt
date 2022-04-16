@@ -336,6 +336,7 @@ class Transpiler {
             [ /\s+\* @name .*/g, '' ], // docstring @name
             [ /(\s+) \* @returns/g, '$1:returns:' ], // docstring return
             [ /(\s+) \* @([a-z]+) \{([a-z]+)\} ([a-zA-Z0-9_\-\.]+)/g, '$1:$2 $3 $4:' ], // docstring param
+            [ /(\s+\* @param [a-zA-Z0-9_-])+\.([a-zA-Z0-9_-]) (.*)/g, '$1[\'$2\']$3' ], // docstring params.anything
         ])
     }
 
