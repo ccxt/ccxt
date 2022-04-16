@@ -1110,7 +1110,7 @@ class gateio extends Exchange {
 
     public function fetch_currencies($params = array ()) {
         // sandbox/testnet only supports future markets
-        $apiBackup = $this->safe_string($this->urls, 'apiBackup');
+        $apiBackup = $this->safe_value($this->urls, 'apiBackup');
         if ($apiBackup !== null) {
             return null;
         }
@@ -2508,16 +2508,7 @@ class gateio extends Exchange {
         //       "memo" => null
         //     }
         //
-        $currencyId = $this->safe_string($response, 'currency');
-        $id = $this->safe_string($response, 'id');
-        return array(
-            'info' => $response,
-            'id' => $id,
-            'code' => $this->safe_currency_code($currencyId),
-            'amount' => $this->safe_number($response, 'amount'),
-            'address' => $this->safe_string($response, 'address'),
-            'tag' => $this->safe_string($response, 'memo'),
-        );
+        return $this->parse_transaction($response, $currency);
     }
 
     public function parse_transaction_status($status) {
@@ -2556,6 +2547,17 @@ class gateio extends Exchange {
         //     }
         //
         // withdrawals
+        //
+        // withdraw
+        //
+        //     {
+        //       "id" => "w13389675",
+        //       "currency" => "USDT",
+        //       "amount" => "50",
+        //       "address" => "TUu2rLFrmzUodiWfYki7QCNtv1akL682p1",
+        //       "memo" => null
+        //     }
+        //
         $id = $this->safe_string($transaction, 'id');
         $type = null;
         $amount = $this->safe_string($transaction, 'amount');
@@ -3107,8 +3109,17 @@ class gateio extends Exchange {
         $stop = $this->safe_value_2($params, 'is_stop_order', 'stop', false);
         $params = $this->omit($params, array( 'is_stop_order', 'stop' ));
         $market = $this->market($symbol);
+        $clientOrderId = $this->safe_string_2($params, 'text', 'clientOrderId');
+        $orderId = $id;
+        if ($clientOrderId !== null) {
+            $params = $this->omit($params, array( 'text', 'clientOrderId' ));
+            if ($clientOrderId[0] !== 't') {
+                $clientOrderId = 't-' . $clientOrderId;
+            }
+            $orderId = $clientOrderId;
+        }
         $request = array(
-            'order_id' => $id,
+            'order_id' => $orderId,
         );
         if ($market['spot'] || $market['margin']) {
             $request['currency_pair'] = $market['id'];

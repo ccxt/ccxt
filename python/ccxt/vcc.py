@@ -85,6 +85,7 @@ class vcc(Exchange):
                 'setMarginMode': False,
                 'setPositionMode': False,
                 'transfer': False,
+                'withdraw': False,
             },
             'timeframes': {
                 '1m': '60000',

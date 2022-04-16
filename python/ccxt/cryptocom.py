@@ -1097,11 +1097,7 @@ class cryptocom(Exchange):
         #     }
         #
         result = self.safe_value(response, 'result')
-        id = self.safe_string(result, 'id')
-        return {
-            'info': response,
-            'id': id,
-        }
+        return self.parse_transaction(result, currency)
 
     def fetch_deposit_addresses_by_network(self, code, params={}):
         self.load_markets()
@@ -1618,30 +1614,42 @@ class cryptocom(Exchange):
         #
         # fetchDeposits
         #
-        # {
-        #     "currency": "XRP",
-        #     "fee": 1.0,
-        #     "create_time": 1607063412000,
-        #     "id": "2220",
-        #     "update_time": 1607063460000,
-        #     "amount": 100,
-        #     "address": "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf?1234567890",
-        #     "status": "1"
-        # }
+        #     {
+        #         "currency": "XRP",
+        #         "fee": 1.0,
+        #         "create_time": 1607063412000,
+        #         "id": "2220",
+        #         "update_time": 1607063460000,
+        #         "amount": 100,
+        #         "address": "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf?1234567890",
+        #         "status": "1"
+        #     }
         #
         # fetchWithdrawals
         #
-        # {
-        #     "currency": "XRP",
-        #     "client_wid": "my_withdrawal_002",
-        #     "fee": 1.0,
-        #     "create_time": 1607063412000,
-        #     "id": "2220",
-        #     "update_time": 1607063460000,
-        #     "amount": 100,
-        #     "address": "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf?1234567890",
-        #     "status": "1"
-        # }
+        #     {
+        #         "currency": "XRP",
+        #         "client_wid": "my_withdrawal_002",
+        #         "fee": 1.0,
+        #         "create_time": 1607063412000,
+        #         "id": "2220",
+        #         "update_time": 1607063460000,
+        #         "amount": 100,
+        #         "address": "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf?1234567890",
+        #         "status": "1"
+        #     }
+        #
+        # withdraw
+        #
+        #     {
+        #         "id": 2220,
+        #         "amount": 1,
+        #         "fee": 0.0004,
+        #         "symbol": "BTC",
+        #         "address": "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf",
+        #         "client_wid": "my_withdrawal_002",
+        #         "create_time":1607063412000
+        #     }
         #
         type = None
         rawStatus = self.safe_string(transaction, 'status')

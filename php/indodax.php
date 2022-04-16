@@ -650,13 +650,48 @@ class indodax extends Exchange {
         //         "withdraw_memo" => "123123"
         //     }
         //
-        $id = null;
-        if ((is_array($response) && array_key_exists('txid', $response)) && (strlen($response['txid']) > 0)) {
-            $id = $response['txid'];
-        }
+        return $this->parse_transaction($response, $currency);
+    }
+
+    public function parse_transaction($transaction, $currency = null) {
+        //
+        // withdraw
+        //
+        //     {
+        //         "success" => 1,
+        //         "status" => "approved",
+        //         "withdraw_currency" => "xrp",
+        //         "withdraw_address" => "rwWr7KUZ3ZFwzgaDGjKBysADByzxvohQ3C",
+        //         "withdraw_amount" => "10000.00000000",
+        //         "fee" => "2.00000000",
+        //         "amount_after_fee" => "9998.00000000",
+        //         "submit_time" => "1509469200",
+        //         "withdraw_id" => "xrp-12345",
+        //         "txid" => "",
+        //         "withdraw_memo" => "123123"
+        //     }
+        //
+        $currency = $this->safe_currency(null, $currency);
         return array(
-            'info' => $response,
-            'id' => $id,
+            'id' => $this->safe_string($transaction, 'withdraw_id'),
+            'txid' => $this->safe_string($transaction, 'txid'),
+            'timestamp' => null,
+            'datetime' => null,
+            'network' => null,
+            'addressFrom' => null,
+            'address' => null,
+            'addressTo' => null,
+            'amount' => null,
+            'type' => null,
+            'currency' => $currency['code'],
+            'status' => null,
+            'updated' => null,
+            'tagFrom' => null,
+            'tag' => null,
+            'tagTo' => null,
+            'comment' => null,
+            'fee' => null,
+            'info' => $transaction,
         );
     }
 

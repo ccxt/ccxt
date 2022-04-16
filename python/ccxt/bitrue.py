@@ -1551,10 +1551,7 @@ class bitrue(Exchange):
             request['tag'] = tag
         response = self.v1PrivatePostWithdrawCommit(self.extend(request, params))
         #     {id: '9a67628b16ba4988ae20d329333f16bc'}
-        return {
-            'info': response,
-            'id': self.safe_string(response, 'id'),
-        }
+        return self.parse_transaction(response, currency)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         version, access = api

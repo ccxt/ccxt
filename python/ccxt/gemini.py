@@ -877,10 +877,33 @@ class gemini(Exchange):
             'address': address,
         }
         response = self.privatePostV1WithdrawCurrency(self.extend(request, params))
-        return {
-            'info': response,
-            'id': self.safe_string(response, 'txHash'),
-        }
+        #
+        #   for BTC
+        #     {
+        #         "address":"mi98Z9brJ3TgaKsmvXatuRahbFRUFKRUdR",
+        #         "amount":"1",
+        #         "withdrawalId":"02176a83-a6b1-4202-9b85-1c1c92dd25c4",
+        #         "message":"You have requested a transfer of 1 BTC to mi98Z9brJ3TgaKsmvXatuRahbFRUFKRUdR. This withdrawal will be sent to the blockchain within the next 60 seconds."
+        #     }
+        #
+        #   for ETH
+        #     {
+        #         "address":"0xA63123350Acc8F5ee1b1fBd1A6717135e82dBd28",
+        #         "amount":"2.34567",
+        #         "txHash":"0x28267179f92926d85c5516bqc063b2631935573d8915258e95d9572eedcc8cc"
+        #     }
+        #
+        #   for error(many variations of )
+        #     {
+        #         "result":"error",
+        #         "reason":"CryptoAddressWhitelistsNotEnabled",
+        #         "message":"Cryptocurrency withdrawal address whitelists are not enabled for account 24. Please contact support@gemini.com for information on setting up a withdrawal address whitelist."
+        #     }
+        #
+        result = self.safe_string(response, 'result')
+        if result == 'error':
+            raise ExchangeError(self.id + ' withdraw() failed: ' + self.json(response))
+        return self.parse_transaction(response, currency)
 
     def nonce(self):
         return self.milliseconds()
@@ -896,6 +919,24 @@ class gemini(Exchange):
         return self.parse_transactions(response)
 
     def parse_transaction(self, transaction, currency=None):
+        #
+        # withdraw
+        #
+        #   for BTC
+        #     {
+        #         "address":"mi98Z9brJ3TgaKsmvXatuRahbFRUFKRUdR",
+        #         "amount":"1",
+        #         "withdrawalId":"02176a83-a6b1-4202-9b85-1c1c92dd25c4",
+        #         "message":"You have requested a transfer of 1 BTC to mi98Z9brJ3TgaKsmvXatuRahbFRUFKRUdR. This withdrawal will be sent to the blockchain within the next 60 seconds."
+        #     }
+        #
+        #   for ETH
+        #     {
+        #         "address":"0xA63123350Acc8F5ee1b1fBd1A6717135e82dBd28",
+        #         "amount":"2.34567",
+        #         "txHash":"0x28267179f92926d85c5516bqc063b2631935573d8915258e95d9572eedcc8cc"
+        #     }
+        #
         timestamp = self.safe_integer(transaction, 'timestampms')
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId, currency)
@@ -914,7 +955,7 @@ class gemini(Exchange):
             }
         return {
             'info': transaction,
-            'id': self.safe_string(transaction, 'eid'),
+            'id': self.safe_string_2(transaction, 'eid', 'withdrawalId'),
             'txid': self.safe_string(transaction, 'txHash'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),

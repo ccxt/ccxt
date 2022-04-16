@@ -845,9 +845,38 @@ class bithumb(Exchange):
             elif tag is not None:
                 request['destination'] = tag
         response = self.privatePostTradeBtcWithdrawal(self.extend(request, params))
+        #
+        # {"status" : "0000"}
+        #
+        return self.parse_transaction(response, currency)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        # withdraw
+        #
+        #     {"status" : "0000"}
+        #
+        currency = self.safe_currency(None, currency)
         return {
-            'info': response,
             'id': None,
+            'txid': None,
+            'timestamp': None,
+            'datetime': None,
+            'network': None,
+            'addressFrom': None,
+            'address': None,
+            'addressTo': None,
+            'amount': None,
+            'type': None,
+            'currency': currency['code'],
+            'status': None,
+            'updated': None,
+            'tagFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'comment': None,
+            'fee': None,
+            'info': transaction,
         }
 
     def nonce(self):

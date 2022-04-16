@@ -2016,15 +2016,17 @@ module.exports = class ndax extends Exchange {
         //         "NotionalProductId": 0
         //     }
         //
-        const id = this.safeString (transaction, 'DepositId');
+        let id = undefined;
         let txid = undefined;
         const currencyId = this.safeString (transaction, 'ProductId');
         const code = this.safeCurrencyCode (currencyId, currency);
         let timestamp = undefined;
         let type = undefined;
         if ('DepositId' in transaction) {
+            id = this.safeString (transaction, 'DepositId');
             type = 'deposit';
         } else if ('WithdrawId' in transaction) {
+            id = this.safeString (transaction, 'WithdrawId');
             type = 'withdrawal';
         }
         const templateFormString = this.safeString (transaction, 'TemplateForm');
@@ -2148,10 +2150,7 @@ module.exports = class ndax extends Exchange {
             'Payload': this.json (withdrawPayload),
         };
         const response = await this.privatePostCreateWithdrawTicket (this.deepExtend (withdrawRequest, params));
-        return {
-            'info': response,
-            'id': this.safeString (response, 'Id'),
-        };
+        return this.parseTransaction (response, currency);
     }
 
     nonce () {

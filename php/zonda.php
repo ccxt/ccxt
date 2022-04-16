@@ -1351,9 +1351,47 @@ class zonda extends Exchange {
             $request['address'] = $address;
         }
         $response = $this->$method (array_merge($request, $params));
+        //
+        //     {
+        //         "status" => "Ok",
+        //         "data" => {
+        //           "id" => "65e01087-afb0-4ab2-afdb-cc925e360296"
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data');
+        return $this->parse_transaction($data, $currency);
+    }
+
+    public function parse_transaction($transaction, $currency = null) {
+        //
+        // withdraw
+        //
+        //     {
+        //         "id" => "65e01087-afb0-4ab2-afdb-cc925e360296"
+        //     }
+        //
+        $currency = $this->safe_currency(null, $currency);
         return array(
-            'info' => $response,
-            'id' => null,
+            'id' => $this->safe_string($transaction, 'id'),
+            'txid' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'network' => null,
+            'addressFrom' => null,
+            'address' => null,
+            'addressTo' => null,
+            'amount' => null,
+            'type' => null,
+            'currency' => $currency['code'],
+            'status' => null,
+            'updated' => null,
+            'tagFrom' => null,
+            'tag' => null,
+            'tagTo' => null,
+            'comment' => null,
+            'fee' => null,
+            'info' => $transaction,
         );
     }
 

@@ -740,7 +740,31 @@ class yobit extends Exchange {
         $request = array(
             'order_id' => intval($id),
         );
-        return yield $this->privatePostCancelOrder (array_merge($request, $params));
+        $response = yield $this->privatePostCancelOrder (array_merge($request, $params));
+        //
+        //      {
+        //          "success":1,
+        //          "return" => {
+        //              "order_id":1101103632552304,
+        //              "funds" => array(
+        //                  "usdt":30.71055443,
+        //                  "usdttrc20":0,
+        //                  "doge":9.98327206
+        //              ),
+        //              "funds_incl_orders" => array(
+        //                  "usdt":31.81275443,
+        //                  "usdttrc20":0,
+        //                  "doge":9.98327206
+        //              ),
+        //              "server_time":1649918298
+        //          }
+        //      }
+        //
+        $result = $this->safe_value($response, 'return', array());
+        return array(
+            'id' => $this->safe_string($result, 'order_id'),
+            'info' => $result,
+        );
     }
 
     public function parse_order_status($status) {

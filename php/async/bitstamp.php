@@ -1631,6 +1631,7 @@ class bitstamp extends Exchange {
         $request = array(
             'amount' => $amount,
         );
+        $currency = null;
         $method = null;
         if (!$this->is_fiat($code)) {
             $name = $this->get_currency_name($code);
@@ -1652,10 +1653,7 @@ class bitstamp extends Exchange {
             $request['account_currency'] = $currency['id'];
         }
         $response = yield $this->$method (array_merge($request, $params));
-        return array(
-            'info' => $response,
-            'id' => $this->safe_string($response, 'id'),
-        );
+        return $this->parse_transaction($response, $currency);
     }
 
     public function nonce() {

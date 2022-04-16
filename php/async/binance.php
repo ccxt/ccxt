@@ -3557,6 +3557,10 @@ class binance extends Exchange {
         //       "updateTime" => "1627501027000"
         //     }
         //
+        // withdraw
+        //
+        //    array( $id => '9a67628b16ba4988ae20d329333f16bc' )
+        //
         $id = $this->safe_string_2($transaction, 'id', 'orderNo');
         $address = $this->safe_string($transaction, 'address');
         $tag = $this->safe_string($transaction, 'addressTag'); // set but unused
@@ -4008,10 +4012,7 @@ class binance extends Exchange {
         }
         $response = yield $this->sapiPostCapitalWithdrawApply (array_merge($request, $params));
         //     array( id => '9a67628b16ba4988ae20d329333f16bc' )
-        return array(
-            'info' => $response,
-            'id' => $this->safe_string($response, 'id'),
-        );
+        return $this->parse_transaction($response, $currency);
     }
 
     public function parse_trading_fee($fee, $market = null) {

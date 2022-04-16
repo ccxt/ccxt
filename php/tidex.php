@@ -800,15 +800,56 @@ class tidex extends Exchange {
         //                     "tx":null,
         //                     "error":null
         //                 ),
-        //             "in_blockchain":false
+        //                 "in_blockchain":false
         //             }
         //         }
         //     }
         //
         $result = $this->safe_value($response, 'return', array());
+        $withdrawInfo = $this->safe_value($result, 'withdraw_info', array());
+        return $this->parse_transaction($withdrawInfo, $currency);
+    }
+
+    public function parse_transaction($transaction, $currency = null) {
+        //
+        //     {
+        //         "id":1111,
+        //         "asset_id":1,
+        //         "asset":"BTC",
+        //         "amount":0.0093,
+        //         "fee":0.0007,
+        //         "create_time":1575128018,
+        //         "status":"Created",
+        //         "data":array(
+        //             "address":"1KFHE7w8BhaENAswwryaoccDb6qcT6DbYY",
+        //             "memo":"memo",
+        //             "tx":null,
+        //             "error":null
+        //         ),
+        //         "in_blockchain":false
+        //     }
+        //
+        $currency = $this->safe_currency(null, $currency);
         return array(
-            'info' => $response,
-            'id' => $this->safe_string($result, 'withdraw_id'),
+            'id' => $this->safe_string($transaction, 'id'),
+            'txid' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'network' => null,
+            'addressFrom' => null,
+            'address' => null,
+            'addressTo' => null,
+            'amount' => null,
+            'type' => null,
+            'currency' => $currency['code'],
+            'status' => null,
+            'updated' => null,
+            'tagFrom' => null,
+            'tag' => null,
+            'tagTo' => null,
+            'comment' => null,
+            'fee' => null,
+            'info' => $transaction,
         );
     }
 

@@ -739,10 +739,10 @@ class blockchaincom(Exchange):
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
         await self.load_markets()
-        currencyid = self.currencyId(code)
+        currency = self.currency(code)
         request = {
             'amount': amount,
-            'currency': currencyid,
+            'currency': currency['id'],
             # 'beneficiary': address/id,
             'sendMax': False,
         }
@@ -758,12 +758,7 @@ class blockchaincom(Exchange):
         #         timestamp: "1634218452595"
         #     },
         #
-        withdrawalId = self.safe_string(response, 'withdrawalId')
-        result = {
-            'info': response,
-            'id': withdrawalId,
-        }
-        return result
+        return self.parse_transaction(response, currency)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()

@@ -888,9 +888,39 @@ class bithumb extends Exchange {
             }
         }
         $response = yield $this->privatePostTradeBtcWithdrawal (array_merge($request, $params));
+        //
+        // array( "status" : "0000")
+        //
+        return $this->parse_transaction($response, $currency);
+    }
+
+    public function parse_transaction($transaction, $currency = null) {
+        //
+        // withdraw
+        //
+        //     array( "status" : "0000")
+        //
+        $currency = $this->safe_currency(null, $currency);
         return array(
-            'info' => $response,
             'id' => null,
+            'txid' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'network' => null,
+            'addressFrom' => null,
+            'address' => null,
+            'addressTo' => null,
+            'amount' => null,
+            'type' => null,
+            'currency' => $currency['code'],
+            'status' => null,
+            'updated' => null,
+            'tagFrom' => null,
+            'tag' => null,
+            'tagTo' => null,
+            'comment' => null,
+            'fee' => null,
+            'info' => $transaction,
         );
     }
 
