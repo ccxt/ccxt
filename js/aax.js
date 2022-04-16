@@ -308,12 +308,6 @@ module.exports = class aax extends Exchange {
                     'otc': 'F2CP',
                     'saving': 'VLTP',
                 },
-                'accountsById': {
-                    'SPTP': 'spot',
-                    'FUTP': 'future',
-                    'F2CP': 'otc',
-                    'VLTP': 'saving',
-                },
                 'networks': {
                     'ETH': 'ERC20',
                     'TRX': 'TRC20',
@@ -2452,18 +2446,8 @@ module.exports = class aax extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const accountTypes = this.safeValue (this.options, 'accountsByType', {});
-        const accountsById = this.safeValue (this.options, 'accountsById', {});
-        const accountIds = Object.keys (accountsById);
         const fromId = this.safeString (accountTypes, fromAccount, fromAccount);
         const toId = this.safeString (accountTypes, toAccount, toAccount);
-        if (!(fromId in accountIds)) {
-            const keys = Object.keys (accountTypes);
-            throw new ExchangeError (this.id + ' transfer() fromAccount must be one of ' + keys.join (', '));
-        }
-        if (!(toId in accountIds)) {
-            const keys = Object.keys (accountTypes);
-            throw new ExchangeError (this.id + ' transfer() toAccount must be one of ' + keys.join (', '));
-        }
         const request = {
             'currency': currency['id'],
             'fromPurse': fromId,
