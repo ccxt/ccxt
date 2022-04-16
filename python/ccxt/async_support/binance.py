@@ -4592,6 +4592,8 @@ class binance(Exchange):
             raise NotSupported(self.id + ' fetchLeverageTiers() supports linear and inverse contracts only')
         response = await getattr(self, method)(query)
         #
+        # usdm
+        #
         #    [
         #        {
         #            "symbol": "SUSHIUSDT",
@@ -4608,6 +4610,24 @@ class binance(Exchange):
         #            ]
         #        }
         #    ]
+        #
+        # coinm
+        #
+        #     [
+        #         {
+        #             "symbol":"XRPUSD_210326",
+        #             "brackets":[
+        #                 {
+        #                     "bracket":1,
+        #                     "initialLeverage":20,
+        #                     "qtyCap":500000,
+        #                     "qtyFloor":0,
+        #                     "maintMarginRatio":0.0185,
+        #                     "cum":0.0
+        #                 }
+        #             ]
+        #         }
+        #     ]
         #
         return self.parse_leverage_tiers(response, symbols, 'symbol')
 
@@ -4644,7 +4664,7 @@ class binance(Exchange):
                 'tier': self.safe_number(bracket, 'bracket'),
                 'currency': market['quote'],
                 'notionalFloor': self.safe_number_2(bracket, 'notionalFloor', 'qtyFloor'),
-                'notionalCap': self.safe_number(bracket, 'notionalCap'),
+                'notionalCap': self.safe_number(bracket, 'notionalCap', 'qtyCap'),
                 'maintenanceMarginRate': self.safe_number(bracket, 'maintMarginRatio'),
                 'maxLeverage': self.safe_number(bracket, 'initialLeverage'),
                 'info': bracket,

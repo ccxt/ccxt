@@ -4838,6 +4838,8 @@ class binance extends Exchange {
         }
         $response = $this->$method ($query);
         //
+        // usdm
+        //
         //    array(
         //        {
         //            "symbol" => "SUSHIUSDT",
@@ -4854,6 +4856,24 @@ class binance extends Exchange {
         //            )
         //        }
         //    )
+        //
+        // coinm
+        //
+        //     array(
+        //         {
+        //             "symbol":"XRPUSD_210326",
+        //             "brackets":array(
+        //                 {
+        //                     "bracket":1,
+        //                     "initialLeverage":20,
+        //                     "qtyCap":500000,
+        //                     "qtyFloor":0,
+        //                     "maintMarginRatio":0.0185,
+        //                     "cum":0.0
+        //                 }
+        //             )
+        //         }
+        //     )
         //
         return $this->parse_leverage_tiers($response, $symbols, 'symbol');
     }
@@ -4891,7 +4911,7 @@ class binance extends Exchange {
                 'tier' => $this->safe_number($bracket, 'bracket'),
                 'currency' => $market['quote'],
                 'notionalFloor' => $this->safe_number_2($bracket, 'notionalFloor', 'qtyFloor'),
-                'notionalCap' => $this->safe_number($bracket, 'notionalCap'),
+                'notionalCap' => $this->safe_number($bracket, 'notionalCap', 'qtyCap'),
                 'maintenanceMarginRate' => $this->safe_number($bracket, 'maintMarginRatio'),
                 'maxLeverage' => $this->safe_number($bracket, 'initialLeverage'),
                 'info' => $bracket,
