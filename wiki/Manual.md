@@ -136,7 +136,7 @@ The CCXT library currently supports the following 114 cryptocurrency exchange ma
 | [![hollaex](https://user-images.githubusercontent.com/1294454/75841031-ca375180-5ddd-11ea-8417-b975674c23cb.jpg)](https://pro.hollaex.com/signup?affiliation_code=QSWA6G)                         | hollaex            | [HollaEx](https://pro.hollaex.com/signup?affiliation_code=QSWA6G)                        | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://apidocs.hollaex.com)                                                          |                                                                                                                             |                                                                              |
 | [![huobi](https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg)](https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223)            | huobi              | [Huobi](https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223)           | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://huobiapi.github.io/docs/spot/v1/cn/)                                          | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![huobijp](https://user-images.githubusercontent.com/1294454/85734211-85755480-b705-11ea-8b35-0b7f1db33a2f.jpg)](https://www.huobi.co.jp/register/?invite_code=znnq3)                            | huobijp            | [Huobi Japan](https://www.huobi.co.jp/register/?invite_code=znnq3)                       | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://api-doc.huobi.co.jp)                                                          |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![idex](https://user-images.githubusercontent.com/51840849/94481303-2f222100-01e0-11eb-97dd-bc14c5943a86.jpg)](https://idex.io)                                                                  | idex               | [IDEX](https://idex.io)                                                                  | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.idex.io/)                                                                | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![idex](https://user-images.githubusercontent.com/51840849/94481303-2f222100-01e0-11eb-97dd-bc14c5943a86.jpg)](https://idex.io)                                                                  | idex               | [IDEX](https://idex.io)                                                                  | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://docs.idex.io/)                                                                | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![independentreserve](https://user-images.githubusercontent.com/51840849/87182090-1e9e9080-c2ec-11ea-8e49-563db9a38f37.jpg)](https://www.independentreserve.com)                                 | independentreserve | [Independent Reserve](https://www.independentreserve.com)                                | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://www.independentreserve.com/API)                                               |                                                                                                                             |                                                                              |
 | [![indodax](https://user-images.githubusercontent.com/51840849/87070508-9358c880-c221-11ea-8dc5-5391afbbb422.jpg)](https://indodax.com/ref/testbitcoincoid/1)                                     | indodax            | [INDODAX](https://indodax.com/ref/testbitcoincoid/1)                                     | [![API Version 2.0](https://img.shields.io/badge/2.0-lightgray)](https://github.com/btcid/indodax-official-api-docs)                               |                                                                                                                             |                                                                              |
 | [![itbit](https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg)](https://www.itbit.com)                                                            | itbit              | [itBit](https://www.itbit.com)                                                           | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://api.itbit.com/docs)                                                           |                                                                                                                             |                                                                              |
@@ -3484,8 +3484,8 @@ Parameters
   - `sell` give base currency and receive quote currency; for example, buying `BTC/USD` means that you will receive dollars for your bitcoins.
 - **type** a string literal type of order
   **Unified types:**
-  - [`market`](market-orders) not allowed by some exchanges, see [their docs](#exchanges) for details 
-  - [`limit`](limit-orders)
+  - [market](market-orders) not allowed by some exchanges, see [their docs](#exchanges) for details 
+  - [limit](limit-orders)
   - see #custom-order-params and #other-order-types for non-unified types
 - **amount**, how much of currency you want to trade usually, but not always, in units of the base currency of the trading pair symbol (the units for some exchanges are dependent on the side of the order: see their API docs for details.)
 - **price** the price at which the order is to be fullfilled at in units of the quote currency (ignored in market orders)
@@ -4523,7 +4523,7 @@ Be careful when specifying the `tag` and the `address`. The `tag` is **NOT an ar
 
 ## Transfers
 
-The `transfer` method makes internal transfers of funds between accounts on the same exchange. If an exchange is separated on CCXT into a spot and futures class (e.g. `binanceusdm`, `kucoinfutures`, ...), then the method `transferIn` may be available to transfer funds into the futures account, and the method `transferOut` may be available to transfer funds out of the futures account
+The `transfer` method makes internal transfers of funds between accounts on the same exchange. This can include subaccounts or accounts of different types (`spot`, `margin`, `future`, ...). If an exchange is separated on CCXT into a spot and futures class (e.g. `binanceusdm`, `kucoinfutures`, ...), then the method `transferIn` may be available to transfer funds into the futures account, and the method `transferOut` may be available to transfer funds out of the futures account
 
 ```Javascript
 transfer (code, amount, fromAccount, toAccount, params = {})
@@ -4536,6 +4536,7 @@ Parameters
 - **fromAccount** (String) The account to transfer funds from.
 - **toAccount** (String) The account to transfer funds to
 - **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+- **params.symbol** (String) Market symbol when transfering to or from a margin account (e.g. `'BTC/USDT'`)
 
 **Account Types**
 
@@ -4581,6 +4582,21 @@ Parameters
 Returns
 
 - An array of [transfer structures](#transfer-structure)
+
+```Javascript
+fetchTransfer (id, since = undefined, limit = undefined, params = {})
+```
+
+Parameters
+
+- **id** (String) tranfer id (e.g. `"12345"`)
+- **since** (Integer) Timestamp (ms) of the earliest time to retrieve transfers for (e.g. `1646940314000`)
+- **limit** (Integer) The number of [transfer structures](#transfer-structure) to retrieve (e.g. `5`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- A [transfer structure](#transfer-structure)
 
 ### Transfer Structure
 

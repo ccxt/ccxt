@@ -78,8 +78,8 @@ module.exports = class aax extends Exchange {
                 'fetchOrderBooks': undefined,
                 'fetchOrders': true,
                 'fetchOrderTrades': undefined,
-                'fetchPosition': undefined,
-                'fetchPositions': undefined,
+                'fetchPosition': true,
+                'fetchPositions': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
@@ -360,6 +360,7 @@ module.exports = class aax extends Exchange {
         const endTime = this.parse8601 (this.safeString (data, 'endTime'));
         const update = {
             'updated': this.safeInteger (response, 'ts', timestamp),
+            'info': response,
         };
         if (endTime !== undefined) {
             const startTimeIsOk = (startTime === undefined) ? true : (timestamp < startTime);
@@ -2498,6 +2499,211 @@ module.exports = class aax extends Exchange {
         }
         transfer['status'] = this.parseTransferStatus (this.safeString (response, 'code'));
         return transfer;
+    }
+
+    parsePosition (position, market = undefined) {
+        //
+        //    {
+        //        "autoMarginCall": false,
+        //        "avgEntryPrice": "3706.03",
+        //        "bankruptPrice": "2963.3415880000",
+        //        "base": "ETH",
+        //        "code": "FP",
+        //        "commission": "0.02964824",
+        //        "currentQty": "2",
+        //        "funding": "-0.04827355",
+        //        "fundingStatus": null,
+        //        "id": "385839395735639395",
+        //        "leverage": "5",
+        //        "liquidationPrice": "2983.07",
+        //        "marketPrice": "3731.84",
+        //        "openTime": "2021-12-31T18:57:25.930Z",
+        //        "posLeverage": "5.00",
+        //        "posMargin": "14.85376824",
+        //        "quote": "USDT",
+        //        "realisedPnl": "-0.07792179",
+        //        "riskLimit": "10000000",
+        //        "riskyPrice": "3272.25",
+        //        "settleType": "VANILLA",
+        //        "stopLossPrice": "0",
+        //        "stopLossSource": 1,
+        //        "symbol": "ETHUSDTFP",
+        //        "takeProfitPrice": "0",
+        //        "takeProfitSource": 1,
+        //        "unrealisedPnl": "0.51620000",
+        //        "userID": "3829384",
+        //        "ts": 1641027194500
+        //    }
+        //
+        const contract = this.safeString (position, 'symbol');
+        market = this.safeMarket (contract, market);
+        const size = this.safeString (position, 'currentQty');
+        let side = undefined;
+        if (Precise.stringGt (size, '0')) {
+            side = 'long';
+        } else if (Precise.stringLt (size, '0')) {
+            side = 'short';
+        }
+        const leverage = this.safeString (position, 'leverage');
+        const unrealisedPnl = this.safeString (position, 'unrealisedPnl');
+        const currentQty = this.safeString (position, 'currentQty');
+        const contractSize = this.safeString (market, 'contractSize');
+        const initialQuote = Precise.stringMul (currentQty, contractSize);
+        const marketPrice = this.safeString (position, 'marketPrice');
+        const notional = Precise.stringMul (initialQuote, marketPrice);
+        const timestamp = this.safeInteger (position, 'ts');
+        const liquidationPrice = this.safeString (position, 'liquidationPrice');
+        return {
+            'info': position,
+            'symbol': this.safeString (market, 'symbol'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'entryPrice': this.safeNumber (position, 'avgEntryPrice'),
+            'notional': this.parseNumber (notional),
+            'leverage': this.parseNumber (leverage),
+            'unrealizedPnl': this.parseNumber (unrealisedPnl),
+            'contracts': this.parseNumber (size),
+            'contractSize': this.parseNumber (contractSize),
+            'marginRatio': undefined,
+            'liquidationPrice': liquidationPrice,
+            'markPrice': this.safeNumber (position, 'marketPrice'),
+            'collateral': this.safeNumber (position, 'posMargin'),
+            'marginType': this.safeString (position, 'settleType'),
+            'side': side,
+            'percentage': undefined,
+        };
+    }
+
+    async fetchPosition (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.privateGetFuturesPosition (this.extend (request, params));
+        //
+        //    {
+        //        "code": 1,
+        //        "data": [
+        //            {
+        //                "autoMarginCall": false,
+        //                "avgEntryPrice": "3706.03",
+        //                "bankruptPrice": "2963.3415880000",
+        //                "base": "ETH",
+        //                "code": "FP",
+        //                "commission": "0.02964824",
+        //                "currentQty": "2",
+        //                "funding": "-0.04827355",
+        //                "fundingStatus": null,
+        //                "id": "385839395735639395",
+        //                "leverage": "5",
+        //                "liquidationPrice": "2983.07",
+        //                "marketPrice": "3731.84",
+        //                "openTime": "2021-12-31T18:57:25.930Z",
+        //                "posLeverage": "5.00",
+        //                "posMargin": "14.85376824",
+        //                "quote": "USDT",
+        //                "realisedPnl": "-0.07792179",
+        //                "riskLimit": "10000000",
+        //                "riskyPrice": "3272.25",
+        //                "settleType": "VANILLA",
+        //                "stopLossPrice": "0",
+        //                "stopLossSource": 1,
+        //                "symbol": "ETHUSDTFP",
+        //                "takeProfitPrice": "0",
+        //                "takeProfitSource": 1,
+        //                "unrealisedPnl": "0.51620000",
+        //                "userID": "3829384"
+        //            }
+        //            ...
+        //        ],
+        //        "message": "success",
+        //        "ts": 1641026778068
+        //    }
+        //
+        const positions = this.safeValue (response, 'data', []);
+        const timestamp = this.safeInteger (response, 'ts');
+        const first = this.safeValue (positions, 0);
+        const position = this.parsePosition (first);
+        return this.extend (position, {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        });
+    }
+
+    async fetchPositions (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        if (symbols !== undefined) {
+            let symbol = undefined;
+            if (Array.isArray (symbols)) {
+                const symbolsLength = symbols.length;
+                if (symbolsLength > 1) {
+                    throw new BadRequest (this.id + ' fetchPositions symbols argument cannot contain more than 1 symbol');
+                }
+                symbol = symbols[0];
+            } else {
+                symbol = symbols;
+            }
+            const market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        const response = await this.privateGetFuturesPosition (this.extend (request, params));
+        //
+        //    {
+        //        "code": 1,
+        //        "data": [
+        //            {
+        //                "autoMarginCall": false,
+        //                "avgEntryPrice": "3706.03",
+        //                "bankruptPrice": "2963.3415880000",
+        //                "base": "ETH",
+        //                "code": "FP",
+        //                "commission": "0.02964824",
+        //                "currentQty": "2",
+        //                "funding": "-0.04827355",
+        //                "fundingStatus": null,
+        //                "id": "385839395735639395",
+        //                "leverage": "5",
+        //                "liquidationPrice": "2983.07",
+        //                "marketPrice": "3731.84",
+        //                "openTime": "2021-12-31T18:57:25.930Z",
+        //                "posLeverage": "5.00",
+        //                "posMargin": "14.85376824",
+        //                "quote": "USDT",
+        //                "realisedPnl": "-0.07792179",
+        //                "riskLimit": "10000000",
+        //                "riskyPrice": "3272.25",
+        //                "settleType": "VANILLA",
+        //                "stopLossPrice": "0",
+        //                "stopLossSource": 1,
+        //                "symbol": "ETHUSDTFP",
+        //                "takeProfitPrice": "0",
+        //                "takeProfitSource": 1,
+        //                "unrealisedPnl": "0.51620000",
+        //                "userID": "3829384"
+        //            }
+        //            ...
+        //        ],
+        //        "message": "success",
+        //        "ts": 1641026778068
+        //    }
+        //
+        const result = [];
+        const positions = this.safeValue (response, 'data', []);
+        const timestamp = this.safeInteger (response, 'ts');
+        for (let i = 0; i < positions.length; i++) {
+            const position = this.parsePosition (positions[i]);
+            result.push (this.extend (position, {
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+            }));
+        }
+        return this.filterByArray (result, 'symbol', symbols, false);
     }
 
     nonce () {

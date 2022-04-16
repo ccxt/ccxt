@@ -1028,15 +1028,16 @@ module.exports = class Exchange {
     }
 
     currency (code) {
-
         if (this.currencies === undefined) {
             throw new ExchangeError (this.id + ' currencies not loaded')
         }
-
-        if ((typeof code === 'string') && (code in this.currencies)) {
-            return this.currencies[code]
+        if (typeof code === 'string') {
+            if (code in this.currencies) {
+                return this.currencies[code];
+            } else if (code in this.currencies_by_id) {
+                return this.currencies_by_id[code];
+            }
         }
-
         throw new ExchangeError (this.id + ' does not have currency code ' + code)
     }
 
@@ -1408,6 +1409,45 @@ module.exports = class Exchange {
         const code = (currency !== undefined) ? currency['code'] : undefined;
         const tail = since === undefined;
         return this.filterByCurrencySinceLimit (result, code, since, limit, tail);
+    }
+
+    safeTransfer (transfer, currency = undefined) {
+        currency = this.safeCurrency (undefined, currency);
+        return this.extend ({
+            'id': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': currency['code'],
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': undefined,
+            'info': undefined,
+        }, transfer);
+    }
+
+    safeTransaction (transaction, currency = undefined) {
+        currency = this.safeCurrency (undefined, currency);
+        return this.extend ({
+            'id': undefined,
+            'currency': currency['code'],
+            'amount': undefined,
+            'network': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'addressFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
+            'status': undefined,
+            'type': undefined,
+            'updated': undefined,
+            'txid': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fee': undefined,
+            'info': undefined,
+        }, transaction);
     }
 
     parseTransfers (transfers, currency = undefined, since = undefined, limit = undefined, params = {}) {

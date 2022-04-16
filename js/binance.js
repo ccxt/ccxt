@@ -2068,6 +2068,7 @@ module.exports = class binance extends Exchange {
             this.status = this.extend (this.status, {
                 'status': status,
                 'updated': this.milliseconds (),
+                'info': response,
             });
         }
         return this.status;
@@ -2703,10 +2704,24 @@ module.exports = class binance extends Exchange {
                 type = 'LIMIT_MAKER';
             }
         }
-        const uppercaseType = type.toUpperCase ();
+        const initialUppercaseType = type.toUpperCase ();
+        let uppercaseType = initialUppercaseType;
+        const stopPrice = this.safeNumber (params, 'stopPrice');
+        if (stopPrice !== undefined) {
+            params = this.omit (params, 'stopPrice');
+            if (uppercaseType === 'MARKET') {
+                uppercaseType = market['contract'] ? 'STOP_MARKET' : 'STOP_LOSS';
+            } else if (uppercaseType === 'LIMIT') {
+                uppercaseType = market['contract'] ? 'STOP' : 'STOP_LOSS_LIMIT';
+            }
+        }
         const validOrderTypes = this.safeValue (market['info'], 'orderTypes');
         if (!this.inArray (uppercaseType, validOrderTypes)) {
-            throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type in market ' + symbol);
+            if (initialUppercaseType !== uppercaseType) {
+                throw new InvalidOrder (this.id + ' stopPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders');
+            } else {
+                throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market');
+            }
         }
         const request = {
             'symbol': market['id'],
@@ -2823,11 +2838,9 @@ module.exports = class binance extends Exchange {
             request['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         if (stopPriceIsRequired) {
-            const stopPrice = this.safeNumber (params, 'stopPrice');
             if (stopPrice === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order');
             } else {
-                params = this.omit (params, 'stopPrice');
                 request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
             }
         }
@@ -3536,6 +3549,10 @@ module.exports = class binance extends Exchange {
         //       "updateTime": "1627501027000"
         //     }
         //
+        // withdraw
+        //
+        //    { id: '9a67628b16ba4988ae20d329333f16bc' }
+        //
         const id = this.safeString2 (transaction, 'id', 'orderNo');
         const address = this.safeString (transaction, 'address');
         let tag = this.safeString (transaction, 'addressTag'); // set but unused
@@ -3987,10 +4004,7 @@ module.exports = class binance extends Exchange {
         }
         const response = await this.sapiPostCapitalWithdrawApply (this.extend (request, params));
         //     { id: '9a67628b16ba4988ae20d329333f16bc' }
-        return {
-            'info': response,
-            'id': this.safeString (response, 'id'),
-        };
+        return this.parseTransaction (response, currency);
     }
 
     parseTradingFee (fee, market = undefined) {
@@ -4817,6 +4831,8 @@ module.exports = class binance extends Exchange {
         }
         const response = await this[method] (query);
         //
+        // usdm
+        //
         //    [
         //        {
         //            "symbol": "SUSHIUSDT",
@@ -4833,6 +4849,24 @@ module.exports = class binance extends Exchange {
         //            ]
         //        }
         //    ]
+        //
+        // coinm
+        //
+        //     [
+        //         {
+        //             "symbol":"XRPUSD_210326",
+        //             "brackets":[
+        //                 {
+        //                     "bracket":1,
+        //                     "initialLeverage":20,
+        //                     "qtyCap":500000,
+        //                     "qtyFloor":0,
+        //                     "maintMarginRatio":0.0185,
+        //                     "cum":0.0
+        //                 }
+        //             ]
+        //         }
+        //     ]
         //
         return this.parseLeverageTiers (response, symbols, 'symbol');
     }
@@ -4871,7 +4905,7 @@ module.exports = class binance extends Exchange {
                 'tier': this.safeNumber (bracket, 'bracket'),
                 'currency': market['quote'],
                 'notionalFloor': this.safeNumber2 (bracket, 'notionalFloor', 'qtyFloor'),
-                'notionalCap': this.safeNumber (bracket, 'notionalCap'),
+                'notionalCap': this.safeNumber (bracket, 'notionalCap', 'qtyCap'),
                 'maintenanceMarginRate': this.safeNumber (bracket, 'maintMarginRatio'),
                 'maxLeverage': this.safeNumber (bracket, 'initialLeverage'),
                 'info': bracket,

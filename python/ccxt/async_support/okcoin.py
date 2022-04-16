@@ -2520,10 +2520,7 @@ class okcoin(Exchange):
         #         "result":true
         #     }
         #
-        return {
-            'info': response,
-            'id': self.safe_string(response, 'withdrawal_id'),
-        }
+        return self.parse_transaction(response, currency)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()

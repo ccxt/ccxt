@@ -1104,7 +1104,7 @@ module.exports = class gateio extends Exchange {
 
     async fetchCurrencies (params = {}) {
         // sandbox/testnet only supports future markets
-        const apiBackup = this.safeString (this.urls, 'apiBackup');
+        const apiBackup = this.safeValue (this.urls, 'apiBackup');
         if (apiBackup !== undefined) {
             return undefined;
         }
@@ -1646,11 +1646,13 @@ module.exports = class gateio extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 10, max 100
         }
+        request['with_id'] = true;
         const response = await this[method] (this.extend (request, params));
         //
         // SPOT
         //
         //     {
+        //         "id":6358770031
         //         "current": 1634345973275,
         //         "update": 1634345973271,
         //         "asks": [
@@ -1681,6 +1683,7 @@ module.exports = class gateio extends Exchange {
         // Perpetual Swap
         //
         //     {
+        //         "id":6358770031
         //         "current": 1634350208.745,
         //         "asks": [
         //             {"s":24909,"p": "61264.8"},
@@ -1715,7 +1718,10 @@ module.exports = class gateio extends Exchange {
         }
         const priceKey = spotOrMargin ? 0 : 'p';
         const amountKey = spotOrMargin ? 1 : 's';
-        return this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', priceKey, amountKey);
+        const nonce = this.safeInteger (response, 'id');
+        const result = this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', priceKey, amountKey);
+        result['nonce'] = nonce;
+        return result;
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -2496,16 +2502,7 @@ module.exports = class gateio extends Exchange {
         //       "memo": null
         //     }
         //
-        const currencyId = this.safeString (response, 'currency');
-        const id = this.safeString (response, 'id');
-        return {
-            'info': response,
-            'id': id,
-            'code': this.safeCurrencyCode (currencyId),
-            'amount': this.safeNumber (response, 'amount'),
-            'address': this.safeString (response, 'address'),
-            'tag': this.safeString (response, 'memo'),
-        };
+        return this.parseTransaction (response, currency);
     }
 
     parseTransactionStatus (status) {
@@ -2544,6 +2541,17 @@ module.exports = class gateio extends Exchange {
         //     }
         //
         // withdrawals
+        //
+        // withdraw
+        //
+        //     {
+        //       "id": "w13389675",
+        //       "currency": "USDT",
+        //       "amount": "50",
+        //       "address": "TUu2rLFrmzUodiWfYki7QCNtv1akL682p1",
+        //       "memo": null
+        //     }
+        //
         const id = this.safeString (transaction, 'id');
         let type = undefined;
         let amount = this.safeString (transaction, 'amount');
@@ -3099,8 +3107,17 @@ module.exports = class gateio extends Exchange {
         const stop = this.safeValue2 (params, 'is_stop_order', 'stop', false);
         params = this.omit (params, [ 'is_stop_order', 'stop' ]);
         const market = this.market (symbol);
+        let clientOrderId = this.safeString2 (params, 'text', 'clientOrderId');
+        let orderId = id;
+        if (clientOrderId !== undefined) {
+            params = this.omit (params, [ 'text', 'clientOrderId' ]);
+            if (clientOrderId[0] !== 't') {
+                clientOrderId = 't-' + clientOrderId;
+            }
+            orderId = clientOrderId;
+        }
         const request = {
-            'order_id': id,
+            'order_id': orderId,
         };
         if (market['spot'] || market['margin']) {
             request['currency_pair'] = market['id'];

@@ -391,7 +391,7 @@ module.exports = class deribit extends Exchange {
         const request = {
             // 'expected_result': false, // true will trigger an error for testing purposes
         };
-        await this.publicGetTest (this.extend (request, params));
+        const response = await this.publicGetTest (this.extend (request, params));
         //
         //     {
         //         jsonrpc: '2.0',
@@ -405,6 +405,7 @@ module.exports = class deribit extends Exchange {
         this.status = this.extend (this.status, {
             'status': 'ok',
             'updated': this.milliseconds (),
+            'info': response,
         });
         return this.status;
     }
@@ -2079,10 +2080,7 @@ module.exports = class deribit extends Exchange {
             request['tfa'] = this.oath ();
         }
         const response = await this.privateGetWithdraw (this.extend (request, params));
-        return {
-            'info': response,
-            'id': this.safeString (response, 'id'),
-        };
+        return this.parseTransaction (response, currency);
     }
 
     nonce () {

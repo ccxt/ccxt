@@ -1278,10 +1278,7 @@ class exmo(Exchange):
             request['transport'] = network
             params = self.omit(params, 'network')
         response = await self.privatePostWithdrawCrypt(self.extend(request, params))
-        return {
-            'info': response,
-            'id': response['task_id'],
-        }
+        return self.parse_transaction(response, currency)
 
     def parse_transaction_status(self, status):
         statuses = {
@@ -1337,7 +1334,7 @@ class exmo(Exchange):
         #             "error": ""
         #          },
         #
-        id = self.safe_string(transaction, 'order_id')
+        id = self.safe_string_2(transaction, 'order_id', 'task_id')
         timestamp = self.safe_timestamp_2(transaction, 'dt', 'created')
         updated = self.safe_timestamp(transaction, 'updated')
         amount = self.safe_number(transaction, 'amount')

@@ -150,6 +150,8 @@ class Transpiler {
             [ /\.safeMarket\s/g, '.safe_market'],
             [ /\.safeOrder\s/g, '.safe_order'],
             [ /\.safeTicker\s/g, '.safe_ticker'],
+            [ /\.safeTransaction\s/g, '.safe_transaction'],
+            [ /\.safeTransfer\s/g, '.safe_transfer'],
             [ /\.roundTimeframe\s/g, '.round_timeframe'],
             [ /\.calculateRateLimiterCost\s/g, '.calculate_rate_limiter_cost' ],
             [ /\.parseAccountPosition\s/g, '.parse_account_position' ],
@@ -358,7 +360,7 @@ class Transpiler {
             // Curly-braces are used for both dictionaries in the code as well as for the url-imploded params.
             // For example: https://docs.ccxt.com/en/latest/manual.html#implicit-api-methods
             //
-            // There's a conflict between the curly braces that have to be converted from dictionaries to PHP-arrays and 
+            // There's a conflict between the curly braces that have to be converted from dictionaries to PHP-arrays and
             // the curly braces used for url-imploded params that should not be touched.
             //
             // The transpiler takes all non-spaced strings in curly braces {likeThis} and converts them to ~likeThis~.
@@ -368,7 +370,7 @@ class Transpiler {
             // The regexes are applied in the order they're listed, top-down.
             //
             // A dictionary in curly braces will never have those curly braces attached to the contents of the dictionary.
-            // There will always be a space like { 'a': b, 'c': d }. 
+            // There will always be a space like { 'a': b, 'c': d }.
             // Hence, the remaining non-converted curly-brace dictionaries will have to be converted to arrays in PHP.
             // That is done in the middle of the transpilation process.
             //

@@ -340,6 +340,11 @@ class bitfinex2(bitfinex):
                     'derivatives': 'margin',
                     'future': 'margin',
                 },
+                'swap': {
+                    'fetchMarkets': {
+                        'settlementCurrencies': ['BTC', 'USDT', 'EURT'],
+                    },
+                },
             },
             'exceptions': {
                 'exact': {
@@ -359,6 +364,10 @@ class bitfinex2(bitfinex):
                     'symbol: invalid': BadSymbol,
                     'Invalid order': InvalidOrder,
                 },
+            },
+            'commonCurrencies': {
+                'EUTFO': 'EURT',
+                'USTF0': 'USDT',
             },
         })
 
@@ -385,6 +394,7 @@ class bitfinex2(bitfinex):
         self.status = self.extend(self.status, {
             'status': formattedStatus,
             'updated': self.milliseconds(),
+            'info': response,
         })
         return self.status
 
@@ -402,7 +412,6 @@ class bitfinex2(bitfinex):
             if self.in_array(id, swapMarketIds):
                 spot = False
             swap = not spot
-            type = 'spot' if spot else 'swap'
             baseId = None
             quoteId = None
             if id.find(':') >= 0:
@@ -414,9 +423,19 @@ class bitfinex2(bitfinex):
                 quoteId = id[3:6]
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            splitBase = base.split('F0')
+            splitQuote = quote.split('F0')
+            base = self.safe_string(splitBase, 0)
+            quote = self.safe_string(splitQuote, 0)
             symbol = base + '/' + quote
             baseId = self.get_currency_id(baseId)
             quoteId = self.get_currency_id(quoteId)
+            settleId = None
+            settle = None
+            if swap:
+                settleId = quoteId
+                settle = self.safe_currency_code(settleId)
+                symbol = symbol + ':' + settle
             minOrderSizeString = self.safe_string(market, 'minimum_order_size')
             maxOrderSizeString = self.safe_string(market, 'maximum_order_size')
             result.append({
@@ -424,22 +443,21 @@ class bitfinex2(bitfinex):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'settle': None,  # TODO
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': None,  # TODO
-                'type': type,
+                'settleId': settleId,
+                'type': 'spot' if spot else 'swap',
                 'spot': spot,
-                'margin': self.safe_value(market, 'margin'),
+                'margin': self.safe_value(market, 'margin', False),
                 'swap': swap,
                 'future': False,
                 'option': False,
                 'active': True,
                 'contract': swap,
-                'linear': None if spot else True,  # TODO
-                'inverse': None if spot else False,  # TODO
-                'contractSize': None,  # TODO
-                'maintenanceMarginRate': None,
+                'linear': True if swap else None,
+                'inverse': False if swap else None,
+                'contractSize': self.parse_number('1') if swap else None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,

@@ -28,7 +28,7 @@ class idex(Exchange):
             # public data endpoints 5 requests a second => 1000ms / 5 = 200ms between requests roughly(without Authentication)
             # all endpoints 10 requests a second =>(1000ms / rateLimit) / 10 => 1 / 2(with Authentication)
             'rateLimit': 200,
-            'version': 'v2',
+            'version': 'v3',
             'pro': True,
             'certified': True,
             'requiresWeb3': True,
@@ -1139,22 +1139,20 @@ class idex(Exchange):
             },
             'signature': signature,
         }
-        # {
-        #   withdrawalId: 'a61dcff0-ec4d-11ea-8b83-c78a6ecb3180',
-        #   asset: 'ETH',
-        #   assetContractAddress: '0x0000000000000000000000000000000000000000',
-        #   quantity: '0.20000000',
-        #   time: 1598962883190,
-        #   fee: '0.00024000',
-        #   txStatus: 'pending',
-        #   txId: null
-        # }
         response = await self.privatePostWithdrawals(request)
-        id = self.safe_string(response, 'withdrawalId')
-        return {
-            'info': response,
-            'id': id,
-        }
+        #
+        #     {
+        #         withdrawalId: 'a61dcff0-ec4d-11ea-8b83-c78a6ecb3180',
+        #         asset: 'ETH',
+        #         assetContractAddress: '0x0000000000000000000000000000000000000000',
+        #         quantity: '0.20000000',
+        #         time: 1598962883190,
+        #         fee: '0.00024000',
+        #         txStatus: 'pending',
+        #         txId: null
+        #     }
+        #
+        return self.parse_transaction(response, currency)
 
     async def cancel_order(self, id, symbol=None, params={}):
         self.check_required_credentials()
@@ -1243,32 +1241,51 @@ class idex(Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_transaction(self, transaction, currency=None):
+        #
         # fetchDeposits
-        # {
-        #   depositId: 'e9970cc0-eb6b-11ea-9e89-09a5ebc1f98f',
-        #   asset: 'ETH',
-        #   quantity: '1.00000000',
-        #   txId: '0xcd4aac3171d7131cc9e795568c67938675185ac17641553ef54c8a7c294c8142',
-        #   txTime: 1598865853000,
-        #   confirmationTime: 1598865930231
-        # }
+        #
+        #     {
+        #         depositId: 'e9970cc0-eb6b-11ea-9e89-09a5ebc1f98f',
+        #         asset: 'ETH',
+        #         quantity: '1.00000000',
+        #         txId: '0xcd4aac3171d7131cc9e795568c67938675185ac17641553ef54c8a7c294c8142',
+        #         txTime: 1598865853000,
+        #         confirmationTime: 1598865930231
+        #     }
+        #
         # fetchWithdrwalas
-        # {
-        #   withdrawalId: 'a62d8760-ec4d-11ea-9fa6-47904c19499b',
-        #   asset: 'ETH',
-        #   assetContractAddress: '0x0000000000000000000000000000000000000000',
-        #   quantity: '0.20000000',
-        #   time: 1598962883288,
-        #   fee: '0.00024000',
-        #   txId: '0x305e9cdbaa85ad029f50578d13d31d777c085de573ed5334d95c19116d8c03ce',
-        #   txStatus: 'mined'
-        #  }
+        #
+        #     {
+        #         withdrawalId: 'a62d8760-ec4d-11ea-9fa6-47904c19499b',
+        #         asset: 'ETH',
+        #         assetContractAddress: '0x0000000000000000000000000000000000000000',
+        #         quantity: '0.20000000',
+        #         time: 1598962883288,
+        #         fee: '0.00024000',
+        #         txId: '0x305e9cdbaa85ad029f50578d13d31d777c085de573ed5334d95c19116d8c03ce',
+        #         txStatus: 'mined'
+        #     }
+        #
+        # withdraw
+        #
+        #     {
+        #         withdrawalId: 'a61dcff0-ec4d-11ea-8b83-c78a6ecb3180',
+        #         asset: 'ETH',
+        #         assetContractAddress: '0x0000000000000000000000000000000000000000',
+        #         quantity: '0.20000000',
+        #         time: 1598962883190,
+        #         fee: '0.00024000',
+        #         txStatus: 'pending',
+        #         txId: null
+        #     }
+        #
         type = None
         if 'depositId' in transaction:
             type = 'deposit'
-        elif 'withdrawalId' in transaction:
+        elif ('withdrawId' in transaction) or ('withdrawalId' in transaction):
             type = 'withdrawal'
         id = self.safe_string_2(transaction, 'depositId', 'withdrawId')
+        id = self.safe_string(transaction, 'withdrawalId', id)
         code = self.safe_currency_code(self.safe_string(transaction, 'asset'), currency)
         amount = self.safe_number(transaction, 'quantity')
         txid = self.safe_string(transaction, 'txId')

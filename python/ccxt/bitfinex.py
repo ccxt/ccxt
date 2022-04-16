@@ -1178,6 +1178,14 @@ class bitfinex(Exchange):
         #         "timestamp_created": "1561716066.0"
         #     }
         #
+        # withdraw
+        #
+        #     {
+        #         "status":"success",
+        #         "message":"Your withdrawal request has been successfully submitted.",
+        #         "withdrawal_id":586829
+        #     }
+        #
         timestamp = self.safe_timestamp(transaction, 'timestamp_created')
         updated = self.safe_timestamp(transaction, 'timestamp')
         currencyId = self.safe_string(transaction, 'currency')
@@ -1190,7 +1198,7 @@ class bitfinex(Exchange):
         tag = self.safe_string(transaction, 'description')
         return {
             'info': transaction,
-            'id': self.safe_string(transaction, 'id'),
+            'id': self.safe_string_2(transaction, 'id', 'withdrawal_id'),
             'txid': self.safe_string(transaction, 'txid'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -1228,6 +1236,7 @@ class bitfinex(Exchange):
         self.load_markets()
         # todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
         name = self.get_currency_name(code)
+        currency = self.currency(code)
         request = {
             'withdraw_type': name,
             'walletselected': 'exchange',
@@ -1237,7 +1246,16 @@ class bitfinex(Exchange):
         if tag is not None:
             request['payment_id'] = tag
         responses = self.privatePostWithdraw(self.extend(request, params))
-        response = responses[0]
+        #
+        #     [
+        #         {
+        #             "status":"success",
+        #             "message":"Your withdrawal request has been successfully submitted.",
+        #             "withdrawal_id":586829
+        #         }
+        #     ]
+        #
+        response = self.safe_value(responses, 0, {})
         id = self.safe_string(response, 'withdrawal_id')
         message = self.safe_string(response, 'message')
         errorMessage = self.find_broadly_matched_key(self.exceptions['broad'], message)
@@ -1246,10 +1264,7 @@ class bitfinex(Exchange):
                 ExceptionClass = self.exceptions['broad'][errorMessage]
                 raise ExceptionClass(self.id + ' ' + message)
             raise ExchangeError(self.id + ' withdraw returned an id of zero: ' + self.json(response))
-        return {
-            'info': response,
-            'id': id,
-        }
+        return self.parse_transaction(response, currency)
 
     def fetch_positions(self, symbols=None, params={}):
         self.load_markets()

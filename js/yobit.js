@@ -14,7 +14,7 @@ module.exports = class yobit extends Exchange {
             'id': 'yobit',
             'name': 'YoBit',
             'countries': [ 'RU' ],
-            'rateLimit': 3000, // responses are cached every 2 seconds
+            'rateLimit': 2000, // responses are cached every 2 seconds
             'version': '3',
             'has': {
                 'CORS': undefined,
@@ -80,24 +80,24 @@ module.exports = class yobit extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'depth/{pair}',
-                        'info',
-                        'ticker/{pair}',
-                        'trades/{pair}',
-                    ],
+                    'get': {
+                        'depth/{pair}': 1,
+                        'info': 1,
+                        'ticker/{pair}': 1,
+                        'trades/{pair}': 1,
+                    },
                 },
                 'private': {
-                    'post': [
-                        'ActiveOrders',
-                        'CancelOrder',
-                        'GetDepositAddress',
-                        'getInfo',
-                        'OrderInfo',
-                        'Trade',
-                        'TradeHistory',
-                        'WithdrawCoinsToAddress',
-                    ],
+                    'post': {
+                        'ActiveOrders': 1,
+                        'CancelOrder': 1,
+                        'GetDepositAddress': 1,
+                        'getInfo': 1,
+                        'OrderInfo': 1,
+                        'Trade': 1,
+                        'TradeHistory': 1,
+                        'WithdrawCoinsToAddress': 1,
+                    },
                 },
             },
             'fees': {
@@ -527,6 +527,29 @@ module.exports = class yobit extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades (public)
+        //
+        //      {
+        //          "type":"bid",
+        //          "price":0.14046179,
+        //          "amount":0.001,
+        //          "tid":200256901,
+        //          "timestamp":1649861004
+        //      }
+        //
+        // fetchMyTrades (private)
+        //
+        //      {
+        //          "pair":"doge_usdt",
+        //          "type":"sell",
+        //          "amount":139,
+        //          "rate":0.139,
+        //          "order_id":"2101103631773172",
+        //          "is_your_order":1,
+        //          "timestamp":"1649861561"
+        //      }
+        //
         const timestamp = this.safeTimestamp (trade, 'timestamp');
         let side = this.safeString (trade, 'type');
         if (side === 'ask') {
@@ -540,27 +563,32 @@ module.exports = class yobit extends Exchange {
         const marketId = this.safeString (trade, 'pair');
         const symbol = this.safeSymbol (marketId, market);
         const amountString = this.safeString (trade, 'amount');
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
+        // arguments for calculateFee (need to be numbers)
         const price = this.parseNumber (priceString);
         const amount = this.parseNumber (amountString);
         const type = 'limit'; // all trades are still limit trades
         let fee = undefined;
-        const feeCost = this.safeNumber (trade, 'commission');
-        if (feeCost !== undefined) {
+        const feeCostString = this.safeNumber (trade, 'commission');
+        if (feeCostString !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'commissionCurrency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             };
         }
         const isYourOrder = this.safeValue (trade, 'is_your_order');
         if (isYourOrder !== undefined) {
             if (fee === undefined) {
-                fee = this.calculateFee (symbol, type, side, amount, price, 'taker');
+                const feeInNumbers = this.calculateFee (symbol, type, side, amount, price, 'taker');
+                fee = {
+                    'currency': this.safeString (feeInNumbers, 'currency'),
+                    'cost': this.safeString (feeInNumbers, 'cost'),
+                    'rate': this.safeString (feeInNumbers, 'rate'),
+                };
             }
         }
-        return {
+        return this.safeTrade ({
             'id': id,
             'order': order,
             'timestamp': timestamp,
@@ -569,12 +597,12 @@ module.exports = class yobit extends Exchange {
             'type': type,
             'side': side,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': fee,
             'info': trade,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -587,13 +615,27 @@ module.exports = class yobit extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.publicGetTradesPair (this.extend (request, params));
+        //
+        //      {
+        //          "doge_usdt": [
+        //              {
+        //                  "type":"ask",
+        //                  "price":0.13956743,
+        //                  "amount":0.0008,
+        //                  "tid":200256900,
+        //                  "timestamp":1649860521
+        //              },
+        //          ]
+        //      }
+        //
         if (Array.isArray (response)) {
             const numElements = response.length;
             if (numElements === 0) {
                 return [];
             }
         }
-        return this.parseTrades (response[market['id']], market, since, limit);
+        const result = this.safeValue (response, market['id'], []);
+        return this.parseTrades (result, market, since, limit);
     }
 
     async fetchTradingFees (params = {}) {
@@ -924,6 +966,22 @@ module.exports = class yobit extends Exchange {
             request['since'] = parseInt (since / 1000);
         }
         const response = await this.privatePostTradeHistory (this.extend (request, params));
+        //
+        //      {
+        //          "success":1,
+        //          "return": {
+        //              "200257004": {
+        //                  "pair":"doge_usdt",
+        //                  "type":"sell",
+        //                  "amount":139,
+        //                  "rate":0.139,
+        //                  "order_id":"2101103631773172",
+        //                  "is_your_order":1,
+        //                  "timestamp":"1649861561"
+        //              }
+        //          }
+        //      }
+        //
         const trades = this.safeValue (response, 'return', {});
         const ids = Object.keys (trades);
         const result = [];

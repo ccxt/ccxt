@@ -1495,7 +1495,7 @@ class cdax extends Exchange {
         $network = $this->safe_string_upper($transaction, 'chain');
         return array(
             'info' => $transaction,
-            'id' => $this->safe_string($transaction, 'id'),
+            'id' => $this->safe_string_2($transaction, 'id', 'data'),
             'txid' => $this->safe_string($transaction, 'tx-hash'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -1569,11 +1569,7 @@ class cdax extends Exchange {
             $params = $this->omit($params, 'network');
         }
         $response = $this->privatePostDwWithdrawApiCreate (array_merge($request, $params));
-        $id = $this->safe_string($response, 'data');
-        return array(
-            'info' => $response,
-            'id' => $id,
-        );
+        return $this->parse_transaction($response, $currency);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

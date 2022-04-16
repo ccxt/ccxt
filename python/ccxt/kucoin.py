@@ -488,6 +488,7 @@ class kucoin(Exchange):
             self.status = self.extend(self.status, {
                 'status': status,
                 'updated': self.milliseconds(),
+                'info': response,
             })
         return self.status
 
@@ -1131,7 +1132,11 @@ class kucoin(Exchange):
             amountString = self.amount_to_precision(symbol, amount)
             request['size'] = amountString
             request['price'] = self.price_to_precision(symbol, price)
-        response = self.privatePostOrders(self.extend(request, params))
+        method = 'privatePostOrders'
+        tradeType = self.safe_string(params, 'tradeType')
+        if tradeType == 'MARGIN_TRADE':
+            method = 'privatePostMarginOrder'
+        response = getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         code: '200000',
@@ -1666,15 +1671,12 @@ class kucoin(Exchange):
         #     {
         #         "code":  200000,
         #         "data": {
-        #             "withdrawalId":  "abcdefghijklmnopqrstuvwxyz"
+        #             "withdrawalId":  "5bffb63303aa675e8bbe18f9"
         #         }
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        return {
-            'id': self.safe_string(data, 'withdrawalId'),
-            'info': response,
-        }
+        return self.parse_transaction(data, currency)
 
     def parse_transaction_status(self, status):
         statuses = {
@@ -1717,6 +1719,12 @@ class kucoin(Exchange):
         #         "createdAt": 1546503758000,
         #         "updatedAt": 1546504603000
         #         "remark":"foobar"
+        #     }
+        #
+        # withdraw
+        #
+        #     {
+        #         "withdrawalId":  "5bffb63303aa675e8bbe18f9"
         #     }
         #
         currencyId = self.safe_string(transaction, 'currency')

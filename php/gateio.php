@@ -1110,7 +1110,7 @@ class gateio extends Exchange {
 
     public function fetch_currencies($params = array ()) {
         // sandbox/testnet only supports future markets
-        $apiBackup = $this->safe_string($this->urls, 'apiBackup');
+        $apiBackup = $this->safe_value($this->urls, 'apiBackup');
         if ($apiBackup !== null) {
             return null;
         }
@@ -1652,11 +1652,13 @@ class gateio extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 10, max 100
         }
+        $request['with_id'] = true;
         $response = $this->$method (array_merge($request, $params));
         //
         // SPOT
         //
         //     {
+        //         "id":6358770031
         //         "current" => 1634345973275,
         //         "update" => 1634345973271,
         //         "asks" => [
@@ -1687,6 +1689,7 @@ class gateio extends Exchange {
         // Perpetual Swap
         //
         //     {
+        //         "id":6358770031
         //         "current" => 1634350208.745,
         //         "asks" => array(
         //             array("s":24909,"p" => "61264.8"),
@@ -1721,7 +1724,10 @@ class gateio extends Exchange {
         }
         $priceKey = $spotOrMargin ? 0 : 'p';
         $amountKey = $spotOrMargin ? 1 : 's';
-        return $this->parse_order_book($response, $symbol, $timestamp, 'bids', 'asks', $priceKey, $amountKey);
+        $nonce = $this->safe_integer($response, 'id');
+        $result = $this->parse_order_book($response, $symbol, $timestamp, 'bids', 'asks', $priceKey, $amountKey);
+        $result['nonce'] = $nonce;
+        return $result;
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -2502,16 +2508,7 @@ class gateio extends Exchange {
         //       "memo" => null
         //     }
         //
-        $currencyId = $this->safe_string($response, 'currency');
-        $id = $this->safe_string($response, 'id');
-        return array(
-            'info' => $response,
-            'id' => $id,
-            'code' => $this->safe_currency_code($currencyId),
-            'amount' => $this->safe_number($response, 'amount'),
-            'address' => $this->safe_string($response, 'address'),
-            'tag' => $this->safe_string($response, 'memo'),
-        );
+        return $this->parse_transaction($response, $currency);
     }
 
     public function parse_transaction_status($status) {
@@ -2550,6 +2547,17 @@ class gateio extends Exchange {
         //     }
         //
         // withdrawals
+        //
+        // withdraw
+        //
+        //     {
+        //       "id" => "w13389675",
+        //       "currency" => "USDT",
+        //       "amount" => "50",
+        //       "address" => "TUu2rLFrmzUodiWfYki7QCNtv1akL682p1",
+        //       "memo" => null
+        //     }
+        //
         $id = $this->safe_string($transaction, 'id');
         $type = null;
         $amount = $this->safe_string($transaction, 'amount');
@@ -3101,8 +3109,17 @@ class gateio extends Exchange {
         $stop = $this->safe_value_2($params, 'is_stop_order', 'stop', false);
         $params = $this->omit($params, array( 'is_stop_order', 'stop' ));
         $market = $this->market($symbol);
+        $clientOrderId = $this->safe_string_2($params, 'text', 'clientOrderId');
+        $orderId = $id;
+        if ($clientOrderId !== null) {
+            $params = $this->omit($params, array( 'text', 'clientOrderId' ));
+            if ($clientOrderId[0] !== 't') {
+                $clientOrderId = 't-' . $clientOrderId;
+            }
+            $orderId = $clientOrderId;
+        }
         $request = array(
-            'order_id' => $id,
+            'order_id' => $orderId,
         );
         if ($market['spot'] || $market['margin']) {
             $request['currency_pair'] = $market['id'];

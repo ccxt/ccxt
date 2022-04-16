@@ -394,7 +394,7 @@ class deribit extends Exchange {
         $request = array(
             // 'expected_result' => false, // true will trigger an error for testing purposes
         );
-        $this->publicGetTest (array_merge($request, $params));
+        $response = $this->publicGetTest (array_merge($request, $params));
         //
         //     {
         //         jsonrpc => '2.0',
@@ -408,6 +408,7 @@ class deribit extends Exchange {
         $this->status = array_merge($this->status, array(
             'status' => 'ok',
             'updated' => $this->milliseconds(),
+            'info' => $response,
         ));
         return $this->status;
     }
@@ -2082,10 +2083,7 @@ class deribit extends Exchange {
             $request['tfa'] = $this->oath();
         }
         $response = $this->privateGetWithdraw (array_merge($request, $params));
-        return array(
-            'info' => $response,
-            'id' => $this->safe_string($response, 'id'),
-        );
+        return $this->parse_transaction($response, $currency);
     }
 
     public function nonce() {

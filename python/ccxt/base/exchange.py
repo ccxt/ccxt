@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.78.77'
+__version__ = '1.79.60'
 
 # -----------------------------------------------------------------------------
 
@@ -1997,6 +1997,43 @@ class Exchange(object):
         tail = since is None
         return self.filter_by_symbol_since_limit(array, symbol, since, limit, tail)
 
+    def safe_transfer(self, transfer, currency=None):
+        currency = self.safe_currency(None, currency)
+        return self.extend({
+            'id': None,
+            'timestamp': None,
+            'datetime': None,
+            'currency': currency['code'],
+            'amount': None,
+            'fromAccount': None,
+            'toAccount': None,
+            'status': None,
+            'info': None,
+        }, transfer)
+
+    def safe_transaction(self, transaction, currency=None):
+        currency = self.safe_currency(None, currency)
+        return self.extend({
+            'id': None,
+            'currency': currency['code'],
+            'amount': None,
+            'network': None,
+            'address': None,
+            'addressTo': None,
+            'addressFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'tagFrom': None,
+            'status': None,
+            'type': None,
+            'updated': None,
+            'txid': None,
+            'timestamp': None,
+            'datetime': None,
+            'fee': None,
+            'info': None,
+        }, transaction)
+
     def parse_transactions(self, transactions, currency=None, since=None, limit=None, params={}):
         array = self.to_array(transactions)
         array = [self.extend(self.parse_transaction(transaction, currency), params) for transaction in array]
@@ -2144,15 +2181,18 @@ class Exchange(object):
     def currency(self, code):
         if not self.currencies:
             raise ExchangeError('Currencies not loaded')
-        if isinstance(code, str) and (code in self.currencies):
-            return self.currencies[code]
-        raise ExchangeError('Does not have currency code ' + str(code))
+        if isinstance(code, str):
+            if code in self.currencies:
+                return self.currencies[code]
+            elif code in self.currencies_by_id:
+                return self.currencies_by_id[code]
+        raise ExchangeError(self.id + ' does not have currency code ' + str(code))
 
     def market(self, symbol):
         if not self.markets:
-            raise ExchangeError('Markets not loaded')
+            raise ExchangeError(self.id + ' markets not loaded')
         if not self.markets_by_id:
-            raise ExchangeError('Markets not loaded')
+            raise ExchangeError(self.id + ' markets not loaded')
         if isinstance(symbol, str):
             if symbol in self.markets:
                 return self.markets[symbol]

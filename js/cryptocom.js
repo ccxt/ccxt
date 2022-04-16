@@ -1135,11 +1135,7 @@ module.exports = class cryptocom extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result');
-        const id = this.safeString (result, 'id');
-        return {
-            'info': response,
-            'id': id,
-        };
+        return this.parseTransaction (result, currency);
     }
 
     async fetchDepositAddressesByNetwork (code, params = {}) {
@@ -1696,30 +1692,42 @@ module.exports = class cryptocom extends Exchange {
         //
         // fetchDeposits
         //
-        // {
-        //     "currency": "XRP",
-        //     "fee": 1.0,
-        //     "create_time": 1607063412000,
-        //     "id": "2220",
-        //     "update_time": 1607063460000,
-        //     "amount": 100,
-        //     "address": "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf?1234567890",
-        //     "status": "1"
-        // }
+        //     {
+        //         "currency": "XRP",
+        //         "fee": 1.0,
+        //         "create_time": 1607063412000,
+        //         "id": "2220",
+        //         "update_time": 1607063460000,
+        //         "amount": 100,
+        //         "address": "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf?1234567890",
+        //         "status": "1"
+        //     }
         //
         // fetchWithdrawals
         //
-        // {
-        //     "currency": "XRP",
-        //     "client_wid": "my_withdrawal_002",
-        //     "fee": 1.0,
-        //     "create_time": 1607063412000,
-        //     "id": "2220",
-        //     "update_time": 1607063460000,
-        //     "amount": 100,
-        //     "address": "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf?1234567890",
-        //     "status": "1"
-        // }
+        //     {
+        //         "currency": "XRP",
+        //         "client_wid": "my_withdrawal_002",
+        //         "fee": 1.0,
+        //         "create_time": 1607063412000,
+        //         "id": "2220",
+        //         "update_time": 1607063460000,
+        //         "amount": 100,
+        //         "address": "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf?1234567890",
+        //         "status": "1"
+        //     }
+        //
+        // withdraw
+        //
+        //     {
+        //         "id": 2220,
+        //         "amount": 1,
+        //         "fee": 0.0004,
+        //         "symbol": "BTC",
+        //         "address": "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf",
+        //         "client_wid": "my_withdrawal_002",
+        //         "create_time":1607063412000
+        //     }
         //
         let type = undefined;
         const rawStatus = this.safeString (transaction, 'status');

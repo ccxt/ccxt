@@ -1240,6 +1240,14 @@ class bitfinex extends Exchange {
         //         "timestamp_created" => "1561716066.0"
         //     }
         //
+        // withdraw
+        //
+        //     {
+        //         "status":"success",
+        //         "message":"Your withdrawal request has been successfully submitted.",
+        //         "withdrawal_id":586829
+        //     }
+        //
         $timestamp = $this->safe_timestamp($transaction, 'timestamp_created');
         $updated = $this->safe_timestamp($transaction, 'timestamp');
         $currencyId = $this->safe_string($transaction, 'currency');
@@ -1253,7 +1261,7 @@ class bitfinex extends Exchange {
         $tag = $this->safe_string($transaction, 'description');
         return array(
             'info' => $transaction,
-            'id' => $this->safe_string($transaction, 'id'),
+            'id' => $this->safe_string_2($transaction, 'id', 'withdrawal_id'),
             'txid' => $this->safe_string($transaction, 'txid'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -1293,6 +1301,7 @@ class bitfinex extends Exchange {
         $this->load_markets();
         // todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
         $name = $this->get_currency_name($code);
+        $currency = $this->currency($code);
         $request = array(
             'withdraw_type' => $name,
             'walletselected' => 'exchange',
@@ -1303,7 +1312,16 @@ class bitfinex extends Exchange {
             $request['payment_id'] = $tag;
         }
         $responses = $this->privatePostWithdraw (array_merge($request, $params));
-        $response = $responses[0];
+        //
+        //     array(
+        //         {
+        //             "status":"success",
+        //             "message":"Your withdrawal $request has been successfully submitted.",
+        //             "withdrawal_id":586829
+        //         }
+        //     )
+        //
+        $response = $this->safe_value($responses, 0, array());
         $id = $this->safe_string($response, 'withdrawal_id');
         $message = $this->safe_string($response, 'message');
         $errorMessage = $this->find_broadly_matched_key($this->exceptions['broad'], $message);
@@ -1314,10 +1332,7 @@ class bitfinex extends Exchange {
             }
             throw new ExchangeError($this->id . ' withdraw returned an $id of zero => ' . $this->json($response));
         }
-        return array(
-            'info' => $response,
-            'id' => $id,
-        );
+        return $this->parse_transaction($response, $currency);
     }
 
     public function fetch_positions($symbols = null, $params = array ()) {

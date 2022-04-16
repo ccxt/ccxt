@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.78.77';
+$version = '1.79.60';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.78.77';
+    const VERSION = '1.79.60';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -330,6 +330,8 @@ class Exchange {
         'parseDepositAddresses' => 'parse_deposit_addresses',
         'parseTrades' => 'parse_trades',
         'parseTransactions' => 'parse_transactions',
+        'safeTransfer' => 'safe_transfer',
+        'safeTransaction' => 'safe_transaction',
         'parseTransfers' => 'parse_transfers',
         'parseLedger' => 'parse_ledger',
         'parseOrders' => 'parse_orders',
@@ -2273,6 +2275,45 @@ class Exchange {
         return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
     }
 
+    public function safe_transfer($transfer, $currency = null) {
+        $currency = $this->safe_currency(null, $currency);
+        return $this->extend(array(
+            'id'=> null,
+            'timestamp'=> null,
+            'datetime'=> null,
+            'currency'=> $currency['code'],
+            'amount'=> null,
+            'fromAccount'=> null,
+            'toAccount'=> null,
+            'status'=> null,
+            'info'=> null,
+        ), $transfer);
+    }
+
+    public function safe_transaction($transaction, $currency = null) {
+        $currency = $this->safe_currency(null, $currency);
+        return $this->extend(array(
+            'id'=> null,
+            'currency'=> $currency['code'],
+            'amount'=> null,
+            'network'=> null,
+            'address'=> null,
+            'addressTo'=> null,
+            'addressFrom'=> null,
+            'tag'=> null,
+            'tagTo'=> null,
+            'tagFrom'=> null,
+            'status'=> null,
+            'type'=> null,
+            'updated'=> null,
+            'txid'=> null,
+            'timestamp'=> null,
+            'datetime'=> null,
+            'fee'=> null,
+            'info'=> null,
+        ), $transaction);
+    }
+
     public function parse_transfers($transfers, $currency = null, $since = null, $limit = null, $params = array()) {
         $array = is_array($transfers) ? array_values($transfers) : array();
         $result = array();
@@ -2306,13 +2347,14 @@ class Exchange {
 
     public function parse_orders($orders, $market = null, $since = null, $limit = null, $params = array()) {
         $result = array();
-        if (count(array_filter(array_keys($orders), 'is_string')) == 0) {
+        $keys = array_keys($orders);
+        if ($keys === array_keys($keys)) {
             foreach ($orders as $order) {
                 $result[] = array_replace_recursive($this->parse_order($order, $market), $params);
             }
         } else {
             foreach ($orders as $id => $order) {
-                $result[] = array_replace_recursive($this->parse_order(array_replace_recursive(array('id' => $id), $order), $market), $params);
+                $result[] = array_replace_recursive($this->parse_order(array_replace_recursive(array('id' => (string) $id), $order), $market), $params);
             }
         }
         $result = $this->sort_by($result, 'timestamp');
@@ -2751,10 +2793,14 @@ class Exchange {
     }
 
     public function currency($code) {
-        return (('string' === gettype($code)) &&
-                   isset($this->currencies) &&
-                   isset($this->currencies[$code])) ?
-                        $this->currencies[$code] : $code;
+        if ('string' === gettype($code)) {
+            if (isset($this->currencies) && isset($this->currencies[$code])) {
+                return $this->currencies[$code];
+            } else if (isset($this->currencies_by_id) && isset($this->currencies_by_id[$code])) {
+                return $this->currencies_by_id[$code];
+            }
+        }
+        throw new ExchangeError ($this->id + ' does not have currency code ' + ((string) $code));
     }
 
     public function market($symbol) {
@@ -3744,7 +3790,7 @@ class Exchange {
     public function sleep($milliseconds) {
         sleep($milliseconds / 1000);
     }
-    
+
     public function parse_borrow_interests($response, $market = null) {
         $interest = array();
         for ($i = 0; $i < count($response); $i++){

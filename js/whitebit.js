@@ -743,6 +743,7 @@ module.exports = class whitebit extends Exchange {
         this.status = this.extend (this.status, {
             'status': status,
             'updated': this.milliseconds (),
+            'info': response,
         });
         return this.status;
     }
@@ -1180,9 +1181,36 @@ module.exports = class whitebit extends Exchange {
         //
         //     []
         //
+        return this.extend ({ 'id': uniqueId }, this.parseTransaction (response, currency));
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // withdraw
+        //
+        //     []
+        //
+        currency = this.safeCurrency (undefined, currency);
         return {
-            'id': uniqueId,
-            'info': response,
+            'id': undefined,
+            'txid': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'network': undefined,
+            'addressFrom': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'amount': undefined,
+            'type': undefined,
+            'currency': currency['code'],
+            'status': undefined,
+            'updated': undefined,
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'comment': undefined,
+            'fee': undefined,
+            'info': transaction,
         };
     }
 

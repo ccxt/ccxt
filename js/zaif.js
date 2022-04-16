@@ -525,10 +525,69 @@ module.exports = class zaif extends Exchange {
             request['message'] = tag;
         }
         const result = await this.privatePostWithdraw (this.extend (request, params));
+        //
+        //     {
+        //         "success": 1,
+        //         "return": {
+        //             "id": 23634,
+        //             "fee": 0.001,
+        //             "txid":,
+        //             "funds": {
+        //                 "jpy": 15320,
+        //                 "btc": 1.392,
+        //                 "xem": 100.2,
+        //                 "mona": 2600
+        //             }
+        //         }
+        //     }
+        //
+        const returnData = this.safeValue (result, 'return');
+        return this.parseTransaction (returnData, currency);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        //     {
+        //         "id": 23634,
+        //         "fee": 0.001,
+        //         "txid":,
+        //         "funds": {
+        //             "jpy": 15320,
+        //             "btc": 1.392,
+        //             "xem": 100.2,
+        //             "mona": 2600
+        //         }
+        //     }
+        //
+        currency = this.safeCurrency (undefined, currency);
+        let fee = undefined;
+        const feeCost = this.safeValue (transaction, 'fee');
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': currency['code'],
+            };
+        }
         return {
-            'info': result,
-            'id': result['return']['txid'],
-            'fee': result['return']['fee'],
+            'id': this.safeString (transaction, 'id'),
+            'txid': this.safeString (transaction, 'txid'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'network': undefined,
+            'addressFrom': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'amount': undefined,
+            'type': undefined,
+            'currency': currency['code'],
+            'status': undefined,
+            'updated': undefined,
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'comment': undefined,
+            'fee': fee,
+            'info': transaction,
         };
     }
 

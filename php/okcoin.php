@@ -2619,10 +2619,7 @@ class okcoin extends Exchange {
         //         "result":true
         //     }
         //
-        return array(
-            'info' => $response,
-            'id' => $this->safe_string($response, 'withdrawal_id'),
-        );
+        return $this->parse_transaction($response, $currency);
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {

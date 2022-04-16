@@ -403,7 +403,7 @@ class deribit(Exchange):
         request = {
             # 'expected_result': False,  # True will trigger an error for testing purposes
         }
-        await self.publicGetTest(self.extend(request, params))
+        response = await self.publicGetTest(self.extend(request, params))
         #
         #     {
         #         jsonrpc: '2.0',
@@ -417,6 +417,7 @@ class deribit(Exchange):
         self.status = self.extend(self.status, {
             'status': 'ok',
             'updated': self.milliseconds(),
+            'info': response,
         })
         return self.status
 
@@ -2009,10 +2010,7 @@ class deribit(Exchange):
         if self.twofa is not None:
             request['tfa'] = self.oath()
         response = await self.privateGetWithdraw(self.extend(request, params))
-        return {
-            'info': response,
-            'id': self.safe_string(response, 'id'),
-        }
+        return self.parse_transaction(response, currency)
 
     def nonce(self):
         return self.milliseconds()

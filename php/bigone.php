@@ -46,6 +46,7 @@ class bigone extends Exchange {
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
                 'fetchWithdrawals' => true,
+                'transfer' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -114,6 +115,17 @@ class bigone extends Exchange {
                 ),
                 'funding' => array(
                     'withdraw' => array(),
+                ),
+            ),
+            'options' => array(
+                'accountsByType' => array(
+                    'spot' => 'SPOT',
+                    'funding' => 'FUND',
+                    'future' => 'CONTRACT',
+                    'swap' => 'CONTRACT',
+                ),
+                'transfer' => array(
+                    'fillResponseFromRequest' => true,
                 ),
             ),
             'exceptions' => array(
@@ -1229,6 +1241,69 @@ class bigone extends Exchange {
         //
         $withdrawals = $this->safe_value($response, 'data', array());
         return $this->parse_transactions($withdrawals, $code, $since, $limit);
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
+        $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
+        $guid = $this->safe_string($params, 'guid', $this->uuid());
+        $request = array(
+            'symbol' => $currency['id'],
+            'amount' => $this->currency_to_precision($code, $amount),
+            'from' => $fromId,
+            'to' => $toId,
+            'guid' => $guid,
+            // 'type' => type, // NORMAL, MASTER_TO_SUB, SUB_TO_MASTER, SUB_INTERNAL, default is NORMAL
+            // 'sub_acccunt' => '', // when type is NORMAL, it should be empty, and when type is others it is required
+        );
+        $response = $this->privatePostTransfer (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => null
+        //     }
+        //
+        $transfer = $this->parse_transfer($response, $currency);
+        $transferOptions = $this->safe_value($this->options, 'transfer', array());
+        $fillResponseFromRequest = $this->safe_value($transferOptions, 'fillResponseFromRequest', true);
+        if ($fillResponseFromRequest) {
+            $transfer['fromAccount'] = $fromAccount;
+            $transfer['toAccount'] = $toAccount;
+            $transfer['amount'] = $amount;
+            $transfer['id'] = $guid;
+        }
+        return $transfer;
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => null
+        //     }
+        //
+        $code = $this->safe_number($transfer, 'code');
+        return array(
+            'info' => $transfer,
+            'id' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'currency' => $code,
+            'amount' => null,
+            'fromAccount' => null,
+            'toAccount' => null,
+            'status' => $this->parse_transfer_status($code),
+        );
+    }
+
+    public function parse_transfer_status($status) {
+        $statuses = array(
+            '0' => 'ok',
+        );
+        return $this->safe_string($statuses, $status, 'failed');
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {

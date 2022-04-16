@@ -747,6 +747,7 @@ class whitebit extends Exchange {
         $this->status = array_merge($this->status, array(
             'status' => $status,
             'updated' => $this->milliseconds(),
+            'info' => $response,
         ));
         return $this->status;
     }
@@ -1184,9 +1185,36 @@ class whitebit extends Exchange {
         //
         //     array()
         //
+        return array_merge(array( 'id' => $uniqueId ), $this->parse_transaction($response, $currency));
+    }
+
+    public function parse_transaction($transaction, $currency = null) {
+        //
+        // withdraw
+        //
+        //     array()
+        //
+        $currency = $this->safe_currency(null, $currency);
         return array(
-            'id' => $uniqueId,
-            'info' => $response,
+            'id' => null,
+            'txid' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'network' => null,
+            'addressFrom' => null,
+            'address' => null,
+            'addressTo' => null,
+            'amount' => null,
+            'type' => null,
+            'currency' => $currency['code'],
+            'status' => null,
+            'updated' => null,
+            'tagFrom' => null,
+            'tag' => null,
+            'tagTo' => null,
+            'comment' => null,
+            'fee' => null,
+            'info' => $transaction,
         );
     }
 

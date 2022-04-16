@@ -52,6 +52,7 @@ class bigone(Exchange):
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
                 'fetchWithdrawals': True,
+                'transfer': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -120,6 +121,17 @@ class bigone(Exchange):
                 },
                 'funding': {
                     'withdraw': {},
+                },
+            },
+            'options': {
+                'accountsByType': {
+                    'spot': 'SPOT',
+                    'funding': 'FUND',
+                    'future': 'CONTRACT',
+                    'swap': 'CONTRACT',
+                },
+                'transfer': {
+                    'fillResponseFromRequest': True,
                 },
             },
             'exceptions': {
@@ -1166,6 +1178,65 @@ class bigone(Exchange):
         #
         withdrawals = self.safe_value(response, 'data', [])
         return self.parse_transactions(withdrawals, code, since, limit)
+
+    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        accountsByType = self.safe_value(self.options, 'accountsByType', {})
+        fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
+        toId = self.safe_string(accountsByType, toAccount, toAccount)
+        guid = self.safe_string(params, 'guid', self.uuid())
+        request = {
+            'symbol': currency['id'],
+            'amount': self.currency_to_precision(code, amount),
+            'from': fromId,
+            'to': toId,
+            'guid': guid,
+            # 'type': type,  # NORMAL, MASTER_TO_SUB, SUB_TO_MASTER, SUB_INTERNAL, default is NORMAL
+            # 'sub_acccunt': '',  # when type is NORMAL, it should be empty, and when type is others it is required
+        }
+        response = self.privatePostTransfer(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "data": null
+        #     }
+        #
+        transfer = self.parse_transfer(response, currency)
+        transferOptions = self.safe_value(self.options, 'transfer', {})
+        fillResponseFromRequest = self.safe_value(transferOptions, 'fillResponseFromRequest', True)
+        if fillResponseFromRequest:
+            transfer['fromAccount'] = fromAccount
+            transfer['toAccount'] = toAccount
+            transfer['amount'] = amount
+            transfer['id'] = guid
+        return transfer
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        #     {
+        #         "code": 0,
+        #         "data": null
+        #     }
+        #
+        code = self.safe_number(transfer, 'code')
+        return {
+            'info': transfer,
+            'id': None,
+            'timestamp': None,
+            'datetime': None,
+            'currency': code,
+            'amount': None,
+            'fromAccount': None,
+            'toAccount': None,
+            'status': self.parse_transfer_status(code),
+        }
+
+    def parse_transfer_status(self, status):
+        statuses = {
+            '0': 'ok',
+        }
+        return self.safe_string(statuses, status, 'failed')
 
     def withdraw(self, code, amount, address, tag=None, params={}):
         tag, params = self.handle_withdraw_tag_and_params(tag, params)

@@ -905,10 +905,34 @@ module.exports = class gemini extends Exchange {
             'address': address,
         };
         const response = await this.privatePostV1WithdrawCurrency (this.extend (request, params));
-        return {
-            'info': response,
-            'id': this.safeString (response, 'txHash'),
-        };
+        //
+        //   for BTC
+        //     {
+        //         "address":"mi98Z9brJ3TgaKsmvXatuRahbFRUFKRUdR",
+        //         "amount":"1",
+        //         "withdrawalId":"02176a83-a6b1-4202-9b85-1c1c92dd25c4",
+        //         "message":"You have requested a transfer of 1 BTC to mi98Z9brJ3TgaKsmvXatuRahbFRUFKRUdR. This withdrawal will be sent to the blockchain within the next 60 seconds."
+        //     }
+        //
+        //   for ETH
+        //     {
+        //         "address":"0xA63123350Acc8F5ee1b1fBd1A6717135e82dBd28",
+        //         "amount":"2.34567",
+        //         "txHash":"0x28267179f92926d85c5516bqc063b2631935573d8915258e95d9572eedcc8cc"
+        //     }
+        //
+        //   for error (many variations of )
+        //     {
+        //         "result":"error",
+        //         "reason":"CryptoAddressWhitelistsNotEnabled",
+        //         "message":"Cryptocurrency withdrawal address whitelists are not enabled for account 24. Please contact support@gemini.com for information on setting up a withdrawal address whitelist."
+        //     }
+        //
+        const result = this.safeString (response, 'result');
+        if (result === 'error') {
+            throw new ExchangeError (this.id + ' withdraw() failed: ' + this.json (response));
+        }
+        return this.parseTransaction (response, currency);
     }
 
     nonce () {
@@ -929,6 +953,24 @@ module.exports = class gemini extends Exchange {
     }
 
     parseTransaction (transaction, currency = undefined) {
+        //
+        // withdraw
+        //
+        //   for BTC
+        //     {
+        //         "address":"mi98Z9brJ3TgaKsmvXatuRahbFRUFKRUdR",
+        //         "amount":"1",
+        //         "withdrawalId":"02176a83-a6b1-4202-9b85-1c1c92dd25c4",
+        //         "message":"You have requested a transfer of 1 BTC to mi98Z9brJ3TgaKsmvXatuRahbFRUFKRUdR. This withdrawal will be sent to the blockchain within the next 60 seconds."
+        //     }
+        //
+        //   for ETH
+        //     {
+        //         "address":"0xA63123350Acc8F5ee1b1fBd1A6717135e82dBd28",
+        //         "amount":"2.34567",
+        //         "txHash":"0x28267179f92926d85c5516bqc063b2631935573d8915258e95d9572eedcc8cc"
+        //     }
+        //
         const timestamp = this.safeInteger (transaction, 'timestampms');
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
@@ -949,7 +991,7 @@ module.exports = class gemini extends Exchange {
         }
         return {
             'info': transaction,
-            'id': this.safeString (transaction, 'eid'),
+            'id': this.safeString2 (transaction, 'eid', 'withdrawalId'),
             'txid': this.safeString (transaction, 'txHash'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),

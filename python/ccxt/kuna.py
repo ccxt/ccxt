@@ -8,7 +8,6 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
-from ccxt.base.precise import Precise
 
 
 class kuna(Exchange):
@@ -467,9 +466,51 @@ class kuna(Exchange):
             'market': market['id'],
         }
         response = self.publicGetTrades(self.extend(request, params))
+        #
+        #      [
+        #          {
+        #              "id":11353466,
+        #              "price":"3000.16",
+        #              "volume":"0.000397",
+        #              "funds":"1.19106352",
+        #              "market":"ethusdt",
+        #              "created_at":"2022-04-12T18:32:36Z",
+        #              "side":null,
+        #              "trend":"sell"
+        #          },
+        #      ]
+        #
         return self.parse_trades(response, market, since, limit)
 
     def parse_trade(self, trade, market=None):
+        #
+        # fetchTrades(public)
+        #
+        #      {
+        #          "id":11353466,
+        #          "price":"3000.16",
+        #          "volume":"0.000397",
+        #          "funds":"1.19106352",
+        #          "market":"ethusdt",
+        #          "created_at":"2022-04-12T18:32:36Z",
+        #          "side":null,
+        #          "trend":"sell"
+        #      }
+        #
+        # fetchMyTrades(private)
+        #
+        #      {
+        #          "id":11353719,
+        #          "price":"0.13566",
+        #          "volume":"99.0",
+        #          "funds":"13.43034",
+        #          "market":"dogeusdt",
+        #          "created_at":"2022-04-12T18:58:44Z",
+        #          "side":"ask",
+        #          "order_id":1665670371,
+        #          "trend":"buy"
+        #      }
+        #
         timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
         symbol = None
         if market:
@@ -483,14 +524,10 @@ class kuna(Exchange):
             side = self.safe_string(sideMap, side, side)
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'volume')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.safe_number(trade, 'funds')
-        if cost is None:
-            cost = self.parse_number(Precise.string_mul(priceString, amountString))
+        costString = self.safe_number(trade, 'funds')
         orderId = self.safe_string(trade, 'order_id')
         id = self.safe_string(trade, 'id')
-        return {
+        return self.safe_trade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -500,11 +537,11 @@ class kuna(Exchange):
             'side': side,
             'order': orderId,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': None,
-        }
+        }, market)
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()
@@ -631,6 +668,21 @@ class kuna(Exchange):
         return self.parse_orders(response, market, since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        #
+        #      [
+        #          {
+        #              "id":11353719,
+        #              "price":"0.13566",
+        #              "volume":"99.0",
+        #              "funds":"13.43034",
+        #              "market":"dogeusdt",
+        #              "created_at":"2022-04-12T18:58:44Z",
+        #              "side":"ask",
+        #              "order_id":1665670371,
+        #              "trend":"buy"
+        #          },
+        #      ]
+        #
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()

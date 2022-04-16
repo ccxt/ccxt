@@ -290,7 +290,10 @@ class huobijp(Exchange):
                     'system-maintenance': OnMaintenance,  # {"status": "error", "err-code": "system-maintenance", "err-msg": "System is in maintenance!", "data": null}
                     # err-msg
                     'invalid symbol': BadSymbol,  # {"ts":1568813334794,"status":"error","err-code":"invalid-parameter","err-msg":"invalid symbol"}
-                    'symbol trade not open now': BadSymbol,  # {"ts":1576210479343,"status":"error","err-code":"invalid-parameter","err-msg":"symbol trade not open now"}
+                    'symbol trade not open now': BadSymbol,  # {"ts":1576210479343,"status":"error","err-code":"invalid-parameter","err-msg":"symbol trade not open now"},
+                    'invalid-address': BadRequest,  # {"status":"error","err-code":"invalid-address","err-msg":"Invalid address.","data":null},
+                    'base-currency-chain-error': BadRequest,  # {"status":"error","err-code":"base-currency-chain-error","err-msg":"The current currency chain does not exist","data":null},
+                    'dw-insufficient-balance': InsufficientFunds,  # {"status":"error","err-code":"dw-insufficient-balance","err-msg":"Insufficient balance. You can only transfer `12.3456` at most.","data":null}
                 },
             },
             'options': {
@@ -1443,6 +1446,13 @@ class huobijp(Exchange):
         #         'updated-at': 1552108032859
         #     }
         #
+        # withdraw
+        #
+        #     {
+        #         "status": "ok",
+        #         "data": "99562054"
+        #     }
+        #
         timestamp = self.safe_integer(transaction, 'created-at')
         updated = self.safe_integer(transaction, 'updated-at')
         code = self.safe_currency_code(self.safe_string(transaction, 'currency'))
@@ -1458,7 +1468,7 @@ class huobijp(Exchange):
         network = self.safe_string_upper(transaction, 'chain')
         return {
             'info': transaction,
-            'id': self.safe_string(transaction, 'id'),
+            'id': self.safe_string_2(transaction, 'id', 'data'),
             'txid': self.safe_string(transaction, 'tx-hash'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -1527,11 +1537,13 @@ class huobijp(Exchange):
                 request['chain'] = network + currency['id']
             params = self.omit(params, 'network')
         response = self.privatePostDwWithdrawApiCreate(self.extend(request, params))
-        id = self.safe_string(response, 'data')
-        return {
-            'info': response,
-            'id': id,
-        }
+        #
+        #     {
+        #         "status": "ok",
+        #         "data": "99562054"
+        #     }
+        #
+        return self.parse_transaction(response, currency)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/'

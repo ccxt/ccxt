@@ -477,6 +477,7 @@ class kucoin extends Exchange {
             $this->status = array_merge($this->status, array(
                 'status' => $status,
                 'updated' => $this->milliseconds(),
+                'info' => $response,
             ));
         }
         return $this->status;
@@ -1155,7 +1156,12 @@ class kucoin extends Exchange {
             $request['size'] = $amountString;
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        $response = yield $this->privatePostOrders (array_merge($request, $params));
+        $method = 'privatePostOrders';
+        $tradeType = $this->safe_string($params, 'tradeType');
+        if ($tradeType === 'MARGIN_TRADE') {
+            $method = 'privatePostMarginOrder';
+        }
+        $response = yield $this->$method (array_merge($request, $params));
         //
         //     {
         //         code => '200000',
@@ -1723,15 +1729,12 @@ class kucoin extends Exchange {
         //     {
         //         "code" =>  200000,
         //         "data" => {
-        //             "withdrawalId" =>  "abcdefghijklmnopqrstuvwxyz"
+        //             "withdrawalId" =>  "5bffb63303aa675e8bbe18f9"
         //         }
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        return array(
-            'id' => $this->safe_string($data, 'withdrawalId'),
-            'info' => $response,
-        );
+        return $this->parse_transaction($data, $currency);
     }
 
     public function parse_transaction_status($status) {
@@ -1776,6 +1779,12 @@ class kucoin extends Exchange {
         //         "createdAt" => 1546503758000,
         //         "updatedAt" => 1546504603000
         //         "remark":"foobar"
+        //     }
+        //
+        // withdraw
+        //
+        //     {
+        //         "withdrawalId" =>  "5bffb63303aa675e8bbe18f9"
         //     }
         //
         $currencyId = $this->safe_string($transaction, 'currency');

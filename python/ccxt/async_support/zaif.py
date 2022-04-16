@@ -503,10 +503,67 @@ class zaif(Exchange):
         if tag is not None:
             request['message'] = tag
         result = await self.privatePostWithdraw(self.extend(request, params))
+        #
+        #     {
+        #         "success": 1,
+        #         "return": {
+        #             "id": 23634,
+        #             "fee": 0.001,
+        #             "txid":,
+        #             "funds": {
+        #                 "jpy": 15320,
+        #                 "btc": 1.392,
+        #                 "xem": 100.2,
+        #                 "mona": 2600
+        #             }
+        #         }
+        #     }
+        #
+        returnData = self.safe_value(result, 'return')
+        return self.parse_transaction(returnData, currency)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        #     {
+        #         "id": 23634,
+        #         "fee": 0.001,
+        #         "txid":,
+        #         "funds": {
+        #             "jpy": 15320,
+        #             "btc": 1.392,
+        #             "xem": 100.2,
+        #             "mona": 2600
+        #         }
+        #     }
+        #
+        currency = self.safe_currency(None, currency)
+        fee = None
+        feeCost = self.safe_value(transaction, 'fee')
+        if feeCost is not None:
+            fee = {
+                'cost': feeCost,
+                'currency': currency['code'],
+            }
         return {
-            'info': result,
-            'id': result['return']['txid'],
-            'fee': result['return']['fee'],
+            'id': self.safe_string(transaction, 'id'),
+            'txid': self.safe_string(transaction, 'txid'),
+            'timestamp': None,
+            'datetime': None,
+            'network': None,
+            'addressFrom': None,
+            'address': None,
+            'addressTo': None,
+            'amount': None,
+            'type': None,
+            'currency': currency['code'],
+            'status': None,
+            'updated': None,
+            'tagFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'comment': None,
+            'fee': fee,
+            'info': transaction,
         }
 
     def nonce(self):

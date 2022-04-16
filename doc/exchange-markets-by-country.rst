@@ -1493,9 +1493,9 @@ The ccxt library currently supports the following cryptocurrency exchange market
      
      - idex
      - `IDEX <https://idex.io>`__
-     - .. image:: https://img.shields.io/badge/2-lightgray
+     - .. image:: https://img.shields.io/badge/3-lightgray
           :target: https://docs.idex.io/
-          :alt: API Version 2
+          :alt: API Version 3
      
    * - US
      - .. image:: https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg

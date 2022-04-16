@@ -927,6 +927,7 @@ class bitso extends Exchange {
             'BCH' => 'Bcash',
             'LTC' => 'Litecoin',
         );
+        $currency = $this->currency($code);
         $method = (is_array($methods) && array_key_exists($code, $methods)) ? $methods[$code] : null;
         if ($method === null) {
             throw new ExchangeError($this->id . ' not valid withdraw coin => ' . $code);
@@ -938,9 +939,68 @@ class bitso extends Exchange {
         );
         $classMethod = 'privatePost' . $method . 'Withdrawal';
         $response = yield $this->$classMethod (array_merge($request, $params));
+        //
+        //     {
+        //         "success" => true,
+        //         "payload" => array(
+        //             {
+        //                 "wid" => "c5b8d7f0768ee91d3b33bee648318688",
+        //                 "status" => "pending",
+        //                 "created_at" => "2016-04-08T17:52:31.000+00:00",
+        //                 "currency" => "btc",
+        //                 "method" => "Bitcoin",
+        //                 "amount" => "0.48650929",
+        //                 "details" => array(
+        //                     "withdrawal_address" => "18MsnATiNiKLqUHDTRKjurwMg7inCrdNEp",
+        //                     "tx_hash" => "d4f28394693e9fb5fffcaf730c11f32d1922e5837f76ca82189d3bfe30ded433"
+        //                 }
+        //             ),
+        //         )
+        //     }
+        //
+        $payload = $this->safe_value($response, 'payload', array());
+        $first = $this->safe_value($payload, 0);
+        return $this->parse_transaction($first, $currency);
+    }
+
+    public function parse_transaction($transaction, $currency = null) {
+        //
+        // withdraw
+        //
+        //     {
+        //         "wid" => "c5b8d7f0768ee91d3b33bee648318688",
+        //         "status" => "pending",
+        //         "created_at" => "2016-04-08T17:52:31.000+00:00",
+        //         "currency" => "btc",
+        //         "method" => "Bitcoin",
+        //         "amount" => "0.48650929",
+        //         "details" => {
+        //             "withdrawal_address" => "18MsnATiNiKLqUHDTRKjurwMg7inCrdNEp",
+        //             "tx_hash" => "d4f28394693e9fb5fffcaf730c11f32d1922e5837f76ca82189d3bfe30ded433"
+        //         }
+        //     }
+        //
+        $currency = $this->safe_currency(null, $currency);
         return array(
-            'info' => $response,
-            'id' => $this->safe_string($response['payload'], 'wid'),
+            'id' => $this->safe_string($transaction, 'wid'),
+            'txid' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'network' => null,
+            'addressFrom' => null,
+            'address' => null,
+            'addressTo' => null,
+            'amount' => null,
+            'type' => null,
+            'currency' => $currency['code'],
+            'status' => null,
+            'updated' => null,
+            'tagFrom' => null,
+            'tag' => null,
+            'tagTo' => null,
+            'comment' => null,
+            'fee' => null,
+            'info' => $transaction,
         );
     }
 
