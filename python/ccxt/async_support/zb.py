@@ -1855,12 +1855,19 @@ class zb(Exchange):
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
+        stop = self.safe_value(params, 'stop')
         if market['spot']:
             raise NotSupported(self.id + ' cancelAllOrders() is not supported on ' + market['type'] + ' markets')
         request = {
             'symbol': market['id'],
+            # 'ids': [6904603200733782016, 6819506476072247297],  # STOP
+            # 'side': params['side'],  # STOP, for stop orders: 1 Open long(buy), 2 Open short(sell), 3 Close long(sell), 4 Close Short(Buy). One-Way Positions: 5 Buy, 6 Sell, 0 Close Only
         }
-        return await self.contractV2PrivatePostTradeCancelAllOrders(self.extend(request, params))
+        method = 'contractV2PrivatePostTradeCancelAllOrders'
+        if stop:
+            method = 'contractV2PrivatePostTradeCancelAlgos'
+        query = self.omit(params, 'stop')
+        return await getattr(self, method)(self.extend(request, query))
 
     async def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:

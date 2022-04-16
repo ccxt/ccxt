@@ -1916,13 +1916,21 @@ class zb extends Exchange {
         }
         yield $this->load_markets();
         $market = $this->market($symbol);
+        $stop = $this->safe_value($params, 'stop');
         if ($market['spot']) {
             throw new NotSupported($this->id . ' cancelAllOrders() is not supported on ' . $market['type'] . ' markets');
         }
         $request = array(
             'symbol' => $market['id'],
+            // 'ids' => array( 6904603200733782016, 6819506476072247297 ), // STOP
+            // 'side' => $params['side'], // STOP, for $stop orders => 1 Open long (buy), 2 Open short (sell), 3 Close long (sell), 4 Close Short (Buy). One-Way Positions => 5 Buy, 6 Sell, 0 Close Only
         );
-        return yield $this->contractV2PrivatePostTradeCancelAllOrders (array_merge($request, $params));
+        $method = 'contractV2PrivatePostTradeCancelAllOrders';
+        if ($stop) {
+            $method = 'contractV2PrivatePostTradeCancelAlgos';
+        }
+        $query = $this->omit($params, 'stop');
+        return yield $this->$method (array_merge($request, $query));
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
