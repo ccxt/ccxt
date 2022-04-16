@@ -2181,15 +2181,18 @@ class Exchange(object):
     def currency(self, code):
         if not self.currencies:
             raise ExchangeError('Currencies not loaded')
-        if isinstance(code, str) and (code in self.currencies):
-            return self.currencies[code]
-        raise ExchangeError('Does not have currency code ' + str(code))
+        if isinstance(code, str):
+            if code in self.currencies:
+                return self.currencies[code]
+            elif code in self.currencies_by_id:
+                return self.currencies_by_id[code]
+        raise ExchangeError(self.id + ' does not have currency code ' + str(code))
 
     def market(self, symbol):
         if not self.markets:
-            raise ExchangeError('Markets not loaded')
+            raise ExchangeError(self.id + ' markets not loaded')
         if not self.markets_by_id:
-            raise ExchangeError('Markets not loaded')
+            raise ExchangeError(self.id + ' markets not loaded')
         if isinstance(symbol, str):
             if symbol in self.markets:
                 return self.markets[symbol]

@@ -2793,10 +2793,14 @@ class Exchange {
     }
 
     public function currency($code) {
-        return (('string' === gettype($code)) &&
-                   isset($this->currencies) &&
-                   isset($this->currencies[$code])) ?
-                        $this->currencies[$code] : $code;
+        if ('string' === gettype($code)) {
+            if (isset($this->currencies) && isset($this->currencies[$code])) {
+                return $this->currencies[$code];
+            } else if (isset($this->currencies_by_id) && isset($this->currencies_by_id[$code])) {
+                return $this->currencies_by_id[$code];
+            }
+        }
+        throw new ExchangeError ($this->id + ' does not have currency code ' + ((string) $code));
     }
 
     public function market($symbol) {

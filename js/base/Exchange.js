@@ -1028,15 +1028,16 @@ module.exports = class Exchange {
     }
 
     currency (code) {
-
         if (this.currencies === undefined) {
             throw new ExchangeError (this.id + ' currencies not loaded')
         }
-
-        if ((typeof code === 'string') && (code in this.currencies)) {
-            return this.currencies[code]
+        if (typeof code === 'string')) {
+            if (code in this.currencies) {
+                return this.currencies[code];
+            } else if (code in this.currencies_by_id) {
+                return this.currencies_by_id[code];
+            }
         }
-
         throw new ExchangeError (this.id + ' does not have currency code ' + code)
     }
 
