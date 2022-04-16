@@ -940,24 +940,25 @@ module.exports = class bitso extends Exchange {
         //
         //     {
         //         "success": true,
-        //         "payload": [{
-        //             "wid": "c5b8d7f0768ee91d3b33bee648318688",
-        //             "status": "pending",
-        //             "created_at": "2016-04-08T17:52:31.000+00:00",
-        //             "currency": "btc",
-        //             "method": "Bitcoin",
-        //             "amount": "0.48650929",
-        //             "details": {
-        //                 "withdrawal_address": "18MsnATiNiKLqUHDTRKjurwMg7inCrdNEp",
-        //                 "tx_hash": "d4f28394693e9fb5fffcaf730c11f32d1922e5837f76ca82189d3bfe30ded433"
-        //             }
-        //         },
+        //         "payload": [
+        //             {
+        //                 "wid": "c5b8d7f0768ee91d3b33bee648318688",
+        //                 "status": "pending",
+        //                 "created_at": "2016-04-08T17:52:31.000+00:00",
+        //                 "currency": "btc",
+        //                 "method": "Bitcoin",
+        //                 "amount": "0.48650929",
+        //                 "details": {
+        //                     "withdrawal_address": "18MsnATiNiKLqUHDTRKjurwMg7inCrdNEp",
+        //                     "tx_hash": "d4f28394693e9fb5fffcaf730c11f32d1922e5837f76ca82189d3bfe30ded433"
+        //                 }
+        //             },
         //         ]
         //     }
         //
-        const payload = this.safeValue (response, 'payload');
-        const firstData = this.safeValue (payload, 0);
-        return this.parseTransaction (firstData, currency);
+        const payload = this.safeValue (response, 'payload', []);
+        const first = this.safeValue (payload, 0);
+        return this.parseTransaction (first, currency);
     }
 
     parseTransaction (transaction, currency = undefined) {
@@ -976,6 +977,7 @@ module.exports = class bitso extends Exchange {
         //             "tx_hash": "d4f28394693e9fb5fffcaf730c11f32d1922e5837f76ca82189d3bfe30ded433"
         //         }
         //     }
+        //
         currency = this.safeCurrency (undefined, currency);
         return {
             'id': this.safeString (transaction, 'wid'),
