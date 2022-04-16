@@ -2508,16 +2508,7 @@ class gateio extends Exchange {
         //       "memo" => null
         //     }
         //
-        $currencyId = $this->safe_string($response, 'currency');
-        $id = $this->safe_string($response, 'id');
-        return array(
-            'info' => $response,
-            'id' => $id,
-            'code' => $this->safe_currency_code($currencyId),
-            'amount' => $this->safe_number($response, 'amount'),
-            'address' => $this->safe_string($response, 'address'),
-            'tag' => $this->safe_string($response, 'memo'),
-        );
+        return $this->parse_transaction($response, $currency);
     }
 
     public function parse_transaction_status($status) {
@@ -2556,6 +2547,17 @@ class gateio extends Exchange {
         //     }
         //
         // withdrawals
+        //
+        // withdraw
+        //
+        //     {
+        //       "id" => "w13389675",
+        //       "currency" => "USDT",
+        //       "amount" => "50",
+        //       "address" => "TUu2rLFrmzUodiWfYki7QCNtv1akL682p1",
+        //       "memo" => null
+        //     }
+        //
         $id = $this->safe_string($transaction, 'id');
         $type = null;
         $amount = $this->safe_string($transaction, 'amount');

@@ -2502,16 +2502,7 @@ module.exports = class gateio extends Exchange {
         //       "memo": null
         //     }
         //
-        const currencyId = this.safeString (response, 'currency');
-        const id = this.safeString (response, 'id');
-        return {
-            'info': response,
-            'id': id,
-            'code': this.safeCurrencyCode (currencyId),
-            'amount': this.safeNumber (response, 'amount'),
-            'address': this.safeString (response, 'address'),
-            'tag': this.safeString (response, 'memo'),
-        };
+        return this.parseTransaction (response, currency);
     }
 
     parseTransactionStatus (status) {
@@ -2550,6 +2541,17 @@ module.exports = class gateio extends Exchange {
         //     }
         //
         // withdrawals
+        //
+        // withdraw
+        //
+        //     {
+        //       "id": "w13389675",
+        //       "currency": "USDT",
+        //       "amount": "50",
+        //       "address": "TUu2rLFrmzUodiWfYki7QCNtv1akL682p1",
+        //       "memo": null
+        //     }
+        //
         const id = this.safeString (transaction, 'id');
         let type = undefined;
         let amount = this.safeString (transaction, 'amount');

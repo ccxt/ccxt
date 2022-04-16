@@ -1377,10 +1377,7 @@ class exmo extends Exchange {
             $params = $this->omit($params, 'network');
         }
         $response = $this->privatePostWithdrawCrypt (array_merge($request, $params));
-        return array(
-            'info' => $response,
-            'id' => $response['task_id'],
-        );
+        return $this->parse_transaction($response, $currency);
     }
 
     public function parse_transaction_status($status) {
@@ -1438,7 +1435,7 @@ class exmo extends Exchange {
         //             "error" => ""
         //          ),
         //
-        $id = $this->safe_string($transaction, 'order_id');
+        $id = $this->safe_string_2($transaction, 'order_id', 'task_id');
         $timestamp = $this->safe_timestamp_2($transaction, 'dt', 'created');
         $updated = $this->safe_timestamp($transaction, 'updated');
         $amount = $this->safe_number($transaction, 'amount');

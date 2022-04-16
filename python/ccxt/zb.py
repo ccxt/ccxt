@@ -57,6 +57,7 @@ class zb(Exchange):
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': True,
+                'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
@@ -2040,6 +2041,143 @@ class zb(Exchange):
             response = self.safe_value(data, 'list', [])
         return self.parse_orders(response, market, since, limit)
 
+    def fetch_canceled_orders(self, symbol=None, since=None, limit=10, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchCanceledOrders() requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        reduceOnly = self.safe_value(params, 'reduceOnly')
+        stop = self.safe_value(params, 'stop')
+        request = {
+            'pageSize': limit,  # SPOT and STOP, default pageSize is 10, doesn't work with other values now
+            # 'currency': market['id'],  # SPOT
+            # 'pageIndex': 1,  # SPOT, default pageIndex is 1
+            # 'symbol': market['id'],  # STOP
+            # 'side': params['side'],  # STOP, for stop orders: 1 Open long(buy), 2 Open short(sell), 3 Close long(sell), 4 Close Short(Buy). One-Way Positions: 5 Buy, 6 Sell, 0 Close Only
+            # 'orderType': 1,  # STOP, 1: Plan order, 2: SP/SL
+            # 'bizType': 1,  # Plan order, 1: TP, 2: SL
+            # 'status': 1,  # STOP, 1: untriggered, 2: cancelled, 3:triggered, 4:failed, 5:completed
+            # 'startTime': since,  # STOP
+            # 'endTime': params['endTime'],  # STOP
+            # 'pageNum': 1,  # STOP, default 1
+        }
+        marketIdField = 'currency' if market['spot'] else 'symbol'
+        request[marketIdField] = market['id']
+        pageNumField = 'pageIndex' if market['spot'] else 'pageNum'
+        request[pageNumField] = 1
+        method = 'spotV1PrivateGetGetOrdersIgnoreTradeType'
+        if stop:
+            method = 'contractV2PrivateGetTradeGetOrderAlgos'
+            orderType = self.safe_integer(params, 'orderType')
+            if orderType is None:
+                raise ArgumentsRequired(self.id + ' fetchCanceledOrders() requires an orderType parameter for stop orders')
+            side = self.safe_integer(params, 'side')
+            bizType = self.safe_integer(params, 'bizType')
+            if side == 'sell' and reduceOnly:
+                request['side'] = 3  # close long
+            elif side == 'buy' and reduceOnly:
+                request['side'] = 4  # close short
+            elif side == 'buy':
+                request['side'] = 1  # open long
+            elif side == 'sell':
+                request['side'] = 2  # open short
+            elif side == 5:
+                request['side'] = 5  # one way position buy
+            elif side == 6:
+                request['side'] = 6  # one way position sell
+            elif side == 0:
+                request['side'] = 0  # one way position close only
+            if orderType == 1:
+                request['orderType'] = 1
+            elif orderType == 2 or bizType:
+                request['orderType'] = 2
+                request['bizType'] = bizType
+            request['status'] = 2
+        # tradeType 交易类型1/0[buy/sell]
+        if 'tradeType' in params:
+            method = 'spotV1PrivateGetGetOrdersNew'
+        response = None
+        try:
+            response = getattr(self, method)(self.extend(request, params))
+        except Exception as e:
+            if isinstance(e, OrderNotFound):
+                return []
+            raise e
+        query = self.omit(params, ['reduceOnly', 'stop', 'side', 'orderType', 'bizType'])
+        response = getattr(self, method)(self.extend(request, query))
+        #
+        # Spot
+        #
+        #     [
+        #         {
+        #             "acctType": 0,
+        #             "currency": "btc_usdt",
+        #             "fees": 0,
+        #             "id": "202202234857482656",
+        #             "price": 30000.0,
+        #             "status": 1,
+        #             "total_amount": 0.0006,
+        #             "trade_amount": 0.0000,
+        #             "trade_date": 1645610254524,
+        #             "trade_money": 0.000000,
+        #             "type": 1,
+        #             "useZbFee": False,
+        #             "webId": 0
+        #         }
+        #     ]
+        #
+        # Algo order
+        #
+        #     {
+        #         "code": 10000,
+        #         "data": {
+        #             "list": [
+        #                 {
+        #                     "action": 1,
+        #                     "algoPrice": "30000",
+        #                     "amount": "0.003",
+        #                     "bizType": 0,
+        #                     "canCancel": True,
+        #                     "createTime": "1649913941109",
+        #                     "errorCode": 0,
+        #                     "id": "6920240642849449984",
+        #                     "isLong": False,
+        #                     "leverage": 10,
+        #                     "marketId": "100",
+        #                     "modifyTime": "1649913941109",
+        #                     "orderType": 1,
+        #                     "priceType": 2,
+        #                     "side": 5,
+        #                     "sourceType": 4,
+        #                     "status": 2,
+        #                     "submitPrice": "41270.53",
+        #                     "symbol": "BTC_USDT",
+        #                     "tradedAmount": "0",
+        #                     "triggerCondition": "<=",
+        #                     "triggerPrice": "31000",
+        #                     "triggerTime": "0",
+        #                     "userId": "6896693805014120448"
+        #                 },
+        #             ],
+        #             "pageNum": 1,
+        #             "pageSize": 10
+        #         },
+        #         "desc": "操作成功"
+        #     }
+        #
+        if stop:
+            data = self.safe_value(response, 'data', {})
+            response = self.safe_value(data, 'list', [])
+        result = []
+        if market['type'] == 'spot':
+            for i in range(0, len(response)):
+                entry = response[i]
+                status = self.safe_string(entry, 'status')
+                if status == '1':
+                    result.append(entry)
+            response = result
+        return self.parse_orders(response, market, since, limit)
+
     def fetch_closed_orders(self, symbol=None, since=None, limit=10, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
@@ -2069,7 +2207,7 @@ class zb(Exchange):
             method = 'contractV2PrivateGetTradeGetOrderAlgos'
             orderType = self.safe_integer(params, 'orderType')
             if orderType is None:
-                raise ArgumentsRequired(self.id + ' fetchOrders() requires an orderType parameter for stop orders')
+                raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires an orderType parameter for stop orders')
             side = self.safe_integer(params, 'side')
             bizType = self.safe_integer(params, 'bizType')
             if side == 'sell' and reduceOnly:
@@ -2164,16 +2302,23 @@ class zb(Exchange):
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
+        reduceOnly = self.safe_value(params, 'reduceOnly')
+        stop = self.safe_value(params, 'stop')
         swap = market['swap']
         request = {
             # 'pageSize': limit,  # default pageSize is 10 for spot, 30 for swap
-            # 'currency': market['id'],  # spot only
-            # 'pageIndex': 1,  # spot only
-            # 'symbol': market['id'],  # swap only
-            # 'pageNum': 1,  # swap only
+            # 'currency': market['id'],  # SPOT
+            # 'pageIndex': 1,  # SPOT
+            # 'symbol': market['id'],  # SWAP and STOP
+            # 'pageNum': 1,  # SWAP and STOP, default 1
             # 'type': params['type'],  # swap only
-            # 'side': params['side'],  # swap only
-            # 'action': params['action'],  # swap only
+            # 'side': params['side'],  # SWAP and STOP, for stop orders: 1 Open long(buy), 2 Open short(sell), 3 Close long(sell), 4 Close Short(Buy). One-Way Positions: 5 Buy, 6 Sell, 0 Close Only
+            # 'action': params['action'],  # SWAP
+            # 'orderType': 1,  # STOP, 1: Plan order, 2: SP/SL
+            # 'bizType': 1,  # Plan order, 1: TP, 2: SL
+            # 'status': 1,  # STOP, 1: untriggered, 2: cancelled, 3:triggered, 4:failed, 5:completed
+            # 'startTime': since,  # SWAP and STOP
+            # 'endTime': params['endTime'],  # STOP
         }
         if limit is not None:
             request['pageSize'] = limit  # default pageSize is 10 for spot, 30 for swap
@@ -2187,12 +2332,40 @@ class zb(Exchange):
             'spot': 'spotV1PrivateGetGetUnfinishedOrdersIgnoreTradeType',
             'swap': 'contractV2PrivateGetTradeGetUndoneOrders',
         })
+        if stop:
+            method = 'contractV2PrivateGetTradeGetOrderAlgos'
+            orderType = self.safe_integer(params, 'orderType')
+            if orderType is None:
+                raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires an orderType parameter for stop orders')
+            side = self.safe_integer(params, 'side')
+            bizType = self.safe_integer(params, 'bizType')
+            if side == 'sell' and reduceOnly:
+                request['side'] = 3  # close long
+            elif side == 'buy' and reduceOnly:
+                request['side'] = 4  # close short
+            elif side == 'buy':
+                request['side'] = 1  # open long
+            elif side == 'sell':
+                request['side'] = 2  # open short
+            elif side == 5:
+                request['side'] = 5  # one way position buy
+            elif side == 6:
+                request['side'] = 6  # one way position sell
+            elif side == 0:
+                request['side'] = 0  # one way position close only
+            if orderType == 1:
+                request['orderType'] = 1
+            elif orderType == 2 or bizType:
+                request['orderType'] = 2
+                request['bizType'] = bizType
+            request['status'] = 1
+        query = self.omit(params, ['reduceOnly', 'stop', 'side', 'orderType', 'bizType'])
         # tradeType 交易类型1/0[buy/sell]
         if 'tradeType' in params:
             method = 'spotV1PrivateGetGetOrdersNew'
         response = None
         try:
-            response = getattr(self, method)(self.extend(request, params))
+            response = getattr(self, method)(self.extend(request, query))
         except Exception as e:
             if isinstance(e, OrderNotFound):
                 return []
@@ -2256,6 +2429,45 @@ class zb(Exchange):
         #         "desc": "操作成功"
         #     }
         #
+        # Algo order
+        #
+        #     {
+        #         "code": 10000,
+        #         "data": {
+        #             "list": [
+        #                 {
+        #                     "action": 1,
+        #                     "algoPrice": "30000",
+        #                     "amount": "0.003",
+        #                     "bizType": 0,
+        #                     "canCancel": True,
+        #                     "createTime": "1649913941109",
+        #                     "errorCode": 0,
+        #                     "id": "6920240642849449984",
+        #                     "isLong": False,
+        #                     "leverage": 10,
+        #                     "marketId": "100",
+        #                     "modifyTime": "1649913941109",
+        #                     "orderType": 1,
+        #                     "priceType": 2,
+        #                     "side": 5,
+        #                     "sourceType": 4,
+        #                     "status": 1,
+        #                     "submitPrice": "41270.53",
+        #                     "symbol": "BTC_USDT",
+        #                     "tradedAmount": "0",
+        #                     "triggerCondition": "<=",
+        #                     "triggerPrice": "31000",
+        #                     "triggerTime": "0",
+        #                     "userId": "6896693805014120448"
+        #                 },
+        #             ],
+        #             "pageNum": 1,
+        #             "pageSize": 10
+        #         },
+        #         "desc": "操作成功"
+        #     }
+        #
         if swap:
             data = self.safe_value(response, 'data', {})
             response = self.safe_value(data, 'list', [])
@@ -2310,7 +2522,7 @@ class zb(Exchange):
         #         "value": "60"
         #     },
         #
-        # Algo fetchOrders, fetchClosedOrders
+        # Algo fetchOrders, fetchOpenOrders, fetchClosedOrders
         #
         #     {
         #         "action": 1,

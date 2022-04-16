@@ -2084,10 +2084,7 @@ class deribit extends Exchange {
             $request['tfa'] = $this->oath();
         }
         $response = yield $this->privateGetWithdraw (array_merge($request, $params));
-        return array(
-            'info' => $response,
-            'id' => $this->safe_string($response, 'id'),
-        );
+        return $this->parse_transaction($response, $currency);
     }
 
     public function nonce() {
