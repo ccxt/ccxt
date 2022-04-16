@@ -2010,10 +2010,7 @@ class deribit(Exchange):
         if self.twofa is not None:
             request['tfa'] = self.oath()
         response = await self.privateGetWithdraw(self.extend(request, params))
-        return {
-            'info': response,
-            'id': self.safe_string(response, 'id'),
-        }
+        return self.parse_transaction(response, currency)
 
     def nonce(self):
         return self.milliseconds()
