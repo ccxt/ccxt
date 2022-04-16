@@ -2018,15 +2018,17 @@ class ndax extends Exchange {
         //         "NotionalProductId" => 0
         //     }
         //
-        $id = $this->safe_string($transaction, 'DepositId');
+        $id = null;
         $txid = null;
         $currencyId = $this->safe_string($transaction, 'ProductId');
         $code = $this->safe_currency_code($currencyId, $currency);
         $timestamp = null;
         $type = null;
         if (is_array($transaction) && array_key_exists('DepositId', $transaction)) {
+            $id = $this->safe_string($transaction, 'DepositId');
             $type = 'deposit';
         } else if (is_array($transaction) && array_key_exists('WithdrawId', $transaction)) {
+            $id = $this->safe_string($transaction, 'WithdrawId');
             $type = 'withdrawal';
         }
         $templateFormString = $this->safe_string($transaction, 'TemplateForm');
@@ -2150,10 +2152,7 @@ class ndax extends Exchange {
             'Payload' => $this->json($withdrawPayload),
         );
         $response = yield $this->privatePostCreateWithdrawTicket ($this->deep_extend($withdrawRequest, $params));
-        return array(
-            'info' => $response,
-            'id' => $this->safe_string($response, 'Id'),
-        );
+        return $this->parse_transaction($response, $currency);
     }
 
     public function nonce() {
