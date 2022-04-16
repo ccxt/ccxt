@@ -233,9 +233,9 @@ module.exports = class ascendex extends Exchange {
                     'method': 'v1PrivateAccountGroupGetOrderHist', // 'v1PrivateAccountGroupGetAccountCategoryOrderHistCurrent'
                 },
                 'defaultType': 'spot', // 'spot', 'margin', 'swap'
-                'accountCategories': {
+                'accountsByType': {
                     'spot': 'cash',
-                    'swap': 'futures',
+                    'future': 'futures',
                     'margin': 'margin',
                 },
                 'transfer': {
@@ -682,8 +682,8 @@ module.exports = class ascendex extends Exchange {
         await this.loadAccounts ();
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const options = this.safeValue (this.options, 'fetchBalance', {});
-        const accountCategories = this.safeValue (this.options, 'accountCategories', {});
-        const accountCategory = this.safeString (accountCategories, marketType, 'cash');
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const accountCategory = this.safeString (accountsByType, marketType, 'cash');
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeString (account, 'id');
         const request = {
@@ -1232,8 +1232,8 @@ module.exports = class ascendex extends Exchange {
         const market = this.market (symbol);
         const [ style, query ] = this.handleMarketTypeAndParams ('createOrder', market, params);
         const options = this.safeValue (this.options, 'createOrder', {});
-        const accountCategories = this.safeValue (this.options, 'accountCategories', {});
-        const accountCategory = this.safeString (accountCategories, style, 'cash');
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const accountCategory = this.safeString (accountsByType, style, 'cash');
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeValue (account, 'id');
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'id');
@@ -1371,8 +1371,8 @@ module.exports = class ascendex extends Exchange {
         }
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
         const options = this.safeValue (this.options, 'fetchOrder', {});
-        const accountCategories = this.safeValue (this.options, 'accountCategories', {});
-        const accountCategory = this.safeString (accountCategories, type, 'cash');
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const accountCategory = this.safeString (accountsByType, type, 'cash');
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeValue (account, 'id');
         const request = {
@@ -1476,8 +1476,8 @@ module.exports = class ascendex extends Exchange {
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeValue (account, 'id');
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
-        const accountCategories = this.safeValue (this.options, 'accountCategories', {});
-        const accountCategory = this.safeString (accountCategories, type, 'cash');
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const accountCategory = this.safeString (accountsByType, type, 'cash');
         const request = {
             'account-group': accountGroup,
             'account-category': accountCategory,
@@ -1607,8 +1607,8 @@ module.exports = class ascendex extends Exchange {
             'margin': defaultMethod,
             'swap': 'v2PrivateAccountGroupGetFuturesOrderHistCurrent',
         });
-        const accountCategories = this.safeValue (this.options, 'accountCategories', {});
-        const accountCategory = this.safeString (accountCategories, type, 'cash');
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const accountCategory = this.safeString (accountsByType, type, 'cash');
         if (method === 'v1PrivateAccountGroupGetOrderHist') {
             if (accountCategory !== undefined) {
                 request['category'] = accountCategory;
@@ -1742,8 +1742,8 @@ module.exports = class ascendex extends Exchange {
         const market = this.market (symbol);
         const [ type, query ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
         const options = this.safeValue (this.options, 'cancelOrder', {});
-        const accountCategories = this.safeValue (this.options, 'accountCategories', {});
-        const accountCategory = this.safeString (accountCategories, type, 'cash');
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const accountCategory = this.safeString (accountsByType, type, 'cash');
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeValue (account, 'id');
         const request = {
@@ -1851,8 +1851,8 @@ module.exports = class ascendex extends Exchange {
         }
         const [ type, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         const options = this.safeValue (this.options, 'cancelAllOrders', {});
-        const accountCategories = this.safeValue (this.options, 'accountCategories', {});
-        const accountCategory = this.safeString (accountCategories, type, 'cash');
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const accountCategory = this.safeString (accountsByType, type, 'cash');
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeValue (account, 'id');
         const request = {
@@ -2415,19 +2415,11 @@ module.exports = class ascendex extends Exchange {
         const accountGroup = this.safeString (account, 'id');
         const currency = this.currency (code);
         amount = this.currencyToPrecision (code, amount);
-        const accountCategories = this.safeValue (this.options, 'accountCategories', {});
-        const fromId = this.safeString (accountCategories, fromAccount);
-        const toId = this.safeString (accountCategories, toAccount);
-        if (fromId === undefined) {
-            const keys = Object.keys (accountCategories);
-            throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', '));
-        }
-        if (toId === undefined) {
-            const keys = Object.keys (accountCategories);
-            throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', '));
-        }
-        if (fromAccount !== 'spot' && toAccount !== 'spot') {
-            throw new ExchangeError ('This exchange only supports direct balance transfer between spot and swap, spot and margin');
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
+        const toId = this.safeString (accountsByType, toAccount, toAccount);
+        if (fromId !== 'cash' && toId !== 'cash') {
+            throw new ExchangeError (this.id + ' transfer() only supports direct balance transfer between spot and future, spot and margin');
         }
         const request = {
             'account-group': accountGroup,
