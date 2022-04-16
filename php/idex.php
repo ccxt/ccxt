@@ -1197,22 +1197,20 @@ class idex extends Exchange {
             ),
             'signature' => $signature,
         );
-        // {
-        //   withdrawalId => 'a61dcff0-ec4d-11ea-8b83-c78a6ecb3180',
-        //   asset => 'ETH',
-        //   assetContractAddress => '0x0000000000000000000000000000000000000000',
-        //   quantity => '0.20000000',
-        //   time => 1598962883190,
-        //   fee => '0.00024000',
-        //   txStatus => 'pending',
-        //   txId => null
-        // }
         $response = $this->privatePostWithdrawals ($request);
-        $id = $this->safe_string($response, 'withdrawalId');
-        return array(
-            'info' => $response,
-            'id' => $id,
-        );
+        //
+        //     {
+        //         withdrawalId => 'a61dcff0-ec4d-11ea-8b83-c78a6ecb3180',
+        //         asset => 'ETH',
+        //         assetContractAddress => '0x0000000000000000000000000000000000000000',
+        //         quantity => '0.20000000',
+        //         time => 1598962883190,
+        //         fee => '0.00024000',
+        //         txStatus => 'pending',
+        //         txId => null
+        //     }
+        //
+        return $this->parse_transaction($response, $currency);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
@@ -1314,33 +1312,52 @@ class idex extends Exchange {
     }
 
     public function parse_transaction($transaction, $currency = null) {
+        //
         // fetchDeposits
-        // {
-        //   depositId => 'e9970cc0-eb6b-11ea-9e89-09a5ebc1f98f',
-        //   asset => 'ETH',
-        //   quantity => '1.00000000',
-        //   txId => '0xcd4aac3171d7131cc9e795568c67938675185ac17641553ef54c8a7c294c8142',
-        //   txTime => 1598865853000,
-        //   confirmationTime => 1598865930231
-        // }
+        //
+        //     {
+        //         depositId => 'e9970cc0-eb6b-11ea-9e89-09a5ebc1f98f',
+        //         asset => 'ETH',
+        //         quantity => '1.00000000',
+        //         txId => '0xcd4aac3171d7131cc9e795568c67938675185ac17641553ef54c8a7c294c8142',
+        //         txTime => 1598865853000,
+        //         confirmationTime => 1598865930231
+        //     }
+        //
         // fetchWithdrwalas
-        // {
-        //   withdrawalId => 'a62d8760-ec4d-11ea-9fa6-47904c19499b',
-        //   asset => 'ETH',
-        //   assetContractAddress => '0x0000000000000000000000000000000000000000',
-        //   quantity => '0.20000000',
-        //   time => 1598962883288,
-        //   $fee => '0.00024000',
-        //   txId => '0x305e9cdbaa85ad029f50578d13d31d777c085de573ed5334d95c19116d8c03ce',
-        //   txStatus => 'mined'
-        //  }
+        //
+        //     {
+        //         withdrawalId => 'a62d8760-ec4d-11ea-9fa6-47904c19499b',
+        //         asset => 'ETH',
+        //         assetContractAddress => '0x0000000000000000000000000000000000000000',
+        //         quantity => '0.20000000',
+        //         time => 1598962883288,
+        //         $fee => '0.00024000',
+        //         txId => '0x305e9cdbaa85ad029f50578d13d31d777c085de573ed5334d95c19116d8c03ce',
+        //         txStatus => 'mined'
+        //     }
+        //
+        // withdraw
+        //
+        //     {
+        //         withdrawalId => 'a61dcff0-ec4d-11ea-8b83-c78a6ecb3180',
+        //         asset => 'ETH',
+        //         assetContractAddress => '0x0000000000000000000000000000000000000000',
+        //         quantity => '0.20000000',
+        //         time => 1598962883190,
+        //         $fee => '0.00024000',
+        //         txStatus => 'pending',
+        //         txId => null
+        //     }
+        //
         $type = null;
         if (is_array($transaction) && array_key_exists('depositId', $transaction)) {
             $type = 'deposit';
-        } else if (is_array($transaction) && array_key_exists('withdrawalId', $transaction)) {
+        } else if ((is_array($transaction) && array_key_exists('withdrawId', $transaction)) || (is_array($transaction) && array_key_exists('withdrawalId', $transaction))) {
             $type = 'withdrawal';
         }
         $id = $this->safe_string_2($transaction, 'depositId', 'withdrawId');
+        $id = $this->safe_string($transaction, 'withdrawalId', $id);
         $code = $this->safe_currency_code($this->safe_string($transaction, 'asset'), $currency);
         $amount = $this->safe_number($transaction, 'quantity');
         $txid = $this->safe_string($transaction, 'txId');

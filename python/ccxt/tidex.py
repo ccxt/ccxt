@@ -759,15 +759,55 @@ class tidex(Exchange):
         #                     "tx":null,
         #                     "error":null
         #                 },
-        #             "in_blockchain":false
+        #                 "in_blockchain":false
         #             }
         #         }
         #     }
         #
         result = self.safe_value(response, 'return', {})
+        withdrawInfo = self.safe_value(result, 'withdraw_info', {})
+        return self.parse_transaction(withdrawInfo, currency)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        #     {
+        #         "id":1111,
+        #         "asset_id":1,
+        #         "asset":"BTC",
+        #         "amount":0.0093,
+        #         "fee":0.0007,
+        #         "create_time":1575128018,
+        #         "status":"Created",
+        #         "data":{
+        #             "address":"1KFHE7w8BhaENAswwryaoccDb6qcT6DbYY",
+        #             "memo":"memo",
+        #             "tx":null,
+        #             "error":null
+        #         },
+        #         "in_blockchain":false
+        #     }
+        #
+        currency = self.safe_currency(None, currency)
         return {
-            'info': response,
-            'id': self.safe_string(result, 'withdraw_id'),
+            'id': self.safe_string(transaction, 'id'),
+            'txid': None,
+            'timestamp': None,
+            'datetime': None,
+            'network': None,
+            'addressFrom': None,
+            'address': None,
+            'addressTo': None,
+            'amount': None,
+            'type': None,
+            'currency': currency['code'],
+            'status': None,
+            'updated': None,
+            'tagFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'comment': None,
+            'fee': None,
+            'info': transaction,
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

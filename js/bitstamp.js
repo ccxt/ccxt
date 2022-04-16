@@ -1626,6 +1626,7 @@ module.exports = class bitstamp extends Exchange {
         const request = {
             'amount': amount,
         };
+        let currency = undefined;
         let method = undefined;
         if (!this.isFiat (code)) {
             const name = this.getCurrencyName (code);
@@ -1642,15 +1643,12 @@ module.exports = class bitstamp extends Exchange {
             request['address'] = address;
         } else {
             method = 'privatePostWithdrawalOpen';
-            const currency = this.currency (code);
+            currency = this.currency (code);
             request['iban'] = address;
             request['account_currency'] = currency['id'];
         }
         const response = await this[method] (this.extend (request, params));
-        return {
-            'info': response,
-            'id': this.safeString (response, 'id'),
-        };
+        return this.parseTransaction (response, currency);
     }
 
     nonce () {

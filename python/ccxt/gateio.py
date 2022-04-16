@@ -2414,16 +2414,7 @@ class gateio(Exchange):
         #       "memo": null
         #     }
         #
-        currencyId = self.safe_string(response, 'currency')
-        id = self.safe_string(response, 'id')
-        return {
-            'info': response,
-            'id': id,
-            'code': self.safe_currency_code(currencyId),
-            'amount': self.safe_number(response, 'amount'),
-            'address': self.safe_string(response, 'address'),
-            'tag': self.safe_string(response, 'memo'),
-        }
+        return self.parse_transaction(response, currency)
 
     def parse_transaction_status(self, status):
         statuses = {
@@ -2459,6 +2450,17 @@ class gateio(Exchange):
         #     }
         #
         # withdrawals
+        #
+        # withdraw
+        #
+        #     {
+        #       "id": "w13389675",
+        #       "currency": "USDT",
+        #       "amount": "50",
+        #       "address": "TUu2rLFrmzUodiWfYki7QCNtv1akL682p1",
+        #       "memo": null
+        #     }
+        #
         id = self.safe_string(transaction, 'id')
         type = None
         amount = self.safe_string(transaction, 'amount')

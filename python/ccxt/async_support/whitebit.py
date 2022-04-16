@@ -1123,9 +1123,35 @@ class whitebit(Exchange):
         #
         #     []
         #
+        return self.extend({'id': uniqueId}, self.parse_transaction(response, currency))
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        # withdraw
+        #
+        #     []
+        #
+        currency = self.safe_currency(None, currency)
         return {
-            'id': uniqueId,
-            'info': response,
+            'id': None,
+            'txid': None,
+            'timestamp': None,
+            'datetime': None,
+            'network': None,
+            'addressFrom': None,
+            'address': None,
+            'addressTo': None,
+            'amount': None,
+            'type': None,
+            'currency': currency['code'],
+            'status': None,
+            'updated': None,
+            'tagFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'comment': None,
+            'fee': None,
+            'info': transaction,
         }
 
     def is_fiat(self, currency):

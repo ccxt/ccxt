@@ -1318,10 +1318,7 @@ class poloniex(Exchange):
         #         withdrawalNumber: 13449869
         #     }
         #
-        return {
-            'info': response,
-            'id': self.safe_string(response, 'withdrawalNumber'),
-        }
+        return self.parse_transaction(response, currency)
 
     def fetch_transactions_helper(self, code=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -1480,6 +1477,14 @@ class poloniex(Exchange):
         #         "timestamp": 1523834337,
         #         "canResendEmail": 0,
         #         "withdrawalNumber": 11162900
+        #     }
+        #
+        # withdraw
+        #
+        #     {
+        #         response: 'Withdrew 1.00000000 USDT.',
+        #         email2FA: False,
+        #         withdrawalNumber: 13449869
         #     }
         #
         timestamp = self.safe_timestamp(transaction, 'timestamp')

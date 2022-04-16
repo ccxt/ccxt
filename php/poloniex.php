@@ -1394,10 +1394,7 @@ class poloniex extends Exchange {
         //         withdrawalNumber => 13449869
         //     }
         //
-        return array(
-            'info' => $response,
-            'id' => $this->safe_string($response, 'withdrawalNumber'),
-        );
+        return $this->parse_transaction($response, $currency);
     }
 
     public function fetch_transactions_helper($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1566,6 +1563,14 @@ class poloniex extends Exchange {
         //         "timestamp" => 1523834337,
         //         "canResendEmail" => 0,
         //         "withdrawalNumber" => 11162900
+        //     }
+        //
+        // withdraw
+        //
+        //     {
+        //         response => 'Withdrew 1.00000000 USDT.',
+        //         email2FA => false,
+        //         withdrawalNumber => 13449869
         //     }
         //
         $timestamp = $this->safe_timestamp($transaction, 'timestamp');

@@ -973,12 +973,14 @@ class hitbtc3 extends Exchange {
 
     public function parse_transaction($transaction, $currency = null) {
         //
+        // $transaction
+        //
         //     {
         //       "id" => "101609495",
         //       "created_at" => "2018-03-06T22:05:06.507Z",
         //       "updated_at" => "2018-03-06T22:11:45.03Z",
         //       "status" => "SUCCESS",
-        //       "type" => "DEPOSIT",
+        //       "type" => "DEPOSIT", // DEPOSIT, WITHDRAW, ..
         //       "subtype" => "BLOCKCHAIN",
         //       "native" => {
         //         "tx_id" => "e20b0965-4024-44d0-b63f-7fb8996a6706",
@@ -990,27 +992,15 @@ class hitbtc3 extends Exchange {
         //         "confirmations" => "20",
         //         "senders" => array(
         //           "0x243bec9256c9a3469da22103891465b47583d9f1"
-        //         )
+        //         ),
+        //         "fee" => "1.22" // only for WITHDRAW
         //       }
         //     }
         //
+        // withdraw
+        //
         //     {
-        //       "id" => "102703545",
-        //       "created_at" => "2018-03-30T21:39:17.854Z",
-        //       "updated_at" => "2018-03-31T00:23:19.067Z",
-        //       "status" => "SUCCESS",
-        //       "type" => "WITHDRAW",
-        //       "subtype" => "BLOCKCHAIN",
-        //       "native" => {
-        //         "tx_id" => "5ecd7a85-ce5d-4d52-a916-b8b755e20926",
-        //         "index" => "918286359",
-        //         "currency" => "OMG",
-        //         "amount" => "2.45",
-        //         "fee" => "1.22",
-        //         "hash" => "0x1c621d89e7a0841342d5fb3b3587f60b95351590161e078c4a1daee353da4ca9",
-        //         "address" => "0x50227da7644cea0a43258a2e2d7444d01b43dcca",
-        //         "confirmations" => "0"
-        //       }
+        //         "id":"084cfcd5-06b9-4826-882e-fdb75ec3625d"
         //     }
         //
         $id = $this->safe_string($transaction, 'id');
@@ -1018,7 +1008,7 @@ class hitbtc3 extends Exchange {
         $updated = $this->parse8601($this->safe_string($transaction, 'updated_at'));
         $type = $this->parse_transaction_type($this->safe_string($transaction, 'type'));
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
-        $native = $this->safe_value($transaction, 'native');
+        $native = $this->safe_value($transaction, 'native', array());
         $currencyId = $this->safe_string($native, 'currency');
         $code = $this->safe_currency_code($currencyId);
         $txhash = $this->safe_string($native, 'hash');
@@ -1803,12 +1793,12 @@ class hitbtc3 extends Exchange {
             $params = $this->omit($params, 'network');
         }
         $response = $this->privatePostWalletCryptoWithdraw (array_merge($request, $params));
-        // array("id":"084cfcd5-06b9-4826-882e-fdb75ec3625d")
-        $id = $this->safe_string($response, 'id');
-        return array(
-            'info' => $response,
-            'id' => $id,
-        );
+        //
+        //     {
+        //         "id":"084cfcd5-06b9-4826-882e-fdb75ec3625d"
+        //     }
+        //
+        return $this->parse_transaction($response, $currency);
     }
 
     public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {

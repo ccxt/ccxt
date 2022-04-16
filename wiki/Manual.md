@@ -3484,8 +3484,8 @@ Parameters
   - `sell` give base currency and receive quote currency; for example, buying `BTC/USD` means that you will receive dollars for your bitcoins.
 - **type** a string literal type of order
   **Unified types:**
-  - [`market`](market-orders) not allowed by some exchanges, see [their docs](#exchanges) for details 
-  - [`limit`](limit-orders)
+  - [market](market-orders) not allowed by some exchanges, see [their docs](#exchanges) for details 
+  - [limit](limit-orders)
   - see #custom-order-params and #other-order-types for non-unified types
 - **amount**, how much of currency you want to trade usually, but not always, in units of the base currency of the trading pair symbol (the units for some exchanges are dependent on the side of the order: see their API docs for details.)
 - **price** the price at which the order is to be fullfilled at in units of the quote currency (ignored in market orders)

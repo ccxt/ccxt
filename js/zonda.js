@@ -1349,9 +1349,47 @@ module.exports = class zonda extends Exchange {
             request['address'] = address;
         }
         const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "status": "Ok",
+        //         "data": {
+        //           "id": "65e01087-afb0-4ab2-afdb-cc925e360296"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseTransaction (data, currency);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // withdraw
+        //
+        //     {
+        //         "id": "65e01087-afb0-4ab2-afdb-cc925e360296"
+        //     }
+        //
+        currency = this.safeCurrency (undefined, currency);
         return {
-            'info': response,
-            'id': undefined,
+            'id': this.safeString (transaction, 'id'),
+            'txid': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'network': undefined,
+            'addressFrom': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'amount': undefined,
+            'type': undefined,
+            'currency': currency['code'],
+            'status': undefined,
+            'updated': undefined,
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'comment': undefined,
+            'fee': undefined,
+            'info': transaction,
         };
     }
 

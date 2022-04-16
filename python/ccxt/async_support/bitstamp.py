@@ -1534,6 +1534,7 @@ class bitstamp(Exchange):
         request = {
             'amount': amount,
         }
+        currency = None
         method = None
         if not self.is_fiat(code):
             name = self.get_currency_name(code)
@@ -1551,10 +1552,7 @@ class bitstamp(Exchange):
             request['iban'] = address
             request['account_currency'] = currency['id']
         response = await getattr(self, method)(self.extend(request, params))
-        return {
-            'info': response,
-            'id': self.safe_string(response, 'id'),
-        }
+        return self.parse_transaction(response, currency)
 
     def nonce(self):
         return self.milliseconds()

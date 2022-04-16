@@ -5104,8 +5104,8 @@ Parameters
  * **type** a string literal type of order
   **Unified types:**
 
-  * :doc:`\ ``market`` <market orders>` not allowed by some exchanges, see :ref:`their docs <exchanges>` for details 
-  * :doc:`\ ``limit`` <limit orders>`
+  * :doc:`market <market orders>` not allowed by some exchanges, see :ref:`their docs <exchanges>` for details 
+  * :doc:`limit <limit orders>`
   * see #custom-order-params and #other-order-types for non-unified types
 
  * **amount**\ , how much of currency you want to trade usually, but not always, in units of the base currency of the trading pair symbol (the units for some exchanges are dependent on the side of the order: see their API docs for details.)

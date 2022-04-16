@@ -586,9 +586,46 @@ class lbank(Exchange):
         if tag is not None:
             request['memo'] = tag
         response = self.privatePostWithdraw(self.extend(request, params))
+        #
+        #     {
+        #         'result': 'true',
+        #         'withdrawId': 90082,
+        #         'fee':0.001
+        #     }
+        #
+        return self.parse_transaction(response, currency)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        # withdraw
+        #
+        #     {
+        #         'result': 'true',
+        #         'withdrawId': 90082,
+        #         'fee':0.001
+        #     }
+        #
+        currency = self.safe_currency(None, currency)
         return {
-            'id': self.safe_string(response, 'id'),
-            'info': response,
+            'id': self.safe_string_2(transaction, 'id', 'withdrawId'),
+            'txid': None,
+            'timestamp': None,
+            'datetime': None,
+            'network': None,
+            'addressFrom': None,
+            'address': None,
+            'addressTo': None,
+            'amount': None,
+            'type': None,
+            'currency': currency['code'],
+            'status': None,
+            'updated': None,
+            'tagFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'comment': None,
+            'fee': None,
+            'info': transaction,
         }
 
     def convert_secret_to_pem(self, secret):
