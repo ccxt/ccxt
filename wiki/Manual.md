@@ -4541,8 +4541,8 @@ Parameters
 
 Unified values for `fromAccount` and `toAccount` include
 
-- `funding` *For some exchanges `funding` and `spot` are the same account*
-- `main` *For some exchanges that allow for subaccounts
+- `funding` *for some exchanges `funding` and `spot` are the same account*
+- `main` *for some exchanges that allow for subaccounts*
 - `spot`
 - `margin`
 - `future`
