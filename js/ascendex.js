@@ -238,11 +238,6 @@ module.exports = class ascendex extends Exchange {
                     'future': 'futures',
                     'margin': 'margin',
                 },
-                'accountsById': {
-                    'cash': 'spot',
-                    'futures': 'future',
-                    'margin': 'margin',
-                },
                 'transfer': {
                     'fillResponseFromRequest': true,
                 },
@@ -2421,18 +2416,8 @@ module.exports = class ascendex extends Exchange {
         const currency = this.currency (code);
         amount = this.currencyToPrecision (code, amount);
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-        const accountsById = this.safeValue (this.options, 'accountsById', {});
-        const accountIds = Object.keys (accountsById);
         const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
         const toId = this.safeString (accountsByType, toAccount, toAccount);
-        if (!(fromId in accountIds)) {
-            const keys = Object.keys (accountsByType);
-            throw new ExchangeError (this.id + ' trasfer() fromAccount must be one of ' + keys.join (', '));
-        }
-        if (!(toId in accountIds)) {
-            const keys = Object.keys (accountsByType);
-            throw new ExchangeError (this.id + ' transfer() toAccount must be one of ' + keys.join (', '));
-        }
         if (fromId !== 'cash' && toId !== 'cash') {
             throw new ExchangeError (this.id + ' transfer() only supports direct balance transfer between spot and future, spot and margin');
         }
