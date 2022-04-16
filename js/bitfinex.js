@@ -380,7 +380,7 @@ module.exports = class bitfinex extends Exchange {
                     'margin': 'trading',
                     'funding': 'deposit',
                     'future': 'exchange',
-                    'contract': 'trading',
+                    'swap': 'trading',
                 },
                 'accountsById': {
                     'exchange': 'spot',
