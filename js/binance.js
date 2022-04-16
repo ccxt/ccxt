@@ -4831,6 +4831,8 @@ module.exports = class binance extends Exchange {
         }
         const response = await this[method] (query);
         //
+        // usdm
+        //
         //    [
         //        {
         //            "symbol": "SUSHIUSDT",
@@ -4847,6 +4849,24 @@ module.exports = class binance extends Exchange {
         //            ]
         //        }
         //    ]
+        //
+        // coinm
+        //
+        //     [
+        //         {
+        //             "symbol":"XRPUSD_210326",
+        //             "brackets":[
+        //                 {
+        //                     "bracket":1,
+        //                     "initialLeverage":20,
+        //                     "qtyCap":500000,
+        //                     "qtyFloor":0,
+        //                     "maintMarginRatio":0.0185,
+        //                     "cum":0.0
+        //                 }
+        //             ]
+        //         }
+        //     ]
         //
         return this.parseLeverageTiers (response, symbols, 'symbol');
     }
@@ -4885,7 +4905,7 @@ module.exports = class binance extends Exchange {
                 'tier': this.safeNumber (bracket, 'bracket'),
                 'currency': market['quote'],
                 'notionalFloor': this.safeNumber2 (bracket, 'notionalFloor', 'qtyFloor'),
-                'notionalCap': this.safeNumber (bracket, 'notionalCap'),
+                'notionalCap': this.safeNumber (bracket, 'notionalCap', 'qtyCap'),
                 'maintenanceMarginRate': this.safeNumber (bracket, 'maintMarginRatio'),
                 'maxLeverage': this.safeNumber (bracket, 'initialLeverage'),
                 'info': bracket,
