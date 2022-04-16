@@ -2016,7 +2016,7 @@ module.exports = class ndax extends Exchange {
         //         "NotionalProductId": 0
         //     }
         //
-        let id = this.safeString (transaction, 'Id');
+        let id = undefined;
         let txid = undefined;
         const currencyId = this.safeString (transaction, 'ProductId');
         const code = this.safeCurrencyCode (currencyId, currency);
