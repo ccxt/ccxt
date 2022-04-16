@@ -791,7 +791,14 @@ class bibox(Exchange):
         #         'status': 3
         #     }
         #
-        id = self.safe_string(transaction, 'id')
+        # withdraw
+        #
+        #     {
+        #         "result": 228,  # withdrawal id
+        #         "cmd":"transfer/transferOut"
+        #     }
+        #
+        id = self.safe_string_2(transaction, 'id', 'result')
         address = self.safe_string(transaction, 'to_address')
         currencyId = self.safe_string(transaction, 'coin_symbol')
         code = self.safe_currency_code(currencyId, currency)
@@ -1245,11 +1252,7 @@ class bibox(Exchange):
         #
         outerResults = self.safe_value(response, 'result')
         firstResult = self.safe_value(outerResults, 0, {})
-        id = self.safe_value(firstResult, 'result')
-        return {
-            'info': response,
-            'id': id,
-        }
+        return self.parse_transaction(firstResult, currency)
 
     def fetch_funding_fees(self, codes=None, params={}):
         # by default it will try load withdrawal fees of all currencies(with separate requests)
