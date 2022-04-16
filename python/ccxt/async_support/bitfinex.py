@@ -1247,13 +1247,15 @@ class bitfinex(Exchange):
             request['payment_id'] = tag
         responses = await self.privatePostWithdraw(self.extend(request, params))
         #
-        #     [{
-        #         "status":"success",
-        #         "message":"Your withdrawal request has been successfully submitted.",
-        #         "withdrawal_id":586829
-        #     }]
+        #     [
+        #         {
+        #             "status":"success",
+        #             "message":"Your withdrawal request has been successfully submitted.",
+        #             "withdrawal_id":586829
+        #         }
+        #     ]
         #
-        response = responses[0]
+        response = self.safe_value(responses, 0, {})
         id = self.safe_string(response, 'withdrawal_id')
         message = self.safe_string(response, 'message')
         errorMessage = self.find_broadly_matched_key(self.exceptions['broad'], message)

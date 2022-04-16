@@ -1313,13 +1313,15 @@ class bitfinex extends Exchange {
         }
         $responses = $this->privatePostWithdraw (array_merge($request, $params));
         //
-        //     [array(
-        //         "status":"success",
-        //         "message":"Your withdrawal $request has been successfully submitted.",
-        //         "withdrawal_id":586829
-        //     )]
+        //     array(
+        //         {
+        //             "status":"success",
+        //             "message":"Your withdrawal $request has been successfully submitted.",
+        //             "withdrawal_id":586829
+        //         }
+        //     )
         //
-        $response = $responses[0];
+        $response = $this->safe_value($responses, 0, array());
         $id = $this->safe_string($response, 'withdrawal_id');
         $message = $this->safe_string($response, 'message');
         $errorMessage = $this->find_broadly_matched_key($this->exceptions['broad'], $message);
