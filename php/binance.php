@@ -825,7 +825,7 @@ class binance extends Exchange {
                     'delivery' => 'CMFUTURE',
                     'mining' => 'MINING',
                 ),
-                'typesByAccount' => array(
+                'accountsById' => array(
                     'MAIN' => 'spot',
                     'FUNDING' => 'funding',
                     'MARGIN' => 'margin',
@@ -3654,13 +3654,13 @@ class binance extends Exchange {
         $type = $this->safe_string($transfer, 'type');
         $fromAccount = null;
         $toAccount = null;
-        $typesByAccount = $this->safe_value($this->options, 'typesByAccount', array());
+        $accountsById = $this->safe_value($this->options, 'accountsById', array());
         if ($type !== null) {
             $parts = explode('_', $type);
             $fromAccount = $this->safe_value($parts, 0);
             $toAccount = $this->safe_value($parts, 1);
-            $fromAccount = $this->safe_string($typesByAccount, $fromAccount, $fromAccount);
-            $toAccount = $this->safe_string($typesByAccount, $toAccount, $toAccount);
+            $fromAccount = $this->safe_string($accountsById, $fromAccount, $fromAccount);
+            $toAccount = $this->safe_string($accountsById, $toAccount, $toAccount);
         }
         $timestamp = $this->safe_integer($transfer, 'timestamp');
         $status = $this->parse_transfer_status($this->safe_string($transfer, 'status'));
@@ -3725,18 +3725,8 @@ class binance extends Exchange {
         $type = $this->safe_string($params, 'type');
         if ($type === null) {
             $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
-            $fromAccount = strtolower($fromAccount);
-            $toAccount = strtolower($toAccount);
-            $fromId = $this->safe_string($accountsByType, $fromAccount);
-            $toId = $this->safe_string($accountsByType, $toAccount);
-            if ($fromId === null) {
-                $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
-                throw new ExchangeError($this->id . ' $fromAccount must be one of ' . implode(', ', $keys));
-            }
-            if ($toId === null) {
-                $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
-                throw new ExchangeError($this->id . ' $toAccount must be one of ' . implode(', ', $keys));
-            }
+            $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
+            $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
             $type = $fromId . '_' . $toId;
         }
         $request = array(

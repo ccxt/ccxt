@@ -840,7 +840,7 @@ class binance(Exchange):
                     'delivery': 'CMFUTURE',
                     'mining': 'MINING',
                 },
-                'typesByAccount': {
+                'accountsById': {
                     'MAIN': 'spot',
                     'FUNDING': 'funding',
                     'MARGIN': 'margin',
@@ -3496,13 +3496,13 @@ class binance(Exchange):
         type = self.safe_string(transfer, 'type')
         fromAccount = None
         toAccount = None
-        typesByAccount = self.safe_value(self.options, 'typesByAccount', {})
+        accountsById = self.safe_value(self.options, 'accountsById', {})
         if type is not None:
             parts = type.split('_')
             fromAccount = self.safe_value(parts, 0)
             toAccount = self.safe_value(parts, 1)
-            fromAccount = self.safe_string(typesByAccount, fromAccount, fromAccount)
-            toAccount = self.safe_string(typesByAccount, toAccount, toAccount)
+            fromAccount = self.safe_string(accountsById, fromAccount, fromAccount)
+            toAccount = self.safe_string(accountsById, toAccount, toAccount)
         timestamp = self.safe_integer(transfer, 'timestamp')
         status = self.parse_transfer_status(self.safe_string(transfer, 'status'))
         return {
@@ -3562,16 +3562,8 @@ class binance(Exchange):
         type = self.safe_string(params, 'type')
         if type is None:
             accountsByType = self.safe_value(self.options, 'accountsByType', {})
-            fromAccount = fromAccount.lower()
-            toAccount = toAccount.lower()
-            fromId = self.safe_string(accountsByType, fromAccount)
-            toId = self.safe_string(accountsByType, toAccount)
-            if fromId is None:
-                keys = list(accountsByType.keys())
-                raise ExchangeError(self.id + ' fromAccount must be one of ' + ', '.join(keys))
-            if toId is None:
-                keys = list(accountsByType.keys())
-                raise ExchangeError(self.id + ' toAccount must be one of ' + ', '.join(keys))
+            fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
+            toId = self.safe_string(accountsByType, toAccount, toAccount)
             type = fromId + '_' + toId
         request = {
             'asset': currency['id'],
