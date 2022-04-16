@@ -171,6 +171,9 @@ module.exports = class krakenfutures extends Exchange {
                         },
                     },
                 },
+                'settlementCurrencies': {
+                    'flex': [ 'USDT', 'BTC', 'USD', 'GBP', 'EUR', 'USDC' ],
+                },
                 'symbol': {
                     'quoteIds': [ 'USD', 'XBT' ],
                     'reversed': false,
