@@ -121,6 +121,11 @@ module.exports = class bigone extends Exchange {
                     'future': 'CONTRACT',
                     'swap': 'CONTRACT',
                 },
+                'accountsById': {
+                    'SPOT': 'spot',
+                    'FUND': 'funding',
+                    'CONTRACT': 'future',
+                },
                 'transfer': {
                     'fillResponseFromRequest': true,
                 },
@@ -1243,16 +1248,16 @@ module.exports = class bigone extends Exchange {
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const accountsById = this.safeValue (this.options, 'accountsByType', {});
-        const fromId = this.safeString (accountsById, fromAccount, fromAccount);
-        if (fromId === undefined) {
-            const keys = Object.keys (accountsById);
-            throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', '));
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const accountsById = this.safeValue (this.options, 'accountsById', {});
+        const accountIds = Object.keys (accountsById);
+        const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
+        if (!(fromId in accountIds)) {
+            throw new ExchangeError (this.id + ' transfer() fromAccount must be one of ' + accountIds.join (', '));
         }
-        const toId = this.safeString (accountsById, toAccount, toAccount);
-        if (toId === undefined) {
-            const keys = Object.keys (accountsById);
-            throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', '));
+        const toId = this.safeString (accountsByType, toAccount, toAccount);
+        if (!(toId in accountIds)) {
+            throw new ExchangeError (this.id + ' transfer() toAccount must be one of ' + accountIds.join (', '));
         }
         const type = this.safeString (params, 'type');
         const subAccount = this.safeString (params, 'sub_account');
