@@ -366,6 +366,18 @@ module.exports = class krakenfutures extends Exchange {
                 'info': market,
             });
         }
+        const settlementCurrencies = this.options['settlementCurrencies']['flex'];
+        const currencies = [];
+        for (let i = 0; i < settlementCurrencies.length; i++) {
+            const code = settlementCurrencies[i];
+            currencies.push ({
+                'id': code.toLowerCase (),
+                'numericId': undefined,
+                'code': code,
+                'precision': undefined,
+            });
+        }
+        this.currencies = this.deepExtend (currencies, this.currencies);
         return result;
     }
 
