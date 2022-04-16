@@ -713,7 +713,31 @@ class yobit(Exchange):
         request = {
             'order_id': int(id),
         }
-        return await self.privatePostCancelOrder(self.extend(request, params))
+        response = await self.privatePostCancelOrder(self.extend(request, params))
+        #
+        #      {
+        #          "success":1,
+        #          "return": {
+        #              "order_id":1101103632552304,
+        #              "funds": {
+        #                  "usdt":30.71055443,
+        #                  "usdttrc20":0,
+        #                  "doge":9.98327206
+        #              },
+        #              "funds_incl_orders": {
+        #                  "usdt":31.81275443,
+        #                  "usdttrc20":0,
+        #                  "doge":9.98327206
+        #              },
+        #              "server_time":1649918298
+        #          }
+        #      }
+        #
+        result = self.safe_value(response, 'return', {})
+        return {
+            'id': self.safe_string(result, 'order_id'),
+            'info': result,
+        }
 
     def parse_order_status(self, status):
         statuses = {
