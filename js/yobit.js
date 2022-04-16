@@ -834,9 +834,6 @@ module.exports = class yobit extends Exchange {
         const amount = this.safeString (order, 'start_amount');
         const remaining = this.safeString2 (order, 'amount', 'remains');
         let filled = this.safeString (order, 'received', '0.0');
-        if (status === 'canceled') {
-            filled = undefined;
-        }
         const price = this.safeString (order, 'rate');
         const fee = undefined;
         const type = 'limit';
