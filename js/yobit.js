@@ -717,10 +717,7 @@ module.exports = class yobit extends Exchange {
         //      }
         //
         const result = this.safeValue (response, 'return', {});
-        return {
-            'id': this.safeString (result, 'order_id'),
-            'info': result,
-        };
+        return this.parseOrder (result);
     }
 
     parseOrderStatus (status) {
@@ -734,6 +731,30 @@ module.exports = class yobit extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        // fetchOrder (private)
+        //
+        //
+        //
+        // fetchOpenOrders (private)
+        //
+        //
+        //
+        // cancelOrder (private)
+        //
+        //      {
+        //          "order_id":1101103634000197,
+        //          "funds": {
+        //              "usdt":31.81275443,
+        //              "usdttrc20":0,
+        //              "doge":9.98327206
+        //          },
+        //          "funds_incl_orders": {
+        //              "usdt":31.81275443,
+        //              "usdttrc20":0,
+        //              "doge":9.98327206
+        //          }
+        //
         const id = this.safeString (order, 'id');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const timestamp = this.safeTimestamp (order, 'timestamp_created');
@@ -793,7 +814,39 @@ module.exports = class yobit extends Exchange {
             request['pair'] = market['id'];
         }
         const response = await this.privatePostActiveOrders (this.extend (request, params));
-        const orders = this.safeValue (response, 'return', []);
+        //
+        //      {
+        //          "success":1,
+        //          "return": {
+        //              "1101103634006799": {
+        //                  "pair":"doge_usdt",
+        //                  "type":"buy",
+        //                  "amount":10,
+        //                  "rate":0.1,
+        //                  "timestamp_created":"1650034937",
+        //                  "status":0
+        //              },
+        //              "1101103634006738": {
+        //                  "pair":"doge_usdt",
+        //                  "type":"buy",
+        //                  "amount":10,
+        //                  "rate":0.1,
+        //                  "timestamp_created":"1650034932",
+        //                  "status":0
+        //              }
+        //          }
+        //      }
+        //
+        const rawOrders = this.safeValue (response, 'return', {});
+        const ids = Object.keys (rawOrders);
+        const orders = [];
+        // TODO this does not work in python and PHP
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            const order = this.safeValue (rawOrders, id, {});
+            order['id'] = id;
+            orders.push (order);
+        }
         return this.parseOrders (orders, market, since, limit);
     }
 
