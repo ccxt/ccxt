@@ -1259,7 +1259,7 @@ module.exports = class bigone extends Exchange {
         const guid = this.safeString (params, 'guid', this.uuid ());
         const request = {
             'symbol': currency['id'],
-            'amount': this.currencyToPrecision (amount),
+            'amount': this.currencyToPrecision (code, amount),
             'from': fromId,
             'to': toId,
             'guid': guid,
