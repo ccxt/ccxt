@@ -925,17 +925,8 @@ module.exports = class yobit extends Exchange {
         //          }
         //      }
         //
-        const rawOrders = this.safeValue (response, 'return', {});
-        const ids = Object.keys (rawOrders);
-        const orders = [];
-        // temporary work-around for PHP id-order bug in parseOrders in Exchange.js
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const order = this.safeValue (rawOrders, id, {});
-            order['id'] = id;
-            orders.push (order);
-        }
-        return this.parseOrders (orders, market, since, limit);
+        const result = this.safeValue (response, 'return', {});
+        return this.parseOrders (result, market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
