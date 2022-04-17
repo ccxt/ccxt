@@ -1716,18 +1716,38 @@ module.exports = class hitbtc3 extends Exchange {
             'destination': toId,
         };
         const response = await this.privatePostWalletTransfer (this.extend (request, params));
-        // [ '2db6ebab-fb26-4537-9ef8-1a689472d236' ]
-        const id = this.safeString (response, 0);
-        return {
-            'info': response,
-            'id': id,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'amount': this.parseNumber (requestAmount),
-            'currency': code,
+        //
+        //     [
+        //         '2db6ebab-fb26-4537-9ef8-1a689472d236'
+        //     ]
+        //
+        const transfer = this.parseTransfer (response, currency);
+        return this.extend (transfer, {
             'fromAccount': fromAccount,
             'toAccount': toAccount,
+            'amount': requestAmount,
+        });
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        // transfer
+        //
+        //     [
+        //         '2db6ebab-fb26-4537-9ef8-1a689472d236'
+        //     ]
+        //
+        const timestamp = this.milliseconds ();
+        return {
+            'id': this.safeString (response, 0);
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': this.safeCurrencyCode (undefined, currency),
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
             'status': undefined,
+            'info': transfer,
         };
     }
 
