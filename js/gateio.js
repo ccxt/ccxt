@@ -203,7 +203,11 @@ module.exports = class gateio extends ccxt.gateio {
         const result = this.safeValue (message, 'result');
         const marketId = this.safeString (result, 's');
         const symbol = this.safeSymbol (marketId);
-        const orderbook = this.safeValue (this.orderbooks, symbol);
+        let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            orderbook = this.orderBook ({});
+            this.orderbooks[symbol] = orderbook;
+        }
         if (orderbook['nonce'] === undefined) {
             orderbook.cache.push (message);
         } else {
