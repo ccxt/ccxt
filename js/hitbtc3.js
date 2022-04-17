@@ -1739,7 +1739,7 @@ module.exports = class hitbtc3 extends Exchange {
         //
         const timestamp = this.milliseconds ();
         return {
-            'id': this.safeString (response, 0);
+            'id': this.safeString (transfer, 0),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'currency': this.safeCurrencyCode (undefined, currency),
