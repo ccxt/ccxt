@@ -124,7 +124,7 @@ module.exports = class gateio extends ccxt.gateio {
             // if the received snapshot is earlier than the first cached delta
             // then we cannot align it with the cached deltas and we need to
             // retry synchronizing in maxAttempts
-            if ((seqNum !== undefined) && (nonce < seqNum)) {
+            if ((seqNum === undefined) || (nonce < seqNum)) {
                 const maxAttempts = this.safeInteger (this.options, 'maxOrderBookSyncAttempts', 3);
                 let numAttempts = this.safeInteger (subscription, 'numAttempts', 0);
                 // retry to syncrhonize if we haven't reached maxAttempts yet
@@ -199,11 +199,7 @@ module.exports = class gateio extends ccxt.gateio {
         const result = this.safeValue (message, 'result');
         const marketId = this.safeString (result, 's');
         const symbol = this.safeSymbol (marketId);
-        let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook ({});
-            this.orderbooks[symbol] = orderbook;
-        }
+        const orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook['nonce'] === undefined) {
             orderbook.cache.push (message);
         } else {
