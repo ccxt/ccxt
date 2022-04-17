@@ -1869,8 +1869,8 @@ module.exports = class xena extends Exchange {
                 tiers.push ({
                     'tier': this.sum (j, 1),
                     'currency': market['base'],
-                    'notionalFloor': floor,
-                    'notionalCap': cap,
+                    'minNotional': floor,
+                    'maxNotional': cap,
                     'maintenanceMarginRate': this.safeNumber (tier, 'maintenanceRate'),
                     'maxLeverage': this.parseNumber (Precise.stringDiv ('1', initialRate)),
                     'info': tier,
