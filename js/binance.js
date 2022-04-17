@@ -4894,8 +4894,8 @@ module.exports = class binance extends Exchange {
             tiers.push ({
                 'tier': this.safeNumber (bracket, 'bracket'),
                 'currency': market['quote'],
-                'notionalFloor': this.safeNumber2 (bracket, 'notionalFloor', 'qtyFloor'),
-                'notionalCap': this.safeNumber (bracket, 'notionalCap', 'qtyCap'),
+                'minNotional': this.safeNumber2 (bracket, 'notionalFloor', 'qtyFloor'),
+                'maxNotional': this.safeNumber (bracket, 'notionalCap', 'qtyCap'),
                 'maintenanceMarginRate': this.safeNumber (bracket, 'maintMarginRatio'),
                 'maxLeverage': this.safeNumber (bracket, 'initialLeverage'),
                 'info': bracket,

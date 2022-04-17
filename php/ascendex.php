@@ -2402,8 +2402,8 @@ class ascendex extends Exchange {
             $tiers[] = array(
                 'tier' => $this->sum($i, 1),
                 'currency' => $market['quote'],
-                'notionalFloor' => $this->safe_number($tier, 'positionNotionalLowerBound'),
-                'notionalCap' => $this->safe_number($tier, 'positionNotionalUpperBound'),
+                'minNotional' => $this->safe_number($tier, 'positionNotionalLowerBound'),
+                'maxNotional' => $this->safe_number($tier, 'positionNotionalUpperBound'),
                 'maintenanceMarginRate' => $this->safe_number($tier, 'maintenanceMarginRate'),
                 'maxLeverage' => $this->parse_number(Precise::string_div('1', $initialMarginRate)),
                 'info' => $tier,

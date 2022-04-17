@@ -3758,8 +3758,8 @@ class gateio(Exchange):
             tiers.append({
                 'tier': self.parse_number(Precise.string_div(cap, riskLimitStep)),
                 'currency': self.safe_string(market, 'settle'),
-                'notionalFloor': self.parse_number(floor),
-                'notionalCap': self.parse_number(cap),
+                'minNotional': self.parse_number(floor),
+                'maxNotional': self.parse_number(cap),
                 'maintenanceMarginRate': self.parse_number(maintenanceMarginRate),
                 'maxLeverage': self.parse_number(Precise.string_div('1', initialMarginRatio)),
                 'info': info,

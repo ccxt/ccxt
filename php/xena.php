@@ -1876,8 +1876,8 @@ class xena extends Exchange {
                 $tiers[] = array(
                     'tier' => $this->sum($j, 1),
                     'currency' => $market['base'],
-                    'notionalFloor' => $floor,
-                    'notionalCap' => $cap,
+                    'minNotional' => $floor,
+                    'maxNotional' => $cap,
                     'maintenanceMarginRate' => $this->safe_number($tier, 'maintenanceRate'),
                     'maxLeverage' => $this->parse_number(Precise::string_div('1', $initialRate)),
                     'info' => $tier,

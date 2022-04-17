@@ -1634,8 +1634,8 @@ class kucoinfutures(kucoin):
             tiers.append({
                 'tier': self.safe_number(tier, 'level'),
                 'currency': market['base'],
-                'notionalFloor': self.safe_number(tier, 'minRiskLimit'),
-                'notionalCap': self.safe_number(tier, 'maxRiskLimit'),
+                'minNotional': self.safe_number(tier, 'minRiskLimit'),
+                'maxNotional': self.safe_number(tier, 'maxRiskLimit'),
                 'maintenanceMarginRate': self.safe_number(tier, 'maintainMargin'),
                 'maxLeverage': self.safe_number(tier, 'maxLeverage'),
                 'info': tier,

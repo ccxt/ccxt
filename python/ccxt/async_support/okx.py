@@ -4431,8 +4431,8 @@ class okx(Exchange):
             tiers.append({
                 'tier': self.safe_integer(tier, 'tier'),
                 'currency': market['quote'],
-                'notionalFloor': self.safe_number(tier, 'minSz'),
-                'notionalCap': self.safe_number(tier, 'maxSz'),
+                'minNotional': self.safe_number(tier, 'minSz'),
+                'maxNotional': self.safe_number(tier, 'maxSz'),
                 'maintenanceMarginRate': self.safe_number(tier, 'mmr'),
                 'maxLeverage': self.safe_number(tier, 'maxLever'),
                 'info': tier,

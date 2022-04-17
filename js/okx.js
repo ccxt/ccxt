@@ -3932,6 +3932,7 @@ module.exports = class okx extends Exchange {
 
     async fetchTransfer (id, code = undefined, params = {}) {
         await this.loadMarkets ();
+        const currency = this.currency (code);
         const request = {
             'transId': id,
             // 'type': 0, // default is 0 transfer within account, 1 master to sub, 2 sub to master
@@ -3958,12 +3959,8 @@ module.exports = class okx extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const resultArray = [];
-        for (let i = 0; i < data.length; i++) {
-            const transfer = data[i];
-            resultArray.push (this.parseTransfer (transfer, undefined));
-        }
-        return this.filterBySinceLimit (resultArray, undefined, undefined);
+        const transfer = this.safeValue (data, 0);
+        return this.parseTransfer (transfer, currency);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -4647,8 +4644,8 @@ module.exports = class okx extends Exchange {
             tiers.push ({
                 'tier': this.safeInteger (tier, 'tier'),
                 'currency': market['quote'],
-                'notionalFloor': this.safeNumber (tier, 'minSz'),
-                'notionalCap': this.safeNumber (tier, 'maxSz'),
+                'minNotional': this.safeNumber (tier, 'minSz'),
+                'maxNotional': this.safeNumber (tier, 'maxSz'),
                 'maintenanceMarginRate': this.safeNumber (tier, 'mmr'),
                 'maxLeverage': this.safeNumber (tier, 'maxLever'),
                 'info': tier,

@@ -1714,8 +1714,8 @@ module.exports = class kucoinfutures extends kucoin {
             tiers.push ({
                 'tier': this.safeNumber (tier, 'level'),
                 'currency': market['base'],
-                'notionalFloor': this.safeNumber (tier, 'minRiskLimit'),
-                'notionalCap': this.safeNumber (tier, 'maxRiskLimit'),
+                'minNotional': this.safeNumber (tier, 'minRiskLimit'),
+                'maxNotional': this.safeNumber (tier, 'maxRiskLimit'),
                 'maintenanceMarginRate': this.safeNumber (tier, 'maintainMargin'),
                 'maxLeverage': this.safeNumber (tier, 'maxLeverage'),
                 'info': tier,
