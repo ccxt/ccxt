@@ -210,6 +210,10 @@ class gateio extends \ccxt\async\gateio {
         $marketId = $this->safe_string($result, 's');
         $symbol = $this->safe_symbol($marketId);
         $orderbook = $this->safe_value($this->orderbooks, $symbol);
+        if ($orderbook === null) {
+            $orderbook = $this->order_book(array());
+            $this->orderbooks[$symbol] = $orderbook;
+        }
         if ($orderbook['nonce'] === null) {
             $orderbook->cache[] = $message;
         } else {
@@ -857,6 +861,7 @@ class gateio extends \ccxt\async\gateio {
     }
 
     public function handle_message($client, $message) {
+        //
         // subscribe
         // {
         //     time => 1649062304,
@@ -984,17 +989,25 @@ class gateio extends \ccxt\async\gateio {
         }
     }
 
+    public function request_id() {
+        // their support said that $reqid must be an int32, not documented
+        $reqid = $this->sum($this->safe_integer($this->options, 'reqid', 0), 1);
+        $this->options['reqid'] = $reqid;
+        return $reqid;
+    }
+
     public function subscribe_public($url, $channel, $messageHash, $payload, $subscriptionParams = array ()) {
+        $requestId = $this->request_id();
         $time = $this->seconds();
         $request = array(
-            'id' => $time,
+            'id' => $requestId,
             'time' => $time,
             'channel' => $channel,
             'event' => 'subscribe',
             'payload' => $payload,
         );
         $subscription = array(
-            'id' => $time,
+            'id' => $requestId,
             'messageHash' => $messageHash,
         );
         $subscription = array_merge($subscription, $subscriptionParams);
@@ -1020,7 +1033,7 @@ class gateio extends \ccxt\async\gateio {
             'KEY' => $this->apiKey,
             'SIGN' => $signature,
         );
-        $requestId = $this->nonce();
+        $requestId = $this->request_id();
         $request = array(
             'id' => $requestId,
             'time' => $time,

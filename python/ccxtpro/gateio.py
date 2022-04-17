@@ -199,6 +199,9 @@ class gateio(Exchange, ccxt.gateio):
         marketId = self.safe_string(result, 's')
         symbol = self.safe_symbol(marketId)
         orderbook = self.safe_value(self.orderbooks, symbol)
+        if orderbook is None:
+            orderbook = self.order_book({})
+            self.orderbooks[symbol] = orderbook
         if orderbook['nonce'] is None:
             orderbook.cache.append(message)
         else:
@@ -779,6 +782,7 @@ class gateio(Exchange, ccxt.gateio):
             client.resolve(message, messageId)
 
     def handle_message(self, client, message):
+        #
         # subscribe
         # {
         #     time: 1649062304,
@@ -894,17 +898,24 @@ class gateio(Exchange, ccxt.gateio):
         if type == 'option':
             return self.urls['api']['option']
 
+    def request_id(self):
+        # their support said that reqid must be an int32, not documented
+        reqid = self.sum(self.safe_integer(self.options, 'reqid', 0), 1)
+        self.options['reqid'] = reqid
+        return reqid
+
     async def subscribe_public(self, url, channel, messageHash, payload, subscriptionParams={}):
+        requestId = self.request_id()
         time = self.seconds()
         request = {
-            'id': time,
+            'id': requestId,
             'time': time,
             'channel': channel,
             'event': 'subscribe',
             'payload': payload,
         }
         subscription = {
-            'id': time,
+            'id': requestId,
             'messageHash': messageHash,
         }
         subscription = self.extend(subscription, subscriptionParams)
@@ -927,7 +938,7 @@ class gateio(Exchange, ccxt.gateio):
             'KEY': self.apiKey,
             'SIGN': signature,
         }
-        requestId = self.nonce()
+        requestId = self.request_id()
         request = {
             'id': requestId,
             'time': time,
