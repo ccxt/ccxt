@@ -60,6 +60,9 @@ class gateio extends \ccxt\async\gateio {
                 'watchTradesSubscriptions' => array(),
                 'watchTickerSubscriptions' => array(),
                 'watchOrderBookSubscriptions' => array(),
+                'watchOrderBook' => array(
+                    'interval' => '100ms',
+                ),
             ),
             'exceptions' => array(
                 'ws' => array(
@@ -84,7 +87,8 @@ class gateio extends \ccxt\async\gateio {
         if (!$limit) {
             $limit = $defaultLimit;
         }
-        $interval = $this->safe_string($params, 'interval', '1000ms');
+        $defaultInterval = $this->safe_string($options, 'interval', '100ms');
+        $interval = $this->safe_string($params, 'interval', $defaultInterval);
         $type = $market['type'];
         $messageType = $this->get_uniform_type($type);
         $method = $messageType . '.' . 'order_book_update';
