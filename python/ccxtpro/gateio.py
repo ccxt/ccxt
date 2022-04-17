@@ -61,6 +61,9 @@ class gateio(Exchange, ccxt.gateio):
                 'watchTradesSubscriptions': {},
                 'watchTickerSubscriptions': {},
                 'watchOrderBookSubscriptions': {},
+                'watchOrderBook': {
+                    'interval': '100ms',
+                },
             },
             'exceptions': {
                 'ws': {
@@ -83,7 +86,8 @@ class gateio(Exchange, ccxt.gateio):
         defaultLimit = self.safe_integer(options, 'limit', 20)
         if not limit:
             limit = defaultLimit
-        interval = self.safe_string(params, 'interval', '1000ms')
+        defaultInterval = self.safe_string(options, 'interval', '100ms')
+        interval = self.safe_string(params, 'interval', defaultInterval)
         type = market['type']
         messageType = self.get_uniform_type(type)
         method = messageType + '.' + 'order_book_update'
