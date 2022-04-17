@@ -3932,7 +3932,6 @@ module.exports = class okx extends Exchange {
 
     async fetchTransfer (id, code = undefined, params = {}) {
         await this.loadMarkets ();
-        const currency = this.currency (code);
         const request = {
             'transId': id,
             // 'type': 0, // default is 0 transfer within account, 1 master to sub, 2 sub to master
@@ -3960,7 +3959,7 @@ module.exports = class okx extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         const transfer = this.safeValue (data, 0);
-        return this.parseTransfer (transfer, currency);
+        return this.parseTransfer (transfer);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
