@@ -90,7 +90,7 @@ module.exports = class okx extends Exchange {
                 'fetchTradingLimits': undefined,
                 'fetchTransactions': undefined,
                 'fetchTransfer': true,
-                'fetchTransfers': false,
+                'fetchTransfers': true,
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': undefined,
@@ -208,6 +208,7 @@ module.exports = class okx extends Exchange {
                         'asset/deposit-address': 5 / 3,
                         'asset/balances': 5 / 3,
                         'asset/transfer-state': 10,
+                        'asset/transfer-record': 10,
                         'asset/deposit-history': 5 / 3,
                         'asset/withdrawal-history': 5 / 3,
                         'asset/currencies': 5 / 3,
@@ -612,7 +613,7 @@ module.exports = class okx extends Exchange {
                 //     'type': 'spot', // 'funding', 'trading', 'spot'
                 // },
                 'fetchLedger': {
-                    'method': 'privateGetAccountBills', // privateGetAccountBillsArchive, privateGetAssetBills
+                    'method': 'privateGetAccountBills', // privateGetAccountBills, privateGetAccountBillsArchive, privateGetAssetBills
                 },
                 // 1 = SPOT, 3 = FUTURES, 5 = MARGIN, 6 = FUNDING, 9 = SWAP, 12 = OPTION, 18 = Unified account
                 'fetchOrder': {
@@ -3906,17 +3907,40 @@ module.exports = class okx extends Exchange {
         //         "type": "0"
         //     }
         //
-        const id = this.safeString (transfer, 'transId');
+        // fetchTransfers (from fetchLedger)
+        //
+        //     {
+        //         "bal":"0",
+        //         "balChg":"-43.7368465405297587", // positive when moving into 'funding'. otherwise, negative
+        //         "billId":"661222620",
+        //         "ccy":"USDT",
+        //         "ts":"1650175021000",
+        //         "type":"131" // 130:trading to funding; 131:funding to trading
+        //     }
+        //
+        const id = this.safeString2 (transfer, 'transId', 'billId');
         const currencyId = this.safeString (transfer, 'ccy');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const amount = this.safeNumber (transfer, 'amt');
+        let amount = this.safeNumber (transfer, 'amt');
         const fromAccountId = this.safeString (transfer, 'from');
         const toAccountId = this.safeString (transfer, 'to');
         const typesByAccount = this.safeValue (this.options, 'typesByAccount', {});
-        const fromAccount = this.safeString (typesByAccount, fromAccountId);
-        const toAccount = this.safeString (typesByAccount, toAccountId);
-        const timestamp = this.milliseconds ();
+        let fromAccount = this.safeString (typesByAccount, fromAccountId);
+        let toAccount = this.safeString (typesByAccount, toAccountId);
+        const timestamp = this.safeInteger (transfer, 'ts', this.milliseconds ());
         const status = this.safeString (transfer, 'state');
+        // from fetchTransfers (ledger)
+        const ledgerAmount = this.safeString (transfer, 'balChg');
+        if (ledgerAmount !== undefined) {
+            amount = Precise.stringAbs (ledgerAmount);
+            if (Precise.stringGt (ledgerAmount, 0)) {
+                fromAccount = 'trading';
+                toAccount = 'funding';
+            } else {
+                fromAccount = 'funding';
+                toAccount = 'trading';
+            }
+        }
         return {
             'info': transfer,
             'id': id,
@@ -3964,6 +3988,18 @@ module.exports = class okx extends Exchange {
             resultArray.push (this.parseTransfer (transfer, undefined));
         }
         return this.filterBySinceLimit (resultArray, since, limit);
+    }
+
+    async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const additionalParams = { 'method': 'privateGetAssetBills', 'type': '' };
+        const response = await this.fetchLedger (code, since, limit, this.extend (additionalParams, params));
+        const transfers = [];
+        for (let i = 0; i < response.length; i++) {
+            transfers.push (response[i]['info']);
+        }
+        return this.parseTransfers (transfers, currency, since, limit, params);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
