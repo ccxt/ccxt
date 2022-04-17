@@ -712,10 +712,11 @@ module.exports = class bitfinex extends Exchange {
 
     parseTransferStatus (status) {
         const statuses = {
-            '1': 'ok',
+            'SUCCESS': 'ok',
         };
-        return this.safeString (statuses, status, 'canceled');
+        return this.safeString (statuses, status, status);
     }
+
     convertDerivativesId (currencyId, type) {
         const start = currencyId.length - 2;
         const isDerivativeCode = currencyId.slice (start) === 'F0';
