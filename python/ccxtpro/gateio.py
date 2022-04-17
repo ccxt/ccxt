@@ -125,7 +125,7 @@ class gateio(Exchange, ccxt.gateio):
             # if the received snapshot is earlier than the first cached delta
             # then we cannot align it with the cached deltas and we need to
             # retry synchronizing in maxAttempts
-            if (seqNum is not None) and (nonce < seqNum):
+            if (seqNum is None) or (nonce < seqNum):
                 maxAttempts = self.safe_integer(self.options, 'maxOrderBookSyncAttempts', 3)
                 numAttempts = self.safe_integer(subscription, 'numAttempts', 0)
                 # retry to syncrhonize if we haven't reached maxAttempts yet
@@ -195,9 +195,6 @@ class gateio(Exchange, ccxt.gateio):
         marketId = self.safe_string(result, 's')
         symbol = self.safe_symbol(marketId)
         orderbook = self.safe_value(self.orderbooks, symbol)
-        if orderbook is None:
-            orderbook = self.order_book({})
-            self.orderbooks[symbol] = orderbook
         if orderbook['nonce'] is None:
             orderbook.cache.append(message)
         else:
@@ -919,7 +916,7 @@ class gateio(Exchange, ccxt.gateio):
             payload = self.array_concat(idArray, payload)
         time = self.seconds()
         event = 'subscribe'
-        signaturePayload = 'channel=' + channel + '&event=' + event + '&time=' + str(time)
+        signaturePayload = 'channel=' + channel + '&' + 'event=' + event + '&' + 'time=' + str(time)
         signature = self.hmac(self.encode(signaturePayload), self.encode(self.secret), hashlib.sha512, 'hex')
         auth = {
             'method': 'api_key',
