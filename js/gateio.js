@@ -3479,7 +3479,7 @@ module.exports = class gateio extends Exchange {
         }
         const response = await this.privateWalletPostTransfers (this.extend (request, params));
         //
-        // according to the docs
+        // according to the docs (however actual response seems to be an empty string '')
         //
         //     {
         //       "currency": "BTC",
@@ -3489,20 +3489,26 @@ module.exports = class gateio extends Exchange {
         //       "currency_pair": "BTC_USDT"
         //     }
         //
-        // actual response
-        //
-        //  POST https://api.gateio.ws/api/v4/wallet/transfers 204 No Content
-        //
-        return {
-            'info': response,
-            'id': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'currency': code,
+        const transfer = this.parseTransfer (response, currency);
+        return this.extend (transfer, {
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
             'amount': truncated,
-            'fromAccount': fromId,
-            'toAccount': toId,
+        });
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        const timestamp = this.milliseconds ();
+        return {
+            'id': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': this.safeCurrencyCode (undefined, currency),
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
             'status': undefined,
+            'info': transfer,
         };
     }
 
