@@ -3740,9 +3740,9 @@ module.exports = class zb extends Exchange {
         const swap = (marketType === 'swap');
         let side = undefined;
         let marginMethod = undefined;
-        const amountCorrected = this.currencyToPrecision (code, amount);
+        const amountToPrecision = this.currencyToPrecision (code, amount);
         const request = {
-            'amount': amountCorrected, // Swap, Cross Margin, Isolated Margin
+            'amount': amountToPrecision, // Swap, Cross Margin, Isolated Margin
             // 'coin': currency['id'], // Margin
             // 'currencyName': currency['id'], // Swap
             // 'clientId': this.safeString (params, 'clientId'), // Swap "2sdfsdfsdf232342"
@@ -3799,7 +3799,7 @@ module.exports = class zb extends Exchange {
         //     }
         //
         return this.extend (this.parseTransfer (response, currency), {
-            'amount': amountCorrected,
+            'amount': this.parseNumber (amountToPrecision),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
         });
