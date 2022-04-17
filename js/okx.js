@@ -3912,13 +3912,13 @@ module.exports = class okx extends Exchange {
         //     {
         //         "bal":"0",
         //         "balChg":"-43.7368465405297587", // positive when moving into 'funding'. otherwise, negative
-        //         "billId":"661222620",
+        //         "billId":"661222620", // this is not actual 'transfer' id, so we don't set it as 'id'
         //         "ccy":"USDT",
         //         "ts":"1650175021000",
         //         "type":"131" // 130:trading to funding; 131:funding to trading
         //     }
         //
-        const id = this.safeString2 (transfer, 'transId', 'billId');
+        const id = this.safeString (transfer, 'transId');
         const currencyId = this.safeString (transfer, 'ccy');
         const code = this.safeCurrencyCode (currencyId, currency);
         let amount = this.safeNumber (transfer, 'amt');
