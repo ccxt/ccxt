@@ -2446,7 +2446,7 @@ class mexc(Exchange):
         }
         return self.contractPrivatePostPositionChangeLeverage(self.extend(request, params))
 
-    def fetch_transfer(self, id, since=None, limit=None, params={}):
+    def fetch_transfer(self, id, code=None, params={}):
         request = {
             'transact_id': id,
         }

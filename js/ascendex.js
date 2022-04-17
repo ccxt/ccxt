@@ -2432,13 +2432,9 @@ module.exports = class ascendex extends Exchange {
         //
         //    { code: '0' }
         //
-        const status = this.safeInteger (response, 'code');
         const transferOptions = this.safeValue (this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeValue (transferOptions, 'fillResponseFromRequest', true);
-        const transfer = {
-            'info': response,
-            'status': this.parseTransferStatus (status),
-        };
+        const transfer = this.parseTransfer (response, currency);
         if (fillResponseFromRequest) {
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
@@ -2446,6 +2442,26 @@ module.exports = class ascendex extends Exchange {
             transfer['currency'] = code;
         }
         return transfer;
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        //    { code: '0' }
+        //
+        const status = this.safeInteger (transfer, 'code');
+        const currencyCode = this.safeCurrencyCode (undefined, currency);
+        const timestamp = this.milliseconds ();
+        return {
+            'info': transfer,
+            'id': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': currencyCode,
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': this.parseTransferStatus (status),
+        };
     }
 
     parseTransferStatus (status) {
