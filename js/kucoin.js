@@ -2109,14 +2109,14 @@ module.exports = class kucoin extends Exchange {
 
     parseTransfer (transfer, currency = undefined) {
         //
-        // spot
+        // transfer (spot)
         //
         //     {
         //         'orderId': '605a6211e657f00006ad0ad6'
         //     }
         //
         //
-        // futures
+        // transfer (futures)
         //
         //     {
         //         'applyId': '605a87217dff1500063d485d',
