@@ -2578,7 +2578,7 @@ module.exports = class mexc extends Exchange {
         return await this.contractPrivatePostPositionChangeLeverage (this.extend (request, params));
     }
 
-    async fetchTransfer (id, since = undefined, limit = undefined, params = {}) {
+    async fetchTransfer (id, code = undefined, params = {}) {
         const request = {
             'transact_id': id,
         };

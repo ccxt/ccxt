@@ -3930,7 +3930,7 @@ module.exports = class okx extends Exchange {
         };
     }
 
-    async fetchTransfer (id, since = undefined, limit = undefined, params = {}) {
+    async fetchTransfer (id, code = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             'transId': id,
