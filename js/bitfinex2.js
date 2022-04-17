@@ -1916,7 +1916,7 @@ module.exports = class bitfinex2 extends bitfinex {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (statusCode, statusText, url, method, responseHeaders, body, response, requestHeaders, requestBody) {
+    handleErrors (statusCode, statusText, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response !== undefined) {
             if (!Array.isArray (response)) {
                 const message = this.safeString2 (response, 'message', 'error');
