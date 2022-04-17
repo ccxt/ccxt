@@ -1320,7 +1320,15 @@ module.exports = class cryptocom extends Exchange {
             'from': fromId,
             'to': toId,
         };
-        return await this.spotPrivatePostPrivateDerivTransfer (this.extend (request, params));
+        const repsonse = await this.spotPrivatePostPrivateDerivTransfer (this.extend (request, params));
+        //
+        //     {
+        //         "id": 11,
+        //         "method": "private/deriv/transfer",
+        //         "code": 0
+        //     }
+        //
+        return this.parseTransfer (repsonse, currency);
     }
 
     async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1358,12 +1366,7 @@ module.exports = class cryptocom extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const transferList = this.safeValue (result, 'transfer_list', []);
-        const resultArray = [];
-        for (let i = 0; i < transferList.length; i++) {
-            const transfer = transferList[i];
-            resultArray.push (this.parseTransfer (transfer, currency));
-        }
-        return this.filterBySinceLimit (resultArray, since, limit);
+        return this.parseTransfers (transferList, currency, since, limit, params);
     }
 
     parseTransferStatus (status) {
@@ -1401,7 +1404,7 @@ module.exports = class cryptocom extends Exchange {
         const status = this.parseTransferStatus (rawStatus);
         return {
             'info': transfer,
-            'id': undefined,
+            'id': this.safeString (transfer, 'id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'currency': code,
