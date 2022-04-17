@@ -19,15 +19,20 @@ async function main () {
     const exchange = new ccxtpro.gateio ({
         'options': {
             'defaultType': 'swap',
+            'maxOrderBookSyncAttempts': 100,
         },
     })
     await exchange.loadMarkets ()
-    exchange.verbose = true
+    // exchange.verbose = true
     const symbols = [
         'GMT/USDT:USDT',
         'ASTR/USDT:USDT',
+        'RAMP/USDT:USDT',
+        'RSR/USDT:USDT',
+        'RACA/USDT:USDT',
+        'ROOK/USDT:USDT',
+        'ROSE/USDT:USDT',
     ]
-
     await Promise.all (symbols.map (symbol => watchOrderBook (exchange, symbol)))
 }
 
