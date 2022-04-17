@@ -3493,7 +3493,7 @@ module.exports = class gateio extends Exchange {
         return this.extend (transfer, {
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'amount': truncated,
+            'amount': this.parseNumber (truncated),
         });
     }
 
