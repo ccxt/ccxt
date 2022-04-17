@@ -3740,8 +3740,9 @@ module.exports = class zb extends Exchange {
         const swap = (marketType === 'swap');
         let side = undefined;
         let marginMethod = undefined;
+        const amountToPrecision = this.currencyToPrecision (code, amount);
         const request = {
-            'amount': amount, // Swap, Cross Margin, Isolated Margin
+            'amount': amountToPrecision, // Swap, Cross Margin, Isolated Margin
             // 'coin': currency['id'], // Margin
             // 'currencyName': currency['id'], // Swap
             // 'clientId': this.safeString (params, 'clientId'), // Swap "2sdfsdfsdf232342"
@@ -3797,44 +3798,25 @@ module.exports = class zb extends Exchange {
         //         "message": "Success"
         //     }
         //
-        const timestamp = this.milliseconds ();
-        const transfer = {
-            'id': this.safeString (response, 'data'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'currency': code,
-            'amount': amount,
+        return this.extend (this.parseTransfer (response, currency), {
+            'amount': this.parseNumber (amountToPrecision),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'status': this.safeInteger (response, 'code'),
-        };
-        return this.parseTransfer (transfer, code);
+        });
     }
 
     parseTransfer (transfer, currency = undefined) {
-        //
-        //     {
-        //         "id": "2sdfsdfsdf232342",
-        //         "timestamp": "",
-        //         "datetime": "",
-        //         "currency": "USDT",
-        //         "amount": "10",
-        //         "fromAccount": "futures account",
-        //         "toAccount": "zb account",
-        //         "status": 10000,
-        //     }
-        //
-        const currencyId = this.safeString (transfer, 'currency');
+        // response samples in 'transfer'
+        const timestamp = this.milliseconds ();
         return {
-            'info': transfer,
-            'id': this.safeString (transfer, 'id'),
-            'timestamp': this.safeInteger (transfer, 'timestamp'),
-            'datetime': this.safeString (transfer, 'datetime'),
-            'currency': this.safeCurrencyCode (currencyId, currency),
-            'amount': this.safeNumber (transfer, 'amount'),
-            'fromAccount': this.safeString (transfer, 'fromAccount'),
-            'toAccount': this.safeString (transfer, 'toAccount'),
-            'status': this.safeInteger (transfer, 'status'),
+            'id': this.safeString (transfer, 'data'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': this.safeCurrencyCode (undefined, 'currency'),
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': undefined,
         };
     }
 
