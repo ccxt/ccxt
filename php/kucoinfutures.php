@@ -1709,8 +1709,8 @@ class kucoinfutures extends kucoin {
             $tiers[] = array(
                 'tier' => $this->safe_number($tier, 'level'),
                 'currency' => $market['base'],
-                'notionalFloor' => $this->safe_number($tier, 'minRiskLimit'),
-                'notionalCap' => $this->safe_number($tier, 'maxRiskLimit'),
+                'minNotional' => $this->safe_number($tier, 'minRiskLimit'),
+                'maxNotional' => $this->safe_number($tier, 'maxRiskLimit'),
                 'maintenanceMarginRate' => $this->safe_number($tier, 'maintainMargin'),
                 'maxLeverage' => $this->safe_number($tier, 'maxLeverage'),
                 'info' => $tier,
