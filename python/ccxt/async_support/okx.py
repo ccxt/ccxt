@@ -3768,7 +3768,6 @@ class okx(Exchange):
 
     async def fetch_transfer(self, id, code=None, params={}):
         await self.load_markets()
-        currency = self.currency(code)
         request = {
             'transId': id,
             # 'type': 0,  # default is 0 transfer within account, 1 master to sub, 2 sub to master
@@ -3795,8 +3794,8 @@ class okx(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        transferInfo = self.safe_value(data, 0)
-        return self.parse_transfer(transferInfo, currency)
+        transfer = self.safe_value(data, 0)
+        return self.parse_transfer(transfer)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         isArray = isinstance(params, list)

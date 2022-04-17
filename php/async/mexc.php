@@ -2584,14 +2584,14 @@ class mexc extends Exchange {
         return yield $this->contractPrivatePostPositionChangeLeverage (array_merge($request, $params));
     }
 
-    public function fetch_transfer($id, $since = null, $limit = null, $params = array ()) {
+    public function fetch_transfer($id, $code = null, $params = array ()) {
         $request = array(
             'transact_id' => $id,
         );
         $response = yield $this->spotPrivateGetAssetInternalTransferInfo (array_merge($request, $params));
         //
         //     {
-        //         code => '200',
+        //         $code => '200',
         //         $data => {
         //             currency => 'USDT',
         //             amount => '1',

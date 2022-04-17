@@ -3934,10 +3934,9 @@ class okx extends Exchange {
 
     public function fetch_transfer($id, $code = null, $params = array ()) {
         yield $this->load_markets();
-        $currency = $this->currency($code);
         $request = array(
             'transId' => $id,
-            // 'type' => 0, // default is 0 transfer within account, 1 master to sub, 2 sub to master
+            // 'type' => 0, // default is 0 $transfer within account, 1 master to sub, 2 sub to master
         );
         $response = yield $this->privateGetAssetTransferState (array_merge($request, $params));
         //
@@ -3961,8 +3960,8 @@ class okx extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $transferInfo = $this->safe_value($data, 0);
-        return $this->parse_transfer($transferInfo, $currency);
+        $transfer = $this->safe_value($data, 0);
+        return $this->parse_transfer($transfer);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
