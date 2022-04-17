@@ -394,18 +394,35 @@ class hitbtc(Exchange):
             type = fromId + 'To' + self.capitalize(toId)
         request['type'] = type
         response = await self.privatePostAccountTransfer(self.extend(request, params))
-        # {id: '2db6ebab-fb26-4537-9ef8-1a689472d236'}
-        id = self.safe_string(response, 'id')
-        return {
-            'info': response,
-            'id': id,
-            'timestamp': None,
-            'datetime': None,
-            'amount': requestAmount,
-            'currency': code,
+        #
+        #     {
+        #         'id': '2db6ebab-fb26-4537-9ef8-1a689472d236'
+        #     }
+        #
+        transfer = self.parse_transfer(response, currency)
+        return self.extend(transfer, {
             'fromAccount': fromAccount,
             'toAccount': toAccount,
+            'amount': self.parse_number(requestAmount),
+        })
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        #     {
+        #         'id': '2db6ebab-fb26-4537-9ef8-1a689472d236'
+        #     }
+        #
+        timestamp = self.milliseconds()
+        return {
+            'id': self.safe_string(transfer, 'id'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'currency': self.safe_currency_code(None, currency),
+            'amount': None,
+            'fromAccount': None,
+            'toAccount': None,
             'status': None,
+            'info': transfer,
         }
 
     async def fetch_currencies(self, params={}):
