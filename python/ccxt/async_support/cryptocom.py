@@ -1265,7 +1265,15 @@ class cryptocom(Exchange):
             'from': fromId,
             'to': toId,
         }
-        return await self.spotPrivatePostPrivateDerivTransfer(self.extend(request, params))
+        repsonse = await self.spotPrivatePostPrivateDerivTransfer(self.extend(request, params))
+        #
+        #     {
+        #         "id": 11,
+        #         "method": "private/deriv/transfer",
+        #         "code": 0
+        #     }
+        #
+        return self.parse_transfer(repsonse, currency)
 
     async def fetch_transfers(self, code=None, since=None, limit=None, params={}):
         if not ('direction' in params):
@@ -1300,11 +1308,7 @@ class cryptocom(Exchange):
         #
         result = self.safe_value(response, 'result', {})
         transferList = self.safe_value(result, 'transfer_list', [])
-        resultArray = []
-        for i in range(0, len(transferList)):
-            transfer = transferList[i]
-            resultArray.append(self.parse_transfer(transfer, currency))
-        return self.filter_by_since_limit(resultArray, since, limit)
+        return self.parse_transfers(transferList, currency, since, limit, params)
 
     def parse_transfer_status(self, status):
         statuses = {
@@ -1339,7 +1343,7 @@ class cryptocom(Exchange):
         status = self.parse_transfer_status(rawStatus)
         return {
             'info': transfer,
-            'id': None,
+            'id': self.safe_string(transfer, 'id'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'currency': code,
