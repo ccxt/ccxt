@@ -1358,12 +1358,7 @@ module.exports = class cryptocom extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const transferList = this.safeValue (result, 'transfer_list', []);
-        const resultArray = [];
-        for (let i = 0; i < transferList.length; i++) {
-            const transfer = transferList[i];
-            resultArray.push (this.parseTransfer (transfer, currency));
-        }
-        return this.filterBySinceLimit (resultArray, since, limit);
+        return this.parseTransfers (transferList, currency, since, limit, params);
     }
 
     parseTransferStatus (status) {
