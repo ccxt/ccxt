@@ -54,6 +54,9 @@ module.exports = class gateio extends ccxt.gateio {
                 'watchTradesSubscriptions': {},
                 'watchTickerSubscriptions': {},
                 'watchOrderBookSubscriptions': {},
+                'watchOrderBook': {
+                    'interval': '100ms',
+                },
             },
             'exceptions': {
                 'ws': {
@@ -78,7 +81,8 @@ module.exports = class gateio extends ccxt.gateio {
         if (!limit) {
             limit = defaultLimit;
         }
-        const interval = this.safeString (params, 'interval', '1000ms');
+        const defaultInterval = this.safeString (options, 'interval', '100ms');
+        const interval = this.safeString (params, 'interval', defaultInterval);
         const type = market['type'];
         const messageType = this.getUniformType (type);
         const method = messageType + '.' + 'order_book_update';
