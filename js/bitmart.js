@@ -2283,7 +2283,6 @@ module.exports = class bitmart extends Exchange {
         const request = {
             'id': id,
         };
-        const currency = this.currency (code);
         const response = await this.privateAccountGetDepositWithdrawDetail (this.extend (request, params));
         //
         //     {
@@ -2309,7 +2308,7 @@ module.exports = class bitmart extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const record = this.safeValue (data, 'record', {});
-        return this.parseTransaction (record, currency);
+        return this.parseTransaction (record);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2336,7 +2335,7 @@ module.exports = class bitmart extends Exchange {
         //         "withdraw_id": "121212"
         //     }
         //
-        // fetchDeposits, fetchWithdrawals
+        // fetchDeposits, fetchWithdrawals, fetchWithdrawal
         //
         //     {
         //         "withdraw_id":"1679952",
