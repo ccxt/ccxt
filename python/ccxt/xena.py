@@ -1786,8 +1786,8 @@ class xena(Exchange):
                 tiers.append({
                     'tier': self.sum(j, 1),
                     'currency': market['base'],
-                    'notionalFloor': floor,
-                    'notionalCap': cap,
+                    'minNotional': floor,
+                    'maxNotional': cap,
                     'maintenanceMarginRate': self.safe_number(tier, 'maintenanceRate'),
                     'maxLeverage': self.parse_number(Precise.string_div('1', initialRate)),
                     'info': tier,

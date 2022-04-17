@@ -4901,8 +4901,8 @@ class binance extends Exchange {
             $tiers[] = array(
                 'tier' => $this->safe_number($bracket, 'bracket'),
                 'currency' => $market['quote'],
-                'notionalFloor' => $this->safe_number_2($bracket, 'notionalFloor', 'qtyFloor'),
-                'notionalCap' => $this->safe_number($bracket, 'notionalCap', 'qtyCap'),
+                'minNotional' => $this->safe_number_2($bracket, 'notionalFloor', 'qtyFloor'),
+                'maxNotional' => $this->safe_number($bracket, 'notionalCap', 'qtyCap'),
                 'maintenanceMarginRate' => $this->safe_number($bracket, 'maintMarginRatio'),
                 'maxLeverage' => $this->safe_number($bracket, 'initialLeverage'),
                 'info' => $bracket,
