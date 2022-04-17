@@ -3933,7 +3933,7 @@ module.exports = class okx extends Exchange {
         const ledgerAmount = this.safeString (transfer, 'balChg');
         if (ledgerAmount !== undefined) {
             amount = Precise.stringAbs (ledgerAmount);
-            if (Precise.stringGt (ledgerAmount, 0)) {
+            if (Precise.stringGt (ledgerAmount, '0')) {
                 fromAccount = 'trading';
                 toAccount = 'funding';
             } else {
