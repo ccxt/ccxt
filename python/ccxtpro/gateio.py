@@ -197,6 +197,7 @@ class gateio(Exchange, ccxt.gateio):
         orderbook = self.safe_value(self.orderbooks, symbol)
         if orderbook is None:
             orderbook = self.order_book({})
+            self.orderbooks[symbol] = orderbook
         if orderbook['nonce'] is None:
             orderbook.cache.append(message)
         else:
@@ -205,44 +206,57 @@ class gateio(Exchange, ccxt.gateio):
 
     def handle_order_book_message(self, client, message, orderbook, messageHash=None):
         #
-        #  {
-        #      "time":1649770575,
-        #      "channel":"spot.order_book_update",
-        #      "event":"update",
-        #      "result":{
-        #   {
-        #         "t":1649770575537,
-        #         "e":"depthUpdate",
-        #         "E":1649770575,
-        #         "s":"LTC_USDT",
-        #         "U":2622528153,
-        #         "u":2622528265,
-        #         "b":[
-        #            ["104.18","3.9398"],
-        #            ["104.56","19.0603"],
-        #            ["104.94","0"],
-        #            ["103.72","0"],
-        #            ["105.01","52.6186"],
-        #            ["104.76","0"],
-        #            ["104.97","0"],
-        #            ["104.71","0"],
-        #            ["104.84","25.8604"],
-        #            ["104.51","47.6508"],
-        #         ],
-        #         "a":[
-        #            ["105.26","40.5519"],
-        #            ["106.08","35.4396"],
-        #            ["105.2","0"],
-        #            ["105.45","8.5834"],
-        #            ["105.5","20.17"],
-        #            ["105.11","54.8359"],
-        #            ["105.52","28.5605"],
-        #            ["105.27","6.6325"],
-        #            ["105.3","4.291446"],
-        #            ["106.03","9.712"],
-        #         ]
-        #      }
-        #  }
+        # spot
+        #
+        #     {
+        #         time: 1650189272,
+        #         channel: 'spot.order_book_update',
+        #         event: 'update',
+        #         result: {
+        #             t: 1650189272515,
+        #             e: 'depthUpdate',
+        #             E: 1650189272,
+        #             s: 'GMT_USDT',
+        #             U: 140595902,
+        #             u: 140595902,
+        #             b: [
+        #                 ['2.51518', '228.119'],
+        #                 ['2.50587', '1510.11'],
+        #                 ['2.49944', '67.6'],
+        #             ],
+        #             a: [
+        #                 ['2.5182', '4.199'],
+        #                 ['2.51926', '1874'],
+        #                 ['2.53528', '96.529'],
+        #             ]
+        #         }
+        #     }
+        #
+        # swap
+        #
+        #     {
+        #         id: null,
+        #         time: 1650188898,
+        #         channel: 'futures.order_book_update',
+        #         event: 'update',
+        #         error: null,
+        #         result: {
+        #             t: 1650188898938,
+        #             s: 'GMT_USDT',
+        #             U: 1577718307,
+        #             u: 1577719254,
+        #             b: [
+        #                 {p: '2.5178', s: 0},
+        #                 {p: '2.5179', s: 0},
+        #                 {p: '2.518', s: 0},
+        #             ],
+        #             a: [
+        #                 {p: '2.52', s: 0},
+        #                 {p: '2.5201', s: 0},
+        #                 {p: '2.5203', s: 0},
+        #             ]
+        #         }
+        #     }
         #
         result = self.safe_value(message, 'result')
         prevSeqNum = self.safe_integer(result, 'U')
@@ -250,11 +264,12 @@ class gateio(Exchange, ccxt.gateio):
         nonce = orderbook['nonce']
         # we have to add +1 because if the current seqNumber on iteration X is 5
         # on the iteration X+1, prevSeqNum will be(5+1)
-        if (prevSeqNum <= nonce + 1) and (seqNum >= nonce + 1):
+        nextNonce = self.sum(nonce, 1)
+        if (prevSeqNum <= nextNonce) and (seqNum >= nextNonce):
             asks = self.safe_value(result, 'a', [])
             bids = self.safe_value(result, 'b', [])
-            self.handle_deltas(orderbook['asks'], asks, nonce)
-            self.handle_deltas(orderbook['bids'], bids, nonce)
+            self.handle_deltas(orderbook['asks'], asks)
+            self.handle_deltas(orderbook['bids'], bids)
             orderbook['nonce'] = seqNum
             timestamp = self.safe_integer(result, 't')
             orderbook['timestamp'] = timestamp
@@ -264,8 +279,16 @@ class gateio(Exchange, ccxt.gateio):
         return orderbook
 
     def handle_delta(self, bookside, delta):
-        price = self.safe_float(delta, 0)
-        amount = self.safe_float(delta, 1)
+        price = None
+        amount = None
+        if isinstance(delta, list):
+            # spot
+            price = self.safe_float(delta, 0)
+            amount = self.safe_float(delta, 1)
+        else:
+            # swap
+            price = self.safe_float(delta, 'p')
+            amount = self.safe_float(delta, 's')
         bookside.store(price, amount)
 
     def handle_deltas(self, bookside, deltas):

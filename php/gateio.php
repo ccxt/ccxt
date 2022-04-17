@@ -208,6 +208,7 @@ class gateio extends \ccxt\async\gateio {
         $orderbook = $this->safe_value($this->orderbooks, $symbol);
         if ($orderbook === null) {
             $orderbook = $this->order_book(array());
+            $this->orderbooks[$symbol] = $orderbook;
         }
         if ($orderbook['nonce'] === null) {
             $orderbook->cache[] = $message;
@@ -219,44 +220,57 @@ class gateio extends \ccxt\async\gateio {
 
     public function handle_order_book_message($client, $message, $orderbook, $messageHash = null) {
         //
-        //  {
-        //      "time":1649770575,
-        //      "channel":"spot.order_book_update",
-        //      "event":"update",
-        //      "result":{
-        //   {
-        //         "t":1649770575537,
-        //         "e":"depthUpdate",
-        //         "E":1649770575,
-        //         "s":"LTC_USDT",
-        //         "U":2622528153,
-        //         "u":2622528265,
-        //         "b":[
-        //            ["104.18","3.9398"],
-        //            ["104.56","19.0603"],
-        //            ["104.94","0"],
-        //            ["103.72","0"],
-        //            ["105.01","52.6186"],
-        //            ["104.76","0"],
-        //            ["104.97","0"],
-        //            ["104.71","0"],
-        //            ["104.84","25.8604"],
-        //            ["104.51","47.6508"],
-        //         ],
-        //         "a":[
-        //            ["105.26","40.5519"],
-        //            ["106.08","35.4396"],
-        //            ["105.2","0"],
-        //            ["105.45","8.5834"],
-        //            ["105.5","20.17"],
-        //            ["105.11","54.8359"],
-        //            ["105.52","28.5605"],
-        //            ["105.27","6.6325"],
-        //            ["105.3","4.291446"],
-        //            ["106.03","9.712"],
-        //         ]
-        //      }
-        //  }
+        // spot
+        //
+        //     {
+        //         time => 1650189272,
+        //         channel => 'spot.order_book_update',
+        //         event => 'update',
+        //         $result => {
+        //             t => 1650189272515,
+        //             e => 'depthUpdate',
+        //             E => 1650189272,
+        //             s => 'GMT_USDT',
+        //             U => 140595902,
+        //             u => 140595902,
+        //             b => array(
+        //                 array( '2.51518', '228.119' ),
+        //                 array( '2.50587', '1510.11' ),
+        //                 array( '2.49944', '67.6' ),
+        //             ),
+        //             a => array(
+        //                 array( '2.5182', '4.199' ),
+        //                 array( '2.51926', '1874' ),
+        //                 array( '2.53528', '96.529' ),
+        //             )
+        //         }
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         id => null,
+        //         time => 1650188898,
+        //         channel => 'futures.order_book_update',
+        //         event => 'update',
+        //         error => null,
+        //         $result => {
+        //             t => 1650188898938,
+        //             s => 'GMT_USDT',
+        //             U => 1577718307,
+        //             u => 1577719254,
+        //             b => array(
+        //                 array( p => '2.5178', s => 0 ),
+        //                 array( p => '2.5179', s => 0 ),
+        //                 array( p => '2.518', s => 0 ),
+        //             ),
+        //             a => array(
+        //                 array( p => '2.52', s => 0 ),
+        //                 array( p => '2.5201', s => 0 ),
+        //                 array( p => '2.5203', s => 0 ),
+        //             )
+        //         }
+        //     }
         //
         $result = $this->safe_value($message, 'result');
         $prevSeqNum = $this->safe_integer($result, 'U');
@@ -264,11 +278,12 @@ class gateio extends \ccxt\async\gateio {
         $nonce = $orderbook['nonce'];
         // we have to add +1 because if the current seqNumber on iteration X is 5
         // on the iteration X+1, $prevSeqNum will be (5+1)
-        if (($prevSeqNum <= $nonce + 1) && ($seqNum >= $nonce + 1)) {
+        $nextNonce = $this->sum($nonce, 1);
+        if (($prevSeqNum <= $nextNonce) && ($seqNum >= $nextNonce)) {
             $asks = $this->safe_value($result, 'a', array());
             $bids = $this->safe_value($result, 'b', array());
-            $this->handle_deltas($orderbook['asks'], $asks, $nonce);
-            $this->handle_deltas($orderbook['bids'], $bids, $nonce);
+            $this->handle_deltas($orderbook['asks'], $asks);
+            $this->handle_deltas($orderbook['bids'], $bids);
             $orderbook['nonce'] = $seqNum;
             $timestamp = $this->safe_integer($result, 't');
             $orderbook['timestamp'] = $timestamp;
@@ -281,8 +296,17 @@ class gateio extends \ccxt\async\gateio {
     }
 
     public function handle_delta($bookside, $delta) {
-        $price = $this->safe_float($delta, 0);
-        $amount = $this->safe_float($delta, 1);
+        $price = null;
+        $amount = null;
+        if (gettype($delta) === 'array' && count(array_filter(array_keys($delta), 'is_string')) == 0) {
+            // spot
+            $price = $this->safe_float($delta, 0);
+            $amount = $this->safe_float($delta, 1);
+        } else {
+            // swap
+            $price = $this->safe_float($delta, 'p');
+            $amount = $this->safe_float($delta, 's');
+        }
         $bookside->store ($price, $amount);
     }
 
