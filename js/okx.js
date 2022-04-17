@@ -3930,7 +3930,7 @@ module.exports = class okx extends Exchange {
         };
     }
 
-    async fetchTransfer (id, since = undefined, limit = undefined, params = {}) {
+    async fetchTransfer (id, code = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             'transId': id,
@@ -3958,12 +3958,8 @@ module.exports = class okx extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const resultArray = [];
-        for (let i = 0; i < data.length; i++) {
-            const transfer = data[i];
-            resultArray.push (this.parseTransfer (transfer, undefined));
-        }
-        return this.filterBySinceLimit (resultArray, since, limit);
+        const transfer = this.safeValue (data, 0);
+        return this.parseTransfer (transfer);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

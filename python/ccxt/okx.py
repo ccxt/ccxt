@@ -3764,8 +3764,9 @@ class okx(Exchange):
             'status': status,
         }
 
-    def fetch_transfer(self, id, since=None, limit=None, params={}):
+    def fetch_transfer(self, id, code=None, params={}):
         self.load_markets()
+        currency = self.currency(code)
         request = {
             'transId': id,
             # 'type': 0,  # default is 0 transfer within account, 1 master to sub, 2 sub to master
@@ -3792,11 +3793,8 @@ class okx(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        resultArray = []
-        for i in range(0, len(data)):
-            transfer = data[i]
-            resultArray.append(self.parse_transfer(transfer, None))
-        return self.filter_by_since_limit(resultArray, since, limit)
+        transferInfo = self.safe_value(data, 0)
+        return self.parse_transfer(transferInfo, currency)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         isArray = isinstance(params, list)
