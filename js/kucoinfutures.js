@@ -1322,7 +1322,7 @@ module.exports = class kucoinfutures extends kucoin {
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const amountCorrected = this.currencyToPrecision (code, amount);
+        const amountToPrecision = this.currencyToPrecision (code, amount);
         const request = {
             'currency': this.safeString (currency, 'id'), // Currency,including XBT,USDT
             'amount': amountCorrected,
@@ -1339,7 +1339,7 @@ module.exports = class kucoinfutures extends kucoin {
         //
         const data = this.safeValue (response, 'data');
         return this.extend (this.parseTransfer (data, currency), {
-            'amount': amountCorrected,
+            'amount': this.parseNumber (amountToPrecision),
             'fromAccount': 'future',
             'toAccount': 'spot',
         });
