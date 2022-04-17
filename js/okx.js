@@ -3992,7 +3992,7 @@ module.exports = class okx extends Exchange {
 
     async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const currency = this.currency (code);
+        const currency = code === undefined ? undefined : this.currency (code);
         const additionalParams = { 'method': 'privateGetAssetBills', 'type': '' };
         const response = await this.fetchLedger (code, since, limit, this.extend (additionalParams, params));
         const transfers = [];
