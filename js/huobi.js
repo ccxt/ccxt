@@ -5685,8 +5685,8 @@ module.exports = class huobi extends Exchange {
                         tiers.push ({
                             'tier': this.safeInteger (bracket, 'ladder'),
                             'currency': this.safeCurrencyCode (currency),
-                            'notionalFloor': this.safeNumber (bracket, 'min_size'),
-                            'notionalCap': this.safeNumber (bracket, 'max_size'),
+                            'minNotional': this.safeNumber (bracket, 'min_size'),
+                            'maxNotional': this.safeNumber (bracket, 'max_size'),
                             'maintenanceMarginRate': this.parseNumber (Precise.stringDiv (adjustFactor, leverage)),
                             'maxLeverage': this.parseNumber (leverage),
                             'info': bracket,

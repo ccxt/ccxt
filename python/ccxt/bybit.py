@@ -3082,19 +3082,19 @@ class bybit(Exchange):
         #        ...
         #    ]
         #
-        notionalFloor = 0
+        minNotional = 0
         tiers = []
         for i in range(0, len(info)):
             item = info[i]
-            notionalCap = self.safe_number(item, 'limit')
+            maxNotional = self.safe_number(item, 'limit')
             tiers.append({
                 'tier': self.sum(i, 1),
                 'currency': market['base'],
-                'notionalFloor': notionalFloor,
-                'notionalCap': notionalCap,
+                'minNotional': minNotional,
+                'maxNotional': maxNotional,
                 'maintenanceMarginRate': self.safe_number(item, 'maintain_margin'),
                 'maxLeverage': self.safe_number(item, 'max_leverage'),
                 'info': item,
             })
-            notionalFloor = notionalCap
+            minNotional = maxNotional
         return tiers

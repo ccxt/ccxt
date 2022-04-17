@@ -5366,8 +5366,8 @@ class huobi(Exchange):
                         tiers.append({
                             'tier': self.safe_integer(bracket, 'ladder'),
                             'currency': self.safe_currency_code(currency),
-                            'notionalFloor': self.safe_number(bracket, 'min_size'),
-                            'notionalCap': self.safe_number(bracket, 'max_size'),
+                            'minNotional': self.safe_number(bracket, 'min_size'),
+                            'maxNotional': self.safe_number(bracket, 'max_size'),
                             'maintenanceMarginRate': self.parse_number(Precise.string_div(adjustFactor, leverage)),
                             'maxLeverage': self.parse_number(leverage),
                             'info': bracket,
