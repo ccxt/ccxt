@@ -2062,50 +2062,27 @@ module.exports = class kucoin extends Exchange {
             const response = await this.futuresPrivatePostTransferOut (this.extend (request, params));
             //
             //     {
-            //         code: '200000',
-            //         data: {
-            //             applyId: '605a87217dff1500063d485d',
-            //             bizNo: 'bcd6e5e1291f4905af84dc',
-            //             payAccountType: 'CONTRACT',
-            //             payTag: 'DEFAULT',
-            //             remark: '',
-            //             recAccountType: 'MAIN',
-            //             recTag: 'DEFAULT',
-            //             recRemark: '',
-            //             recSystem: 'KUCOIN',
-            //             status: 'PROCESSING',
-            //             currency: 'XBT',
-            //             amount: '0.00001',
-            //             fee: '0',
-            //             sn: '573688685663948',
-            //             reason: '',
-            //             createdAt: 1616545569000,
-            //             updatedAt: 1616545569000
-            //         }
+            //         'applyId': '605a87217dff1500063d485d',
+            //         'bizNo': 'bcd6e5e1291f4905af84dc',
+            //         'payAccountType': 'CONTRACT',
+            //         'payTag': 'DEFAULT',
+            //         'remark': '',
+            //         'recAccountType': 'MAIN',
+            //         'recTag': 'DEFAULT',
+            //         'recRemark': '',
+            //         'recSystem': 'KUCOIN',
+            //         'status': 'PROCESSING',
+            //         'currency': 'XBT',
+            //         'amount': '0.00001',
+            //         'fee': '0',
+            //         'sn': '573688685663948',
+            //         'reason': '',
+            //         'createdAt': 1616545569000,
+            //         'updatedAt': 1616545569000
             //     }
             //
             const data = this.safeValue (response, 'data');
-            const timestamp = this.safeInteger (data, 'createdAt');
-            const id = this.safeString (data, 'applyId');
-            const currencyId = this.safeString (data, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            const amount = this.safeNumber (data, 'amount');
-            const rawStatus = this.safeString (data, 'status');
-            let status = undefined;
-            if (rawStatus === 'PROCESSING') {
-                status = 'pending';
-            }
-            return {
-                'info': response,
-                'currency': code,
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-                'amount': amount,
-                'fromAccount': fromId,
-                'toAccount': toId,
-                'id': id,
-                'status': status,
-            };
+            return this.parseTransfer (data, currency);
         } else {
             const request = {
                 'currency': currency['id'],
@@ -2117,21 +2094,76 @@ module.exports = class kucoin extends Exchange {
                 request['clientOid'] = this.uuid ();
             }
             const response = await this.privatePostAccountsInnerTransfer (this.extend (request, params));
-            // { code: '200000', data: { orderId: '605a6211e657f00006ad0ad6' } }
+            //
+            //     {
+            //         'code': '200000',
+            //         'data': {
+            //              'orderId': '605a6211e657f00006ad0ad6'
+            //         }
+            //     }
+            //
             const data = this.safeValue (response, 'data');
-            const id = this.safeString (data, 'orderId');
-            return {
-                'info': response,
-                'id': id,
-                'timestamp': undefined,
-                'datetime': undefined,
-                'currency': code,
-                'amount': requestedAmount,
-                'fromAccount': fromId,
-                'toAccount': toId,
-                'status': undefined,
-            };
+            return this.parseTransfer (data, currency);
         }
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        // spot
+        //
+        //     {
+        //         'orderId': '605a6211e657f00006ad0ad6'
+        //     }
+        //
+        //
+        // futures
+        //
+        //     {
+        //         'applyId': '605a87217dff1500063d485d',
+        //         'bizNo': 'bcd6e5e1291f4905af84dc',
+        //         'payAccountType': 'CONTRACT',
+        //         'payTag': 'DEFAULT',
+        //         'remark': '',
+        //         'recAccountType': 'MAIN',
+        //         'recTag': 'DEFAULT',
+        //         'recRemark': '',
+        //         'recSystem': 'KUCOIN',
+        //         'status': 'PROCESSING',
+        //         'currency': 'XBT',
+        //         'amount': '0.00001',
+        //         'fee': '0',
+        //         'sn': '573688685663948',
+        //         'reason': '',
+        //         'createdAt': 1616545569000,
+        //         'updatedAt': 1616545569000
+        //     }
+        //
+        const timestamp = this.safeInteger (transfer, 'createdAt');
+        const currencyId = this.safeString (transfer, 'currency');
+        const rawStatus = this.safeString (transfer, 'status');
+        const accountFromRaw = this.safeString (transfer, 'payAccountType');
+        const accountToRaw = this.safeString (transfer, 'recAccountType');
+        const accountsByType = this.safeValue (this.options, 'accountsByType');
+        const accountFrom = this.safeString (accountsByType, accountFromRaw.toLowerCase ());
+        const accountTo = this.safeString (accountsByType, accountToRaw.toLowerCase ());
+        return {
+            'id': this.safeString2 (transfer, 'applyId', 'orderId'),
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'amount': this.safeNumber (transfer, 'amount'),
+            'fromAccount': accountFrom,
+            'toAccount': accountTo,
+            'status': this.parseTransferStatus (rawStatus),
+            'info': transfer,
+        };
+    }
+
+    parseTransferStatus (status) {
+        const statuses = {
+            'PROCESSING': 'pending',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     parseLedgerEntryType (type) {
