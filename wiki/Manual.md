@@ -2564,18 +2564,18 @@ Returns
 [
     {
         "tier": 1,                       // tier index
-        "notionalCurrency": "USDT",      // the currency that notionalFloor and notionalCap are in
-        "notionalFloor": 0,              // the lowest amount of this tier // stake = 0.0
-        "notionalCap": 10000,            // the highest amount of this tier // max stake amount at 75x leverage = 133.33333333333334
+        "notionalCurrency": "USDT",      // the currency that minNotional and maxNotional are in
+        "minNotional": 0,                // the lowest amount of this tier // stake = 0.0
+        "maxNotional": 10000,            // the highest amount of this tier // max stake amount at 75x leverage = 133.33333333333334
         "maintenanceMarginRate": 0.0065, // maintenance margin rate
-        "maxLeverage": 75,               // max available leverage for this market when the value of the trade is > notionalFloor and < notionalCap
+        "maxLeverage": 75,               // max available leverage for this market when the value of the trade is > minNotional and < maxNotional
         "info": { ... }                  // Response from exchange
     },
     {
         "tier": 2,
         "notionalCurrency": "USDT",
-        "notionalFloor": 10000,          // min stake amount at 50x leverage = 200.0
-        "notionalCap": 50000,            // max stake amount at 50x leverage = 1000.0
+        "minNotional": 10000,            // min stake amount at 50x leverage = 200.0
+        "maxNotional": 50000,            // max stake amount at 50x leverage = 1000.0
         "maintenanceMarginRate": 0.01,
         "maxLeverage": 50,
         "info": { ... },
@@ -2584,8 +2584,8 @@ Returns
     {
         "tier": 9,
         "notionalCurrency": "USDT",
-        "notionalFloor": 20000000,
-        "notionalCap": 50000000,
+        "minNotional": 20000000,
+        "maxNotional": 50000000,
         "maintenanceMarginRate": 0.5,
         "maxLeverage": 1,
         "info": { ... },
