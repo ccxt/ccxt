@@ -916,7 +916,7 @@ class gateio(Exchange, ccxt.gateio):
             payload = self.array_concat(idArray, payload)
         time = self.seconds()
         event = 'subscribe'
-        signaturePayload = 'channel=' + channel + '&event=' + event + '&time=' + str(time)
+        signaturePayload = 'channel=' + channel + '&' + 'event=' + event + '&' + 'time=' + str(time)
         signature = self.hmac(self.encode(signaturePayload), self.encode(self.secret), hashlib.sha512, 'hex')
         auth = {
             'method': 'api_key',

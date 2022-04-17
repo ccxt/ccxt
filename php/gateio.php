@@ -1009,7 +1009,7 @@ class gateio extends \ccxt\async\gateio {
         }
         $time = $this->seconds();
         $event = 'subscribe';
-        $signaturePayload = 'channel=' . $channel . '&$event=' . $event . '&$time=' . (string) $time;
+        $signaturePayload = 'channel=' . $channel . '&' . 'event=' . $event . '&' . 'time=' . (string) $time;
         $signature = $this->hmac($this->encode($signaturePayload), $this->encode($this->secret), 'sha512', 'hex');
         $auth = array(
             'method' => 'api_key',
