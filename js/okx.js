@@ -3963,7 +3963,7 @@ module.exports = class okx extends Exchange {
             const transfer = data[i];
             resultArray.push (this.parseTransfer (transfer, undefined));
         }
-        return this.filterBySinceLimit (resultArray, since, limit);
+        return this.filterBySinceLimit (resultArray, undefined, undefined);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
