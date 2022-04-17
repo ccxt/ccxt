@@ -202,6 +202,7 @@ module.exports = class gateio extends ccxt.gateio {
         let orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
             orderbook = this.orderBook ({});
+            this.orderbooks[symbol] = orderbook;
         }
         if (orderbook['nonce'] === undefined) {
             orderbook.cache.push (message);
@@ -213,44 +214,57 @@ module.exports = class gateio extends ccxt.gateio {
 
     handleOrderBookMessage (client, message, orderbook, messageHash = undefined) {
         //
-        //  {
-        //      "time":1649770575,
-        //      "channel":"spot.order_book_update",
-        //      "event":"update",
-        //      "result":{
-        //   {
-        //         "t":1649770575537,
-        //         "e":"depthUpdate",
-        //         "E":1649770575,
-        //         "s":"LTC_USDT",
-        //         "U":2622528153,
-        //         "u":2622528265,
-        //         "b":[
-        //            ["104.18","3.9398"],
-        //            ["104.56","19.0603"],
-        //            ["104.94","0"],
-        //            ["103.72","0"],
-        //            ["105.01","52.6186"],
-        //            ["104.76","0"],
-        //            ["104.97","0"],
-        //            ["104.71","0"],
-        //            ["104.84","25.8604"],
-        //            ["104.51","47.6508"],
-        //         ],
-        //         "a":[
-        //            ["105.26","40.5519"],
-        //            ["106.08","35.4396"],
-        //            ["105.2","0"],
-        //            ["105.45","8.5834"],
-        //            ["105.5","20.17"],
-        //            ["105.11","54.8359"],
-        //            ["105.52","28.5605"],
-        //            ["105.27","6.6325"],
-        //            ["105.3","4.291446"],
-        //            ["106.03","9.712"],
-        //         ]
-        //      }
-        //  }
+        // spot
+        //
+        //     {
+        //         time: 1650189272,
+        //         channel: 'spot.order_book_update',
+        //         event: 'update',
+        //         result: {
+        //             t: 1650189272515,
+        //             e: 'depthUpdate',
+        //             E: 1650189272,
+        //             s: 'GMT_USDT',
+        //             U: 140595902,
+        //             u: 140595902,
+        //             b: [
+        //                 [ '2.51518', '228.119' ],
+        //                 [ '2.50587', '1510.11' ],
+        //                 [ '2.49944', '67.6' ],
+        //             ],
+        //             a: [
+        //                 [ '2.5182', '4.199' ],
+        //                 [ '2.51926', '1874' ],
+        //                 [ '2.53528', '96.529' ],
+        //             ]
+        //         }
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         id: null,
+        //         time: 1650188898,
+        //         channel: 'futures.order_book_update',
+        //         event: 'update',
+        //         error: null,
+        //         result: {
+        //             t: 1650188898938,
+        //             s: 'GMT_USDT',
+        //             U: 1577718307,
+        //             u: 1577719254,
+        //             b: [
+        //                 { p: '2.5178', s: 0 },
+        //                 { p: '2.5179', s: 0 },
+        //                 { p: '2.518', s: 0 },
+        //             ],
+        //             a: [
+        //                 { p: '2.52', s: 0 },
+        //                 { p: '2.5201', s: 0 },
+        //                 { p: '2.5203', s: 0 },
+        //             ]
+        //         }
+        //     }
         //
         const result = this.safeValue (message, 'result');
         const prevSeqNum = this.safeInteger (result, 'U');
@@ -258,11 +272,12 @@ module.exports = class gateio extends ccxt.gateio {
         const nonce = orderbook['nonce'];
         // we have to add +1 because if the current seqNumber on iteration X is 5
         // on the iteration X+1, prevSeqNum will be (5+1)
-        if ((prevSeqNum <= nonce + 1) && (seqNum >= nonce + 1)) {
+        const nextNonce = this.sum (nonce, 1);
+        if ((prevSeqNum <= nextNonce) && (seqNum >= nextNonce)) {
             const asks = this.safeValue (result, 'a', []);
             const bids = this.safeValue (result, 'b', []);
-            this.handleDeltas (orderbook['asks'], asks, nonce);
-            this.handleDeltas (orderbook['bids'], bids, nonce);
+            this.handleDeltas (orderbook['asks'], asks);
+            this.handleDeltas (orderbook['bids'], bids);
             orderbook['nonce'] = seqNum;
             const timestamp = this.safeInteger (result, 't');
             orderbook['timestamp'] = timestamp;
@@ -275,8 +290,17 @@ module.exports = class gateio extends ccxt.gateio {
     }
 
     handleDelta (bookside, delta) {
-        const price = this.safeFloat (delta, 0);
-        const amount = this.safeFloat (delta, 1);
+        let price = undefined;
+        let amount = undefined;
+        if (Array.isArray (delta)) {
+            // spot
+            price = this.safeFloat (delta, 0);
+            amount = this.safeFloat (delta, 1);
+        } else {
+            // swap
+            price = this.safeFloat (delta, 'p');
+            amount = this.safeFloat (delta, 's');
+        }
         bookside.store (price, amount);
     }
 
