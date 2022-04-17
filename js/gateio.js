@@ -855,6 +855,7 @@ module.exports = class gateio extends ccxt.gateio {
     }
 
     handleMessage (client, message) {
+        //
         // subscribe
         // {
         //     time: 1649062304,
@@ -982,17 +983,25 @@ module.exports = class gateio extends ccxt.gateio {
         }
     }
 
+    requestId () {
+        // their support said that reqid must be an int32, not documented
+        const reqid = this.sum (this.safeInteger (this.options, 'reqid', 0), 1);
+        this.options['reqid'] = reqid;
+        return reqid;
+    }
+
     async subscribePublic (url, channel, messageHash, payload, subscriptionParams = {}) {
+        const requestId = this.requestId ();
         const time = this.seconds ();
         const request = {
-            'id': time,
+            'id': requestId,
             'time': time,
             'channel': channel,
             'event': 'subscribe',
             'payload': payload,
         };
         let subscription = {
-            'id': time,
+            'id': requestId,
             'messageHash': messageHash,
         };
         subscription = this.extend (subscription, subscriptionParams);
@@ -1018,7 +1027,7 @@ module.exports = class gateio extends ccxt.gateio {
             'KEY': this.apiKey,
             'SIGN': signature,
         };
-        const requestId = this.nonce ();
+        const requestId = this.requestId ();
         const request = {
             'id': requestId,
             'time': time,
