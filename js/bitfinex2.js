@@ -740,7 +740,7 @@ module.exports = class bitfinex2 extends bitfinex {
             'ERROR': 'fail',
             'FAILURE': 'fail',
         };
-        return this.safeString (statuses, status, 'canceled');
+        return this.safeString (statuses, status, status);
     }
 
     convertDerivativesId (currency, type) {
