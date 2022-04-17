@@ -1725,7 +1725,7 @@ module.exports = class hitbtc3 extends Exchange {
         return this.extend (transfer, {
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'amount': requestAmount,
+            'amount': this.parseNumber (requestAmount),
         });
     }
 
