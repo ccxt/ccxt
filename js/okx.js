@@ -3930,8 +3930,9 @@ module.exports = class okx extends Exchange {
         };
     }
 
-    async fetchTransfer (id, since = undefined, limit = undefined, params = {}) {
+    async fetchTransfer (id, code = undefined, params = {}) {
         await this.loadMarkets ();
+        const currency = this.currency (code);
         const request = {
             'transId': id,
             // 'type': 0, // default is 0 transfer within account, 1 master to sub, 2 sub to master
@@ -3958,12 +3959,8 @@ module.exports = class okx extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const resultArray = [];
-        for (let i = 0; i < data.length; i++) {
-            const transfer = data[i];
-            resultArray.push (this.parseTransfer (transfer, undefined));
-        }
-        return this.filterBySinceLimit (resultArray, since, limit);
+        const transferInfo = this.safeValue (data, 0);
+        return this.parseTransfer (transferInfo, currency);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
