@@ -400,7 +400,7 @@ module.exports = class hitbtc extends Exchange {
         return this.extend (transfer, {
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'amount': requestAmount,
+            'amount': this.parseNumber (requestAmount),
         });
     }
 
