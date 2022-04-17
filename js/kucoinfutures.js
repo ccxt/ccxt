@@ -1325,7 +1325,7 @@ module.exports = class kucoinfutures extends kucoin {
         const amountToPrecision = this.currencyToPrecision (code, amount);
         const request = {
             'currency': this.safeString (currency, 'id'), // Currency,including XBT,USDT
-            'amount': amountCorrected,
+            'amount': amountToPrecision,
         };
         // transfer from usdm futures wallet to spot wallet
         const response = await this.futuresPrivatePostTransferOut (this.extend (request, params));
