@@ -2307,8 +2307,8 @@ class ascendex(Exchange):
             tiers.append({
                 'tier': self.sum(i, 1),
                 'currency': market['quote'],
-                'notionalFloor': self.safe_number(tier, 'positionNotionalLowerBound'),
-                'notionalCap': self.safe_number(tier, 'positionNotionalUpperBound'),
+                'minNotional': self.safe_number(tier, 'positionNotionalLowerBound'),
+                'maxNotional': self.safe_number(tier, 'positionNotionalUpperBound'),
                 'maintenanceMarginRate': self.safe_number(tier, 'maintenanceMarginRate'),
                 'maxLeverage': self.parse_number(Precise.string_div('1', initialMarginRate)),
                 'info': tier,

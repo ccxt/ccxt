@@ -5693,8 +5693,8 @@ class huobi extends Exchange {
                         $tiers[] = array(
                             'tier' => $this->safe_integer($bracket, 'ladder'),
                             'currency' => $this->safe_currency_code($currency),
-                            'notionalFloor' => $this->safe_number($bracket, 'min_size'),
-                            'notionalCap' => $this->safe_number($bracket, 'max_size'),
+                            'minNotional' => $this->safe_number($bracket, 'min_size'),
+                            'maxNotional' => $this->safe_number($bracket, 'max_size'),
                             'maintenanceMarginRate' => $this->parse_number(Precise::string_div($adjustFactor, $leverage)),
                             'maxLeverage' => $this->parse_number($leverage),
                             'info' => $bracket,
