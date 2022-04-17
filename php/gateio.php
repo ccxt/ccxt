@@ -130,7 +130,7 @@ class gateio extends \ccxt\async\gateio {
             // if the received $snapshot is earlier than the first cached delta
             // then we cannot align it with the cached deltas and we need to
             // retry synchronizing in $maxAttempts
-            if (($seqNum !== null) && ($nonce < $seqNum)) {
+            if (($seqNum === null) || ($nonce < $seqNum)) {
                 $maxAttempts = $this->safe_integer($this->options, 'maxOrderBookSyncAttempts', 3);
                 $numAttempts = $this->safe_integer($subscription, 'numAttempts', 0);
                 // retry to syncrhonize if we haven't reached $maxAttempts yet
@@ -206,10 +206,6 @@ class gateio extends \ccxt\async\gateio {
         $marketId = $this->safe_string($result, 's');
         $symbol = $this->safe_symbol($marketId);
         $orderbook = $this->safe_value($this->orderbooks, $symbol);
-        if ($orderbook === null) {
-            $orderbook = $this->order_book(array());
-            $this->orderbooks[$symbol] = $orderbook;
-        }
         if ($orderbook['nonce'] === null) {
             $orderbook->cache[] = $message;
         } else {
