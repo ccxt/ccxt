@@ -2398,8 +2398,8 @@ module.exports = class ascendex extends Exchange {
             tiers.push ({
                 'tier': this.sum (i, 1),
                 'currency': market['quote'],
-                'notionalFloor': this.safeNumber (tier, 'positionNotionalLowerBound'),
-                'notionalCap': this.safeNumber (tier, 'positionNotionalUpperBound'),
+                'minNotional': this.safeNumber (tier, 'positionNotionalLowerBound'),
+                'maxNotional': this.safeNumber (tier, 'positionNotionalUpperBound'),
                 'maintenanceMarginRate': this.safeNumber (tier, 'maintenanceMarginRate'),
                 'maxLeverage': this.parseNumber (Precise.stringDiv ('1', initialMarginRate)),
                 'info': tier,

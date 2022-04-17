@@ -4647,8 +4647,8 @@ module.exports = class okx extends Exchange {
             tiers.push ({
                 'tier': this.safeInteger (tier, 'tier'),
                 'currency': market['quote'],
-                'notionalFloor': this.safeNumber (tier, 'minSz'),
-                'notionalCap': this.safeNumber (tier, 'maxSz'),
+                'minNotional': this.safeNumber (tier, 'minSz'),
+                'maxNotional': this.safeNumber (tier, 'maxSz'),
                 'maintenanceMarginRate': this.safeNumber (tier, 'mmr'),
                 'maxLeverage': this.safeNumber (tier, 'maxLever'),
                 'info': tier,
