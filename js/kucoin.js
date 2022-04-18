@@ -2062,23 +2062,26 @@ module.exports = class kucoin extends Exchange {
             const response = await this.futuresPrivatePostTransferOut (this.extend (request, params));
             //
             //     {
-            //         'applyId': '605a87217dff1500063d485d',
-            //         'bizNo': 'bcd6e5e1291f4905af84dc',
-            //         'payAccountType': 'CONTRACT',
-            //         'payTag': 'DEFAULT',
-            //         'remark': '',
-            //         'recAccountType': 'MAIN',
-            //         'recTag': 'DEFAULT',
-            //         'recRemark': '',
-            //         'recSystem': 'KUCOIN',
-            //         'status': 'PROCESSING',
-            //         'currency': 'XBT',
-            //         'amount': '0.00001',
-            //         'fee': '0',
-            //         'sn': '573688685663948',
-            //         'reason': '',
-            //         'createdAt': 1616545569000,
-            //         'updatedAt': 1616545569000
+            //         'code': '200000',
+            //         'data': {
+            //             'applyId': '605a87217dff1500063d485d',
+            //             'bizNo': 'bcd6e5e1291f4905af84dc',
+            //             'payAccountType': 'CONTRACT',
+            //             'payTag': 'DEFAULT',
+            //             'remark': '',
+            //             'recAccountType': 'MAIN',
+            //             'recTag': 'DEFAULT',
+            //             'recRemark': '',
+            //             'recSystem': 'KUCOIN',
+            //             'status': 'PROCESSING',
+            //             'currency': 'XBT',
+            //             'amount': '0.00001',
+            //             'fee': '0',
+            //             'sn': '573688685663948',
+            //             'reason': '',
+            //             'createdAt': 1616545569000,
+            //             'updatedAt': 1616545569000
+            //         }
             //     }
             //
             const data = this.safeValue (response, 'data');
