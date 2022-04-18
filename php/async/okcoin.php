@@ -2601,8 +2601,8 @@ class okcoin extends Exchange {
         $request = array(
             'amount' => $this->currency_to_precision($code, $amount),
             'currency' => $currency['id'],
-            'from' => $fromId,
-            'to' => $toId,
+            'from' => $fromId, // 1 spot, 5 margin, 6 funding
+            'to' => $toId, // 1 spot, 5 margin, 6 funding
             'type' => '0', // 0 Transfer between accounts in the main account/sub_account, 1 main account to sub_account, 2 sub_account to main account
         );
         if ($fromId === 'main') {
