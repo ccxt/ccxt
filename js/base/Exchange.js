@@ -1672,8 +1672,8 @@ module.exports = class Exchange {
         return decimalToPrecision (fee, ROUND, market.precision.price, this.precisionMode, this.paddingMode)
     }
 
-    currencyToPrecision (currencyCode, fee) {
-        return decimalToPrecision (fee, ROUND, this.currencies[currencyCode]['precision'], this.precisionMode, this.paddingMode);
+    currencyToPrecision (code, fee) {
+        return decimalToPrecision (fee, ROUND, this.currencies[code]['precision'], this.precisionMode, this.paddingMode);
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
