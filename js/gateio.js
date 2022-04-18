@@ -110,7 +110,15 @@ module.exports = class gateio extends ccxt.gateio {
             delete this.orderbooks[symbol];
         }
         this.orderbooks[symbol] = this.orderBook ({}, limit);
-        this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+        const options = this.safeValue (this.options, 'handleOrderBookSubscription', {});
+        const fetchOrderBookSnapshot = this.safeValue (options, 'fetchOrderBookSnapshot', false);
+        if (fetchOrderBookSnapshot) {
+            const fetchingOrderBookSnapshot = 'fetchingOrderBookSnapshot';
+            subscription[fetchingOrderBookSnapshot] = true;
+            const messageHash = subscription['messageHash'];
+            client.subscriptions[messageHash] = subscription;
+            this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+        }
     }
 
     async fetchOrderBookSnapshot (client, message, subscription) {
@@ -131,7 +139,7 @@ module.exports = class gateio extends ccxt.gateio {
             if ((seqNum === undefined) || (nonce < seqNum)) {
                 const maxAttempts = this.safeInteger (this.options, 'maxOrderBookSyncAttempts', 3);
                 let numAttempts = this.safeInteger (subscription, 'numAttempts', 0);
-                // retry to syncrhonize if we haven't reached maxAttempts yet
+                // retry to synchronize if we haven't reached maxAttempts yet
                 if (numAttempts < maxAttempts) {
                     // safety guard
                     if (messageHash in client.subscriptions) {
@@ -161,43 +169,43 @@ module.exports = class gateio extends ccxt.gateio {
 
     handleOrderBook (client, message) {
         //
-        //  {
-        //      "time":1649770575,
-        //      "channel":"spot.order_book_update",
-        //      "event":"update",
-        //      "result":{
-        //         "t":1649770575537,
-        //         "e":"depthUpdate",
-        //         "E":1649770575,
-        //         "s":"LTC_USDT",
-        //         "U":2622528153,
-        //         "u":2622528265,
-        //         "b":[
-        //            ["104.18","3.9398"],
-        //            ["104.56","19.0603"],
-        //            ["104.94","0"],
-        //            ["103.72","0"],
-        //            ["105.01","52.6186"],
-        //            ["104.76","0"],
-        //            ["104.97","0"],
-        //            ["104.71","0"],
-        //            ["104.84","25.8604"],
-        //            ["104.51","47.6508"],
-        //         ],
-        //         "a":[
-        //            ["105.26","40.5519"],
-        //            ["106.08","35.4396"],
-        //            ["105.2","0"],
-        //            ["105.45","8.5834"],
-        //            ["105.5","20.17"],
-        //            ["105.11","54.8359"],
-        //            ["105.52","28.5605"],
-        //            ["105.27","6.6325"],
-        //            ["105.3","4.291446"],
-        //            ["106.03","9.712"],
-        //         ]
-        //      }
-        //   }
+        //     {
+        //         "time":1649770575,
+        //         "channel":"spot.order_book_update",
+        //         "event":"update",
+        //         "result":{
+        //             "t":1649770575537,
+        //             "e":"depthUpdate",
+        //             "E":1649770575,
+        //             "s":"LTC_USDT",
+        //             "U":2622528153,
+        //             "u":2622528265,
+        //             "b":[
+        //                 ["104.18","3.9398"],
+        //                 ["104.56","19.0603"],
+        //                 ["104.94","0"],
+        //                 ["103.72","0"],
+        //                 ["105.01","52.6186"],
+        //                 ["104.76","0"],
+        //                 ["104.97","0"],
+        //                 ["104.71","0"],
+        //                 ["104.84","25.8604"],
+        //                 ["104.51","47.6508"],
+        //             ],
+        //             "a":[
+        //                 ["105.26","40.5519"],
+        //                 ["106.08","35.4396"],
+        //                 ["105.2","0"],
+        //                 ["105.45","8.5834"],
+        //                 ["105.5","20.17"],
+        //                 ["105.11","54.8359"],
+        //                 ["105.52","28.5605"],
+        //                 ["105.27","6.6325"],
+        //                 ["105.3","4.291446"],
+        //                 ["106.03","9.712"],
+        //             ]
+        //         }
+        //     }
         //
         const channel = this.safeString (message, 'channel');
         const result = this.safeValue (message, 'result');
@@ -207,6 +215,15 @@ module.exports = class gateio extends ccxt.gateio {
         if (orderbook === undefined) {
             orderbook = this.orderBook ({});
             this.orderbooks[symbol] = orderbook;
+        }
+        const messageHash = channel + ':' + symbol;
+        const subscription = this.safeValue (client.subscriptions, messageHash, {});
+        const fetchingOrderBookSnapshot = 'fetchingOrderBookSnapshot';
+        const isFetchingOrderBookSnapshot = this.safeValue (subscription, fetchingOrderBookSnapshot, false);
+        if (!isFetchingOrderBookSnapshot) {
+            subscription[fetchingOrderBookSnapshot] = true;
+            client.subscriptions[messageHash] = subscription;
+            this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
         }
         if (orderbook['nonce'] === undefined) {
             orderbook.cache.push (message);
