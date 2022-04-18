@@ -687,7 +687,6 @@ class bittrex(Exchange, ccxt.bittrex):
         return message
 
     def handle_message(self, client, message):
-        # console.dir(message, {depth: null})
         #
         # subscription confirmation
         #

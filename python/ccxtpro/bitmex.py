@@ -734,7 +734,6 @@ class bitmex(Exchange, ccxt.bitmex):
         #         ]
         #     }
         #
-        # console.dir(message, {depth: null})
         data = self.safe_value(message, 'data', [])
         messageHash = 'order'
         # initial subscription response with multiple orders

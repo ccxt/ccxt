@@ -116,7 +116,15 @@ class gateio extends \ccxt\async\gateio {
             unset($this->orderbooks[$symbol]);
         }
         $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
-        $this->spawn(array($this, 'fetch_order_book_snapshot'), $client, $message, $subscription);
+        $options = $this->safe_value($this->options, 'handleOrderBookSubscription', array());
+        $fetchOrderBookSnapshot = $this->safe_value($options, 'fetchOrderBookSnapshot', false);
+        if ($fetchOrderBookSnapshot) {
+            $fetchingOrderBookSnapshot = 'fetchingOrderBookSnapshot';
+            $subscription[$fetchingOrderBookSnapshot] = true;
+            $messageHash = $subscription['messageHash'];
+            $client->subscriptions[$messageHash] = $subscription;
+            $this->spawn(array($this, 'fetch_order_book_snapshot'), $client, $message, $subscription);
+        }
     }
 
     public function fetch_order_book_snapshot($client, $message, $subscription) {
@@ -137,7 +145,7 @@ class gateio extends \ccxt\async\gateio {
             if (($seqNum === null) || ($nonce < $seqNum)) {
                 $maxAttempts = $this->safe_integer($this->options, 'maxOrderBookSyncAttempts', 3);
                 $numAttempts = $this->safe_integer($subscription, 'numAttempts', 0);
-                // retry to syncrhonize if we haven't reached $maxAttempts yet
+                // retry to synchronize if we haven't reached $maxAttempts yet
                 if ($numAttempts < $maxAttempts) {
                     // safety guard
                     if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
@@ -167,43 +175,43 @@ class gateio extends \ccxt\async\gateio {
 
     public function handle_order_book($client, $message) {
         //
-        //  {
-        //      "time":1649770575,
-        //      "channel":"spot.order_book_update",
-        //      "event":"update",
-        //      "result":{
-        //         "t":1649770575537,
-        //         "e":"depthUpdate",
-        //         "E":1649770575,
-        //         "s":"LTC_USDT",
-        //         "U":2622528153,
-        //         "u":2622528265,
-        //         "b":[
-        //            ["104.18","3.9398"],
-        //            ["104.56","19.0603"],
-        //            ["104.94","0"],
-        //            ["103.72","0"],
-        //            ["105.01","52.6186"],
-        //            ["104.76","0"],
-        //            ["104.97","0"],
-        //            ["104.71","0"],
-        //            ["104.84","25.8604"],
-        //            ["104.51","47.6508"],
-        //         ],
-        //         "a":[
-        //            ["105.26","40.5519"],
-        //            ["106.08","35.4396"],
-        //            ["105.2","0"],
-        //            ["105.45","8.5834"],
-        //            ["105.5","20.17"],
-        //            ["105.11","54.8359"],
-        //            ["105.52","28.5605"],
-        //            ["105.27","6.6325"],
-        //            ["105.3","4.291446"],
-        //            ["106.03","9.712"],
-        //         ]
-        //      }
-        //   }
+        //     {
+        //         "time":1649770575,
+        //         "channel":"spot.order_book_update",
+        //         "event":"update",
+        //         "result":{
+        //             "t":1649770575537,
+        //             "e":"depthUpdate",
+        //             "E":1649770575,
+        //             "s":"LTC_USDT",
+        //             "U":2622528153,
+        //             "u":2622528265,
+        //             "b":[
+        //                 ["104.18","3.9398"],
+        //                 ["104.56","19.0603"],
+        //                 ["104.94","0"],
+        //                 ["103.72","0"],
+        //                 ["105.01","52.6186"],
+        //                 ["104.76","0"],
+        //                 ["104.97","0"],
+        //                 ["104.71","0"],
+        //                 ["104.84","25.8604"],
+        //                 ["104.51","47.6508"],
+        //             ],
+        //             "a":[
+        //                 ["105.26","40.5519"],
+        //                 ["106.08","35.4396"],
+        //                 ["105.2","0"],
+        //                 ["105.45","8.5834"],
+        //                 ["105.5","20.17"],
+        //                 ["105.11","54.8359"],
+        //                 ["105.52","28.5605"],
+        //                 ["105.27","6.6325"],
+        //                 ["105.3","4.291446"],
+        //                 ["106.03","9.712"],
+        //             ]
+        //         }
+        //     }
         //
         $channel = $this->safe_string($message, 'channel');
         $result = $this->safe_value($message, 'result');
@@ -213,6 +221,15 @@ class gateio extends \ccxt\async\gateio {
         if ($orderbook === null) {
             $orderbook = $this->order_book(array());
             $this->orderbooks[$symbol] = $orderbook;
+        }
+        $messageHash = $channel . ':' . $symbol;
+        $subscription = $this->safe_value($client->subscriptions, $messageHash, array());
+        $fetchingOrderBookSnapshot = 'fetchingOrderBookSnapshot';
+        $isFetchingOrderBookSnapshot = $this->safe_value($subscription, $fetchingOrderBookSnapshot, false);
+        if (!$isFetchingOrderBookSnapshot) {
+            $subscription[$fetchingOrderBookSnapshot] = true;
+            $client->subscriptions[$messageHash] = $subscription;
+            $this->spawn(array($this, 'fetch_order_book_snapshot'), $client, $message, $subscription);
         }
         if ($orderbook['nonce'] === null) {
             $orderbook->cache[] = $message;
