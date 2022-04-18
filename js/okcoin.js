@@ -2597,14 +2597,14 @@ module.exports = class okcoin extends Exchange {
             'currency': currency['id'],
             'from': fromId,
             'to': toId,
-            'type': '0',
+            'type': '0', // 0 Transfer between accounts in the main account/sub_account, 1 main account to sub_account, 2 sub_account to main account
         };
         if (fromId === 'main') {
-            request['type'] = 1;
+            request['type'] = '1';
             request['sub_account'] = toId;
             request['to'] = '0';
         } else if (toId === 'main') {
-            request['type'] = 2;
+            request['type'] = '2';
             request['sub_account'] = fromId;
             request['from'] = '0';
             request['to'] = '6';
