@@ -1977,49 +1977,30 @@ class kucoin(Exchange):
             response = await self.futuresPrivatePostTransferOut(self.extend(request, params))
             #
             #     {
-            #         code: '200000',
-            #         data: {
-            #             applyId: '605a87217dff1500063d485d',
-            #             bizNo: 'bcd6e5e1291f4905af84dc',
-            #             payAccountType: 'CONTRACT',
-            #             payTag: 'DEFAULT',
-            #             remark: '',
-            #             recAccountType: 'MAIN',
-            #             recTag: 'DEFAULT',
-            #             recRemark: '',
-            #             recSystem: 'KUCOIN',
-            #             status: 'PROCESSING',
-            #             currency: 'XBT',
-            #             amount: '0.00001',
-            #             fee: '0',
-            #             sn: '573688685663948',
-            #             reason: '',
-            #             createdAt: 1616545569000,
-            #             updatedAt: 1616545569000
+            #         'code': '200000',
+            #         'data': {
+            #             'applyId': '605a87217dff1500063d485d',
+            #             'bizNo': 'bcd6e5e1291f4905af84dc',
+            #             'payAccountType': 'CONTRACT',
+            #             'payTag': 'DEFAULT',
+            #             'remark': '',
+            #             'recAccountType': 'MAIN',
+            #             'recTag': 'DEFAULT',
+            #             'recRemark': '',
+            #             'recSystem': 'KUCOIN',
+            #             'status': 'PROCESSING',
+            #             'currency': 'XBT',
+            #             'amount': '0.00001',
+            #             'fee': '0',
+            #             'sn': '573688685663948',
+            #             'reason': '',
+            #             'createdAt': 1616545569000,
+            #             'updatedAt': 1616545569000
             #         }
             #     }
             #
             data = self.safe_value(response, 'data')
-            timestamp = self.safe_integer(data, 'createdAt')
-            id = self.safe_string(data, 'applyId')
-            currencyId = self.safe_string(data, 'currency')
-            code = self.safe_currency_code(currencyId)
-            amount = self.safe_number(data, 'amount')
-            rawStatus = self.safe_string(data, 'status')
-            status = None
-            if rawStatus == 'PROCESSING':
-                status = 'pending'
-            return {
-                'info': response,
-                'currency': code,
-                'timestamp': timestamp,
-                'datetime': self.iso8601(timestamp),
-                'amount': amount,
-                'fromAccount': fromId,
-                'toAccount': toId,
-                'id': id,
-                'status': status,
-            }
+            return self.parse_transfer(data, currency)
         else:
             request = {
                 'currency': currency['id'],
@@ -2030,20 +2011,73 @@ class kucoin(Exchange):
             if not ('clientOid' in params):
                 request['clientOid'] = self.uuid()
             response = await self.privatePostAccountsInnerTransfer(self.extend(request, params))
-            # {code: '200000', data: {orderId: '605a6211e657f00006ad0ad6'}}
+            #
+            #     {
+            #         'code': '200000',
+            #         'data': {
+            #              'orderId': '605a6211e657f00006ad0ad6'
+            #         }
+            #     }
+            #
             data = self.safe_value(response, 'data')
-            id = self.safe_string(data, 'orderId')
-            return {
-                'info': response,
-                'id': id,
-                'timestamp': None,
-                'datetime': None,
-                'currency': code,
-                'amount': requestedAmount,
-                'fromAccount': fromId,
-                'toAccount': toId,
-                'status': None,
-            }
+            return self.parse_transfer(data, currency)
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        # transfer(spot)
+        #
+        #     {
+        #         'orderId': '605a6211e657f00006ad0ad6'
+        #     }
+        #
+        #
+        # transfer(futures)
+        #
+        #     {
+        #         'applyId': '605a87217dff1500063d485d',
+        #         'bizNo': 'bcd6e5e1291f4905af84dc',
+        #         'payAccountType': 'CONTRACT',
+        #         'payTag': 'DEFAULT',
+        #         'remark': '',
+        #         'recAccountType': 'MAIN',
+        #         'recTag': 'DEFAULT',
+        #         'recRemark': '',
+        #         'recSystem': 'KUCOIN',
+        #         'status': 'PROCESSING',
+        #         'currency': 'XBT',
+        #         'amount': '0.00001',
+        #         'fee': '0',
+        #         'sn': '573688685663948',
+        #         'reason': '',
+        #         'createdAt': 1616545569000,
+        #         'updatedAt': 1616545569000
+        #     }
+        #
+        timestamp = self.safe_integer(transfer, 'createdAt')
+        currencyId = self.safe_string(transfer, 'currency')
+        rawStatus = self.safe_string(transfer, 'status')
+        accountFromRaw = self.safe_string(transfer, 'payAccountType')
+        accountToRaw = self.safe_string(transfer, 'recAccountType')
+        accountsByType = self.safe_value(self.options, 'accountsByType')
+        accountFrom = self.safe_string(accountsByType, accountFromRaw.lower())
+        accountTo = self.safe_string(accountsByType, accountToRaw.lower())
+        return {
+            'id': self.safe_string_2(transfer, 'applyId', 'orderId'),
+            'currency': self.safe_currency_code(currencyId, currency),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'amount': self.safe_number(transfer, 'amount'),
+            'fromAccount': accountFrom,
+            'toAccount': accountTo,
+            'status': self.parse_transfer_status(rawStatus),
+            'info': transfer,
+        }
+
+    def parse_transfer_status(self, status):
+        statuses = {
+            'PROCESSING': 'pending',
+        }
+        return self.safe_string(statuses, status, status)
 
     def parse_ledger_entry_type(self, type):
         types = {
