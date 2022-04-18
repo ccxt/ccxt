@@ -53,6 +53,7 @@ module.exports = class whitebit extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
+                'transfer': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -160,6 +161,7 @@ module.exports = class whitebit extends Exchange {
                             'main-account/history',
                             'main-account/withdraw',
                             'main-account/withdraw-pay',
+                            'main-account/transfer',
                             'trade-account/balance',
                             'trade-account/executed-history',
                             'trade-account/order',
@@ -186,6 +188,14 @@ module.exports = class whitebit extends Exchange {
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
                 'fiatCurrencies': [ 'EUR', 'USD', 'RUB', 'UAH' ],
+                'accountsByType': {
+                    'main': 'main',
+                    'spot': 'trade',
+                    'margin': 'margin', // api does not suppot transfers to margin
+                },
+                'transfer': {
+                    'fillTransferResponseFromRequest': true,
+                },
             },
             'exceptions': {
                 'exact': {
@@ -1148,6 +1158,58 @@ module.exports = class whitebit extends Exchange {
             'tag': tag,
             'network': undefined,
             'info': response,
+        };
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const accountsByType = this.safeValue (this.options, 'accountsByType');
+        const fromAccountId = this.safeString (accountsByType, fromAccount, fromAccount);
+        const toAccountId = this.safeString (accountsByType, toAccount, toAccount);
+        let type = undefined;
+        if (fromAccountId === 'main' && toAccountId === 'trade') {
+            type = 'deposit';
+        } else if (fromAccountId === 'trade' && toAccountId === 'main') {
+            type = 'withdraw';
+        }
+        if (type === undefined) {
+            throw new ExchangeError (this.id + ' transfer() only allows transfers between main account and spot account');
+        }
+        const request = {
+            'ticker': currency['id'],
+            'method': type,
+            'amount': this.currencyToPrecision (code, amount),
+        };
+        const response = await this.v4PrivatePostMainAccountTransfer (this.extend (request, params));
+        //
+        //    []
+        //
+        const transfer = this.parseTransfer (response, currency);
+        const transferOptions = this.safeValue (this.options, 'transfer', {});
+        const fillTransferResponseFromRequest = this.safeValue (transferOptions, 'fillTransferResponseFromRequest', true);
+        if (fillTransferResponseFromRequest) {
+            transfer['amount'] = amount;
+            transfer['fromAccount'] = fromAccount;
+            transfer['toAccount'] = toAccount;
+        }
+        return transfer;
+    }
+
+    parseTransfer (transfer, currency) {
+        //
+        //    []
+        //
+        return {
+            'info': transfer,
+            'id': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': this.safeCurrencyCode (undefined, currency),
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': 'pending',
         };
     }
 
