@@ -2788,8 +2788,8 @@ class Exchange {
         return self::decimalToPrecision($fee, ROUND, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
     }
 
-    public function currency_to_precision($currencyCode, $fee) {
-        return self::decimal_to_precision($fee, ROUND, $this->currencies[$currencyCode]['precision'], $this->precisionMode, $this->paddingMode);
+    public function currency_to_precision($code, $fee) {
+        return self::decimal_to_precision($fee, ROUND, $this->currencies[$code]['precision'], $this->precisionMode, $this->paddingMode);
     }
 
     public function currency($code) {
