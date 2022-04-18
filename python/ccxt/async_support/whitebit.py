@@ -65,6 +65,7 @@ class whitebit(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
+                'transfer': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -172,6 +173,7 @@ class whitebit(Exchange):
                             'main-account/history',
                             'main-account/withdraw',
                             'main-account/withdraw-pay',
+                            'main-account/transfer',
                             'trade-account/balance',
                             'trade-account/executed-history',
                             'trade-account/order',
@@ -198,6 +200,14 @@ class whitebit(Exchange):
             'options': {
                 'createMarketBuyOrderRequiresPrice': True,
                 'fiatCurrencies': ['EUR', 'USD', 'RUB', 'UAH'],
+                'accountsByType': {
+                    'main': 'main',
+                    'spot': 'trade',
+                    'margin': 'margin',  # api does not suppot transfers to margin
+                },
+                'transfer': {
+                    'fillTransferResponseFromRequest': True,
+                },
             },
             'exceptions': {
                 'exact': {
@@ -1095,6 +1105,53 @@ class whitebit(Exchange):
             'tag': tag,
             'network': None,
             'info': response,
+        }
+
+    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        accountsByType = self.safe_value(self.options, 'accountsByType')
+        fromAccountId = self.safe_string(accountsByType, fromAccount, fromAccount)
+        toAccountId = self.safe_string(accountsByType, toAccount, toAccount)
+        type = None
+        if fromAccountId == 'main' and toAccountId == 'trade':
+            type = 'deposit'
+        elif fromAccountId == 'trade' and toAccountId == 'main':
+            type = 'withdraw'
+        if type is None:
+            raise ExchangeError(self.id + ' transfer() only allows transfers between main account and spot account')
+        request = {
+            'ticker': currency['id'],
+            'method': type,
+            'amount': self.currency_to_precision(code, amount),
+        }
+        response = await self.v4PrivatePostMainAccountTransfer(self.extend(request, params))
+        #
+        #    []
+        #
+        transfer = self.parse_transfer(response, currency)
+        transferOptions = self.safe_value(self.options, 'transfer', {})
+        fillTransferResponseFromRequest = self.safe_value(transferOptions, 'fillTransferResponseFromRequest', True)
+        if fillTransferResponseFromRequest:
+            transfer['amount'] = amount
+            transfer['fromAccount'] = fromAccount
+            transfer['toAccount'] = toAccount
+        return transfer
+
+    def parse_transfer(self, transfer, currency):
+        #
+        #    []
+        #
+        return {
+            'info': transfer,
+            'id': None,
+            'timestamp': None,
+            'datetime': None,
+            'currency': self.safe_currency_code(None, currency),
+            'amount': None,
+            'fromAccount': None,
+            'toAccount': None,
+            'status': 'pending',
         }
 
     async def withdraw(self, code, amount, address, tag=None, params={}):

@@ -2065,50 +2065,30 @@ class kucoin extends Exchange {
             $response = yield $this->futuresPrivatePostTransferOut (array_merge($request, $params));
             //
             //     {
-            //         $code => '200000',
-            //         $data => {
-            //             applyId => '605a87217dff1500063d485d',
-            //             bizNo => 'bcd6e5e1291f4905af84dc',
-            //             payAccountType => 'CONTRACT',
-            //             payTag => 'DEFAULT',
-            //             remark => '',
-            //             recAccountType => 'MAIN',
-            //             recTag => 'DEFAULT',
-            //             recRemark => '',
-            //             recSystem => 'KUCOIN',
-            //             $status => 'PROCESSING',
-            //             $currency => 'XBT',
-            //             $amount => '0.00001',
-            //             fee => '0',
-            //             sn => '573688685663948',
-            //             reason => '',
-            //             createdAt => 1616545569000,
-            //             updatedAt => 1616545569000
+            //         'code' => '200000',
+            //         'data' => {
+            //             'applyId' => '605a87217dff1500063d485d',
+            //             'bizNo' => 'bcd6e5e1291f4905af84dc',
+            //             'payAccountType' => 'CONTRACT',
+            //             'payTag' => 'DEFAULT',
+            //             'remark' => '',
+            //             'recAccountType' => 'MAIN',
+            //             'recTag' => 'DEFAULT',
+            //             'recRemark' => '',
+            //             'recSystem' => 'KUCOIN',
+            //             'status' => 'PROCESSING',
+            //             'currency' => 'XBT',
+            //             'amount' => '0.00001',
+            //             'fee' => '0',
+            //             'sn' => '573688685663948',
+            //             'reason' => '',
+            //             'createdAt' => 1616545569000,
+            //             'updatedAt' => 1616545569000
             //         }
             //     }
             //
             $data = $this->safe_value($response, 'data');
-            $timestamp = $this->safe_integer($data, 'createdAt');
-            $id = $this->safe_string($data, 'applyId');
-            $currencyId = $this->safe_string($data, 'currency');
-            $code = $this->safe_currency_code($currencyId);
-            $amount = $this->safe_number($data, 'amount');
-            $rawStatus = $this->safe_string($data, 'status');
-            $status = null;
-            if ($rawStatus === 'PROCESSING') {
-                $status = 'pending';
-            }
-            return array(
-                'info' => $response,
-                'currency' => $code,
-                'timestamp' => $timestamp,
-                'datetime' => $this->iso8601($timestamp),
-                'amount' => $amount,
-                'fromAccount' => $fromId,
-                'toAccount' => $toId,
-                'id' => $id,
-                'status' => $status,
-            );
+            return $this->parse_transfer($data, $currency);
         } else {
             $request = array(
                 'currency' => $currency['id'],
@@ -2120,21 +2100,76 @@ class kucoin extends Exchange {
                 $request['clientOid'] = $this->uuid();
             }
             $response = yield $this->privatePostAccountsInnerTransfer (array_merge($request, $params));
-            // array( $code => '200000', $data => array( orderId => '605a6211e657f00006ad0ad6' ) )
+            //
+            //     {
+            //         'code' => '200000',
+            //         'data' => {
+            //              'orderId' => '605a6211e657f00006ad0ad6'
+            //         }
+            //     }
+            //
             $data = $this->safe_value($response, 'data');
-            $id = $this->safe_string($data, 'orderId');
-            return array(
-                'info' => $response,
-                'id' => $id,
-                'timestamp' => null,
-                'datetime' => null,
-                'currency' => $code,
-                'amount' => $requestedAmount,
-                'fromAccount' => $fromId,
-                'toAccount' => $toId,
-                'status' => null,
-            );
+            return $this->parse_transfer($data, $currency);
         }
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        // $transfer (spot)
+        //
+        //     {
+        //         'orderId' => '605a6211e657f00006ad0ad6'
+        //     }
+        //
+        //
+        // $transfer (futures)
+        //
+        //     {
+        //         'applyId' => '605a87217dff1500063d485d',
+        //         'bizNo' => 'bcd6e5e1291f4905af84dc',
+        //         'payAccountType' => 'CONTRACT',
+        //         'payTag' => 'DEFAULT',
+        //         'remark' => '',
+        //         'recAccountType' => 'MAIN',
+        //         'recTag' => 'DEFAULT',
+        //         'recRemark' => '',
+        //         'recSystem' => 'KUCOIN',
+        //         'status' => 'PROCESSING',
+        //         'currency' => 'XBT',
+        //         'amount' => '0.00001',
+        //         'fee' => '0',
+        //         'sn' => '573688685663948',
+        //         'reason' => '',
+        //         'createdAt' => 1616545569000,
+        //         'updatedAt' => 1616545569000
+        //     }
+        //
+        $timestamp = $this->safe_integer($transfer, 'createdAt');
+        $currencyId = $this->safe_string($transfer, 'currency');
+        $rawStatus = $this->safe_string($transfer, 'status');
+        $accountFromRaw = $this->safe_string($transfer, 'payAccountType');
+        $accountToRaw = $this->safe_string($transfer, 'recAccountType');
+        $accountsByType = $this->safe_value($this->options, 'accountsByType');
+        $accountFrom = $this->safe_string($accountsByType, strtolower($accountFromRaw));
+        $accountTo = $this->safe_string($accountsByType, strtolower($accountToRaw));
+        return array(
+            'id' => $this->safe_string_2($transfer, 'applyId', 'orderId'),
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'amount' => $this->safe_number($transfer, 'amount'),
+            'fromAccount' => $accountFrom,
+            'toAccount' => $accountTo,
+            'status' => $this->parse_transfer_status($rawStatus),
+            'info' => $transfer,
+        );
+    }
+
+    public function parse_transfer_status($status) {
+        $statuses = array(
+            'PROCESSING' => 'pending',
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function parse_ledger_entry_type($type) {
