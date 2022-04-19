@@ -114,6 +114,7 @@ module.exports = class huobi extends ccxt.huobi {
     async watchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const messageHash = 'market.' + market['id'] + '.detail';
         const url = this.getUrlByMarketType (market['type'], market['linear']);
         return await this.subscribePublic (url, symbol, messageHash, undefined, params);
@@ -155,6 +156,7 @@ module.exports = class huobi extends ccxt.huobi {
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const messageHash = 'market.' + market['id'] + '.trade.detail';
         const url = this.getUrlByMarketType (market['type'], market['linear']);
         const trades = await this.subscribePublic (url, symbol, messageHash, undefined, params);
@@ -209,6 +211,7 @@ module.exports = class huobi extends ccxt.huobi {
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const interval = this.timeframes[timeframe];
         const messageHash = 'market.' + market['id'] + '.kline.' + interval;
         const url = this.getUrlByMarketType (market['type'], market['linear']);
@@ -262,6 +265,7 @@ module.exports = class huobi extends ccxt.huobi {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         // only supports a limit of 150 at this time
         limit = (limit === undefined) ? 150 : limit;
         let messageHash = undefined;
@@ -579,6 +583,7 @@ module.exports = class huobi extends ccxt.huobi {
         if (symbol !== undefined) {
             await this.loadMarkets ();
             market = this.market (symbol);
+            symbol = market['symbol'];
             type = market['type'];
             subType = market['linear'] ? 'linear' : 'inverse';
             marketId = market['lowercaseId'];
@@ -662,6 +667,7 @@ module.exports = class huobi extends ccxt.huobi {
         let suffix = '*'; // wildcard
         if (symbol !== undefined) {
             market = this.market (symbol);
+            symbol = market['symbol'];
             type = market['type'];
             suffix = market['lowercaseId'];
             subType = market['linear'] ? 'linear' : 'inverse';

@@ -120,6 +120,7 @@ class huobi(Exchange, ccxt.huobi):
     async def watch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         messageHash = 'market.' + market['id'] + '.detail'
         url = self.get_url_by_market_type(market['type'], market['linear'])
         return await self.subscribe_public(url, symbol, messageHash, None, params)
@@ -159,6 +160,7 @@ class huobi(Exchange, ccxt.huobi):
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         messageHash = 'market.' + market['id'] + '.trade.detail'
         url = self.get_url_by_market_type(market['type'], market['linear'])
         trades = await self.subscribe_public(url, symbol, messageHash, None, params)
@@ -208,6 +210,7 @@ class huobi(Exchange, ccxt.huobi):
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         interval = self.timeframes[timeframe]
         messageHash = 'market.' + market['id'] + '.kline.' + interval
         url = self.get_url_by_market_type(market['type'], market['linear'])
@@ -256,6 +259,7 @@ class huobi(Exchange, ccxt.huobi):
             raise ExchangeError(self.id + ' watchOrderBook accepts limit = 150 only')
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         # only supports a limit of 150 at self time
         limit = 150 if (limit is None) else limit
         messageHash = None
@@ -546,6 +550,7 @@ class huobi(Exchange, ccxt.huobi):
         if symbol is not None:
             await self.load_markets()
             market = self.market(symbol)
+            symbol = market['symbol']
             type = market['type']
             subType = 'linear' if market['linear'] else 'inverse'
             marketId = market['lowercaseId']
@@ -619,6 +624,7 @@ class huobi(Exchange, ccxt.huobi):
         suffix = '*'  # wildcard
         if symbol is not None:
             market = self.market(symbol)
+            symbol = market['symbol']
             type = market['type']
             suffix = market['lowercaseId']
             subType = 'linear' if market['linear'] else 'inverse'

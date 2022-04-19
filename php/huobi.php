@@ -120,6 +120,7 @@ class huobi extends \ccxt\async\huobi {
     public function watch_ticker($symbol, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
+        $symbol = $market['symbol'];
         $messageHash = 'market.' . $market['id'] . '.detail';
         $url = $this->get_url_by_market_type($market['type'], $market['linear']);
         return yield $this->subscribe_public($url, $symbol, $messageHash, null, $params);
@@ -161,6 +162,7 @@ class huobi extends \ccxt\async\huobi {
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
+        $symbol = $market['symbol'];
         $messageHash = 'market.' . $market['id'] . '.trade.detail';
         $url = $this->get_url_by_market_type($market['type'], $market['linear']);
         $trades = yield $this->subscribe_public($url, $symbol, $messageHash, null, $params);
@@ -215,6 +217,7 @@ class huobi extends \ccxt\async\huobi {
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
+        $symbol = $market['symbol'];
         $interval = $this->timeframes[$timeframe];
         $messageHash = 'market.' . $market['id'] . '.kline.' . $interval;
         $url = $this->get_url_by_market_type($market['type'], $market['linear']);
@@ -268,6 +271,7 @@ class huobi extends \ccxt\async\huobi {
         }
         yield $this->load_markets();
         $market = $this->market($symbol);
+        $symbol = $market['symbol'];
         // only supports a $limit of 150 at this time
         $limit = ($limit === null) ? 150 : $limit;
         $messageHash = null;
@@ -585,6 +589,7 @@ class huobi extends \ccxt\async\huobi {
         if ($symbol !== null) {
             yield $this->load_markets();
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $type = $market['type'];
             $subType = $market['linear'] ? 'linear' : 'inverse';
             $marketId = $market['lowercaseId'];
@@ -668,6 +673,7 @@ class huobi extends \ccxt\async\huobi {
         $suffix = '*'; // wildcard
         if ($symbol !== null) {
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $type = $market['type'];
             $suffix = $market['lowercaseId'];
             $subType = $market['linear'] ? 'linear' : 'inverse';
