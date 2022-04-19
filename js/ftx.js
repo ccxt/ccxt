@@ -114,9 +114,11 @@ module.exports = class ftx extends ccxt.ftx {
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        const trades = await this.watchPublic (symbol, 'trades');
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const trades = await this.watchPublic (market['symbol'], 'trades');
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limit = trades.getLimit (market['symbol'], limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
@@ -400,11 +402,12 @@ module.exports = class ftx extends ccxt.ftx {
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const orders = await this.watchPrivate ('orders', symbol);
+        const market = this.market (symbol);
+        const orders = await this.watchPrivate ('orders', market['symbol']);
         if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
+            limit = orders.getLimit (market['symbol'], limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, market['symbol'], since, limit, true);
     }
 
     handleOrder (client, message) {
@@ -476,11 +479,12 @@ module.exports = class ftx extends ccxt.ftx {
 
     async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const trades = await this.watchPrivate ('fills', symbol);
+        const market = this.market (symbol);
+        const trades = await this.watchPrivate ('fills', market['symbol']);
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limit = trades.getLimit (market['symbol'], limit);
         }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (trades, market['symbol'], since, limit, true);
     }
 
     handleMyTrade (client, message) {
