@@ -832,6 +832,11 @@ class Exchange {
         return http_build_query($array, '', $this->urlencode_glue);
     }
 
+    public function urlencode_nested($array) {
+        // in PHP, we don't have to customly implement this method
+        return urlencode($array);
+    }
+
     public function urlencode_with_array_repeat($array) {
         return preg_replace('/%5B\d*%5D/', '', $this->urlencode($array));
     }
