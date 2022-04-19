@@ -7,11 +7,11 @@ from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
 from ccxtpro.base.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import InvalidNonce
 
 
 class gateio(Exchange, ccxt.gateio):
@@ -61,6 +61,9 @@ class gateio(Exchange, ccxt.gateio):
                 'watchTradesSubscriptions': {},
                 'watchTickerSubscriptions': {},
                 'watchOrderBookSubscriptions': {},
+                'watchOrderBook': {
+                    'interval': '100ms',
+                },
             },
             'exceptions': {
                 'ws': {
@@ -77,87 +80,239 @@ class gateio(Exchange, ccxt.gateio):
     async def watch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         marketId = market['id']
-        uppercaseId = marketId.upper()
-        requestId = self.nonce()
-        url = self.urls['api']['ws']
         options = self.safe_value(self.options, 'watchOrderBook', {})
-        defaultLimit = self.safe_integer(options, 'limit', 30)
+        defaultLimit = self.safe_integer(options, 'limit', 20)
         if not limit:
             limit = defaultLimit
-        elif limit != 1 and limit != 5 and limit != 10 and limit != 20 and limit != 30:
-            raise ExchangeError(self.id + ' watchOrderBook limit argument must be None, 1, 5, 10, 20, or 30')
-        interval = self.safe_string(params, 'interval', '100ms')
-        parameters = [uppercaseId, limit, interval]
-        subscriptions = self.safe_value(options, 'subscriptions', {})
-        subscriptions[symbol] = parameters
-        options['subscriptions'] = subscriptions
-        self.options['watchOrderBook'] = options
-        toSend = list(subscriptions.values())
-        messageHash = 'depth.update' + ':' + marketId
-        subscribeMessage = {
-            'id': requestId,
-            'method': 'depth.subscribe',
-            'params': toSend,
+        defaultInterval = self.safe_string(options, 'interval', '100ms')
+        interval = self.safe_string(params, 'interval', defaultInterval)
+        type = market['type']
+        messageType = self.get_uniform_type(type)
+        method = messageType + '.' + 'order_book_update'
+        messageHash = method + ':' + market['symbol']
+        url = self.get_url_by_market_type(type, market['inverse'])
+        payload = [marketId, interval]
+        if type != 'spot':
+            # contract pairs require limit in the payload
+            stringLimit = str(limit)
+            payload.append(stringLimit)
+        subscriptionParams = {
+            'method': self.handle_order_book_subscription,
+            'symbol': symbol,
+            'limit': limit,
         }
-        subscription = {
-            'id': requestId,
-        }
-        orderbook = await self.watch(url, messageHash, subscribeMessage, messageHash, subscription)
+        orderbook = await self.subscribe_public(url, method, messageHash, payload, subscriptionParams)
         return orderbook.limit(limit)
 
+    def handle_order_book_subscription(self, client, message, subscription):
+        symbol = self.safe_string(subscription, 'symbol')
+        limit = self.safe_integer(subscription, 'limit')
+        if symbol in self.orderbooks:
+            del self.orderbooks[symbol]
+        self.orderbooks[symbol] = self.order_book({}, limit)
+        options = self.safe_value(self.options, 'handleOrderBookSubscription', {})
+        fetchOrderBookSnapshot = self.safe_value(options, 'fetchOrderBookSnapshot', False)
+        if fetchOrderBookSnapshot:
+            fetchingOrderBookSnapshot = 'fetchingOrderBookSnapshot'
+            subscription[fetchingOrderBookSnapshot] = True
+            messageHash = subscription['messageHash']
+            client.subscriptions[messageHash] = subscription
+            self.spawn(self.fetch_order_book_snapshot, client, message, subscription)
+
+    async def fetch_order_book_snapshot(self, client, message, subscription):
+        symbol = self.safe_string(subscription, 'symbol')
+        limit = self.safe_integer(subscription, 'limit')
+        messageHash = self.safe_string(subscription, 'messageHash')
+        try:
+            snapshot = await self.fetch_order_book(symbol, limit)
+            orderbook = self.orderbooks[symbol]
+            messages = orderbook.cache
+            firstMessage = self.safe_value(messages, 0, {})
+            result = self.safe_value(firstMessage, 'result')
+            seqNum = self.safe_integer(result, 'U')
+            nonce = self.safe_integer(snapshot, 'nonce')
+            # if the received snapshot is earlier than the first cached delta
+            # then we cannot align it with the cached deltas and we need to
+            # retry synchronizing in maxAttempts
+            if (seqNum is None) or (nonce < seqNum):
+                maxAttempts = self.safe_integer(self.options, 'maxOrderBookSyncAttempts', 3)
+                numAttempts = self.safe_integer(subscription, 'numAttempts', 0)
+                # retry to synchronize if we haven't reached maxAttempts yet
+                if numAttempts < maxAttempts:
+                    # safety guard
+                    if messageHash in client.subscriptions:
+                        numAttempts = self.sum(numAttempts, 1)
+                        subscription['numAttempts'] = numAttempts
+                        client.subscriptions[messageHash] = subscription
+                        self.spawn(self.fetch_order_book_snapshot, client, message, subscription)
+                else:
+                    # raise upon failing to synchronize in maxAttempts
+                    raise InvalidNonce(self.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + ' in ' + str(maxAttempts) + ' attempts')
+            else:
+                orderbook.reset(snapshot)
+                # unroll the accumulated deltas
+                for i in range(0, len(messages)):
+                    message = messages[i]
+                    self.handle_order_book_message(client, message, orderbook)
+                self.orderbooks[symbol] = orderbook
+                client.resolve(orderbook, messageHash)
+        except Exception as e:
+            client.reject(e, messageHash)
+
+    def handle_order_book(self, client, message):
+        #
+        #     {
+        #         "time":1649770575,
+        #         "channel":"spot.order_book_update",
+        #         "event":"update",
+        #         "result":{
+        #             "t":1649770575537,
+        #             "e":"depthUpdate",
+        #             "E":1649770575,
+        #             "s":"LTC_USDT",
+        #             "U":2622528153,
+        #             "u":2622528265,
+        #             "b":[
+        #                 ["104.18","3.9398"],
+        #                 ["104.56","19.0603"],
+        #                 ["104.94","0"],
+        #                 ["103.72","0"],
+        #                 ["105.01","52.6186"],
+        #                 ["104.76","0"],
+        #                 ["104.97","0"],
+        #                 ["104.71","0"],
+        #                 ["104.84","25.8604"],
+        #                 ["104.51","47.6508"],
+        #             ],
+        #             "a":[
+        #                 ["105.26","40.5519"],
+        #                 ["106.08","35.4396"],
+        #                 ["105.2","0"],
+        #                 ["105.45","8.5834"],
+        #                 ["105.5","20.17"],
+        #                 ["105.11","54.8359"],
+        #                 ["105.52","28.5605"],
+        #                 ["105.27","6.6325"],
+        #                 ["105.3","4.291446"],
+        #                 ["106.03","9.712"],
+        #             ]
+        #         }
+        #     }
+        #
+        channel = self.safe_string(message, 'channel')
+        result = self.safe_value(message, 'result')
+        marketId = self.safe_string(result, 's')
+        symbol = self.safe_symbol(marketId)
+        orderbook = self.safe_value(self.orderbooks, symbol)
+        if orderbook is None:
+            orderbook = self.order_book({})
+            self.orderbooks[symbol] = orderbook
+        messageHash = channel + ':' + symbol
+        subscription = self.safe_value(client.subscriptions, messageHash, {})
+        fetchingOrderBookSnapshot = 'fetchingOrderBookSnapshot'
+        isFetchingOrderBookSnapshot = self.safe_value(subscription, fetchingOrderBookSnapshot, False)
+        if not isFetchingOrderBookSnapshot:
+            subscription[fetchingOrderBookSnapshot] = True
+            client.subscriptions[messageHash] = subscription
+            self.spawn(self.fetch_order_book_snapshot, client, message, subscription)
+        if orderbook['nonce'] is None:
+            orderbook.cache.append(message)
+        else:
+            messageHash = channel + ':' + symbol
+            self.handle_order_book_message(client, message, orderbook, messageHash)
+
+    def handle_order_book_message(self, client, message, orderbook, messageHash=None):
+        #
+        # spot
+        #
+        #     {
+        #         time: 1650189272,
+        #         channel: 'spot.order_book_update',
+        #         event: 'update',
+        #         result: {
+        #             t: 1650189272515,
+        #             e: 'depthUpdate',
+        #             E: 1650189272,
+        #             s: 'GMT_USDT',
+        #             U: 140595902,
+        #             u: 140595902,
+        #             b: [
+        #                 ['2.51518', '228.119'],
+        #                 ['2.50587', '1510.11'],
+        #                 ['2.49944', '67.6'],
+        #             ],
+        #             a: [
+        #                 ['2.5182', '4.199'],
+        #                 ['2.51926', '1874'],
+        #                 ['2.53528', '96.529'],
+        #             ]
+        #         }
+        #     }
+        #
+        # swap
+        #
+        #     {
+        #         id: null,
+        #         time: 1650188898,
+        #         channel: 'futures.order_book_update',
+        #         event: 'update',
+        #         error: null,
+        #         result: {
+        #             t: 1650188898938,
+        #             s: 'GMT_USDT',
+        #             U: 1577718307,
+        #             u: 1577719254,
+        #             b: [
+        #                 {p: '2.5178', s: 0},
+        #                 {p: '2.5179', s: 0},
+        #                 {p: '2.518', s: 0},
+        #             ],
+        #             a: [
+        #                 {p: '2.52', s: 0},
+        #                 {p: '2.5201', s: 0},
+        #                 {p: '2.5203', s: 0},
+        #             ]
+        #         }
+        #     }
+        #
+        result = self.safe_value(message, 'result')
+        prevSeqNum = self.safe_integer(result, 'U')
+        seqNum = self.safe_integer(result, 'u')
+        nonce = orderbook['nonce']
+        # we have to add +1 because if the current seqNumber on iteration X is 5
+        # on the iteration X+1, prevSeqNum will be(5+1)
+        nextNonce = self.sum(nonce, 1)
+        if (prevSeqNum <= nextNonce) and (seqNum >= nextNonce):
+            asks = self.safe_value(result, 'a', [])
+            bids = self.safe_value(result, 'b', [])
+            self.handle_deltas(orderbook['asks'], asks)
+            self.handle_deltas(orderbook['bids'], bids)
+            orderbook['nonce'] = seqNum
+            timestamp = self.safe_integer(result, 't')
+            orderbook['timestamp'] = timestamp
+            orderbook['datetime'] = self.iso8601(timestamp)
+            if messageHash is not None:
+                client.resolve(orderbook, messageHash)
+        return orderbook
+
     def handle_delta(self, bookside, delta):
-        price = self.safe_float(delta, 0)
-        amount = self.safe_float(delta, 1)
+        price = None
+        amount = None
+        if isinstance(delta, list):
+            # spot
+            price = self.safe_float(delta, 0)
+            amount = self.safe_float(delta, 1)
+        else:
+            # swap
+            price = self.safe_float(delta, 'p')
+            amount = self.safe_float(delta, 's')
         bookside.store(price, amount)
 
     def handle_deltas(self, bookside, deltas):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
-
-    def handle_order_book(self, client, message):
-        #
-        #     {
-        #         "method":"depth.update",
-        #         "params":[
-        #             True,  # snapshot or not
-        #             {
-        #                 "asks":[
-        #                     ["7449.62","0.3933"],
-        #                     ["7450","3.58662932"],
-        #                     ["7450.44","0.15"],
-        #                 "bids":[
-        #                     ["7448.31","0.69984534"],
-        #                     ["7447.08","0.7506"],
-        #                     ["7445.74","0.4433"],
-        #                 ]
-        #             },
-        #             "BTC_USDT"
-        #         ],
-        #         "id":null
-        #     }
-        #
-        params = self.safe_value(message, 'params', [])
-        clean = self.safe_value(params, 0)
-        book = self.safe_value(params, 1)
-        marketId = self.safe_string(params, 2)
-        symbol = self.safe_symbol(marketId)
-        method = self.safe_string(message, 'method')
-        messageHash = method + ':' + marketId
-        orderBook = None
-        options = self.safe_value(self.options, 'watchOrderBook', {})
-        subscriptions = self.safe_value(options, 'subscriptions', {})
-        subscription = self.safe_value(subscriptions, symbol, [])
-        defaultLimit = self.safe_integer(options, 'limit', 30)
-        limit = self.safe_value(subscription, 1, defaultLimit)
-        if clean:
-            orderBook = self.order_book({}, limit)
-            self.orderbooks[symbol] = orderBook
-        else:
-            orderBook = self.orderbooks[symbol]
-        self.handle_deltas(orderBook['asks'], self.safe_value(book, 'asks', []))
-        self.handle_deltas(orderBook['bids'], self.safe_value(book, 'bids', []))
-        client.resolve(orderBook, messageHash)
 
     async def watch_ticker(self, symbol, params={}):
         await self.load_markets()
@@ -642,6 +797,7 @@ class gateio(Exchange, ccxt.gateio):
             client.resolve(message, messageId)
 
     def handle_message(self, client, message):
+        #
         # subscribe
         # {
         #     time: 1649062304,
@@ -678,12 +834,39 @@ class gateio(Exchange, ccxt.gateio):
         #             (...)
         #     ]
         # }
+        # orderbook
+        # {
+        #     time: 1649770525,
+        #     channel: 'spot.order_book_update',
+        #     event: 'update',
+        #     result: {
+        #       t: 1649770525653,
+        #       e: 'depthUpdate',
+        #       E: 1649770525,
+        #       s: 'LTC_USDT',
+        #       U: 2622525645,
+        #       u: 2622525665,
+        #       b: [
+        #         [Array], [Array],
+        #         [Array], [Array],
+        #         [Array], [Array],
+        #         [Array], [Array],
+        #         [Array], [Array],
+        #         [Array]
+        #       ],
+        #       a: [
+        #         [Array], [Array],
+        #         [Array], [Array],
+        #         [Array], [Array],
+        #         [Array], [Array],
+        #         [Array], [Array],
+        #         [Array]
+        #       ]
+        #     }
+        #   }
         self.handle_error_message(client, message)
         methods = {
-            'depth.update': self.handle_order_book,
-            'ticker.update': self.handle_ticker,
-            'trades.update': self.handle_trades,
-            'kline.update': self.handle_ohlcv,
+            # missing migration to v4
             'balance.update': self.handle_balance,
         }
         methodType = self.safe_string(message, 'method')
@@ -701,6 +884,7 @@ class gateio(Exchange, ccxt.gateio):
                 'candlesticks': self.handle_ohlcv,
                 'orders': self.handle_order,
                 'tickers': self.handle_ticker,
+                'order_book_update': self.handle_order_book,
             }
             method = self.safe_value(v4Methods, channelType)
         if method is not None:
@@ -729,19 +913,27 @@ class gateio(Exchange, ccxt.gateio):
         if type == 'option':
             return self.urls['api']['option']
 
-    async def subscribe_public(self, url, channel, messageHash, payload):
+    def request_id(self):
+        # their support said that reqid must be an int32, not documented
+        reqid = self.sum(self.safe_integer(self.options, 'reqid', 0), 1)
+        self.options['reqid'] = reqid
+        return reqid
+
+    async def subscribe_public(self, url, channel, messageHash, payload, subscriptionParams={}):
+        requestId = self.request_id()
         time = self.seconds()
         request = {
-            'id': time,
+            'id': requestId,
             'time': time,
             'channel': channel,
             'event': 'subscribe',
             'payload': payload,
         }
         subscription = {
-            'id': time,
+            'id': requestId,
             'messageHash': messageHash,
         }
+        subscription = self.extend(subscription, subscriptionParams)
         return await self.watch(url, messageHash, request, messageHash, subscription)
 
     async def subscribe_private(self, url, channel, messageHash, payload, requiresUid=False):
@@ -754,14 +946,14 @@ class gateio(Exchange, ccxt.gateio):
             payload = self.array_concat(idArray, payload)
         time = self.seconds()
         event = 'subscribe'
-        signaturePayload = 'channel=' + channel + '&event=' + event + '&time=' + str(time)
+        signaturePayload = 'channel=' + channel + '&' + 'event=' + event + '&' + 'time=' + str(time)
         signature = self.hmac(self.encode(signaturePayload), self.encode(self.secret), hashlib.sha512, 'hex')
         auth = {
             'method': 'api_key',
             'KEY': self.apiKey,
             'SIGN': signature,
         }
-        requestId = self.nonce()
+        requestId = self.request_id()
         request = {
             'id': requestId,
             'time': time,
