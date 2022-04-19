@@ -3918,8 +3918,8 @@ module.exports = class huobi extends Exchange {
         return response;
     }
 
-    currencyToPrecision (currency, fee) {
-        return this.decimalToPrecision (fee, 0, this.currencies[currency]['precision']);
+    currencyToPrecision (code, fee) {
+        return this.decimalToPrecision (fee, 0, this.currencies[code]['precision']);
     }
 
     safeNetwork (networkId) {
