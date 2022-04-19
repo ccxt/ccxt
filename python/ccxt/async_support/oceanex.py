@@ -412,10 +412,42 @@ class oceanex(Exchange):
         if limit is not None:
             request['limit'] = limit
         response = await self.publicGetTrades(self.extend(request, params))
+        #
+        #      {
+        #          "code":0,
+        #          "message":"Operation successful",
+        #          "data": [
+        #              {
+        #                  "id":220247666,
+        #                  "price":"3098.62",
+        #                  "volume":"0.00196",
+        #                  "funds":"6.0732952",
+        #                  "market":"ethusdt",
+        #                  "created_at":"2022-04-19T19:03:15Z",
+        #                  "created_on":1650394995,
+        #                  "side":"bid"
+        #              },
+        #          ]
+        #      }
+        #
         data = self.safe_value(response, 'data')
         return self.parse_trades(data, market, since, limit)
 
     def parse_trade(self, trade, market=None):
+        #
+        # fetchTrades(public)
+        #
+        #      {
+        #          "id":220247666,
+        #          "price":"3098.62",
+        #          "volume":"0.00196",
+        #          "funds":"6.0732952",
+        #          "market":"ethusdt",
+        #          "created_at":"2022-04-19T19:03:15Z",
+        #          "created_on":1650394995,
+        #          "side":"bid"
+        #      }
+        #
         side = self.safe_value(trade, 'side')
         if side == 'bid':
             side = 'buy'
@@ -426,7 +458,9 @@ class oceanex(Exchange):
         timestamp = self.safe_timestamp(trade, 'created_on')
         if timestamp is None:
             timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
-        return {
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'volume')
+        return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -436,11 +470,11 @@ class oceanex(Exchange):
             'type': 'limit',
             'takerOrMaker': None,
             'side': side,
-            'price': self.safe_number(trade, 'price'),
-            'amount': self.safe_number(trade, 'volume'),
+            'price': priceString,
+            'amount': amountString,
             'cost': None,
             'fee': None,
-        }
+        }, market)
 
     async def fetch_time(self, params={}):
         response = await self.publicGetTimestamp(params)

@@ -423,11 +423,43 @@ class oceanex extends Exchange {
             $request['limit'] = $limit;
         }
         $response = yield $this->publicGetTrades (array_merge($request, $params));
+        //
+        //      {
+        //          "code":0,
+        //          "message":"Operation successful",
+        //          "data" => array(
+        //              array(
+        //                  "id":220247666,
+        //                  "price":"3098.62",
+        //                  "volume":"0.00196",
+        //                  "funds":"6.0732952",
+        //                  "market":"ethusdt",
+        //                  "created_at":"2022-04-19T19:03:15Z",
+        //                  "created_on":1650394995,
+        //                  "side":"bid"
+        //              ),
+        //          )
+        //      }
+        //
         $data = $this->safe_value($response, 'data');
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
     public function parse_trade($trade, $market = null) {
+        //
+        // fetchTrades (public)
+        //
+        //      {
+        //          "id":220247666,
+        //          "price":"3098.62",
+        //          "volume":"0.00196",
+        //          "funds":"6.0732952",
+        //          "market":"ethusdt",
+        //          "created_at":"2022-04-19T19:03:15Z",
+        //          "created_on":1650394995,
+        //          "side":"bid"
+        //      }
+        //
         $side = $this->safe_value($trade, 'side');
         if ($side === 'bid') {
             $side = 'buy';
@@ -440,7 +472,9 @@ class oceanex extends Exchange {
         if ($timestamp === null) {
             $timestamp = $this->parse8601($this->safe_string($trade, 'created_at'));
         }
-        return array(
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'volume');
+        return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -450,11 +484,11 @@ class oceanex extends Exchange {
             'type' => 'limit',
             'takerOrMaker' => null,
             'side' => $side,
-            'price' => $this->safe_number($trade, 'price'),
-            'amount' => $this->safe_number($trade, 'volume'),
+            'price' => $priceString,
+            'amount' => $amountString,
             'cost' => null,
             'fee' => null,
-        );
+        ), $market);
     }
 
     public function fetch_time($params = array ()) {
