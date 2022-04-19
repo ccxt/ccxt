@@ -456,7 +456,6 @@ module.exports = class oceanex extends Exchange {
         //          "side":"bid"
         //      }
         //
-        //
         let side = this.safeValue (trade, 'side');
         if (side === 'bid') {
             side = 'buy';
