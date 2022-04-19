@@ -382,24 +382,16 @@ module.exports = class gateio extends ccxt.gateio {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['id'];
-        const uppercaseId = marketId.toUpperCase ();
-        const requestId = this.nonce ();
-        const url = this.urls['api']['ws'];
-        const options = this.safeValue (this.options, 'watchTrades', {});
-        const subscriptions = this.safeValue (options, 'subscriptions', {});
-        subscriptions[uppercaseId] = true;
-        options['subscriptions'] = subscriptions;
-        this.options['watchTrades'] = options;
-        const subscribeMessage = {
-            'id': requestId,
-            'method': 'trades.subscribe',
-            'params': Object.keys (subscriptions),
-        };
-        const subscription = {
-            'id': requestId,
-        };
-        const messageHash = 'trades.update' + ':' + marketId;
-        const trades = await this.watch (url, messageHash, subscribeMessage, messageHash, subscription);
+        const type = market['type'];
+        const messageType = this.getUniformType (type);
+        const method = messageType + '.trades';
+        let messageHash = method;
+        if (symbol !== undefined) {
+            messageHash += ':' + market['symbol'];
+        }
+        const url = this.getUrlByMarketType (type, market['inverse']);
+        const payload = [marketId];
+        const trades = await this.subscribePublic (url, method, messageHash, payload);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -408,44 +400,48 @@ module.exports = class gateio extends ccxt.gateio {
 
     handleTrades (client, message) {
         //
-        //     [
-        //         'BTC_USDT',
-        //         [
-        //             {
-        //                 id: 221994511,
-        //                 time: 1580311438.618647,
-        //                 price: '9309',
-        //                 amount: '0.0019',
-        //                 type: 'sell'
-        //             },
-        //             {
-        //                 id: 221994501,
-        //                 time: 1580311433.842509,
-        //                 price: '9311.31',
-        //                 amount: '0.01',
-        //                 type: 'buy'
-        //             },
-        //         ]
-        //     ]
+        // {
+        //     time: 1648725035,
+        //     channel: 'spot.trades',
+        //     event: 'update',
+        //     result: [{
+        //       id: 3130257995,
+        //       create_time: 1648725035,
+        //       create_time_ms: '1648725035923.0',
+        //       side: 'sell',
+        //       currency_pair: 'LTC_USDT',
+        //       amount: '0.0116',
+        //       price: '130.11'
+        //     }]
+        // }
         //
-        const params = this.safeValue (message, 'params', []);
-        const marketId = this.safeString (params, 0);
-        const market = this.safeMarket (marketId, undefined, '_');
-        const symbol = market['symbol'];
-        let stored = this.safeValue (this.trades, symbol);
-        if (stored === undefined) {
-            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            stored = new ArrayCache (limit);
-            this.trades[symbol] = stored;
+        const channel = this.safeString (message, 'channel');
+        let result = this.safeValue (message, 'result');
+        if (!Array.isArray (result)) {
+            result = [ result ];
         }
-        const trades = this.safeValue (params, 1, []);
-        const parsed = this.parseTrades (trades, market);
-        for (let i = 0; i < parsed.length; i++) {
-            stored.append (parsed[i]);
+        const parsedTrades = this.parseTrades (result);
+        const marketIds = {};
+        for (let i = 0; i < parsedTrades.length; i++) {
+            const trade = parsedTrades[i];
+            const symbol = trade['symbol'];
+            let cachedTrades = this.safeValue (this.trades, symbol);
+            if (cachedTrades === undefined) {
+                const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+                cachedTrades = new ArrayCache (limit);
+                this.trades[symbol] = cachedTrades;
+            }
+            cachedTrades.append (trade);
+            marketIds[symbol] = true;
         }
-        const methodType = message['method'];
-        const messageHash = methodType + ':' + marketId;
-        client.resolve (stored, messageHash);
+        const keys = Object.keys (marketIds);
+        for (let i = 0; i < keys.length; i++) {
+            const symbol = keys[i];
+            const hash = channel + ':' + symbol;
+            const stored = this.safeValue (this.trades, symbol);
+            client.resolve (stored, hash);
+        }
+        client.resolve (this.trades, channel);
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -960,6 +956,7 @@ module.exports = class gateio extends ccxt.gateio {
                 'candlesticks': this.handleOHLCV,
                 'orders': this.handleOrder,
                 'tickers': this.handleTicker,
+                'trades': this.handleTrades,
                 'order_book_update': this.handleOrderBook,
             };
             method = this.safeValue (v4Methods, channelType);

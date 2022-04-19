@@ -112,7 +112,14 @@ class gateio(Exchange, ccxt.gateio):
         if symbol in self.orderbooks:
             del self.orderbooks[symbol]
         self.orderbooks[symbol] = self.order_book({}, limit)
-        self.spawn(self.fetch_order_book_snapshot, client, message, subscription)
+        options = self.safe_value(self.options, 'handleOrderBookSubscription', {})
+        fetchOrderBookSnapshot = self.safe_value(options, 'fetchOrderBookSnapshot', False)
+        if fetchOrderBookSnapshot:
+            fetchingOrderBookSnapshot = 'fetchingOrderBookSnapshot'
+            subscription[fetchingOrderBookSnapshot] = True
+            messageHash = subscription['messageHash']
+            client.subscriptions[messageHash] = subscription
+            self.spawn(self.fetch_order_book_snapshot, client, message, subscription)
 
     async def fetch_order_book_snapshot(self, client, message, subscription):
         symbol = self.safe_string(subscription, 'symbol')
@@ -132,7 +139,7 @@ class gateio(Exchange, ccxt.gateio):
             if (seqNum is None) or (nonce < seqNum):
                 maxAttempts = self.safe_integer(self.options, 'maxOrderBookSyncAttempts', 3)
                 numAttempts = self.safe_integer(subscription, 'numAttempts', 0)
-                # retry to syncrhonize if we haven't reached maxAttempts yet
+                # retry to synchronize if we haven't reached maxAttempts yet
                 if numAttempts < maxAttempts:
                     # safety guard
                     if messageHash in client.subscriptions:
@@ -156,43 +163,43 @@ class gateio(Exchange, ccxt.gateio):
 
     def handle_order_book(self, client, message):
         #
-        #  {
-        #      "time":1649770575,
-        #      "channel":"spot.order_book_update",
-        #      "event":"update",
-        #      "result":{
-        #         "t":1649770575537,
-        #         "e":"depthUpdate",
-        #         "E":1649770575,
-        #         "s":"LTC_USDT",
-        #         "U":2622528153,
-        #         "u":2622528265,
-        #         "b":[
-        #            ["104.18","3.9398"],
-        #            ["104.56","19.0603"],
-        #            ["104.94","0"],
-        #            ["103.72","0"],
-        #            ["105.01","52.6186"],
-        #            ["104.76","0"],
-        #            ["104.97","0"],
-        #            ["104.71","0"],
-        #            ["104.84","25.8604"],
-        #            ["104.51","47.6508"],
-        #         ],
-        #         "a":[
-        #            ["105.26","40.5519"],
-        #            ["106.08","35.4396"],
-        #            ["105.2","0"],
-        #            ["105.45","8.5834"],
-        #            ["105.5","20.17"],
-        #            ["105.11","54.8359"],
-        #            ["105.52","28.5605"],
-        #            ["105.27","6.6325"],
-        #            ["105.3","4.291446"],
-        #            ["106.03","9.712"],
-        #         ]
-        #      }
-        #   }
+        #     {
+        #         "time":1649770575,
+        #         "channel":"spot.order_book_update",
+        #         "event":"update",
+        #         "result":{
+        #             "t":1649770575537,
+        #             "e":"depthUpdate",
+        #             "E":1649770575,
+        #             "s":"LTC_USDT",
+        #             "U":2622528153,
+        #             "u":2622528265,
+        #             "b":[
+        #                 ["104.18","3.9398"],
+        #                 ["104.56","19.0603"],
+        #                 ["104.94","0"],
+        #                 ["103.72","0"],
+        #                 ["105.01","52.6186"],
+        #                 ["104.76","0"],
+        #                 ["104.97","0"],
+        #                 ["104.71","0"],
+        #                 ["104.84","25.8604"],
+        #                 ["104.51","47.6508"],
+        #             ],
+        #             "a":[
+        #                 ["105.26","40.5519"],
+        #                 ["106.08","35.4396"],
+        #                 ["105.2","0"],
+        #                 ["105.45","8.5834"],
+        #                 ["105.5","20.17"],
+        #                 ["105.11","54.8359"],
+        #                 ["105.52","28.5605"],
+        #                 ["105.27","6.6325"],
+        #                 ["105.3","4.291446"],
+        #                 ["106.03","9.712"],
+        #             ]
+        #         }
+        #     }
         #
         channel = self.safe_string(message, 'channel')
         result = self.safe_value(message, 'result')
@@ -202,6 +209,14 @@ class gateio(Exchange, ccxt.gateio):
         if orderbook is None:
             orderbook = self.order_book({})
             self.orderbooks[symbol] = orderbook
+        messageHash = channel + ':' + symbol
+        subscription = self.safe_value(client.subscriptions, messageHash, {})
+        fetchingOrderBookSnapshot = 'fetchingOrderBookSnapshot'
+        isFetchingOrderBookSnapshot = self.safe_value(subscription, fetchingOrderBookSnapshot, False)
+        if not isFetchingOrderBookSnapshot:
+            subscription[fetchingOrderBookSnapshot] = True
+            client.subscriptions[messageHash] = subscription
+            self.spawn(self.fetch_order_book_snapshot, client, message, subscription)
         if orderbook['nonce'] is None:
             orderbook.cache.append(message)
         else:
@@ -346,66 +361,59 @@ class gateio(Exchange, ccxt.gateio):
         await self.load_markets()
         market = self.market(symbol)
         marketId = market['id']
-        uppercaseId = marketId.upper()
-        requestId = self.nonce()
-        url = self.urls['api']['ws']
-        options = self.safe_value(self.options, 'watchTrades', {})
-        subscriptions = self.safe_value(options, 'subscriptions', {})
-        subscriptions[uppercaseId] = True
-        options['subscriptions'] = subscriptions
-        self.options['watchTrades'] = options
-        subscribeMessage = {
-            'id': requestId,
-            'method': 'trades.subscribe',
-            'params': list(subscriptions.keys()),
-        }
-        subscription = {
-            'id': requestId,
-        }
-        messageHash = 'trades.update' + ':' + marketId
-        trades = await self.watch(url, messageHash, subscribeMessage, messageHash, subscription)
+        type = market['type']
+        messageType = self.get_uniform_type(type)
+        method = messageType + '.trades'
+        messageHash = method
+        if symbol is not None:
+            messageHash += ':' + market['symbol']
+        url = self.get_url_by_market_type(type, market['inverse'])
+        payload = [marketId]
+        trades = await self.subscribe_public(url, method, messageHash, payload)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trades(self, client, message):
         #
-        #     [
-        #         'BTC_USDT',
-        #         [
-        #             {
-        #                 id: 221994511,
-        #                 time: 1580311438.618647,
-        #                 price: '9309',
-        #                 amount: '0.0019',
-        #                 type: 'sell'
-        #             },
-        #             {
-        #                 id: 221994501,
-        #                 time: 1580311433.842509,
-        #                 price: '9311.31',
-        #                 amount: '0.01',
-        #                 type: 'buy'
-        #             },
-        #         ]
-        #     ]
+        # {
+        #     time: 1648725035,
+        #     channel: 'spot.trades',
+        #     event: 'update',
+        #     result: [{
+        #       id: 3130257995,
+        #       create_time: 1648725035,
+        #       create_time_ms: '1648725035923.0',
+        #       side: 'sell',
+        #       currency_pair: 'LTC_USDT',
+        #       amount: '0.0116',
+        #       price: '130.11'
+        #     }]
+        # }
         #
-        params = self.safe_value(message, 'params', [])
-        marketId = self.safe_string(params, 0)
-        market = self.safe_market(marketId, None, '_')
-        symbol = market['symbol']
-        stored = self.safe_value(self.trades, symbol)
-        if stored is None:
-            limit = self.safe_integer(self.options, 'tradesLimit', 1000)
-            stored = ArrayCache(limit)
-            self.trades[symbol] = stored
-        trades = self.safe_value(params, 1, [])
-        parsed = self.parse_trades(trades, market)
-        for i in range(0, len(parsed)):
-            stored.append(parsed[i])
-        methodType = message['method']
-        messageHash = methodType + ':' + marketId
-        client.resolve(stored, messageHash)
+        channel = self.safe_string(message, 'channel')
+        result = self.safe_value(message, 'result')
+        if not isinstance(result, list):
+            result = [result]
+        parsedTrades = self.parse_trades(result)
+        marketIds = {}
+        for i in range(0, len(parsedTrades)):
+            trade = parsedTrades[i]
+            symbol = trade['symbol']
+            cachedTrades = self.safe_value(self.trades, symbol)
+            if cachedTrades is None:
+                limit = self.safe_integer(self.options, 'tradesLimit', 1000)
+                cachedTrades = ArrayCache(limit)
+                self.trades[symbol] = cachedTrades
+            cachedTrades.append(trade)
+            marketIds[symbol] = True
+        keys = list(marketIds.keys())
+        for i in range(0, len(keys)):
+            symbol = keys[i]
+            hash = channel + ':' + symbol
+            stored = self.safe_value(self.trades, symbol)
+            client.resolve(stored, hash)
+        client.resolve(self.trades, channel)
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
@@ -869,6 +877,7 @@ class gateio(Exchange, ccxt.gateio):
                 'candlesticks': self.handle_ohlcv,
                 'orders': self.handle_order,
                 'tickers': self.handle_ticker,
+                'trades': self.handle_trades,
                 'order_book_update': self.handle_order_book,
             }
             method = self.safe_value(v4Methods, channelType)
