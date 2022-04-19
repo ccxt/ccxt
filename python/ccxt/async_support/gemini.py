@@ -759,6 +759,104 @@ class gemini(Exchange):
         return self.parse_balance(response)
 
     def parse_order(self, order, market=None):
+        #
+        # createOrder(private)
+        #
+        #      {
+        #          "order_id":"106027397702",
+        #          "id":"106027397702",
+        #          "symbol":"etheur",
+        #          "exchange":"gemini",
+        #          "avg_execution_price":"2877.48",
+        #          "side":"sell",
+        #          "type":"exchange limit",
+        #          "timestamp":"1650398122",
+        #          "timestampms":1650398122308,
+        #          "is_live":false,
+        #          "is_cancelled":false,
+        #          "is_hidden":false,
+        #          "was_forced":false,
+        #          "executed_amount":"0.014434",
+        #          "client_order_id":"1650398121695",
+        #          "options":[],
+        #          "price":"2800.00",
+        #          "original_amount":"0.014434",
+        #          "remaining_amount":"0"
+        #      }
+        #
+        # fetchOrder(private)
+        #
+        #      {
+        #          "order_id":"106028543717",
+        #          "id":"106028543717",
+        #          "symbol":"etheur",
+        #          "exchange":"gemini",
+        #          "avg_execution_price":"0.00",
+        #          "side":"buy",
+        #          "type":"exchange limit",
+        #          "timestamp":"1650398446",
+        #          "timestampms":1650398446375,
+        #          "is_live":true,
+        #          "is_cancelled":false,
+        #          "is_hidden":false,
+        #          "was_forced":false,
+        #          "executed_amount":"0",
+        #          "client_order_id":"1650398445709",
+        #          "options":[],
+        #          "price":"2000.00",
+        #          "original_amount":"0.01",
+        #          "remaining_amount":"0.01"
+        #      }
+        #
+        # fetchOpenOrders(private)
+        #
+        #      {
+        #          "order_id":"106028543717",
+        #          "id":"106028543717",
+        #          "symbol":"etheur",
+        #          "exchange":"gemini",
+        #          "avg_execution_price":"0.00",
+        #          "side":"buy",
+        #          "type":"exchange limit",
+        #          "timestamp":"1650398446",
+        #          "timestampms":1650398446375,
+        #          "is_live":true,
+        #          "is_cancelled":false,
+        #          "is_hidden":false,
+        #          "was_forced":false,
+        #          "executed_amount":"0",
+        #          "client_order_id":"1650398445709",
+        #          "options":[],
+        #          "price":"2000.00",
+        #          "original_amount":"0.01",
+        #          "remaining_amount":"0.01"
+        #      }
+        #
+        # cancelOrder(private)
+        #
+        #      {
+        #          "order_id":"106028543717",
+        #          "id":"106028543717",
+        #          "symbol":"etheur",
+        #          "exchange":"gemini",
+        #          "avg_execution_price":"0.00",
+        #          "side":"buy",
+        #          "type":"exchange limit",
+        #          "timestamp":"1650398446",
+        #          "timestampms":1650398446375,
+        #          "is_live":false,
+        #          "is_cancelled":true,
+        #          "is_hidden":false,
+        #          "was_forced":false,
+        #          "executed_amount":"0",
+        #          "client_order_id":"1650398445709",
+        #          "reason":"Requested",
+        #          "options":[],
+        #          "price":"2000.00",
+        #          "original_amount":"0.01",
+        #          "remaining_amount":"0.01"
+        #      }
+        #
         timestamp = self.safe_integer(order, 'timestampms')
         amount = self.safe_string(order, 'original_amount')
         remaining = self.safe_string(order, 'remaining_amount')
@@ -813,17 +911,66 @@ class gemini(Exchange):
             'order_id': id,
         }
         response = await self.privatePostV1OrderStatus(self.extend(request, params))
+        #
+        #      {
+        #          "order_id":"106028543717",
+        #          "id":"106028543717",
+        #          "symbol":"etheur",
+        #          "exchange":"gemini",
+        #          "avg_execution_price":"0.00",
+        #          "side":"buy",
+        #          "type":"exchange limit",
+        #          "timestamp":"1650398446",
+        #          "timestampms":1650398446375,
+        #          "is_live":true,
+        #          "is_cancelled":false,
+        #          "is_hidden":false,
+        #          "was_forced":false,
+        #          "executed_amount":"0",
+        #          "client_order_id":"1650398445709",
+        #          "options":[],
+        #          "price":"2000.00",
+        #          "original_amount":"0.01",
+        #          "remaining_amount":"0.01"
+        #      }
+        #
         return self.parse_order(response)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
-        response = await self.privatePostV1Orders(params)
+        response = await self.privatePostV1Orders()  # takes no params
+        #
+        #      [
+        #          {
+        #              "order_id":"106028543717",
+        #              "id":"106028543717",
+        #              "symbol":"etheur",
+        #              "exchange":"gemini",
+        #              "avg_execution_price":"0.00",
+        #              "side":"buy",
+        #              "type":"exchange limit",
+        #              "timestamp":"1650398446",
+        #              "timestampms":1650398446375,
+        #              "is_live":true,
+        #              "is_cancelled":false,
+        #              "is_hidden":false,
+        #              "was_forced":false,
+        #              "executed_amount":"0",
+        #              "client_order_id":"1650398445709",
+        #              "options":[],
+        #              "price":"2000.00",
+        #              "original_amount":"0.01",
+        #              "remaining_amount":"0.01"
+        #          }
+        #      ]
+        #
         market = None
         if symbol is not None:
             market = self.market(symbol)  # throws on non-existent symbol
         return self.parse_orders(response, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        # TODO add unified postOnly and timeInForce support for fill-or-kill, maker-or-cancel, immediate-or-cancel,...
         await self.load_markets()
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
@@ -839,17 +986,62 @@ class gemini(Exchange):
             'type': 'exchange limit',  # gemini allows limit orders only
         }
         response = await self.privatePostV1OrderNew(self.extend(request, params))
-        return {
-            'info': response,
-            'id': response['order_id'],
-        }
+        #
+        #      {
+        #          "order_id":"106027397702",
+        #          "id":"106027397702",
+        #          "symbol":"etheur",
+        #          "exchange":"gemini",
+        #          "avg_execution_price":"2877.48",
+        #          "side":"sell",
+        #          "type":"exchange limit",
+        #          "timestamp":"1650398122",
+        #          "timestampms":1650398122308,
+        #          "is_live":false,
+        #          "is_cancelled":false,
+        #          "is_hidden":false,
+        #          "was_forced":false,
+        #          "executed_amount":"0.014434",
+        #          "client_order_id":"1650398121695",
+        #          "options":[],
+        #          "price":"2800.00",
+        #          "original_amount":"0.014434",
+        #          "remaining_amount":"0"
+        #      }
+        #
+        return self.parse_order(response)
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
         request = {
             'order_id': id,
         }
-        return await self.privatePostV1OrderCancel(self.extend(request, params))
+        response = await self.privatePostV1OrderCancel(self.extend(request, params))
+        #
+        #      {
+        #          "order_id":"106028543717",
+        #          "id":"106028543717",
+        #          "symbol":"etheur",
+        #          "exchange":"gemini",
+        #          "avg_execution_price":"0.00",
+        #          "side":"buy",
+        #          "type":"exchange limit",
+        #          "timestamp":"1650398446",
+        #          "timestampms":1650398446375,
+        #          "is_live":false,
+        #          "is_cancelled":true,
+        #          "is_hidden":false,
+        #          "was_forced":false,
+        #          "executed_amount":"0",
+        #          "client_order_id":"1650398445709",
+        #          "reason":"Requested",
+        #          "options":[],
+        #          "price":"2000.00",
+        #          "original_amount":"0.01",
+        #          "remaining_amount":"0.01"
+        #      }
+        #
+        return self.parse_order(response)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
