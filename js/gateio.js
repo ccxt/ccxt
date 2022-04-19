@@ -1089,7 +1089,7 @@ module.exports = class gateio extends Exchange {
         return underlyings;
     }
 
-    prepareRequest (market) {
+    prepareRequest (market = undefined, type = undefined, params = {}) {
         if (market !== undefined) {
             if (market['contract']) {
                 return {
@@ -1100,6 +1100,19 @@ module.exports = class gateio extends Exchange {
                 return {
                     'currency_pair': market['id'],
                 };
+            }
+        } else {
+            const swap = type === 'swap';
+            const future = type === 'future';
+            if (swap || future) {
+                const defaultSettle = swap ? 'usdt' : 'btc';
+                const settle = this.safeStringLower (params, 'settle', defaultSettle);
+                params = this.omit (params, 'settle');
+                return {
+                    'settle': settle,
+                };
+            } else {
+                return {};
             }
         }
     }
