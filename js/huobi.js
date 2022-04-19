@@ -835,6 +835,7 @@ module.exports = class huobi extends ccxt.huobi {
                 };
                 // inject side param in every trade
                 const extendTradeParams = {
+                    'type': parsedOrder['type'],
                     'side': parsedOrder['side'],
                 };
                 // trades arrive inside an order update
@@ -1811,7 +1812,7 @@ module.exports = class huobi extends ccxt.huobi {
                 for (let i = 0; i < rawTrades.length; i++) {
                     const trade = rawTrades[i];
                     let parsedTrade = this.parseTrade (trade, market);
-                    // add side coming from the order
+                    // add extra params (side, type, ...) coming from the order
                     parsedTrade = this.extend (parsedTrade, extendParams);
                     cachedTrades.append (parsedTrade);
                 }
