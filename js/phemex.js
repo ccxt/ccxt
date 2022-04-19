@@ -418,6 +418,16 @@ module.exports = class phemex extends ccxt.phemex {
     }
 
     handleMessage (client, message) {
+        const id = this.safeInteger (message, 'id');
+        if (id !== undefined) {
+            const subscriptionsById = this.indexBy (client.subscriptions, 'id');
+            const subscription = this.safeValue (subscriptionsById, id, {});
+            const method = this.safeValue (subscription, 'method');
+            if (method !== undefined) {
+                method.call (this, client, message);
+                return;
+            }
+        }
         if (('market24h' in message) || ('spot_market24h' in message)) {
             return this.handleTicker (client, message);
         } else if ('trades' in message) {
@@ -432,5 +442,64 @@ module.exports = class phemex extends ccxt.phemex {
             //
             return message;
         }
+    }
+
+    handleAuthenticate (client, message) {
+        //
+        // {
+        //     "error": null,
+        //     "id": 1234,
+        //     "result": {
+        //       "status": "success"
+        //     }
+        // }
+        //
+        client.resolve (message, 'authenticated');
+        return message;
+    }
+
+    async subscribePrivate (messageHash, params = {}) {
+        await this.loadMarkets ();
+        const url = this.urls['api']['ws'];
+        const requestId = this.seconds ();
+        const channel = 'aop.subscribe';
+        let request = {
+            'id': requestId,
+            'method': channel,
+            'params': [],
+        };
+        request = this.extend (request, params);
+        const subscription = this.extend (request, {
+            'id': requestId,
+            'messageHash': messageHash,
+        });
+        return await this.watch (url, messageHash, request, channel, subscription);
+    }
+
+    async authenticate (params = {}) {
+        this.checkRequiredCredentials ();
+        const url = this.urls['api']['ws'];
+        const client = this.client (url);
+        const time = this.seconds ();
+        const messageHash = 'authenticated';
+        let future = this.safeValue (client.subscriptions, messageHash);
+        if (future === undefined) {
+            future = client.future (messageHash);
+            const expiryDelta = this.safeInteger (this.options, 'expires', 120);
+            const expiration = this.seconds () + expiryDelta;
+            const payload = this.apiKey + expiration.toString ();
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256');
+            const request = {
+                'method': 'user.auth',
+                'params': [ 'API', this.apiKey, signature, expiration],
+                'id': time,
+            };
+            const subscription = {
+                'id': time,
+                'method': this.handleAuthenticate,
+            };
+            this.spawn (this.watch, url, messageHash, request, messageHash, subscription);
+        }
+        return await future;
     }
 };
