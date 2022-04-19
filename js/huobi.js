@@ -833,7 +833,7 @@ module.exports = class huobi extends ccxt.huobi {
                     'ch': messageHash,
                     'symbol': marketId,
                 };
-                // inject side param in every trade
+                // inject order params in every trade
                 const extendTradeParams = {
                     'order': this.safeString (parsedOrder, 'id'),
                     'type': this.safeString (parsedOrder, 'type'),
