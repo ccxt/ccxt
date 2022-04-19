@@ -4534,18 +4534,20 @@ Parameters
 - **code** (String) Unified CCXT currency code (e.g. `"USDT"`)
 - **amount** (Float) The amount of currency to transfer (e.g. `10.5`)
 - **fromAccount** (String) The account to transfer funds from.
-- **toAccount** (String) The account to transfer funds to
+- **toAccount** (String) The account to transfer funds to.
 - **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
 - **params.symbol** (String) Market symbol when transfering to or from a margin account (e.g. `'BTC/USDT'`)
 
 **Account Types**
 
-Unified values for `fromAccount` and `toAccount` include
+`fromAccount` and `toAccount` can accept the exchange account id or one of the following unified values:
 
-- `funding` *For some exchanges `funding` and `spot` are the same account*
+- `funding` *for some exchanges `funding` and `spot` are the same account*
+- `main` *for some exchanges that allow for subaccounts*
 - `spot`
 - `margin`
 - `future`
+- `swap`
 
 You can retrieve all the account types by selecting the keys from `exchange.options['accountsByType']
 
