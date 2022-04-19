@@ -773,6 +773,104 @@ module.exports = class gemini extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        // createOrder (private)
+        //
+        //      {
+        //          "order_id":"106027397702",
+        //          "id":"106027397702",
+        //          "symbol":"etheur",
+        //          "exchange":"gemini",
+        //          "avg_execution_price":"2877.48",
+        //          "side":"sell",
+        //          "type":"exchange limit",
+        //          "timestamp":"1650398122",
+        //          "timestampms":1650398122308,
+        //          "is_live":false,
+        //          "is_cancelled":false,
+        //          "is_hidden":false,
+        //          "was_forced":false,
+        //          "executed_amount":"0.014434",
+        //          "client_order_id":"1650398121695",
+        //          "options":[],
+        //          "price":"2800.00",
+        //          "original_amount":"0.014434",
+        //          "remaining_amount":"0"
+        //      }
+        //
+        // fetchOrder (private)
+        //
+        //      {
+        //          "order_id":"106028543717",
+        //          "id":"106028543717",
+        //          "symbol":"etheur",
+        //          "exchange":"gemini",
+        //          "avg_execution_price":"0.00",
+        //          "side":"buy",
+        //          "type":"exchange limit",
+        //          "timestamp":"1650398446",
+        //          "timestampms":1650398446375,
+        //          "is_live":true,
+        //          "is_cancelled":false,
+        //          "is_hidden":false,
+        //          "was_forced":false,
+        //          "executed_amount":"0",
+        //          "client_order_id":"1650398445709",
+        //          "options":[],
+        //          "price":"2000.00",
+        //          "original_amount":"0.01",
+        //          "remaining_amount":"0.01"
+        //      }
+        //
+        // fetchOpenOrders (private)
+        //
+        //      {
+        //          "order_id":"106028543717",
+        //          "id":"106028543717",
+        //          "symbol":"etheur",
+        //          "exchange":"gemini",
+        //          "avg_execution_price":"0.00",
+        //          "side":"buy",
+        //          "type":"exchange limit",
+        //          "timestamp":"1650398446",
+        //          "timestampms":1650398446375,
+        //          "is_live":true,
+        //          "is_cancelled":false,
+        //          "is_hidden":false,
+        //          "was_forced":false,
+        //          "executed_amount":"0",
+        //          "client_order_id":"1650398445709",
+        //          "options":[],
+        //          "price":"2000.00",
+        //          "original_amount":"0.01",
+        //          "remaining_amount":"0.01"
+        //      }
+        //
+        // cancelOrder (private)
+        //
+        //      {
+        //          "order_id":"106028543717",
+        //          "id":"106028543717",
+        //          "symbol":"etheur",
+        //          "exchange":"gemini",
+        //          "avg_execution_price":"0.00",
+        //          "side":"buy",
+        //          "type":"exchange limit",
+        //          "timestamp":"1650398446",
+        //          "timestampms":1650398446375,
+        //          "is_live":false,
+        //          "is_cancelled":true,
+        //          "is_hidden":false,
+        //          "was_forced":false,
+        //          "executed_amount":"0",
+        //          "client_order_id":"1650398445709",
+        //          "reason":"Requested",
+        //          "options":[],
+        //          "price":"2000.00",
+        //          "original_amount":"0.01",
+        //          "remaining_amount":"0.01"
+        //      }
+        //
         const timestamp = this.safeInteger (order, 'timestampms');
         const amount = this.safeString (order, 'original_amount');
         const remaining = this.safeString (order, 'remaining_amount');
@@ -831,12 +929,60 @@ module.exports = class gemini extends Exchange {
             'order_id': id,
         };
         const response = await this.privatePostV1OrderStatus (this.extend (request, params));
+        //
+        //      {
+        //          "order_id":"106028543717",
+        //          "id":"106028543717",
+        //          "symbol":"etheur",
+        //          "exchange":"gemini",
+        //          "avg_execution_price":"0.00",
+        //          "side":"buy",
+        //          "type":"exchange limit",
+        //          "timestamp":"1650398446",
+        //          "timestampms":1650398446375,
+        //          "is_live":true,
+        //          "is_cancelled":false,
+        //          "is_hidden":false,
+        //          "was_forced":false,
+        //          "executed_amount":"0",
+        //          "client_order_id":"1650398445709",
+        //          "options":[],
+        //          "price":"2000.00",
+        //          "original_amount":"0.01",
+        //          "remaining_amount":"0.01"
+        //      }
+        //
         return this.parseOrder (response);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.privatePostV1Orders (params);
+        const response = await this.privatePostV1Orders (); // takes no params
+        //
+        //      [
+        //          {
+        //              "order_id":"106028543717",
+        //              "id":"106028543717",
+        //              "symbol":"etheur",
+        //              "exchange":"gemini",
+        //              "avg_execution_price":"0.00",
+        //              "side":"buy",
+        //              "type":"exchange limit",
+        //              "timestamp":"1650398446",
+        //              "timestampms":1650398446375,
+        //              "is_live":true,
+        //              "is_cancelled":false,
+        //              "is_hidden":false,
+        //              "was_forced":false,
+        //              "executed_amount":"0",
+        //              "client_order_id":"1650398445709",
+        //              "options":[],
+        //              "price":"2000.00",
+        //              "original_amount":"0.01",
+        //              "remaining_amount":"0.01"
+        //          }
+        //      ]
+        //
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol); // throws on non-existent symbol
@@ -845,6 +991,7 @@ module.exports = class gemini extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        // TODO add unified postOnly and timeInForce support for fill-or-kill, maker-or-cancel, immediate-or-cancel,...
         await this.loadMarkets ();
         if (type === 'market') {
             throw new ExchangeError (this.id + ' allows limit orders only');
@@ -861,10 +1008,30 @@ module.exports = class gemini extends Exchange {
             'type': 'exchange limit', // gemini allows limit orders only
         };
         const response = await this.privatePostV1OrderNew (this.extend (request, params));
-        return {
-            'info': response,
-            'id': response['order_id'],
-        };
+        //
+        //      {
+        //          "order_id":"106027397702",
+        //          "id":"106027397702",
+        //          "symbol":"etheur",
+        //          "exchange":"gemini",
+        //          "avg_execution_price":"2877.48",
+        //          "side":"sell",
+        //          "type":"exchange limit",
+        //          "timestamp":"1650398122",
+        //          "timestampms":1650398122308,
+        //          "is_live":false,
+        //          "is_cancelled":false,
+        //          "is_hidden":false,
+        //          "was_forced":false,
+        //          "executed_amount":"0.014434",
+        //          "client_order_id":"1650398121695",
+        //          "options":[],
+        //          "price":"2800.00",
+        //          "original_amount":"0.014434",
+        //          "remaining_amount":"0"
+        //      }
+        //
+        return this.parseOrder (response);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -872,7 +1039,32 @@ module.exports = class gemini extends Exchange {
         const request = {
             'order_id': id,
         };
-        return await this.privatePostV1OrderCancel (this.extend (request, params));
+        const response = await this.privatePostV1OrderCancel (this.extend (request, params));
+        //
+        //      {
+        //          "order_id":"106028543717",
+        //          "id":"106028543717",
+        //          "symbol":"etheur",
+        //          "exchange":"gemini",
+        //          "avg_execution_price":"0.00",
+        //          "side":"buy",
+        //          "type":"exchange limit",
+        //          "timestamp":"1650398446",
+        //          "timestampms":1650398446375,
+        //          "is_live":false,
+        //          "is_cancelled":true,
+        //          "is_hidden":false,
+        //          "was_forced":false,
+        //          "executed_amount":"0",
+        //          "client_order_id":"1650398445709",
+        //          "reason":"Requested",
+        //          "options":[],
+        //          "price":"2000.00",
+        //          "original_amount":"0.01",
+        //          "remaining_amount":"0.01"
+        //      }
+        //
+        return this.parseOrder (response);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
