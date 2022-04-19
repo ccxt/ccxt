@@ -366,11 +366,14 @@ class ftx(Exchange, ccxt.ftx):
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
-        market = self.market(symbol)
-        orders = await self.watch_private('orders', market['symbol'])
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            symbol = market['symbol']
+        orders = await self.watch_private('orders', symbol)
         if self.newUpdates:
-            limit = orders.getLimit(market['symbol'], limit)
-        return self.filter_by_symbol_since_limit(orders, market['symbol'], since, limit, True)
+            limit = orders.getLimit(symbol, limit)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
     def handle_order(self, client, message):
         #
@@ -439,11 +442,14 @@ class ftx(Exchange, ccxt.ftx):
 
     async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
-        market = self.market(symbol)
-        trades = await self.watch_private('fills', market['symbol'])
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            symbol = market['symbol']
+        trades = await self.watch_private('fills', symbol)
         if self.newUpdates:
-            limit = trades.getLimit(market['symbol'], limit)
-        return self.filter_by_symbol_since_limit(trades, market['symbol'], since, limit, True)
+            limit = trades.getLimit(symbol, limit)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
     def handle_my_trade(self, client, message):
         #

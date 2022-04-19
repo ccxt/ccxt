@@ -402,12 +402,16 @@ module.exports = class ftx extends ccxt.ftx {
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const orders = await this.watchPrivate ('orders', market['symbol']);
-        if (this.newUpdates) {
-            limit = orders.getLimit (market['symbol'], limit);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            symbol = market['symbol'];
         }
-        return this.filterBySymbolSinceLimit (orders, market['symbol'], since, limit, true);
+        const orders = await this.watchPrivate ('orders', symbol);
+        if (this.newUpdates) {
+            limit = orders.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
     handleOrder (client, message) {
@@ -479,12 +483,16 @@ module.exports = class ftx extends ccxt.ftx {
 
     async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const trades = await this.watchPrivate ('fills', market['symbol']);
-        if (this.newUpdates) {
-            limit = trades.getLimit (market['symbol'], limit);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            symbol = market['symbol'];
         }
-        return this.filterBySymbolSinceLimit (trades, market['symbol'], since, limit, true);
+        const trades = await this.watchPrivate ('fills', symbol);
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
     handleMyTrade (client, message) {
