@@ -193,7 +193,38 @@ module.exports = class phemex extends ccxt.phemex {
 
     async watchBalance (params = {}) {
         await this.loadMarkets ();
-        throw new NotSupported (this.id + ' watchBalance() not implemented yet');
+        const messageHash = 'balance';
+        return await this.subscribePrivate (messageHash, params);
+    }
+
+    handleBalance (client, message) {
+        //
+        //  [
+        //       {
+        //         accountBalanceEv: 0,
+        //         accountID: 26472240001,
+        //         bonusBalanceEv: 0,
+        //         currency: 'BTC',
+        //         totalUsedBalanceEv: 0,
+        //         userID: 2647224
+        //       }
+        //  ]
+        //
+        for (let i = 0; i < message.length; i++) {
+            const balance = message[i];
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const currency = this.safeValue (this.currencies, code, {});
+            const scale = this.safeInteger (currency, 'valueScale', 8);
+            const account = this.account ();
+            const usedEv = this.safeString (balance, 'totalUsedBalanceEv');
+            const totalEv = this.safeString (balance, 'accountBalanceEv');
+            account['used'] = this.fromEn (usedEv, scale);
+            account['total'] = this.fromEn (usedEv, totalEv);
+            this.balance[code] = account;
+            this.balance = this.safeBalance (this.balance);
+        }
+        client.resolve (this.balance, 'balance');
     }
 
     handleTrades (client, message) {
@@ -418,6 +449,76 @@ module.exports = class phemex extends ccxt.phemex {
     }
 
     handleMessage (client, message) {
+        // private update
+        // {
+        //     sequence: 83839628,
+        //     timestamp: '1650382581827447829',
+        //     type: 'snapshot',
+        //     accounts: [
+        //       {
+        //         accountBalanceEv: 0,
+        //         accountID: 26472240001,
+        //         bonusBalanceEv: 0,
+        //         currency: 'BTC',
+        //         totalUsedBalanceEv: 0,
+        //         userID: 2647224
+        //       }
+        //     ],
+        //     orders: [],
+        //     positions: [
+        //       {
+        //         accountID: 26472240001,
+        //         assignedPosBalanceEv: 0,
+        //         avgEntryPriceEp: 0,
+        //         bankruptCommEv: 0,
+        //         bankruptPriceEp: 0,
+        //         buyLeavesQty: 0,
+        //         buyLeavesValueEv: 0,
+        //         buyValueToCostEr: 1150750,
+        //         createdAtNs: 0,
+        //         crossSharedBalanceEv: 0,
+        //         cumClosedPnlEv: 0,
+        //         cumFundingFeeEv: 0,
+        //         cumTransactFeeEv: 0,
+        //         curTermRealisedPnlEv: 0,
+        //         currency: 'BTC',
+        //         dataVer: 2,
+        //         deleveragePercentileEr: 0,
+        //         displayLeverageEr: 10000000000,
+        //         estimatedOrdLossEv: 0,
+        //         execSeq: 0,
+        //         freeCostEv: 0,
+        //         freeQty: 0,
+        //         initMarginReqEr: 1000000,
+        //         lastFundingTime: '1640601827712091793',
+        //         lastTermEndTime: 0,
+        //         leverageEr: 0,
+        //         liquidationPriceEp: 0,
+        //         maintMarginReqEr: 500000,
+        //         makerFeeRateEr: 0,
+        //         markPriceEp: 507806777,
+        //         orderCostEv: 0,
+        //         posCostEv: 0,
+        //         positionMarginEv: 0,
+        //         positionStatus: 'Normal',
+        //         riskLimitEv: 10000000000,
+        //         sellLeavesQty: 0,
+        //         sellLeavesValueEv: 0,
+        //         sellValueToCostEr: 1149250,
+        //         side: 'None',
+        //         size: 0,
+        //         symbol: 'BTCUSD',
+        //         takerFeeRateEr: 0,
+        //         term: 1,
+        //         transactTimeNs: 0,
+        //         unrealisedPnlEv: 0,
+        //         updatedAtNs: 0,
+        //         usedBalanceEv: 0,
+        //         userID: 2647224,
+        //         valueEv: 0
+        //       }
+        //     ]
+        // }
         const id = this.safeInteger (message, 'id');
         if (id !== undefined) {
             const subscriptionsById = this.indexBy (client.subscriptions, 'id');
@@ -436,6 +537,12 @@ module.exports = class phemex extends ccxt.phemex {
             return this.handleOHLCV (client, message);
         } else if ('book' in message) {
             return this.handleOrderBook (client, message);
+        } else if ('accounts' in message) {
+            const accounts = this.safeValue (message, 'accounts', []);
+            const length = accounts.length;
+            if (length > 0) {
+                this.handleBalance (client, accounts);
+            }
         } else {
             //
             //     { error: null, id: 1, result: { status: 'success' } }
@@ -460,6 +567,7 @@ module.exports = class phemex extends ccxt.phemex {
 
     async subscribePrivate (messageHash, params = {}) {
         await this.loadMarkets ();
+        await this.authenticate ();
         const url = this.urls['api']['ws'];
         const requestId = this.seconds ();
         const channel = 'aop.subscribe';
@@ -469,10 +577,10 @@ module.exports = class phemex extends ccxt.phemex {
             'params': [],
         };
         request = this.extend (request, params);
-        const subscription = this.extend (request, {
+        const subscription = {
             'id': requestId,
             'messageHash': messageHash,
-        });
+        };
         return await this.watch (url, messageHash, request, channel, subscription);
     }
 
