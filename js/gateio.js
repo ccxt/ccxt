@@ -1845,8 +1845,12 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchBalance (params = {}) {
-        // :param params.type: spot, margin, cross, swap or future
-        // :param params.settle: Settle currency (usdt or btc) for perpetual swap and future
+        /**
+         * @param params exchange specific parameters
+         * @param params.type spot, margin, swap or future, if not provided this.options['defaultType'] is used
+         * @param params.settle 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
+         * @param params.marginType 'cross' or 'isolated' - marginType for type='margin' default='isolated'
+         */
         await this.loadMarkets ();
         let type = undefined;
         let method = undefined;
