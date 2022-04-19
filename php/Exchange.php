@@ -235,6 +235,7 @@ class Exchange {
         'binaryToBase16' => 'binary_to_base16',
         'binaryConcat' => 'binary_concat',
         'binaryConcatArray' => 'binary_concat_array',
+        'urlencodeNested' => 'urlencode_nested',
         'urlencodeWithArrayRepeat' => 'urlencode_with_array_repeat',
         'urlencodeBase64' => 'urlencode_base64',
         'numberToLE' => 'number_to_le',

@@ -2088,12 +2088,12 @@ module.exports = class kraken extends Exchange {
         let url = '/' + this.version + '/' + api + '/' + path;
         if (api === 'public') {
             if (Object.keys (params).length) {
-                url += '?' + this.urlencode (params);
+                url += '?' + this.urlencodeNested (params);
             }
         } else if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
-            body = this.urlencode (this.extend ({ 'nonce': nonce }, params));
+            body = this.urlencodeNested (this.extend ({ 'nonce': nonce }, params));
             const auth = this.encode (nonce + body);
             const hash = this.hash (auth, 'sha256', 'binary');
             const binary = this.stringToBinary (this.encode (url));
