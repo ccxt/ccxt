@@ -666,31 +666,40 @@ class bitfinex(Exchange):
         #     ]
         #
         result = self.safe_value(response, 0)
-        status = self.safe_string(result, 'status')
         message = self.safe_string(result, 'message')
         if message is None:
             raise ExchangeError(self.id + ' transfer failed')
-        #
-        #     [
-        #         {
-        #             "status":"error",
-        #             "message":"Momentary balance check. Please wait few seconds and try the transfer again."
-        #         }
-        #     ]
-        #
-        if status == 'error':
-            self.throw_exactly_matched_exception(self.exceptions['exact'], message, self.id + ' ' + message)
-            raise ExchangeError(self.id + ' ' + message)
-        return {
-            'info': response,
-            'status': status,
-            'amount': requestedAmount,
-            'code': code,
+        return self.extend(self.parse_transfer(result, currency), {
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'timestamp': None,
-            'datetime': None,
+            'amount': self.parse_number(requestedAmount),
+        })
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        #     {
+        #         status: 'success',
+        #         message: '0.0001 Bitcoin transfered from Margin to Exchange'
+        #     }
+        #
+        timestamp = self.milliseconds()
+        return {
+            'info': transfer,
+            'id': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'currency': self.safe_currency_code(None, currency),
+            'amount': None,
+            'fromAccount': None,
+            'toAccount': None,
+            'status': self.parse_transfer_status(self.safe_string(transfer, 'status')),
         }
+
+    def parse_transfer_status(self, status):
+        statuses = {
+            'SUCCESS': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
 
     def convert_derivatives_id(self, currencyId, type):
         start = len(currencyId) - 2
@@ -1324,10 +1333,21 @@ class bitfinex(Exchange):
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return
+        throwError = False
         if code >= 400:
-            if body[0] == '{':
-                feedback = self.id + ' ' + body
-                message = self.safe_string_2(response, 'message', 'error')
-                self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
-                self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
-                raise ExchangeError(feedback)  # unknown message
+            firstChar = self.safe_string(body, 0)
+            if firstChar == '{':
+                throwError = True
+        else:
+            # json response with error, i.e:
+            # [{"status":"error","message":"Momentary balance check. Please wait few seconds and try the transfer again."}]
+            responseObject = self.safe_value(response, 0, {})
+            status = self.safe_string(responseObject, 'status', '')
+            if status == 'error':
+                throwError = True
+        if throwError:
+            feedback = self.id + ' ' + body
+            message = self.safe_string_2(response, 'message', 'error')
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
+            raise ExchangeError(feedback)  # unknown message

@@ -663,39 +663,49 @@ class bitfinex extends Exchange {
         //
         //     array(
         //         {
-        //             $status => 'success',
+        //             status => 'success',
         //             $message => '0.0001 Bitcoin transfered from Margin to Exchange'
         //         }
         //     )
         //
         $result = $this->safe_value($response, 0);
-        $status = $this->safe_string($result, 'status');
         $message = $this->safe_string($result, 'message');
         if ($message === null) {
             throw new ExchangeError($this->id . ' transfer failed');
         }
-        //
-        //     array(
-        //         {
-        //             "status":"error",
-        //             "message":"Momentary balance check. Please wait few seconds and try the transfer again."
-        //         }
-        //     )
-        //
-        if ($status === 'error') {
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $this->id . ' ' . $message);
-            throw new ExchangeError($this->id . ' ' . $message);
-        }
-        return array(
-            'info' => $response,
-            'status' => $status,
-            'amount' => $requestedAmount,
-            'code' => $code,
+        return array_merge($this->parse_transfer($result, $currency), array(
             'fromAccount' => $fromAccount,
             'toAccount' => $toAccount,
-            'timestamp' => null,
-            'datetime' => null,
+            'amount' => $this->parse_number($requestedAmount),
+        ));
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        //     {
+        //         status => 'success',
+        //         message => '0.0001 Bitcoin transfered from Margin to Exchange'
+        //     }
+        //
+        $timestamp = $this->milliseconds();
+        return array(
+            'info' => $transfer,
+            'id' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'currency' => $this->safe_currency_code(null, $currency),
+            'amount' => null,
+            'fromAccount' => null,
+            'toAccount' => null,
+            'status' => $this->parse_transfer_status($this->safe_string($transfer, 'status')),
         );
+    }
+
+    public function parse_transfer_status($status) {
+        $statuses = array(
+            'SUCCESS' => 'ok',
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function convert_derivatives_id($currencyId, $type) {
@@ -1399,14 +1409,27 @@ class bitfinex extends Exchange {
         if ($response === null) {
             return;
         }
+        $throwError = false;
         if ($code >= 400) {
-            if ($body[0] === '{') {
-                $feedback = $this->id . ' ' . $body;
-                $message = $this->safe_string_2($response, 'message', 'error');
-                $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
-                $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
-                throw new ExchangeError($feedback); // unknown $message
+            $firstChar = $this->safe_string($body, 0);
+            if ($firstChar === '{') {
+                $throwError = true;
             }
+        } else {
+            // json $response with error, i.e:
+            // [array("status":"error","message":"Momentary balance check. Please wait few seconds and try the transfer again.")]
+            $responseObject = $this->safe_value($response, 0, array());
+            $status = $this->safe_string($responseObject, 'status', '');
+            if ($status === 'error') {
+                $throwError = true;
+            }
+        }
+        if ($throwError) {
+            $feedback = $this->id . ' ' . $body;
+            $message = $this->safe_string_2($response, 'message', 'error');
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
+            throw new ExchangeError($feedback); // unknown $message
         }
     }
 }
