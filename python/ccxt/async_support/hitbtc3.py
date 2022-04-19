@@ -1634,18 +1634,37 @@ class hitbtc3(Exchange):
             'destination': toId,
         }
         response = await self.privatePostWalletTransfer(self.extend(request, params))
-        # ['2db6ebab-fb26-4537-9ef8-1a689472d236']
-        id = self.safe_string(response, 0)
-        return {
-            'info': response,
-            'id': id,
-            'timestamp': None,
-            'datetime': None,
-            'amount': self.parse_number(requestAmount),
-            'currency': code,
+        #
+        #     [
+        #         '2db6ebab-fb26-4537-9ef8-1a689472d236'
+        #     ]
+        #
+        transfer = self.parse_transfer(response, currency)
+        return self.extend(transfer, {
             'fromAccount': fromAccount,
             'toAccount': toAccount,
+            'amount': self.parse_number(requestAmount),
+        })
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        # transfer
+        #
+        #     [
+        #         '2db6ebab-fb26-4537-9ef8-1a689472d236'
+        #     ]
+        #
+        timestamp = self.milliseconds()
+        return {
+            'id': self.safe_string(transfer, 0),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'currency': self.safe_currency_code(None, currency),
+            'amount': None,
+            'fromAccount': None,
+            'toAccount': None,
             'status': None,
+            'info': transfer,
         }
 
     async def convert_currency_network(self, code, amount, fromNetwork, toNetwork, params):

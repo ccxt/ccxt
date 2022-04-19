@@ -4133,18 +4133,18 @@ Leverage Tiers Structure
    [
        {
            "tier": 1,                       // tier index
-           "notionalCurrency": "USDT",      // the currency that notionalFloor and notionalCap are in
-           "notionalFloor": 0,              // the lowest amount of this tier // stake = 0.0
-           "notionalCap": 10000,            // the highest amount of this tier // max stake amount at 75x leverage = 133.33333333333334
+           "notionalCurrency": "USDT",      // the currency that minNotional and maxNotional are in
+           "minNotional": 0,                // the lowest amount of this tier // stake = 0.0
+           "maxNotional": 10000,            // the highest amount of this tier // max stake amount at 75x leverage = 133.33333333333334
            "maintenanceMarginRate": 0.0065, // maintenance margin rate
-           "maxLeverage": 75,               // max available leverage for this market when the value of the trade is > notionalFloor and < notionalCap
+           "maxLeverage": 75,               // max available leverage for this market when the value of the trade is > minNotional and < maxNotional
            "info": { ... }                  // Response from exchange
        },
        {
            "tier": 2,
            "notionalCurrency": "USDT",
-           "notionalFloor": 10000,          // min stake amount at 50x leverage = 200.0
-           "notionalCap": 50000,            // max stake amount at 50x leverage = 1000.0
+           "minNotional": 10000,            // min stake amount at 50x leverage = 200.0
+           "maxNotional": 50000,            // max stake amount at 50x leverage = 1000.0
            "maintenanceMarginRate": 0.01,
            "maxLeverage": 50,
            "info": { ... },
@@ -4153,8 +4153,8 @@ Leverage Tiers Structure
        {
            "tier": 9,
            "notionalCurrency": "USDT",
-           "notionalFloor": 20000000,
-           "notionalCap": 50000000,
+           "minNotional": 20000000,
+           "maxNotional": 50000000,
            "maintenanceMarginRate": 0.5,
            "maxLeverage": 1,
            "info": { ... },
@@ -6249,19 +6249,21 @@ Parameters
  * **code** (String) Unified CCXT currency code (e.g. ``"USDT"``\ )
  * **amount** (Float) The amount of currency to transfer (e.g. ``10.5``\ )
  * **fromAccount** (String) The account to transfer funds from.
- * **toAccount** (String) The account to transfer funds to
+ * **toAccount** (String) The account to transfer funds to.
  * **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. ``{"endTime": 1645807945000}``\ )
  * **params.symbol** (String) Market symbol when transfering to or from a margin account (e.g. ``'BTC/USDT'``\ )
 
  **Account Types**
 
-Unified values for ``fromAccount`` and ``toAccount`` include
+``fromAccount`` and ``toAccount`` can accept the exchange account id or one of the following unified values:
 
 
- * ``funding`` *For some exchanges ``funding`` and ``spot`` are the same account*
+ * ``funding`` *for some exchanges ``funding`` and ``spot`` are the same account*
+ * ``main`` *for some exchanges that allow for subaccounts*
  * ``spot``
  * ``margin``
  * ``future``
+ * ``swap``
 
 You can retrieve all the account types by selecting the keys from `exchange.options['accountsByType']
 

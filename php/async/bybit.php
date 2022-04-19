@@ -3237,21 +3237,21 @@ class bybit extends Exchange {
         //        ...
         //    )
         //
-        $notionalFloor = 0;
+        $minNotional = 0;
         $tiers = array();
         for ($i = 0; $i < count($info); $i++) {
             $item = $info[$i];
-            $notionalCap = $this->safe_number($item, 'limit');
+            $maxNotional = $this->safe_number($item, 'limit');
             $tiers[] = array(
                 'tier' => $this->sum($i, 1),
                 'currency' => $market['base'],
-                'notionalFloor' => $notionalFloor,
-                'notionalCap' => $notionalCap,
+                'minNotional' => $minNotional,
+                'maxNotional' => $maxNotional,
                 'maintenanceMarginRate' => $this->safe_number($item, 'maintain_margin'),
                 'maxLeverage' => $this->safe_number($item, 'max_leverage'),
                 'info' => $item,
             );
-            $notionalFloor = $notionalCap;
+            $minNotional = $maxNotional;
         }
         return $tiers;
     }

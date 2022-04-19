@@ -2402,8 +2402,8 @@ class ascendex extends Exchange {
             $tiers[] = array(
                 'tier' => $this->sum($i, 1),
                 'currency' => $market['quote'],
-                'notionalFloor' => $this->safe_number($tier, 'positionNotionalLowerBound'),
-                'notionalCap' => $this->safe_number($tier, 'positionNotionalUpperBound'),
+                'minNotional' => $this->safe_number($tier, 'positionNotionalLowerBound'),
+                'maxNotional' => $this->safe_number($tier, 'positionNotionalUpperBound'),
                 'maintenanceMarginRate' => $this->safe_number($tier, 'maintenanceMarginRate'),
                 'maxLeverage' => $this->parse_number(Precise::string_div('1', $initialMarginRate)),
                 'info' => $tier,
@@ -2436,13 +2436,9 @@ class ascendex extends Exchange {
         //
         //    array( $code => '0' )
         //
-        $status = $this->safe_integer($response, 'code');
         $transferOptions = $this->safe_value($this->options, 'transfer', array());
         $fillResponseFromRequest = $this->safe_value($transferOptions, 'fillResponseFromRequest', true);
-        $transfer = array(
-            'info' => $response,
-            'status' => $this->parse_transfer_status($status),
-        );
+        $transfer = $this->parse_transfer($response, $currency);
         if ($fillResponseFromRequest) {
             $transfer['fromAccount'] = $fromAccount;
             $transfer['toAccount'] = $toAccount;
@@ -2450,6 +2446,26 @@ class ascendex extends Exchange {
             $transfer['currency'] = $code;
         }
         return $transfer;
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        //    array( code => '0' )
+        //
+        $status = $this->safe_integer($transfer, 'code');
+        $currencyCode = $this->safe_currency_code(null, $currency);
+        $timestamp = $this->milliseconds();
+        return array(
+            'info' => $transfer,
+            'id' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'currency' => $currencyCode,
+            'amount' => null,
+            'fromAccount' => null,
+            'toAccount' => null,
+            'status' => $this->parse_transfer_status($status),
+        );
     }
 
     public function parse_transfer_status($status) {

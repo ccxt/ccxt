@@ -2398,8 +2398,8 @@ module.exports = class ascendex extends Exchange {
             tiers.push ({
                 'tier': this.sum (i, 1),
                 'currency': market['quote'],
-                'notionalFloor': this.safeNumber (tier, 'positionNotionalLowerBound'),
-                'notionalCap': this.safeNumber (tier, 'positionNotionalUpperBound'),
+                'minNotional': this.safeNumber (tier, 'positionNotionalLowerBound'),
+                'maxNotional': this.safeNumber (tier, 'positionNotionalUpperBound'),
                 'maintenanceMarginRate': this.safeNumber (tier, 'maintenanceMarginRate'),
                 'maxLeverage': this.parseNumber (Precise.stringDiv ('1', initialMarginRate)),
                 'info': tier,
@@ -2432,13 +2432,9 @@ module.exports = class ascendex extends Exchange {
         //
         //    { code: '0' }
         //
-        const status = this.safeInteger (response, 'code');
         const transferOptions = this.safeValue (this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeValue (transferOptions, 'fillResponseFromRequest', true);
-        const transfer = {
-            'info': response,
-            'status': this.parseTransferStatus (status),
-        };
+        const transfer = this.parseTransfer (response, currency);
         if (fillResponseFromRequest) {
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
@@ -2446,6 +2442,26 @@ module.exports = class ascendex extends Exchange {
             transfer['currency'] = code;
         }
         return transfer;
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        //    { code: '0' }
+        //
+        const status = this.safeInteger (transfer, 'code');
+        const currencyCode = this.safeCurrencyCode (undefined, currency);
+        const timestamp = this.milliseconds ();
+        return {
+            'info': transfer,
+            'id': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': currencyCode,
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': this.parseTransferStatus (status),
+        };
     }
 
     parseTransferStatus (status) {

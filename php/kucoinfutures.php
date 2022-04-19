@@ -1316,15 +1316,12 @@ class kucoinfutures extends kucoin {
         if (($toAccount !== 'main' && $toAccount !== 'funding') || ($fromAccount !== 'futures' && $fromAccount !== 'future' && $fromAccount !== 'contract')) {
             throw new BadRequest($this->id . ' only supports transfers from contract(future) account to main(funding) account');
         }
-        return $this->transfer_out($code, $amount, $params);
-    }
-
-    public function transfer_out($code, $amount, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency($code);
+        $amountToPrecision = $this->currency_to_precision($code, $amount);
         $request = array(
             'currency' => $this->safe_string($currency, 'id'), // Currency,including XBT,USDT
-            'amount' => $amount,
+            'amount' => $amountToPrecision,
         );
         // transfer from usdm futures wallet to spot wallet
         $response = $this->futuresPrivatePostTransferOut (array_merge($request, $params));
@@ -1337,18 +1334,40 @@ class kucoinfutures extends kucoin {
         //    }
         //
         $data = $this->safe_value($response, 'data');
-        $timestamp = $this->safe_string($data, 'updatedAt');
-        return array(
-            'info' => $response,
-            'id' => $this->safe_string($data, 'applyId'),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'currency' => $code,
-            'amount' => $amount,
+        return array_merge($this->parse_transfer($data, $currency), array(
+            'amount' => $this->parse_number($amountToPrecision),
             'fromAccount' => 'future',
             'toAccount' => 'spot',
-            'status' => $this->safe_string($data, 'status'),
+        ));
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        // $transfer
+        //
+        //     {
+        //            "applyId" => "5bffb63303aa675e8bbe18f9" // Transfer-out request ID
+        //     }
+        //
+        $timestamp = $this->safe_string($transfer, 'updatedAt');
+        return array(
+            'id' => $this->safe_string($transfer, 'applyId'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'currency' => $this->safe_currency_code(null, $currency),
+            'amount' => null,
+            'fromAccount' => null,
+            'toAccount' => null,
+            'status' => $this->safe_string($transfer, 'status'),
+            'info' => $transfer,
         );
+    }
+
+    public function parse_transfer_status($status) {
+        $statuses = array(
+            'PROCESSING' => 'pending',
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -1709,8 +1728,8 @@ class kucoinfutures extends kucoin {
             $tiers[] = array(
                 'tier' => $this->safe_number($tier, 'level'),
                 'currency' => $market['base'],
-                'notionalFloor' => $this->safe_number($tier, 'minRiskLimit'),
-                'notionalCap' => $this->safe_number($tier, 'maxRiskLimit'),
+                'minNotional' => $this->safe_number($tier, 'minRiskLimit'),
+                'maxNotional' => $this->safe_number($tier, 'maxRiskLimit'),
                 'maintenanceMarginRate' => $this->safe_number($tier, 'maintainMargin'),
                 'maxLeverage' => $this->safe_number($tier, 'maxLeverage'),
                 'info' => $tier,

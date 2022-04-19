@@ -1325,7 +1325,15 @@ class cryptocom extends Exchange {
             'from' => $fromId,
             'to' => $toId,
         );
-        return $this->spotPrivatePostPrivateDerivTransfer (array_merge($request, $params));
+        $repsonse = $this->spotPrivatePostPrivateDerivTransfer (array_merge($request, $params));
+        //
+        //     {
+        //         "id" => 11,
+        //         "method" => "private/deriv/transfer",
+        //         "code" => 0
+        //     }
+        //
+        return $this->parse_transfer($repsonse, $currency);
     }
 
     public function fetch_transfers($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1345,7 +1353,7 @@ class cryptocom extends Exchange {
         //
         //     {
         //       id => '1641032709328',
-        //       method => 'private/deriv/get-$transfer-history',
+        //       method => 'private/deriv/get-transfer-history',
         //       $code => '0',
         //       $result => {
         //         transfer_list => array(
@@ -1363,12 +1371,7 @@ class cryptocom extends Exchange {
         //
         $result = $this->safe_value($response, 'result', array());
         $transferList = $this->safe_value($result, 'transfer_list', array());
-        $resultArray = array();
-        for ($i = 0; $i < count($transferList); $i++) {
-            $transfer = $transferList[$i];
-            $resultArray[] = $this->parse_transfer($transfer, $currency);
-        }
-        return $this->filter_by_since_limit($resultArray, $since, $limit);
+        return $this->parse_transfers($transferList, $currency, $since, $limit, $params);
     }
 
     public function parse_transfer_status($status) {
@@ -1406,7 +1409,7 @@ class cryptocom extends Exchange {
         $status = $this->parse_transfer_status($rawStatus);
         return array(
             'info' => $transfer,
-            'id' => null,
+            'id' => $this->safe_string($transfer, 'id'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'currency' => $code,

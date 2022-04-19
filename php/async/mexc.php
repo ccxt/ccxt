@@ -2584,14 +2584,14 @@ class mexc extends Exchange {
         return yield $this->contractPrivatePostPositionChangeLeverage (array_merge($request, $params));
     }
 
-    public function fetch_transfer($id, $since = null, $limit = null, $params = array ()) {
+    public function fetch_transfer($id, $code = null, $params = array ()) {
         $request = array(
             'transact_id' => $id,
         );
         $response = yield $this->spotPrivateGetAssetInternalTransferInfo (array_merge($request, $params));
         //
         //     {
-        //         code => '200',
+        //         $code => '200',
         //         $data => {
         //             currency => 'USDT',
         //             amount => '1',
@@ -3127,8 +3127,8 @@ class mexc extends Exchange {
             $tiers[] = array(
                 'tier' => $this->parse_number(Precise::string_div($cap, $riskIncrVol)),
                 'currency' => $this->safe_currency_code($quoteId),
-                'notionalFloor' => $this->parse_number($floor),
-                'notionalCap' => $this->parse_number($cap),
+                'minNotional' => $this->parse_number($floor),
+                'maxNotional' => $this->parse_number($cap),
                 'maintenanceMarginRate' => $this->parse_number($maintenanceMarginRate),
                 'maxLeverage' => $this->parse_number(Precise::string_div('1', $initialMarginRate)),
                 'info' => $info,

@@ -1320,15 +1320,12 @@ module.exports = class kucoinfutures extends kucoin {
         if ((toAccount !== 'main' && toAccount !== 'funding') || (fromAccount !== 'futures' && fromAccount !== 'future' && fromAccount !== 'contract')) {
             throw new BadRequest (this.id + ' only supports transfers from contract(future) account to main(funding) account');
         }
-        return this.transferOut (code, amount, params);
-    }
-
-    async transferOut (code, amount, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
+        const amountToPrecision = this.currencyToPrecision (code, amount);
         const request = {
             'currency': this.safeString (currency, 'id'), // Currency,including XBT,USDT
-            'amount': amount,
+            'amount': amountToPrecision,
         };
         // transfer from usdm futures wallet to spot wallet
         const response = await this.futuresPrivatePostTransferOut (this.extend (request, params));
@@ -1341,18 +1338,40 @@ module.exports = class kucoinfutures extends kucoin {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        const timestamp = this.safeString (data, 'updatedAt');
-        return {
-            'info': response,
-            'id': this.safeString (data, 'applyId'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'currency': code,
-            'amount': amount,
+        return this.extend (this.parseTransfer (data, currency), {
+            'amount': this.parseNumber (amountToPrecision),
             'fromAccount': 'future',
             'toAccount': 'spot',
-            'status': this.safeString (data, 'status'),
+        });
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        // transfer
+        //
+        //     {
+        //            "applyId": "5bffb63303aa675e8bbe18f9" // Transfer-out request ID
+        //     }
+        //
+        const timestamp = this.safeString (transfer, 'updatedAt');
+        return {
+            'id': this.safeString (transfer, 'applyId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': this.safeCurrencyCode (undefined, currency),
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': this.safeString (transfer, 'status'),
+            'info': transfer,
         };
+    }
+
+    parseTransferStatus (status) {
+        const statuses = {
+            'PROCESSING': 'pending',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1714,8 +1733,8 @@ module.exports = class kucoinfutures extends kucoin {
             tiers.push ({
                 'tier': this.safeNumber (tier, 'level'),
                 'currency': market['base'],
-                'notionalFloor': this.safeNumber (tier, 'minRiskLimit'),
-                'notionalCap': this.safeNumber (tier, 'maxRiskLimit'),
+                'minNotional': this.safeNumber (tier, 'minRiskLimit'),
+                'maxNotional': this.safeNumber (tier, 'maxRiskLimit'),
                 'maintenanceMarginRate': this.safeNumber (tier, 'maintainMargin'),
                 'maxLeverage': this.safeNumber (tier, 'maxLeverage'),
                 'info': tier,

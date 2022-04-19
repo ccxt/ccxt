@@ -379,10 +379,7 @@ module.exports = class bitfinex extends Exchange {
                     'spot': 'exchange',
                     'margin': 'trading',
                     'funding': 'deposit',
-                    'exchange': 'exchange',
-                    'trading': 'trading',
-                    'deposit': 'deposit',
-                    'derivatives': 'trading',
+                    'swap': 'trading',
                 },
             },
         });
@@ -647,16 +644,8 @@ module.exports = class bitfinex extends Exchange {
         // however we support it in CCXT (from just looking at web inspector)
         await this.loadMarkets ();
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-        const fromId = this.safeString (accountsByType, fromAccount);
-        if (fromId === undefined) {
-            const keys = Object.keys (accountsByType);
-            throw new ExchangeError (this.id + ' transfer fromAccount must be one of ' + keys.join (', '));
-        }
-        const toId = this.safeString (accountsByType, toAccount);
-        if (toId === undefined) {
-            const keys = Object.keys (accountsByType);
-            throw new ExchangeError (this.id + ' transfer toAccount must be one of ' + keys.join (', '));
-        }
+        const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
+        const toId = this.safeString (accountsByType, toAccount, toAccount);
         const currency = this.currency (code);
         const fromCurrencyId = this.convertDerivativesId (currency['id'], fromAccount);
         const toCurrencyId = this.convertDerivativesId (currency['id'], toAccount);
@@ -671,10 +660,10 @@ module.exports = class bitfinex extends Exchange {
         const response = await this.privatePostTransfer (this.extend (request, params));
         //
         //     [
-        //       {
-        //         status: 'success',
-        //         message: '0.0001 Bitcoin transfered from Margin to Exchange'
-        //       }
+        //         {
+        //             status: 'success',
+        //             message: '0.0001 Bitcoin transfered from Margin to Exchange'
+        //         }
         //     ]
         //
         const result = this.safeValue (response, 0);
@@ -685,7 +674,7 @@ module.exports = class bitfinex extends Exchange {
         return this.extend (this.parseTransfer (result, currency), {
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'amount': requestedAmount,
+            'amount': this.parseNumber (requestedAmount),
         });
     }
 

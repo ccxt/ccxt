@@ -6,7 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
 use \ccxt\BadSymbol;
@@ -306,17 +305,11 @@ class aax extends Exchange {
             'precisionMode' => TICK_SIZE,
             'options' => array(
                 'defaultType' => 'spot', // 'spot', 'future'
-                'types' => array(
+                'accountsByType' => array(
                     'spot' => 'SPTP',
                     'future' => 'FUTP',
                     'otc' => 'F2CP',
                     'saving' => 'VLTP',
-                ),
-                'accounts' => array(
-                    'SPTP' => 'spot',
-                    'FUTP' => 'future',
-                    'F2CP' => 'otc',
-                    'VLTP' => 'saving',
                 ),
                 'networks' => array(
                     'ETH' => 'ERC20',
@@ -324,8 +317,7 @@ class aax extends Exchange {
                     'SOL' => 'SPL',
                 ),
                 'transfer' => array(
-                    'fillFromAccountToAccount' => true,
-                    'fillAmount' => true,
+                    'fillResponseFromRequest' => true,
                 ),
             ),
         ));
@@ -938,7 +930,7 @@ class aax extends Exchange {
         $this->load_markets();
         $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
-        $types = $this->safe_value($this->options, 'types', array());
+        $types = $this->safe_value($this->options, 'accountsByType', array());
         $purseType = $this->safe_string($types, $type, $type);
         $request = array(
             'purseType' => $purseType,
@@ -2401,8 +2393,8 @@ class aax extends Exchange {
             $tiers[] = array(
                 'tier' => $this->parse_number(Precise::string_div($cap, $riskIncrVol)),
                 'currency' => $market['base'],
-                'notionalFloor' => $this->parse_number($floor),
-                'notionalCap' => $this->parse_number($cap),
+                'minNotional' => $this->parse_number($floor),
+                'maxNotional' => $this->parse_number($cap),
                 'maintenanceMarginRate' => $this->parse_number($maintenanceMarginRate),
                 'maxLeverage' => $this->parse_number(Precise::string_div('1', $initialMarginRate)),
                 'info' => $info,
@@ -2456,17 +2448,9 @@ class aax extends Exchange {
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency($code);
-        $accountTypes = $this->safe_value($this->options, 'types', array());
-        $fromId = $this->safe_string($accountTypes, $fromAccount);
-        $toId = $this->safe_string($accountTypes, $toAccount);
-        if ($fromId === null) {
-            $keys = is_array($accountTypes) ? array_keys($accountTypes) : array();
-            throw new ExchangeError($this->id . ' $fromAccount must be one of ' . implode(', ', $keys));
-        }
-        if ($toId === null) {
-            $keys = is_array($accountTypes) ? array_keys($accountTypes) : array();
-            throw new ExchangeError($this->id . ' $toAccount must be one of ' . implode(', ', $keys));
-        }
+        $accountTypes = $this->safe_value($this->options, 'accountsByType', array());
+        $fromId = $this->safe_string($accountTypes, $fromAccount, $fromAccount);
+        $toId = $this->safe_string($accountTypes, $toAccount, $toAccount);
         $request = array(
             'currency' => $currency['id'],
             'fromPurse' => $fromId,
@@ -2488,18 +2472,17 @@ class aax extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $transfer = $this->parse_transfer($data, $currency);
         $transferOptions = $this->safe_value($this->options, 'transfer', array());
-        $fillFromAccountToAccount = $this->safe_value($transferOptions, 'fillFromAccountToAccount', true);
-        $fillAmount = $this->safe_value($transferOptions, 'fillAmount', true);
-        if ($fillFromAccountToAccount) {
+        $fillResponseFromRequest = $this->safe_value($transferOptions, 'fillResponseFromRequest', true);
+        if ($fillResponseFromRequest) {
             if ($transfer['fromAccount'] === null) {
                 $transfer['fromAccount'] = $fromAccount;
             }
             if ($transfer['toAccount'] === null) {
                 $transfer['toAccount'] = $toAccount;
             }
-        }
-        if ($fillAmount && $transfer['amount'] === null) {
-            $transfer['amount'] = $amount;
+            if ($transfer['amount'] === null) {
+                $transfer['amount'] = $amount;
+            }
         }
         $transfer['status'] = $this->parse_transfer_status($this->safe_string($response, 'code'));
         return $transfer;

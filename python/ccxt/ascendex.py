@@ -2307,8 +2307,8 @@ class ascendex(Exchange):
             tiers.append({
                 'tier': self.sum(i, 1),
                 'currency': market['quote'],
-                'notionalFloor': self.safe_number(tier, 'positionNotionalLowerBound'),
-                'notionalCap': self.safe_number(tier, 'positionNotionalUpperBound'),
+                'minNotional': self.safe_number(tier, 'positionNotionalLowerBound'),
+                'maxNotional': self.safe_number(tier, 'positionNotionalUpperBound'),
                 'maintenanceMarginRate': self.safe_number(tier, 'maintenanceMarginRate'),
                 'maxLeverage': self.parse_number(Precise.string_div('1', initialMarginRate)),
                 'info': tier,
@@ -2338,19 +2338,34 @@ class ascendex(Exchange):
         #
         #    {code: '0'}
         #
-        status = self.safe_integer(response, 'code')
         transferOptions = self.safe_value(self.options, 'transfer', {})
         fillResponseFromRequest = self.safe_value(transferOptions, 'fillResponseFromRequest', True)
-        transfer = {
-            'info': response,
-            'status': self.parse_transfer_status(status),
-        }
+        transfer = self.parse_transfer(response, currency)
         if fillResponseFromRequest:
             transfer['fromAccount'] = fromAccount
             transfer['toAccount'] = toAccount
             transfer['amount'] = amount
             transfer['currency'] = code
         return transfer
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        #    {code: '0'}
+        #
+        status = self.safe_integer(transfer, 'code')
+        currencyCode = self.safe_currency_code(None, currency)
+        timestamp = self.milliseconds()
+        return {
+            'info': transfer,
+            'id': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'currency': currencyCode,
+            'amount': None,
+            'fromAccount': None,
+            'toAccount': None,
+            'status': self.parse_transfer_status(status),
+        }
 
     def parse_transfer_status(self, status):
         if status == 0:

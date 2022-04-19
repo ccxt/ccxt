@@ -3234,21 +3234,21 @@ module.exports = class bybit extends Exchange {
         //        ...
         //    ]
         //
-        let notionalFloor = 0;
+        let minNotional = 0;
         const tiers = [];
         for (let i = 0; i < info.length; i++) {
             const item = info[i];
-            const notionalCap = this.safeNumber (item, 'limit');
+            const maxNotional = this.safeNumber (item, 'limit');
             tiers.push ({
                 'tier': this.sum (i, 1),
                 'currency': market['base'],
-                'notionalFloor': notionalFloor,
-                'notionalCap': notionalCap,
+                'minNotional': minNotional,
+                'maxNotional': maxNotional,
                 'maintenanceMarginRate': this.safeNumber (item, 'maintain_margin'),
                 'maxLeverage': this.safeNumber (item, 'max_leverage'),
                 'info': item,
             });
-            notionalFloor = notionalCap;
+            minNotional = maxNotional;
         }
         return tiers;
     }

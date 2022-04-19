@@ -381,10 +381,7 @@ class bitfinex extends Exchange {
                     'spot' => 'exchange',
                     'margin' => 'trading',
                     'funding' => 'deposit',
-                    'exchange' => 'exchange',
-                    'trading' => 'trading',
-                    'deposit' => 'deposit',
-                    'derivatives' => 'trading',
+                    'swap' => 'trading',
                 ),
             ),
         ));
@@ -649,16 +646,8 @@ class bitfinex extends Exchange {
         // however we support it in CCXT (from just looking at web inspector)
         $this->load_markets();
         $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
-        $fromId = $this->safe_string($accountsByType, $fromAccount);
-        if ($fromId === null) {
-            $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
-            throw new ExchangeError($this->id . ' transfer $fromAccount must be one of ' . implode(', ', $keys));
-        }
-        $toId = $this->safe_string($accountsByType, $toAccount);
-        if ($toId === null) {
-            $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
-            throw new ExchangeError($this->id . ' transfer $toAccount must be one of ' . implode(', ', $keys));
-        }
+        $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
+        $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
         $currency = $this->currency($code);
         $fromCurrencyId = $this->convert_derivatives_id($currency['id'], $fromAccount);
         $toCurrencyId = $this->convert_derivatives_id($currency['id'], $toAccount);
@@ -671,19 +660,28 @@ class bitfinex extends Exchange {
             'walletto' => $toId,
         );
         $response = $this->privatePostTransfer (array_merge($request, $params));
-        // array(
-        //   {
-        //     $status => 'success',
-        //     $message => '0.0001 Bitcoin transfered from Margin to Exchange'
-        //   }
-        // )
+        //
+        //     array(
+        //         {
+        //             $status => 'success',
+        //             $message => '0.0001 Bitcoin transfered from Margin to Exchange'
+        //         }
+        //     )
+        //
         $result = $this->safe_value($response, 0);
         $status = $this->safe_string($result, 'status');
         $message = $this->safe_string($result, 'message');
         if ($message === null) {
             throw new ExchangeError($this->id . ' transfer failed');
         }
-        // [array("status":"error","message":"Momentary balance check. Please wait few seconds and try the transfer again.")]
+        //
+        //     array(
+        //         {
+        //             "status":"error",
+        //             "message":"Momentary balance check. Please wait few seconds and try the transfer again."
+        //         }
+        //     )
+        //
         if ($status === 'error') {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $this->id . ' ' . $message);
             throw new ExchangeError($this->id . ' ' . $message);

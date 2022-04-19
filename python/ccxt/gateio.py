@@ -3327,7 +3327,7 @@ class gateio(Exchange):
             request['settle'] = currency['lowerCaseId']
         response = self.privateWalletPostTransfers(self.extend(request, params))
         #
-        # according to the docs
+        # according to the docs(however actual response seems to be an empty string '')
         #
         #     {
         #       "currency": "BTC",
@@ -3337,20 +3337,25 @@ class gateio(Exchange):
         #       "currency_pair": "BTC_USDT"
         #     }
         #
-        # actual response
-        #
-        #  POST https://api.gateio.ws/api/v4/wallet/transfers 204 No Content
-        #
+        transfer = self.parse_transfer(response, currency)
+        return self.extend(transfer, {
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'amount': self.parse_number(truncated),
+        })
+
+    def parse_transfer(self, transfer, currency=None):
+        timestamp = self.milliseconds()
         return {
-            'info': response,
             'id': None,
-            'timestamp': None,
-            'datetime': None,
-            'currency': code,
-            'amount': truncated,
-            'fromAccount': fromId,
-            'toAccount': toId,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'currency': self.safe_currency_code(None, currency),
+            'amount': None,
+            'fromAccount': None,
+            'toAccount': None,
             'status': None,
+            'info': transfer,
         }
 
     def set_leverage(self, leverage, symbol=None, params={}):
@@ -3758,8 +3763,8 @@ class gateio(Exchange):
             tiers.append({
                 'tier': self.parse_number(Precise.string_div(cap, riskLimitStep)),
                 'currency': self.safe_string(market, 'settle'),
-                'notionalFloor': self.parse_number(floor),
-                'notionalCap': self.parse_number(cap),
+                'minNotional': self.parse_number(floor),
+                'maxNotional': self.parse_number(cap),
                 'maintenanceMarginRate': self.parse_number(maintenanceMarginRate),
                 'maxLeverage': self.parse_number(Precise.string_div('1', initialMarginRatio)),
                 'info': info,

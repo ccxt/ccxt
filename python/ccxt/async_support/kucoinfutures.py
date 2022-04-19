@@ -1266,14 +1266,12 @@ class kucoinfutures(kucoin):
     async def transfer(self, code, amount, fromAccount, toAccount, params={}):
         if (toAccount != 'main' and toAccount != 'funding') or (fromAccount != 'futures' and fromAccount != 'future' and fromAccount != 'contract'):
             raise BadRequest(self.id + ' only supports transfers from contract(future) account to main(funding) account')
-        return self.transfer_out(code, amount, params)
-
-    async def transfer_out(self, code, amount, params={}):
         await self.load_markets()
         currency = self.currency(code)
+        amountToPrecision = self.currency_to_precision(code, amount)
         request = {
             'currency': self.safe_string(currency, 'id'),  # Currency,including XBT,USDT
-            'amount': amount,
+            'amount': amountToPrecision,
         }
         # transfer from usdm futures wallet to spot wallet
         response = await self.futuresPrivatePostTransferOut(self.extend(request, params))
@@ -1286,18 +1284,38 @@ class kucoinfutures(kucoin):
         #    }
         #
         data = self.safe_value(response, 'data')
-        timestamp = self.safe_string(data, 'updatedAt')
-        return {
-            'info': response,
-            'id': self.safe_string(data, 'applyId'),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'currency': code,
-            'amount': amount,
+        return self.extend(self.parse_transfer(data, currency), {
+            'amount': self.parse_number(amountToPrecision),
             'fromAccount': 'future',
             'toAccount': 'spot',
-            'status': self.safe_string(data, 'status'),
+        })
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        # transfer
+        #
+        #     {
+        #            "applyId": "5bffb63303aa675e8bbe18f9"  # Transfer-out request ID
+        #     }
+        #
+        timestamp = self.safe_string(transfer, 'updatedAt')
+        return {
+            'id': self.safe_string(transfer, 'applyId'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'currency': self.safe_currency_code(None, currency),
+            'amount': None,
+            'fromAccount': None,
+            'toAccount': None,
+            'status': self.safe_string(transfer, 'status'),
+            'info': transfer,
         }
+
+    def parse_transfer_status(self, status):
+        statuses = {
+            'PROCESSING': 'pending',
+        }
+        return self.safe_string(statuses, status, status)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -1634,8 +1652,8 @@ class kucoinfutures(kucoin):
             tiers.append({
                 'tier': self.safe_number(tier, 'level'),
                 'currency': market['base'],
-                'notionalFloor': self.safe_number(tier, 'minRiskLimit'),
-                'notionalCap': self.safe_number(tier, 'maxRiskLimit'),
+                'minNotional': self.safe_number(tier, 'minRiskLimit'),
+                'maxNotional': self.safe_number(tier, 'maxRiskLimit'),
                 'maintenanceMarginRate': self.safe_number(tier, 'maintainMargin'),
                 'maxLeverage': self.safe_number(tier, 'maxLeverage'),
                 'info': tier,

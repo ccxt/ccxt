@@ -3749,8 +3749,9 @@ class zb extends Exchange {
         $swap = ($marketType === 'swap');
         $side = null;
         $marginMethod = null;
+        $amountToPrecision = $this->currency_to_precision($code, $amount);
         $request = array(
-            'amount' => $amount, // Swap, Cross Margin, Isolated Margin
+            'amount' => $amountToPrecision, // Swap, Cross Margin, Isolated Margin
             // 'coin' => $currency['id'], // Margin
             // 'currencyName' => $currency['id'], // Swap
             // 'clientId' => $this->safe_string($params, 'clientId'), // Swap "2sdfsdfsdf232342"
@@ -3806,44 +3807,25 @@ class zb extends Exchange {
         //         "message" => "Success"
         //     }
         //
-        $timestamp = $this->milliseconds();
-        $transfer = array(
-            'id' => $this->safe_string($response, 'data'),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'currency' => $code,
-            'amount' => $amount,
+        return array_merge($this->parse_transfer($response, $currency), array(
+            'amount' => $this->parse_number($amountToPrecision),
             'fromAccount' => $fromAccount,
             'toAccount' => $toAccount,
-            'status' => $this->safe_integer($response, 'code'),
-        );
-        return $this->parse_transfer($transfer, $code);
+        ));
     }
 
     public function parse_transfer($transfer, $currency = null) {
-        //
-        //     {
-        //         "id" => "2sdfsdfsdf232342",
-        //         "timestamp" => "",
-        //         "datetime" => "",
-        //         "currency" => "USDT",
-        //         "amount" => "10",
-        //         "fromAccount" => "futures account",
-        //         "toAccount" => "zb account",
-        //         "status" => 10000,
-        //     }
-        //
-        $currencyId = $this->safe_string($transfer, 'currency');
+        // response samples in 'transfer'
+        $timestamp = $this->milliseconds();
         return array(
-            'info' => $transfer,
-            'id' => $this->safe_string($transfer, 'id'),
-            'timestamp' => $this->safe_integer($transfer, 'timestamp'),
-            'datetime' => $this->safe_string($transfer, 'datetime'),
-            'currency' => $this->safe_currency_code($currencyId, $currency),
-            'amount' => $this->safe_number($transfer, 'amount'),
-            'fromAccount' => $this->safe_string($transfer, 'fromAccount'),
-            'toAccount' => $this->safe_string($transfer, 'toAccount'),
-            'status' => $this->safe_integer($transfer, 'status'),
+            'id' => $this->safe_string($transfer, 'data'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'currency' => $this->safe_currency_code(null, 'currency'),
+            'amount' => null,
+            'fromAccount' => null,
+            'toAccount' => null,
+            'status' => null,
         );
     }
 

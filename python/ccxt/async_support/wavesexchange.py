@@ -1045,8 +1045,8 @@ class wavesexchange(Exchange):
     def amount_to_precision(self, symbol, amount):
         return int(float(self.to_precision(amount, self.markets[symbol]['precision']['amount'])))
 
-    def currency_to_precision(self, currency, amount):
-        return int(float(self.to_precision(amount, self.currencies[currency]['precision'])))
+    def currency_to_precision(self, code, amount):
+        return int(float(self.to_precision(amount, self.currencies[code]['precision'])))
 
     def from_precision(self, amount, scale):
         if amount is None:

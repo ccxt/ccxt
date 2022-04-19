@@ -314,17 +314,11 @@ class aax(Exchange):
             'precisionMode': TICK_SIZE,
             'options': {
                 'defaultType': 'spot',  # 'spot', 'future'
-                'types': {
+                'accountsByType': {
                     'spot': 'SPTP',
                     'future': 'FUTP',
                     'otc': 'F2CP',
                     'saving': 'VLTP',
-                },
-                'accounts': {
-                    'SPTP': 'spot',
-                    'FUTP': 'future',
-                    'F2CP': 'otc',
-                    'VLTP': 'saving',
                 },
                 'networks': {
                     'ETH': 'ERC20',
@@ -332,8 +326,7 @@ class aax(Exchange):
                     'SOL': 'SPL',
                 },
                 'transfer': {
-                    'fillFromAccountToAccount': True,
-                    'fillAmount': True,
+                    'fillResponseFromRequest': True,
                 },
             },
         })
@@ -916,7 +909,7 @@ class aax(Exchange):
         self.load_markets()
         defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
-        types = self.safe_value(self.options, 'types', {})
+        types = self.safe_value(self.options, 'accountsByType', {})
         purseType = self.safe_string(types, type, type)
         request = {
             'purseType': purseType,
@@ -2295,8 +2288,8 @@ class aax(Exchange):
             tiers.append({
                 'tier': self.parse_number(Precise.string_div(cap, riskIncrVol)),
                 'currency': market['base'],
-                'notionalFloor': self.parse_number(floor),
-                'notionalCap': self.parse_number(cap),
+                'minNotional': self.parse_number(floor),
+                'maxNotional': self.parse_number(cap),
                 'maintenanceMarginRate': self.parse_number(maintenanceMarginRate),
                 'maxLeverage': self.parse_number(Precise.string_div('1', initialMarginRate)),
                 'info': info,
@@ -2346,15 +2339,9 @@ class aax(Exchange):
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
         self.load_markets()
         currency = self.currency(code)
-        accountTypes = self.safe_value(self.options, 'types', {})
-        fromId = self.safe_string(accountTypes, fromAccount)
-        toId = self.safe_string(accountTypes, toAccount)
-        if fromId is None:
-            keys = list(accountTypes.keys())
-            raise ExchangeError(self.id + ' fromAccount must be one of ' + ', '.join(keys))
-        if toId is None:
-            keys = list(accountTypes.keys())
-            raise ExchangeError(self.id + ' toAccount must be one of ' + ', '.join(keys))
+        accountTypes = self.safe_value(self.options, 'accountsByType', {})
+        fromId = self.safe_string(accountTypes, fromAccount, fromAccount)
+        toId = self.safe_string(accountTypes, toAccount, toAccount)
         request = {
             'currency': currency['id'],
             'fromPurse': fromId,
@@ -2376,15 +2363,14 @@ class aax(Exchange):
         data = self.safe_value(response, 'data', {})
         transfer = self.parse_transfer(data, currency)
         transferOptions = self.safe_value(self.options, 'transfer', {})
-        fillFromAccountToAccount = self.safe_value(transferOptions, 'fillFromAccountToAccount', True)
-        fillAmount = self.safe_value(transferOptions, 'fillAmount', True)
-        if fillFromAccountToAccount:
+        fillResponseFromRequest = self.safe_value(transferOptions, 'fillResponseFromRequest', True)
+        if fillResponseFromRequest:
             if transfer['fromAccount'] is None:
                 transfer['fromAccount'] = fromAccount
             if transfer['toAccount'] is None:
                 transfer['toAccount'] = toAccount
-        if fillAmount and transfer['amount'] is None:
-            transfer['amount'] = amount
+            if transfer['amount'] is None:
+                transfer['amount'] = amount
         transfer['status'] = self.parse_transfer_status(self.safe_string(response, 'code'))
         return transfer
 

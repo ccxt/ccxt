@@ -3930,7 +3930,7 @@ class okx extends Exchange {
         );
     }
 
-    public function fetch_transfer($id, $since = null, $limit = null, $params = array ()) {
+    public function fetch_transfer($id, $code = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'transId' => $id,
@@ -3958,12 +3958,8 @@ class okx extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $resultArray = array();
-        for ($i = 0; $i < count($data); $i++) {
-            $transfer = $data[$i];
-            $resultArray[] = $this->parse_transfer($transfer, null);
-        }
-        return $this->filter_by_since_limit($resultArray, $since, $limit);
+        $transfer = $this->safe_value($data, 0);
+        return $this->parse_transfer($transfer);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -4646,8 +4642,8 @@ class okx extends Exchange {
             $tiers[] = array(
                 'tier' => $this->safe_integer($tier, 'tier'),
                 'currency' => $market['quote'],
-                'notionalFloor' => $this->safe_number($tier, 'minSz'),
-                'notionalCap' => $this->safe_number($tier, 'maxSz'),
+                'minNotional' => $this->safe_number($tier, 'minSz'),
+                'maxNotional' => $this->safe_number($tier, 'maxSz'),
                 'maintenanceMarginRate' => $this->safe_number($tier, 'mmr'),
                 'maxLeverage' => $this->safe_number($tier, 'maxLever'),
                 'info' => $tier,

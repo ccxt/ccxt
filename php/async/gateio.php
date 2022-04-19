@@ -3480,7 +3480,7 @@ class gateio extends Exchange {
         }
         $response = yield $this->privateWalletPostTransfers (array_merge($request, $params));
         //
-        // according to the docs
+        // according to the docs (however actual $response seems to be an empty string '')
         //
         //     {
         //       "currency" => "BTC",
@@ -3490,20 +3490,26 @@ class gateio extends Exchange {
         //       "currency_pair" => "BTC_USDT"
         //     }
         //
-        // actual $response
-        //
-        //  POST https://api.gateio.ws/api/v4/wallet/transfers 204 No Content
-        //
+        $transfer = $this->parse_transfer($response, $currency);
+        return array_merge($transfer, array(
+            'fromAccount' => $fromAccount,
+            'toAccount' => $toAccount,
+            'amount' => $this->parse_number($truncated),
+        ));
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        $timestamp = $this->milliseconds();
         return array(
-            'info' => $response,
             'id' => null,
-            'timestamp' => null,
-            'datetime' => null,
-            'currency' => $code,
-            'amount' => $truncated,
-            'fromAccount' => $fromId,
-            'toAccount' => $toId,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'currency' => $this->safe_currency_code(null, $currency),
+            'amount' => null,
+            'fromAccount' => null,
+            'toAccount' => null,
             'status' => null,
+            'info' => $transfer,
         );
     }
 
@@ -3925,8 +3931,8 @@ class gateio extends Exchange {
             $tiers[] = array(
                 'tier' => $this->parse_number(Precise::string_div($cap, $riskLimitStep)),
                 'currency' => $this->safe_string($market, 'settle'),
-                'notionalFloor' => $this->parse_number($floor),
-                'notionalCap' => $this->parse_number($cap),
+                'minNotional' => $this->parse_number($floor),
+                'maxNotional' => $this->parse_number($cap),
                 'maintenanceMarginRate' => $this->parse_number($maintenanceMarginRate),
                 'maxLeverage' => $this->parse_number(Precise::string_div('1', $initialMarginRatio)),
                 'info' => $info,
