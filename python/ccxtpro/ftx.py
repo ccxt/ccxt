@@ -111,9 +111,11 @@ class ftx(Exchange, ccxt.ftx):
         return await self.watch_public(symbol, 'ticker')
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
-        trades = await self.watch_public(symbol, 'trades')
+        await self.load_markets()
+        market = self.market(symbol)
+        trades = await self.watch_public(market['symbol'], 'trades')
         if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
+            limit = trades.getLimit(market['symbol'], limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
@@ -364,10 +366,11 @@ class ftx(Exchange, ccxt.ftx):
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
-        orders = await self.watch_private('orders', symbol)
+        market = self.market(symbol)
+        orders = await self.watch_private('orders', market['symbol'])
         if self.newUpdates:
-            limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+            limit = orders.getLimit(market['symbol'], limit)
+        return self.filter_by_symbol_since_limit(orders, market['symbol'], since, limit, True)
 
     def handle_order(self, client, message):
         #
@@ -436,10 +439,11 @@ class ftx(Exchange, ccxt.ftx):
 
     async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
-        trades = await self.watch_private('fills', symbol)
+        market = self.market(symbol)
+        trades = await self.watch_private('fills', market['symbol'])
         if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
+            limit = trades.getLimit(market['symbol'], limit)
+        return self.filter_by_symbol_since_limit(trades, market['symbol'], since, limit, True)
 
     def handle_my_trade(self, client, message):
         #
