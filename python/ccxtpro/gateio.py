@@ -361,66 +361,59 @@ class gateio(Exchange, ccxt.gateio):
         await self.load_markets()
         market = self.market(symbol)
         marketId = market['id']
-        uppercaseId = marketId.upper()
-        requestId = self.nonce()
-        url = self.urls['api']['ws']
-        options = self.safe_value(self.options, 'watchTrades', {})
-        subscriptions = self.safe_value(options, 'subscriptions', {})
-        subscriptions[uppercaseId] = True
-        options['subscriptions'] = subscriptions
-        self.options['watchTrades'] = options
-        subscribeMessage = {
-            'id': requestId,
-            'method': 'trades.subscribe',
-            'params': list(subscriptions.keys()),
-        }
-        subscription = {
-            'id': requestId,
-        }
-        messageHash = 'trades.update' + ':' + marketId
-        trades = await self.watch(url, messageHash, subscribeMessage, messageHash, subscription)
+        type = market['type']
+        messageType = self.get_uniform_type(type)
+        method = messageType + '.trades'
+        messageHash = method
+        if symbol is not None:
+            messageHash += ':' + market['symbol']
+        url = self.get_url_by_market_type(type, market['inverse'])
+        payload = [marketId]
+        trades = await self.subscribe_public(url, method, messageHash, payload)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trades(self, client, message):
         #
-        #     [
-        #         'BTC_USDT',
-        #         [
-        #             {
-        #                 id: 221994511,
-        #                 time: 1580311438.618647,
-        #                 price: '9309',
-        #                 amount: '0.0019',
-        #                 type: 'sell'
-        #             },
-        #             {
-        #                 id: 221994501,
-        #                 time: 1580311433.842509,
-        #                 price: '9311.31',
-        #                 amount: '0.01',
-        #                 type: 'buy'
-        #             },
-        #         ]
-        #     ]
+        # {
+        #     time: 1648725035,
+        #     channel: 'spot.trades',
+        #     event: 'update',
+        #     result: [{
+        #       id: 3130257995,
+        #       create_time: 1648725035,
+        #       create_time_ms: '1648725035923.0',
+        #       side: 'sell',
+        #       currency_pair: 'LTC_USDT',
+        #       amount: '0.0116',
+        #       price: '130.11'
+        #     }]
+        # }
         #
-        params = self.safe_value(message, 'params', [])
-        marketId = self.safe_string(params, 0)
-        market = self.safe_market(marketId, None, '_')
-        symbol = market['symbol']
-        stored = self.safe_value(self.trades, symbol)
-        if stored is None:
-            limit = self.safe_integer(self.options, 'tradesLimit', 1000)
-            stored = ArrayCache(limit)
-            self.trades[symbol] = stored
-        trades = self.safe_value(params, 1, [])
-        parsed = self.parse_trades(trades, market)
-        for i in range(0, len(parsed)):
-            stored.append(parsed[i])
-        methodType = message['method']
-        messageHash = methodType + ':' + marketId
-        client.resolve(stored, messageHash)
+        channel = self.safe_string(message, 'channel')
+        result = self.safe_value(message, 'result')
+        if not isinstance(result, list):
+            result = [result]
+        parsedTrades = self.parse_trades(result)
+        marketIds = {}
+        for i in range(0, len(parsedTrades)):
+            trade = parsedTrades[i]
+            symbol = trade['symbol']
+            cachedTrades = self.safe_value(self.trades, symbol)
+            if cachedTrades is None:
+                limit = self.safe_integer(self.options, 'tradesLimit', 1000)
+                cachedTrades = ArrayCache(limit)
+                self.trades[symbol] = cachedTrades
+            cachedTrades.append(trade)
+            marketIds[symbol] = True
+        keys = list(marketIds.keys())
+        for i in range(0, len(keys)):
+            symbol = keys[i]
+            hash = channel + ':' + symbol
+            stored = self.safe_value(self.trades, symbol)
+            client.resolve(stored, hash)
+        client.resolve(self.trades, channel)
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
@@ -884,6 +877,7 @@ class gateio(Exchange, ccxt.gateio):
                 'candlesticks': self.handle_ohlcv,
                 'orders': self.handle_order,
                 'tickers': self.handle_ticker,
+                'trades': self.handle_trades,
                 'order_book_update': self.handle_order_book,
             }
             method = self.safe_value(v4Methods, channelType)
