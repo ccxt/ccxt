@@ -1425,8 +1425,8 @@ class Exchange(object):
         market = self.market(symbol)
         return self.decimal_to_precision(fee, ROUND, market['precision']['price'], self.precisionMode, self.paddingMode)
 
-    def currency_to_precision(self, currency, fee):
-        return self.decimal_to_precision(fee, ROUND, self.currencies[currency]['precision'], self.precisionMode, self.paddingMode)
+    def currency_to_precision(self, code, fee):
+        return self.decimal_to_precision(fee, ROUND, self.currencies[code]['precision'], self.precisionMode, self.paddingMode)
 
     def set_markets(self, markets, currencies=None):
         values = list(markets.values()) if type(markets) is dict else markets
