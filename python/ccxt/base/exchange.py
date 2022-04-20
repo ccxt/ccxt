@@ -1012,14 +1012,15 @@ class Exchange(object):
     @staticmethod
     def urlencode_nested(params):
         g_encode_params = {}
+
         def _encode_params(params, p_key=None):
             encode_params = {}
             if isinstance(params, dict):
                 for key in params:
-                    encode_key = '{}[{}]'.format(p_key,key)
+                    encode_key = '{}[{}]'.format(p_key, key)
                     encode_params[encode_key] = params[key]
             elif isinstance(params, (list, tuple)):
-                for offset,value in enumerate(params):
+                for offset, value in enumerate(params):
                     encode_key = '{}[{}]'.format(p_key, offset)
                     encode_params[encode_key] = value
             else:
