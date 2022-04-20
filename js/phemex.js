@@ -695,7 +695,6 @@ module.exports = class phemex extends ccxt.phemex {
             }
         }
         this.handleMyTrades (client, trades);
-        // const parsedOrders = this.parseOrders (orders);
         const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
         const marketIds = {};
         if (this.orders === undefined) {
@@ -705,7 +704,6 @@ module.exports = class phemex extends ccxt.phemex {
         const stored = this.orders;
         for (let i = 0; i < parsedOrders.length; i++) {
             const parsed = parsedOrders[i];
-            // inject order status
             stored.append (parsed);
             const symbol = parsed['symbol'];
             const market = this.market (symbol);
@@ -835,7 +833,7 @@ module.exports = class phemex extends ccxt.phemex {
     handleMessage (client, message) {
         // private spot update
         // {
-        //     orders: { closed: [ [Object] ], fills: [ [Object] ], open: [] },
+        //     orders: { closed: [ ], fills: [ ], open: [] },
         //     sequence: 40435835,
         //     timestamp: '1650443245600839241',
         //     type: 'snapshot',
@@ -930,12 +928,22 @@ module.exports = class phemex extends ccxt.phemex {
         // }
         const id = this.safeInteger (message, 'id');
         if (id !== undefined) {
-            const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-            const subscription = this.safeValue (subscriptionsById, id, {});
-            const method = this.safeValue (subscription, 'method');
-            if (method !== undefined) {
-                method.call (this, client, message);
-                return;
+            // not every method stores its subscription
+            // as an object so we can't do indeById here
+            const subs = client.subscriptions;
+            const values = Object.values (subs);
+            for (let i = 0; i < values.length; i++) {
+                const subscription = values[i];
+                if (subscription !== true) {
+                    const subId = this.safeInteger (subscription, 'id');
+                    if ((subId !== undefined) && (subId === id)) {
+                        const method = this.safeValue (subscription, 'method');
+                        if (method !== undefined) {
+                            method.call (this, client, message);
+                            return;
+                        }
+                    }
+                }
             }
         }
         if (('market24h' in message) || ('spot_market24h' in message)) {
@@ -997,9 +1005,9 @@ module.exports = class phemex extends ccxt.phemex {
         const client = this.client (url);
         const time = this.seconds ();
         const messageHash = 'authenticated';
-        let future = this.safeValue (client.subscriptions, messageHash);
-        if (future === undefined) {
-            future = client.future (messageHash);
+        const future = client.future (messageHash);
+        const authenticated = this.safeValue (client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             const expiryDelta = this.safeInteger (this.options, 'expires', 120);
             const expiration = this.seconds () + expiryDelta;
             const payload = this.apiKey + expiration.toString ();
