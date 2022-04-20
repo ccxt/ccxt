@@ -743,16 +743,62 @@ module.exports = class huobi extends ccxt.huobi {
         //
         // non spot order
         //
-        //     {
-        //         "contract_type":"swap",
-        //         "pair":"BTC-USDT",
-        //         "business_type":"swap",
-        //         "op":"notify",
-        //         "topic":"orders_cross.btc-usdt",
-        //         "ts":1645205382242,
-        //         "symbol":"BTC",
-        //         "contract_code":"BTC-USDT",
-        //     }
+        // {
+        //     contract_type: 'swap',
+        //     pair: 'LTC-USDT',
+        //     business_type: 'swap',
+        //     op: 'notify',
+        //     topic: 'orders_cross.ltc-usdt',
+        //     ts: 1650354508696,
+        //     symbol: 'LTC',
+        //     contract_code: 'LTC-USDT',
+        //     volume: 1,
+        //     price: 110.34,
+        //     order_price_type: 'lightning',
+        //     direction: 'sell',
+        //     offset: 'close',
+        //     status: 6,
+        //     lever_rate: 1,
+        //     order_id: '966002354015051776',
+        //     order_id_str: '966002354015051776',
+        //     client_order_id: null,
+        //     order_source: 'web',
+        //     order_type: 1,
+        //     created_at: 1650354508649,
+        //     trade_volume: 1,
+        //     trade_turnover: 11.072,
+        //     fee: -0.005536,
+        //     trade_avg_price: 110.72,
+        //     margin_frozen: 0,
+        //     profit: -0.045,
+        //     trade: [
+        //       {
+        //         trade_fee: -0.005536,
+        //         fee_asset: 'USDT',
+        //         real_profit: 0.473,
+        //         profit: -0.045,
+        //         trade_id: 86678766507,
+        //         id: '86678766507-966002354015051776-1',
+        //         trade_volume: 1,
+        //         trade_price: 110.72,
+        //         trade_turnover: 11.072,
+        //         created_at: 1650354508656,
+        //         role: 'taker'
+        //       }
+        //     ],
+        //     canceled_at: 0,
+        //     fee_asset: 'USDT',
+        //     margin_asset: 'USDT',
+        //     uid: '359305390',
+        //     liquidation_type: '0',
+        //     margin_mode: 'cross',
+        //     margin_account: 'USDT',
+        //     is_tpsl: 0,
+        //     real_profit: 0.473,
+        //     trade_partition: 'USDT',
+        //     reduce_only: 1
+        //   }
+        //
         //
         const messageHash = this.safeString2 (message, 'ch', 'topic');
         const data = this.safeValue (message, 'data');
@@ -784,6 +830,7 @@ module.exports = class huobi extends ccxt.huobi {
             }
         } else {
             // contract branch
+            parsedOrder = this.parseWsOrder (message, market);
             const rawTrades = this.safeValue (message, 'trade', []);
             const tradesLength = rawTrades.length;
             if (tradesLength > 0) {
@@ -792,12 +839,17 @@ module.exports = class huobi extends ccxt.huobi {
                     'ch': messageHash,
                     'symbol': marketId,
                 };
+                // inject order params in every trade
+                const extendTradeParams = {
+                    'order': this.safeString (parsedOrder, 'id'),
+                    'type': this.safeString (parsedOrder, 'type'),
+                    'side': this.safeString (parsedOrder, 'side'),
+                };
                 // trades arrive inside an order update
                 // we're forwarding them to handleMyTrade
                 // so they can be properly resolved
-                this.handleMyTrade (client, tradesObject);
+                this.handleMyTrade (client, tradesObject, extendTradeParams);
             }
-            parsedOrder = this.parseWsOrder (message, market);
         }
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
@@ -1694,7 +1746,7 @@ module.exports = class huobi extends ccxt.huobi {
         }
     }
 
-    handleMyTrade (client, message) {
+    handleMyTrade (client, message, extendParams = {}) {
         //
         // spot
         //
@@ -1766,7 +1818,9 @@ module.exports = class huobi extends ccxt.huobi {
                 const market = this.market (marketId);
                 for (let i = 0; i < rawTrades.length; i++) {
                     const trade = rawTrades[i];
-                    const parsedTrade = this.parseTrade (trade, market);
+                    let parsedTrade = this.parseTrade (trade, market);
+                    // add extra params (side, type, ...) coming from the order
+                    parsedTrade = this.extend (parsedTrade, extendParams);
                     cachedTrades.append (parsedTrade);
                 }
                 // messageHash here is the orders one, so
