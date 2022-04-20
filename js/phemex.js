@@ -5,7 +5,7 @@
 const ccxt = require ('ccxt');
 const { NotSupported } = require ('ccxt/js/base/errors');
 const Precise = require ('ccxt/js/base/Precise');
-const { ArrayCache, ArrayCacheByTimestamp } = require ('./base/Cache');
+const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -475,6 +475,155 @@ module.exports = class phemex extends ccxt.phemex {
         }
     }
 
+    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let messageHash = 'orders';
+        let market = undefined;
+        let type = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            symbol = market['symbol'];
+            messageHash = messageHash + ':' + market['symbol'];
+        }
+        [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
+        if (symbol === undefined) {
+            messageHash = messageHash + ':' + type;
+        }
+        const orders = await this.subscribePrivate (type, messageHash, params);
+        if (this.newUpdates) {
+            limit = orders.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+    }
+
+    handleOrders (client, message) {
+        // spot update
+        // {
+        //        "closed":[
+        //           {
+        //              "action":"New",
+        //              "avgPriceEp":4138763000000,
+        //              "baseCurrency":"BTC",
+        //              "baseQtyEv":0,
+        //              "bizError":0,
+        //              "clOrdID":"7956e0be-e8be-93a0-2887-ca504d85cda2",
+        //              "createTimeNs":"1650442617606017583",
+        //              "cumBaseQtyEv":30100,
+        //              "cumFeeEv":31,
+        //              "cumQuoteQtyEv":1245767663,
+        //              "cxlRejReason":0,
+        //              "feeCurrency":"BTC",
+        //              "leavesBaseQtyEv":0,
+        //              "leavesQuoteQtyEv":0,
+        //              "ordStatus":"Filled",
+        //              "ordType":"Market",
+        //              "orderID":"34a4b1a8-ac3a-4580-b3e6-a6d039f27195",
+        //              "pegOffsetValueEp":0,
+        //              "priceEp":4549022000000,
+        //              "qtyType":"ByQuote",
+        //              "quoteCurrency":"USDT",
+        //              "quoteQtyEv":1248000000,
+        //              "side":"Buy",
+        //              "stopPxEp":0,
+        //              "symbol":"sBTCUSDT",
+        //              "timeInForce":"ImmediateOrCancel",
+        //              "tradeType":"Trade",
+        //              "transactTimeNs":"1650442617609928764",
+        //              "triggerTimeNs":0,
+        //              "userID":2647224
+        //           }
+        //        ],
+        //        "fills":[
+        //           {
+        //              "avgPriceEp":4138763000000,
+        //              "baseCurrency":"BTC",
+        //              "baseQtyEv":0,
+        //              "clOrdID":"7956e0be-e8be-93a0-2887-ca504d85cda2",
+        //              "execBaseQtyEv":30100,
+        //              "execFeeEv":31,
+        //              "execID":"d3b10cfa-84e3-5752-828e-78a79617e598",
+        //              "execPriceEp":4138763000000,
+        //              "execQuoteQtyEv":1245767663,
+        //              "feeCurrency":"BTC",
+        //              "lastLiquidityInd":"RemovedLiquidity",
+        //              "ordType":"Market",
+        //              "orderID":"34a4b1a8-ac3a-4580-b3e6-a6d039f27195",
+        //              "priceEp":4549022000000,
+        //              "qtyType":"ByQuote",
+        //              "quoteCurrency":"USDT",
+        //              "quoteQtyEv":1248000000,
+        //              "side":"Buy",
+        //              "symbol":"sBTCUSDT",
+        //              "tradeType":"Trade",
+        //              "transactTimeNs":"1650442617609928764",
+        //              "userID":2647224
+        //           }
+        //        ],
+        //        "open":[
+        //           {
+        //              "action":"New",
+        //              "avgPriceEp":0,
+        //              "baseCurrency":"LTC",
+        //              "baseQtyEv":0,
+        //              "bizError":0,
+        //              "clOrdID":"2c0e5eb5-efb7-60d3-2e5f-df175df412ef",
+        //              "createTimeNs":"1650446670073853755",
+        //              "cumBaseQtyEv":0,
+        //              "cumFeeEv":0,
+        //              "cumQuoteQtyEv":0,
+        //              "cxlRejReason":0,
+        //              "feeCurrency":"LTC",
+        //              "leavesBaseQtyEv":0,
+        //              "leavesQuoteQtyEv":1000000000,
+        //              "ordStatus":"New",
+        //              "ordType":"Limit",
+        //              "orderID":"d2aad92f-50f5-441a-957b-8184b146e3fb",
+        //              "pegOffsetValueEp":0,
+        //              "priceEp":5000000000,
+        //              "qtyType":"ByQuote",
+        //              "quoteCurrency":"USDT",
+        //              "quoteQtyEv":1000000000,
+        //              "side":"Buy",
+        //            }
+        //        ]
+        //  },
+        //
+        let orders = [];
+        if (('closed' in message) || ('fills' in message) || ('open' in message)) {
+            const closed = this.safeValue (message, 'closed', []);
+            const open = this.safeValue (message, 'open', []);
+            orders = this.arrayConcat (open, closed);
+            const fills = this.safeValue (message, 'fills', []);
+        }
+        const parsedOrders = this.parseOrders (orders);
+        const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+        const marketIds = {};
+        if (this.orders === undefined) {
+            this.orders = new ArrayCacheBySymbolById (limit);
+        }
+        let type = undefined;
+        const stored = this.orders;
+        for (let i = 0; i < parsedOrders.length; i++) {
+            const parsed = parsedOrders[i];
+            // inject order status
+            stored.append (parsed);
+            const symbol = parsed['symbol'];
+            const market = this.market (symbol);
+            if (type === undefined) {
+                type = market['type'];
+            }
+            marketIds[symbol] = true;
+        }
+        const keys = Object.keys (marketIds);
+        for (let i = 0; i < keys.length; i++) {
+            const messageHash = 'orders' + ':' + keys[i];
+            client.resolve (this.orders, messageHash);
+        }
+        // resolve generic subscription (spot or swap)
+        const messageHash = 'orders:' + type;
+        client.resolve (this.orders, messageHash);
+    }
+
     handleMessage (client, message) {
         // private spot update
         // {
@@ -589,15 +738,15 @@ module.exports = class phemex extends ccxt.phemex {
             return this.handleOHLCV (client, message);
         } else if ('book' in message) {
             return this.handleOrderBook (client, message);
-        } else if (('accounts' in message) || ('wallets' in message)) {
+        }
+        if ('orders' in message) {
+            const orders = this.safeValue (message, 'orders', {});
+            this.handleOrders (client, orders);
+        }
+        if (('accounts' in message) || ('wallets' in message)) {
             const type = ('accounts' in message) ? 'swap' : 'spot';
             const accounts = this.safeValue2 (message, 'accounts', 'wallets', []);
             this.handleBalance (type, client, accounts);
-        } else {
-            //
-            //     { error: null, id: 1, result: { status: 'success' } }
-            //
-            return message;
         }
     }
 
