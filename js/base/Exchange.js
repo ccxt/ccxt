@@ -2251,6 +2251,7 @@ module.exports = class Exchange {
             'symbol': this.safeSymbol (undefined, market),
             'leverage': undefined,
             'leverageMode': undefined,
+            'status': 'success',
         }, entry);
     }
 }

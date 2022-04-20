@@ -3762,6 +3762,7 @@ class Exchange {
             'symbol' => $this->safeSymbol (null, $market),
             'leverage' => null,
             'leverageMode' => null,
+            'status' => 'success',
         ), $entry);
     }
 }
