@@ -1089,15 +1089,27 @@ module.exports = class gateio extends Exchange {
         return underlyings;
     }
 
-    prepareRequest (market = undefined, type = undefined, params = {}) {
+    prepareRequest (market = undefined, type = undefined, setMarginType = false, params = {}) {
+        /**
+         * @ignore
+         * @method
+         * @name gateio#prepareRequest
+         * @description Fills the request object with basic parameters that are needed in most api calls
+         * @param {dict} market CCXT market, required when type is undefined
+         * @param {str} type 'spot', 'margin', 'swap', or 'future', required when market is undefined
+         * @param {bool} setMarginType true if setting 'account' param for margin markets
+         * @param {dict} params request parameters
+         * @returns the api request object, and the new params object with uneeded parameters removed
+         */
+        let request = {};
         if (market !== undefined) {
             if (market['contract']) {
-                return {
+                request = {
                     'contract': market['id'],
                     'settle': market['settleId'],
                 };
             } else {
-                return {
+                request = {
                     'currency_pair': market['id'],
                 };
             }
@@ -1108,13 +1120,19 @@ module.exports = class gateio extends Exchange {
                 const defaultSettle = swap ? 'usdt' : 'btc';
                 const settle = this.safeStringLower (params, 'settle', defaultSettle);
                 params = this.omit (params, 'settle');
-                return {
+                request = {
                     'settle': settle,
                 };
             } else {
-                return {};
+                request = {};
             }
         }
+        if (setMarginType && (type === 'margin' || market['type'] === 'margin')) {
+            let marginType = undefined;
+            [ marginType, params ] = this.getMarginType (params);
+            request['account'] = marginType;
+        }
+        return [ request, params ];
     }
 
     getMarginType (stop, params) {
