@@ -53,6 +53,31 @@ if (!exchanges.length) {
     }
 
     exchanges = require ('./exchanges.json').ids
+    
+    // check for changed exchanges only
+    if (fs.existsSync ('./changedFiles.txt')) { 
+        let exchangesOnly = true;
+        const exchangesList = [];
+        const changedFilesContent = fs.readFileSync('./changedFiles.txt', 'utf-8') 
+        changedFilesContent.split(/\r?\n/).forEach(file =>  {
+            if (file.length > 0) {
+                const exchangeRegex = /js\/([\w|]+)\.js/;
+                const result = file.match(exchangeRegex)
+                if (result) {
+                    const filename = result[1];
+                    exchangesList.push(filename)
+                } else {
+                    // if it finds any other file (base, test, etc) 
+                    // aborts this filtering
+                    exchangesOnly = false
+                }
+            }
+        });
+        if (exchangesOnly && exchangesList.length > 0) {
+            log.bright.yellow("Found changed exchange(s)! Will be tested only:", exchangesList);
+            exchanges = exchangesList
+        }
+    }
 }
 
 /*  --------------------------------------------------------------------------- */
