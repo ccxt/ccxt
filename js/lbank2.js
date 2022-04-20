@@ -1788,12 +1788,12 @@ module.exports = class lbank2 extends Exchange {
             } else {
                 signatureMethod = 'HmacSHA256';
             }
-            const auth = this.rawencode (this.keysort (this.extend ({
+            const auth = this.encode (this.rawencode (this.keysort (this.extend ({
                 'echostr': echostr,
                 'signature_method': signatureMethod,
                 'timestamp': timestamp,
-            }, query)));
-            const hash = this.hash (this.encode (auth));
+            }, query))));
+            const hash = this.hash (auth);
             const uppercaseHash = hash.toUpperCase ();
             let sign = undefined;
             if (signatureMethod === 'RSA') {
