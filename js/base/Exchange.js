@@ -1400,7 +1400,7 @@ module.exports = class Exchange {
             'address': undefined,
             'tag': undefined,
             'network': undefined,
-            'info': null,
+            'info': undefined,
         }, depositAddress);
     }
 
