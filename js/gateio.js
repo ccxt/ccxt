@@ -3215,18 +3215,33 @@ module.exports = class gateio extends Exchange {
          * @param {int} since earliest time in ms for orders in the response
          * @param {int} limit max number of order structures to return
          * @param {dict} params exchange specific params
+         * @param {bool} params.stop true for fetching stop orders
          * @param {str} params.type spot, margin, swap or future, if not provided this.options['defaultType'] is used
          * @param {str} params.marginType 'cross' or 'isolated' - marginType for type='margin', if not provided this.options['defaultMarginType'] is used
          * @returns An array of order structures
          */
         await this.loadMarkets ();
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', undefined, params);
-        if (symbol === undefined && (type === 'spot') || (type === 'margin')) {
-            const [ request, urlParams ] = this.prepareRequest (undefined, type, true, query);
+        const spot = (type === 'spot');
+        const margin = (type === 'margin');
+        if (symbol === undefined && (spot || margin)) {
+            const [ marginType, urlParams ] = this.getMarginType (query);
+            if (marginType === 'cross_margin') {
+                throw new BadRequest (this.id + ' fetchOpenOrders not supported for cross margin');
+            }
+            const request = {
+                'account': spot ? 'normal' : 'margin',
+            };
+            const stop = this.safeValue (urlParams, 'stop');
+            const requestParams = this.omit (urlParams, 'stop');
+            const method = stop ? 'privateSpotGetPriceOrders' : 'privateSpotGetOpenOrders';
+            if (stop) {
+                request['status'] = 'open';
+            }
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            const response = await this.privateSpotGetOpenOrders (this.extend (request, urlParams));
+            const response = await this[method] (this.extend (request, requestParams));
             //
             //     [
             //         {
@@ -3288,8 +3303,13 @@ module.exports = class gateio extends Exchange {
             let allOrders = [];
             for (let i = 0; i < response.length; i++) {
                 const entry = response[i];
-                const orders = this.safeValue (entry, 'orders', []);
-                const parsed = this.parseOrders (orders, undefined, since, limit);
+                let parsed = [];
+                if (stop) {
+                    parsed = this.parseOrder (entry);
+                } else {
+                    const orders = this.safeValue (entry, 'orders', []);
+                    parsed = this.parseOrders (orders, undefined, since, limit);
+                }
                 allOrders = this.arrayConcat (allOrders, parsed);
             }
             return this.filterBySinceLimit (allOrders, since, limit);
