@@ -58,6 +58,7 @@ if (!exchanges.length) {
     if (fs.existsSync ('./changedFiles.txt')) { 
         let exchangesOnly = true;
         const exchangesList = [];
+        const otherFiles = [];
         const changedFilesContent = fs.readFileSync('./changedFiles.txt', 'utf-8') 
         log.bright.yellow("Debug:::Content::", changedFilesContent)
         changedFilesContent.split(/\r?\n/).forEach(file =>  {
@@ -71,16 +72,16 @@ if (!exchanges.length) {
                 } else {
                     // if it finds any other file (base, test, etc) 
                     // aborts this filtering
-                    exchangesOnly = false
+                    otherFiles.push(file);
                 }
             }
         });
         if (exchangesList.length > 0) {
             log.bright.yellow("Found changed exchange(s): ", exchangesList);
-            if (exchangesOnly) {
+            if (otherFiles.length === 0) {
                 exchanges = exchangesList;
             } else {
-                log.bright.yellow("Found other changed files, so everything is going to be tested");
+                log.bright.yellow("Everything is going to be tested, found other changes: ", otherFiles);
             }
         }
     } else {
