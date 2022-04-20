@@ -59,7 +59,9 @@ if (!exchanges.length) {
         let exchangesOnly = true;
         const exchangesList = [];
         const changedFilesContent = fs.readFileSync('./changedFiles.txt', 'utf-8') 
+        log.bright.yellow("Debug:::Content::", changedFilesContent)
         changedFilesContent.split(/\r?\n/).forEach(file =>  {
+            console.log('file:', file)
             if (file.length > 0) {
                 const exchangeRegex = /js\/([\w|]+)\.js/;
                 const result = file.match(exchangeRegex)
@@ -77,6 +79,8 @@ if (!exchanges.length) {
             log.bright.yellow("Found changed exchange(s)! Will be tested only:", exchangesList);
             exchanges = exchangesList
         }
+    } else {
+        log.bright.yellow("Debug::: File not found!!!");
     }
 }
 
