@@ -380,6 +380,7 @@ class Exchange {
         'parseLeverageTiers' => 'parse_leverage_tiers',
         'fetchMarketLeverageTiers' => 'fetch_market_leverage_tiers',
         'parseBorrowInterests' => 'parse_borrow_interests',
+        'safeLeverageEntry' => 'safe_leverage_entry',
     );
 
     public static function split($string, $delimiters = array(' ')) {
