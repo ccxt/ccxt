@@ -3115,7 +3115,7 @@ module.exports = class gateio extends Exchange {
          * @param {str} symbol Unified market symbol
          * @param {dict} params Parameters specified by the exchange api
          * @param {bool} params.stop True if the order being fetched is a trigger order
-         * @returns Order structure
+         * @returns An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
@@ -3343,7 +3343,7 @@ module.exports = class gateio extends Exchange {
          * @param {str} symbol Unified market symbol
          * @param {dict} params Parameters specified by the exchange api
          * @param {bool} params.stop True if the order to be cancelled is a trigger order
-         * @returns Order structure
+         * @returns An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
@@ -3932,6 +3932,7 @@ module.exports = class gateio extends Exchange {
         //        "trade_id": 10851092,
         //        "orderbook_id": 2129638396
         //    }
+        //
         //    Delivery Futures
         //    {
         //        "name": "BTC_USDT_20200814",
