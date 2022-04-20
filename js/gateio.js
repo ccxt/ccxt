@@ -3158,6 +3158,16 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @description fetches all open orders
+         * @param {str} symbol Unified market symbol
+         * @param {int} since earliest time in ms for orders in the response
+         * @param {int} limit max number of order structures to return
+         * @param {dict} params exchange specific params
+         * @param {str} params.type spot, margin, swap or future, if not provided this.options['defaultType'] is used
+         * @param {str} params.marginType 'cross' or 'isolated' - marginType for type='margin', if not provided this.options['defaultMarginType'] is used
+         * @returns An array of order structures
+         */
         await this.loadMarkets ();
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', undefined, params);
