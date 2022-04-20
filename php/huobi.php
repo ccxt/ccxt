@@ -1339,14 +1339,21 @@ class huobi extends \ccxt\async\huobi {
                             $balance = $balances[$i];
                             $marketId = $this->safe_string_2($balance, 'contract_code', 'margin_account');
                             $market = $this->safe_market($marketId);
-                            $account = $this->account();
-                            $account['free'] = $this->safe_string($balance, 'margin_balance');
-                            $account['used'] = $this->safe_string($balance, 'margin_frozen');
-                            $code = $market['settle'];
-                            $accountsByCode = array();
-                            $accountsByCode[$code] = $account;
-                            $symbol = $market['symbol'];
-                            $this->balance[$symbol] = $this->safe_balance($accountsByCode);
+                            $currencyId = $this->safe_string($balance, 'margin_asset');
+                            $currency = $this->safe_currency($currencyId);
+                            $code = $this->safe_string($market, 'settle', $currency['code']);
+                            // the exchange outputs positions for delisted markets
+                            // https://www.huobi.com/support/en-us/detail/74882968522337
+                            // we skip it if the $market was delisted
+                            if ($code !== null) {
+                                $account = $this->account();
+                                $account['free'] = $this->safe_string($balance, 'margin_balance');
+                                $account['used'] = $this->safe_string($balance, 'margin_frozen');
+                                $accountsByCode = array();
+                                $accountsByCode[$code] = $account;
+                                $symbol = $market['symbol'];
+                                $this->balance[$symbol] = $this->safe_balance($accountsByCode);
+                            }
                         }
                     }
                 } else {
