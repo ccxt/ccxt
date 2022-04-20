@@ -475,6 +475,90 @@ module.exports = class phemex extends ccxt.phemex {
         }
     }
 
+    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let messageHash = 'trades';
+        let market = undefined;
+        let type = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            symbol = market['symbol'];
+            messageHash = messageHash + ':' + market['symbol'];
+        }
+        [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
+        if (symbol === undefined) {
+            messageHash = messageHash + ':' + type;
+        }
+        const trades = await this.subscribePrivate (type, messageHash, params);
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+    }
+
+    handleMyTrades (client, message) {
+        //
+        // [
+        //    {
+        //       "avgPriceEp":4138763000000,
+        //       "baseCurrency":"BTC",
+        //       "baseQtyEv":0,
+        //       "clOrdID":"7956e0be-e8be-93a0-2887-ca504d85cda2",
+        //       "execBaseQtyEv":30100,
+        //       "execFeeEv":31,
+        //       "execID":"d3b10cfa-84e3-5752-828e-78a79617e598",
+        //       "execPriceEp":4138763000000,
+        //       "execQuoteQtyEv":1245767663,
+        //       "feeCurrency":"BTC",
+        //       "lastLiquidityInd":"RemovedLiquidity",
+        //       "ordType":"Market",
+        //       "orderID":"34a4b1a8-ac3a-4580-b3e6-a6d039f27195",
+        //       "priceEp":4549022000000,
+        //       "qtyType":"ByQuote",
+        //       "quoteCurrency":"USDT",
+        //       "quoteQtyEv":1248000000,
+        //       "side":"Buy",
+        //       "symbol":"sBTCUSDT",
+        //       "tradeType":"Trade",
+        //       "transactTimeNs":"1650442617609928764",
+        //       "userID":2647224
+        //    }
+        //  ]
+        //
+        const channel = 'trades';
+        const tradesLength = message.length;
+        if (tradesLength === 0) {
+            return;
+        }
+        let cachedTrades = this.myTrades;
+        if (cachedTrades === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            cachedTrades = new ArrayCacheBySymbolById (limit);
+        }
+        const parsed = this.parseTrades (message);
+        const marketIds = {};
+        let type = undefined;
+        for (let i = 0; i < parsed.length; i++) {
+            const trade = parsed[i];
+            cachedTrades.append (trade);
+            const symbol = trade['symbol'];
+            const market = this.market (symbol);
+            if (type === undefined) {
+                type = market['type'];
+            }
+            marketIds[symbol] = true;
+        }
+        const keys = Object.keys (marketIds);
+        for (let i = 0; i < keys.length; i++) {
+            const market = keys[i];
+            const hash = channel + ':' + market;
+            client.resolve (cachedTrades, hash);
+        }
+        // generic subscription
+        const messageHash = channel + ':' + type;
+        client.resolve (cachedTrades, messageHash);
+    }
+
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let messageHash = 'orders';
@@ -594,6 +678,7 @@ module.exports = class phemex extends ccxt.phemex {
             const open = this.safeValue (message, 'open', []);
             orders = this.arrayConcat (open, closed);
             const fills = this.safeValue (message, 'fills', []);
+            this.handleMyTrades (client, fills);
         }
         const parsedOrders = this.parseOrders (orders);
         const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
