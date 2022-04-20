@@ -381,6 +381,7 @@ class Exchange {
         'loadTimeDifference' => 'load_time_difference',
         'parseLeverageTiers' => 'parse_leverage_tiers',
         'fetchMarketLeverageTiers' => 'fetch_market_leverage_tiers',
+        'createPostOnlyOrder' => 'create_post_only_order',
         'parseBorrowInterests' => 'parse_borrow_interests',
     );
 
@@ -1212,6 +1213,7 @@ class Exchange {
             'createLimitOrder' => true,
             'createMarketOrder' => true,
             'createOrder' => true,
+            'createPostOnlyOrder' => null,
             'editOrder' => 'emulated',
             'fetchAccounts' => null,
             'fetchBalance' => true,
@@ -3722,12 +3724,12 @@ class Exchange {
     public function fetch_borrow_rate($code, $params = array()) {
         $this->load_markets();
         if (!$this->has['fetchBorrowRates']) {
-            throw new NotSupported($this->id + 'fetchBorrowRate() is not supported yet');
+            throw new NotSupported($this->id . ' fetchBorrowRate() is not supported yet');
         }
         $borrow_rates = $this->fetch_borrow_rates($params);
         $rate = $this->safe_value($borrow_rates, $code);
         if ($rate == null) {
-            throw new ExchangeError($this->id + 'fetchBorrowRate() could not find the borrow rate for currency code ' + $code);
+            throw new ExchangeError($this->id . ' fetchBorrowRate() could not find the borrow rate for currency code ' . $code);
         }
         return $rate;
     }
@@ -3779,17 +3781,49 @@ class Exchange {
         if ($this->has['fetchLeverageTiers']) {
             $market = $this->market($symbol);
             if (!$market['contract']) {
-                throw new BadRequest($this->id + ' fetchLeverageTiers() supports contract markets only');
+                throw new BadRequest($this->id . ' fetchLeverageTiers() supports contract markets only');
             }
             $tiers = $this->fetch_leverage_tiers(array($symbol));
             return $this->safe_value($tiers, $symbol);
         } else {
-            throw new NotSupported($this->id + 'fetch_market_leverage_tiers() is not supported yet');
+            throw new NotSupported($this->id . ' fetch_market_leverage_tiers() is not supported yet');
         }
     }
 
     public function sleep($milliseconds) {
         sleep($milliseconds / 1000);
+    }
+
+    public function is_post_only($type, $time_in_force, $exchange_specific_option, $params = array()){
+        $post_only = $this->safe_value2($params, 'postOnly', 'post_only', false);
+        $params = $this->omit($params, ['post_only', 'postOnly']);
+        $time_in_force_upper = $time_in_force.upper();
+        $type_upper = $type.lower();
+        $ioc = $time_in_force_upper === 'IOC';
+        $time_in_force_post_only = $time_in_force_upper === 'PO';
+        $is_market = $type_lower === 'market';
+        $post_only = $post_only || $type_lower === 'postonly' || $time_in_force_post_only || $exchange_specific_option;
+        if ($post_only) {
+            if ($ioc) {
+                throw new InvalidOrder($this->id . ' postOnly orders cannot have timeInForce equal to ' . $time_in_force);
+            } else if ($is_market) {
+                throw new InvalidOrder($this->id . ' postOnly orders cannot have type ' . $type);
+            } else {
+                $time_in_force = $time_in_force_post_only ? null : $time_in_force;
+                return ['limit', True, $time_in_force, $params];
+            }
+        } else {
+            return [$type, False, $time_in_force, $params];
+        }
+    }
+
+    public function create_post_only_order($symbol, $type, $side, $amount, $price, $params = array()) {
+        if (!$this->has['createPostOnlyOrder']) {
+            throw new NotSupported($this->id . ' create_post_only_order() is not supported yet');
+        }
+        $array = array('postOnly' => true);
+        $query = $this->extend($params, $array);
+        return $this->create_order($symbol, $type, $side, $amount, $price, $params);
     }
 
     public function parse_borrow_interests($response, $market = null) {

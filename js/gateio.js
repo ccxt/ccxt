@@ -66,6 +66,7 @@ module.exports = class gateio extends Exchange {
                 'cancelOrder': true,
                 'createMarketOrder': false,
                 'createOrder': true,
+                'createPostOnlyOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
@@ -2608,7 +2609,7 @@ module.exports = class gateio extends Exchange {
          * @param {float} price *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
          * @param {dict} params  Extra parameters specific to the exchange API endpoint
          * @param {float} params.stopPrice The price at which a trigger order is triggered at
-         * @param {str} params.timeInForce "gtc" for GoodTillCancelled, "ioc" for ImmediateOrCancelled or poc for PendingOrCancelled
+         * @param {str} params.timeInForce "GTC", "IOC", or "PO"
          * @param {int} params.iceberg Amount to display for the iceberg order, Null or 0 for normal orders, Set to -1 to hide the order completely
          * @param {str} params.text User defined information
          * @param {str} params.account *spot and margin only* "spot", "margin" or "cross_margin"
@@ -2627,7 +2628,12 @@ module.exports = class gateio extends Exchange {
         const reduceOnly = this.safeValue2 (params, 'reduce_only', 'reduceOnly');
         const defaultTimeInForce = this.safeValue2 (params, 'tif', 'time_in_force', 'gtc');
         let timeInForce = this.safeValue (params, 'timeInForce', defaultTimeInForce);
+        let postOnly = false;
+        [ type, postOnly, timeInForce, params ] = this.isPostOnly (type, timeInForce, undefined, params);
         params = this.omit (params, [ 'stopPrice', 'reduce_only', 'reduceOnly', 'tif', 'time_in_force', 'timeInForce' ]);
+        if (postOnly) {
+            timeInForce = 'poc';
+        }
         const isLimitOrder = (type === 'limit');
         const isMarketOrder = (type === 'market');
         if (isLimitOrder && price === undefined) {

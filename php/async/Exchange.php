@@ -314,7 +314,7 @@ class Exchange extends \ccxt\Exchange {
                 return $deposit_address;
             }
         } else {
-            throw new NotSupported ($this->id + ' fetchDepositAddress not supported yet');
+            throw new NotSupported ($this->id . ' fetchDepositAddress not supported yet');
         }
     }
 
@@ -343,12 +343,12 @@ class Exchange extends \ccxt\Exchange {
         if ($this->has['fetchLeverageTiers']) {
             $market = yield $this->market($symbol);
             if (!$market['contract']) {
-                throw new BadRequest($this->id + ' fetchLeverageTiers() supports contract markets only');
+                throw new BadRequest($this->id . ' fetchLeverageTiers() supports contract markets only');
             }
             $tiers = yield $this->fetch_leverage_tiers(array($symbol));
             return $this->safe_value($tiers, $symbol);
         } else {
-            throw new NotSupported($this->id + 'fetch_market_leverage_tiers() is not supported yet');
+            throw new NotSupported($this->id . ' fetch_market_leverage_tiers() is not supported yet');
         }
     }
     
@@ -361,5 +361,14 @@ class Exchange extends \ccxt\Exchange {
                 $resolve(null);
             });
         });
+    }
+
+    public function create_post_only_order($symbol, $type, $side, $amount, $price, $params = array()) {
+        if (!$this->has['createPostOnlyOrder']) {
+            throw new NotSupported($this->id . ' create_post_only_order() is not supported yet');
+        }
+        $array = array('postOnly' => true);
+        $query = $this->extend($params, $array);
+        return yield $this->create_order($symbol, $type, $side, $amount, $price, $params);
     }
 }
