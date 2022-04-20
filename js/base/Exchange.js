@@ -2284,14 +2284,14 @@ module.exports = class Exchange {
          * @returns {boolean}: true if a post only order, false otherwise
          */
         let postOnly = this.safeValue2 (params, 'postOnly', 'post_only', false);
-        params = this.omit (params, ['post_only', 'postOnly']);
+        params = this.omit (params, [ 'post_only', 'postOnly' ]);
         const timeInForceUpper = timeInForce.toUpperCase ();
         const typeLower = type.toLowerCase ();
         const ioc = timeInForceUpper === 'IOC';
         const fok = timeInForceUpper === 'FOK';
         const timeInForcePostOnly = timeInForceUpper === 'PO';
         const isMarket = typeLower === 'market';
-        postOnly = postOnly || typeLower === 'postonly' || timeInForcePostOnly || exchangeSpecificOption;
+        postOnly = postOnly || (typeLower === 'postonly') || timeInForcePostOnly || exchangeSpecificOption;
         if (postOnly) {
             if (ioc || fok) {
                 throw new InvalidOrder (this.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce);
@@ -2299,10 +2299,10 @@ module.exports = class Exchange {
                 throw new InvalidOrder (this.id + ' postOnly orders cannot have type ' + type);
             } else {
                 timeInForce = timeInForcePostOnly ? undefined : timeInForce;
-                return ['limit', true, timeInForce, params];
+                return [ 'limit', true, timeInForce, params ];
             }
         } else {
-            return [type, false, timeInForce, params];
+            return [ type, false, timeInForce, params ];
         }
     }
 
@@ -2310,7 +2310,7 @@ module.exports = class Exchange {
         if (!this.has['createPostOnlyOrder']) {
             throw new NotSupported (this.id + 'createPostOnlyOrder() is not supported yet');
         }
-        const query = this.extend (params, {'postOnly': true});
+        const query = this.extend (params, { 'postOnly': true });
         return await this.createOrder (symbol, type, side, amount, price, query);
     }
 
