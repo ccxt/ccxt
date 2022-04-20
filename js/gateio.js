@@ -3283,6 +3283,7 @@ module.exports = class gateio extends Exchange {
             request['account'] = market['type'];
         }
         const response = await this[method] (this.extend (request, params));
+        //
         // SPOT
         //    {
         //        "id": "8834234273",
