@@ -9,7 +9,7 @@ module.exports = async (exchange, symbol) => {
         return
     }
     if (exchange.has.fetchTradingFee) {
-        const fee = await exchange.fetchTradingFee ()
+        const fee = await exchange.fetchTradingFee (symbol)
         testTradingFee (exchange, symbol, fee)
         return fee
     } else {
