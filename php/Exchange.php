@@ -3758,8 +3758,8 @@ class Exchange {
         $timestamp = $this->milliseconds();
         return $this->extend(array(
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $this->safeSymbol (null, $market),
+            'datetime' => $this->iso8601($timestamp),
+            'symbol' => $this->safeSymbol(null, $market),
             'leverage' => null,
             'marginType' => null,
             'status' => 'success',
