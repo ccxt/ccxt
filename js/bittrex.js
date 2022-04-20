@@ -1380,17 +1380,13 @@ module.exports = class bittrex extends Exchange {
         let response = undefined;
         let method = undefined;
         try {
-            let request = {};
+            const request = {};
             if (stop) {
                 method = 'privateGetConditionalOrdersConditionalOrderId';
-                request = {
-                    'conditionalOrderId': id,
-                };
+                request['conditionalOrderId'] = id;
             } else {
                 method = 'privateGetOrdersOrderId';
-                request = {
-                    'orderId': id,
-                };
+                request['orderId'] = id;
             }
             const query = this.omit (params, 'stop');
             response = await this[method] (this.extend (request, query));
