@@ -192,6 +192,11 @@ module.exports = class digifinex extends Exchange {
             'options': {
                 'defaultType': 'spot',
                 'types': [ 'spot', 'margin', 'otc' ],
+                'accountsByType': {
+                    'spot': '1',
+                    'margin': '2',
+                    'OTC': '3',
+                },
             },
             'commonCurrencies': {
                 'BHT': 'Black House Test',
@@ -1468,25 +1473,22 @@ module.exports = class digifinex extends Exchange {
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
-        if (fromAccount === 'spot') {
-            fromAccount = 1;
-        } else if (fromAccount === 'margin') {
-            fromAccount = 2;
-        } else {
-            fromAccount = 3; // OTC account
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const fromId = this.safeString (accountsByType, fromAccount);
+        const toId = this.safeString (accountsByType, toAccount);
+        if (fromId === undefined) {
+            const keys = Object.keys (accountsByType);
+            throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', '));
         }
-        if (toAccount === 'spot') {
-            toAccount = 1;
-        } else if (toAccount === 'margin') {
-            toAccount = 2;
-        } else {
-            toAccount = 3; // OTC account
+        if (toId === undefined) {
+            const keys = Object.keys (accountsByType);
+            throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', '));
         }
         const request = {
             'currency_mark': currency['id'],
             'num': parseFloat (this.currencyToPrecision (code, amount)),
-            'from': fromAccount,
-            'to': toAccount,
+            'from': fromId, // 1 = SPOT, 2 = MARGIN, 3 = OTC
+            'to': toId, // 1 = SPOT, 2 = MARGIN, 3 = OTC
         };
         const response = await this.privatePostTransfer (this.extend (request, params));
         //
