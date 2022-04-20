@@ -749,16 +749,62 @@ class huobi extends \ccxt\async\huobi {
         //
         // non spot $order
         //
-        //     {
-        //         "contract_type":"swap",
-        //         "pair":"BTC-USDT",
-        //         "business_type":"swap",
-        //         "op":"notify",
-        //         "topic":"orders_cross.btc-usdt",
-        //         "ts":1645205382242,
-        //         "symbol":"BTC",
-        //         "contract_code":"BTC-USDT",
-        //     }
+        // {
+        //     contract_type => 'swap',
+        //     pair => 'LTC-USDT',
+        //     business_type => 'swap',
+        //     op => 'notify',
+        //     topic => 'orders_cross.ltc-usdt',
+        //     ts => 1650354508696,
+        //     symbol => 'LTC',
+        //     contract_code => 'LTC-USDT',
+        //     volume => 1,
+        //     price => 110.34,
+        //     order_price_type => 'lightning',
+        //     direction => 'sell',
+        //     offset => 'close',
+        //     status => 6,
+        //     lever_rate => 1,
+        //     order_id => '966002354015051776',
+        //     order_id_str => '966002354015051776',
+        //     client_order_id => null,
+        //     order_source => 'web',
+        //     order_type => 1,
+        //     created_at => 1650354508649,
+        //     trade_volume => 1,
+        //     trade_turnover => 11.072,
+        //     fee => -0.005536,
+        //     trade_avg_price => 110.72,
+        //     margin_frozen => 0,
+        //     profit => -0.045,
+        //     trade => array(
+        //       {
+        //         trade_fee => -0.005536,
+        //         fee_asset => 'USDT',
+        //         real_profit => 0.473,
+        //         profit => -0.045,
+        //         trade_id => 86678766507,
+        //         id => '86678766507-966002354015051776-1',
+        //         trade_volume => 1,
+        //         trade_price => 110.72,
+        //         trade_turnover => 11.072,
+        //         created_at => 1650354508656,
+        //         role => 'taker'
+        //       }
+        //     ),
+        //     canceled_at => 0,
+        //     fee_asset => 'USDT',
+        //     margin_asset => 'USDT',
+        //     uid => '359305390',
+        //     liquidation_type => '0',
+        //     margin_mode => 'cross',
+        //     margin_account => 'USDT',
+        //     is_tpsl => 0,
+        //     real_profit => 0.473,
+        //     trade_partition => 'USDT',
+        //     reduce_only => 1
+        //   }
+        //
         //
         $messageHash = $this->safe_string_2($message, 'ch', 'topic');
         $data = $this->safe_value($message, 'data');
@@ -790,6 +836,7 @@ class huobi extends \ccxt\async\huobi {
             }
         } else {
             // contract branch
+            $parsedOrder = $this->parse_ws_order($message, $market);
             $rawTrades = $this->safe_value($message, 'trade', array());
             $tradesLength = is_array($rawTrades) ? count($rawTrades) : 0;
             if ($tradesLength > 0) {
@@ -798,12 +845,17 @@ class huobi extends \ccxt\async\huobi {
                     'ch' => $messageHash,
                     'symbol' => $marketId,
                 );
+                // inject $order params in every trade
+                $extendTradeParams = array(
+                    'order' => $this->safe_string($parsedOrder, 'id'),
+                    'type' => $this->safe_string($parsedOrder, 'type'),
+                    'side' => $this->safe_string($parsedOrder, 'side'),
+                );
                 // $trades arrive inside an $order update
                 // we're forwarding them to handleMyTrade
                 // so they can be properly resolved
-                $this->handle_my_trade($client, $tradesObject);
+                $this->handle_my_trade($client, $tradesObject, $extendTradeParams);
             }
-            $parsedOrder = $this->parse_ws_order($message, $market);
         }
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
@@ -1700,7 +1752,7 @@ class huobi extends \ccxt\async\huobi {
         }
     }
 
-    public function handle_my_trade($client, $message) {
+    public function handle_my_trade($client, $message, $extendParams = array ()) {
         //
         // spot
         //
@@ -1773,6 +1825,8 @@ class huobi extends \ccxt\async\huobi {
                 for ($i = 0; $i < count($rawTrades); $i++) {
                     $trade = $rawTrades[$i];
                     $parsedTrade = $this->parse_trade($trade, $market);
+                    // add extra params (side, type, ...) coming from the order
+                    $parsedTrade = array_merge($parsedTrade, $extendParams);
                     $cachedTrades->append ($parsedTrade);
                 }
                 // $messageHash here is the orders one, so
