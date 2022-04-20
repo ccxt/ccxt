@@ -172,6 +172,7 @@ class Transpiler {
             [ /\.getSupportedMapping\s/g, '.get_supported_mapping'],
             [ /\.fetchBorrowRate\s/g, '.fetch_borrow_rate'],
             [ /\.handleMarketTypeAndParams\s/g, '.handle_market_type_and_params'],
+            [ /\.isPostOnly\s/g, '.is_post_only'],
         ]
     }
 
