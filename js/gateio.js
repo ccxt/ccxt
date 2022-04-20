@@ -2617,6 +2617,7 @@ module.exports = class gateio extends Exchange {
          * @param {dict} params  Extra parameters specific to the exchange API endpoint
          * @param {float} params.stopPrice The price at which a trigger order is triggered at
          * @param {str} params.timeInForce "GTC", "IOC", or "PO"
+         * @param {str} params.marginType 'cross' or 'isolated' - marginType for type='margin', if not provided this.options['defaultMarginType'] is used
          * @param {int} params.iceberg Amount to display for the iceberg order, Null or 0 for normal orders, Set to -1 to hide the order completely
          * @param {str} params.text User defined information
          * @param {str} params.account *spot and margin only* "spot", "margin" or "cross_margin"
@@ -3109,8 +3110,8 @@ module.exports = class gateio extends Exchange {
          * @description Retrieves information on an order
          * @param {str} id Order id
          * @param {str} symbol Unified market symbol
-         * @param {bool} params.stop True if the order being fetched is a trigger order
          * @param {dict} params Parameters specified by the exchange api
+         * @param {bool} params.stop True if the order being fetched is a trigger order
          * @returns Order structure
          */
         if (symbol === undefined) {
@@ -3311,8 +3312,8 @@ module.exports = class gateio extends Exchange {
          * @description Cancels an open order
          * @param {str} id Order id
          * @param {str} symbol Unified market symbol
-         * @param {bool} params.stop True if the order to be cancelled is a trigger order
          * @param {dict} params Parameters specified by the exchange api
+         * @param {bool} params.stop True if the order to be cancelled is a trigger order
          * @returns Order structure
          */
         if (symbol === undefined) {
