@@ -120,6 +120,7 @@ class huobi(Exchange, ccxt.huobi):
     async def watch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         messageHash = 'market.' + market['id'] + '.detail'
         url = self.get_url_by_market_type(market['type'], market['linear'])
         return await self.subscribe_public(url, symbol, messageHash, None, params)
@@ -159,6 +160,7 @@ class huobi(Exchange, ccxt.huobi):
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         messageHash = 'market.' + market['id'] + '.trade.detail'
         url = self.get_url_by_market_type(market['type'], market['linear'])
         trades = await self.subscribe_public(url, symbol, messageHash, None, params)
@@ -208,6 +210,7 @@ class huobi(Exchange, ccxt.huobi):
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         interval = self.timeframes[timeframe]
         messageHash = 'market.' + market['id'] + '.kline.' + interval
         url = self.get_url_by_market_type(market['type'], market['linear'])
@@ -256,6 +259,7 @@ class huobi(Exchange, ccxt.huobi):
             raise ExchangeError(self.id + ' watchOrderBook accepts limit = 150 only')
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         # only supports a limit of 150 at self time
         limit = 150 if (limit is None) else limit
         messageHash = None
@@ -546,6 +550,7 @@ class huobi(Exchange, ccxt.huobi):
         if symbol is not None:
             await self.load_markets()
             market = self.market(symbol)
+            symbol = market['symbol']
             type = market['type']
             subType = 'linear' if market['linear'] else 'inverse'
             marketId = market['lowercaseId']
@@ -619,6 +624,7 @@ class huobi(Exchange, ccxt.huobi):
         suffix = '*'  # wildcard
         if symbol is not None:
             market = self.market(symbol)
+            symbol = market['symbol']
             type = market['type']
             suffix = market['lowercaseId']
             subType = 'linear' if market['linear'] else 'inverse'
@@ -690,16 +696,62 @@ class huobi(Exchange, ccxt.huobi):
         #
         # non spot order
         #
-        #     {
-        #         "contract_type":"swap",
-        #         "pair":"BTC-USDT",
-        #         "business_type":"swap",
-        #         "op":"notify",
-        #         "topic":"orders_cross.btc-usdt",
-        #         "ts":1645205382242,
-        #         "symbol":"BTC",
-        #         "contract_code":"BTC-USDT",
-        #     }
+        # {
+        #     contract_type: 'swap',
+        #     pair: 'LTC-USDT',
+        #     business_type: 'swap',
+        #     op: 'notify',
+        #     topic: 'orders_cross.ltc-usdt',
+        #     ts: 1650354508696,
+        #     symbol: 'LTC',
+        #     contract_code: 'LTC-USDT',
+        #     volume: 1,
+        #     price: 110.34,
+        #     order_price_type: 'lightning',
+        #     direction: 'sell',
+        #     offset: 'close',
+        #     status: 6,
+        #     lever_rate: 1,
+        #     order_id: '966002354015051776',
+        #     order_id_str: '966002354015051776',
+        #     client_order_id: null,
+        #     order_source: 'web',
+        #     order_type: 1,
+        #     created_at: 1650354508649,
+        #     trade_volume: 1,
+        #     trade_turnover: 11.072,
+        #     fee: -0.005536,
+        #     trade_avg_price: 110.72,
+        #     margin_frozen: 0,
+        #     profit: -0.045,
+        #     trade: [
+        #       {
+        #         trade_fee: -0.005536,
+        #         fee_asset: 'USDT',
+        #         real_profit: 0.473,
+        #         profit: -0.045,
+        #         trade_id: 86678766507,
+        #         id: '86678766507-966002354015051776-1',
+        #         trade_volume: 1,
+        #         trade_price: 110.72,
+        #         trade_turnover: 11.072,
+        #         created_at: 1650354508656,
+        #         role: 'taker'
+        #       }
+        #     ],
+        #     canceled_at: 0,
+        #     fee_asset: 'USDT',
+        #     margin_asset: 'USDT',
+        #     uid: '359305390',
+        #     liquidation_type: '0',
+        #     margin_mode: 'cross',
+        #     margin_account: 'USDT',
+        #     is_tpsl: 0,
+        #     real_profit: 0.473,
+        #     trade_partition: 'USDT',
+        #     reduce_only: 1
+        #   }
+        #
         #
         messageHash = self.safe_string_2(message, 'ch', 'topic')
         data = self.safe_value(message, 'data')
@@ -729,6 +781,7 @@ class huobi(Exchange, ccxt.huobi):
                 parsedOrder = self.parse_ws_order(data, market)
         else:
             # contract branch
+            parsedOrder = self.parse_ws_order(message, market)
             rawTrades = self.safe_value(message, 'trade', [])
             tradesLength = len(rawTrades)
             if tradesLength > 0:
@@ -737,11 +790,16 @@ class huobi(Exchange, ccxt.huobi):
                     'ch': messageHash,
                     'symbol': marketId,
                 }
+                # inject order params in every trade
+                extendTradeParams = {
+                    'order': self.safe_string(parsedOrder, 'id'),
+                    'type': self.safe_string(parsedOrder, 'type'),
+                    'side': self.safe_string(parsedOrder, 'side'),
+                }
                 # trades arrive inside an order update
                 # we're forwarding them to handleMyTrade
                 # so they can be properly resolved
-                self.handle_my_trade(client, tradesObject)
-            parsedOrder = self.parse_ws_order(message, market)
+                self.handle_my_trade(client, tradesObject, extendTradeParams)
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
@@ -1566,7 +1624,7 @@ class huobi(Exchange, ccxt.huobi):
             if 'ping' in message:
                 self.handle_ping(client, message)
 
-    def handle_my_trade(self, client, message):
+    def handle_my_trade(self, client, message, extendParams={}):
         #
         # spot
         #
@@ -1637,6 +1695,8 @@ class huobi(Exchange, ccxt.huobi):
                 for i in range(0, len(rawTrades)):
                     trade = rawTrades[i]
                     parsedTrade = self.parse_trade(trade, market)
+                    # add extra params(side, type, ...) coming from the order
+                    parsedTrade = self.extend(parsedTrade, extendParams)
                     cachedTrades.append(parsedTrade)
                 # messageHash here is the orders one, so
                 # we have to recreate the trades messageHash = orderMessageHash + ':' + 'trade'

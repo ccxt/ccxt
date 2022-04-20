@@ -406,12 +406,16 @@ class ftx extends \ccxt\async\ftx {
 
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
-        $market = $this->market($symbol);
-        $orders = yield $this->watch_private('orders', $market['symbol']);
-        if ($this->newUpdates) {
-            $limit = $orders->getLimit ($market['symbol'], $limit);
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
         }
-        return $this->filter_by_symbol_since_limit($orders, $market['symbol'], $since, $limit, true);
+        $orders = yield $this->watch_private('orders', $symbol);
+        if ($this->newUpdates) {
+            $limit = $orders->getLimit ($symbol, $limit);
+        }
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
     public function handle_order($client, $message) {
@@ -483,12 +487,16 @@ class ftx extends \ccxt\async\ftx {
 
     public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
-        $market = $this->market($symbol);
-        $trades = yield $this->watch_private('fills', $market['symbol']);
-        if ($this->newUpdates) {
-            $limit = $trades->getLimit ($market['symbol'], $limit);
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
         }
-        return $this->filter_by_symbol_since_limit($trades, $market['symbol'], $since, $limit, true);
+        $trades = yield $this->watch_private('fills', $symbol);
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit ($symbol, $limit);
+        }
+        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
     }
 
     public function handle_my_trade($client, $message) {
