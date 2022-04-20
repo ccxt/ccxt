@@ -2581,14 +2581,19 @@ module.exports = class huobi extends Exchange {
                     const balance = data[i];
                     const marketId = this.safeString2 (balance, 'contract_code', 'margin_account');
                     const market = this.safeMarket (marketId);
-                    const account = this.account ();
-                    account['free'] = this.safeString (balance, 'margin_balance');
-                    account['used'] = this.safeString (balance, 'margin_frozen');
-                    const code = market['settle'];
-                    const accountsByCode = {};
-                    accountsByCode[code] = account;
-                    const symbol = market['symbol'];
-                    result[symbol] = this.safeBalance (accountsByCode);
+                    // the exchange outputs positions for delisted markets
+                    // https://www.huobi.com/support/en-us/detail/74882968522337
+                    // we skip it if the market was delisted
+                    const code = this.safeString (market, 'settle');
+                    if (code !== undefined) {
+                        const account = this.account ();
+                        account['free'] = this.safeString (balance, 'margin_balance');
+                        account['used'] = this.safeString (balance, 'margin_frozen');
+                        const accountsByCode = {};
+                        accountsByCode[code] = account;
+                        const symbol = market['symbol'];
+                        result[symbol] = this.safeBalance (accountsByCode);
+                    }
                 }
                 return result;
             }
