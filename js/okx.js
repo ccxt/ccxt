@@ -304,8 +304,6 @@ module.exports = class okx extends Exchange {
                 'password': true,
             },
             'exceptions': {
-
-
                 'exact': {
                     // Public error codes from 50000-53999
                     // General Class
