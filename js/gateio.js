@@ -3295,7 +3295,7 @@ module.exports = class gateio extends Exchange {
     async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
-        if (symbol === undefined) {
+        if (symbol !== undefined) {
             market = this.market (symbol);
         }
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
@@ -3307,7 +3307,7 @@ module.exports = class gateio extends Exchange {
         if (since !== undefined && (market['spot'] || market['margin'])) {
             request['from'] = parseInt (since / 1000);
         }
-        const method = this.getSupportedMapping (market['type'], {
+        const method = this.getSupportedMapping (type, {
             'spot': 'privateSpotGetOrders',
             'margin': 'privateSpotGetOrders',
             'swap': 'privateFuturesGetSettleOrders',
