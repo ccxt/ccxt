@@ -3328,9 +3328,23 @@ module.exports = class gateio extends Exchange {
             market = this.market (symbol);
         }
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
-        const [ request, urlParams ] = this.prepareRequest (market, type, true, query);
+        let [ request, urlParams ] = this.prepareRequest (market, type, true, query);
         if (status === 'closed') {
             status = 'finished';
+        }
+        const stop = this.safeValue (params, 'stop');
+        urlParams = this.omit (params, 'stop');
+        if (stop && type === 'margin') {
+            let marginType = undefined;
+            [ marginType, urlParams ] = this.getMarginType (params);
+            if (marginType === 'cross') {
+                throw new BadRequest (this.id + ' fetchOrdersByStatus does not support cross margin stop orders');
+            }
+            if (market !== undefined) {
+                request = {
+                    'market': market['id'],
+                };
+            }
         }
         request['status'] = status;
         if (limit !== undefined) {
@@ -3339,11 +3353,12 @@ module.exports = class gateio extends Exchange {
         if (since !== undefined && (market['spot'] || market['margin'])) {
             request['from'] = parseInt (since / 1000);
         }
+        const methodTail = stop ? 'PriceOrders' : 'Orders';
         const method = this.getSupportedMapping (type, {
-            'spot': 'privateSpotGetOrders',
-            'margin': 'privateSpotGetOrders',
-            'swap': 'privateFuturesGetSettleOrders',
-            'future': 'privateDeliveryGetSettleOrders',
+            'spot': 'privateSpotGet' + methodTail,
+            'margin': 'privateSpotGet' + methodTail,
+            'swap': 'privateFuturesGetSettle' + methodTail,
+            'future': 'privateDeliveryGetSettle' + methodTail,
         });
         const response = await this[method] (this.extend (request, urlParams));
         //
