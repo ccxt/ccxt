@@ -2133,21 +2133,20 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchFundingRateHistory', market, params);
-        if (type !== 'swap') {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
             throw new BadRequest ('Funding rates only exist for swap contracts');
         }
-        const [ request, urlParams ] = this.prepareRequest (market, type, false, query);
+        const [ request, query ] = this.prepareRequest (market, undefined, false, params);
         if (limit !== undefined) {
             request['limit'] = limit;
         }
         const method = 'publicFuturesGetSettleFundingRate';
-        const response = await this[method] (this.extend (request, urlParams));
+        const response = await this[method] (this.extend (request, query));
         //
         //     {
         //         "r": "0.00063521",
