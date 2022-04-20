@@ -2853,7 +2853,7 @@ class Exchange(object):
             raise NotSupported(self.id + 'fetch_market_leverage_tiers() is not supported yet')
 
     def is_post_only(self, type, time_in_force, exchange_specific_option, params={}):
-        post_only = self.safe_value2(params, 'postOnly', 'post_only', False)
+        post_only = self.safe_value_2(params, 'postOnly', 'post_only', False)
         params = self.omit(params, ['post_only', 'postOnly'])
         time_in_force_upper = time_in_force.upper()
         type_lower = type.lower()
