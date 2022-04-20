@@ -45,6 +45,7 @@ module.exports = class digifinex extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchWithdrawals': true,
+                'transfer': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -83,7 +84,7 @@ module.exports = class digifinex extends Exchange {
                         'trades',
                         'trades/symbols',
                         'ticker',
-                        'currencies', // todo add fetchCurrencies
+                        'currencies',
                     ],
                 },
                 'private': {
@@ -91,7 +92,7 @@ module.exports = class digifinex extends Exchange {
                         '{market}/financelog',
                         '{market}/mytrades',
                         '{market}/order',
-                        '{market}​/order​/detail', // todo add fetchOrder
+                        '{market}/order/detail',
                         '{market}/order/current',
                         '{market}/order/history',
                         'margin/assets',
@@ -108,21 +109,21 @@ module.exports = class digifinex extends Exchange {
                         'spot/order',
                         'spot/order/current',
                         'spot/order/history',
-                        'deposit/address', // todo add fetchDepositAddress
-                        'deposit/history', // todo add fetchDeposits
-                        'withdraw/history', // todo add fetchWithdrawals
+                        'deposit/address',
+                        'deposit/history',
+                        'withdraw/history',
                     ],
                     'post': [
                         '{market}/order/cancel',
                         '{market}/order/new',
-                        '{market}​/order​/batch_new',
+                        '{market}/order/batch_new',
                         'margin/order/cancel',
                         'margin/order/new',
                         'margin/position/close',
                         'spot/order/cancel',
                         'spot/order/new',
                         'transfer',
-                        'withdraw/new', // todo add withdraw()
+                        'withdraw/new',
                         'withdraw/cancel',
                     ],
                 },
@@ -1443,6 +1444,63 @@ module.exports = class digifinex extends Exchange {
             'updated': updated,
             'fee': fee,
         };
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        //     {
+        //         "code": 0
+        //     }
+        //
+        return {
+            'info': transfer,
+            'id': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': this.safeCurrencyCode (undefined, currency),
+            'amount': this.safeNumber (transfer, 'amount'),
+            'fromAccount': this.safeString (transfer, 'fromAccount'),
+            'toAccount': this.safeString (transfer, 'toAccount'),
+            'status': this.safeInteger (transfer, 'code'),
+        };
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        if (fromAccount === 'spot') {
+            fromAccount = 1;
+        } else if (fromAccount === 'margin') {
+            fromAccount = 2;
+        } else {
+            fromAccount = 3; // OTC account
+        }
+        if (toAccount === 'spot') {
+            toAccount = 1;
+        } else if (toAccount === 'margin') {
+            toAccount = 2;
+        } else {
+            toAccount = 3; // OTC account
+        }
+        const request = {
+            'currency_mark': currency['id'],
+            'num': parseFloat (this.currencyToPrecision (code, amount)),
+            'from': fromAccount,
+            'to': toAccount,
+        };
+        const response = await this.privatePostTransfer (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0
+        //     }
+        //
+        const transfer = this.parseTransfer (response, currency);
+        return this.extend (transfer, {
+            'amount': amount,
+            'currency': code,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+        });
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
