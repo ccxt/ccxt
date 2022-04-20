@@ -3329,6 +3329,9 @@ module.exports = class gateio extends Exchange {
         }
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
         const [ request, urlParams ] = this.prepareRequest (market, type, true, query);
+        if (status === 'closed') {
+            status = 'finished';
+        }
         request['status'] = status;
         if (limit !== undefined) {
             request['limit'] = limit;
