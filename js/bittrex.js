@@ -917,11 +917,71 @@ module.exports = class bittrex extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {
-            'orderId': id,
-        };
-        const response = await this.privateDeleteOrdersOrderId (this.extend (request, params));
-        return this.extend (this.parseOrder (response), {
+        const stop = this.safeValue (params, 'stop');
+        let request = {};
+        let method = undefined;
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        if (stop) {
+            method = 'privateDeleteConditionalOrdersConditionalOrderId';
+            request = {
+                'conditionalOrderId': id,
+            };
+        } else {
+            method = 'privateDeleteOrdersOrderId';
+            request = {
+                'orderId': id,
+            };
+        }
+        const query = this.omit (params, 'stop');
+        const response = await this[method] (this.extend (request, query));
+        //
+        // Spot
+        //
+        //     [
+        //         {
+        //             "id": "df6cf5ee-fc27-4b61-991a-cc94b6459ac9",
+        //             "marketSymbol": "BTC-USDT",
+        //             "direction": "BUY",
+        //             "type": "LIMIT",
+        //             "quantity": "0.00023277",
+        //             "limit": "30000.00000000",
+        //             "timeInForce": "GOOD_TIL_CANCELLED",
+        //             "fillQuantity": "0.00000000",
+        //             "commission": "0.00000000",
+        //             "proceeds": "0.00000000",
+        //             "status": "CANCELLED",
+        //             "createdAt": "2022-04-20T02:33:53.16Z",
+        //             "updatedAt": "2022-04-20T02:33:53.16Z"
+        //         }
+        //     ]
+        //
+        // Stop
+        //
+        //     [
+        //         {
+        //             "id": "f64f7c4f-295c-408b-9cbc-601981abf100",
+        //             "marketSymbol": "BTC-USDT",
+        //             "operand": "LTE",
+        //             "triggerPrice": "0.10000000",
+        //             "orderToCreate": {
+        //                 "marketSymbol": "BTC-USDT",
+        //                 "direction": "BUY",
+        //                 "type": "LIMIT",
+        //                 "quantity": "0.00020000",
+        //                 "limit": "30000.00000000",
+        //                 "timeInForce": "GOOD_TIL_CANCELLED"
+        //             },
+        //             "status": "CANCELLED",
+        //             "createdAt": "2022-04-20T02:38:12.26Z",
+        //             "updatedAt": "2022-04-20T02:38:12.26Z"
+        //             "closedAt": "2022-04-20T03:47:24.69Z"
+        //         }
+        //     ]
+        //
+        return this.extend (this.parseOrder (response, market), {
             'id': id,
             'info': response,
             'status': 'canceled',
@@ -1123,6 +1183,8 @@ module.exports = class bittrex extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
+        // Spot createOrder, fetchOpenOrders, fetchClosedOrders, fetchOrder, cancelOrder
+        //
         //     {
         //         id: '1be35109-b763-44ce-b6ea-05b6b0735c0c',
         //         marketSymbol: 'LTC-ETH',
@@ -1141,11 +1203,31 @@ module.exports = class bittrex extends Exchange {
         //         closedAt: '2018-06-23T13:14:30.19Z'
         //     }
         //
+        // Stop createOrder, fetchOpenOrders, fetchClosedOrders, fetchOrder, cancelOrder
+        //
+        //     {
+        //         "id": "9791fe52-a3e5-4ac3-ae03-e327b2993571",
+        //         "marketSymbol": "BTC-USDT",
+        //         "operand": "LTE",
+        //         "triggerPrice": "0.1",
+        //         "orderToCreate": {
+        //             "marketSymbol": "BTC-USDT",
+        //             "direction": "BUY",
+        //             "type": "LIMIT",
+        //             "quantity": "0.0002",
+        //             "limit": "30000",
+        //             "timeInForce": "GOOD_TIL_CANCELLED"
+        //         },
+        //         "status": "OPEN",
+        //         "createdAt": "2022-04-19T21:02:14.17Z",
+        //         "updatedAt": "2022-04-19T21:02:14.17Z",
+        //         "closedAt": "2022-04-20T03:47:24.69Z"
+        //     }
+        //
         const marketSymbol = this.safeString (order, 'marketSymbol');
         market = this.safeMarket (marketSymbol, market, '-');
         const symbol = market['symbol'];
         const feeCurrency = market['quote'];
-        const direction = this.safeStringLower (order, 'direction');
         const createdAt = this.safeString (order, 'createdAt');
         const updatedAt = this.safeString (order, 'updatedAt');
         const closedAt = this.safeString (order, 'closedAt');
@@ -1157,14 +1239,50 @@ module.exports = class bittrex extends Exchange {
             lastTradeTimestamp = this.parse8601 (updatedAt);
         }
         const timestamp = this.parse8601 (createdAt);
-        const type = this.safeStringLower (order, 'type');
-        const quantity = this.safeString (order, 'quantity');
-        const limit = this.safeString (order, 'limit');
+        let direction = this.safeStringLower (order, 'direction');
+        if (direction === undefined) {
+            let conditionalOrder = this.safeValue (order, 'orderToCreate');
+            if (conditionalOrder === undefined) {
+                conditionalOrder = this.safeValue (order, 'orderToCancel');
+            }
+            direction = this.safeStringLower (conditionalOrder, 'direction');
+        }
+        let type = this.safeStringLower (order, 'type');
+        if (type === undefined) {
+            let conditionalOrder = this.safeValue (order, 'orderToCreate');
+            if (conditionalOrder === undefined) {
+                conditionalOrder = this.safeValue (order, 'orderToCancel');
+            }
+            type = this.safeStringLower (conditionalOrder, 'type');
+        }
+        let quantity = this.safeString (order, 'quantity');
+        if (quantity === undefined) {
+            let conditionalOrder = this.safeValue (order, 'orderToCreate');
+            if (conditionalOrder === undefined) {
+                conditionalOrder = this.safeValue (order, 'orderToCancel');
+            }
+            quantity = this.safeString (conditionalOrder, 'quantity');
+        }
+        let limit = this.safeString (order, 'limit');
+        if (limit === undefined) {
+            let conditionalOrder = this.safeValue (order, 'orderToCreate');
+            if (conditionalOrder === undefined) {
+                conditionalOrder = this.safeValue (order, 'orderToCancel');
+            }
+            limit = this.safeString (conditionalOrder, 'limit');
+        }
+        let timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
+        if (timeInForce === undefined) {
+            let conditionalOrder = this.safeValue (order, 'orderToCreate');
+            if (conditionalOrder === undefined) {
+                conditionalOrder = this.safeValue (order, 'orderToCancel');
+            }
+            timeInForce = this.parseTimeInForce (this.safeString (conditionalOrder, 'timeInForce'));
+        }
         const fillQuantity = this.safeString (order, 'fillQuantity');
         const commission = this.safeNumber (order, 'commission');
         const proceeds = this.safeString (order, 'proceeds');
         const status = this.safeStringLower (order, 'status');
-        const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
         const postOnly = (timeInForce === 'PO');
         return this.safeOrder ({
             'id': this.safeString (order, 'id'),
@@ -1178,7 +1296,7 @@ module.exports = class bittrex extends Exchange {
             'postOnly': postOnly,
             'side': direction,
             'price': limit,
-            'stopPrice': undefined,
+            'stopPrice': this.safeString (order, 'triggerPrice'),
             'cost': proceeds,
             'average': undefined,
             'amount': quantity,
