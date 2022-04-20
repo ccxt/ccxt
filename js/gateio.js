@@ -3155,13 +3155,16 @@ module.exports = class gateio extends Exchange {
          * @param {bool} params.stop True if the order being fetched is a trigger order
          * @returns An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
-        }
         await this.loadMarkets ();
         const stop = this.safeValue2 (params, 'is_stop_order', 'stop', false);
         params = this.omit (params, [ 'is_stop_order', 'stop' ]);
-        const market = this.market (symbol);
+        let market = undefined;
+        let settle = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            settle = market['settle'];
+        }
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
         let clientOrderId = this.safeString2 (params, 'text', 'clientOrderId');
         let orderId = id;
         if (clientOrderId !== undefined) {
@@ -3174,28 +3177,34 @@ module.exports = class gateio extends Exchange {
         const request = {
             'order_id': orderId,
         };
-        if (market['spot'] || market['margin']) {
-            request['currency_pair'] = market['id'];
-        } else {
-            request['settle'] = market['settleId'];
+        const swap = type === 'swap';
+        const future = type === 'future';
+        const contract = (swap || future);
+        if (symbol === undefined && contract) {
+            const defaultSettle = swap ? 'usdt' : 'btc';
+            settle = this.safeStringLower (params, 'settle', defaultSettle);
+            params = this.omit (params, 'settle');
+        }
+        if (contract) {
+            request['settle'] = settle;
         }
         let method = undefined;
         if (stop) {
-            method = this.getSupportedMapping (market['type'], {
+            method = this.getSupportedMapping (type, {
                 'spot': 'privateSpotGetPriceOrdersOrderId',
                 'margin': 'privateSpotGetPriceOrdersOrderId',
                 'swap': 'privateFuturesGetSettlePriceOrdersOrderId',
                 'future': 'privateDeliveryGetSettlePriceOrdersOrderId',
             });
         } else {
-            method = this.getSupportedMapping (market['type'], {
+            method = this.getSupportedMapping (type, {
                 'spot': 'privateSpotGetOrdersOrderId',
                 'margin': 'privateSpotGetOrdersOrderId',
                 'swap': 'privateFuturesGetSettleOrdersOrderId',
                 'future': 'privateDeliveryGetSettleOrdersOrderId',
             });
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
         return this.parseOrder (response, market);
     }
 
