@@ -371,7 +371,7 @@ class okx extends Exchange {
                     '51007' => '\\ccxt\\InvalidOrder', // Order placement failed. Order amount should be at least 1 contract (showing up when placing an order with less than 1 contract)
                     '51008' => '\\ccxt\\InsufficientFunds', // Order placement failed due to insufficient balance
                     '51009' => '\\ccxt\\AccountSuspended', // Order placement function is blocked by the platform
-                    '51010' => '\\ccxt\\InsufficientFunds', // Account level too low
+                    '51010' => '\\ccxt\\AccountNotEnabled', // Account level too low array("code":"1","data":[array("clOrdId":"uJrfGFth9F","ordId":"","sCode":"51010","sMsg":"The current account mode does not support this API interface. ","tag":"")],"msg":"Operation failed.")
                     '51011' => '\\ccxt\\InvalidOrder', // Duplicated order ID
                     '51012' => '\\ccxt\\BadSymbol', // Token does not exist
                     '51014' => '\\ccxt\\BadSymbol', // Index does not exist

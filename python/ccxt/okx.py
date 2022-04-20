@@ -8,6 +8,7 @@ import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import AccountNotEnabled
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -386,7 +387,7 @@ class okx(Exchange):
                     '51007': InvalidOrder,  # Order placement failed. Order amount should be at least 1 contract(showing up when placing an order with less than 1 contract)
                     '51008': InsufficientFunds,  # Order placement failed due to insufficient balance
                     '51009': AccountSuspended,  # Order placement function is blocked by the platform
-                    '51010': InsufficientFunds,  # Account level too low
+                    '51010': AccountNotEnabled,  # Account level too low {"code":"1","data":[{"clOrdId":"uJrfGFth9F","ordId":"","sCode":"51010","sMsg":"The current account mode does not support self API interface. ","tag":""}],"msg":"Operation failed."}
                     '51011': InvalidOrder,  # Duplicated order ID
                     '51012': BadSymbol,  # Token does not exist
                     '51014': BadSymbol,  # Index does not exist
