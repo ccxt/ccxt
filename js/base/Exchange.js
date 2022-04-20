@@ -1437,8 +1437,9 @@ module.exports = class Exchange {
         return this.filterByCurrencySinceLimit (result, code, since, limit, tail);
     }
 
-    safeLedgerEntry (ledgerEntry) {
-        return this.extend({
+    safeLedgerEntry (entry, currency = undefined) {
+        currency = this.safeCurrency (undefined, currency);
+        return this.extend ({
             'id': undefined,
             'timestamp': undefined,
             'datetime': undefined,
@@ -1447,14 +1448,14 @@ module.exports = class Exchange {
             'referenceId': undefined,
             'referenceAccount': undefined,
             'type': undefined,
-            'currency': undefined,
+            'currency': currency['code'],
             'amount': undefined,
             'before': undefined,
             'after': undefined,
             'status': undefined,
             'fee': undefined,
             'info': {},
-        }, ledgerEntry);
+        }, entry);
     }
 
     parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
