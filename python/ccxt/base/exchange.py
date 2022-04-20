@@ -2820,8 +2820,8 @@ class Exchange(object):
         timestamp = self.milliseconds()
         return self.extend({
             'timestamp': timestamp,
-            'datetime': self.iso8601 (timestamp),
-            'symbol': self.safe_symbol (None, market),
+            'datetime': self.iso8601(timestamp),
+            'symbol': self.safe_symbol(None, market),
             'leverage': None,
             'marginType': None,
             'status': 'success',
