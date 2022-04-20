@@ -756,7 +756,6 @@ class bitmex extends \ccxt\async\bitmex {
         //         )
         //     }
         //
-        // console.dir ($message, array( depth => null ));
         $data = $this->safe_value($message, 'data', array());
         $messageHash = 'order';
         // initial subscription response with multiple orders

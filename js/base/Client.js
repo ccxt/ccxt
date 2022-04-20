@@ -101,6 +101,7 @@ module.exports = class Client {
 
     log (... args) {
         console.log (... args)
+        // console.dir (args, { depth: null })
     }
 
     connect (backoffDelay = 0) {
@@ -269,6 +270,7 @@ module.exports = class Client {
                 this.log (new Date (), 'onMessage', message)
                 // unlimited depth
                 // this.log (new Date (), 'onMessage', util.inspect (message, false, null, true))
+                // this.log (new Date (), 'onMessage', JSON.stringify (message, null, 4))
             }
         } catch (e) {
             this.log (new Date (), 'onMessage JSON.parse', e)
