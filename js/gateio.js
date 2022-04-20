@@ -5,7 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const Precise = require ('./base/Precise');
 const { TICK_SIZE } = require ('./base/functions/number');
-const { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled } = require ('./base/errors');
+const { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLim"itExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled } = require ('./base/errors');
 
 module.exports = class gateio extends Exchange {
     describe () {
@@ -2607,7 +2607,7 @@ module.exports = class gateio extends Exchange {
          * @param {float} price *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
          * @param {dict} params  Extra parameters specific to the exchange API endpoint
          * @param {float} params.stopPrice The price at which a trigger order is triggered at
-         * @param {str} params.timeInForce "gtc", "ioc", or "po"
+         * @param {str} params.timeInForce "GTC", "IOC", or "PO"
          * @param {int} params.iceberg Amount to display for the iceberg order, Null or 0 for normal orders, Set to -1 to hide the order completely
          * @param {str} params.text User defined information
          * @param {str} params.account *spot and margin only* "spot", "margin" or "cross_margin"
