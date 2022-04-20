@@ -2878,6 +2878,17 @@ class Exchange(object):
         query = self.extend(params, {'postOnly': True})
         return self.create_order(symbol, type, side, amount, price, query)
 
+    def safe_margin_entry(self, entry, market=None):
+        return self.extend({
+            'type': None,
+            'amount': None,
+            'code': None,
+            'symbol': self.safe_symbol(None, market),
+            'status': None,
+            'marginType': None,
+            'info': None,
+        }, entry)
+
     def parse_borrow_interests(self, response, market=None):
         interest = []
         for i in range(len(response)):

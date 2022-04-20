@@ -2316,6 +2316,18 @@ module.exports = class Exchange {
         return await this.createOrder (symbol, type, side, amount, price, query);
     }
 
+    safeMarginEntry (entry, market = undefined) {
+        return this.extend({
+            'type': undefined,
+            'amount': undefined,
+            'code': undefined,
+            'symbol': this.safeSymbol (undefined, market),
+            'status': undefined,
+            'marginType': undefined,
+            'info': undefined,
+        }, entry);
+    }
+    
     parseBorrowInterests (response, market = undefined) {
         const interest = [];
         for (let i = 0; i < response.length; i++) {

@@ -3827,6 +3827,18 @@ class Exchange {
         return $this->create_order($symbol, $type, $side, $amount, $price, $params);
     }
 
+    public function safe_margin_entry($entry, $market = null) {
+        return $this->extend([
+            'type'=> null,
+            'amount'=> null,
+            'code'=> null,
+            'symbol'=> $this->safe_symbol(null, $market),
+            'status'=> null,
+            'marginType'=> null,
+            'info'=> null,
+        ], $entry);
+    }
+    
     public function parse_borrow_interests($response, $market = null) {
         $interest = array();
         for ($i = 0; $i < count($response); $i++){
