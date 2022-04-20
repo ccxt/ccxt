@@ -1394,13 +1394,13 @@ module.exports = class Exchange {
         return indexed ? this.indexBy (result, 'currency') : result;
     }
 
-    safeDepositAddress (depositAddress) {
-        return this.extend({
-            'currency': undefined,
+    safeDepositAddress (depositAddress, currency = undefined) {
+        return this.extend ({
+            'currency': this.safeCurrencyCode (undefined, currency),
             'address': undefined,
             'tag': undefined,
             'network': undefined,
-            'info': {},
+            'info': null,
         }, depositAddress);
     }
 

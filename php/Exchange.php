@@ -2249,13 +2249,13 @@ class Exchange {
         return $indexed ? $this->index_by($result, 'currency') : $result;
     }
 
-    public function safe_deposit_address($deposit_address) {
+    public function safe_deposit_address($deposit_address, $currency = null) {
         return $this->extend([
-            'currency'=> null,
+            'currency'=> $this->safe_currency_code(null, $currency),
             'address'=> null,
             'tag'=> null,
             'network'=> null,
-            'info'=> [],
+            'info'=> null,
         ], $deposit_address);
     }
 
