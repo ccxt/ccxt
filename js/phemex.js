@@ -193,12 +193,33 @@ module.exports = class phemex extends ccxt.phemex {
 
     async watchBalance (params = {}) {
         await this.loadMarkets ();
-        const messageHash = 'balance';
-        return await this.subscribePrivate (messageHash, params);
+        const [ type, query ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
+        const messageHash = type + ':balance';
+        return await this.subscribePrivate (type, messageHash, query);
     }
 
-    handleBalance (client, message) {
+    handleBalance (type, client, message) {
+        // spot
+        //  [
+        //     {
+        //         balanceEv: 0,
+        //         currency: 'BTC',
+        //         lastUpdateTimeNs: '1650442638722099092',
+        //         lockedTradingBalanceEv: 0,
+        //         lockedWithdrawEv: 0,
+        //         userID: 2647224
+        //       },
+        //       {
+        //         balanceEv: 1154232337,
+        //         currency: 'USDT',
+        //         lastUpdateTimeNs: '1650442617610017597',
+        //         lockedTradingBalanceEv: 0,
+        //         lockedWithdrawEv: 0,
+        //         userID: 2647224
+        //       }
+        //    ]
         //
+        // swap
         //  [
         //       {
         //         accountBalanceEv: 0,
@@ -217,14 +238,20 @@ module.exports = class phemex extends ccxt.phemex {
             const currency = this.safeValue (this.currencies, code, {});
             const scale = this.safeInteger (currency, 'valueScale', 8);
             const account = this.account ();
-            const usedEv = this.safeString (balance, 'totalUsedBalanceEv');
-            const totalEv = this.safeString (balance, 'accountBalanceEv');
+            let usedEv = this.safeString (balance, 'totalUsedBalanceEv');
+            if (usedEv === undefined) {
+                const lockedTradingBalanceEv = this.safeString (balance, 'lockedTradingBalanceEv');
+                const lockedWithdrawEv = this.safeString (balance, 'lockedWithdrawEv');
+                usedEv = Precise.stringAdd (lockedTradingBalanceEv, lockedWithdrawEv);
+            }
+            const totalEv = this.safeString2 (balance, 'accountBalanceEv', 'balanceEv');
             account['used'] = this.fromEn (usedEv, scale);
-            account['total'] = this.fromEn (usedEv, totalEv);
+            account['total'] = this.fromEn (totalEv, scale);
             this.balance[code] = account;
             this.balance = this.safeBalance (this.balance);
         }
-        client.resolve (this.balance, 'balance');
+        const messageHash = type + ':balance';
+        client.resolve (this.balance, messageHash);
     }
 
     handleTrades (client, message) {
@@ -449,7 +476,32 @@ module.exports = class phemex extends ccxt.phemex {
     }
 
     handleMessage (client, message) {
-        // private update
+        // private spot update
+        // {
+        //     orders: { closed: [ [Object] ], fills: [ [Object] ], open: [] },
+        //     sequence: 40435835,
+        //     timestamp: '1650443245600839241',
+        //     type: 'snapshot',
+        //     wallets: [
+        //       {
+        //         balanceEv: 0,
+        //         currency: 'BTC',
+        //         lastUpdateTimeNs: '1650442638722099092',
+        //         lockedTradingBalanceEv: 0,
+        //         lockedWithdrawEv: 0,
+        //         userID: 2647224
+        //       },
+        //       {
+        //         balanceEv: 1154232337,
+        //         currency: 'USDT',
+        //         lastUpdateTimeNs: '1650442617610017597',
+        //         lockedTradingBalanceEv: 0,
+        //         lockedWithdrawEv: 0,
+        //         userID: 2647224
+        //       }
+        //     ]
+        // }
+        // private swap update
         // {
         //     sequence: 83839628,
         //     timestamp: '1650382581827447829',
@@ -537,12 +589,10 @@ module.exports = class phemex extends ccxt.phemex {
             return this.handleOHLCV (client, message);
         } else if ('book' in message) {
             return this.handleOrderBook (client, message);
-        } else if ('accounts' in message) {
-            const accounts = this.safeValue (message, 'accounts', []);
-            const length = accounts.length;
-            if (length > 0) {
-                this.handleBalance (client, accounts);
-            }
+        } else if (('accounts' in message) || ('wallets' in message)) {
+            const type = ('accounts' in message) ? 'swap' : 'spot';
+            const accounts = this.safeValue2 (message, 'accounts', 'wallets', []);
+            this.handleBalance (type, client, accounts);
         } else {
             //
             //     { error: null, id: 1, result: { status: 'success' } }
@@ -565,12 +615,12 @@ module.exports = class phemex extends ccxt.phemex {
         return message;
     }
 
-    async subscribePrivate (messageHash, params = {}) {
+    async subscribePrivate (type, messageHash, params = {}) {
         await this.loadMarkets ();
         await this.authenticate ();
         const url = this.urls['api']['ws'];
         const requestId = this.seconds ();
-        const channel = 'aop.subscribe';
+        const channel = (type === 'spot') ? 'wo.subscribe' : 'aop.subscribe';
         let request = {
             'id': requestId,
             'method': channel,
