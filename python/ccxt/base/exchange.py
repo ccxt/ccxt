@@ -2823,7 +2823,7 @@ class Exchange(object):
             'datetime': self.iso8601 (timestamp),
             'symbol': self.safe_symbol (None, market),
             'leverage': None,
-            'leverageMode': None,
+            'marginType': None,
             'status': 'success',
             'info': None,
         }, entry)

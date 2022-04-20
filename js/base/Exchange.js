@@ -2250,7 +2250,7 @@ module.exports = class Exchange {
             'datetime': this.iso8601 (timestamp),
             'symbol': this.safeSymbol (undefined, market),
             'leverage': undefined,
-            'leverageMode': undefined,
+            'marginType': undefined,
             'status': 'success',
             'info': undefined,
         }, entry);
