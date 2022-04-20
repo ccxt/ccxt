@@ -3761,7 +3761,7 @@ class Exchange {
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $this->safeSymbol (null, $market),
             'leverage' => null,
-            'magrinMode' => null,
+            'leverageMode' => null,
         ), $entry);
     }
 }
