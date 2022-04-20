@@ -2317,7 +2317,7 @@ module.exports = class Exchange {
     }
 
     safeMarginEntry (entry, market = undefined) {
-        return this.extend({
+        return this.extend ({
             'type': undefined,
             'amount': undefined,
             'code': undefined,
