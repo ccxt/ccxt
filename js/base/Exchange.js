@@ -1439,6 +1439,38 @@ module.exports = class Exchange {
 
     safeLedgerEntry (entry, currency = undefined) {
         currency = this.safeCurrency (undefined, currency);
+        let direction = entry['direction'];
+        let before = entry['before'];
+        let after = entry['after'];
+        let amount = entry['amount'];
+        let fee = entry['fee'];
+        if (amount !== undefined && fee !== undefined) {
+            if (before === undefined && after !== undefined) {
+                let amountAndFee = Precise.stringAdd (amount, fee);
+                before = Precise.stringSub (after, amountAndFee);
+            } else if (before !== undefined && after === undefined) {
+                let amountAndFee = Precise.stringAdd (amount, fee);
+                after = Precise.stringAdd (before, amountAndFee);
+            }
+        }
+        if (before !== undefined && after !== undefined) {
+            if (direction === undefined) {
+                if (Precise.stringGt (before, after)) {
+                    direction = 'out';
+                }
+                if (Precise.stringGt (after, before)) {
+                    direction = 'in';
+                }
+            }
+            if (amount === undefined && fee !== undefined) {
+                let betweenAfterBefore = Precise.strintSub (after, before);
+                amount =  Precise.strintSub (betweenAfterBefore, fee);
+            }
+            if (amount !== undefined && fee === undefined) {
+                let betweenAfterBefore = Precise.strintSub (after, before);
+                fee =  Precise.strintSub (betweenAfterBefore, amount);
+            }
+        }
         return this.extend ({
             'id': undefined,
             'timestamp': undefined,
@@ -1449,11 +1481,11 @@ module.exports = class Exchange {
             'referenceAccount': undefined,
             'type': undefined,
             'currency': currency['code'],
-            'amount': undefined,
-            'before': undefined,
-            'after': undefined,
+            'amount': amount,
+            'before': before,
+            'after': after,
             'status': undefined,
-            'fee': undefined,
+            'fee': fee,
             'info': undefined,
         }, entry);
     }
