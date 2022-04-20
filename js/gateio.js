@@ -1127,7 +1127,7 @@ module.exports = class gateio extends Exchange {
                 request = {};
             }
         }
-        if (setMarginType && (type === 'margin' || market['type'] === 'margin')) {
+        if (setMarginType && (type === 'margin' || (market !== undefined && market['type'] === 'margin'))) {
             let marginType = undefined;
             [ marginType, params ] = this.getMarginType (params);
             request['account'] = marginType;
