@@ -17,6 +17,8 @@ module.exports = class phemex extends ccxt.phemex {
                 'watchTicker': true,
                 'watchTickers': false, // for now
                 'watchTrades': true,
+                'watchMyTrades': true,
+                'watchOrders': true,
                 'watchOrderBook': true,
                 'watchOHLCV': true,
             },
@@ -673,13 +675,25 @@ module.exports = class phemex extends ccxt.phemex {
         //  },
         //
         let orders = [];
+        let trades = [];
         if (('closed' in message) || ('fills' in message) || ('open' in message)) {
             const closed = this.safeValue (message, 'closed', []);
             const open = this.safeValue (message, 'open', []);
             orders = this.arrayConcat (open, closed);
             const fills = this.safeValue (message, 'fills', []);
-            this.handleMyTrades (client, fills);
+            trades = fills;
+        } else {
+            for (let i = 0; i < message.length; i++) {
+                const update = message[i];
+                const action = this.safeString (update, 'action');
+                if ((action !== undefined) && (action !== 'Cancel')) {
+                    // order + trade info together
+                    trades.push (update);
+                }
+            }
+            orders = message;
         }
+        this.handleMyTrades (client, trades);
         const parsedOrders = this.parseOrders (orders);
         const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
         const marketIds = {};
