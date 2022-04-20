@@ -2322,7 +2322,7 @@ class Exchange {
             'status'=> null,
             'fee'=> null,
             'info'=> null,
-        ), $ledger_entry);
+        ), $entry);
     }
 
     public function parse_orders($orders, $market = null, $since = null, $limit = null, $params = array()) {
