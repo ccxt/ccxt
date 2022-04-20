@@ -2824,6 +2824,6 @@ class Exchange(object):
             'symbol': self.safe_symbol(None, market),
             'leverage': None,
             'marginType': None,
-            'status': 'success',
+            'status': None,
             'info': None,
         }, entry)
