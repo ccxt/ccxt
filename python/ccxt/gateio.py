@@ -83,6 +83,7 @@ class gateio(Exchange):
                 'cancelOrder': True,
                 'createMarketOrder': False,
                 'createOrder': True,
+                'createPostOnlyOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
@@ -2512,7 +2513,7 @@ class gateio(Exchange):
         :param float price: *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
         :param dict params:  Extra parameters specific to the exchange API endpoint
         :param float params.stopPrice: The price at which a trigger order is triggered at
-        :param str params.timeInForce: "gtc" for GoodTillCancelled, "ioc" for ImmediateOrCancelled or poc for PendingOrCancelled
+        :param str params.timeInForce: "GTC", "IOC", or "PO"
         :param int params.iceberg: Amount to display for the iceberg order, Null or 0 for normal orders, Set to -1 to hide the order completely
         :param str params.text: User defined information
         :param str params.account: *spot and margin only* "spot", "margin" or "cross_margin"
@@ -2531,7 +2532,11 @@ class gateio(Exchange):
         reduceOnly = self.safe_value_2(params, 'reduce_only', 'reduceOnly')
         defaultTimeInForce = self.safe_value_2(params, 'tif', 'time_in_force', 'gtc')
         timeInForce = self.safe_value(params, 'timeInForce', defaultTimeInForce)
+        postOnly = False
+        type, postOnly, timeInForce, params = self.is_post_only(type, timeInForce, None, params)
         params = self.omit(params, ['stopPrice', 'reduce_only', 'reduceOnly', 'tif', 'time_in_force', 'timeInForce'])
+        if postOnly:
+            timeInForce = 'poc'
         isLimitOrder = (type == 'limit')
         isMarketOrder = (type == 'market')
         if isLimitOrder and price is None:
