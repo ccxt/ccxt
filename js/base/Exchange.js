@@ -1454,7 +1454,7 @@ module.exports = class Exchange {
             'after': undefined,
             'status': undefined,
             'fee': undefined,
-            'info': {},
+            'info': undefined,
         }, entry);
     }
 
