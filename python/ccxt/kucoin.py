@@ -1083,6 +1083,36 @@ class kucoin(Exchange):
         return orderbook
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        Create an order on the exchange
+        :param str symbol: Unified CCXT market symbol
+        :param str type: "limit" or "market"
+        :param str side: "buy" or "sell"
+        :param float amount: the amount of currency to trade
+        :param float price: *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+        :param dict params:  Extra parameters specific to the exchange API endpoint
+        :param str params.clientOid: client order id, defaults to uuid if not passed
+        :param str params.remark: remark for the order, length cannot exceed 100 utf8 characters
+        :param str params.tradeType: 'TRADE',  # TRADE, MARGIN_TRADE  # not used with margin orders
+         * limit orders ---------------------------------------------------
+        :param str params.timeInForce: GTC, GTT, IOC, or FOK, default is GTC, limit orders only
+        :param float params.cancelAfter: long,  # cancel after n seconds, requires timeInForce to be GTT
+        :param str params.postOnly: Post only flag, invalid when timeInForce is IOC or FOK
+        :param bool params.hidden: False,  # Order will not be displayed in the order book
+        :param bool params.iceberg: False,  # Only a portion of the order is displayed in the order book
+        :param str params.visibleSize: self.amount_to_precision(symbol, visibleSize),  # The maximum visible size of an iceberg order
+         * market orders --------------------------------------------------
+        :param str params.funds:  # Amount of quote currency to use
+         * stop orders ----------------------------------------------------
+        :param str params.stop:  Either loss or entry, the default is loss. Requires stopPrice to be defined
+        :param float params.stopPrice: The price at which a trigger order is triggered at
+         * margin orders --------------------------------------------------
+        :param float params.leverage: Leverage size of the order
+        :param str params.stp: '',  # self trade prevention, CN, CO, CB or DC
+        :param str params.marginMode: 'cross',  # cross(cross mode) and isolated(isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
+        :param bool params.autoBorrow: False,  # The system will first borrow you funds at the optimal interest rate and then place an order for you
+        :returns: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         marketId = self.market_id(symbol)
         # required param, cannot be used twice
@@ -1093,28 +1123,6 @@ class kucoin(Exchange):
             'side': side,
             'symbol': marketId,
             'type': type,  # limit or market
-            # 'remark': '',  # optional remark for the order, length cannot exceed 100 utf8 characters
-            # 'stp': '',  # self trade prevention, CN, CO, CB or DC
-            # To improve the system performance and to accelerate order placing and processing, KuCoin has added a new interface for margin orders
-            # The current one will no longer accept margin orders by May 1st, 2021(UTC)
-            # At the time, KuCoin will notify users via the announcement, please pay attention to it
-            # 'tradeType': 'TRADE',  # TRADE, MARGIN_TRADE  # not used with margin orders
-            # limit orders ---------------------------------------------------
-            # 'timeInForce': 'GTC',  # GTC, GTT, IOC, or FOK(default is GTC), limit orders only
-            # 'cancelAfter': long,  # cancel after n seconds, requires timeInForce to be GTT
-            # 'postOnly': False,  # Post only flag, invalid when timeInForce is IOC or FOK
-            # 'hidden': False,  # Order will not be displayed in the order book
-            # 'iceberg': False,  # Only a portion of the order is displayed in the order book
-            # 'visibleSize': self.amount_to_precision(symbol, visibleSize),  # The maximum visible size of an iceberg order
-            # market orders --------------------------------------------------
-            # 'size': self.amount_to_precision(symbol, amount),  # Amount in base currency
-            # 'funds': self.cost_to_precision(symbol, cost),  # Amount of quote currency to use
-            # stop orders ----------------------------------------------------
-            # 'stop': 'loss',  # loss or entry, the default is loss, requires stopPrice
-            # 'stopPrice': self.price_to_precision(symbol, amount),  # need to be defined if stop is specified
-            # margin orders --------------------------------------------------
-            # 'marginMode': 'cross',  # cross(cross mode) and isolated(isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
-            # 'autoBorrow': False,  # The system will first borrow you funds at the optimal interest rate and then place an order for you
         }
         quoteAmount = self.safe_number_2(params, 'cost', 'funds')
         amountString = None
@@ -1132,9 +1140,15 @@ class kucoin(Exchange):
             amountString = self.amount_to_precision(symbol, amount)
             request['size'] = amountString
             request['price'] = self.price_to_precision(symbol, price)
-        method = 'privatePostOrders'
+        stopPrice = self.safe_string(params, 'stopPrice')
         tradeType = self.safe_string(params, 'tradeType')
-        if tradeType == 'MARGIN_TRADE':
+        params = self.omit(params, 'stopPrice')
+        method = 'privatePostOrders'
+        if stopPrice is not None:
+            request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
+            request['stop'] = 'loss'
+            method = 'privatePostStopOrder'
+        elif tradeType == 'MARGIN_TRADE':
             method = 'privatePostMarginOrder'
         response = getattr(self, method)(self.extend(request, params))
         #
@@ -1171,34 +1185,79 @@ class kucoin(Exchange):
         return order
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        Cancels an order
+        :param str id: Order id
+        :param str symbol: Not used by kucoin
+        :param dict params: Exchange specific parameters
+        :param bool params.stop: True if cancelling a stop order
+        :returns: Response fromt the exchange
+        """
         self.load_markets()
         request = {}
         clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
+        stop = self.safe_value(params, 'stop')
         method = 'privateDeleteOrdersOrderId'
         if clientOrderId is not None:
             request['clientOid'] = clientOrderId
-            method = 'privateDeleteOrdersClientOrderClientOid'
+            if stop:
+                method = 'privateDeleteStopOrderCancelOrderByClientOid'
+            else:
+                method = 'privateDeleteOrdersClientOrderClientOid'
         else:
+            if stop:
+                method = 'privateDeleteStopOrderOrderId'
             request['orderId'] = id
-        params = self.omit(params, ['clientOid', 'clientOrderId'])
+        params = self.omit(params, ['clientOid', 'clientOrderId', 'stop'])
         return getattr(self, method)(self.extend(request, params))
 
     def cancel_all_orders(self, symbol=None, params={}):
+        """
+        Cancels all open orders, or cancels all orders in a market for one symbol, stop orders must be cancelled separately
+        :param str symbol: Unified symbol indicating the market to cancel orders in
+        :param dict params: Exchange specific parameters
+        :param bool params.stop: True if cancelling all stop orders
+        :param str params.tradeType: The type of trading, "TRADE" for Spot Trading, "MARGIN_TRADE" for Margin Trading
+        :param str params.orderIds: *stop orders only* Comma seperated order IDs
+        :returns: Response from the exchange
+        """
         self.load_markets()
-        request = {
-            # 'symbol': market['id'],
-            # 'tradeType': 'TRADE',  # default is to cancel the spot trading order
-        }
+        request = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        return self.privateDeleteOrders(self.extend(request, params))
+        method = 'privateDeleteOrders'
+        stop = self.safe_value(params, 'stop')
+        if stop:
+            method = 'privateDeleteStopOrderCancel'
+        return getattr(self, method)(self.extend(request, params))
 
     def fetch_orders_by_status(self, status, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch a list of orders
+        :param str status: *not used for stop orders* 'open' or 'closed'
+        :param str symbol: unified market symbol
+        :param int since: timestamp in ms of the earliest order
+        :param int limit: max number of orders to return
+        :param dict params: exchange specific params
+        :param int params.till: end time in ms
+        :param bool params.stop: True if fetching stop orders
+        :param str params.side: buy or sell
+        :param str params.type: limit, market, limit_stop or market_stop
+        :param str params.tradeType: TRADE for spot trading, MARGIN_TRADE for Margin Trading
+        :param int params.currentPage: *stop orders only* current page
+        :param str params.orderIds: *stop orders only* comma seperated order ID list
+        :returns: An `array of order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
+        lowercaseStatus = status.lower()
+        if lowercaseStatus == 'open':
+            lowercaseStatus = 'active'
+        elif lowercaseStatus == 'closed':
+            lowercaseStatus = 'done'
         request = {
-            'status': status,
+            'status': lowercaseStatus,
         }
         market = None
         if symbol is not None:
@@ -1208,7 +1267,15 @@ class kucoin(Exchange):
             request['startAt'] = since
         if limit is not None:
             request['pageSize'] = limit
-        response = self.privateGetOrders(self.extend(request, params))
+        till = self.safe_integer(params, 'till')
+        if till:
+            request['endAt'] = till
+        stop = self.safe_value(params, 'stop')
+        params = self.omit(params, 'stop')
+        method = 'privateGetOrders'
+        if stop:
+            method = 'privateGetStopOrder'
+        response = getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         code: '200000',
@@ -1257,32 +1324,79 @@ class kucoin(Exchange):
         return self.parse_orders(orders, market, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch a list of orders
+        :param str symbol: unified market symbol
+        :param int since: timestamp in ms of the earliest order
+        :param int limit: max number of orders to return
+        :param dict params: exchange specific params
+        :param int params.till: end time in ms
+        :param str params.side: buy or sell
+        :param str params.type: limit, market, limit_stop or market_stop
+        :param str params.tradeType: TRADE for spot trading, MARGIN_TRADE for Margin Trading
+        :returns: An `array of order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         return self.fetch_orders_by_status('done', symbol, since, limit, params)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch a list of orders
+        :param str symbol: unified market symbol
+        :param int since: timestamp in ms of the earliest order
+        :param int limit: max number of orders to return
+        :param dict params: exchange specific params
+        :param int params.till: end time in ms
+        :param bool params.stop: True if fetching stop orders
+        :param str params.side: buy or sell
+        :param str params.type: limit, market, limit_stop or market_stop
+        :param str params.tradeType: TRADE for spot trading, MARGIN_TRADE for Margin Trading
+        :param int params.currentPage: *stop orders only* current page
+        :param str params.orderIds: *stop orders only* comma seperated order ID list
+        :returns: An `array of order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         return self.fetch_orders_by_status('active', symbol, since, limit, params)
 
     def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetch an order
+        :param str id: Order id
+        :param str symbol: not sent to exchange except for stop orders with clientOid, but used internally by CCXT to filter
+        :param dict params: exchange specific parameters
+        :param bool params.stop: True if fetching a stop order
+        :param bool params.clientOid: unique order id created by users to identify their orders
+        :returns: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {}
         clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
+        stop = self.safe_value(params, 'stop')
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        params = self.omit(params, 'stop')
         method = 'privateGetOrdersOrderId'
         if clientOrderId is not None:
             request['clientOid'] = clientOrderId
-            method = 'privateGetOrdersClientOrderClientOid'
+            if stop:
+                method = 'privateGetStopOrderQueryOrderByClientOid'
+                if symbol is not None:
+                    request['symbol'] = market['id']
+            else:
+                method = 'privateGetOrderClientOrderClientOid'
         else:
             # a special case for None ids
             # otherwise a wrong endpoint for all orders will be triggered
             # https://github.com/ccxt/ccxt/issues/7234
             if id is None:
                 raise InvalidOrder(self.id + ' fetchOrder() requires an order id')
+            if stop:
+                method = 'privateGetStopOrderOrderId'
             request['orderId'] = id
         params = self.omit(params, ['clientOid', 'clientOrderId'])
         response = getattr(self, method)(self.extend(request, params))
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
         responseData = self.safe_value(response, 'data')
+        if method == 'privateGetStopOrderQueryOrderByClientOid':
+            responseData = self.safe_value(responseData, 0)
         return self.parse_order(responseData, market)
 
     def parse_order(self, order, market=None):

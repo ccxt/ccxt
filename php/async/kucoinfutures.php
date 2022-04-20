@@ -935,7 +935,7 @@ class kucoinfutures extends kucoin {
         /**
          * Create an order on the exchange
          * @param {str} $symbol Unified CCXT $market $symbol
-         * @param {str} $type "limit" or "market" *"market" is contract only*
+         * @param {str} $type "limit" or "market"
          * @param {str} $side "buy" or "sell"
          * @param {float} $amount the $amount of currency to trade
          * @param {float} $price *ignored in "market" orders* the $price at which the order is to be fullfilled at in units of the quote currency
