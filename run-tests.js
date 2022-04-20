@@ -75,9 +75,13 @@ if (!exchanges.length) {
                 }
             }
         });
-        if (exchangesOnly && exchangesList.length > 0) {
-            log.bright.yellow("Found changed exchange(s)! Will be tested only:", exchangesList);
-            exchanges = exchangesList
+        if (exchangesList.length > 0) {
+            log.bright.yellow("Found changed exchange(s): ", exchangesList);
+            if (exchangesOnly) {
+                exchanges = exchangesList;
+            } else {
+                log.bright.yellow("Found other changed files, so everything is going to be tested");
+            }
         }
     } else {
         log.bright.yellow("Debug::: File not found!!!");
