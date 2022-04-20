@@ -60,9 +60,7 @@ if (!exchanges.length) {
         const exchangesList = [];
         const otherFiles = [];
         const changedFilesContent = fs.readFileSync('./changedFiles.txt', 'utf-8') 
-        log.bright.yellow("Debug:::Content::", changedFilesContent)
         changedFilesContent.split(/\r?\n/).forEach(file =>  {
-            console.log('file:', file)
             if (file.length > 0) {
                 const exchangeRegex = /js\/([\w|]+)\.js/;
                 const result = file.match(exchangeRegex)
@@ -84,9 +82,7 @@ if (!exchanges.length) {
                 log.bright.yellow("Everything is going to be tested, found other changes: ", otherFiles);
             }
         }
-    } else {
-        log.bright.yellow("Debug::: File not found!!!");
-    }
+    } 
 }
 
 /*  --------------------------------------------------------------------------- */

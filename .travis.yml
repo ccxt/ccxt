@@ -32,10 +32,7 @@ script:
 - tox -e doc
 - cd ..
 - npm run test-base
-- git diff --name-only HEAD...$TRAVIS_BRANCH > changedFiles.txt
-- git diff --name-only $TRAVIS_COMMIT_RANGE
-- git diff --name-only master...$TRAVIS_BRANCH
-- echo $TRAVIS_BRANCH
+- git diff --name-only $TRAVIS_COMMIT_RANGE > changedFiles.txt
 - bash -c 'node run-tests --js --python-async --php-async 5' 2>&1
 - rm changedFiles.txt
 - git checkout master composer.json
