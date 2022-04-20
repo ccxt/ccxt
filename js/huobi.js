@@ -5292,6 +5292,7 @@ module.exports = class huobi extends Exchange {
                 'future': 'contractPrivatePostApiV1ContractAccountPositionInfo',
                 'swap': 'contractPrivatePostSwapApiV1SwapAccountPositionInfo',
             });
+            //
             // future
             //     {
             //       status: 'ok',
