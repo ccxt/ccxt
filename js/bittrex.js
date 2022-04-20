@@ -1123,6 +1123,8 @@ module.exports = class bittrex extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
+        // Spot createOrder, fetchOpenOrders, fetchClosedOrders, fetchOrder
+        //
         //     {
         //         id: '1be35109-b763-44ce-b6ea-05b6b0735c0c',
         //         marketSymbol: 'LTC-ETH',
@@ -1141,11 +1143,30 @@ module.exports = class bittrex extends Exchange {
         //         closedAt: '2018-06-23T13:14:30.19Z'
         //     }
         //
+        // Stop createOrder, fetchOpenOrders, fetchClosedOrders, fetchOrder
+        //
+        //     {
+        //         "id": "9791fe52-a3e5-4ac3-ae03-e327b2993571",
+        //         "marketSymbol": "BTC-USDT",
+        //         "operand": "LTE",
+        //         "triggerPrice": "0.1",
+        //         "orderToCreate": {
+        //             "marketSymbol": "BTC-USDT",
+        //             "direction": "BUY",
+        //             "type": "LIMIT",
+        //             "quantity": "0.0002",
+        //             "limit": "30000",
+        //             "timeInForce": "GOOD_TIL_CANCELLED"
+        //         },
+        //         "status": "OPEN",
+        //         "createdAt": "2022-04-19T21:02:14.17Z",
+        //         "updatedAt": "2022-04-19T21:02:14.17Z"
+        //     }
+        //
         const marketSymbol = this.safeString (order, 'marketSymbol');
         market = this.safeMarket (marketSymbol, market, '-');
         const symbol = market['symbol'];
         const feeCurrency = market['quote'];
-        const direction = this.safeStringLower (order, 'direction');
         const createdAt = this.safeString (order, 'createdAt');
         const updatedAt = this.safeString (order, 'updatedAt');
         const closedAt = this.safeString (order, 'closedAt');
@@ -1157,14 +1178,50 @@ module.exports = class bittrex extends Exchange {
             lastTradeTimestamp = this.parse8601 (updatedAt);
         }
         const timestamp = this.parse8601 (createdAt);
-        const type = this.safeStringLower (order, 'type');
-        const quantity = this.safeString (order, 'quantity');
-        const limit = this.safeString (order, 'limit');
+        let direction = this.safeStringLower (order, 'direction');
+        if (direction === undefined) {
+            let conditionalOrder = this.safeValue (order, 'orderToCreate');
+            if (conditionalOrder === undefined) {
+                conditionalOrder = this.safeValue (order, 'orderToCancel');
+            }
+            direction = this.safeStringLower (conditionalOrder, 'direction');
+        }
+        let type = this.safeStringLower (order, 'type');
+        if (type === undefined) {
+            let conditionalOrder = this.safeValue (order, 'orderToCreate');
+            if (conditionalOrder === undefined) {
+                conditionalOrder = this.safeValue (order, 'orderToCancel');
+            }
+            type = this.safeStringLower (conditionalOrder, 'type');
+        }
+        let quantity = this.safeString (order, 'quantity');
+        if (quantity === undefined) {
+            let conditionalOrder = this.safeValue (order, 'orderToCreate');
+            if (conditionalOrder === undefined) {
+                conditionalOrder = this.safeValue (order, 'orderToCancel');
+            }
+            quantity = this.safeString (conditionalOrder, 'quantity');
+        }
+        let limit = this.safeString (order, 'limit');
+        if (limit === undefined) {
+            let conditionalOrder = this.safeValue (order, 'orderToCreate');
+            if (conditionalOrder === undefined) {
+                conditionalOrder = this.safeValue (order, 'orderToCancel');
+            }
+            limit = this.safeString (conditionalOrder, 'limit');
+        }
+        let timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
+        if (timeInForce === undefined) {
+            let conditionalOrder = this.safeValue (order, 'orderToCreate');
+            if (conditionalOrder === undefined) {
+                conditionalOrder = this.safeValue (order, 'orderToCancel');
+            }
+            timeInForce = this.parseTimeInForce (this.safeString (conditionalOrder, 'timeInForce'));
+        }
         const fillQuantity = this.safeString (order, 'fillQuantity');
         const commission = this.safeNumber (order, 'commission');
         const proceeds = this.safeString (order, 'proceeds');
         const status = this.safeStringLower (order, 'status');
-        const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
         const postOnly = (timeInForce === 'PO');
         return this.safeOrder ({
             'id': this.safeString (order, 'id'),
@@ -1178,7 +1235,7 @@ module.exports = class bittrex extends Exchange {
             'postOnly': postOnly,
             'side': direction,
             'price': limit,
-            'stopPrice': undefined,
+            'stopPrice': this.safeString (order, 'triggerPrice'),
             'cost': proceeds,
             'average': undefined,
             'amount': quantity,
@@ -1214,12 +1271,28 @@ module.exports = class bittrex extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
+        const stop = this.safeValue (params, 'stop');
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         let response = undefined;
+        let method = undefined;
         try {
-            const request = {
-                'orderId': id,
-            };
-            response = await this.privateGetOrdersOrderId (this.extend (request, params));
+            let request = {};
+            if (stop) {
+                method = 'privateGetConditionalOrdersConditionalOrderId';
+                request = {
+                    'conditionalOrderId': id,
+                };
+            } else {
+                method = 'privateGetOrdersOrderId';
+                request = {
+                    'orderId': id,
+                };
+            }
+            const query = this.omit (params, 'stop');
+            response = await this[method] (this.extend (request, query));
         } catch (e) {
             if (this.last_json_response) {
                 const message = this.safeString (this.last_json_response, 'message');
@@ -1229,7 +1302,7 @@ module.exports = class bittrex extends Exchange {
             }
             throw e;
         }
-        return this.parseOrder (response);
+        return this.parseOrder (response, market);
     }
 
     orderToTrade (order) {
