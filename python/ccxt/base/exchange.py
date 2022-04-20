@@ -2823,4 +2823,5 @@ class Exchange(object):
             'datetime': self.iso8601 (timestamp),
             'symbol': self.safe_symbol (None, market),
             'leverage': None,
+            'marginMode': None,
         }, entry)
