@@ -2816,5 +2816,11 @@ class Exchange(object):
             interest.append(self.parse_borrow_interest(row, market))
         return interest
 
-    def safe_leverage_entry(self, leverage_entry):
-        return leverage_entry
+    def safe_leverage_entry(self, entry, market = None):
+        timestamp = self.milliseconds()
+        return self.extend({
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+            'symbol': self.safe_symbol (None, market),
+            'leverage': None,
+        }, entry)

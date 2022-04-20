@@ -2243,7 +2243,13 @@ module.exports = class Exchange {
         return interest;
     }
 
-    safeLeverageEntry(leverageEntry) {
-        return leverageEntry;
+    safeLeverageEntry (entry, market = undefined) {
+        const timestamp = this.milliseconds ();
+        return this.extend ({
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': this.safeSymbol (undefined, market),
+            'leverage': undefined,
+        }, entry);
     }
 }

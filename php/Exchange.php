@@ -3749,12 +3749,18 @@ class Exchange {
         $interest = array();
         for ($i = 0; $i < count($response); $i++){
             $row = $response[$i];
-            array_push($interest, $this->parseBorrowInterest ($row, $market));
+            array_push($interest, $this->parseBorrowInterest($row, $market));
         }
         return $interest;
     }
 
-    public function safe_leverage_entry($leverage_entry) {
-        return $leverage_entry;
+    public function safe_leverage_entry($entry, $market = null) {
+        $timestamp = $this->milliseconds();
+        return $this->extend(array(
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $this->safeSymbol (null, $market),
+            'leverage' => null,
+        ), $entry);
     }
 }
