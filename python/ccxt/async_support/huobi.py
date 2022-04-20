@@ -2483,14 +2483,20 @@ class huobi(Exchange):
                     balance = data[i]
                     marketId = self.safe_string_2(balance, 'contract_code', 'margin_account')
                     market = self.safe_market(marketId)
-                    account = self.account()
-                    account['free'] = self.safe_string(balance, 'margin_balance')
-                    account['used'] = self.safe_string(balance, 'margin_frozen')
-                    code = market['settle']
-                    accountsByCode = {}
-                    accountsByCode[code] = account
-                    symbol = market['symbol']
-                    result[symbol] = self.safe_balance(accountsByCode)
+                    currencyId = self.safe_string(balance, 'margin_asset')
+                    currency = self.safe_currency(currencyId)
+                    code = self.safe_string(market, 'settle', currency['code'])
+                    # the exchange outputs positions for delisted markets
+                    # https://www.huobi.com/support/en-us/detail/74882968522337
+                    # we skip it if the market was delisted
+                    if code is not None:
+                        account = self.account()
+                        account['free'] = self.safe_string(balance, 'margin_balance')
+                        account['used'] = self.safe_string(balance, 'margin_frozen')
+                        accountsByCode = {}
+                        accountsByCode[code] = account
+                        symbol = market['symbol']
+                        result[symbol] = self.safe_balance(accountsByCode)
                 return result
         elif inverse:
             for i in range(0, len(data)):
