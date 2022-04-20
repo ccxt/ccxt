@@ -1439,11 +1439,11 @@ module.exports = class Exchange {
 
     safeLedgerEntry (entry, currency = undefined) {
         currency = this.safeCurrency (undefined, currency);
-        let direction = entry['direction'];
-        let before = entry['before'];
-        let after = entry['after'];
-        let amount = entry['amount'];
-        let fee = entry['fee'];
+        let direction = this.safeString (entry, 'direction');
+        let before = this.safeString (entry, 'before');
+        let after = this.safeString (entry, 'after');
+        let amount = this.safeString (entry, 'amount');
+        let fee =  this.safeString (entry, 'fee');
         if (amount !== undefined && fee !== undefined) {
             if (before === undefined && after !== undefined) {
                 let amountAndFee = Precise.stringAdd (amount, fee);
