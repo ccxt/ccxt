@@ -2252,6 +2252,7 @@ module.exports = class Exchange {
             'leverage': undefined,
             'leverageMode': undefined,
             'status': 'success',
+            'info': undefined,
         }, entry);
     }
 }

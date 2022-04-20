@@ -3763,6 +3763,7 @@ class Exchange {
             'leverage' => null,
             'leverageMode' => null,
             'status' => 'success',
+            'info' => null,
         ), $entry);
     }
 }

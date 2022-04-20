@@ -2825,4 +2825,5 @@ class Exchange(object):
             'leverage': None,
             'leverageMode': None,
             'status': 'success',
+            'info': None,
         }, entry)
