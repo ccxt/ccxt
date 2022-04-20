@@ -2304,8 +2304,9 @@ class Exchange {
         return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
     }
 
-    public function safe_ledger_entry($ledger_entry) {
-        return $this->extend([
+    public function safe_ledger_entry($entry, $currency = null) {
+        $currency = $this->safe_currency(null, $currency);
+        return $this->extend(array(
             'id'=> null,
             'timestamp'=> null,
             'datetime'=> null,
@@ -2314,14 +2315,14 @@ class Exchange {
             'referenceId'=> null,
             'referenceAccount'=> null,
             'type'=> null,
-            'currency'=> null,
+            'currency'=> $currency['code'],
             'amount'=> null,
             'before'=> null,
             'after'=> null,
             'status'=> null,
             'fee'=> null,
-            'info'=> [],
-        ], $ledger_entry);
+            'info'=> null,
+        ), $ledger_entry);
     }
 
     public function parse_orders($orders, $market = null, $since = null, $limit = null, $params = array()) {
