@@ -3,7 +3,6 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { NotSupported } = require ('ccxt/js/base/errors');
 const Precise = require ('ccxt/js/base/Precise');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
@@ -674,14 +673,15 @@ module.exports = class phemex extends ccxt.phemex {
         //        ]
         //  },
         //
-        let orders = [];
         let trades = [];
+        let parsedOrders = [];
         if (('closed' in message) || ('fills' in message) || ('open' in message)) {
             const closed = this.safeValue (message, 'closed', []);
             const open = this.safeValue (message, 'open', []);
-            orders = this.arrayConcat (open, closed);
+            const orders = this.arrayConcat (open, closed);
             const fills = this.safeValue (message, 'fills', []);
             trades = fills;
+            parsedOrders = this.parseOrders (orders);
         } else {
             for (let i = 0; i < message.length; i++) {
                 const update = message[i];
@@ -690,11 +690,12 @@ module.exports = class phemex extends ccxt.phemex {
                     // order + trade info together
                     trades.push (update);
                 }
+                const parsedOrder = this.parseWSSwapOrder (update);
+                parsedOrders.push (parsedOrder);
             }
-            orders = message;
         }
         this.handleMyTrades (client, trades);
-        const parsedOrders = this.parseOrders (orders);
+        // const parsedOrders = this.parseOrders (orders);
         const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
         const marketIds = {};
         if (this.orders === undefined) {
@@ -721,6 +722,114 @@ module.exports = class phemex extends ccxt.phemex {
         // resolve generic subscription (spot or swap)
         const messageHash = 'orders:' + type;
         client.resolve (this.orders, messageHash);
+    }
+
+    parseWSSwapOrder (order, market = undefined) {
+        //
+        // {
+        //     "accountID":26472240002,
+        //     "action":"Cancel",
+        //     "actionBy":"ByUser",
+        //     "actionTimeNs":"1650450096104760797",
+        //     "addedSeq":26975849309,
+        //     "bonusChangedAmountEv":0,
+        //     "clOrdID":"d9675963-5e4e-6fc8-898a-ec8b934c1c61",
+        //     "closedPnlEv":0,
+        //     "closedSize":0,
+        //     "code":0,
+        //     "cumQty":0,
+        //     "cumValueEv":0,
+        //     "curAccBalanceEv":400079,
+        //     "curAssignedPosBalanceEv":0,
+        //     "curBonusBalanceEv":0,
+        //     "curLeverageEr":0,
+        //     "curPosSide":"None",
+        //     "curPosSize":0,
+        //     "curPosTerm":1,
+        //     "curPosValueEv":0,
+        //     "curRiskLimitEv":5000000000,
+        //     "currency":"USD",
+        //     "cxlRejReason":0,
+        //     "displayQty":0,
+        //     "execFeeEv":0,
+        //     "execID":"00000000-0000-0000-0000-000000000000",
+        //     "execPriceEp":0,
+        //     "execQty":1,
+        //     "execSeq":26975862338,
+        //     "execStatus":"Canceled",
+        //     "execValueEv":0,
+        //     "feeRateEr":0,
+        //     "leavesQty":0,
+        //     "leavesValueEv":0,
+        //     "message":"No error",
+        //     "ordStatus":"Canceled",
+        //     "ordType":"Limit",
+        //     "orderID":"8141deb9-8f94-48f6-9421-a4e3a791537b",
+        //     "orderQty":1,
+        //     "pegOffsetValueEp":0,
+        //     "priceEp":9521,
+        //     "relatedPosTerm":1,
+        //     "relatedReqNum":4,
+        //     "side":"Buy",
+        //     "slTrigger":"ByMarkPrice",
+        //     "stopLossEp":0,
+        //     "stopPxEp":0,
+        //     "symbol":"ADAUSD",
+        //     "takeProfitEp":0,
+        //     "timeInForce":"GoodTillCancel",
+        //     "tpTrigger":"ByLastPrice",
+        //     "transactTimeNs":"1650450096108143014",
+        //     "userID":2647224
+        //  }
+        //
+        const id = this.safeString (order, 'orderID');
+        let clientOrderId = this.safeString (order, 'clOrdID');
+        if ((clientOrderId !== undefined) && (clientOrderId.length < 1)) {
+            clientOrderId = undefined;
+        }
+        const marketId = this.safeString (order, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
+        const side = this.safeStringLower (order, 'side');
+        const type = this.parseOrderType (this.safeString (order, 'ordType'));
+        const price = this.parseNumber (this.fromEp (this.safeString (order, 'priceEp'), market));
+        const amount = this.safeString (order, 'orderQty');
+        const filled = this.safeString (order, 'cumQty');
+        const remaining = this.safeString (order, 'leavesQty');
+        const timestamp = this.safeIntegerProduct (order, 'actionTimeNs', 0.000001);
+        const costEv = this.safeString (order, 'cumValueEv');
+        const cost = this.fromEv (costEv, market);
+        let lastTradeTimestamp = this.safeIntegerProduct (order, 'transactTimeNs', 0.000001);
+        if (lastTradeTimestamp === 0) {
+            lastTradeTimestamp = undefined;
+        }
+        const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
+        const stopPrice = this.safeString (order, 'stopPx');
+        const postOnly = (timeInForce === 'PO');
+        return this.safeOrder ({
+            'info': order,
+            'id': id,
+            'clientOrderId': clientOrderId,
+            'datetime': this.iso8601 (timestamp),
+            'timestamp': timestamp,
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'symbol': symbol,
+            'type': type,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
+            'side': side,
+            'price': price,
+            'stopPrice': stopPrice,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'cost': cost,
+            'average': undefined,
+            'status': status,
+            'fee': undefined,
+            'trades': undefined,
+        }, market);
     }
 
     handleMessage (client, message) {
