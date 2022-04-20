@@ -805,10 +805,58 @@ class bittrex(Exchange):
         self.load_markets()
         request = {}
         market = None
+        stop = self.safe_value(params, 'stop')
         if symbol is not None:
             market = self.market(symbol)
             request['marketSymbol'] = market['id']
-        response = self.privateGetOrdersOpen(self.extend(request, params))
+        method = 'privateGetOrdersOpen'
+        if stop:
+            method = 'privateGetConditionalOrdersOpen'
+        query = self.omit(params, 'stop')
+        response = getattr(self, method)(self.extend(request, query))
+        #
+        # Spot
+        #
+        #     [
+        #         {
+        #             "id": "df6cf5ee-fc27-4b61-991a-cc94b6459ac9",
+        #             "marketSymbol": "BTC-USDT",
+        #             "direction": "BUY",
+        #             "type": "LIMIT",
+        #             "quantity": "0.00023277",
+        #             "limit": "30000.00000000",
+        #             "timeInForce": "GOOD_TIL_CANCELLED",
+        #             "fillQuantity": "0.00000000",
+        #             "commission": "0.00000000",
+        #             "proceeds": "0.00000000",
+        #             "status": "OPEN",
+        #             "createdAt": "2022-04-20T02:33:53.16Z",
+        #             "updatedAt": "2022-04-20T02:33:53.16Z"
+        #         }
+        #     ]
+        #
+        # Stop
+        #
+        #     [
+        #         {
+        #             "id": "f64f7c4f-295c-408b-9cbc-601981abf100",
+        #             "marketSymbol": "BTC-USDT",
+        #             "operand": "LTE",
+        #             "triggerPrice": "0.10000000",
+        #             "orderToCreate": {
+        #                 "marketSymbol": "BTC-USDT",
+        #                 "direction": "BUY",
+        #                 "type": "LIMIT",
+        #                 "quantity": "0.00020000",
+        #                 "limit": "30000.00000000",
+        #                 "timeInForce": "GOOD_TIL_CANCELLED"
+        #             },
+        #             "status": "OPEN",
+        #             "createdAt": "2022-04-20T02:38:12.26Z",
+        #             "updatedAt": "2022-04-20T02:38:12.26Z"
+        #         }
+        #     ]
+        #
         return self.parse_orders(response, market, since, limit)
 
     def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
@@ -1171,7 +1219,7 @@ class bittrex(Exchange):
 
     def parse_order(self, order, market=None):
         #
-        # Spot
+        # Spot createOrder, fetchOpenOrders
         #
         #     {
         #         id: '1be35109-b763-44ce-b6ea-05b6b0735c0c',
@@ -1191,7 +1239,7 @@ class bittrex(Exchange):
         #         closedAt: '2018-06-23T13:14:30.19Z'
         #     }
         #
-        # Stop
+        # Stop createOrder, fetchOpenOrders
         #
         #     {
         #         "id": "9791fe52-a3e5-4ac3-ae03-e327b2993571",
