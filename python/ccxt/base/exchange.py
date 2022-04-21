@@ -2502,7 +2502,7 @@ class Exchange(object):
 
     def safe_funding_rate_history_entry(self, funding_rate_history_entry, market=None):
         return self.extend({
-            'symbol': self.safe_symbol (None, market),
+            'symbol': self.safe_symbol(None, market),
             'timestamp': None,
             'datetime': None,
             'fundingRate': None,
