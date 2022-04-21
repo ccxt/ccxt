@@ -49,6 +49,7 @@ class digifinex extends Exchange {
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
                 'fetchWithdrawals' => true,
+                'transfer' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -87,7 +88,7 @@ class digifinex extends Exchange {
                         'trades',
                         'trades/symbols',
                         'ticker',
-                        'currencies', // todo add fetchCurrencies
+                        'currencies',
                     ),
                 ),
                 'private' => array(
@@ -95,7 +96,7 @@ class digifinex extends Exchange {
                         '{market}/financelog',
                         '{market}/mytrades',
                         '{market}/order',
-                        '{market}​/order​/detail', // todo add fetchOrder
+                        '{market}/order/detail',
                         '{market}/order/current',
                         '{market}/order/history',
                         'margin/assets',
@@ -112,21 +113,21 @@ class digifinex extends Exchange {
                         'spot/order',
                         'spot/order/current',
                         'spot/order/history',
-                        'deposit/address', // todo add fetchDepositAddress
-                        'deposit/history', // todo add fetchDeposits
-                        'withdraw/history', // todo add fetchWithdrawals
+                        'deposit/address',
+                        'deposit/history',
+                        'withdraw/history',
                     ),
                     'post' => array(
                         '{market}/order/cancel',
                         '{market}/order/new',
-                        '{market}​/order​/batch_new',
+                        '{market}/order/batch_new',
                         'margin/order/cancel',
                         'margin/order/new',
                         'margin/position/close',
                         'spot/order/cancel',
                         'spot/order/new',
                         'transfer',
-                        'withdraw/new', // todo add withdraw()
+                        'withdraw/new',
                         'withdraw/cancel',
                     ),
                 ),
@@ -195,6 +196,11 @@ class digifinex extends Exchange {
             'options' => array(
                 'defaultType' => 'spot',
                 'types' => array( 'spot', 'margin', 'otc' ),
+                'accountsByType' => array(
+                    'spot' => '1',
+                    'margin' => '2',
+                    'OTC' => '3',
+                ),
             ),
             'commonCurrencies' => array(
                 'BHT' => 'Black House Test',
@@ -1447,6 +1453,59 @@ class digifinex extends Exchange {
             'updated' => $updated,
             'fee' => $fee,
         );
+    }
+
+    public function parse_transfer_status($status) {
+        $statuses = array(
+            '0' => 'ok',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        //     {
+        //         "code" => 0
+        //     }
+        //
+        return array(
+            'info' => $transfer,
+            'id' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'currency' => $this->safe_currency_code(null, $currency),
+            'amount' => $this->safe_number($transfer, 'amount'),
+            'fromAccount' => $this->safe_string($transfer, 'fromAccount'),
+            'toAccount' => $this->safe_string($transfer, 'toAccount'),
+            'status' => $this->parse_transfer_status($this->safe_string($transfer, 'code')),
+        );
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
+        $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
+        $request = array(
+            'currency_mark' => $currency['id'],
+            'num' => floatval($this->currency_to_precision($code, $amount)),
+            'from' => $fromId, // 1 = SPOT, 2 = MARGIN, 3 = OTC
+            'to' => $toId, // 1 = SPOT, 2 = MARGIN, 3 = OTC
+        );
+        $response = $this->privatePostTransfer (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 0
+        //     }
+        //
+        $transfer = $this->parse_transfer($response, $currency);
+        return array_merge($transfer, array(
+            'amount' => $amount,
+            'currency' => $code,
+            'fromAccount' => $fromAccount,
+            'toAccount' => $toAccount,
+        ));
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
