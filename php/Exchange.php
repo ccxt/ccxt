@@ -2256,13 +2256,13 @@ class Exchange {
     }
 
     public function safe_deposit_address($deposit_address, $currency = null) {
-        return $this->extend([
-            'currency'=> $this->safe_currency_code(null, $currency),
-            'address'=> null,
-            'tag'=> null,
-            'network'=> null,
-            'info'=> null,
-        ], $deposit_address);
+        return $this->extend(array(
+            'currency' => $this->safe_currency_code(null, $currency),
+            'address' => null,
+            'tag' => null,
+            'network' => null,
+            'info' => null,
+        ), $deposit_address);
     }
 
     public function parse_trades($trades, $market = null, $since = null, $limit = null, $params = array()) {
