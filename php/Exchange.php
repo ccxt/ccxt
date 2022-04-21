@@ -3734,11 +3734,9 @@ class Exchange {
             'currency'=> null,
             'maintenanceMarginRate'=> null,
             'maxLeverage'=> null,
-            // 'notionalFloor'=> null,
-            // 'notionalCap'=> null,
             'minNotinal'=> null,
             'maxNotional'=> null,
-            'info'=> [],
+            'info'=> null,
         ], $leverage_tier);
     }
 

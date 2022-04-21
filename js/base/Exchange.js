@@ -2226,11 +2226,9 @@ module.exports = class Exchange {
             'currency': undefined,
             'maintenanceMarginRate': undefined,
             'maxLeverage': undefined,
-            // 'notionalFloor': undefined,
-            // 'notionalCap': undefined,
             'minNotinal': undefined,
             'maxNotional': undefined,
-            'info': {},
+            'info': null,
         }, leverageTier);
     }
 

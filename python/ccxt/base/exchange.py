@@ -2805,11 +2805,9 @@ class Exchange(object):
             'currency': None,
             'maintenanceMarginRate': None,
             'maxLeverage': None,
-            # 'notionalFloor': None,
-            # 'notionalCap': None,
             'minNotinal': None,
             'maxNotional': None,
-            'info': {},
+            'info': None,
         }, leverage_tier)
 
     def fetch_market_leverage_tiers(self, symbol, params={}):
