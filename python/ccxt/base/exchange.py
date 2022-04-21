@@ -573,7 +573,8 @@ class Exchange(object):
 
     def prepare_request_headers(self, headers=None):
         headers = headers or {}
-        headers.update(self.session.headers)
+        if self.session:
+            headers.update(self.session.headers)
         headers.update(self.headers)
         if self.userAgent:
             if type(self.userAgent) is str:
