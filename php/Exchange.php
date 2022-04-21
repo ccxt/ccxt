@@ -328,11 +328,8 @@ class Exchange {
         'safeTicker' => 'safe_ticker',
         'parseTickers' => 'parse_tickers',
         'parseDepositAddresses' => 'parse_deposit_addresses',
-        'safeDepositAddress' => 'safe_deposit_address',
         'parseTrades' => 'parse_trades',
         'parseTransactions' => 'parse_transactions',
-        'safeTransfer' => 'safe_transfer',
-        'safeTransaction' => 'safe_transaction',
         'parseTransfers' => 'parse_transfers',
         'parseLedger' => 'parse_ledger',
         'parseOrders' => 'parse_orders',
@@ -2288,45 +2285,6 @@ class Exchange {
         $code = isset($currency) ? $currency['code'] : null;
         $tail = $since === null;
         return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
-    }
-
-    public function safe_transfer($transfer, $currency = null) {
-        $currency = $this->safe_currency(null, $currency);
-        return $this->extend(array(
-            'id'=> null,
-            'timestamp'=> null,
-            'datetime'=> null,
-            'currency'=> $currency['code'],
-            'amount'=> null,
-            'fromAccount'=> null,
-            'toAccount'=> null,
-            'status'=> null,
-            'info'=> null,
-        ), $transfer);
-    }
-
-    public function safe_transaction($transaction, $currency = null) {
-        $currency = $this->safe_currency(null, $currency);
-        return $this->extend(array(
-            'id'=> null,
-            'currency'=> $currency['code'],
-            'amount'=> null,
-            'network'=> null,
-            'address'=> null,
-            'addressTo'=> null,
-            'addressFrom'=> null,
-            'tag'=> null,
-            'tagTo'=> null,
-            'tagFrom'=> null,
-            'status'=> null,
-            'type'=> null,
-            'updated'=> null,
-            'txid'=> null,
-            'timestamp'=> null,
-            'datetime'=> null,
-            'fee'=> null,
-            'info'=> null,
-        ), $transaction);
     }
 
     public function parse_transfers($transfers, $currency = null, $since = null, $limit = null, $params = array()) {
