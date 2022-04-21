@@ -151,8 +151,8 @@ module.exports = class bitopro extends ccxt.bitopro {
         //     }
         //
         const marketId = this.safeString (message, 'pair');
-        const symbol = this.safeSymbol (marketId);
-        const market = this.safeMarket (symbol);
+        const market = this.safeMarket (marketId, undefined, '_');
+        const symbol = market['symbol'];
         const event = this.safeString (message, 'event');
         const messageHash = market['id'].toUpperCase () + '@' + event;
         let orderbook = this.safeValue (this.orderbooks, symbol);
@@ -201,8 +201,8 @@ module.exports = class bitopro extends ccxt.bitopro {
         //     }
         //
         const marketId = this.safeString (message, 'pair');
-        const symbol = this.safeSymbol (marketId);
-        const market = this.safeMarket (symbol);
+        const market = this.safeMarket (marketId, undefined, '_');
+        const symbol = market['symbol'];
         const event = this.safeString (message, 'event');
         const messageHash = market['id'].toUpperCase () + '@' + event;
         let rawData = this.safeValue (message, 'data');
@@ -255,8 +255,8 @@ module.exports = class bitopro extends ccxt.bitopro {
         //     }
         //
         const marketId = this.safeString (message, 'pair');
-        const symbol = this.safeSymbol (marketId);
-        const market = this.safeMarket (symbol);
+        const market = this.safeMarket (marketId, undefined, '_');
+        const symbol = market['symbol'];
         const event = this.safeString (message, 'event');
         const messageHash = market['id'].toUpperCase () + '@' + event;
         const timestamp = this.safeInteger (message, 'timestamp');
@@ -367,7 +367,7 @@ module.exports = class bitopro extends ccxt.bitopro {
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.safeMarket (symbol);
+        const market = this.market (symbol);
         const options = this.safeValue (this.options, 'watchOrders', {});
         const name = this.safeString (options, 'name');
         let messageHash = 'watchOrders@' + name;
@@ -385,7 +385,7 @@ module.exports = class bitopro extends ccxt.bitopro {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, market['symbol'], since, limit, true);
     }
 
     handleOrders (client, message) {
@@ -451,9 +451,9 @@ module.exports = class bitopro extends ccxt.bitopro {
             }
             client.resolve (this.orders, messageHash);
             for (let i = 0; i < currencies.length; i++) {
-                const symbol = currencies[i];
-                const market = this.safeMarket (symbol);
-                client.resolve (this.orders, messageHash + ':' + market['symbol']);
+                const market = this.safeMarket (currencies[i], undefined, '_');
+                const symbol = market['symbol'];
+                client.resolve (this.orders, messageHash + ':' + symbol);
             }
         }
     }
