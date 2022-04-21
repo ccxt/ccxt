@@ -2080,15 +2080,16 @@ class Exchange {
         return $this->markets;
     }
 
-    public function safe_trading_limit($trading_limit) {
+    public function safe_trading_limit($trading_limit, $market = null) {
         return $this->deep_extend([
+            'symbol'=> $this->safe_symbol (null, $market),
             'limits'=> [
                 'amount'=> [
                     'min'=> null,
                     'max'=> null,
                 ],
             ],
-            'info'=> [],
+            'info'=> null,
         ], $trading_limit);
     }
 

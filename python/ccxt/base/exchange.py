@@ -1761,15 +1761,16 @@ class Exchange(object):
                 self.options['limitsLoaded'] = self.milliseconds()
         return self.markets
 
-    def safe_trading_limit(self, trading_limit):
+    def safe_trading_limit(self, trading_limit, market):
         return self.extend({
+            'symbol': self.safe_symbol (None, market),
             'limit': {
                 'amount': {
                     'min': None,
                     'max': None,
                 }
             },
-            'info': {},
+            'info': None,
         }, trading_limit)
 
     def fetch_ohlcvc(self, symbol, timeframe='1m', since=None, limit=None, params={}):
