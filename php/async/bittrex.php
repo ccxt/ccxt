@@ -1282,7 +1282,7 @@ class bittrex extends Exchange {
 
     public function parse_order($order, $market = null) {
         //
-        // Spot createOrder, fetchOpenOrders
+        // Spot createOrder, fetchOpenOrders, fetchClosedOrders, fetchOrder
         //
         //     {
         //         id => '1be35109-b763-44ce-b6ea-05b6b0735c0c',
@@ -1302,7 +1302,7 @@ class bittrex extends Exchange {
         //         $closedAt => '2018-06-23T13:14:30.19Z'
         //     }
         //
-        // Stop createOrder, fetchOpenOrders
+        // Stop createOrder, fetchOpenOrders, fetchClosedOrders, fetchOrder
         //
         //     {
         //         "id" => "9791fe52-a3e5-4ac3-ae03-e327b2993571",
@@ -1430,12 +1430,24 @@ class bittrex extends Exchange {
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
         yield $this->load_markets();
+        $stop = $this->safe_value($params, 'stop');
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
         $response = null;
+        $method = null;
         try {
-            $request = array(
-                'orderId' => $id,
-            );
-            $response = yield $this->privateGetOrdersOrderId (array_merge($request, $params));
+            $request = array();
+            if ($stop) {
+                $method = 'privateGetConditionalOrdersConditionalOrderId';
+                $request['conditionalOrderId'] = $id;
+            } else {
+                $method = 'privateGetOrdersOrderId';
+                $request['orderId'] = $id;
+            }
+            $query = $this->omit($params, 'stop');
+            $response = yield $this->$method (array_merge($request, $query));
         } catch (Exception $e) {
             if ($this->last_json_response) {
                 $message = $this->safe_string($this->last_json_response, 'message');
@@ -1445,7 +1457,7 @@ class bittrex extends Exchange {
             }
             throw $e;
         }
-        return $this->parse_order($response);
+        return $this->parse_order($response, $market);
     }
 
     public function order_to_trade($order) {

@@ -1219,7 +1219,7 @@ class bittrex(Exchange):
 
     def parse_order(self, order, market=None):
         #
-        # Spot createOrder, fetchOpenOrders
+        # Spot createOrder, fetchOpenOrders, fetchClosedOrders, fetchOrder
         #
         #     {
         #         id: '1be35109-b763-44ce-b6ea-05b6b0735c0c',
@@ -1239,7 +1239,7 @@ class bittrex(Exchange):
         #         closedAt: '2018-06-23T13:14:30.19Z'
         #     }
         #
-        # Stop createOrder, fetchOpenOrders
+        # Stop createOrder, fetchOpenOrders, fetchClosedOrders, fetchOrder
         #
         #     {
         #         "id": "9791fe52-a3e5-4ac3-ae03-e327b2993571",
@@ -1352,19 +1352,29 @@ class bittrex(Exchange):
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
+        stop = self.safe_value(params, 'stop')
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
         response = None
+        method = None
         try:
-            request = {
-                'orderId': id,
-            }
-            response = await self.privateGetOrdersOrderId(self.extend(request, params))
+            request = {}
+            if stop:
+                method = 'privateGetConditionalOrdersConditionalOrderId'
+                request['conditionalOrderId'] = id
+            else:
+                method = 'privateGetOrdersOrderId'
+                request['orderId'] = id
+            query = self.omit(params, 'stop')
+            response = await getattr(self, method)(self.extend(request, query))
         except Exception as e:
             if self.last_json_response:
                 message = self.safe_string(self.last_json_response, 'message')
                 if message == 'UUID_INVALID':
                     raise OrderNotFound(self.id + ' fetchOrder() error: ' + self.last_http_response)
             raise e
-        return self.parse_order(response)
+        return self.parse_order(response, market)
 
     def order_to_trade(self, order):
         # self entire method should be moved to the base class
