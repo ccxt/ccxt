@@ -3728,10 +3728,10 @@ class Exchange {
         return $tiers;
     }
 
-    public function safe_leverage_tier($leverage_tier) {
+    public function safe_leverage_tier($leverage_tier, $currency = null) {
         return $this->extend([
             'tier'=> null,
-            'currency'=> null,
+            'currency'=> $this->safe_currency_code(null, $currency),
             'maintenanceMarginRate'=> null,
             'maxLeverage'=> null,
             'minNotinal'=> null,

@@ -2220,10 +2220,10 @@ module.exports = class Exchange {
         return tiers;
     }
 
-    safeLeverageTier (leverageTier) {
+    safeLeverageTier (leverageTier, currency = undefined) {
         return this.extend({
             'tier': undefined,
-            'currency': undefined,
+            'currency': this.safeCurrencyCode (undefined, currency),
             'maintenanceMarginRate': undefined,
             'maxLeverage': undefined,
             'minNotinal': undefined,

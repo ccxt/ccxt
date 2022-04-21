@@ -2799,10 +2799,10 @@ class Exchange(object):
                 tiers[symbol] = self.parse_market_leverage_tiers(item, market)
         return tiers
 
-    def safe_leverage_tier(self, leverage_tier):
+    def safe_leverage_tier(self, leverage_tier, currency=None):
         return self.extend({
             'tier': None,
-            'currency': None,
+            'currency': self.safe_currency_code(None, currency),
             'maintenanceMarginRate': None,
             'maxLeverage': None,
             'minNotinal': None,
