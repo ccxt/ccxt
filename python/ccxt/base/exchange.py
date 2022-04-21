@@ -1992,6 +1992,15 @@ class Exchange(object):
             result = self.filter_by_array(result, 'currency', codes, False)
         return self.index_by(result, 'currency') if indexed else result
 
+    def safe_deposit_address(self, deposit_address, currency=None):
+        return self.extend({
+            'currency': self.safe_currency_code(None, currency),
+            'address': None,
+            'tag': None,
+            'network': None,
+            'info': None,
+        }, deposit_address)
+
     def parse_trades(self, trades, market=None, since=None, limit=None, params={}):
         array = self.to_array(trades)
         array = [self.merge(self.parse_trade(trade, market), params) for trade in array]
