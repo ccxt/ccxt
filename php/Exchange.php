@@ -1934,11 +1934,11 @@ class Exchange {
         throw new NotSupported($this->id . ' parse_funding_rate() not supported yet');
     }
 
-    public function safe_funding_rate($funding_rate) {
+    public function safe_funding_rate($funding_rate, $market = null) {
         return $this->extend([
             'timestamp'=> null,
             'datetime'=> null,
-            'symbol'=> null,
+            'symbol'=> $this->safe_symbol (null, $market),
             'markPrice'=> null,
             'indexPrice'=> null,
             'interestRate'=> null,
@@ -1952,7 +1952,7 @@ class Exchange {
             'previousFundingRate'=> null,
             'previousFundingTimestamp'=> null,
             'previousFundingDatetime'=> null,
-            'info'=> [],
+            'info'=> null,
         ], $funding_rate);
     }
 

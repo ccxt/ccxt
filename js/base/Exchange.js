@@ -1544,11 +1544,11 @@ module.exports = class Exchange {
         throw new NotSupported (this.id + ' parseFundingRate() not supported yet')
     }
 
-    safeFundingRate (fundingRate) {
+    safeFundingRate (fundingRate, market = undefined) {
         return this.extend({
             'timestamp': undefined,
             'datetime': undefined,
-            'symbol': undefined,
+            'symbol': this.safeSymbol (undefined, market),
             'markPrice': undefined,
             'indexPrice': undefined,
             'interestRate': undefined,
@@ -1562,7 +1562,7 @@ module.exports = class Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-            'info': {},
+            'info': undefined,
         }, fundingRate);
     }
 
