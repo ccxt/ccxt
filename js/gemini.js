@@ -69,6 +69,7 @@ module.exports = class gemini extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': undefined,
+                'postOnly': true,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
@@ -898,6 +899,20 @@ module.exports = class gemini extends Exchange {
         const id = this.safeString (order, 'order_id');
         const side = this.safeStringLower (order, 'side');
         const clientOrderId = this.safeString (order, 'client_order_id');
+        const optionsArray = this.safeValue (order, 'options', []);
+        const option = this.safeString (optionsArray, 0);
+        let timeInForce = 'GTC';
+        let postOnly = false;
+        if (option !== undefined) {
+            if (option === 'immediate-or-cancel') {
+                timeInForce = 'IOC';
+            } else if (option === 'fill-or-kill') {
+                timeInForce = 'FOK';
+            } else if (option === 'maker-or-cancel') {
+                timeInForce = 'PO';
+                postOnly = true;
+            }
+        }
         return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
@@ -908,8 +923,8 @@ module.exports = class gemini extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': type,
-            'timeInForce': undefined,
-            'postOnly': undefined,
+            'timeInForce': timeInForce, // default set to GTC
+            'postOnly': postOnly,
             'side': side,
             'price': price,
             'stopPrice': undefined,
@@ -991,6 +1006,89 @@ module.exports = class gemini extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (type === 'market') {
+            throw new ExchangeError (this.id + ' allows limit orders only');
+        }
+        let clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
+        params = this.omit (params, [ 'clientOrderId', 'client_order_id' ]);
+        if (clientOrderId === undefined) {
+            clientOrderId = this.nonce ();
+        }
+        const amountString = this.amountToPrecision (symbol, amount);
+        const priceString = this.priceToPrecision (symbol, price);
+        const request = {
+            'client_order_id': clientOrderId.toString (),
+            'symbol': this.marketId (symbol),
+            'amount': amountString,
+            'price': priceString,
+            'side': side,
+            'type': 'exchange limit', // gemini allows limit orders only
+            // 'options': [], one of:  maker-or-cancel, immediate-or-cancel, fill-or-kill, auction-only, indication-of-interest
+        };
+        type = this.safeString (params, 'type', type);
+        params = this.omit (params, 'type');
+        const rawStopPrice = this.safeString2 (params, 'stop_price', 'stopPrice');
+        params = this.omit (params, [ 'stop_price', 'stopPrice', 'type' ]);
+        if (type === 'stopLimit') {
+            throw new ArgumentsRequired (this.id + ' createOrder () requires a stopPrice parameter or a stop_price parameter for ' + type + ' orders');
+        }
+        if (rawStopPrice !== undefined) {
+            request['stop_price'] = this.priceToPrecision (symbol, rawStopPrice);
+            request['type'] = 'exchange stop limit';
+        } else {
+            // No options can be applied to stop-limit orders at this time.
+            const timeInForce = this.safeString (params, 'timeInForce');
+            params = this.omit (params, 'timeInForce');
+            if (timeInForce !== undefined) {
+                if ((timeInForce === 'IOC') || (timeInForce === 'immediate-or-cancel')) {
+                    request['options'] = [ 'immediate-or-cancel' ];
+                } else if ((timeInForce === 'FOK') || (timeInForce === 'fill-or-kill')) {
+                    request['options'] = [ 'fill-or-kill' ];
+                } else if (timeInForce === 'PO') {
+                    request['options'] = [ 'maker-or-cancel' ];
+                }
+            }
+            // support for postOnly orders
+            const postOnly = this.safeValue (params, 'postOnly', false);
+            params = this.omit (params, 'postOnly');
+            if (postOnly === true) {
+                request['options'] = [ 'maker-or-cancel' ];
+            }
+            // allowing override for auction-only and indication-of-interest orders
+            const options = this.safeString (params, 'options');
+            if (options !== undefined) {
+                request['options'] = [ options ];
+            }
+        }
+        const response = await this.privatePostV1OrderNew (this.extend (request, params));
+        //
+        //      {
+        //          "order_id":"106027397702",
+        //          "id":"106027397702",
+        //          "symbol":"etheur",
+        //          "exchange":"gemini",
+        //          "avg_execution_price":"2877.48",
+        //          "side":"sell",
+        //          "type":"exchange limit",
+        //          "timestamp":"1650398122",
+        //          "timestampms":1650398122308,
+        //          "is_live":false,
+        //          "is_cancelled":false,
+        //          "is_hidden":false,
+        //          "was_forced":false,
+        //          "executed_amount":"0.014434",
+        //          "client_order_id":"1650398121695",
+        //          "options":[],
+        //          "price":"2800.00",
+        //          "original_amount":"0.014434",
+        //          "remaining_amount":"0"
+        //      }
+        //
+        return this.parseOrder (response);
+    }
+
+    async createOrder2 (symbol, type, side, amount, price = undefined, params = {}) {
         // TODO add unified postOnly and timeInForce support for fill-or-kill, maker-or-cancel, immediate-or-cancel,...
         await this.loadMarkets ();
         if (type === 'market') {
