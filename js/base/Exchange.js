@@ -1845,13 +1845,13 @@ module.exports = class Exchange {
         return result;
     }
 
-    safeFundingRateHistoryEntry (fundingRateHistoryEntry) {
+    safeFundingRateHistoryEntry (fundingRateHistoryEntry, market = undeifned) {
         return this.extend({
-            'symbol': undefined,
+            'symbol': this.safeSymbol (undefined, market),
             'timestamp': undefined,
             'datetime': undefined,
             'fundingRate': undefined,
-            'info': {},
+            'info': undefined,
         }, fundingRateHistoryEntry);
     }
 

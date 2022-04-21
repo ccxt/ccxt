@@ -3343,13 +3343,13 @@ class Exchange {
         return $result;
     }
 
-    public function safe_funding_rate_history_entry($funding_rate_history_entry) {
+    public function safe_funding_rate_history_entry($funding_rate_history_entry, $market = null) {
         return $this->extend([
-            'symbol'=> null,
+            'symbol'=> $this->safe_symbol (null, $market),
             'timestamp'=> null,
             'datetime'=> null,
             'fundingRate'=> null,
-            'info'=> [],
+            'info'=> null,
         ], $funding_rate_history_entry);
     }
 
