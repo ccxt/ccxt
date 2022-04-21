@@ -1580,6 +1580,7 @@ class bittrex extends Exchange {
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
+        $stop = $this->safe_value($params, 'stop');
         $request = array();
         if ($limit !== null) {
             $request['pageSize'] = $limit;
@@ -1599,7 +1600,55 @@ class bittrex extends Exchange {
             // https://github.com/ccxt/ccxt/pull/5219#issuecomment-499646209
             $request['marketSymbol'] = $market['base'] . '-' . $market['quote'];
         }
-        $response = $this->privateGetOrdersClosed (array_merge($request, $params));
+        $method = 'privateGetOrdersClosed';
+        if ($stop) {
+            $method = 'privateGetConditionalOrdersClosed';
+        }
+        $query = $this->omit($params, 'stop');
+        $response = $this->$method (array_merge($request, $query));
+        //
+        // Spot
+        //
+        //     array(
+        //         {
+        //             "id" => "df6cf5ee-fc27-4b61-991a-cc94b6459ac9",
+        //             "marketSymbol" => "BTC-USDT",
+        //             "direction" => "BUY",
+        //             "type" => "LIMIT",
+        //             "quantity" => "0.00023277",
+        //             "limit" => "30000.00000000",
+        //             "timeInForce" => "GOOD_TIL_CANCELLED",
+        //             "fillQuantity" => "0.00000000",
+        //             "commission" => "0.00000000",
+        //             "proceeds" => "0.00000000",
+        //             "status" => "OPEN",
+        //             "createdAt" => "2022-04-20T02:33:53.16Z",
+        //             "updatedAt" => "2022-04-20T02:33:53.16Z"
+        //         }
+        //     )
+        //
+        // Stop
+        //
+        //     array(
+        //         {
+        //             "id" => "f64f7c4f-295c-408b-9cbc-601981abf100",
+        //             "marketSymbol" => "BTC-USDT",
+        //             "operand" => "LTE",
+        //             "triggerPrice" => "0.10000000",
+        //             "orderToCreate" => array(
+        //                 "marketSymbol" => "BTC-USDT",
+        //                 "direction" => "BUY",
+        //                 "type" => "LIMIT",
+        //                 "quantity" => "0.00020000",
+        //                 "limit" => "30000.00000000",
+        //                 "timeInForce" => "GOOD_TIL_CANCELLED"
+        //             ),
+        //             "status" => "OPEN",
+        //             "createdAt" => "2022-04-20T02:38:12.26Z",
+        //             "updatedAt" => "2022-04-20T02:38:12.26Z"
+        //         }
+        //     )
+        //
         return $this->parse_orders($response, $market, $since, $limit);
     }
 

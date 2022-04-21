@@ -1487,6 +1487,7 @@ class bittrex(Exchange):
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
+        stop = self.safe_value(params, 'stop')
         request = {}
         if limit is not None:
             request['pageSize'] = limit
@@ -1503,7 +1504,54 @@ class bittrex(Exchange):
             # which is prone to errors, as was shown here
             # https://github.com/ccxt/ccxt/pull/5219#issuecomment-499646209
             request['marketSymbol'] = market['base'] + '-' + market['quote']
-        response = await self.privateGetOrdersClosed(self.extend(request, params))
+        method = 'privateGetOrdersClosed'
+        if stop:
+            method = 'privateGetConditionalOrdersClosed'
+        query = self.omit(params, 'stop')
+        response = await getattr(self, method)(self.extend(request, query))
+        #
+        # Spot
+        #
+        #     [
+        #         {
+        #             "id": "df6cf5ee-fc27-4b61-991a-cc94b6459ac9",
+        #             "marketSymbol": "BTC-USDT",
+        #             "direction": "BUY",
+        #             "type": "LIMIT",
+        #             "quantity": "0.00023277",
+        #             "limit": "30000.00000000",
+        #             "timeInForce": "GOOD_TIL_CANCELLED",
+        #             "fillQuantity": "0.00000000",
+        #             "commission": "0.00000000",
+        #             "proceeds": "0.00000000",
+        #             "status": "OPEN",
+        #             "createdAt": "2022-04-20T02:33:53.16Z",
+        #             "updatedAt": "2022-04-20T02:33:53.16Z"
+        #         }
+        #     ]
+        #
+        # Stop
+        #
+        #     [
+        #         {
+        #             "id": "f64f7c4f-295c-408b-9cbc-601981abf100",
+        #             "marketSymbol": "BTC-USDT",
+        #             "operand": "LTE",
+        #             "triggerPrice": "0.10000000",
+        #             "orderToCreate": {
+        #                 "marketSymbol": "BTC-USDT",
+        #                 "direction": "BUY",
+        #                 "type": "LIMIT",
+        #                 "quantity": "0.00020000",
+        #                 "limit": "30000.00000000",
+        #                 "timeInForce": "GOOD_TIL_CANCELLED"
+        #             },
+        #             "status": "OPEN",
+        #             "createdAt": "2022-04-20T02:38:12.26Z",
+        #             "updatedAt": "2022-04-20T02:38:12.26Z"
+        #         }
+        #     ]
+        #
         return self.parse_orders(response, market, since, limit)
 
     async def create_deposit_address(self, code, params={}):
