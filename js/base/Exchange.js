@@ -1202,7 +1202,7 @@ module.exports = class Exchange {
     }
 
     safeTradingLimit (tradingLimit, market = undefined) {
-        return this.extend({
+        return this.extend ({
             'symbol': this.safeSymbol (undefined, market),
             'limit': {
                 'amount': {
