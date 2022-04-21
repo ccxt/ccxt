@@ -1845,7 +1845,7 @@ module.exports = class Exchange {
         return result;
     }
 
-    safeFundingRateHistoryEntry (fundingRateHistoryEntry, market = undeifned) {
+    safeFundingRateHistoryEntry (fundingRateHistoryEntry, market = undefined) {
         return this.extend({
             'symbol': this.safeSymbol (undefined, market),
             'timestamp': undefined,
