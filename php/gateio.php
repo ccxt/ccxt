@@ -387,6 +387,7 @@ class gateio extends \ccxt\async\gateio {
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
+        $symbol = $market['symbol'];
         $marketId = $market['id'];
         $type = $market['type'];
         $messageType = $this->get_uniform_type($type);
@@ -453,6 +454,7 @@ class gateio extends \ccxt\async\gateio {
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
+        $symbol = $market['symbol'];
         $marketId = $market['id'];
         $type = $market['type'];
         $interval = $this->timeframes[$timeframe];
@@ -706,6 +708,7 @@ class gateio extends \ccxt\async\gateio {
         }
         yield $this->load_markets();
         $market = $this->market($symbol);
+        $symbol = $market['symbol'];
         $type = 'spot';
         if ($market['future'] || $market['swap']) {
             $type = 'futures';

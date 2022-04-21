@@ -360,6 +360,7 @@ class gateio(Exchange, ccxt.gateio):
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         marketId = market['id']
         type = market['type']
         messageType = self.get_uniform_type(type)
@@ -418,6 +419,7 @@ class gateio(Exchange, ccxt.gateio):
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         marketId = market['id']
         type = market['type']
         interval = self.timeframes[timeframe]
@@ -644,6 +646,7 @@ class gateio(Exchange, ccxt.gateio):
             raise ArgumentsRequired(self.id + ' watchOrders requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         type = 'spot'
         if market['future'] or market['swap']:
             type = 'futures'
