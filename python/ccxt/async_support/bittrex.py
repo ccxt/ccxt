@@ -805,10 +805,58 @@ class bittrex(Exchange):
         await self.load_markets()
         request = {}
         market = None
+        stop = self.safe_value(params, 'stop')
         if symbol is not None:
             market = self.market(symbol)
             request['marketSymbol'] = market['id']
-        response = await self.privateGetOrdersOpen(self.extend(request, params))
+        method = 'privateGetOrdersOpen'
+        if stop:
+            method = 'privateGetConditionalOrdersOpen'
+        query = self.omit(params, 'stop')
+        response = await getattr(self, method)(self.extend(request, query))
+        #
+        # Spot
+        #
+        #     [
+        #         {
+        #             "id": "df6cf5ee-fc27-4b61-991a-cc94b6459ac9",
+        #             "marketSymbol": "BTC-USDT",
+        #             "direction": "BUY",
+        #             "type": "LIMIT",
+        #             "quantity": "0.00023277",
+        #             "limit": "30000.00000000",
+        #             "timeInForce": "GOOD_TIL_CANCELLED",
+        #             "fillQuantity": "0.00000000",
+        #             "commission": "0.00000000",
+        #             "proceeds": "0.00000000",
+        #             "status": "OPEN",
+        #             "createdAt": "2022-04-20T02:33:53.16Z",
+        #             "updatedAt": "2022-04-20T02:33:53.16Z"
+        #         }
+        #     ]
+        #
+        # Stop
+        #
+        #     [
+        #         {
+        #             "id": "f64f7c4f-295c-408b-9cbc-601981abf100",
+        #             "marketSymbol": "BTC-USDT",
+        #             "operand": "LTE",
+        #             "triggerPrice": "0.10000000",
+        #             "orderToCreate": {
+        #                 "marketSymbol": "BTC-USDT",
+        #                 "direction": "BUY",
+        #                 "type": "LIMIT",
+        #                 "quantity": "0.00020000",
+        #                 "limit": "30000.00000000",
+        #                 "timeInForce": "GOOD_TIL_CANCELLED"
+        #             },
+        #             "status": "OPEN",
+        #             "createdAt": "2022-04-20T02:38:12.26Z",
+        #             "updatedAt": "2022-04-20T02:38:12.26Z"
+        #         }
+        #     ]
+        #
         return self.parse_orders(response, market, since, limit)
 
     async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
@@ -979,11 +1027,69 @@ class bittrex(Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        request = {
-            'orderId': id,
-        }
-        response = await self.privateDeleteOrdersOrderId(self.extend(request, params))
-        return self.extend(self.parse_order(response), {
+        stop = self.safe_value(params, 'stop')
+        request = {}
+        method = None
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        if stop:
+            method = 'privateDeleteConditionalOrdersConditionalOrderId'
+            request = {
+                'conditionalOrderId': id,
+            }
+        else:
+            method = 'privateDeleteOrdersOrderId'
+            request = {
+                'orderId': id,
+            }
+        query = self.omit(params, 'stop')
+        response = await getattr(self, method)(self.extend(request, query))
+        #
+        # Spot
+        #
+        #     [
+        #         {
+        #             "id": "df6cf5ee-fc27-4b61-991a-cc94b6459ac9",
+        #             "marketSymbol": "BTC-USDT",
+        #             "direction": "BUY",
+        #             "type": "LIMIT",
+        #             "quantity": "0.00023277",
+        #             "limit": "30000.00000000",
+        #             "timeInForce": "GOOD_TIL_CANCELLED",
+        #             "fillQuantity": "0.00000000",
+        #             "commission": "0.00000000",
+        #             "proceeds": "0.00000000",
+        #             "status": "CANCELLED",
+        #             "createdAt": "2022-04-20T02:33:53.16Z",
+        #             "updatedAt": "2022-04-20T02:33:53.16Z"
+        #         }
+        #     ]
+        #
+        # Stop
+        #
+        #     [
+        #         {
+        #             "id": "f64f7c4f-295c-408b-9cbc-601981abf100",
+        #             "marketSymbol": "BTC-USDT",
+        #             "operand": "LTE",
+        #             "triggerPrice": "0.10000000",
+        #             "orderToCreate": {
+        #                 "marketSymbol": "BTC-USDT",
+        #                 "direction": "BUY",
+        #                 "type": "LIMIT",
+        #                 "quantity": "0.00020000",
+        #                 "limit": "30000.00000000",
+        #                 "timeInForce": "GOOD_TIL_CANCELLED"
+        #             },
+        #             "status": "CANCELLED",
+        #             "createdAt": "2022-04-20T02:38:12.26Z",
+        #             "updatedAt": "2022-04-20T02:38:12.26Z"
+        #             "closedAt": "2022-04-20T03:47:24.69Z"
+        #         }
+        #     ]
+        #
+        return self.extend(self.parse_order(response, market), {
             'id': id,
             'info': response,
             'status': 'canceled',
@@ -1171,7 +1277,7 @@ class bittrex(Exchange):
 
     def parse_order(self, order, market=None):
         #
-        # Spot
+        # Spot createOrder, fetchOpenOrders, fetchClosedOrders, fetchOrder, cancelOrder
         #
         #     {
         #         id: '1be35109-b763-44ce-b6ea-05b6b0735c0c',
@@ -1191,7 +1297,7 @@ class bittrex(Exchange):
         #         closedAt: '2018-06-23T13:14:30.19Z'
         #     }
         #
-        # Stop
+        # Stop createOrder, fetchOpenOrders, fetchClosedOrders, fetchOrder, cancelOrder
         #
         #     {
         #         "id": "9791fe52-a3e5-4ac3-ae03-e327b2993571",
@@ -1208,7 +1314,8 @@ class bittrex(Exchange):
         #         },
         #         "status": "OPEN",
         #         "createdAt": "2022-04-19T21:02:14.17Z",
-        #         "updatedAt": "2022-04-19T21:02:14.17Z"
+        #         "updatedAt": "2022-04-19T21:02:14.17Z",
+        #         "closedAt": "2022-04-20T03:47:24.69Z"
         #     }
         #
         marketSymbol = self.safe_string(order, 'marketSymbol')
@@ -1304,19 +1411,29 @@ class bittrex(Exchange):
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
+        stop = self.safe_value(params, 'stop')
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
         response = None
+        method = None
         try:
-            request = {
-                'orderId': id,
-            }
-            response = await self.privateGetOrdersOrderId(self.extend(request, params))
+            request = {}
+            if stop:
+                method = 'privateGetConditionalOrdersConditionalOrderId'
+                request['conditionalOrderId'] = id
+            else:
+                method = 'privateGetOrdersOrderId'
+                request['orderId'] = id
+            query = self.omit(params, 'stop')
+            response = await getattr(self, method)(self.extend(request, query))
         except Exception as e:
             if self.last_json_response:
                 message = self.safe_string(self.last_json_response, 'message')
                 if message == 'UUID_INVALID':
                     raise OrderNotFound(self.id + ' fetchOrder() error: ' + self.last_http_response)
             raise e
-        return self.parse_order(response)
+        return self.parse_order(response, market)
 
     def order_to_trade(self, order):
         # self entire method should be moved to the base class

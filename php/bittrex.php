@@ -831,11 +831,60 @@ class bittrex extends Exchange {
         $this->load_markets();
         $request = array();
         $market = null;
+        $stop = $this->safe_value($params, 'stop');
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['marketSymbol'] = $market['id'];
         }
-        $response = $this->privateGetOrdersOpen (array_merge($request, $params));
+        $method = 'privateGetOrdersOpen';
+        if ($stop) {
+            $method = 'privateGetConditionalOrdersOpen';
+        }
+        $query = $this->omit($params, 'stop');
+        $response = $this->$method (array_merge($request, $query));
+        //
+        // Spot
+        //
+        //     array(
+        //         {
+        //             "id" => "df6cf5ee-fc27-4b61-991a-cc94b6459ac9",
+        //             "marketSymbol" => "BTC-USDT",
+        //             "direction" => "BUY",
+        //             "type" => "LIMIT",
+        //             "quantity" => "0.00023277",
+        //             "limit" => "30000.00000000",
+        //             "timeInForce" => "GOOD_TIL_CANCELLED",
+        //             "fillQuantity" => "0.00000000",
+        //             "commission" => "0.00000000",
+        //             "proceeds" => "0.00000000",
+        //             "status" => "OPEN",
+        //             "createdAt" => "2022-04-20T02:33:53.16Z",
+        //             "updatedAt" => "2022-04-20T02:33:53.16Z"
+        //         }
+        //     )
+        //
+        // Stop
+        //
+        //     array(
+        //         {
+        //             "id" => "f64f7c4f-295c-408b-9cbc-601981abf100",
+        //             "marketSymbol" => "BTC-USDT",
+        //             "operand" => "LTE",
+        //             "triggerPrice" => "0.10000000",
+        //             "orderToCreate" => array(
+        //                 "marketSymbol" => "BTC-USDT",
+        //                 "direction" => "BUY",
+        //                 "type" => "LIMIT",
+        //                 "quantity" => "0.00020000",
+        //                 "limit" => "30000.00000000",
+        //                 "timeInForce" => "GOOD_TIL_CANCELLED"
+        //             ),
+        //             "status" => "OPEN",
+        //             "createdAt" => "2022-04-20T02:38:12.26Z",
+        //             "updatedAt" => "2022-04-20T02:38:12.26Z"
+        //         }
+        //     )
+        //
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
@@ -1027,11 +1076,71 @@ class bittrex extends Exchange {
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $request = array(
-            'orderId' => $id,
-        );
-        $response = $this->privateDeleteOrdersOrderId (array_merge($request, $params));
-        return array_merge($this->parse_order($response), array(
+        $stop = $this->safe_value($params, 'stop');
+        $request = array();
+        $method = null;
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        if ($stop) {
+            $method = 'privateDeleteConditionalOrdersConditionalOrderId';
+            $request = array(
+                'conditionalOrderId' => $id,
+            );
+        } else {
+            $method = 'privateDeleteOrdersOrderId';
+            $request = array(
+                'orderId' => $id,
+            );
+        }
+        $query = $this->omit($params, 'stop');
+        $response = $this->$method (array_merge($request, $query));
+        //
+        // Spot
+        //
+        //     array(
+        //         {
+        //             "id" => "df6cf5ee-fc27-4b61-991a-cc94b6459ac9",
+        //             "marketSymbol" => "BTC-USDT",
+        //             "direction" => "BUY",
+        //             "type" => "LIMIT",
+        //             "quantity" => "0.00023277",
+        //             "limit" => "30000.00000000",
+        //             "timeInForce" => "GOOD_TIL_CANCELLED",
+        //             "fillQuantity" => "0.00000000",
+        //             "commission" => "0.00000000",
+        //             "proceeds" => "0.00000000",
+        //             "status" => "CANCELLED",
+        //             "createdAt" => "2022-04-20T02:33:53.16Z",
+        //             "updatedAt" => "2022-04-20T02:33:53.16Z"
+        //         }
+        //     )
+        //
+        // Stop
+        //
+        //     array(
+        //         {
+        //             "id" => "f64f7c4f-295c-408b-9cbc-601981abf100",
+        //             "marketSymbol" => "BTC-USDT",
+        //             "operand" => "LTE",
+        //             "triggerPrice" => "0.10000000",
+        //             "orderToCreate" => array(
+        //                 "marketSymbol" => "BTC-USDT",
+        //                 "direction" => "BUY",
+        //                 "type" => "LIMIT",
+        //                 "quantity" => "0.00020000",
+        //                 "limit" => "30000.00000000",
+        //                 "timeInForce" => "GOOD_TIL_CANCELLED"
+        //             ),
+        //             "status" => "CANCELLED",
+        //             "createdAt" => "2022-04-20T02:38:12.26Z",
+        //             "updatedAt" => "2022-04-20T02:38:12.26Z"
+        //             "closedAt" => "2022-04-20T03:47:24.69Z"
+        //         }
+        //     )
+        //
+        return array_merge($this->parse_order($response, $market), array(
             'id' => $id,
             'info' => $response,
             'status' => 'canceled',
@@ -1233,7 +1342,7 @@ class bittrex extends Exchange {
 
     public function parse_order($order, $market = null) {
         //
-        // Spot
+        // Spot createOrder, fetchOpenOrders, fetchClosedOrders, fetchOrder, cancelOrder
         //
         //     {
         //         id => '1be35109-b763-44ce-b6ea-05b6b0735c0c',
@@ -1253,7 +1362,7 @@ class bittrex extends Exchange {
         //         $closedAt => '2018-06-23T13:14:30.19Z'
         //     }
         //
-        // Stop
+        // Stop createOrder, fetchOpenOrders, fetchClosedOrders, fetchOrder, cancelOrder
         //
         //     {
         //         "id" => "9791fe52-a3e5-4ac3-ae03-e327b2993571",
@@ -1270,7 +1379,8 @@ class bittrex extends Exchange {
         //         ),
         //         "status" => "OPEN",
         //         "createdAt" => "2022-04-19T21:02:14.17Z",
-        //         "updatedAt" => "2022-04-19T21:02:14.17Z"
+        //         "updatedAt" => "2022-04-19T21:02:14.17Z",
+        //         "closedAt" => "2022-04-20T03:47:24.69Z"
         //     }
         //
         $marketSymbol = $this->safe_string($order, 'marketSymbol');
@@ -1381,12 +1491,24 @@ class bittrex extends Exchange {
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
+        $stop = $this->safe_value($params, 'stop');
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
         $response = null;
+        $method = null;
         try {
-            $request = array(
-                'orderId' => $id,
-            );
-            $response = $this->privateGetOrdersOrderId (array_merge($request, $params));
+            $request = array();
+            if ($stop) {
+                $method = 'privateGetConditionalOrdersConditionalOrderId';
+                $request['conditionalOrderId'] = $id;
+            } else {
+                $method = 'privateGetOrdersOrderId';
+                $request['orderId'] = $id;
+            }
+            $query = $this->omit($params, 'stop');
+            $response = $this->$method (array_merge($request, $query));
         } catch (Exception $e) {
             if ($this->last_json_response) {
                 $message = $this->safe_string($this->last_json_response, 'message');
@@ -1396,7 +1518,7 @@ class bittrex extends Exchange {
             }
             throw $e;
         }
-        return $this->parse_order($response);
+        return $this->parse_order($response, $market);
     }
 
     public function order_to_trade($order) {
