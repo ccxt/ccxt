@@ -1067,11 +1067,71 @@ module.exports = class bittrex extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {
-            'orderId': id,
-        };
-        const response = await this.privateDeleteOrdersOrderId (this.extend (request, params));
-        return this.extend (this.parseOrder (response), {
+        const stop = this.safeValue (params, 'stop');
+        let request = {};
+        let method = undefined;
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        if (stop) {
+            method = 'privateDeleteConditionalOrdersConditionalOrderId';
+            request = {
+                'conditionalOrderId': id,
+            };
+        } else {
+            method = 'privateDeleteOrdersOrderId';
+            request = {
+                'orderId': id,
+            };
+        }
+        const query = this.omit (params, 'stop');
+        const response = await this[method] (this.extend (request, query));
+        //
+        // Spot
+        //
+        //     [
+        //         {
+        //             "id": "df6cf5ee-fc27-4b61-991a-cc94b6459ac9",
+        //             "marketSymbol": "BTC-USDT",
+        //             "direction": "BUY",
+        //             "type": "LIMIT",
+        //             "quantity": "0.00023277",
+        //             "limit": "30000.00000000",
+        //             "timeInForce": "GOOD_TIL_CANCELLED",
+        //             "fillQuantity": "0.00000000",
+        //             "commission": "0.00000000",
+        //             "proceeds": "0.00000000",
+        //             "status": "CANCELLED",
+        //             "createdAt": "2022-04-20T02:33:53.16Z",
+        //             "updatedAt": "2022-04-20T02:33:53.16Z"
+        //         }
+        //     ]
+        //
+        // Stop
+        //
+        //     [
+        //         {
+        //             "id": "f64f7c4f-295c-408b-9cbc-601981abf100",
+        //             "marketSymbol": "BTC-USDT",
+        //             "operand": "LTE",
+        //             "triggerPrice": "0.10000000",
+        //             "orderToCreate": {
+        //                 "marketSymbol": "BTC-USDT",
+        //                 "direction": "BUY",
+        //                 "type": "LIMIT",
+        //                 "quantity": "0.00020000",
+        //                 "limit": "30000.00000000",
+        //                 "timeInForce": "GOOD_TIL_CANCELLED"
+        //             },
+        //             "status": "CANCELLED",
+        //             "createdAt": "2022-04-20T02:38:12.26Z",
+        //             "updatedAt": "2022-04-20T02:38:12.26Z"
+        //             "closedAt": "2022-04-20T03:47:24.69Z"
+        //         }
+        //     ]
+        //
+        return this.extend (this.parseOrder (response, market), {
             'id': id,
             'info': response,
             'status': 'canceled',
@@ -1273,7 +1333,7 @@ module.exports = class bittrex extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
-        // Spot createOrder, fetchOpenOrders, fetchClosedOrders, fetchOrder
+        // Spot createOrder, fetchOpenOrders, fetchClosedOrders, fetchOrder, cancelOrder
         //
         //     {
         //         id: '1be35109-b763-44ce-b6ea-05b6b0735c0c',
@@ -1293,7 +1353,7 @@ module.exports = class bittrex extends Exchange {
         //         closedAt: '2018-06-23T13:14:30.19Z'
         //     }
         //
-        // Stop createOrder, fetchOpenOrders, fetchClosedOrders, fetchOrder
+        // Stop createOrder, fetchOpenOrders, fetchClosedOrders, fetchOrder, cancelOrder
         //
         //     {
         //         "id": "9791fe52-a3e5-4ac3-ae03-e327b2993571",
@@ -1310,7 +1370,8 @@ module.exports = class bittrex extends Exchange {
         //         },
         //         "status": "OPEN",
         //         "createdAt": "2022-04-19T21:02:14.17Z",
-        //         "updatedAt": "2022-04-19T21:02:14.17Z"
+        //         "updatedAt": "2022-04-19T21:02:14.17Z",
+        //         "closedAt": "2022-04-20T03:47:24.69Z"
         //     }
         //
         const marketSymbol = this.safeString (order, 'marketSymbol');
