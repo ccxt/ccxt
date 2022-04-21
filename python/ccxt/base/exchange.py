@@ -1763,7 +1763,7 @@ class Exchange(object):
 
     def safe_trading_limit(self, trading_limit, market):
         return self.extend({
-            'symbol': self.safe_symbol (None, market),
+            'symbol': self.safe_symbol(None, market),
             'limit': {
                 'amount': {
                     'min': None,
