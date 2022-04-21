@@ -1273,7 +1273,7 @@ module.exports = class bittrex extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
-        // Spot createOrder, fetchOpenOrders
+        // Spot createOrder, fetchOpenOrders, fetchClosedOrders, fetchOrder
         //
         //     {
         //         id: '1be35109-b763-44ce-b6ea-05b6b0735c0c',
@@ -1293,7 +1293,7 @@ module.exports = class bittrex extends Exchange {
         //         closedAt: '2018-06-23T13:14:30.19Z'
         //     }
         //
-        // Stop createOrder, fetchOpenOrders
+        // Stop createOrder, fetchOpenOrders, fetchClosedOrders, fetchOrder
         //
         //     {
         //         "id": "9791fe52-a3e5-4ac3-ae03-e327b2993571",
@@ -1421,12 +1421,24 @@ module.exports = class bittrex extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
+        const stop = this.safeValue (params, 'stop');
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         let response = undefined;
+        let method = undefined;
         try {
-            const request = {
-                'orderId': id,
-            };
-            response = await this.privateGetOrdersOrderId (this.extend (request, params));
+            const request = {};
+            if (stop) {
+                method = 'privateGetConditionalOrdersConditionalOrderId';
+                request['conditionalOrderId'] = id;
+            } else {
+                method = 'privateGetOrdersOrderId';
+                request['orderId'] = id;
+            }
+            const query = this.omit (params, 'stop');
+            response = await this[method] (this.extend (request, query));
         } catch (e) {
             if (this.last_json_response) {
                 const message = this.safeString (this.last_json_response, 'message');
@@ -1436,7 +1448,7 @@ module.exports = class bittrex extends Exchange {
             }
             throw e;
         }
-        return this.parseOrder (response);
+        return this.parseOrder (response, market);
     }
 
     orderToTrade (order) {
