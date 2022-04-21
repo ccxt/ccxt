@@ -405,3 +405,9 @@ class Exchange(BaseExchange):
             raise NotSupported(self.id + 'create_post_only_order() is not supported yet')
         query = self.extend(params, {'postOnly': True})
         return await self.create_order(symbol, type, side, amount, price, query)
+
+    async def create_stop_order(self, symbol, type, side, amount, price, stop_price, params={}):
+        if not self.has['createStopOrder']:
+            raise NotSupported(self.id + 'create_stop_order() is not supported yet')
+        query = self.extend(params, {'stopPrice': stop_price})
+        return await self.create_order(symbol, type, side, amount, price, query)

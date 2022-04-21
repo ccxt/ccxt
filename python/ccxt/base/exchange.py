@@ -2843,6 +2843,12 @@ class Exchange(object):
         query = self.extend(params, {'postOnly': True})
         return self.create_order(symbol, type, side, amount, price, query)
 
+    def create_stop_order(self, symbol, type, side, amount, price, stop_price, params={}):
+        if not self.has['createStopOrder']:
+            raise NotSupported(self.id + 'create_stop_order() is not supported yet')
+        query = self.extend(params, {'stopPrice': stop_price})
+        return self.create_order(symbol, type, side, amount, price, query)
+
     def parse_borrow_interests(self, response, market=None):
         interest = []
         for i in range(len(response)):
