@@ -1932,9 +1932,9 @@ class Exchange {
 
     public function safe_funding_fee($funding_fee) {
         return $this->extend([
-            'withdraw'=> [],
-            'deposit'=> [],
-            'info'=> [],
+            'withdraw'=> null,
+            'deposit'=> null,
+            'info'=> null,
         ], $funding_fee);
     }
 

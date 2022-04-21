@@ -1637,9 +1637,9 @@ class Exchange(object):
 
     def safe_funding_fee(self, funding_fee):
         return self.extend({
-            'withdraw': [],
-            'depost': [],
-            'info': [],
+            'withdraw': None,
+            'depost': None,
+            'info': None,
         }, funding_fee)
 
     def parse_funding_rate(self, contract, market=None):

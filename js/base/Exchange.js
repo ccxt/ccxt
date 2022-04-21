@@ -1541,10 +1541,10 @@ module.exports = class Exchange {
     }
 
     safeFundingFee (fundingFee) {
-        return this.extend({
-            'withdraw': {},
-            'deposit': {},
-            'info': {},
+        return this.extend ({
+            'withdraw': undefined,
+            'deposit': undefined,
+            'info': undefined,
         }, fundingFee);
     }
 
