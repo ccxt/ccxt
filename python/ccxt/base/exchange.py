@@ -1704,7 +1704,7 @@ class Exchange(object):
             'id': None,
             'type': None,
             'currency': None,
-            'info': [],
+            'info': None,
         }, account)
 
     def safe_balance(self, balance):

@@ -2008,7 +2008,7 @@ class Exchange {
             'id'=> null,
             'type'=> null,
             'currency'=> null,
-            'info'=> [],
+            'info'=> null,
         ], $account);
     }
 

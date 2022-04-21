@@ -1111,11 +1111,11 @@ module.exports = class Exchange {
     }
 
     safeAccount (account) {
-        return this.extend({
+        return this.extend ({
             'id': undefined,
             'type': undefined,
             'currency': undefined,
-            'info': {},
+            'info': undefined,
         }, account);
     }
 
