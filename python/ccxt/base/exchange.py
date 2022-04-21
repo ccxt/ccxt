@@ -2202,12 +2202,14 @@ class Exchange(object):
             'cost': cost,
         }
 
-    def safe_trading_fee(self, trading_fee):
+    def safe_trading_fee(self, trading_fee, market = None):
         return self.extend({
-            'symbol': None,
+            'symbol': self.safe_symbol(None, market),
             'maker': None,
             'taker': None,
-            'info': {},
+            'percentage': None,
+            'tierBased': None,
+            'info': None,
         }, trading_fee)
 
     def edit_limit_buy_order(self, id, symbol, *args):

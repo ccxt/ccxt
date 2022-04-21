@@ -1676,12 +1676,14 @@ module.exports = class Exchange {
         };
     }
 
-    safeTradingFee (tradingFee) {
+    safeTradingFee (tradingFee, market = undefined) {
         return this.extend({
-            'symbol': undefined,
+            'symbol': this.safeSymbol(undefined, market),
             'maker': undefined,
             'taker': undefined,
-            'info': {},
+            'percentage': undefined,
+            'tierBased': undefined,
+            'info': undefined,
         }, tradingFee);
     }
 

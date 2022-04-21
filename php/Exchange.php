@@ -2706,12 +2706,14 @@ class Exchange {
         );
     }
 
-    public function safe_trading_fee($trading_fee) {
+    public function safe_trading_fee($trading_fee, $market) {
         return $this->extend([
-            'symbol'=> null,
+            'symbol'=> $this->safe_symbol(null, $market),
             'maker'=> null,
             'taker'=> null,
-            'info'=> [],
+            'percentage'=> null,
+            'tierBased'=> null,
+            'info'=> null,
         ], $trading_fee);
     }
 
