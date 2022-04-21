@@ -30,6 +30,7 @@ module.exports = class kraken extends Exchange {
                 'cancelOrder': true,
                 'createDepositAddress': true,
                 'createOrder': true,
+                'createStopOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRate': false,

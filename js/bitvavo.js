@@ -29,6 +29,7 @@ module.exports = class bitvavo extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createStopOrder': true,
                 'createReduceOnlyOrder': false,
                 'editOrder': true,
                 'fetchBalance': true,

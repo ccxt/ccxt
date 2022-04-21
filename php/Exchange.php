@@ -381,6 +381,7 @@ class Exchange {
         'fetchMarketLeverageTiers' => 'fetch_market_leverage_tiers',
         'isPostOnly' => 'is_post_only',
         'createPostOnlyOrder' => 'create_post_only_order',
+        'createStopOrder' => 'create_stop_order',
         'parseBorrowInterests' => 'parse_borrow_interests',
     );
 
@@ -1213,6 +1214,7 @@ class Exchange {
             'createMarketOrder' => true,
             'createOrder' => true,
             'createPostOnlyOrder' => null,
+            'createStopOrder' => null,
             'editOrder' => 'emulated',
             'fetchAccounts' => null,
             'fetchBalance' => true,

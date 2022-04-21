@@ -24,6 +24,7 @@ module.exports = class eqonex extends Exchange {
                 'option': false,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createStopOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,

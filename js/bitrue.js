@@ -29,6 +29,7 @@ module.exports = class bitrue extends Exchange {
                 'cancelAllOrders': false,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createStopOrder': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
                 'fetchBorrowRate': false,

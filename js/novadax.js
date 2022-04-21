@@ -29,6 +29,7 @@ module.exports = class novadax extends Exchange {
                 'addMargin': false,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createStopOrder': true,
                 'createReduceOnlyOrder': false,
                 'fetchAccounts': true,
                 'fetchBalance': true,

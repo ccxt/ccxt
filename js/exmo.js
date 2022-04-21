@@ -25,6 +25,7 @@ module.exports = class exmo extends Exchange {
                 'option': false,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createStopOrder': true,
                 'fetchBalance': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,

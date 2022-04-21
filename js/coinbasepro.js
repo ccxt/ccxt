@@ -29,6 +29,7 @@ module.exports = class coinbasepro extends Exchange {
                 'cancelOrder': true,
                 'createDepositAddress': true,
                 'createOrder': true,
+                'createStopOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,

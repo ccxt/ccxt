@@ -26,6 +26,7 @@ module.exports = class hitbtc3 extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createStopOrder': true,
                 'createReduceOnlyOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,

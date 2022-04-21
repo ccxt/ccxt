@@ -32,6 +32,7 @@ module.exports = class bittrex extends Exchange {
                 'createDepositAddress': true,
                 'createMarketOrder': true,
                 'createOrder': true,
+                'createStopOrder': true,
                 'createReduceOnlyOrder': false,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,

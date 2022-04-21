@@ -28,6 +28,7 @@ module.exports = class whitebit extends Exchange {
                 'createLimitOrder': undefined,
                 'createMarketOrder': undefined,
                 'createOrder': true,
+                'createStopOrder': true,
                 'editOrder': undefined,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,

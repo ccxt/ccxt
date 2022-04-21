@@ -22,6 +22,7 @@ module.exports = class wazirx extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createStopOrder': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
                 'fetchClosedOrders': false,

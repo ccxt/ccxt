@@ -35,6 +35,7 @@ module.exports = class currencycom extends Exchange {
                 'createLimitOrder': true,
                 'createMarketOrder': true,
                 'createOrder': true,
+                'createStopOrder': true,
                 'editOrder': 'emulated',
                 'fetchAccounts': true,
                 'fetchBalance': true,

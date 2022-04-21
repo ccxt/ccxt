@@ -30,6 +30,7 @@ module.exports = class ascendex extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createStopOrder': true,
                 'createReduceOnlyOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,

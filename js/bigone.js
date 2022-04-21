@@ -25,6 +25,7 @@ module.exports = class bigone extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createStopOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchDepositAddress': true,

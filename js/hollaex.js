@@ -33,6 +33,7 @@ module.exports = class hollaex extends Exchange {
                 'createMarketBuyOrder': true,
                 'createMarketSellOrder': true,
                 'createOrder': true,
+                'createStopOrder': true,
                 'createReduceOnlyOrder': false,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,

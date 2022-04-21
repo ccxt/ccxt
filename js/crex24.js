@@ -29,6 +29,7 @@ module.exports = class crex24 extends Exchange {
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createOrder': true,
+                'createStopOrder': true,
                 'createReduceOnlyOrder': false,
                 'editOrder': true,
                 'fetchBalance': true,
