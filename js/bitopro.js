@@ -77,7 +77,10 @@ module.exports = class bitopro extends ccxt.bitopro {
         const messageHash = market['id'].toUpperCase () + '@' + name;
         const apis = this.safeValue (this.apis, 'ws');
         const path = this.safeString (apis, 'watchOrderBook');
-        const url = this.urls['ws'] + path + '/' + market['id'] + ':' + limit;
+        let url = this.urls['ws'] + path + '/' + market['id'];
+        if (limit !== undefined) {
+            url += ':' + limit;
+        }
         const orderbook = await this.watch (url, messageHash, '', messageHash);
         return orderbook.limit (limit);
     }
@@ -205,10 +208,7 @@ module.exports = class bitopro extends ccxt.bitopro {
         const symbol = market['symbol'];
         const event = this.safeString (message, 'event');
         const messageHash = market['id'].toUpperCase () + '@' + event;
-        let rawData = this.safeValue (message, 'data');
-        if (rawData === undefined) {
-            rawData = [];
-        }
+        const rawData = this.safeValue (message, 'data', []);
         const trades = this.parseTrades (rawData, market);
         let array = this.safeValue (this.trades, symbol);
         if (array === undefined) {
@@ -259,30 +259,7 @@ module.exports = class bitopro extends ccxt.bitopro {
         const symbol = market['symbol'];
         const event = this.safeString (message, 'event');
         const messageHash = market['id'].toUpperCase () + '@' + event;
-        const timestamp = this.safeInteger (message, 'timestamp');
-        const last = this.safeFloat (message, 'lastPrice');
-        const result = {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (message, 'high24hr'),
-            'low': this.safeFloat (message, 'low24hr'),
-            'bid': undefined,
-            'bidVolume': undefined,
-            'ask': undefined,
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': this.safeFloat (message, 'priceChange24hr'),
-            'percentage': this.safeFloat (message, 'priceChange24hr'),
-            'average': undefined,
-            'baseVolume': this.safeFloat (message, 'volume24hr'),
-            'quoteVolume': undefined,
-            'info': message,
-        };
+        const result = this.parseTicker (message);
         this.tickers[symbol] = result;
         client.resolve (result, messageHash);
     }
@@ -367,7 +344,7 @@ module.exports = class bitopro extends ccxt.bitopro {
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const market = this.safeMarket (symbol);
         const options = this.safeValue (this.options, 'watchOrders', {});
         const name = this.safeString (options, 'name');
         let messageHash = 'watchOrders@' + name;
