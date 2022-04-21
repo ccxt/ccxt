@@ -1677,7 +1677,7 @@ module.exports = class Exchange {
     }
 
     safeTradingFee (tradingFee, market = undefined) {
-        return this.extend({
+        return this.extend ({
             'symbol': this.safeSymbol(undefined, market),
             'maker': undefined,
             'taker': undefined,
