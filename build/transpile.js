@@ -146,6 +146,7 @@ class Transpiler {
             [ /\.setSandboxMode\s/g, '.set_sandbox_mode'],
             [ /\.safeCurrencyCode\s/g, '.safe_currency_code'],
             [ /\.safeCurrency\s/g, '.safe_currency'],
+            [ /\.safeDepositAddress\s/g, '.safe_deposit_address'],
             [ /\.safeSymbol\s/g, '.safe_symbol'],
             [ /\.safeMarket\s/g, '.safe_market'],
             [ /\.safeOrder\s/g, '.safe_order'],
