@@ -1994,15 +1994,6 @@ class Exchange(object):
             result = self.filter_by_array(result, 'currency', codes, False)
         return self.index_by(result, 'currency') if indexed else result
 
-    def safe_deposit_address(self, deposit_address, currency=None):
-        return self.extend({
-            'currency': self.safe_currency_code(None, currency),
-            'address': None,
-            'tag': None,
-            'network': None,
-            'info': None,
-        }, deposit_address)
-
     def parse_trades(self, trades, market=None, since=None, limit=None, params={}):
         array = self.to_array(trades)
         array = [self.merge(self.parse_trade(trade, market), params) for trade in array]
@@ -2010,43 +2001,6 @@ class Exchange(object):
         symbol = market['symbol'] if market else None
         tail = since is None
         return self.filter_by_symbol_since_limit(array, symbol, since, limit, tail)
-
-    def safe_transfer(self, transfer, currency=None):
-        currency = self.safe_currency(None, currency)
-        return self.extend({
-            'id': None,
-            'timestamp': None,
-            'datetime': None,
-            'currency': currency['code'],
-            'amount': None,
-            'fromAccount': None,
-            'toAccount': None,
-            'status': None,
-            'info': None,
-        }, transfer)
-
-    def safe_transaction(self, transaction, currency=None):
-        currency = self.safe_currency(None, currency)
-        return self.extend({
-            'id': None,
-            'currency': currency['code'],
-            'amount': None,
-            'network': None,
-            'address': None,
-            'addressTo': None,
-            'addressFrom': None,
-            'tag': None,
-            'tagTo': None,
-            'tagFrom': None,
-            'status': None,
-            'type': None,
-            'updated': None,
-            'txid': None,
-            'timestamp': None,
-            'datetime': None,
-            'fee': None,
-            'info': None,
-        }, transaction)
 
     def parse_transactions(self, transactions, currency=None, since=None, limit=None, params={}):
         array = self.to_array(transactions)

@@ -1398,16 +1398,6 @@ module.exports = class Exchange {
         return indexed ? this.indexBy (result, 'currency') : result;
     }
 
-    safeDepositAddress (depositAddress, currency = undefined) {
-        return this.extend ({
-            'currency': this.safeCurrencyCode (undefined, currency),
-            'address': undefined,
-            'tag': undefined,
-            'network': undefined,
-            'info': undefined,
-        }, depositAddress);
-    }
-
     parseTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
         let result = Object.values (trades || []).map ((trade) => this.merge (this.parseTrade (trade, market), params))
         result = sortBy2 (result, 'timestamp', 'id')
@@ -1422,45 +1412,6 @@ module.exports = class Exchange {
         const code = (currency !== undefined) ? currency['code'] : undefined;
         const tail = since === undefined;
         return this.filterByCurrencySinceLimit (result, code, since, limit, tail);
-    }
-
-    safeTransfer (transfer, currency = undefined) {
-        currency = this.safeCurrency (undefined, currency);
-        return this.extend ({
-            'id': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'currency': currency['code'],
-            'amount': undefined,
-            'fromAccount': undefined,
-            'toAccount': undefined,
-            'status': undefined,
-            'info': undefined,
-        }, transfer);
-    }
-
-    safeTransaction (transaction, currency = undefined) {
-        currency = this.safeCurrency (undefined, currency);
-        return this.extend ({
-            'id': undefined,
-            'currency': currency['code'],
-            'amount': undefined,
-            'network': undefined,
-            'address': undefined,
-            'addressTo': undefined,
-            'addressFrom': undefined,
-            'tag': undefined,
-            'tagTo': undefined,
-            'tagFrom': undefined,
-            'status': undefined,
-            'type': undefined,
-            'updated': undefined,
-            'txid': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'fee': undefined,
-            'info': undefined,
-        }, transaction);
     }
 
     parseTransfers (transfers, currency = undefined, since = undefined, limit = undefined, params = {}) {
