@@ -2278,9 +2278,12 @@ module.exports = class Exchange {
         return await this.createOrder (symbol, type, side, amount, price, query);
     }
 
-    async createStopOrder (symbol, type, side, amount, price, stopPrice, params = {}) {
+    async createStopOrder (symbol, type, side, amount, price = undefined, stopPrice = undefined, params = {}) {
         if (!this.has['createStopOrder']) {
             throw new NotSupported (this.id + 'createStopOrder() is not supported yet');
+        }
+        if (stop_price === undefined) {
+            throw new ArgumentsRequired(this.id + 'create_stop_order() requires argument stop_price');
         }
         const query = this.extend (params, { 'stopPrice': stopPrice });
         return await this.createOrder (symbol, type, side, amount, price, query);

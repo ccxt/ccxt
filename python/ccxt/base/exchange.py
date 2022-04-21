@@ -2844,9 +2844,11 @@ class Exchange(object):
         query = self.extend(params, {'postOnly': True})
         return self.create_order(symbol, type, side, amount, price, query)
 
-    def create_stop_order(self, symbol, type, side, amount, price, stop_price, params={}):
+    def create_stop_order(self, symbol, type, side, amount, price=None, stop_price=None, params={}):
         if not self.has['createStopOrder']:
             raise NotSupported(self.id + 'create_stop_order() is not supported yet')
+        if stop_price is None:
+            raise ArgumentsRequired(self.id + 'create_stop_order() requires argument stop_price')
         query = self.extend(params, {'stopPrice': stop_price})
         return self.create_order(symbol, type, side, amount, price, query)
 

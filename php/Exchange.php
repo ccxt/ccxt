@@ -3797,9 +3797,12 @@ class Exchange {
         return $interest;
     }
 
-    public function create_stop_order($symbol, $type, $side, $amount, $price, $stop_price, $params=array()) {
+    public function create_stop_order($symbol, $type, $side, $amount, $price = null, $stop_price = null, $params=array()) {
         if (!$this->has['createStopOrder']) {
             throw new NotSupported($this->id + 'create_stop_order() is not supported yet');
+        }
+        if ($stop_price === null) {
+            throw new ArgumentsRequired($this->id + 'create_stop_order() requires argument stop_price');
         }
         $array = array('stopPrice' => $stop_price);
         $query = $this->extend($params, $array);
