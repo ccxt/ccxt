@@ -1645,13 +1645,13 @@ class Exchange(object):
             result[parsed['symbol']] = parsed
         return result
 
-    def safe_funding_history_entry(self, funding_history_entry):
+    def safe_funding_history_entry(self, funding_history_entry, market=None):
         return self.extend({
             'id': None,
             'timestamp': None,
             'datetime': None,
             'code': None,
-            'symbol': None,
+            'symbol': self.safe_symbol(None, market),
             'amount': None,
             'info': None,
         }, funding_history_entry)

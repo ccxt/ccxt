@@ -1944,13 +1944,13 @@ class Exchange {
         return $result;
     }
 
-    public function safe_funding_history_entry($funding_history_entry) {
+    public function safe_funding_history_entry($funding_history_entry, $market = null) {
         return $this->extend([
             'id'=> null,
             'timestamp'=> null,
             'datetime'=> null,
             'code'=> null,
-            'symbol'=> null,
+            'symbol'=> $this->safe_symbol(null, $market),
             'amount'=> null,
             'info'=> [],
         ], $funding_history_entry);
