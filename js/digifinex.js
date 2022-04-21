@@ -1451,6 +1451,13 @@ module.exports = class digifinex extends Exchange {
         };
     }
 
+    parseTransferStatus (status) {
+        const statuses = {
+            '0': 'ok',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseTransfer (transfer, currency = undefined) {
         //
         //     {
@@ -1466,7 +1473,7 @@ module.exports = class digifinex extends Exchange {
             'amount': this.safeNumber (transfer, 'amount'),
             'fromAccount': this.safeString (transfer, 'fromAccount'),
             'toAccount': this.safeString (transfer, 'toAccount'),
-            'status': this.safeInteger (transfer, 'code'),
+            'status': this.parseTransferStatus (this.safeString (transfer, 'code')),
         };
     }
 
