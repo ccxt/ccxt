@@ -3877,12 +3877,12 @@ module.exports = class zb extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const side = (type === 1) ? 'add' : 'reduce';
-        const errorCode = this.safeInteger (data, 'status');
-        const status = (errorCode === 1) ? 'ok' : 'failed';
+        const statusCode = this.safeInteger (data, 'status');
+        const status = (statusCode === 1) ? 'ok' : 'failed';
         return {
             'info': response,
             'type': side,
-            'amount': amount,
+            'amount': this.parseNumber (amount),
             'code': market['quote'],
             'symbol': market['symbol'],
             'status': status,

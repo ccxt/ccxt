@@ -2554,7 +2554,16 @@ module.exports = class mexc extends Exchange {
         //         "success": true,
         //         "code": 0
         //     }
-        return response;
+        //
+        const status = (this.safeString (response, 'success') === true) ? 'ok' : 'failed';
+        return {
+            'info': response,
+            'type': undefined,
+            'amount': this.parseNumber (amount),
+            'code': undefined,
+            'symbol': symbol,
+            'status': status,
+        };
     }
 
     async reduceMargin (symbol, amount, params = {}) {

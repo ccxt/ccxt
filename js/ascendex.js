@@ -2244,7 +2244,7 @@ module.exports = class ascendex extends Exchange {
         const market = this.market (symbol);
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeString (account, 'id');
-        amount = this.numberToString (amount);
+        amount = this.amountToPrecision (symbol, amount);
         const request = {
             'account-group': accountGroup,
             'symbol': market['id'],
@@ -2263,7 +2263,7 @@ module.exports = class ascendex extends Exchange {
         return {
             'info': response,
             'type': type,
-            'amount': amount,
+            'amount': this.parseNumber (amount),
             'code': market['quote'],
             'symbol': market['symbol'],
             'status': status,
