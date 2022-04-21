@@ -2202,7 +2202,7 @@ class Exchange(object):
             'cost': cost,
         }
 
-    def safe_trading_fee(self, trading_fee, market = None):
+    def safe_trading_fee(self, trading_fee, market=None):
         return self.extend({
             'symbol': self.safe_symbol(None, market),
             'maker': None,
