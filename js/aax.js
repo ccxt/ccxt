@@ -361,10 +361,7 @@ module.exports = class aax extends Exchange {
         const data = this.safeValue (response, 'data', {});
         let status = undefined;
         let eta = undefined;
-        if (data === null) {
-            eta = undefined;
-            status = 'ok';
-        } else {
+        if (data) {
             const startTime = this.parse8601 (this.safeString (data, 'startTime'));
             const endTime = this.parse8601 (this.safeString (data, 'endTime'));
             if (endTime !== undefined) {
@@ -375,6 +372,9 @@ module.exports = class aax extends Exchange {
             } else {
                 status = data;
             }
+        } else {
+            eta = undefined;
+            status = 'ok';
         }
         return {
             'status': status,
