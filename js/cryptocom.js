@@ -212,7 +212,6 @@ module.exports = class cryptocom extends Exchange {
                 'accountsByType': {
                     'funding': 'SPOT',
                     'spot': 'SPOT',
-                    'derivatives': 'DERIVATIVES',
                     'swap': 'DERIVATIVES',
                     'future': 'DERIVATIVES',
                 },
@@ -1304,16 +1303,8 @@ module.exports = class cryptocom extends Exchange {
         fromAccount = fromAccount.toLowerCase ();
         toAccount = toAccount.toLowerCase ();
         const accountsById = this.safeValue (this.options, 'accountsByType', {});
-        const fromId = this.safeString (accountsById, fromAccount);
-        if (fromId === undefined) {
-            const keys = Object.keys (accountsById);
-            throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', '));
-        }
-        const toId = this.safeString (accountsById, toAccount);
-        if (toId === undefined) {
-            const keys = Object.keys (accountsById);
-            throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', '));
-        }
+        const fromId = this.safeString (accountsById, fromAccount, fromAccount);
+        const toId = this.safeString (accountsById, toAccount, toAccount);
         const request = {
             'currency': currency['id'],
             'amount': parseFloat (amount),
