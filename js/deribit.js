@@ -31,6 +31,8 @@ module.exports = class deribit extends Exchange {
                 'createDepositAddress': true,
                 'createOrder': true,
                 'createStopOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,

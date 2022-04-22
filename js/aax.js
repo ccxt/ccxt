@@ -34,6 +34,8 @@ module.exports = class aax extends Exchange {
                 'createDepositAddress': undefined,
                 'createOrder': true,
                 'createStopOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
                 'createReduceOnlyOrder': false,
                 'editOrder': true,
                 'fetchAccounts': undefined,

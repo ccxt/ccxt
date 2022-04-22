@@ -29,6 +29,8 @@ module.exports = class vcc extends Exchange {
                 'cancelOrder': true,
                 'createOrder': true,
                 'createStopOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
                 'createReduceOnlyOrder': false,
                 'editOrder': undefined,
                 'fetchBalance': true,

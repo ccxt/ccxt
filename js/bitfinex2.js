@@ -32,6 +32,8 @@ module.exports = class bitfinex2 extends bitfinex {
                 'createMarketOrder': true,
                 'createOrder': true,
                 'createStopOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
                 'editOrder': undefined,
                 'fetchBalance': true,
                 'fetchClosedOrder': true,

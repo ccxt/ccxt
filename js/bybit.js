@@ -32,6 +32,8 @@ module.exports = class bybit extends Exchange {
                 'cancelOrder': true,
                 'createOrder': true,
                 'createStopOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,

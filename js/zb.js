@@ -31,6 +31,8 @@ module.exports = class zb extends Exchange {
                 'createMarketOrder': undefined,
                 'createOrder': true,
                 'createStopOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
                 'createReduceOnlyOrder': false,
                 'fetchBalance': true,
                 'fetchBorrowRate': true,

@@ -28,6 +28,8 @@ module.exports = class blockchaincom extends Exchange {
                 'cancelOrders': true,
                 'createOrder': true,
                 'createStopOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
                 'fetchBalance': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
