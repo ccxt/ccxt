@@ -2681,21 +2681,15 @@ class phemex(Exchange):
         self.load_markets()
         currency = self.currency(code)
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
-        fromId = self.safe_string(accountsByType, fromAccount)
-        toId = self.safe_string(accountsByType, toAccount)
+        fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
+        toId = self.safe_string(accountsByType, toAccount, toAccount)
         direction = None
-        if fromId is None:
-            keys = list(accountsByType.keys())
-            raise ExchangeError(self.id + ' fromAccount must be one of ' + ', '.join(keys))
-        if toId is None:
-            keys = list(accountsByType.keys())
-            raise ExchangeError(self.id + ' toAccount must be one of ' + ', '.join(keys))
         if fromId == 'spot' and toId == 'future':
             direction = 2
         if fromId == 'future' and toId == 'spot':
             direction = 1
         if direction is None:
-            raise ExchangeError(self.id + ' transfer can only be down from future to spot or from spot to future')
+            raise ExchangeError(self.id + ' transfer() can only be from future to spot or from spot to future')
         scaledAmmount = self.to_ev(amount, currency)
         request = {
             'currency': currency['id'],

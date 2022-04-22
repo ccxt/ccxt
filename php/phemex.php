@@ -2811,17 +2811,9 @@ class phemex extends Exchange {
         $this->load_markets();
         $currency = $this->currency($code);
         $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
-        $fromId = $this->safe_string($accountsByType, $fromAccount);
-        $toId = $this->safe_string($accountsByType, $toAccount);
+        $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
+        $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
         $direction = null;
-        if ($fromId === null) {
-            $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
-            throw new ExchangeError($this->id . ' $fromAccount must be one of ' . implode(', ', $keys));
-        }
-        if ($toId === null) {
-            $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
-            throw new ExchangeError($this->id . ' $toAccount must be one of ' . implode(', ', $keys));
-        }
         if ($fromId === 'spot' && $toId === 'future') {
             $direction = 2;
         }
@@ -2829,7 +2821,7 @@ class phemex extends Exchange {
             $direction = 1;
         }
         if ($direction === null) {
-            throw new ExchangeError($this->id . ' transfer can only be down from future to spot or from spot to future');
+            throw new ExchangeError($this->id . ' transfer() can only be from future to spot or from spot to future');
         }
         $scaledAmmount = $this->to_ev($amount, $currency);
         $request = array(
