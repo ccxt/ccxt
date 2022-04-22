@@ -492,7 +492,11 @@ module.exports = class coinex extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = 20, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrderBook() requires a symbol argument');
+        }
         await this.loadMarkets ();
+        const market = this.market (symbol);
         if (limit === undefined) {
             limit = 20; // default
         }
@@ -501,8 +505,56 @@ module.exports = class coinex extends Exchange {
             'merge': '0.0000000001',
             'limit': limit.toString (),
         };
-        const response = await this.publicGetMarketDepth (this.extend (request, params));
-        return this.parseOrderBook (response['data'], symbol);
+        const method = market['swap'] ? 'perpetualPublicGetMarketDepth' : 'publicGetMarketDepth';
+        const response = await this[method] (this.extend (request, params));
+        //
+        // Spot
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "asks": [
+        //                 ["41056.33", "0.31727613"],
+        //                 ["41056.34", "1.05657294"],
+        //                 ["41056.35", "0.02346648"]
+        //             ],
+        //             "bids": [
+        //                 ["41050.61", "0.40618608"],
+        //                 ["41046.98", "0.13800000"],
+        //                 ["41046.56", "0.22579234"]
+        //             ],
+        //             "last": "41050.61",
+        //             "time": 1650573220346
+        //         },
+        //         "message": "OK"
+        //     }
+        //
+        // Swap
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "asks": [
+        //                 ["40620.90", "0.0384"],
+        //                 ["40625.50", "0.0219"],
+        //                 ["40625.90", "0.3506"]
+        //             ],
+        //             "bids": [
+        //                 ["40620.89", "19.6861"],
+        //                 ["40620.80", "0.0012"],
+        //                 ["40619.87", "0.0365"]
+        //             ],
+        //             "last": "40620.89",
+        //             "time": 1650587672406,
+        //             "sign_price": "40619.32",
+        //             "index_price": "40609.93"
+        //         },
+        //         "message": "OK"
+        //     }
+        //
+        const result = this.safeValue (response, 'data', {});
+        const timestamp = this.safeInteger (result, 'time');
+        return this.parseOrderBook (result, symbol, timestamp);
     }
 
     parseTrade (trade, market = undefined) {
