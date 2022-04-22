@@ -2480,7 +2480,7 @@ class ftx(Exchange):
         return self.parse_borrow_rate_histories(result, codes, since, limit)
 
     async def fetch_borrow_rate_history(self, code, since=None, limit=None, params={}):
-        histories = await self.fetch_borrow_rate_histories(since, limit, params)
+        histories = await self.fetch_borrow_rate_histories([code], since, limit, params)
         borrowRateHistory = self.safe_value(histories, code)
         if borrowRateHistory is None:
             raise BadRequest(self.id + ' fetchBorrowRateHistory() returned no data for ' + code)
