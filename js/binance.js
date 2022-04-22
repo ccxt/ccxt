@@ -2062,15 +2062,27 @@ module.exports = class binance extends Exchange {
 
     async fetchStatus (params = {}) {
         const response = await this.sapiGetSystemStatus (params);
-        let status = this.safeString (response, 'status');
-        if (status !== undefined) {
-            status = (status === '0') ? 'ok' : 'maintenance';
-            this.status = this.extend (this.status, {
-                'status': status,
-                'updated': this.milliseconds (),
-                'info': response,
-            });
+        //
+        //     {
+        //         "status": 0,              // 0: normal，1：system maintenance
+        //         "msg": "normal"           // "normal", "system_maintenance"
+        //     }
+        //
+        const statusData = {
+            'status': undefined,
+            'updated': this.milliseconds (),
+            'eta': undefined,
+            'info': response,
+        };
+        const statusRaw = this.safeInteger (response, 'status');
+        if (statusRaw === undefined) {
+            statusData['status'] = undefined;
+        } else if (statusRaw === 0) {
+            statusData['status'] = 'ok';
+        } else {
+            statusData['status'] = 'maintenance';
         }
+        this.status = statusData;
         return this.status;
     }
 

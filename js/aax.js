@@ -348,20 +348,31 @@ module.exports = class aax extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
+        const statusMessage = this.safeString (response, 'message');
         const timestamp = this.milliseconds ();
         const startTime = this.parse8601 (this.safeString (data, 'startTime'));
         const endTime = this.parse8601 (this.safeString (data, 'endTime'));
-        const update = {
+        const statusData = {
+            'status': undefined,
             'updated': this.safeInteger (response, 'ts', timestamp),
+            'eta': undefined,
             'info': response,
         };
-        if (endTime !== undefined) {
-            const startTimeIsOk = (startTime === undefined) ? true : (timestamp < startTime);
-            const isOk = (timestamp > endTime) || startTimeIsOk;
-            update['eta'] = endTime;
-            update['status'] = isOk ? 'ok' : 'maintenance';
+        if (endTime === undefined) {
+            if (statusMessage === undefined) {
+                statusData['status'] = undefined;
+            } else if (statusMessage === 'success') {
+                statusData['status'] = 'ok';
+            } else {
+                statusData['status'] = 'maintenance';
+            }
+        } else {
+            const startTimeIsOk = (startTime === undefined) ? true : (statusData['updated'] < startTime);
+            const isOk = (statusData['updated'] > endTime) || startTimeIsOk;
+            statusData['eta'] = endTime;
+            statusData['status'] = isOk ? 'ok' : 'maintenance';
         }
-        this.status = this.extend (this.status, update);
+        this.status = statusData;
         return this.status;
     }
 
