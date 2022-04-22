@@ -159,19 +159,19 @@ module.exports = class bitbns extends Exchange {
         //         "code":200
         //     }
         //
-        const statusData = {
-            'status': undefined,
+        let status = undefined;
+        const statusRaw = this.safeString (response, 'status');
+        if (statusRaw === undefined) {
+            status = undefined;
+        } else {
+            status = (statusRaw === '1') ? 'ok' : 'maintenance';
+        }
+        this.status = {
+            'status': status,
             'updated': this.milliseconds (),
             'eta': undefined,
             'info': response,
         };
-        const statusRaw = this.safeString (response, 'status');
-        if (statusRaw === undefined) {
-            statusData['status'] = undefined;
-        } else {
-            statusData['status'] = (statusRaw === '1') ? 'ok' : 'maintenance';
-        }
-        this.status = statusData;
         return this.status;
     }
 
