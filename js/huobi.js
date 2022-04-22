@@ -4315,7 +4315,7 @@ module.exports = class huobi extends Exchange {
             toAccount = toAccount.toLowerCase (); // pro, futures
             const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
             const toId = this.safeString (accountsByType, toAccount, toAccount);
-            type = fromAccount + '-to-' + toAccount;
+            type = fromId + '-to-' + toId;
         }
         const request = {
             'currency': currency['id'],
