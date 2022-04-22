@@ -165,16 +165,16 @@ module.exports = class bitopro extends ccxt.bitopro {
         const messageHash = market['id'].toUpperCase () + '@' + event;
         const rawData = this.safeValue (message, 'data', []);
         const trades = this.parseTrades (rawData, market);
-        let array = this.safeValue (this.trades, symbol);
-        if (array === undefined) {
+        let tradesCache = this.safeValue (this.trades, symbol);
+        if (tradesCache === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            array = new ArrayCache (limit);
+            tradesCache = new ArrayCache (limit);
         }
         for (let i = 0; i < trades.length; i++) {
-            array.append (trades[i]);
+            tradesCache.append (trades[i]);
         }
-        this.trades[symbol] = array;
-        client.resolve (array, messageHash);
+        this.trades[symbol] = tradesCache;
+        client.resolve (tradesCache, messageHash);
     }
 
     async watchTicker (symbol, params = {}) {
