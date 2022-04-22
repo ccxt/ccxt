@@ -2808,17 +2808,9 @@ module.exports = class phemex extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-        const fromId = this.safeString (accountsByType, fromAccount);
-        const toId = this.safeString (accountsByType, toAccount);
+        const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
+        const toId = this.safeString (accountsByType, toAccount, toAccount);
         let direction = undefined;
-        if (fromId === undefined) {
-            const keys = Object.keys (accountsByType);
-            throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', '));
-        }
-        if (toId === undefined) {
-            const keys = Object.keys (accountsByType);
-            throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', '));
-        }
         if (fromId === 'spot' && toId === 'future') {
             direction = 2;
         }
@@ -2826,7 +2818,7 @@ module.exports = class phemex extends Exchange {
             direction = 1;
         }
         if (direction === undefined) {
-            throw new ExchangeError (this.id + ' transfer can only be down from future to spot or from spot to future');
+            throw new ExchangeError (this.id + ' transfer() can only be from future to spot or from spot to future');
         }
         const scaledAmmount = this.toEv (amount, currency);
         const request = {
