@@ -73,6 +73,7 @@ class gemini extends Exchange {
                 'fetchTradingFees' => true,
                 'fetchTransactions' => true,
                 'fetchWithdrawals' => null,
+                'postOnly' => true,
                 'reduceMargin' => false,
                 'setLeverage' => false,
                 'setMarginMode' => false,
@@ -902,6 +903,20 @@ class gemini extends Exchange {
         $id = $this->safe_string($order, 'order_id');
         $side = $this->safe_string_lower($order, 'side');
         $clientOrderId = $this->safe_string($order, 'client_order_id');
+        $optionsArray = $this->safe_value($order, 'options', array());
+        $option = $this->safe_string($optionsArray, 0);
+        $timeInForce = 'GTC';
+        $postOnly = false;
+        if ($option !== null) {
+            if ($option === 'immediate-or-cancel') {
+                $timeInForce = 'IOC';
+            } else if ($option === 'fill-or-kill') {
+                $timeInForce = 'FOK';
+            } else if ($option === 'maker-or-cancel') {
+                $timeInForce = 'PO';
+                $postOnly = true;
+            }
+        }
         return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -912,8 +927,8 @@ class gemini extends Exchange {
             'status' => $status,
             'symbol' => $symbol,
             'type' => $type,
-            'timeInForce' => null,
-            'postOnly' => null,
+            'timeInForce' => $timeInForce, // default set to GTC
+            'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
@@ -995,22 +1010,60 @@ class gemini extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        // TODO add unified postOnly and timeInForce support for fill-or-kill, maker-or-cancel, immediate-or-cancel,...
         yield $this->load_markets();
         if ($type === 'market') {
             throw new ExchangeError($this->id . ' allows limit orders only');
         }
-        $nonce = $this->nonce();
+        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_order_id');
+        $params = $this->omit($params, array( 'clientOrderId', 'client_order_id' ));
+        if ($clientOrderId === null) {
+            $clientOrderId = $this->nonce();
+        }
         $amountString = $this->amount_to_precision($symbol, $amount);
         $priceString = $this->price_to_precision($symbol, $price);
         $request = array(
-            'client_order_id' => (string) $nonce,
+            'client_order_id' => (string) $clientOrderId,
             'symbol' => $this->market_id($symbol),
             'amount' => $amountString,
             'price' => $priceString,
             'side' => $side,
             'type' => 'exchange limit', // gemini allows limit orders only
+            // 'options' => array(), one of =>  maker-or-cancel, immediate-or-cancel, fill-or-kill, auction-only, indication-of-interest
         );
+        $type = $this->safe_string($params, 'type', $type);
+        $params = $this->omit($params, 'type');
+        $rawStopPrice = $this->safe_string_2($params, 'stop_price', 'stopPrice');
+        $params = $this->omit($params, array( 'stop_price', 'stopPrice', 'type' ));
+        if ($type === 'stopLimit') {
+            throw new ArgumentsRequired($this->id . ' createOrder () requires a stopPrice parameter or a stop_price parameter for ' . $type . ' orders');
+        }
+        if ($rawStopPrice !== null) {
+            $request['stop_price'] = $this->price_to_precision($symbol, $rawStopPrice);
+            $request['type'] = 'exchange stop limit';
+        } else {
+            // No $options can be applied to stop-limit orders at this time.
+            $timeInForce = $this->safe_string($params, 'timeInForce');
+            $params = $this->omit($params, 'timeInForce');
+            if ($timeInForce !== null) {
+                if (($timeInForce === 'IOC') || ($timeInForce === 'immediate-or-cancel')) {
+                    $request['options'] = array( 'immediate-or-cancel' );
+                } else if (($timeInForce === 'FOK') || ($timeInForce === 'fill-or-kill')) {
+                    $request['options'] = array( 'fill-or-kill' );
+                } else if ($timeInForce === 'PO') {
+                    $request['options'] = array( 'maker-or-cancel' );
+                }
+            }
+            $postOnly = $this->safe_value($params, 'postOnly', false);
+            $params = $this->omit($params, 'postOnly');
+            if ($postOnly) {
+                $request['options'] = array( 'maker-or-cancel' );
+            }
+            // allowing override for auction-only and indication-of-interest order $options
+            $options = $this->safe_string($params, 'options');
+            if ($options !== null) {
+                $request['options'] = array( $options );
+            }
+        }
         $response = yield $this->privatePostV1OrderNew (array_merge($request, $params));
         //
         //      {
