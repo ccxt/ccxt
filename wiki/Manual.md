@@ -4548,6 +4548,7 @@ Parameters
 - `margin`
 - `future`
 - `swap`
+- `lending`
 
 You can retrieve all the account types by selecting the keys from `exchange.options['accountsByType']
 
