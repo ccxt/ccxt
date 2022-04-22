@@ -105,7 +105,7 @@ class aax(Exchange):
                 'fetchTransactions': None,
                 'fetchTransfer': False,
                 'fetchTransfers': True,
-                'fetchWithdrawal': None,
+                'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
                 'fetchWithdrawalWhitelist': None,
                 'reduceMargin': None,
@@ -114,7 +114,7 @@ class aax(Exchange):
                 'setPositionMode': None,
                 'signIn': None,
                 'transfer': True,
-                'withdraw': None,
+                'withdraw': False,
             },
             'timeframes': {
                 '1m': '1m',

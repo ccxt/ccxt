@@ -96,7 +96,7 @@ class aax extends Exchange {
                 'fetchTransactions' => null,
                 'fetchTransfer' => false,
                 'fetchTransfers' => true,
-                'fetchWithdrawal' => null,
+                'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
                 'fetchWithdrawalWhitelist' => null,
                 'reduceMargin' => null,
@@ -105,7 +105,7 @@ class aax extends Exchange {
                 'setPositionMode' => null,
                 'signIn' => null,
                 'transfer' => true,
-                'withdraw' => null,
+                'withdraw' => false,
             ),
             'timeframes' => array(
                 '1m' => '1m',
