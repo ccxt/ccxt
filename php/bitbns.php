@@ -54,8 +54,10 @@ class bitbns extends Exchange {
                 'fetchTradingFees' => false,
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
+                'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
                 'transfer' => false,
+                'withdraw' => false,
             ),
             'timeframes' => array(
             ),

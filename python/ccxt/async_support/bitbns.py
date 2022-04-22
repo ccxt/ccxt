@@ -59,8 +59,10 @@ class bitbns(Exchange):
                 'fetchTradingFees': False,
                 'fetchTransfer': False,
                 'fetchTransfers': False,
+                'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
                 'transfer': False,
+                'withdraw': False,
             },
             'timeframes': {
             },
