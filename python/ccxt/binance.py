@@ -2042,15 +2042,19 @@ class binance(Exchange):
 
     def fetch_status(self, params={}):
         response = self.sapiGetSystemStatus(params)
-        status = self.safe_string(response, 'status')
-        if status is not None:
-            status = 'ok' if (status == '0') else 'maintenance'
-            self.status = self.extend(self.status, {
-                'status': status,
-                'updated': self.milliseconds(),
-                'info': response,
-            })
-        return self.status
+        #
+        #     {
+        #         "status": 0,              # 0: normal，1：system maintenance
+        #         "msg": "normal"           # "normal", "system_maintenance"
+        #     }
+        #
+        statusRaw = self.safe_string(response, 'status')
+        return {
+            'status': self.safe_string({'0': 'ok', '1': 'maintenance'}, statusRaw, statusRaw),
+            'updated': self.milliseconds(),
+            'eta': None,
+            'info': response,
+        }
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

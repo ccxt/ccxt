@@ -2069,16 +2069,19 @@ class binance extends Exchange {
 
     public function fetch_status($params = array ()) {
         $response = $this->sapiGetSystemStatus ($params);
-        $status = $this->safe_string($response, 'status');
-        if ($status !== null) {
-            $status = ($status === '0') ? 'ok' : 'maintenance';
-            $this->status = array_merge($this->status, array(
-                'status' => $status,
-                'updated' => $this->milliseconds(),
-                'info' => $response,
-            ));
-        }
-        return $this->status;
+        //
+        //     {
+        //         "status" => 0,              // 0 => normal，1：system maintenance
+        //         "msg" => "normal"           // "normal", "system_maintenance"
+        //     }
+        //
+        $statusRaw = $this->safe_string($response, 'status');
+        return array(
+            'status' => $this->safe_string(array( '0' => 'ok', '1' => 'maintenance' ), $statusRaw, $statusRaw),
+            'updated' => $this->milliseconds(),
+            'eta' => null,
+            'info' => $response,
+        );
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
