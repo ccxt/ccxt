@@ -237,13 +237,10 @@ module.exports = class coinex extends Exchange {
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
         if (type === 'spot' || type === 'margin') {
             result = await this.fetchSpotMarkets (query);
-        }
-        if (type === 'swap') {
+        } else if (type === 'swap') {
             result = await this.fetchContractMarkets (query);
-        }
-        const resultLength = result.length;
-        if (resultLength === 0) {
-            throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to " + "'spot', 'margin' or 'swap'");
+        } else {
+            throw new ExchangeError (this.id + " does not support the '" + type + "' market type, set exchange.options['defaultType'] to 'spot', 'margin' or 'swap'");
         }
         return result;
     }
