@@ -1087,50 +1087,6 @@ module.exports = class gemini extends Exchange {
         return this.parseOrder (response);
     }
 
-    async createOrder2 (symbol, type, side, amount, price = undefined, params = {}) {
-        // TODO add unified postOnly and timeInForce support for fill-or-kill, maker-or-cancel, immediate-or-cancel,...
-        await this.loadMarkets ();
-        if (type === 'market') {
-            throw new ExchangeError (this.id + ' allows limit orders only');
-        }
-        const nonce = this.nonce ();
-        const amountString = this.amountToPrecision (symbol, amount);
-        const priceString = this.priceToPrecision (symbol, price);
-        const request = {
-            'client_order_id': nonce.toString (),
-            'symbol': this.marketId (symbol),
-            'amount': amountString,
-            'price': priceString,
-            'side': side,
-            'type': 'exchange limit', // gemini allows limit orders only
-        };
-        const response = await this.privatePostV1OrderNew (this.extend (request, params));
-        //
-        //      {
-        //          "order_id":"106027397702",
-        //          "id":"106027397702",
-        //          "symbol":"etheur",
-        //          "exchange":"gemini",
-        //          "avg_execution_price":"2877.48",
-        //          "side":"sell",
-        //          "type":"exchange limit",
-        //          "timestamp":"1650398122",
-        //          "timestampms":1650398122308,
-        //          "is_live":false,
-        //          "is_cancelled":false,
-        //          "is_hidden":false,
-        //          "was_forced":false,
-        //          "executed_amount":"0.014434",
-        //          "client_order_id":"1650398121695",
-        //          "options":[],
-        //          "price":"2800.00",
-        //          "original_amount":"0.014434",
-        //          "remaining_amount":"0"
-        //      }
-        //
-        return this.parseOrder (response);
-    }
-
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
