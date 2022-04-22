@@ -3801,10 +3801,10 @@ class Exchange {
 
     public function create_stop_order($symbol, $type, $side, $amount, $price = null, $stop_price = null, $params=array()) {
         if (!$this->has['createStopOrder']) {
-            throw new NotSupported($this->id + 'create_stop_order() is not supported yet');
+            throw new NotSupported($this->id . 'create_stop_order() is not supported yet');
         }
         if ($stop_price === null) {
-            throw new ArgumentsRequired($this->id + 'create_stop_order() requires argument stop_price');
+            throw new ArgumentsRequired($this->id . 'create_stop_order() requires argument stop_price');
         }
         $array = array('stopPrice' => $stop_price);
         $query = $this->extend($params, $array);
@@ -3813,7 +3813,7 @@ class Exchange {
     
     public function create_stop_limit_order($symbol, $side, $amount, $price, $stop_price, $params=array()) {
         if (!$this->has['createStopLimitOrder']) {
-            throw new NotSupported($this->id + 'create_stop_limit_order() is not supported yet');
+            throw new NotSupported($this->id . 'create_stop_limit_order() is not supported yet');
         }
         $array = array('stopPrice' => $stop_price);
         $query = $this->extend($params, $array);
@@ -3822,7 +3822,7 @@ class Exchange {
     
     public function create_stop_market_order($symbol, $side, $amount, $stop_price, $params=array()) {
         if (!$this->has['createStopMarketOrder']) {
-            throw new NotSupported($this->id + 'create_stop_market_order() is not supported yet');
+            throw new NotSupported($this->id . 'create_stop_market_order() is not supported yet');
         }
         $array = array('stopPrice' => $stop_price);
         $query = $this->extend($params, $array);
