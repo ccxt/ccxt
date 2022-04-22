@@ -253,11 +253,11 @@ module.exports = class mexc extends Exchange {
                     'ERC20': 'ERC-20',
                     'BEP20': 'BEP20(BSC)',
                 },
+                'accountsByType': {
+                    'spot': 'MAIN',
+                    'swap': 'CONTRACT',
+                },
                 'transfer': {
-                    'accounts': {
-                        'spot': 'MAIN',
-                        'swap': 'CONTRACT',
-                    },
                     'accountsById': {
                         'MAIN': 'spot',
                         'CONTRACT': 'swap',
@@ -2645,18 +2645,9 @@ module.exports = class mexc extends Exchange {
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const transferOptions = this.safeValue (this.options, 'transfer', {});
-        const accounts = this.safeValue (transferOptions, 'accounts', {});
-        const fromId = this.safeString (accounts, fromAccount);
-        const toId = this.safeString (accounts, toAccount);
-        if (fromId === undefined) {
-            const keys = Object.keys (accounts);
-            throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', '));
-        }
-        if (toId === undefined) {
-            const keys = Object.keys (accounts);
-            throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', '));
-        }
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
+        const toId = this.safeString (accountsByType, toAccount, toAccount);
         const request = {
             'currency': currency['id'],
             'amount': amount,
