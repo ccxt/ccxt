@@ -306,8 +306,8 @@ module.exports = class kucoinfutures extends kucoin {
         //     {
         //         "code":"200000",
         //         "data":{
-        //             "msg":"",
-        //             "status":"open"
+        //             "status": "open", // open, close, cancelonly
+        //             "msg": "upgrade match engine" // remark for operation when status not open
         //         }
         //     }
         //
@@ -318,6 +318,7 @@ module.exports = class kucoinfutures extends kucoin {
             this.status = this.extend (this.status, {
                 'status': status,
                 'updated': this.milliseconds (),
+                'eta': undefined,
                 'info': response,
             });
         }
