@@ -1090,72 +1090,12 @@ module.exports = class kucoinfutures extends kucoin {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const uuid = this.uuid ();
-        amount = this.amountToPrecision (symbol, amount);
         const request = {
             'symbol': market['id'],
             'margin': amount,
             'bizNo': uuid,
         };
-        const response = await this.futuresPrivatePostPositionMarginDepositMargin (this.extend (request, params));
-        //
-        //     {
-        //         "code":"200000",
-        //         "msg":"Position does not exist"
-        //     }
-        //
-        //     {
-        //         "code": "200000",
-        //         "data": {
-        //             "id": "6261bb8e21d8da0001d6cc7c",
-        //             "symbol": "SNXUSDTM",
-        //             "autoDeposit": false,
-        //             "maintMarginReq": 0.025,
-        //             "riskLimit": 70000,
-        //             "realLeverage": 1.7,
-        //             "crossMode": false,
-        //             "delevPercentage": 0.8,
-        //             "openingTimestamp": 1650572174513,
-        //             "currentTimestamp": 1650572194330,
-        //             "currentQty": 42,
-        //             "currentCost": 25.7166,
-        //             "currentComm": 0.01542996,
-        //             "unrealisedCost": 25.7166,
-        //             "realisedGrossCost": 0,
-        //             "realisedCost": 0.01542996,
-        //             "isOpen": true,
-        //             "markPrice": 6.124,
-        //             "markValue": 25.7208,
-        //             "posCost": 25.7166,
-        //             "posCross": 9.994,
-        //             "posInit": 5.14332,
-        //             "posComm": 0.02451595,
-        //             "posLoss": 0,
-        //             "posMargin": 15.16183595,
-        //             "posMaint": 0.67000261,
-        //             "maintMargin": 15.16603595,
-        //             "realisedGrossPnl": 0,
-        //             "realisedPnl": -0.01542996,
-        //             "unrealisedPnl": 0.0042,
-        //             "unrealisedPnlPcnt": 0.0002,
-        //             "unrealisedRoePcnt": 0.0008,
-        //             "avgEntryPrice": 6.123,
-        //             "liquidationPrice": 2.673,
-        //             "bankruptPrice": 2.518,
-        //             "settleCurrency": "USDT"
-        //         }
-        //     }
-        //
-        const data = this.safeValue (response, 'data');
-        const marketId = this.safeString (data, 'symbol');
-        const crossMode = (this.safeValue (data, 'crossMode') === true) ? 'cross' : 'isolated';
-        return {
-            'info': response,
-            'type': crossMode,
-            'amount': this.parseNumber (amount),
-            'code': undefined,
-            'symbol': this.safeSymbol (marketId, market),
-            'status': undefined,
-        };
+        return await this.futuresPrivatePostPositionMarginDepositMargin (this.extend (request, params));
     }
 
     async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
