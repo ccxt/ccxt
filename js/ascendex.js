@@ -2268,11 +2268,6 @@ module.exports = class ascendex extends Exchange {
     }
 
     parseModifyMargin (data, market = undefined) {
-        //
-        //     {
-        //          "code": 0
-        //     }
-        //
         const errorCode = this.safeString (data, 'code');
         const status = (errorCode === '0') ? 'ok' : 'failed';
         return {
