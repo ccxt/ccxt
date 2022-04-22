@@ -249,13 +249,12 @@ module.exports = class delta extends Exchange {
         const underMaintenance = this.safeString (result, 'under_maintenance');
         const status = (underMaintenance === 'true') ? 'maintenance' : 'ok';
         const updated = this.safeIntegerProduct (result, 'server_time', 0.001, this.milliseconds ());
-        this.status = this.extend (this.status, {
+        return {
             'status': status,
             'updated': updated,
             'eta': undefined,
             'info': response,
         });
-        return this.status;
     }
 
     async fetchCurrencies (params = {}) {
