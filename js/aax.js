@@ -336,37 +336,44 @@ module.exports = class aax extends Exchange {
     async fetchStatus (params = {}) {
         const response = await this.publicGetAnnouncementMaintenance (params);
         //
+        // note, when there is no maintenance, then data is `null`
+        //
         //     {
         //         "code": 1,
         //         "data": {
         //             "startTime":"2020-06-25T02:15:00.000Z",
         //             "endTime":"2020-06-25T02:45:00.000Z"，
-        //             "description":"Spot Trading :UTC Jun 25, 2020 02:15 to 02:45 (HKT Jun 25 10:15 to 10:45),Futures Trading: UTC Jun 25, 2020 02:15 to 02:45 (HKT Jun 25 10:15 to 10:45).We apologize for any inconvenience caused. Thank you for your patience and understanding.Should you have any enquiries, please do not hesitate our live chat support or via email at cs@aax.com."
+        //             "description":"Spot Trading :UTC Jun 25, 2020 02:15 to 02:45 (HKT Jun 25 10:15 to 10:45),Futures Trading: UTC Jun 25, 2020 02:15 to 02:45 (HKT Jun 25 10:15 to 10:45).We apologize for any inconvenience caused. Thank you for your patience and understanding.Should you have any enquiries, please do not hesitate our live chat support or via email at cs@aax.com.",
+        //             "haltReason":1,
+        //             "systemStatus":{
+        //                 "spotTrading":"readOnly",
+        //                 "futuresTreading":"closeOnly",
+        //                 "walletOperating":"enable",
+        //                 "otcTrading":"disable"
+        //             },
         //         },
         //         "message":"success",
         //         "ts":1593043237000
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
-        const statusMessage = this.safeString (response, 'message');
         const timestamp = this.milliseconds ();
-        const startTime = this.parse8601 (this.safeString (data, 'startTime'));
-        const endTime = this.parse8601 (this.safeString (data, 'endTime'));
-        let status = undefined;
         const updated = this.safeInteger (response, 'ts', timestamp);
+        const data = this.safeValue (response, 'data', {});
+        let status = undefined;
         let eta = undefined;
-        if (endTime !== undefined) {
-            const startTimeIsOk = (startTime === undefined) ? true : (updated < startTime);
-            const isOk = (updated > endTime) || startTimeIsOk;
-            eta = endTime;
-            status = isOk ? 'ok' : 'maintenance';
+        if (data === null) {
+            eta = undefined;
+            status = 'ok';
         } else {
-            if (statusMessage === undefined) {
-                status = undefined;
-            } else if (statusMessage === 'success') {
-                status = 'ok';
+            const startTime = this.parse8601 (this.safeString (data, 'startTime'));
+            const endTime = this.parse8601 (this.safeString (data, 'endTime'));
+            if (endTime !== undefined) {
+                const startTimeIsOk = (startTime === undefined) ? true : (updated < startTime);
+                const isOk = (updated > endTime) || startTimeIsOk;
+                eta = endTime;
+                status = isOk ? 'ok' : 'maintenance';
             } else {
-                status = 'maintenance';
+                status = data;
             }
         }
         return {
