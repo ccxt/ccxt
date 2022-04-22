@@ -379,26 +379,26 @@ class bitmart(Exchange):
         response = self.publicSystemGetService(params)
         #
         #     {
-        #         "code": 1000,
-        #         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
         #         "message": "OK",
+        #         "code": 1000,
+        #         "trace": "1d3f28b0-763e-4f78-90c4-5e3ad19dc595",
         #         "data": {
-        #             "serivce":[
-        #                 {
-        #                     "title": "Spot API Stop",
-        #                     "service_type": "spot",
-        #                     "status": "2",
-        #                     "start_time": 1527777538000,
-        #                     "end_time": 1527777538000
-        #                 },
-        #                 {
-        #                     "title": "Contract API Stop",
-        #                     "service_type": "contract",
-        #                     "status": "2",
-        #                     "start_time": 1527777538000,
-        #                     "end_time": 1527777538000
-        #                 }
-        #             ]
+        #           "service": [
+        #             {
+        #               "title": "Spot API Stop",
+        #               "service_type": "spot",
+        #               "status": 2,
+        #               "start_time": 1648639069125,
+        #               "end_time": 1648639069125
+        #             },
+        #             {
+        #               "title": "Contract API Stop",
+        #               "service_type": "contract",
+        #               "status": 2,
+        #               "start_time": 1648639069125,
+        #               "end_time": 1648639069125
+        #             }
+        #           ]
         #         }
         #     }
         #
@@ -417,13 +417,12 @@ class bitmart(Exchange):
             else:
                 status = 'maintenance'
                 eta = self.safe_integer(service, 'end_time')
-        self.status = self.extend(self.status, {
+        return {
             'status': status,
             'updated': self.milliseconds(),
             'eta': eta,
             'info': response,
-        })
-        return self.status
+        }
 
     def fetch_spot_markets(self, params={}):
         response = self.publicSpotGetSymbolsDetails(params)
