@@ -339,33 +339,52 @@ class aax extends Exchange {
     public function fetch_status($params = array ()) {
         $response = $this->publicGetAnnouncementMaintenance ($params);
         //
+        // note, when there is no maintenance, then $data is `null`
+        //
         //     {
         //         "code" => 1,
         //         "data" => array(
         //             "startTime":"2020-06-25T02:15:00.000Z",
         //             "endTime":"2020-06-25T02:45:00.000Z"，
-        //             "description":"Spot Trading :UTC Jun 25, 2020 02:15 to 02:45 (HKT Jun 25 10:15 to 10:45),Futures Trading => UTC Jun 25, 2020 02:15 to 02:45 (HKT Jun 25 10:15 to 10:45).We apologize for any inconvenience caused. Thank you for your patience and understanding.Should you have any enquiries, please do not hesitate our live chat support or via email at cs@aax.com."
+        //             "description":"Spot Trading :UTC Jun 25, 2020 02:15 to 02:45 (HKT Jun 25 10:15 to 10:45),Futures Trading => UTC Jun 25, 2020 02:15 to 02:45 (HKT Jun 25 10:15 to 10:45).We apologize for any inconvenience caused. Thank you for your patience and understanding.Should you have any enquiries, please do not hesitate our live chat support or via email at cs@aax.com.",
+        //             "haltReason":1,
+        //             "systemStatus":array(
+        //                 "spotTrading":"readOnly",
+        //                 "futuresTreading":"closeOnly",
+        //                 "walletOperating":"enable",
+        //                 "otcTrading":"disable"
+        //             ),
         //         ),
         //         "message":"success",
         //         "ts":1593043237000
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
         $timestamp = $this->milliseconds();
-        $startTime = $this->parse8601($this->safe_string($data, 'startTime'));
-        $endTime = $this->parse8601($this->safe_string($data, 'endTime'));
-        $update = array(
-            'updated' => $this->safe_integer($response, 'ts', $timestamp),
+        $updated = $this->safe_integer($response, 'ts', $timestamp);
+        $data = $this->safe_value($response, 'data', array());
+        $status = null;
+        $eta = null;
+        if ($data) {
+            $startTime = $this->parse8601($this->safe_string($data, 'startTime'));
+            $endTime = $this->parse8601($this->safe_string($data, 'endTime'));
+            if ($endTime !== null) {
+                $startTimeIsOk = ($startTime === null) ? true : ($updated < $startTime);
+                $isOk = ($updated > $endTime) || $startTimeIsOk;
+                $eta = $endTime;
+                $status = $isOk ? 'ok' : 'maintenance';
+            } else {
+                $status = $data;
+            }
+        } else {
+            $eta = null;
+            $status = 'ok';
+        }
+        return array(
+            'status' => $status,
+            'updated' => $updated,
+            'eta' => $eta,
             'info' => $response,
         );
-        if ($endTime !== null) {
-            $startTimeIsOk = ($startTime === null) ? true : ($timestamp < $startTime);
-            $isOk = ($timestamp > $endTime) || $startTimeIsOk;
-            $update['eta'] = $endTime;
-            $update['status'] = $isOk ? 'ok' : 'maintenance';
-        }
-        $this->status = array_merge($this->status, $update);
-        return $this->status;
     }
 
     public function fetch_markets($params = array ()) {

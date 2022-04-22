@@ -346,32 +346,50 @@ class aax(Exchange):
     async def fetch_status(self, params={}):
         response = await self.publicGetAnnouncementMaintenance(params)
         #
+        # note, when there is no maintenance, then data is `null`
+        #
         #     {
         #         "code": 1,
         #         "data": {
         #             "startTime":"2020-06-25T02:15:00.000Z",
         #             "endTime":"2020-06-25T02:45:00.000Z"，
-        #             "description":"Spot Trading :UTC Jun 25, 2020 02:15 to 02:45(HKT Jun 25 10:15 to 10:45),Futures Trading: UTC Jun 25, 2020 02:15 to 02:45(HKT Jun 25 10:15 to 10:45).We apologize for any inconvenience caused. Thank you for your patience and understanding.Should you have any enquiries, please do not hesitate our live chat support or via email at cs@aax.com."
+        #             "description":"Spot Trading :UTC Jun 25, 2020 02:15 to 02:45(HKT Jun 25 10:15 to 10:45),Futures Trading: UTC Jun 25, 2020 02:15 to 02:45(HKT Jun 25 10:15 to 10:45).We apologize for any inconvenience caused. Thank you for your patience and understanding.Should you have any enquiries, please do not hesitate our live chat support or via email at cs@aax.com.",
+        #             "haltReason":1,
+        #             "systemStatus":{
+        #                 "spotTrading":"readOnly",
+        #                 "futuresTreading":"closeOnly",
+        #                 "walletOperating":"enable",
+        #                 "otcTrading":"disable"
+        #             },
         #         },
         #         "message":"success",
         #         "ts":1593043237000
         #     }
         #
-        data = self.safe_value(response, 'data', {})
         timestamp = self.milliseconds()
-        startTime = self.parse8601(self.safe_string(data, 'startTime'))
-        endTime = self.parse8601(self.safe_string(data, 'endTime'))
-        update = {
-            'updated': self.safe_integer(response, 'ts', timestamp),
+        updated = self.safe_integer(response, 'ts', timestamp)
+        data = self.safe_value(response, 'data', {})
+        status = None
+        eta = None
+        if data:
+            startTime = self.parse8601(self.safe_string(data, 'startTime'))
+            endTime = self.parse8601(self.safe_string(data, 'endTime'))
+            if endTime is not None:
+                startTimeIsOk = True if (startTime is None) else (updated < startTime)
+                isOk = (updated > endTime) or startTimeIsOk
+                eta = endTime
+                status = 'ok' if isOk else 'maintenance'
+            else:
+                status = data
+        else:
+            eta = None
+            status = 'ok'
+        return {
+            'status': status,
+            'updated': updated,
+            'eta': eta,
             'info': response,
         }
-        if endTime is not None:
-            startTimeIsOk = True if (startTime is None) else (timestamp < startTime)
-            isOk = (timestamp > endTime) or startTimeIsOk
-            update['eta'] = endTime
-            update['status'] = 'ok' if isOk else 'maintenance'
-        self.status = self.extend(self.status, update)
-        return self.status
 
     async def fetch_markets(self, params={}):
         response = await self.publicGetInstruments(params)
