@@ -358,7 +358,12 @@ module.exports = class aax extends Exchange {
             'eta': undefined,
             'info': response,
         };
-        if (endTime === undefined) {
+        if (endTime !== undefined) {
+            const startTimeIsOk = (startTime === undefined) ? true : (statusData['updated'] < startTime);
+            const isOk = (statusData['updated'] > endTime) || startTimeIsOk;
+            statusData['eta'] = endTime;
+            statusData['status'] = isOk ? 'ok' : 'maintenance';
+        } else {
             if (statusMessage === undefined) {
                 statusData['status'] = undefined;
             } else if (statusMessage === 'success') {
@@ -366,11 +371,6 @@ module.exports = class aax extends Exchange {
             } else {
                 statusData['status'] = 'maintenance';
             }
-        } else {
-            const startTimeIsOk = (startTime === undefined) ? true : (statusData['updated'] < startTime);
-            const isOk = (statusData['updated'] > endTime) || startTimeIsOk;
-            statusData['eta'] = endTime;
-            statusData['status'] = isOk ? 'ok' : 'maintenance';
         }
         this.status = statusData;
         return this.status;
