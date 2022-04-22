@@ -29,8 +29,8 @@ class coinex(Exchange):
                 'spot': True,
                 'margin': None,  # has but unimplemented
                 'swap': None,  # has but unimplemented
-                'future': None,  # has but unimplemented
-                'option': None,
+                'future': False,
+                'option': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
@@ -232,6 +232,8 @@ class coinex(Exchange):
             },
             'options': {
                 'createMarketBuyOrderRequiresPrice': True,
+                'defaultType': 'spot',  # spot, swap, margin
+                'defaultSubType': 'linear',  # linear, inverse
             },
             'commonCurrencies': {
                 'ACM': 'Actinium',
@@ -239,6 +241,17 @@ class coinex(Exchange):
         })
 
     def fetch_markets(self, params={}):
+        result = []
+        type, query = self.handle_market_type_and_params('fetchMarkets', None, params)
+        if type == 'spot' or type == 'margin':
+            result = self.fetch_spot_markets(query)
+        elif type == 'swap':
+            result = self.fetch_contract_markets(query)
+        else:
+            raise ExchangeError(self.id + " does not support the '" + type + "' market type, set exchange.options['defaultType'] to 'spot', 'margin' or 'swap'")
+        return result
+
+    def fetch_spot_markets(self, params):
         response = self.publicGetMarketInfo(params)
         #
         #     {
@@ -321,6 +334,100 @@ class coinex(Exchange):
                     },
                 },
                 'info': market,
+            })
+        return result
+
+    def fetch_contract_markets(self, params):
+        response = self.perpetualPublicGetMarketList(params)
+        #
+        #     {
+        #         "code": 0,
+        #         "data": [
+        #             {
+        #                 "name": "BTCUSD",
+        #                 "type": 2,  # 1: USDT-M Contracts, 2: Coin-M Contracts
+        #                 "leverages": ["3", "5", "8", "10", "15", "20", "30", "50", "100"],
+        #                 "stock": "BTC",
+        #                 "money": "USD",
+        #                 "fee_prec": 5,
+        #                 "stock_prec": 8,
+        #                 "money_prec": 1,
+        #                 "amount_prec": 0,
+        #                 "amount_min": "10",
+        #                 "multiplier": "1",
+        #                 "tick_size": "0.1",  # Min. Price Increment
+        #                 "available": True
+        #             },
+        #         ],
+        #         "message": "OK"
+        #     }
+        #
+        markets = self.safe_value(response, 'data', [])
+        result = []
+        for i in range(0, len(markets)):
+            entry = markets[i]
+            fees = self.fees
+            leverages = self.safe_value(entry, 'leverages', [])
+            subType = self.safe_integer(entry, 'type')
+            linear = True if (subType == 1) else False
+            inverse = True if (subType == 2) else False
+            id = self.safe_string(entry, 'name')
+            baseId = self.safe_string(entry, 'stock')
+            quoteId = self.safe_string(entry, 'money')
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
+            settleId = 'USDT' if (subType == 1) else baseId
+            settle = self.safe_currency_code(settleId)
+            symbol = base + '/' + quote + ':' + settle
+            result.append({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'settle': settle,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': settleId,
+                'type': 'swap',
+                'spot': False,
+                'margin': False,
+                'swap': True,
+                'future': False,
+                'option': False,
+                'active': self.safe_string(entry, 'available'),
+                'contract': True,
+                'linear': linear,
+                'inverse': inverse,
+                'taker': fees['trading']['taker'],
+                'maker': fees['trading']['maker'],
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.safe_integer(entry, 'stock_prec'),
+                    'price': self.safe_integer(entry, 'money_prec'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': self.safe_string(leverages, 0),
+                        'max': self.safe_string(leverages, len(leverages) - 1),
+                    },
+                    'amount': {
+                        'min': self.safe_string(entry, 'amount_min'),
+                        'max': None,
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+                'info': entry,
             })
         return result
 

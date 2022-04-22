@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\InvalidOrder;
 
@@ -23,8 +24,8 @@ class coinex extends Exchange {
                 'spot' => true,
                 'margin' => null, // has but unimplemented
                 'swap' => null, // has but unimplemented
-                'future' => null, // has but unimplemented
-                'option' => null,
+                'future' => false,
+                'option' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
@@ -226,6 +227,8 @@ class coinex extends Exchange {
             ),
             'options' => array(
                 'createMarketBuyOrderRequiresPrice' => true,
+                'defaultType' => 'spot', // spot, swap, margin
+                'defaultSubType' => 'linear', // linear, inverse
             ),
             'commonCurrencies' => array(
                 'ACM' => 'Actinium',
@@ -234,6 +237,19 @@ class coinex extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        $result = array();
+        list($type, $query) = $this->handle_market_type_and_params('fetchMarkets', null, $params);
+        if ($type === 'spot' || $type === 'margin') {
+            $result = $this->fetch_spot_markets($query);
+        } else if ($type === 'swap') {
+            $result = $this->fetch_contract_markets($query);
+        } else {
+            throw new ExchangeError($this->id . " does not support the '" . $type . "' market $type, set exchange.options['defaultType'] to 'spot', 'margin' or 'swap'");
+        }
+        return $result;
+    }
+
+    public function fetch_spot_markets($params) {
         $response = $this->publicGetMarketInfo ($params);
         //
         //     {
@@ -317,6 +333,102 @@ class coinex extends Exchange {
                     ),
                 ),
                 'info' => $market,
+            );
+        }
+        return $result;
+    }
+
+    public function fetch_contract_markets($params) {
+        $response = $this->perpetualPublicGetMarketList ($params);
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => [
+        //             array(
+        //                 "name" => "BTCUSD",
+        //                 "type" => 2, // 1 => USDT-M Contracts, 2 => Coin-M Contracts
+        //                 "leverages" => ["3", "5", "8", "10", "15", "20", "30", "50", "100"],
+        //                 "stock" => "BTC",
+        //                 "money" => "USD",
+        //                 "fee_prec" => 5,
+        //                 "stock_prec" => 8,
+        //                 "money_prec" => 1,
+        //                 "amount_prec" => 0,
+        //                 "amount_min" => "10",
+        //                 "multiplier" => "1",
+        //                 "tick_size" => "0.1", // Min. Price Increment
+        //                 "available" => true
+        //             ),
+        //         ],
+        //         "message" => "OK"
+        //     }
+        //
+        $markets = $this->safe_value($response, 'data', array());
+        $result = array();
+        for ($i = 0; $i < count($markets); $i++) {
+            $entry = $markets[$i];
+            $fees = $this->fees;
+            $leverages = $this->safe_value($entry, 'leverages', array());
+            $subType = $this->safe_integer($entry, 'type');
+            $linear = ($subType === 1) ? true : false;
+            $inverse = ($subType === 2) ? true : false;
+            $id = $this->safe_string($entry, 'name');
+            $baseId = $this->safe_string($entry, 'stock');
+            $quoteId = $this->safe_string($entry, 'money');
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
+            $settleId = ($subType === 1) ? 'USDT' : $baseId;
+            $settle = $this->safe_currency_code($settleId);
+            $symbol = $base . '/' . $quote . ':' . $settle;
+            $result[] = array(
+                'id' => $id,
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+                'settle' => $settle,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'settleId' => $settleId,
+                'type' => 'swap',
+                'spot' => false,
+                'margin' => false,
+                'swap' => true,
+                'future' => false,
+                'option' => false,
+                'active' => $this->safe_string($entry, 'available'),
+                'contract' => true,
+                'linear' => $linear,
+                'inverse' => $inverse,
+                'taker' => $fees['trading']['taker'],
+                'maker' => $fees['trading']['maker'],
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => $this->safe_integer($entry, 'stock_prec'),
+                    'price' => $this->safe_integer($entry, 'money_prec'),
+                ),
+                'limits' => array(
+                    'leverage' => array(
+                        'min' => $this->safe_string($leverages, 0),
+                        'max' => $this->safe_string($leverages, strlen($leverages) - 1),
+                    ),
+                    'amount' => array(
+                        'min' => $this->safe_string($entry, 'amount_min'),
+                        'max' => null,
+                    ),
+                    'price' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'cost' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
+                'info' => $entry,
             );
         }
         return $result;
