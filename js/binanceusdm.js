@@ -18,6 +18,9 @@ module.exports = class binanceusdm extends binance {
                     'https://binance-docs.github.io/apidocs/spot/en',
                 ],
             },
+            'has': {
+                'createStopMarketOrder': true,
+            },
             'options': {
                 'defaultType': 'future',
                 // https://www.binance.com/en/support/faq/360033162192

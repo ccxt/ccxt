@@ -34,7 +34,7 @@ module.exports = class binance extends Exchange {
                 'createOrder': true,
                 'createStopOrder': true,
                 'createStopLimitOrder': true,
-                'createStopMarketOrder': true,
+                'createStopMarketOrder': false,
                 'createReduceOnlyOrder': true,
                 'fetchAccounts': undefined,
                 'fetchBalance': true,
