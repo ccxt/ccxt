@@ -2068,17 +2068,9 @@ module.exports = class binance extends Exchange {
         //         "msg": "normal"           // "normal", "system_maintenance"
         //     }
         //
-        let status = undefined;
-        const statusRaw = this.safeInteger (response, 'status');
-        if (statusRaw === undefined) {
-            status = undefined;
-        } else if (statusRaw === 0) {
-            status = 'ok';
-        } else {
-            status = 'maintenance';
-        }
+        const statusRaw = this.safeString (response, 'status');
         return {
-            'status': status,
+            'status': this.safeString ({ '0': 'ok', '1': 'maintenance' }, statusRaw, statusRaw),
             'updated': this.milliseconds (),
             'eta': undefined,
             'info': response,
