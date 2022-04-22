@@ -2289,6 +2289,22 @@ module.exports = class Exchange {
         return await this.createOrder (symbol, type, side, amount, price, query);
     }
 
+    async createStopLimitOrder(symbol, side, amount, price, stopPrice, params={}) {
+        if (!this.has['createStopLimitOrder']) {
+            throw new NotSupported(this.id + 'createStopLimitOrder() is not supported yet');
+        }
+        const query = this.extend(params, {'stopPrice': stopPrice});
+        return this.createOrder(symbol, 'limit', side, amount, price, query);
+    }
+
+    async createStopMarketOrder(symbol, side, amount, stopPrice, params={}) {
+        if (!this.has['createStopMarketOrder']) {
+            throw new NotSupported(this.id + 'createStopMarketOrder() is not supported yet');
+        }
+        const query = this.extend(params, {'stopPrice': stopPrice});
+        return this.createOrder(symbol, 'market', side, amount, undefined, query);
+    }
+
     parseBorrowInterests (response, market = undefined) {
         const interest = [];
         for (let i = 0; i < response.length; i++) {

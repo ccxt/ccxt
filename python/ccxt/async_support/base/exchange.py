@@ -413,3 +413,15 @@ class Exchange(BaseExchange):
             raise ArgumentsRequired(self.id + 'create_stop_order() requires argument stop_price')
         query = self.extend(params, {'stopPrice': stop_price})
         return await self.create_order(symbol, type, side, amount, price, query)
+
+    async def create_stop_limit_order(self, symbol, side, amount, price, stop_price, params={}):
+        if not self.has['createStopLimitOrder']:
+            raise NotSupported(self.id + 'create_stop_limit_order() is not supported yet')
+        query = self.extend(params, {'stopPrice': stop_price})
+        return await self.create_order(symbol, 'limit', side, amount, price, query)
+
+    async def create_stop_market_order(self, symbol, side, amount, stop_price, params={}):
+        if not self.has['createStopMarketOrder']:
+            raise NotSupported(self.id + 'create_stop_market_order() is not supported yet')
+        query = self.extend(params, {'stopPrice': stop_price})
+        return await self.create_order(symbol, 'market', side, amount, None, query)

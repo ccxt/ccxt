@@ -3808,4 +3808,22 @@ class Exchange {
         $query = $this->extend($params, $array);
         return $this->create_order($symbol, $type, $side, $amount, $price, $query);
     }
+    
+    public function create_stop_limit_order($symbol, $side, $amount, $price, $stop_price, $params=array()) {
+        if (!$this->has['createStopLimitOrder']) {
+            throw new NotSupported($this->id + 'create_stop_limit_order() is not supported yet');
+        }
+        $array = array('stopPrice' => $stop_price);
+        $query = $this->extend($params, $array);
+        return $this->create_order($symbol, 'limit', $side, $amount, $price, $query);
+    }
+    
+    public function create_stop_market_order($symbol, $side, $amount, $stop_price, $params=array()) {
+        if (!$this->has['createStopMarketOrder']) {
+            throw new NotSupported($this->id + 'create_stop_market_order() is not supported yet');
+        }
+        $array = array('stopPrice' => $stop_price);
+        $query = $this->extend($params, $array);
+        return $this->create_order($symbol, 'market', $side, $amount, null, $query);
+    }
 }

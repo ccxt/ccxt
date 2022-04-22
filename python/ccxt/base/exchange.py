@@ -2852,6 +2852,18 @@ class Exchange(object):
         query = self.extend(params, {'stopPrice': stop_price})
         return self.create_order(symbol, type, side, amount, price, query)
 
+    def create_stop_limit_order(self, symbol, side, amount, price, stop_price, params={}):
+        if not self.has['createStopLimitOrder']:
+            raise NotSupported(self.id + 'create_stop_limit_order() is not supported yet')
+        query = self.extend(params, {'stopPrice': stop_price})
+        return self.create_order(symbol, 'limit', side, amount, price, query)
+
+    def create_stop_market_order(self, symbol, side, amount, stop_price, params={}):
+        if not self.has['createStopMarketOrder']:
+            raise NotSupported(self.id + 'create_stop_market_order() is not supported yet')
+        query = self.extend(params, {'stopPrice': stop_price})
+        return self.create_order(symbol, 'market', side, amount, None, query)
+
     def parse_borrow_interests(self, response, market=None):
         interest = []
         for i in range(len(response)):
