@@ -1312,7 +1312,7 @@ module.exports = class mexc3 extends Exchange {
         let changeValue = undefined;
         let prevClose = undefined;
         // if swap
-        if ('timestamp' in ticker) {
+        if (market['swap'] || 'timestamp' in ticker) {
             //
             //     {
             //         "symbol":"ETH_USDT",
