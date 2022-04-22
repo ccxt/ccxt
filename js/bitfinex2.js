@@ -378,13 +378,21 @@ module.exports = class bitfinex2 extends bitfinex {
         //    [0] // maintenance
         //
         const response = await this.publicGetPlatformStatus (params);
-        const status = this.safeInteger (response, 0);
-        const formattedStatus = (status === 1) ? 'ok' : 'maintenance';
-        this.status = this.extend (this.status, {
-            'status': formattedStatus,
+        const statusRaw = this.safeInteger (response, 0);
+        let status = undefined;
+        if (statusRaw === undefined) {
+            status = undefined;
+        } else if (statusRaw === 1) {
+            status = 'ok';
+        } else {
+            status = 'maintenance';
+        }
+        this.status = {
+            'status': status,
             'updated': this.milliseconds (),
+            'eta': undefined,
             'info': response,
-        });
+        };
         return this.status;
     }
 
