@@ -1237,14 +1237,8 @@ class poloniex(Exchange):
         currency = self.currency(code)
         amount = self.currency_to_precision(code, amount)
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
-        fromId = self.safe_string(accountsByType, fromAccount)
-        toId = self.safe_string(accountsByType, toAccount)
-        if fromId is None:
-            keys = list(accountsByType.keys())
-            raise ExchangeError(self.id + ' fromAccount must be one of ' + ', '.join(keys))
-        if toId is None:
-            keys = list(accountsByType.keys())
-            raise ExchangeError(self.id + ' toAccount must be one of ' + ', '.join(keys))
+        fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
+        toId = self.safe_string(accountsByType, toAccount, fromAccount)
         request = {
             'amount': amount,
             'currency': currency['id'],

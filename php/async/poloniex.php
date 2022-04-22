@@ -1307,16 +1307,8 @@ class poloniex extends Exchange {
         $currency = $this->currency($code);
         $amount = $this->currency_to_precision($code, $amount);
         $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
-        $fromId = $this->safe_string($accountsByType, $fromAccount);
-        $toId = $this->safe_string($accountsByType, $toAccount);
-        if ($fromId === null) {
-            $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
-            throw new ExchangeError($this->id . ' $fromAccount must be one of ' . implode(', ', $keys));
-        }
-        if ($toId === null) {
-            $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
-            throw new ExchangeError($this->id . ' $toAccount must be one of ' . implode(', ', $keys));
-        }
+        $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
+        $toId = $this->safe_string($accountsByType, $toAccount, $fromAccount);
         $request = array(
             'amount' => $amount,
             'currency' => $currency['id'],
