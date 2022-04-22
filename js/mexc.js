@@ -358,18 +358,16 @@ module.exports = class mexc extends Exchange {
     async fetchStatus (params = {}) {
         const response = await this.spotPublicGetCommonPing (params);
         //
-        // { "code":200 }
+        //     { "code":200 }
         //
         const code = this.safeInteger (response, 'code');
-        if (code !== undefined) {
-            const status = (code === 200) ? 'ok' : 'maintenance';
-            this.status = this.extend (this.status, {
-                'status': status,
-                'updated': this.milliseconds (),
-                'info': response,
-            });
-        }
-        return this.status;
+        const status = (code === 200) ? 'ok' : 'maintenance';
+        return {
+            'status': status,
+            'updated': this.milliseconds (),
+            'eta': undefined,
+            'info': response,
+        };
     }
 
     async fetchCurrencies (params = {}) {
