@@ -259,11 +259,11 @@ class mexc extends Exchange {
                     'ERC20' => 'ERC-20',
                     'BEP20' => 'BEP20(BSC)',
                 ),
+                'accountsByType' => array(
+                    'spot' => 'MAIN',
+                    'swap' => 'CONTRACT',
+                ),
                 'transfer' => array(
-                    'accounts' => array(
-                        'spot' => 'MAIN',
-                        'swap' => 'CONTRACT',
-                    ),
                     'accountsById' => array(
                         'MAIN' => 'spot',
                         'CONTRACT' => 'swap',
@@ -2651,18 +2651,9 @@ class mexc extends Exchange {
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
         yield $this->load_markets();
         $currency = $this->currency($code);
-        $transferOptions = $this->safe_value($this->options, 'transfer', array());
-        $accounts = $this->safe_value($transferOptions, 'accounts', array());
-        $fromId = $this->safe_string($accounts, $fromAccount);
-        $toId = $this->safe_string($accounts, $toAccount);
-        if ($fromId === null) {
-            $keys = is_array($accounts) ? array_keys($accounts) : array();
-            throw new ExchangeError($this->id . ' $fromAccount must be one of ' . implode(', ', $keys));
-        }
-        if ($toId === null) {
-            $keys = is_array($accounts) ? array_keys($accounts) : array();
-            throw new ExchangeError($this->id . ' $toAccount must be one of ' . implode(', ', $keys));
-        }
+        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
+        $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
         $request = array(
             'currency' => $currency['id'],
             'amount' => $amount,
