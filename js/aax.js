@@ -93,7 +93,7 @@ module.exports = class aax extends Exchange {
                 'fetchTransactions': undefined,
                 'fetchTransfer': false,
                 'fetchTransfers': true,
-                'fetchWithdrawal': undefined,
+                'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': undefined,
                 'reduceMargin': undefined,
@@ -102,7 +102,7 @@ module.exports = class aax extends Exchange {
                 'setPositionMode': undefined,
                 'signIn': undefined,
                 'transfer': true,
-                'withdraw': undefined,
+                'withdraw': false,
             },
             'timeframes': {
                 '1m': '1m',
