@@ -388,23 +388,25 @@ module.exports = class deribit extends Exchange {
     }
 
     async fetchStatus (params = {}) {
-        const request = {
-            // 'expected_result': false, // true will trigger an error for testing purposes
-        };
-        const response = await this.publicGetTest (this.extend (request, params));
+        const response = await this.publicGetStatus (params);
         //
         //     {
-        //         jsonrpc: '2.0',
-        //         result: { version: '1.2.26' },
-        //         usIn: 1583922623964485,
-        //         usOut: 1583922623964487,
-        //         usDiff: 2,
-        //         testnet: false
+        //         "jsonrpc": "2.0",
+        //         "result": {
+        //             "locked": "false" // true, partial, false
+        //         },
+        //         "usIn": 1650641690226788,
+        //         "usOut": 1650641690226836,
+        //         "usDiff": 48,
+        //         "testnet": false
         //     }
         //
+        const result = this.safeString (response, 'result');
+        const locked = this.safeString (result, 'result');
         this.status = this.extend (this.status, {
-            'status': 'ok',
-            'updated': this.milliseconds (),
+            'status': (locked ? 'maintenance' : 'ok'),
+            'updated': this.safeIntegerProduct (response, 'usIn', 0.001, this.milliseconds ()),
+            'eta': undefined,
             'info': response,
         });
         return this.status;
