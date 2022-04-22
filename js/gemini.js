@@ -1049,13 +1049,12 @@ module.exports = class gemini extends Exchange {
                     request['options'] = [ 'maker-or-cancel' ];
                 }
             }
-            // support for postOnly orders
             const postOnly = this.safeValue (params, 'postOnly', false);
             params = this.omit (params, 'postOnly');
-            if (postOnly === true) {
+            if (postOnly) {
                 request['options'] = [ 'maker-or-cancel' ];
             }
-            // allowing override for auction-only and indication-of-interest orders
+            // allowing override for auction-only and indication-of-interest order options
             const options = this.safeString (params, 'options');
             if (options !== undefined) {
                 request['options'] = [ options ];
