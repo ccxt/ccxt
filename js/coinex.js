@@ -20,8 +20,8 @@ module.exports = class coinex extends Exchange {
                 'spot': true,
                 'margin': undefined, // has but unimplemented
                 'swap': undefined, // has but unimplemented
-                'future': undefined, // has but unimplemented
-                'option': undefined,
+                'future': false,
+                'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
@@ -223,6 +223,8 @@ module.exports = class coinex extends Exchange {
             },
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
+                'defaultType': 'spot', // spot, swap, margin
+                'defaultSubType': 'linear', // linear, inverse
             },
             'commonCurrencies': {
                 'ACM': 'Actinium',
@@ -231,6 +233,22 @@ module.exports = class coinex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        let result = [];
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
+        if (type === 'spot' || type === 'margin') {
+            result = await this.fetchSpotMarkets (query);
+        }
+        if (type === 'swap') {
+            result = await this.fetchContractMarkets (query);
+        }
+        const resultLength = result.length;
+        if (resultLength === 0) {
+            throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to " + "'spot', 'margin' or 'swap'");
+        }
+        return result;
+    }
+
+    async fetchSpotMarkets (params) {
         const response = await this.publicGetMarketInfo (params);
         //
         //     {
@@ -319,6 +337,102 @@ module.exports = class coinex extends Exchange {
         return result;
     }
 
+    async fetchContractMarkets (params) {
+        const response = await this.perpetualPublicGetMarketList (params);
+        //
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "name": "BTCUSD",
+        //                 "type": 2, // 1: USDT-M Contracts, 2: Coin-M Contracts
+        //                 "leverages": ["3", "5", "8", "10", "15", "20", "30", "50", "100"],
+        //                 "stock": "BTC",
+        //                 "money": "USD",
+        //                 "fee_prec": 5,
+        //                 "stock_prec": 8,
+        //                 "money_prec": 1,
+        //                 "amount_prec": 0,
+        //                 "amount_min": "10",
+        //                 "multiplier": "1",
+        //                 "tick_size": "0.1", // Min. Price Increment
+        //                 "available": true
+        //             },
+        //         ],
+        //         "message": "OK"
+        //     }
+        //
+        const markets = this.safeValue (response, 'data', []);
+        const result = [];
+        for (let i = 0; i < markets.length; i++) {
+            const entry = markets[i];
+            const fees = this.fees;
+            const leverages = this.safeValue (entry, 'leverages', []);
+            const subType = this.safeInteger (entry, 'type');
+            const linear = (subType === 1) ? true : false;
+            const inverse = (subType === 2) ? true : false;
+            const id = this.safeString (entry, 'name');
+            const baseId = this.safeString (entry, 'stock');
+            const quoteId = this.safeString (entry, 'money');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const settleId = (subType === 1) ? 'USDT' : baseId;
+            const settle = this.safeCurrencyCode (settleId);
+            const symbol = base + '/' + quote + ':' + settle;
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'settle': settle,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': settleId,
+                'type': 'swap',
+                'spot': false,
+                'margin': false,
+                'swap': true,
+                'future': false,
+                'option': false,
+                'active': this.safeString (entry, 'available'),
+                'contract': true,
+                'linear': linear,
+                'inverse': inverse,
+                'taker': fees['trading']['taker'],
+                'maker': fees['trading']['maker'],
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeInteger (entry, 'stock_prec'),
+                    'price': this.safeInteger (entry, 'money_prec'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': this.safeString (leverages, 0),
+                        'max': this.safeString (leverages, leverages.length - 1),
+                    },
+                    'amount': {
+                        'min': this.safeString (entry, 'amount_min'),
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'info': entry,
+            });
+        }
+        return result;
+    }
+
     parseTicker (ticker, market = undefined) {
         const timestamp = this.safeInteger (ticker, 'date');
         const symbol = this.safeSymbol (undefined, market);
@@ -381,7 +495,11 @@ module.exports = class coinex extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = 20, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrderBook() requires a symbol argument');
+        }
         await this.loadMarkets ();
+        const market = this.market (symbol);
         if (limit === undefined) {
             limit = 20; // default
         }
@@ -390,8 +508,56 @@ module.exports = class coinex extends Exchange {
             'merge': '0.0000000001',
             'limit': limit.toString (),
         };
-        const response = await this.publicGetMarketDepth (this.extend (request, params));
-        return this.parseOrderBook (response['data'], symbol);
+        const method = market['swap'] ? 'perpetualPublicGetMarketDepth' : 'publicGetMarketDepth';
+        const response = await this[method] (this.extend (request, params));
+        //
+        // Spot
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "asks": [
+        //                 ["41056.33", "0.31727613"],
+        //                 ["41056.34", "1.05657294"],
+        //                 ["41056.35", "0.02346648"]
+        //             ],
+        //             "bids": [
+        //                 ["41050.61", "0.40618608"],
+        //                 ["41046.98", "0.13800000"],
+        //                 ["41046.56", "0.22579234"]
+        //             ],
+        //             "last": "41050.61",
+        //             "time": 1650573220346
+        //         },
+        //         "message": "OK"
+        //     }
+        //
+        // Swap
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "asks": [
+        //                 ["40620.90", "0.0384"],
+        //                 ["40625.50", "0.0219"],
+        //                 ["40625.90", "0.3506"]
+        //             ],
+        //             "bids": [
+        //                 ["40620.89", "19.6861"],
+        //                 ["40620.80", "0.0012"],
+        //                 ["40619.87", "0.0365"]
+        //             ],
+        //             "last": "40620.89",
+        //             "time": 1650587672406,
+        //             "sign_price": "40619.32",
+        //             "index_price": "40609.93"
+        //         },
+        //         "message": "OK"
+        //     }
+        //
+        const result = this.safeValue (response, 'data', {});
+        const timestamp = this.safeInteger (result, 'time');
+        return this.parseOrderBook (result, symbol, timestamp);
     }
 
     parseTrade (trade, market = undefined) {
