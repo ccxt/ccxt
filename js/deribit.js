@@ -409,7 +409,7 @@ module.exports = class deribit extends Exchange {
             'updated': updateTime,
             'eta': undefined,
             'info': response,
-        });
+        };
     }
 
     async fetchMarkets (params = {}) {
