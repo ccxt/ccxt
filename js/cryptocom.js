@@ -212,6 +212,7 @@ module.exports = class cryptocom extends Exchange {
                 'accountsByType': {
                     'funding': 'SPOT',
                     'spot': 'SPOT',
+                    'derivatives': 'DERIVATIVES',
                     'swap': 'DERIVATIVES',
                     'future': 'DERIVATIVES',
                 },
