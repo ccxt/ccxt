@@ -403,13 +403,12 @@ module.exports = class deribit extends Exchange {
         //
         const result = this.safeString (response, 'result');
         const locked = this.safeString (result, 'result');
-        this.status = this.extend (this.status, {
+        return {
             'status': (locked ? 'maintenance' : 'ok'),
             'updated': this.safeIntegerProduct (response, 'usIn', 0.001, this.milliseconds ()),
             'eta': undefined,
             'info': response,
         });
-        return this.status;
     }
 
     async fetchMarkets (params = {}) {
