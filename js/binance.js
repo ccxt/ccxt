@@ -1166,6 +1166,7 @@ module.exports = class binance extends Exchange {
                     '-6020': BadRequest, // {"code":-6020,"msg":"Project not exists"}
                     '-7001': BadRequest, // {"code":-7001,"msg":"Date range is not supported."}
                     '-7002': BadRequest, // {"code":-7002,"msg":"Data request type is not supported."}
+                    '-9000': InsufficientFunds, // {"code":-9000,"msg":"user have no avaliable amount"}"
                     '-10017': BadRequest, // {"code":-10017,"msg":"Repay amount should not be larger than liability."}
                     '-11008': InsufficientFunds, // {"code":-11008,"msg":"Exceeding the account's maximum borrowable limit."} // undocumented
                     '-12014': RateLimitExceeded, // {"code":-12014,"msg":"More than 1 request in 3 seconds"}
