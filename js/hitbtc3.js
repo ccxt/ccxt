@@ -302,9 +302,7 @@ module.exports = class hitbtc3 extends Exchange {
                 'accountsByType': {
                     'spot': 'spot',
                     'funding': 'wallet',
-                    'wallet': 'wallet',
                     'future': 'derivatives',
-                    'derivatives': 'derivatives',
                 },
             },
             'commonCurrencies': {
@@ -635,7 +633,7 @@ module.exports = class hitbtc3 extends Exchange {
         const type = this.safeStringLower (params, 'type', 'spot');
         params = this.omit (params, [ 'type' ]);
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-        const account = this.safeString (accountsByType, type);
+        const account = this.safeString (accountsByType, type, type);
         let response = undefined;
         if (account === 'wallet') {
             response = await this.privateGetWalletBalance (params);
@@ -1697,15 +1695,8 @@ module.exports = class hitbtc3 extends Exchange {
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
         fromAccount = fromAccount.toLowerCase ();
         toAccount = toAccount.toLowerCase ();
-        const fromId = this.safeString (accountsByType, fromAccount);
-        const toId = this.safeString (accountsByType, toAccount);
-        const keys = Object.keys (accountsByType);
-        if (fromId === undefined) {
-            throw new ArgumentsRequired (this.id + ' transfer() fromAccount argument must be one of ' + keys.join (', '));
-        }
-        if (toId === undefined) {
-            throw new ArgumentsRequired (this.id + ' transfer() toAccount argument must be one of ' + keys.join (', '));
-        }
+        const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
+        const toId = this.safeString (accountsByType, toAccount, toAccount);
         if (fromId === toId) {
             throw new BadRequest (this.id + ' transfer() fromAccount and toAccount arguments cannot be the same account');
         }
