@@ -4313,17 +4313,9 @@ module.exports = class huobi extends Exchange {
             const accountsByType = this.safeValue (this.options, 'accountsByType', {});
             fromAccount = fromAccount.toLowerCase (); // pro, futures
             toAccount = toAccount.toLowerCase (); // pro, futures
-            const fromId = this.safeString (accountsByType, fromAccount);
-            const toId = this.safeString (accountsByType, toAccount);
-            if (fromId === undefined) {
-                const keys = Object.keys (accountsByType);
-                throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', '));
-            }
-            if (toId === undefined) {
-                const keys = Object.keys (accountsByType);
-                throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', '));
-            }
-            type = fromAccount + '-to-' + toAccount;
+            const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
+            const toId = this.safeString (accountsByType, toAccount, toAccount);
+            type = fromId + '-to-' + toId;
         }
         const request = {
             'currency': currency['id'],
