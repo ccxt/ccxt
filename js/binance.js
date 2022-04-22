@@ -2068,21 +2068,21 @@ module.exports = class binance extends Exchange {
         //         "msg": "normal"           // "normal", "system_maintenance"
         //     }
         //
-        const statusData = {
-            'status': undefined,
+        let status = undefined;
+        const statusRaw = this.safeInteger (response, 'status');
+        if (statusRaw === undefined) {
+            status = undefined;
+        } else if (statusRaw === 0) {
+            status = 'ok';
+        } else {
+            status = 'maintenance';
+        }
+        this.status = {
+            'status': status,
             'updated': this.milliseconds (),
             'eta': undefined,
             'info': response,
         };
-        const statusRaw = this.safeInteger (response, 'status');
-        if (statusRaw === undefined) {
-            statusData['status'] = undefined;
-        } else if (statusRaw === 0) {
-            statusData['status'] = 'ok';
-        } else {
-            statusData['status'] = 'maintenance';
-        }
-        this.status = statusData;
         return this.status;
     }
 
