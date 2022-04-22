@@ -20,8 +20,8 @@ module.exports = class coinex extends Exchange {
                 'spot': true,
                 'margin': undefined, // has but unimplemented
                 'swap': undefined, // has but unimplemented
-                'future': undefined, // has but unimplemented
-                'option': undefined,
+                'future': false,
+                'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
@@ -223,6 +223,8 @@ module.exports = class coinex extends Exchange {
             },
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
+                'defaultType': 'spot', // spot, swap, margin
+                'defaultSubType': 'linear', // linear, inverse
             },
             'commonCurrencies': {
                 'ACM': 'Actinium',
@@ -231,6 +233,19 @@ module.exports = class coinex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        let result = [];
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
+        if (type === 'spot' || type === 'margin') {
+            result = await this.fetchSpotMarkets (query);
+        } else if (type === 'swap') {
+            result = await this.fetchContractMarkets (query);
+        } else {
+            throw new ExchangeError (this.id + " does not support the '" + type + "' market type, set exchange.options['defaultType'] to 'spot', 'margin' or 'swap'");
+        }
+        return result;
+    }
+
+    async fetchSpotMarkets (params) {
         const response = await this.publicGetMarketInfo (params);
         //
         //     {
@@ -314,6 +329,102 @@ module.exports = class coinex extends Exchange {
                     },
                 },
                 'info': market,
+            });
+        }
+        return result;
+    }
+
+    async fetchContractMarkets (params) {
+        const response = await this.perpetualPublicGetMarketList (params);
+        //
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "name": "BTCUSD",
+        //                 "type": 2, // 1: USDT-M Contracts, 2: Coin-M Contracts
+        //                 "leverages": ["3", "5", "8", "10", "15", "20", "30", "50", "100"],
+        //                 "stock": "BTC",
+        //                 "money": "USD",
+        //                 "fee_prec": 5,
+        //                 "stock_prec": 8,
+        //                 "money_prec": 1,
+        //                 "amount_prec": 0,
+        //                 "amount_min": "10",
+        //                 "multiplier": "1",
+        //                 "tick_size": "0.1", // Min. Price Increment
+        //                 "available": true
+        //             },
+        //         ],
+        //         "message": "OK"
+        //     }
+        //
+        const markets = this.safeValue (response, 'data', []);
+        const result = [];
+        for (let i = 0; i < markets.length; i++) {
+            const entry = markets[i];
+            const fees = this.fees;
+            const leverages = this.safeValue (entry, 'leverages', []);
+            const subType = this.safeInteger (entry, 'type');
+            const linear = (subType === 1) ? true : false;
+            const inverse = (subType === 2) ? true : false;
+            const id = this.safeString (entry, 'name');
+            const baseId = this.safeString (entry, 'stock');
+            const quoteId = this.safeString (entry, 'money');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const settleId = (subType === 1) ? 'USDT' : baseId;
+            const settle = this.safeCurrencyCode (settleId);
+            const symbol = base + '/' + quote + ':' + settle;
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'settle': settle,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': settleId,
+                'type': 'swap',
+                'spot': false,
+                'margin': false,
+                'swap': true,
+                'future': false,
+                'option': false,
+                'active': this.safeString (entry, 'available'),
+                'contract': true,
+                'linear': linear,
+                'inverse': inverse,
+                'taker': fees['trading']['taker'],
+                'maker': fees['trading']['maker'],
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeInteger (entry, 'stock_prec'),
+                    'price': this.safeInteger (entry, 'money_prec'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': this.safeString (leverages, 0),
+                        'max': this.safeString (leverages, leverages.length - 1),
+                    },
+                    'amount': {
+                        'min': this.safeString (entry, 'amount_min'),
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'info': entry,
             });
         }
         return result;
