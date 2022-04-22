@@ -81,6 +81,8 @@ module.exports = class Exchange {
                 'createOrder': true,
                 'createPostOnlyOrder': undefined,
                 'createStopOrder': undefined,
+                'createStopLimitOrder': undefined,
+                'createStopMarketOrder': undefined,
                 'editOrder': 'emulated',
                 'fetchAccounts': undefined,
                 'fetchBalance': true,

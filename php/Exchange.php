@@ -382,6 +382,8 @@ class Exchange {
         'isPostOnly' => 'is_post_only',
         'createPostOnlyOrder' => 'create_post_only_order',
         'createStopOrder' => 'create_stop_order',
+        'createStopLimitOrder' => 'create_stop_limit_order',
+        'createStopMarketOrder' => 'create_stop_market_order',
         'parseBorrowInterests' => 'parse_borrow_interests',
     );
 
