@@ -254,7 +254,7 @@ module.exports = class delta extends Exchange {
             'updated': updated,
             'eta': undefined,
             'info': response,
-        });
+        };
     }
 
     async fetchCurrencies (params = {}) {
