@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { BadRequest, BadSymbol, InvalidOrder, InvalidAddress, ExchangeError, ArgumentsRequired, InsufficientFunds } = require ('./base/errors');
+const { BadRequest, BadSymbol, InvalidOrder, InvalidAddress, ExchangeError, ArgumentsRequired, NotSupported, InsufficientFunds } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
@@ -1221,10 +1221,10 @@ module.exports = class mexc3 extends Exchange {
         }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         let tickers = undefined;
+        if (isSingularMarket) {
+            request['symbol'] = market['id'];
+        }
         if (marketType === 'spot') {
-            if (isSingularMarket) {
-                request['symbol'] = market['id'];
-            }
             tickers = await this.spotPublicGetTicker24hr (this.extend (request, query));
             //
             // (Note: for single symbol, only one object is returned, instead of array)
@@ -1253,9 +1253,6 @@ module.exports = class mexc3 extends Exchange {
             //     ]
             //
         } else if (marketType === 'swap') {
-            if (isSingularMarket) {
-                request['symbol'] = market['id'];
-            }
             const response = await this.contractPublicGetTicker (this.extend (request, query));
             //     {
             //         "success":true,
@@ -1413,10 +1410,17 @@ module.exports = class mexc3 extends Exchange {
 
     async fetchBidsAsks (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBidsAsks', undefined, params);
-        let method = undefined;
+        let market = undefined;
+        let isSingularMarket = false;
+        if (symbols !== undefined) {
+            const length = symbols.length;
+            isSingularMarket = length === 1;
+            market = this.market (symbols[0]);
+        }
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBidsAsks', market, params);
+        let tickers = undefined;
         if (marketType === 'spot') {
-            method = 'spotPublicGetTickerBookTicker';
+            tickers = await this.spotPublicGetTickerBookTicker (query);
             //
             //     [
             //       {
@@ -1429,10 +1433,13 @@ module.exports = class mexc3 extends Exchange {
             //     ]
             //
         } else if (marketType === 'swap') {
-            throw new BadRequest (this.id + ' fetchBidsAsks() is not available for ' + marketType + ' markets');
+            throw new NotSupported (this.id + ' fetchBidsAsks() is not available for ' + marketType + ' markets');
         }
-        const response = await this[method] (query);
-        return this.parseTickers (response, symbols);
+        // when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
+        if (isSingularMarket) {
+            tickers = [ tickers ];
+        }
+        return this.parseTickers (tickers, symbols);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
