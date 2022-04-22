@@ -348,21 +348,33 @@ module.exports = class aax extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
+        const statusMessage = this.safeString (response, 'message');
         const timestamp = this.milliseconds ();
         const startTime = this.parse8601 (this.safeString (data, 'startTime'));
         const endTime = this.parse8601 (this.safeString (data, 'endTime'));
-        const update = {
-            'updated': this.safeInteger (response, 'ts', timestamp),
+        let status = undefined;
+        const updated = this.safeInteger (response, 'ts', timestamp);
+        let eta = undefined;
+        if (endTime !== undefined) {
+            const startTimeIsOk = (startTime === undefined) ? true : (updated < startTime);
+            const isOk = (updated > endTime) || startTimeIsOk;
+            eta = endTime;
+            status = isOk ? 'ok' : 'maintenance';
+        } else {
+            if (statusMessage === undefined) {
+                status = undefined;
+            } else if (statusMessage === 'success') {
+                status = 'ok';
+            } else {
+                status = 'maintenance';
+            }
+        }
+        return {
+            'status': status,
+            'updated': updated,
+            'eta': eta,
             'info': response,
         };
-        if (endTime !== undefined) {
-            const startTimeIsOk = (startTime === undefined) ? true : (timestamp < startTime);
-            const isOk = (timestamp > endTime) || startTimeIsOk;
-            update['eta'] = endTime;
-            update['status'] = isOk ? 'ok' : 'maintenance';
-        }
-        this.status = this.extend (this.status, update);
-        return this.status;
     }
 
     async fetchMarkets (params = {}) {
