@@ -496,7 +496,11 @@ class coinex extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = 20, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOrderBook() requires a $symbol argument');
+        }
         $this->load_markets();
+        $market = $this->market($symbol);
         if ($limit === null) {
             $limit = 20; // default
         }
@@ -505,8 +509,56 @@ class coinex extends Exchange {
             'merge' => '0.0000000001',
             'limit' => (string) $limit,
         );
-        $response = $this->publicGetMarketDepth (array_merge($request, $params));
-        return $this->parse_order_book($response['data'], $symbol);
+        $method = $market['swap'] ? 'perpetualPublicGetMarketDepth' : 'publicGetMarketDepth';
+        $response = $this->$method (array_merge($request, $params));
+        //
+        // Spot
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => array(
+        //             "asks" => [
+        //                 ["41056.33", "0.31727613"],
+        //                 ["41056.34", "1.05657294"],
+        //                 ["41056.35", "0.02346648"]
+        //             ],
+        //             "bids" => [
+        //                 ["41050.61", "0.40618608"],
+        //                 ["41046.98", "0.13800000"],
+        //                 ["41046.56", "0.22579234"]
+        //             ],
+        //             "last" => "41050.61",
+        //             "time" => 1650573220346
+        //         ),
+        //         "message" => "OK"
+        //     }
+        //
+        // Swap
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => array(
+        //             "asks" => [
+        //                 ["40620.90", "0.0384"],
+        //                 ["40625.50", "0.0219"],
+        //                 ["40625.90", "0.3506"]
+        //             ],
+        //             "bids" => [
+        //                 ["40620.89", "19.6861"],
+        //                 ["40620.80", "0.0012"],
+        //                 ["40619.87", "0.0365"]
+        //             ],
+        //             "last" => "40620.89",
+        //             "time" => 1650587672406,
+        //             "sign_price" => "40619.32",
+        //             "index_price" => "40609.93"
+        //         ),
+        //         "message" => "OK"
+        //     }
+        //
+        $result = $this->safe_value($response, 'data', array());
+        $timestamp = $this->safe_integer($result, 'time');
+        return $this->parse_order_book($result, $symbol, $timestamp);
     }
 
     public function parse_trade($trade, $market = null) {

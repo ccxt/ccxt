@@ -489,7 +489,10 @@ class coinex(Exchange):
         return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_order_book(self, symbol, limit=20, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOrderBook() requires a symbol argument')
         await self.load_markets()
+        market = self.market(symbol)
         if limit is None:
             limit = 20  # default
         request = {
@@ -497,8 +500,56 @@ class coinex(Exchange):
             'merge': '0.0000000001',
             'limit': str(limit),
         }
-        response = await self.publicGetMarketDepth(self.extend(request, params))
-        return self.parse_order_book(response['data'], symbol)
+        method = 'perpetualPublicGetMarketDepth' if market['swap'] else 'publicGetMarketDepth'
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        # Spot
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "asks": [
+        #                 ["41056.33", "0.31727613"],
+        #                 ["41056.34", "1.05657294"],
+        #                 ["41056.35", "0.02346648"]
+        #             ],
+        #             "bids": [
+        #                 ["41050.61", "0.40618608"],
+        #                 ["41046.98", "0.13800000"],
+        #                 ["41046.56", "0.22579234"]
+        #             ],
+        #             "last": "41050.61",
+        #             "time": 1650573220346
+        #         },
+        #         "message": "OK"
+        #     }
+        #
+        # Swap
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "asks": [
+        #                 ["40620.90", "0.0384"],
+        #                 ["40625.50", "0.0219"],
+        #                 ["40625.90", "0.3506"]
+        #             ],
+        #             "bids": [
+        #                 ["40620.89", "19.6861"],
+        #                 ["40620.80", "0.0012"],
+        #                 ["40619.87", "0.0365"]
+        #             ],
+        #             "last": "40620.89",
+        #             "time": 1650587672406,
+        #             "sign_price": "40619.32",
+        #             "index_price": "40609.93"
+        #         },
+        #         "message": "OK"
+        #     }
+        #
+        result = self.safe_value(response, 'data', {})
+        timestamp = self.safe_integer(result, 'time')
+        return self.parse_order_book(result, symbol, timestamp)
 
     def parse_trade(self, trade, market=None):
         #
