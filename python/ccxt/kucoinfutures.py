@@ -916,17 +916,17 @@ class kucoinfutures(kucoin):
         :param float amount: the amount of currency to trade
         :param float price: *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
         :param dict params:  Extra parameters specific to the exchange API endpoint
-        :param float params.leverage: Leverage size of the order
-        :param float params.stopPrice: The price at which a trigger order is triggered at
-        :param bool params.reduceOnly: A mark to reduce the position size only. Set to False by default. Need to set the position size when reduceOnly is True.
-        :param str params.timeInForce: GTC, GTT, IOC, or FOK, default is GTC, limit orders only
-        :param str params.postOnly: Post only flag, invalid when timeInForce is IOC or FOK
-        :param str params.clientOid: client order id, defaults to uuid if not passed
-        :param str params.remark: remark for the order, length cannot exceed 100 utf8 characters
-        :param str params.stop: 'up' or 'down', defaults to 'up' if side is sell and 'down' if side is buy, requires stopPrice
-        :param str params.stopPriceType:  TP, IP or MP, defaults to TP
-        :param bool params.closeOrder: set to True to close position
-        :param bool params.forceHold: A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to False by default.
+        :param float params['leverage']: Leverage size of the order
+        :param float params['stopPrice']: The price at which a trigger order is triggered at
+        :param bool params['reduceOnly']: A mark to reduce the position size only. Set to False by default. Need to set the position size when reduceOnly is True.
+        :param str params['timeInForce']: GTC, GTT, IOC, or FOK, default is GTC, limit orders only
+        :param str params['postOnly']: Post only flag, invalid when timeInForce is IOC or FOK
+        :param str params['clientOid']: client order id, defaults to uuid if not passed
+        :param str params['remark']: remark for the order, length cannot exceed 100 utf8 characters
+        :param str params['stop']: 'up' or 'down', defaults to 'up' if side is sell and 'down' if side is buy, requires stopPrice
+        :param str params['stopPriceType']:  TP, IP or MP, defaults to TP
+        :param bool params['closeOrder']: set to True to close position
+        :param bool params['forceHold']: A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to False by default.
         :returns: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
@@ -1027,7 +1027,7 @@ class kucoinfutures(kucoin):
         Cancels all orders in one api call
         :param str symbol: Assign to cancel only the orders in the market matching the unified symbol
         :param dict params: Exchange specific parameters
-        :param dict params.stop: When True, all the trigger orders will be cancelled
+        :param dict params['stop']: When True, all the trigger orders will be cancelled
         :returns: Response from the exchange
         """
         self.load_markets()
@@ -1068,10 +1068,10 @@ class kucoinfutures(kucoin):
         :param int since: timestamp in ms of the earliest order to retrieve
         :param int limit: The maximum number of orders to retrieve
         :param dict params: exchange specific parameters
-        :param bool params.stop: set to True to retrieve untriggered stop orders
-        :param str params.side: buy or sell
-        :param str params.type: limit or market
-        :param int params.endAt: End time in ms
+        :param bool params['stop']: set to True to retrieve untriggered stop orders
+        :param str params['side']: buy or sell
+        :param str params['type']: limit or market
+        :param int params['endAt']: End time in ms
         :returns: An `array of order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()

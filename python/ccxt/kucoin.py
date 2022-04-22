@@ -1091,26 +1091,26 @@ class kucoin(Exchange):
         :param float amount: the amount of currency to trade
         :param float price: *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
         :param dict params:  Extra parameters specific to the exchange API endpoint
-        :param str params.clientOid: client order id, defaults to uuid if not passed
-        :param str params.remark: remark for the order, length cannot exceed 100 utf8 characters
-        :param str params.tradeType: 'TRADE',  # TRADE, MARGIN_TRADE  # not used with margin orders
+        :param str params['clientOid']: client order id, defaults to uuid if not passed
+        :param str params['remark']: remark for the order, length cannot exceed 100 utf8 characters
+        :param str params['tradeType']: 'TRADE',  # TRADE, MARGIN_TRADE  # not used with margin orders
          * limit orders ---------------------------------------------------
-        :param str params.timeInForce: GTC, GTT, IOC, or FOK, default is GTC, limit orders only
-        :param float params.cancelAfter: long,  # cancel after n seconds, requires timeInForce to be GTT
-        :param str params.postOnly: Post only flag, invalid when timeInForce is IOC or FOK
-        :param bool params.hidden: False,  # Order will not be displayed in the order book
-        :param bool params.iceberg: False,  # Only a portion of the order is displayed in the order book
-        :param str params.visibleSize: self.amount_to_precision(symbol, visibleSize),  # The maximum visible size of an iceberg order
+        :param str params['timeInForce']: GTC, GTT, IOC, or FOK, default is GTC, limit orders only
+        :param float params['cancelAfter']: long,  # cancel after n seconds, requires timeInForce to be GTT
+        :param str params['postOnly']: Post only flag, invalid when timeInForce is IOC or FOK
+        :param bool params['hidden']: False,  # Order will not be displayed in the order book
+        :param bool params['iceberg']: False,  # Only a portion of the order is displayed in the order book
+        :param str params['visibleSize']: self.amount_to_precision(symbol, visibleSize),  # The maximum visible size of an iceberg order
          * market orders --------------------------------------------------
-        :param str params.funds:  # Amount of quote currency to use
+        :param str params['funds']:  # Amount of quote currency to use
          * stop orders ----------------------------------------------------
-        :param str params.stop:  Either loss or entry, the default is loss. Requires stopPrice to be defined
-        :param float params.stopPrice: The price at which a trigger order is triggered at
+        :param str params['stop']:  Either loss or entry, the default is loss. Requires stopPrice to be defined
+        :param float params['stopPrice']: The price at which a trigger order is triggered at
          * margin orders --------------------------------------------------
-        :param float params.leverage: Leverage size of the order
-        :param str params.stp: '',  # self trade prevention, CN, CO, CB or DC
-        :param str params.marginMode: 'cross',  # cross(cross mode) and isolated(isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
-        :param bool params.autoBorrow: False,  # The system will first borrow you funds at the optimal interest rate and then place an order for you
+        :param float params['leverage']: Leverage size of the order
+        :param str params['stp']: '',  # self trade prevention, CN, CO, CB or DC
+        :param str params['marginMode']: 'cross',  # cross(cross mode) and isolated(isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
+        :param bool params['autoBorrow']: False,  # The system will first borrow you funds at the optimal interest rate and then place an order for you
         :returns: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
@@ -1190,7 +1190,7 @@ class kucoin(Exchange):
         :param str id: Order id
         :param str symbol: Not used by kucoin
         :param dict params: Exchange specific parameters
-        :param bool params.stop: True if cancelling a stop order
+        :param bool params['stop']: True if cancelling a stop order
         :returns: Response fromt the exchange
         """
         self.load_markets()
@@ -1216,9 +1216,9 @@ class kucoin(Exchange):
         Cancels all open orders, or cancels all orders in a market for one symbol, stop orders must be cancelled separately
         :param str symbol: Unified symbol indicating the market to cancel orders in
         :param dict params: Exchange specific parameters
-        :param bool params.stop: True if cancelling all stop orders
-        :param str params.tradeType: The type of trading, "TRADE" for Spot Trading, "MARGIN_TRADE" for Margin Trading
-        :param str params.orderIds: *stop orders only* Comma seperated order IDs
+        :param bool params['stop']: True if cancelling all stop orders
+        :param str params['tradeType']: The type of trading, "TRADE" for Spot Trading, "MARGIN_TRADE" for Margin Trading
+        :param str params['orderIds']: *stop orders only* Comma seperated order IDs
         :returns: Response from the exchange
         """
         self.load_markets()
@@ -1241,13 +1241,13 @@ class kucoin(Exchange):
         :param int since: timestamp in ms of the earliest order
         :param int limit: max number of orders to return
         :param dict params: exchange specific params
-        :param int params.till: end time in ms
-        :param bool params.stop: True if fetching stop orders
-        :param str params.side: buy or sell
-        :param str params.type: limit, market, limit_stop or market_stop
-        :param str params.tradeType: TRADE for spot trading, MARGIN_TRADE for Margin Trading
-        :param int params.currentPage: *stop orders only* current page
-        :param str params.orderIds: *stop orders only* comma seperated order ID list
+        :param int params['till']: end time in ms
+        :param bool params['stop']: True if fetching stop orders
+        :param str params['side']: buy or sell
+        :param str params['type']: limit, market, limit_stop or market_stop
+        :param str params['tradeType']: TRADE for spot trading, MARGIN_TRADE for Margin Trading
+        :param int params['currentPage']: *stop orders only* current page
+        :param str params['orderIds']: *stop orders only* comma seperated order ID list
         :returns: An `array of order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
@@ -1330,10 +1330,10 @@ class kucoin(Exchange):
         :param int since: timestamp in ms of the earliest order
         :param int limit: max number of orders to return
         :param dict params: exchange specific params
-        :param int params.till: end time in ms
-        :param str params.side: buy or sell
-        :param str params.type: limit, market, limit_stop or market_stop
-        :param str params.tradeType: TRADE for spot trading, MARGIN_TRADE for Margin Trading
+        :param int params['till']: end time in ms
+        :param str params['side']: buy or sell
+        :param str params['type']: limit, market, limit_stop or market_stop
+        :param str params['tradeType']: TRADE for spot trading, MARGIN_TRADE for Margin Trading
         :returns: An `array of order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         return self.fetch_orders_by_status('done', symbol, since, limit, params)
@@ -1345,13 +1345,13 @@ class kucoin(Exchange):
         :param int since: timestamp in ms of the earliest order
         :param int limit: max number of orders to return
         :param dict params: exchange specific params
-        :param int params.till: end time in ms
-        :param bool params.stop: True if fetching stop orders
-        :param str params.side: buy or sell
-        :param str params.type: limit, market, limit_stop or market_stop
-        :param str params.tradeType: TRADE for spot trading, MARGIN_TRADE for Margin Trading
-        :param int params.currentPage: *stop orders only* current page
-        :param str params.orderIds: *stop orders only* comma seperated order ID list
+        :param int params['till']: end time in ms
+        :param bool params['stop']: True if fetching stop orders
+        :param str params['side']: buy or sell
+        :param str params['type']: limit, market, limit_stop or market_stop
+        :param str params['tradeType']: TRADE for spot trading, MARGIN_TRADE for Margin Trading
+        :param int params['currentPage']: *stop orders only* current page
+        :param str params['orderIds']: *stop orders only* comma seperated order ID list
         :returns: An `array of order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         return self.fetch_orders_by_status('active', symbol, since, limit, params)
@@ -1362,8 +1362,8 @@ class kucoin(Exchange):
         :param str id: Order id
         :param str symbol: not sent to exchange except for stop orders with clientOid, but used internally by CCXT to filter
         :param dict params: exchange specific parameters
-        :param bool params.stop: True if fetching a stop order
-        :param bool params.clientOid: unique order id created by users to identify their orders
+        :param bool params['stop']: True if fetching a stop order
+        :param bool params['clientOid']: unique order id created by users to identify their orders
         :returns: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
