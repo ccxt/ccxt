@@ -2032,6 +2032,50 @@ class Exchange(object):
         tail = since is None
         return self.filter_by_currency_since_limit(result, code, since, limit, tail)
 
+    def safe_ledger_entry(self, entry, currency=None):
+        currency = self.safe_currency(None, currency)
+        direction = self.safe_string(entry, 'direction')
+        before = self.safe_string(entry, 'before')
+        after = self.safe_string(entry, 'after')
+        amount = self.safe_string(entry, 'amount')
+        fee = self.safe_string(entry, 'fee')
+        if amount is not None and fee is not None:
+            if before is None and after is not None:
+                amountAndFee = Precise.string_add(amount, fee)
+                before = Precise.string_sub(after, amountAndFee)
+            elif before is not None and after is None:
+                amountAndFee = Precise.string_add(amount, fee)
+                after = Precise.string_add(before, amountAndFee)
+        if before is not None and after is not None:
+            if direction is None:
+                if Precise.string_gt(before, after):
+                    direction = 'out'
+                if Precise.string_gt(after, before):
+                    direction = 'in'
+            if amount is None and fee is not None:
+                betweenAfterBefore = Precise.string_sub(after, before)
+                amount = Precise.string_sub(betweenAfterBefore, fee)
+            if amount is not None and fee is None:
+                betweenAfterBefore = Precise.string_sub(after, before)
+                fee = Precise.string_sub(betweenAfterBefore, amount)
+        return self.extend({
+            'id': None,
+            'timestamp': None,
+            'datetime': None,
+            'direction': None,
+            'account': None,
+            'referenceId': None,
+            'referenceAccount': None,
+            'type': None,
+            'currency': currency['code'],
+            'amount': amount,
+            'before': before,
+            'after': after,
+            'status': None,
+            'fee': fee,
+            'info': None,
+        }, entry)
+
     def parse_orders(self, orders, market=None, since=None, limit=None, params={}):
         if isinstance(orders, list):
             array = [self.extend(self.parse_order(order, market), params) for order in orders]

@@ -332,6 +332,7 @@ class Exchange {
         'parseTransactions' => 'parse_transactions',
         'parseTransfers' => 'parse_transfers',
         'parseLedger' => 'parse_ledger',
+        'safeLedgerEntry' => 'safe_ledger_entry',
         'parseOrders' => 'parse_orders',
         'safeCurrency' => 'safe_currency',
         'safeCurrencyCode' => 'safe_currency_code',
@@ -2306,6 +2307,59 @@ class Exchange {
         $code = isset($currency) ? $currency['code'] : null;
         $tail = $since === null;
         return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
+    }
+
+    public function safe_ledger_entry($entry, $currency = null) {
+        $currency = $this->safe_currency(null, $currency);
+        $direction = $this->safe_string($entry, 'direction');
+        $before = $this->safe_string($entry, 'before');
+        $after = $this->safe_string($entry, 'after');
+        $amount = $this->safe_string($entry, 'amount');
+        $fee = $this->safe_string($entry, 'fee');
+        if ($amount !== null && $fee !== null) {
+            if ($before === null && $after !== null) {
+                $amountAndFee = Precise::string_add($amount, $fee);
+                $before = Precise::string_sub($after, $amountAndFee);
+            } else if ($before !== null && $after === null) {
+                $amountAndFee = Precise::string_add($amount, $fee);
+                $after = Precise::string_add($before, $amountAndFee);
+            }
+        }
+        if ($before !== null && $after !== null) {
+            if ($direction === null) {
+                if (Precise::string_gt($before, $after)) {
+                    $direction = 'out';
+                }
+                if (Precise::string_gt($after, $before)) {
+                    $direction = 'in';
+                }
+            }
+            if ($amount === null && $fee !== null) {
+                $betweenAfterBefore = Precise::string_sub($after, $before);
+                $amount = Precise::string_sub($betweenAfterBefore, $fee);
+            }
+            if ($amount !== null && $fee === null) {
+                $betweenAfterBefore = Precise::string_sub($after, $before);
+                $fee = Precise::string_sub($betweenAfterBefore, $amount);
+            }
+        }
+        return array_merge(array(
+            'id' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'direction' => null,
+            'account' => null,
+            'referenceId' => null,
+            'referenceAccount' => null,
+            'type' => null,
+            'currency' => $currency['code'],
+            'amount' => $amount,
+            'before' => $before,
+            'after' => $after,
+            'status' => null,
+            'fee' => $fee,
+            'info' => null,
+        ), $entry);
     }
 
     public function parse_orders($orders, $market = null, $since = null, $limit = null, $params = array()) {

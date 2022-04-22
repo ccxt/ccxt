@@ -1441,6 +1441,59 @@ module.exports = class Exchange {
         return this.filterByCurrencySinceLimit (result, code, since, limit, tail);
     }
 
+    safeLedgerEntry (entry, currency = undefined) {
+        currency = this.safeCurrency (undefined, currency);
+        let direction = this.safeString (entry, 'direction');
+        let before = this.safeString (entry, 'before');
+        let after = this.safeString (entry, 'after');
+        let amount = this.safeString (entry, 'amount');
+        let fee = this.safeString (entry, 'fee');
+        if (amount !== undefined && fee !== undefined) {
+            if (before === undefined && after !== undefined) {
+                const amountAndFee = Precise.stringAdd (amount, fee);
+                before = Precise.stringSub (after, amountAndFee);
+            } else if (before !== undefined && after === undefined) {
+                const amountAndFee = Precise.stringAdd (amount, fee);
+                after = Precise.stringAdd (before, amountAndFee);
+            }
+        }
+        if (before !== undefined && after !== undefined) {
+            if (direction === undefined) {
+                if (Precise.stringGt (before, after)) {
+                    direction = 'out';
+                }
+                if (Precise.stringGt (after, before)) {
+                    direction = 'in';
+                }
+            }
+            if (amount === undefined && fee !== undefined) {
+                const betweenAfterBefore = Precise.stringSub (after, before);
+                amount = Precise.stringSub (betweenAfterBefore, fee);
+            }
+            if (amount !== undefined && fee === undefined) {
+                const betweenAfterBefore = Precise.stringSub (after, before);
+                fee = Precise.stringSub (betweenAfterBefore, amount);
+            }
+        }
+        return this.extend ({
+            'id': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'direction': undefined,
+            'account': undefined,
+            'referenceId': undefined,
+            'referenceAccount': undefined,
+            'type': undefined,
+            'currency': currency['code'],
+            'amount': amount,
+            'before': before,
+            'after': after,
+            'status': undefined,
+            'fee': fee,
+            'info': undefined,
+        }, entry);
+    }
+
     parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
         //
         // the value of orders is either a dict or a list
