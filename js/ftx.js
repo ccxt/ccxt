@@ -2601,7 +2601,7 @@ module.exports = class ftx extends Exchange {
     }
 
     async fetchBorrowRateHistory (code, since = undefined, limit = undefined, params = {}) {
-        const histories = await this.fetchBorrowRateHistories (since, limit, params);
+        const histories = await this.fetchBorrowRateHistories ([ code ], since, limit, params);
         const borrowRateHistory = this.safeValue (histories, code);
         if (borrowRateHistory === undefined) {
             throw new BadRequest (this.id + ' fetchBorrowRateHistory() returned no data for ' + code);
