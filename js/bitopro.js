@@ -85,52 +85,6 @@ module.exports = class bitopro extends ccxt.bitopro {
         return orderbook.limit (limit);
     }
 
-    handleDelta (bookside, delta) {
-        const price = this.safeFloat (delta, 'price');
-        const amount = this.safeFloat (delta, 'amount');
-        bookside.store (price, amount);
-    }
-
-    handleDeltas (bookside, deltas) {
-        for (let i = 0; i < deltas.length; i++) {
-            this.handleDelta (bookside, deltas[i]);
-        }
-    }
-
-    handleOrderBookMessage (client, message, orderbook) {
-        //
-        //     {
-        //         event: 'ORDER_BOOK',
-        //         timestamp: 1650121915308,
-        //         datetime: '2022-04-16T15:11:55.308Z',
-        //         pair: 'BTC_TWD',
-        //         limit: 5,
-        //         scale: 0,
-        //         bids: [
-        //             { price: '1188178', amount: '0.0425', count: 1, total: '0.0425' },
-        //         ],
-        //         asks: [
-        //             {
-        //                 price: '1190740',
-        //                 amount: '0.40943964',
-        //                 count: 1,
-        //                 total: '0.40943964'
-        //             },
-        //         ]
-        //     }
-        //
-        const marketId = this.safeString (message, 'pair');
-        const symbol = this.safeSymbol (marketId);
-        const timestamp = this.safeInteger (message, 'timestamp');
-        orderbook['symbol'] = symbol;
-        orderbook['nonce'] = timestamp;
-        orderbook['timestamp'] = timestamp;
-        orderbook['datetime'] = this.safeString (message, 'datetime');
-        this.handleDeltas (orderbook['asks'], this.safeValue (message, 'asks', []));
-        this.handleDeltas (orderbook['bids'], this.safeValue (message, 'bids', []));
-        return orderbook;
-    }
-
     handleOrderBook (client, message) {
         //
         //     {
@@ -162,8 +116,9 @@ module.exports = class bitopro extends ccxt.bitopro {
         if (orderbook === undefined) {
             orderbook = this.orderBook ({});
         }
-        this.handleOrderBookMessage (client, message, orderbook);
-        this.orderbooks[symbol] = orderbook;
+        const timestamp = this.safeInteger (message, 'timestamp');
+        const snapshot = this.parseOrderBook (message, symbol, timestamp, 'bids', 'asks', 'price', 'amount');
+        orderbook.reset (snapshot);
         client.resolve (orderbook, messageHash);
     }
 
