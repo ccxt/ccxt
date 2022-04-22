@@ -436,19 +436,20 @@ module.exports = class mexc3 extends Exchange {
             //
             //     {}
             //
-            status = Object.keys (response).length ? 'ok' : 'maintenance';
+            status = Object.keys (response).length ? this.json (response) : 'ok';
         } else if (marketType === 'swap') {
             response = await this.contractPublicGetPing (query);
             //
             //     {"success":true,"code":"0","data":"1648124374985"}
             //
-            status = this.safeValue (response, 'success') ? 'ok' : 'maintenance';
+            status = this.safeValue (response, 'success') ? 'ok' : this.json (response);
         }
-        this.status = this.extend (this.status, {
+        return {
             'status': status,
             'updated': this.milliseconds (),
-        });
-        return this.status;
+            'eta': undefined,
+            'info': response,
+        };
     }
 
     async fetchTime (params = {}) {
