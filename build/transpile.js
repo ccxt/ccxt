@@ -177,7 +177,6 @@ class Transpiler {
     getPythonRegexes () {
 
         return [
-
             [ /Array\.isArray\s*\(([^\)]+)\)/g, 'isinstance($1, list)' ],
             [ /([^\(\s]+)\s+instanceof\s+String/g, 'isinstance($1, str)' ],
             [ /([^\(\s]+)\s+instanceof\s+([^\)\s]+)/g, 'isinstance($1, $2)' ],
@@ -335,8 +334,8 @@ class Transpiler {
             [ /(\s+) \* @description (.*)/g, '$1$2' ], // docstring description
             [ /\s+\* @name .*/g, '' ], // docstring @name
             [ /(\s+) \* @returns/g, '$1:returns:' ], // docstring return
-            [ /(\s+) \* @([a-z]+) \{([a-z]+)\} ([a-zA-Z0-9_\-\.]+)/g, '$1:$2 $3 $4:' ], // docstring param
-            [ /(\s+\* @param [a-zA-Z0-9_-])+\.([a-zA-Z0-9_-]) (.*)/g, '$1[\'$2\']$3' ], // docstring params.anything
+            [ /(\s+ \* @param \{[a-z]+\} )([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+) (.*)/g, '$1$2[\'$3\'] $4' ], // docstring params.anything
+            [ /(\s+) \* @([a-z]+) \{([a-z]+)\} ([a-zA-Z0-9_\-\.\[\]\']+)/g, '$1:$2 $3 $4:' ], // docstring param
         ])
     }
 
