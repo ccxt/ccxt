@@ -327,7 +327,7 @@ module.exports = class mexc3 extends Exchange {
                         '1w': '1w',
                         '1M': '1M',
                     },
-                    'contract': {
+                    'swap': {
                         '1m': 'Min1',
                         '5m': 'Min5',
                         '15m': 'Min15',
@@ -968,7 +968,7 @@ module.exports = class mexc3 extends Exchange {
         // if swap
         if ('v' in trade) {
             //
-            // spot: fetchTrades
+            // swap: fetchTrades
             //
             //     {
             //         "p": 31199,
@@ -1211,13 +1211,14 @@ module.exports = class mexc3 extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {};
-        if (symbols !== undefined) {
-            request['symbol'] = symbols.join (',');
-        }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
         let tickers = undefined;
         if (marketType === 'spot') {
+            const request = {};
+            if (symbols !== undefined) {
+                const merketIds = this.marketIds (symbols).join (',');
+                request['symbol'] = merketIds;
+            }
             tickers = await this.spotPublicGetTicker24hr (this.extend (request, query));
             //
             // (Note: for single symbol, only one object is returned, instead of array)
@@ -1246,7 +1247,7 @@ module.exports = class mexc3 extends Exchange {
             //     ]
             //
         } else if (marketType === 'swap') {
-            const response = await this.contractPublicGetTicker (this.extend (request, query));
+            const response = await this.contractPublicGetTicker (query);
             //     {
             //         "success":true,
             //         "code":0,
