@@ -402,10 +402,10 @@ module.exports = class deribit extends Exchange {
         //     }
         //
         const result = this.safeString (response, 'result');
-        const normalStatus = this.safeString (result, 'locked') === 'false';
+        const locked = this.safeString (result, 'locked');
         const updateTime = this.safeIntegerProduct (response, 'usIn', 0.001, this.milliseconds ());
         return {
-            'status': normalStatus ? 'ok' : 'maintenance',
+            'status': (locked === 'false') ? 'ok' : 'maintenance',
             'updated': updateTime,
             'eta': undefined,
             'info': response,
