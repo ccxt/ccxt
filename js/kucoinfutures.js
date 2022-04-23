@@ -312,9 +312,9 @@ module.exports = class kucoinfutures extends kucoin {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const rawStatus = this.safeValue (data, 'status');
+        const status = this.safeString (data, 'status');
         return {
-            'status': (rawStatus === 'open') ? 'ok' : 'maintenance',
+            'status': (status === 'open') ? 'ok' : 'maintenance',
             'updated': this.milliseconds (),
             'eta': undefined,
             'info': response,
