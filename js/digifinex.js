@@ -732,7 +732,8 @@ module.exports = class digifinex extends Exchange {
         //         "code": 0
         //     }
         //
-        const status = (this.safeInteger (response, 'code') === 0) ? 'ok' : 'maintenance';
+        const code = this.safeInteger (response, 'code');
+        const status = (code === 0) ? 'ok' : 'maintenance';
         return {
             'status': status,
             'updated': this.milliseconds (),
