@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError, PermissionDenied, ExchangeNotAvailable, RequestTimeout } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, BadSymbol, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError, PermissionDenied, ExchangeNotAvailable, RequestTimeout } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -28,6 +28,7 @@ module.exports = class coinex extends Exchange {
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchDeposits': true,
+                'fetchFundingRate': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -1166,6 +1167,101 @@ module.exports = class coinex extends Exchange {
         const data = this.safeValue (response, 'data');
         const trades = this.safeValue (data, 'data', []);
         return this.parseTrades (trades, market, since, limit);
+    }
+
+    async fetchFundingRate (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadSymbol (this.id + ' fetchFundingRate() supports swap contracts only');
+        }
+        const request = {
+            'market': market['id'],
+        };
+        const response = await this.perpetualPublicGetMarketTicker (this.extend (request, params));
+        //
+        //     {
+        //          "code": 0,
+        //         "data":
+        //         {
+        //             "date": 1650678472474,
+        //             "ticker": {
+        //                 "vol": "6090.9430",
+        //                 "low": "39180.30",
+        //                 "open": "40474.97",
+        //                 "high": "40798.01",
+        //                 "last": "39659.30",
+        //                 "buy": "39663.79",
+        //                 "period": 86400,
+        //                 "funding_time": 372,
+        //                 "position_amount": "270.1956",
+        //                 "funding_rate_last": "0.00022913",
+        //                 "funding_rate_next": "0.00013158",
+        //                 "funding_rate_predict": "0.00016552",
+        //                 "insurance": "16045554.83969682659674035672",
+        //                 "sign_price": "39652.48",
+        //                 "index_price": "39648.44250000",
+        //                 "sell_total": "22.3913",
+        //                 "buy_total": "19.4498",
+        //                 "buy_amount": "12.8942",
+        //                 "sell": "39663.80",
+        //                 "sell_amount": "0.9388"
+        //             }
+        //         },
+        //         "message": "OK"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const ticker = this.safeValue (data, 'ticker', {});
+        return this.parseFundingRate (ticker, market);
+    }
+
+    parseFundingRate (contract, market = undefined) {
+        //
+        // fetchFundingRate
+        //
+        //     {
+        //         "vol": "6090.9430",
+        //         "low": "39180.30",
+        //         "open": "40474.97",
+        //         "high": "40798.01",
+        //         "last": "39659.30",
+        //         "buy": "39663.79",
+        //         "period": 86400,
+        //         "funding_time": 372,
+        //         "position_amount": "270.1956",
+        //         "funding_rate_last": "0.00022913",
+        //         "funding_rate_next": "0.00013158",
+        //         "funding_rate_predict": "0.00016552",
+        //         "insurance": "16045554.83969682659674035672",
+        //         "sign_price": "39652.48",
+        //         "index_price": "39648.44250000",
+        //         "sell_total": "22.3913",
+        //         "buy_total": "19.4498",
+        //         "buy_amount": "12.8942",
+        //         "sell": "39663.80",
+        //         "sell_amount": "0.9388"
+        //     }
+        //
+        return {
+            'info': contract,
+            'symbol': this.safeSymbol (undefined, market),
+            'markPrice': this.safeString (contract, 'sign_price'),
+            'indexPrice': this.safeString (contract, 'index_price'),
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fundingRate': this.safeString (contract, 'funding_rate_next'),
+            'fundingTimestamp': undefined,
+            'fundingDatetime': undefined,
+            'nextFundingRate': this.safeString (contract, 'funding_rate_predict'),
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': this.safeString (contract, 'funding_rate_last'),
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+        };
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
