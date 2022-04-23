@@ -347,6 +347,10 @@ module.exports = class mexc3 extends Exchange {
                     'ETH': 'ERC-20',
                     'ERC20': 'ERC-20',
                     'BEP20': 'BEP20(BSC)',
+                    'BSC': 'BEP20(BSC)',
+                },
+                'networkAliases': {
+                    'BSC(BEP20)': 'BSC',
                 },
                 'recvWindow': 5 * 1000, // 5 sec, default
                 'maxTimeTillEnd': 90 * 86400 * 1000 - 1, // 90 days
@@ -1375,8 +1379,9 @@ module.exports = class mexc3 extends Exchange {
         let changePcnt = undefined;
         let changeValue = undefined;
         let prevClose = undefined;
+        let isSwap = this.safeValue (market, 'swap');
         // if swap
-        if (market['swap'] || 'timestamp' in ticker) {
+        if (isSwap || 'timestamp' in ticker) {
             //
             //     {
             //         "symbol":"ETH_USDT",
