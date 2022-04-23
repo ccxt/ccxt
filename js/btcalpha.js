@@ -301,7 +301,7 @@ module.exports = class btcalpha extends Exchange {
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const deposits = await this.privateGetDeposits (params);
+        const response = await this.privateGetDeposits (params);
         //
         //     [
         //         {
@@ -312,7 +312,7 @@ module.exports = class btcalpha extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTransactionsByType ('deposit', deposits, code, since, limit);
+        return this.parseTransactions (response, code, since, limit, { 'type': 'deposit' });
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -323,7 +323,7 @@ module.exports = class btcalpha extends Exchange {
             currency = this.currency (code);
             request['currency_id'] = currency['id'];
         }
-        const withdrawals = await this.privateGetWithdraws (this.extend (request, params));
+        const response = await this.privateGetWithdraws (this.extend (request, params));
         //
         //     [
         //         {
@@ -335,18 +335,7 @@ module.exports = class btcalpha extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTransactionsByType ('withdrawal', withdrawals, currency, since, limit);
-    }
-
-    parseTransactionsByType (type, transactions, code = undefined, since = undefined, limit = undefined) {
-        const result = [];
-        for (let i = 0; i < transactions.length; i++) {
-            const transaction = this.parseTransaction (this.extend ({
-                'type': type,
-            }, transactions[i]));
-            result.push (transaction);
-        }
-        return this.filterByCurrencySinceLimit (result, code, since, limit);
+        return this.parseTransactions (response, code, since, limit, { 'type': 'withdrawal' });
     }
 
     parseTransaction (transaction, currency = undefined) {
@@ -387,7 +376,7 @@ module.exports = class btcalpha extends Exchange {
             'currency': this.safeCurrencyCode (currencyId, currency),
             'amount': this.safeNumber (transaction, 'amount'),
             'txid': undefined,
-            'type': this.safeString (transaction, 'type'), // injected from the outside,
+            'type': undefined,
             'status': this.parseTransactionStatus (statusId),
             'comment': undefined,
             'fee': undefined,
