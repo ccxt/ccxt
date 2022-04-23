@@ -224,13 +224,8 @@ class hitbtc(Exchange):
                 },
                 'defaultTimeInForce': 'FOK',
                 'accountsByType': {
-                    'bank': 'bank',
-                    'exchange': 'exchange',
-                    'main': 'bank',  # alias of the above
                     'funding': 'bank',
                     'spot': 'exchange',
-                    'trade': 'exchange',
-                    'trading': 'exchange',
                 },
                 'fetchBalanceMethod': {
                     'account': 'account',
@@ -382,15 +377,10 @@ class hitbtc(Exchange):
         type = self.safe_string(params, 'type')
         if type is None:
             accountsByType = self.safe_value(self.options, 'accountsByType', {})
-            fromId = self.safe_string(accountsByType, fromAccount)
-            toId = self.safe_string(accountsByType, toAccount)
-            keys = list(accountsByType.keys())
-            if fromId is None:
-                raise ExchangeError(self.id + ' fromAccount must be one of ' + ', '.join(keys) + ' instead of ' + fromId)
-            if toId is None:
-                raise ExchangeError(self.id + ' toAccount must be one of ' + ', '.join(keys) + ' instead of ' + toId)
+            fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
+            toId = self.safe_string(accountsByType, toAccount, toAccount)
             if fromId == toId:
-                raise ExchangeError(self.id + ' from and to cannot be the same account')
+                raise ExchangeError(self.id + ' transfer() from and to cannot be the same account')
             type = fromId + 'To' + self.capitalize(toId)
         request['type'] = type
         response = self.privatePostAccountTransfer(self.extend(request, params))
