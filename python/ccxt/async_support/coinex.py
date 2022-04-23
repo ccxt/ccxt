@@ -8,6 +8,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -37,6 +38,7 @@ class coinex(Exchange):
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchDeposits': True,
+                'fetchFundingRate': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -1123,6 +1125,98 @@ class coinex(Exchange):
         data = self.safe_value(response, 'data')
         trades = self.safe_value(data, 'data', [])
         return self.parse_trades(trades, market, since, limit)
+
+    async def fetch_funding_rate(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise BadSymbol(self.id + ' fetchFundingRate() supports swap contracts only')
+        request = {
+            'market': market['id'],
+        }
+        response = await self.perpetualPublicGetMarketTicker(self.extend(request, params))
+        #
+        #     {
+        #          "code": 0,
+        #         "data":
+        #         {
+        #             "date": 1650678472474,
+        #             "ticker": {
+        #                 "vol": "6090.9430",
+        #                 "low": "39180.30",
+        #                 "open": "40474.97",
+        #                 "high": "40798.01",
+        #                 "last": "39659.30",
+        #                 "buy": "39663.79",
+        #                 "period": 86400,
+        #                 "funding_time": 372,
+        #                 "position_amount": "270.1956",
+        #                 "funding_rate_last": "0.00022913",
+        #                 "funding_rate_next": "0.00013158",
+        #                 "funding_rate_predict": "0.00016552",
+        #                 "insurance": "16045554.83969682659674035672",
+        #                 "sign_price": "39652.48",
+        #                 "index_price": "39648.44250000",
+        #                 "sell_total": "22.3913",
+        #                 "buy_total": "19.4498",
+        #                 "buy_amount": "12.8942",
+        #                 "sell": "39663.80",
+        #                 "sell_amount": "0.9388"
+        #             }
+        #         },
+        #         "message": "OK"
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        ticker = self.safe_value(data, 'ticker', {})
+        return self.parse_funding_rate(ticker, market)
+
+    def parse_funding_rate(self, contract, market=None):
+        #
+        # fetchFundingRate
+        #
+        #     {
+        #         "vol": "6090.9430",
+        #         "low": "39180.30",
+        #         "open": "40474.97",
+        #         "high": "40798.01",
+        #         "last": "39659.30",
+        #         "buy": "39663.79",
+        #         "period": 86400,
+        #         "funding_time": 372,
+        #         "position_amount": "270.1956",
+        #         "funding_rate_last": "0.00022913",
+        #         "funding_rate_next": "0.00013158",
+        #         "funding_rate_predict": "0.00016552",
+        #         "insurance": "16045554.83969682659674035672",
+        #         "sign_price": "39652.48",
+        #         "index_price": "39648.44250000",
+        #         "sell_total": "22.3913",
+        #         "buy_total": "19.4498",
+        #         "buy_amount": "12.8942",
+        #         "sell": "39663.80",
+        #         "sell_amount": "0.9388"
+        #     }
+        #
+        return {
+            'info': contract,
+            'symbol': self.safe_symbol(None, market),
+            'markPrice': self.safe_string(contract, 'sign_price'),
+            'indexPrice': self.safe_string(contract, 'index_price'),
+            'interestRate': None,
+            'estimatedSettlePrice': None,
+            'timestamp': None,
+            'datetime': None,
+            'fundingRate': self.safe_string(contract, 'funding_rate_next'),
+            'fundingTimestamp': None,
+            'fundingDatetime': None,
+            'nextFundingRate': self.safe_string(contract, 'funding_rate_predict'),
+            'nextFundingTimestamp': None,
+            'nextFundingDatetime': None,
+            'previousFundingRate': self.safe_string(contract, 'funding_rate_last'),
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
+        }
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
