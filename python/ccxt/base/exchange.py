@@ -3074,10 +3074,3 @@ class Exchange(object):
             interests.append(interest)
         sorted = self.sortBy(interests, 'timestamp')
         return self.filterBySymbolSinceLimit(sorted, market, since, limit)
-
-    def parse_borrow_interests(self, response, market=None):
-        interest = []
-        for i in range(len(response)):
-            row = response[i]
-            interest.append(self.parse_borrow_interest(row, market))
-        return interest
