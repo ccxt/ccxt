@@ -383,14 +383,13 @@ class bitfinex2 extends bitfinex {
         //    [0] // maintenance
         //
         $response = $this->publicGetPlatformStatus ($params);
-        $status = $this->safe_integer($response, 0);
-        $formattedStatus = ($status === 1) ? 'ok' : 'maintenance';
-        $this->status = array_merge($this->status, array(
-            'status' => $formattedStatus,
+        $statusRaw = $this->safe_string($response, 0);
+        return array(
+            'status' => $this->safe_string(array( '0' => 'maintenance', '1' => 'ok' ), $statusRaw, $statusRaw),
             'updated' => $this->milliseconds(),
+            'eta' => null,
             'info' => $response,
-        ));
-        return $this->status;
+        );
     }
 
     public function fetch_markets($params = array ()) {

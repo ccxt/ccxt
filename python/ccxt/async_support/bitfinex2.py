@@ -389,14 +389,13 @@ class bitfinex2(bitfinex):
         #    [0]  # maintenance
         #
         response = await self.publicGetPlatformStatus(params)
-        status = self.safe_integer(response, 0)
-        formattedStatus = 'ok' if (status == 1) else 'maintenance'
-        self.status = self.extend(self.status, {
-            'status': formattedStatus,
+        statusRaw = self.safe_string(response, 0)
+        return {
+            'status': self.safe_string({'0': 'maintenance', '1': 'ok'}, statusRaw, statusRaw),
             'updated': self.milliseconds(),
+            'eta': None,
             'info': response,
-        })
-        return self.status
+        }
 
     async def fetch_markets(self, params={}):
         # todo drop v1 in favor of v2 configs  ( temp-reference for v2update: https://pastebin.com/raw/S8CmqSHQ )
