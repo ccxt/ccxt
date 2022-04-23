@@ -2282,26 +2282,26 @@ module.exports = class Exchange {
 
     async createStopOrder (symbol, type, side, amount, price = undefined, stopPrice = undefined, params = {}) {
         if (!this.has['createStopOrder']) {
-            throw new NotSupported (this.id + 'createStopOrder() is not supported yet');
+            throw new NotSupported (this.id + ' createStopOrder() is not supported yet');
         }
-        if (stop_price === undefined) {
-            throw new ArgumentsRequired(this.id + 'create_stop_order() requires argument stop_price');
+        if ($stopPrice === undefined) {
+            throw new ArgumentsRequired(this.id + ' create_stop_order() requires a stopPrice argument');
         }
         const query = this.extend (params, { 'stopPrice': stopPrice });
         return await this.createOrder (symbol, type, side, amount, price, query);
     }
 
-    async createStopLimitOrder(symbol, side, amount, price, stopPrice, params={}) {
+    async createStopLimitOrder(symbol, side, amount, price, stopPrice, params = {}) {
         if (!this.has['createStopLimitOrder']) {
-            throw new NotSupported(this.id + 'createStopLimitOrder() is not supported yet');
+            throw new NotSupported(this.id + ' createStopLimitOrder() is not supported yet');
         }
         const query = this.extend(params, {'stopPrice': stopPrice});
         return this.createOrder(symbol, 'limit', side, amount, price, query);
     }
 
-    async createStopMarketOrder(symbol, side, amount, stopPrice, params={}) {
+    async createStopMarketOrder(symbol, side, amount, stopPrice, params = {}) {
         if (!this.has['createStopMarketOrder']) {
-            throw new NotSupported(this.id + 'createStopMarketOrder() is not supported yet');
+            throw new NotSupported(this.id + ' createStopMarketOrder() is not supported yet');
         }
         const query = this.extend(params, {'stopPrice': stopPrice});
         return this.createOrder(symbol, 'market', side, amount, undefined, query);
