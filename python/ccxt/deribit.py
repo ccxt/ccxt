@@ -400,26 +400,28 @@ class deribit(Exchange):
         return self.safe_value(params, 'code', code)
 
     def fetch_status(self, params={}):
-        request = {
-            # 'expected_result': False,  # True will trigger an error for testing purposes
-        }
-        response = self.publicGetTest(self.extend(request, params))
+        response = self.publicGetStatus(params)
         #
         #     {
-        #         jsonrpc: '2.0',
-        #         result: {version: '1.2.26'},
-        #         usIn: 1583922623964485,
-        #         usOut: 1583922623964487,
-        #         usDiff: 2,
-        #         testnet: False
+        #         "jsonrpc": "2.0",
+        #         "result": {
+        #             "locked": "false"  # True, partial, False
+        #         },
+        #         "usIn": 1650641690226788,
+        #         "usOut": 1650641690226836,
+        #         "usDiff": 48,
+        #         "testnet": False
         #     }
         #
-        self.status = self.extend(self.status, {
-            'status': 'ok',
-            'updated': self.milliseconds(),
+        result = self.safe_string(response, 'result')
+        locked = self.safe_string(result, 'locked')
+        updateTime = self.safe_integer_product(response, 'usIn', 0.001, self.milliseconds())
+        return {
+            'status': 'ok' if (locked == 'false') else 'maintenance',
+            'updated': updateTime,
+            'eta': None,
             'info': response,
-        })
-        return self.status
+        }
 
     def fetch_markets(self, params={}):
         currenciesResponse = self.publicGetGetCurrencies(params)

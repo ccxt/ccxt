@@ -392,26 +392,28 @@ class deribit extends Exchange {
     }
 
     public function fetch_status($params = array ()) {
-        $request = array(
-            // 'expected_result' => false, // true will trigger an error for testing purposes
-        );
-        $response = yield $this->publicGetTest (array_merge($request, $params));
+        $response = yield $this->publicGetStatus ($params);
         //
         //     {
-        //         jsonrpc => '2.0',
-        //         result => array( version => '1.2.26' ),
-        //         usIn => 1583922623964485,
-        //         usOut => 1583922623964487,
-        //         usDiff => 2,
-        //         testnet => false
+        //         "jsonrpc" => "2.0",
+        //         "result" => array(
+        //             "locked" => "false" // true, partial, false
+        //         ),
+        //         "usIn" => 1650641690226788,
+        //         "usOut" => 1650641690226836,
+        //         "usDiff" => 48,
+        //         "testnet" => false
         //     }
         //
-        $this->status = array_merge($this->status, array(
-            'status' => 'ok',
-            'updated' => $this->milliseconds(),
+        $result = $this->safe_string($response, 'result');
+        $locked = $this->safe_string($result, 'locked');
+        $updateTime = $this->safe_integer_product($response, 'usIn', 0.001, $this->milliseconds());
+        return array(
+            'status' => ($locked === 'false') ? 'ok' : 'maintenance',
+            'updated' => $updateTime,
+            'eta' => null,
             'info' => $response,
-        ));
-        return $this->status;
+        );
     }
 
     public function fetch_markets($params = array ()) {
