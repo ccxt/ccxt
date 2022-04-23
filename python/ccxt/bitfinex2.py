@@ -639,7 +639,7 @@ class bitfinex2(bitfinex):
         self.load_markets()
         accountsByType = self.safe_value(self.options, 'v2AccountsByType', {})
         requestedType = self.safe_string(params, 'type', 'exchange')
-        accountType = self.safe_string(accountsByType, requestedType)
+        accountType = self.safe_string(accountsByType, requestedType, requestedType)
         if accountType is None:
             keys = list(accountsByType.keys())
             raise ExchangeError(self.id + ' fetchBalance type parameter must be one of ' + ', '.join(keys))
@@ -1732,7 +1732,7 @@ class bitfinex2(bitfinex):
 
     def fetch_positions(self, symbols=None, params={}):
         self.load_markets()
-        response = self.privatePostPositions(params)
+        response = self.privatePostAuthRPositions(params)
         #
         #     [
         #         [

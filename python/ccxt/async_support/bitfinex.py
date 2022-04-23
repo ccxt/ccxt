@@ -596,7 +596,7 @@ class bitfinex(Exchange):
         await self.load_markets()
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
         requestedType = self.safe_string(params, 'type', 'exchange')
-        accountType = self.safe_string(accountsByType, requestedType)
+        accountType = self.safe_string(accountsByType, requestedType, requestedType)
         if accountType is None:
             keys = list(accountsByType.keys())
             raise ExchangeError(self.id + ' fetchBalance type parameter must be one of ' + ', '.join(keys))
