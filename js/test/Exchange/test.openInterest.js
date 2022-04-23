@@ -12,7 +12,6 @@ module.exports = (exchange, openInterest, method) => {
         symbol: 'BTC/USDT',
         volume: 81094.084,
         value: 3544581864.598,
-        valueCurrency: 'USDT',
         timestamp: 1649373600000,
         datetime: '2022-04-07T23:20:00.000Z',
         info: {},
@@ -36,7 +35,6 @@ module.exports = (exchange, openInterest, method) => {
         assert (openInterest['timestamp'] > 1199145600000); // Timestamp for Jan 1 2008
     }
     assert (typeof openInterest['symbol'] === 'string' || typeof openInterest['symbol'] === undefined);
-    assert (typeof openInterest['valueCurrency'] === 'string' || typeof openInterest['valueCurrency'] === undefined);
     assert (typeof openInterest['datetime'] === 'string' || typeof openInterest['datetime'] === undefined);
     return openInterest;
 }
