@@ -377,7 +377,7 @@ class Exchange extends \ccxt\Exchange {
             throw new NotSupported($this->id . ' create_stop_order() is not supported yet');
         }
         if ($stopPrice === null) {
-            throw new ArgumentsRequired($this->id . ' create_stop_order() requires a $stopPrice argument');
+            throw new ArgumentsRequired($this->id . ' create_stop_order() requires a stopPrice argument');
         }
         $array = array('stopPrice' => $stopPrice);
         $query = $this->extend($params, $array);
