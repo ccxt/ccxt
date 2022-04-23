@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\BadSymbol;
 use \ccxt\InvalidOrder;
 
 class coinex extends Exchange {
@@ -32,6 +33,7 @@ class coinex extends Exchange {
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchDeposits' => true,
+                'fetchFundingRate' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -1170,6 +1172,101 @@ class coinex extends Exchange {
         $data = $this->safe_value($response, 'data');
         $trades = $this->safe_value($data, 'data', array());
         return $this->parse_trades($trades, $market, $since, $limit);
+    }
+
+    public function fetch_funding_rate($symbol, $params = array ()) {
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['swap']) {
+            throw new BadSymbol($this->id . ' fetchFundingRate() supports swap contracts only');
+        }
+        $request = array(
+            'market' => $market['id'],
+        );
+        $response = yield $this->perpetualPublicGetMarketTicker (array_merge($request, $params));
+        //
+        //     {
+        //          "code" => 0,
+        //         "data":
+        //         {
+        //             "date" => 1650678472474,
+        //             "ticker" => array(
+        //                 "vol" => "6090.9430",
+        //                 "low" => "39180.30",
+        //                 "open" => "40474.97",
+        //                 "high" => "40798.01",
+        //                 "last" => "39659.30",
+        //                 "buy" => "39663.79",
+        //                 "period" => 86400,
+        //                 "funding_time" => 372,
+        //                 "position_amount" => "270.1956",
+        //                 "funding_rate_last" => "0.00022913",
+        //                 "funding_rate_next" => "0.00013158",
+        //                 "funding_rate_predict" => "0.00016552",
+        //                 "insurance" => "16045554.83969682659674035672",
+        //                 "sign_price" => "39652.48",
+        //                 "index_price" => "39648.44250000",
+        //                 "sell_total" => "22.3913",
+        //                 "buy_total" => "19.4498",
+        //                 "buy_amount" => "12.8942",
+        //                 "sell" => "39663.80",
+        //                 "sell_amount" => "0.9388"
+        //             }
+        //         ),
+        //         "message" => "OK"
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $ticker = $this->safe_value($data, 'ticker', array());
+        return $this->parse_funding_rate($ticker, $market);
+    }
+
+    public function parse_funding_rate($contract, $market = null) {
+        //
+        // fetchFundingRate
+        //
+        //     {
+        //         "vol" => "6090.9430",
+        //         "low" => "39180.30",
+        //         "open" => "40474.97",
+        //         "high" => "40798.01",
+        //         "last" => "39659.30",
+        //         "buy" => "39663.79",
+        //         "period" => 86400,
+        //         "funding_time" => 372,
+        //         "position_amount" => "270.1956",
+        //         "funding_rate_last" => "0.00022913",
+        //         "funding_rate_next" => "0.00013158",
+        //         "funding_rate_predict" => "0.00016552",
+        //         "insurance" => "16045554.83969682659674035672",
+        //         "sign_price" => "39652.48",
+        //         "index_price" => "39648.44250000",
+        //         "sell_total" => "22.3913",
+        //         "buy_total" => "19.4498",
+        //         "buy_amount" => "12.8942",
+        //         "sell" => "39663.80",
+        //         "sell_amount" => "0.9388"
+        //     }
+        //
+        return array(
+            'info' => $contract,
+            'symbol' => $this->safe_symbol(null, $market),
+            'markPrice' => $this->safe_string($contract, 'sign_price'),
+            'indexPrice' => $this->safe_string($contract, 'index_price'),
+            'interestRate' => null,
+            'estimatedSettlePrice' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'fundingRate' => $this->safe_string($contract, 'funding_rate_next'),
+            'fundingTimestamp' => null,
+            'fundingDatetime' => null,
+            'nextFundingRate' => $this->safe_string($contract, 'funding_rate_predict'),
+            'nextFundingTimestamp' => null,
+            'nextFundingDatetime' => null,
+            'previousFundingRate' => $this->safe_string($contract, 'funding_rate_last'),
+            'previousFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
+        );
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
