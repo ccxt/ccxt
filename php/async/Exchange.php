@@ -363,7 +363,7 @@ class Exchange extends \ccxt\Exchange {
         });
     }
 
-    public function create_post_only_order($symbol, $type, $side, $amount, $price, $params=array()) {
+    public function create_post_only_order($symbol, $type, $side, $amount, $price, $params = array()) {
         if (!$this->has['createPostOnlyOrder']) {
             throw new NotSupported($this->id . ' create_post_only_order() is not supported yet');
         }
@@ -372,21 +372,21 @@ class Exchange extends \ccxt\Exchange {
         return yield $this->create_order($symbol, $type, $side, $amount, $price, $params);
     }
 
-    public function create_stop_order($symbol, $type, $side, $amount, $price = null, $stop_price = null, $params=array()) {
+    public function create_stop_order($symbol, $type, $side, $amount, $price = null, $stop_price = null, $params = array()) {
         if (!$this->has['createStopOrder']) {
-            throw new NotSupported($this->id . 'create_stop_order() ');
+            throw new NotSupported($this->id . ' create_stop_order() is not supported yet');
         }
         if ($stop_price === null) {
-            throw new ArgumentsRequired($this->id . 'create_stop_order() requires argument stop_price');
+            throw new ArgumentsRequired($this->id . ' create_stop_order() requires a stop_price argument');
         }
         $array = array('stopPrice' => $stop_price);
         $query = $this->extend($params, $array);
         return yield $this->create_order($symbol, $type, $side, $amount, $price, $query);
     }
 
-    public function create_stop_limit_order($symbol, $side, $amount, $price, $stop_price, $params=array()) {
+    public function create_stop_limit_order($symbol, $side, $amount, $price, $stop_price, $params = array()) {
         if (!$this->has['createStopLimitOrder']) {
-            throw new NotSupported($this->id . 'create_stop_limit_order() is not supported yet');
+            throw new NotSupported($this->id . ' create_stop_limit_order() is not supported yet');
         }
         $array = array('stopPrice' => $stop_price);
         $query = $this->extend($params, $array);
@@ -395,7 +395,7 @@ class Exchange extends \ccxt\Exchange {
 
     public function create_stop_market_order($symbol, $side, $amount, $stop_price, $params=array()) {
         if (!$this->has['createStopMarketOrder']) {
-            throw new NotSupported($this->id . 'create_stop_market_order() is not supported yet');
+            throw new NotSupported($this->id . ' create_stop_market_order() is not supported yet');
         }
         $array = array('stopPrice' => $stop_price);
         $query = $this->extend($params, $array);
