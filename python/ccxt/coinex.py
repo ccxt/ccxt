@@ -39,6 +39,7 @@ class coinex(Exchange):
                 'fetchClosedOrders': True,
                 'fetchDeposits': True,
                 'fetchFundingRate': True,
+                'fetchFundingRateHistory': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -1265,6 +1266,57 @@ class coinex(Exchange):
             'fail': 'failed',
         }
         return self.safe_string(statuses, status, status)
+
+    def fetch_funding_rate_history(self, symbol=None, since=None, limit=100, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'market': market['id'],
+            'limit': limit,
+            'offset': 0,
+            # 'end_time': 1638990636,
+        }
+        if since is not None:
+            request['start_time'] = since
+        response = self.perpetualPublicGetMarketFundingHistory(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "offset": 0,
+        #             "limit": 3,
+        #             "records": [
+        #                 {
+        #                     "time": 1650672021.6230309,
+        #                     "market": "BTCUSDT",
+        #                     "asset": "USDT",
+        #                     "funding_rate": "0.00022913",
+        #                     "funding_rate_real": "0.00022913"
+        #                 },
+        #             ]
+        #         },
+        #         "message": "OK"
+        #     }
+        #
+        data = self.safe_value(response, 'data')
+        result = self.safe_value(data, 'records')
+        rates = []
+        for i in range(0, len(result)):
+            entry = result[i]
+            marketId = self.safe_string(entry, 'market')
+            symbol = self.safe_symbol(marketId)
+            timestamp = self.safe_timestamp(entry, 'time')
+            rates.append({
+                'info': entry,
+                'symbol': symbol,
+                'fundingRate': self.safe_string(entry, 'funding_rate'),
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+            })
+        sorted = self.sort_by(rates, 'timestamp')
+        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
     def parse_transaction(self, transaction, currency=None):
         #

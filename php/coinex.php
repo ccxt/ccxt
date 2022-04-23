@@ -34,6 +34,7 @@ class coinex extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchDeposits' => true,
                 'fetchFundingRate' => true,
+                'fetchFundingRateHistory' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -1318,6 +1319,61 @@ class coinex extends Exchange {
             'fail' => 'failed',
         );
         return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function fetch_funding_rate_history($symbol = null, $since = null, $limit = 100, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'market' => $market['id'],
+            'limit' => $limit,
+            'offset' => 0,
+            // 'end_time' => 1638990636,
+        );
+        if ($since !== null) {
+            $request['start_time'] = $since;
+        }
+        $response = $this->perpetualPublicGetMarketFundingHistory (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => array(
+        //             "offset" => 0,
+        //             "limit" => 3,
+        //             "records" => array(
+        //                 array(
+        //                     "time" => 1650672021.6230309,
+        //                     "market" => "BTCUSDT",
+        //                     "asset" => "USDT",
+        //                     "funding_rate" => "0.00022913",
+        //                     "funding_rate_real" => "0.00022913"
+        //                 ),
+        //             )
+        //         ),
+        //         "message" => "OK"
+        //     }
+        //
+        $data = $this->safe_value($response, 'data');
+        $result = $this->safe_value($data, 'records');
+        $rates = array();
+        for ($i = 0; $i < count($result); $i++) {
+            $entry = $result[$i];
+            $marketId = $this->safe_string($entry, 'market');
+            $symbol = $this->safe_symbol($marketId);
+            $timestamp = $this->safe_timestamp($entry, 'time');
+            $rates[] = array(
+                'info' => $entry,
+                'symbol' => $symbol,
+                'fundingRate' => $this->safe_string($entry, 'funding_rate'),
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+            );
+        }
+        $sorted = $this->sort_by($rates, 'timestamp');
+        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
     public function parse_transaction($transaction, $currency = null) {
