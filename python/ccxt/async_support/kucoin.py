@@ -2020,13 +2020,10 @@ class kucoin(Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType', 'trade')
+        defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType', 'spot')
         requestedType = self.safe_string(params, 'type', defaultType)
         accountsByType = self.safe_value(self.options, 'accountsByType')
-        type = self.safe_string(accountsByType, requestedType)
-        if type is None:
-            keys = list(accountsByType.keys())
-            raise ExchangeError(self.id + ' type must be one of ' + ', '.join(keys))
+        type = self.safe_string(accountsByType, requestedType, requestedType)
         params = self.omit(params, 'type')
         request = {
             'type': type,
