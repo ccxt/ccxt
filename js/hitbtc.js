@@ -212,13 +212,8 @@ module.exports = class hitbtc extends Exchange {
                 },
                 'defaultTimeInForce': 'FOK',
                 'accountsByType': {
-                    'bank': 'bank',
-                    'exchange': 'exchange',
-                    'main': 'bank',  // alias of the above
                     'funding': 'bank',
                     'spot': 'exchange',
-                    'trade': 'exchange',
-                    'trading': 'exchange',
                 },
                 'fetchBalanceMethod': {
                     'account': 'account',
@@ -375,17 +370,10 @@ module.exports = class hitbtc extends Exchange {
         let type = this.safeString (params, 'type');
         if (type === undefined) {
             const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-            const fromId = this.safeString (accountsByType, fromAccount);
-            const toId = this.safeString (accountsByType, toAccount);
-            const keys = Object.keys (accountsByType);
-            if (fromId === undefined) {
-                throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', ') + ' instead of ' + fromId);
-            }
-            if (toId === undefined) {
-                throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', ') + ' instead of ' + toId);
-            }
+            const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
+            const toId = this.safeString (accountsByType, toAccount, toAccount);
             if (fromId === toId) {
-                throw new ExchangeError (this.id + ' from and to cannot be the same account');
+                throw new ExchangeError (this.id + ' transfer() from and to cannot be the same account');
             }
             type = fromId + 'To' + this.capitalize (toId);
         }
