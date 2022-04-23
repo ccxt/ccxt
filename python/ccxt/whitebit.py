@@ -739,14 +739,13 @@ class whitebit(Exchange):
         #          "pong"
         #      ]
         #
-        status = self.safe_string(response, 0, None)
-        status = 'maintenance' if (status is None) else 'ok'
-        self.status = self.extend(self.status, {
-            'status': status,
+        status = self.safe_string(response, 0)
+        return {
+            'status': 'ok' if (status == 'pong') else status,
             'updated': self.milliseconds(),
+            'eta': None,
             'info': response,
-        })
-        return self.status
+        }
 
     def fetch_time(self, params={}):
         response = self.v4PublicGetTime(params)
