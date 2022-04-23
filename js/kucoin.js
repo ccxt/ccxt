@@ -416,17 +416,12 @@ module.exports = class kucoin extends Exchange {
                     },
                 },
                 'accountsByType': {
-                    'trade': 'trade',
-                    'trading': 'trade',
                     'spot': 'trade',
                     'margin': 'margin',
                     'main': 'main',
                     'funding': 'main',
                     'future': 'contract',
-                    'futures': 'contract',
-                    'contract': 'contract',
-                    'pool': 'pool',
-                    'pool-x': 'pool',
+                    'mining': 'pool',
                 },
                 'networks': {
                     'ETH': 'eth',
@@ -2175,19 +2170,11 @@ module.exports = class kucoin extends Exchange {
         const currency = this.currency (code);
         const requestedAmount = this.currencyToPrecision (code, amount);
         const accountsById = this.safeValue (this.options, 'accountsByType', {});
-        const fromId = this.safeString (accountsById, fromAccount);
-        if (fromId === undefined) {
-            const keys = Object.keys (accountsById);
-            throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', '));
-        }
-        const toId = this.safeString (accountsById, toAccount);
-        if (toId === undefined) {
-            const keys = Object.keys (accountsById);
-            throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', '));
-        }
+        const fromId = this.safeString (accountsById, fromAccount, fromAccount);
+        const toId = this.safeString (accountsById, toAccount, toAccount);
         if (fromId === 'contract') {
             if (toId !== 'main') {
-                throw new ExchangeError (this.id + ' only supports transferring from futures account to main account');
+                throw new ExchangeError (this.id + ' transfer() only supports transferring from futures account to main account');
             }
             const request = {
                 'currency': currency['id'],
