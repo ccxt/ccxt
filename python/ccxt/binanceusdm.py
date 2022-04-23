@@ -19,6 +19,15 @@ class binanceusdm(binance):
                     'https://binance-docs.github.io/apidocs/spot/en',
                 ],
             },
+            'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': None,
+                'swap': None,
+                'future': None,
+                'option': None,
+                'createStopMarketOrder': True,
+            },
             'options': {
                 'defaultType': 'future',
                 # https://www.binance.com/en/support/faq/360033162192
