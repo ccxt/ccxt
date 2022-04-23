@@ -371,17 +371,16 @@ class mexc(Exchange):
     async def fetch_status(self, params={}):
         response = await self.spotPublicGetCommonPing(params)
         #
-        # {"code":200}
+        #     {"code":200}
         #
         code = self.safe_integer(response, 'code')
-        if code is not None:
-            status = 'ok' if (code == 200) else 'maintenance'
-            self.status = self.extend(self.status, {
-                'status': status,
-                'updated': self.milliseconds(),
-                'info': response,
-            })
-        return self.status
+        status = 'ok' if (code == 200) else 'maintenance'
+        return {
+            'status': status,
+            'updated': self.milliseconds(),
+            'eta': None,
+            'info': response,
+        }
 
     async def fetch_currencies(self, params={}):
         response = await self.spotPublicGetMarketCoinList(params)

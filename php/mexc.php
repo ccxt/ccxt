@@ -363,18 +363,16 @@ class mexc extends Exchange {
     public function fetch_status($params = array ()) {
         $response = $this->spotPublicGetCommonPing ($params);
         //
-        // array( "code":200 )
+        //     array( "code":200 )
         //
         $code = $this->safe_integer($response, 'code');
-        if ($code !== null) {
-            $status = ($code === 200) ? 'ok' : 'maintenance';
-            $this->status = array_merge($this->status, array(
-                'status' => $status,
-                'updated' => $this->milliseconds(),
-                'info' => $response,
-            ));
-        }
-        return $this->status;
+        $status = ($code === 200) ? 'ok' : 'maintenance';
+        return array(
+            'status' => $status,
+            'updated' => $this->milliseconds(),
+            'eta' => null,
+            'info' => $response,
+        );
     }
 
     public function fetch_currencies($params = array ()) {
