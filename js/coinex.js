@@ -28,6 +28,7 @@ module.exports = class coinex extends Exchange {
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchDeposits': true,
+                'fetchFundingRateHistory': true,
                 'fetchFundingRate': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -1313,6 +1314,61 @@ module.exports = class coinex extends Exchange {
             'fail': 'failed',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = 100, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+            'limit': limit,
+            'offset': 0,
+            // 'end_time': 1638990636,
+        };
+        if (since !== undefined) {
+            request['start_time'] = since;
+        }
+        const response = await this.perpetualPublicGetMarketFundingHistory (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "offset": 0,
+        //             "limit": 3,
+        //             "records": [
+        //                 {
+        //                     "time": 1650672021.6230309,
+        //                     "market": "BTCUSDT",
+        //                     "asset": "USDT",
+        //                     "funding_rate": "0.00022913",
+        //                     "funding_rate_real": "0.00022913"
+        //                 },
+        //             ]
+        //         },
+        //         "message": "OK"
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        const result = this.safeValue (data, 'records');
+        const rates = [];
+        for (let i = 0; i < result.length; i++) {
+            const entry = result[i];
+            const marketId = this.safeString (entry, 'market');
+            const symbol = this.safeSymbol (marketId);
+            const timestamp = this.safeTimestamp (entry, 'time');
+            rates.push ({
+                'info': entry,
+                'symbol': symbol,
+                'fundingRate': this.safeString (entry, 'funding_rate'),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+            });
+        }
+        const sorted = this.sortBy (rates, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
     }
 
     parseTransaction (transaction, currency = undefined) {
