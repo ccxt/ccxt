@@ -556,7 +556,7 @@ class coinex(Exchange):
 
     def parse_trade(self, trade, market=None):
         #
-        # fetchTrades(public)
+        # Spot fetchTrades(public)
         #
         #      {
         #          "id":  2611511379,
@@ -567,7 +567,7 @@ class coinex(Exchange):
         #          "date_ms":  1638990110518
         #      },
         #
-        # fetchMyTrades(private)
+        # Spot fetchMyTrades(private)
         #
         #      {
         #          "id": 2611520950,
@@ -584,7 +584,40 @@ class coinex(Exchange):
         #          "deal_money": "18.84442"
         #      }
         #
-        timestamp = self.safe_timestamp(trade, 'create_time')
+        # Swap fetchMyTrades(private)
+        #
+        #     {
+        #         "amount": "0.0012",
+        #         "deal_fee": "0.0237528",
+        #         "deal_insurance": "0",
+        #         "deal_margin": "15.8352",
+        #         "deal_order_id": 17797031903,
+        #         "deal_profit": "0",
+        #         "deal_stock": "47.5056",
+        #         "deal_type": 1,
+        #         "deal_user_id": 2969195,
+        #         "fee_asset": "",
+        #         "fee_discount": "0",
+        #         "fee_price": "0",
+        #         "fee_rate": "0.0005",
+        #         "fee_real_rate": "0.0005",
+        #         "id": 379044296,
+        #         "leverage": "3",
+        #         "margin_amount": "15.8352",
+        #         "market": "BTCUSDT",
+        #         "open_price": "39588",
+        #         "order_id": 17797092987,
+        #         "position_amount": "0.0012",
+        #         "position_id": 62052321,
+        #         "position_type": 1,
+        #         "price": "39588",
+        #         "role": 2,
+        #         "side": 2,
+        #         "time": 1650675936.016103,
+        #         "user_id": 3620173
+        #     }
+        #
+        timestamp = self.safe_timestamp_2(trade, 'create_time', 'time')
         if timestamp is None:
             timestamp = self.safe_integer(trade, 'date_ms')
         tradeId = self.safe_string(trade, 'id')
@@ -595,7 +628,7 @@ class coinex(Exchange):
         symbol = self.safe_symbol(marketId, market)
         costString = self.safe_string(trade, 'deal_money')
         fee = None
-        feeCostString = self.safe_string(trade, 'fee')
+        feeCostString = self.safe_string_2(trade, 'fee', 'deal_fee')
         if feeCostString is not None:
             feeCurrencyId = self.safe_string(trade, 'fee_asset')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
@@ -604,7 +637,19 @@ class coinex(Exchange):
                 'currency': feeCurrencyCode,
             }
         takerOrMaker = self.safe_string(trade, 'role')
-        side = self.safe_string(trade, 'type')
+        if takerOrMaker == '1':
+            takerOrMaker = 'maker'
+        elif takerOrMaker == '2':
+            takerOrMaker = 'taker'
+        side = None
+        if market['type'] == 'swap':
+            side = self.safe_integer(trade, 'side')
+            if side == 1:
+                side = 'sell'
+            elif side == 2:
+                side = 'buy'
+        else:
+            side = self.safe_string(trade, 'type')
         return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
@@ -1084,18 +1129,38 @@ class coinex(Exchange):
         return self.fetch_orders_by_status('finished', symbol, since, limit, params)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
+        market = self.market(symbol)
+        swap = market['swap']
         if limit is None:
             limit = 100
         request = {
-            'page': 1,
-            'limit': limit,
+            'market': market['id'],  # SPOT and SWAP
+            'limit': limit,  # SPOT and SWAP
+            'offset': 0,  # SWAP, means query from a certain record
+            # 'page': 1,  # SPOT
+            # 'side': 2,  # SWAP, 0 for no limit, 1 for sell, 2 for buy
+            # 'start_time': since,  # SWAP
+            # 'end_time': 1524228297,  # SWAP
         }
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-            request['market'] = market['id']
-        response = self.privateGetOrderUserDeals(self.extend(request, params))
+        method = None
+        if swap:
+            method = 'perpetualPublicGetMarketUserDeals'
+            side = self.safe_integer(params, 'side')
+            if side is None:
+                raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a side parameter for swap markets')
+            if since is not None:
+                request['start_time'] = since
+            request['side'] = side
+            params = self.omit(params, 'side')
+        else:
+            method = 'privateGetOrderUserDeals'
+            request['page'] = 1
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        # Spot
         #
         #      {
         #          "code": 0,
@@ -1123,8 +1188,52 @@ class coinex(Exchange):
         #          "message": "Success"
         #      }
         #
+        # Swap
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "limit": 100,
+        #             "offset": 0,
+        #             "records": [
+        #                 {
+        #                     "amount": "0.0012",
+        #                     "deal_fee": "0.0237528",
+        #                     "deal_insurance": "0",
+        #                     "deal_margin": "15.8352",
+        #                     "deal_order_id": 17797031903,
+        #                     "deal_profit": "0",
+        #                     "deal_stock": "47.5056",
+        #                     "deal_type": 1,
+        #                     "deal_user_id": 2969195,
+        #                     "fee_asset": "",
+        #                     "fee_discount": "0",
+        #                     "fee_price": "0",
+        #                     "fee_rate": "0.0005",
+        #                     "fee_real_rate": "0.0005",
+        #                     "id": 379044296,
+        #                     "leverage": "3",
+        #                     "margin_amount": "15.8352",
+        #                     "market": "BTCUSDT",
+        #                     "open_price": "39588",
+        #                     "order_id": 17797092987,
+        #                     "position_amount": "0.0012",
+        #                     "position_id": 62052321,
+        #                     "position_type": 1,
+        #                     "price": "39588",
+        #                     "role": 2,
+        #                     "side": 2,
+        #                     "time": 1650675936.016103,
+        #                     "user_id": 3620173
+        #                 }
+        #             ]
+        #         },
+        #         "message": "OK"
+        #     }
+        #
+        tradeRequest = 'records' if swap else 'data'
         data = self.safe_value(response, 'data')
-        trades = self.safe_value(data, 'data', [])
+        trades = self.safe_value(data, tradeRequest, [])
         return self.parse_trades(trades, market, since, limit)
 
     def fetch_funding_rate(self, symbol, params={}):
@@ -1509,7 +1618,25 @@ class coinex(Exchange):
         path = self.implode_params(path, params)
         url = self.urls['api'][api] + '/' + self.version + '/' + path
         query = self.omit(params, self.extract_params(path))
-        if api == 'public' or api == 'perpetualPublic':
+        if api == 'perpetualPrivate' or url == 'https://api.coinex.com/perpetual/v1/market/user_deals':
+            self.check_required_credentials()
+            nonce = self.nonce()
+            query = self.extend({
+                'access_id': self.apiKey,
+                'timestamp': str(nonce),
+            }, query)
+            query = self.keysort(query)
+            urlencoded = self.rawencode(query)
+            signature = self.hash(self.encode(urlencoded + '&secret_key=' + self.secret), 'sha256')
+            headers = {
+                'Authorization': signature.lower(),
+                'AccessId': self.apiKey,
+            }
+            if (method == 'GET') or (method == 'DELETE'):
+                url += '?' + urlencoded
+            else:
+                body = self.json(query)
+        elif api == 'public' or api == 'perpetualPublic':
             if query:
                 url += '?' + self.urlencode(query)
         else:

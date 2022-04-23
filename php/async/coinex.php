@@ -566,7 +566,7 @@ class coinex extends Exchange {
 
     public function parse_trade($trade, $market = null) {
         //
-        // fetchTrades (public)
+        // Spot fetchTrades (public)
         //
         //      array(
         //          "id" =>  2611511379,
@@ -577,7 +577,7 @@ class coinex extends Exchange {
         //          "date_ms" =>  1638990110518
         //      ),
         //
-        // fetchMyTrades (private)
+        // Spot fetchMyTrades (private)
         //
         //      {
         //          "id" => 2611520950,
@@ -594,7 +594,40 @@ class coinex extends Exchange {
         //          "deal_money" => "18.84442"
         //      }
         //
-        $timestamp = $this->safe_timestamp($trade, 'create_time');
+        // Swap fetchMyTrades (private)
+        //
+        //     {
+        //         "amount" => "0.0012",
+        //         "deal_fee" => "0.0237528",
+        //         "deal_insurance" => "0",
+        //         "deal_margin" => "15.8352",
+        //         "deal_order_id" => 17797031903,
+        //         "deal_profit" => "0",
+        //         "deal_stock" => "47.5056",
+        //         "deal_type" => 1,
+        //         "deal_user_id" => 2969195,
+        //         "fee_asset" => "",
+        //         "fee_discount" => "0",
+        //         "fee_price" => "0",
+        //         "fee_rate" => "0.0005",
+        //         "fee_real_rate" => "0.0005",
+        //         "id" => 379044296,
+        //         "leverage" => "3",
+        //         "margin_amount" => "15.8352",
+        //         "market" => "BTCUSDT",
+        //         "open_price" => "39588",
+        //         "order_id" => 17797092987,
+        //         "position_amount" => "0.0012",
+        //         "position_id" => 62052321,
+        //         "position_type" => 1,
+        //         "price" => "39588",
+        //         "role" => 2,
+        //         "side" => 2,
+        //         "time" => 1650675936.016103,
+        //         "user_id" => 3620173
+        //     }
+        //
+        $timestamp = $this->safe_timestamp_2($trade, 'create_time', 'time');
         if ($timestamp === null) {
             $timestamp = $this->safe_integer($trade, 'date_ms');
         }
@@ -606,7 +639,7 @@ class coinex extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market);
         $costString = $this->safe_string($trade, 'deal_money');
         $fee = null;
-        $feeCostString = $this->safe_string($trade, 'fee');
+        $feeCostString = $this->safe_string_2($trade, 'fee', 'deal_fee');
         if ($feeCostString !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'fee_asset');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
@@ -616,7 +649,22 @@ class coinex extends Exchange {
             );
         }
         $takerOrMaker = $this->safe_string($trade, 'role');
-        $side = $this->safe_string($trade, 'type');
+        if ($takerOrMaker === '1') {
+            $takerOrMaker = 'maker';
+        } else if ($takerOrMaker === '2') {
+            $takerOrMaker = 'taker';
+        }
+        $side = null;
+        if ($market['type'] === 'swap') {
+            $side = $this->safe_integer($trade, 'side');
+            if ($side === 1) {
+                $side = 'sell';
+            } else if ($side === 2) {
+                $side = 'buy';
+            }
+        } else {
+            $side = $this->safe_string($trade, 'type');
+        }
         return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -1129,20 +1177,43 @@ class coinex extends Exchange {
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+        }
         yield $this->load_markets();
+        $market = $this->market($symbol);
+        $swap = $market['swap'];
         if ($limit === null) {
             $limit = 100;
         }
         $request = array(
-            'page' => 1,
-            'limit' => $limit,
+            'market' => $market['id'], // SPOT and SWAP
+            'limit' => $limit, // SPOT and SWAP
+            'offset' => 0, // SWAP, means query from a certain record
+            // 'page' => 1, // SPOT
+            // 'side' => 2, // SWAP, 0 for no $limit, 1 for sell, 2 for buy
+            // 'start_time' => $since, // SWAP
+            // 'end_time' => 1524228297, // SWAP
         );
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['market'] = $market['id'];
+        $method = null;
+        if ($swap) {
+            $method = 'perpetualPublicGetMarketUserDeals';
+            $side = $this->safe_integer($params, 'side');
+            if ($side === null) {
+                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $side parameter for $swap markets');
+            }
+            if ($since !== null) {
+                $request['start_time'] = $since;
+            }
+            $request['side'] = $side;
+            $params = $this->omit($params, 'side');
+        } else {
+            $method = 'privateGetOrderUserDeals';
+            $request['page'] = 1;
         }
-        $response = yield $this->privateGetOrderUserDeals (array_merge($request, $params));
+        $response = yield $this->$method (array_merge($request, $params));
+        //
+        // Spot
         //
         //      {
         //          "code" => 0,
@@ -1170,8 +1241,52 @@ class coinex extends Exchange {
         //          "message" => "Success"
         //      }
         //
+        // Swap
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => {
+        //             "limit" => 100,
+        //             "offset" => 0,
+        //             "records" => array(
+        //                 array(
+        //                     "amount" => "0.0012",
+        //                     "deal_fee" => "0.0237528",
+        //                     "deal_insurance" => "0",
+        //                     "deal_margin" => "15.8352",
+        //                     "deal_order_id" => 17797031903,
+        //                     "deal_profit" => "0",
+        //                     "deal_stock" => "47.5056",
+        //                     "deal_type" => 1,
+        //                     "deal_user_id" => 2969195,
+        //                     "fee_asset" => "",
+        //                     "fee_discount" => "0",
+        //                     "fee_price" => "0",
+        //                     "fee_rate" => "0.0005",
+        //                     "fee_real_rate" => "0.0005",
+        //                     "id" => 379044296,
+        //                     "leverage" => "3",
+        //                     "margin_amount" => "15.8352",
+        //                     "market" => "BTCUSDT",
+        //                     "open_price" => "39588",
+        //                     "order_id" => 17797092987,
+        //                     "position_amount" => "0.0012",
+        //                     "position_id" => 62052321,
+        //                     "position_type" => 1,
+        //                     "price" => "39588",
+        //                     "role" => 2,
+        //                     "side" => 2,
+        //                     "time" => 1650675936.016103,
+        //                     "user_id" => 3620173
+        //                 }
+        //             )
+        //         ),
+        //         "message" => "OK"
+        //     }
+        //
+        $tradeRequest = $swap ? 'records' : 'data';
         $data = $this->safe_value($response, 'data');
-        $trades = $this->safe_value($data, 'data', array());
+        $trades = $this->safe_value($data, $tradeRequest, array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
@@ -1583,7 +1698,26 @@ class coinex extends Exchange {
         $path = $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . '/' . $this->version . '/' . $path;
         $query = $this->omit($params, $this->extract_params($path));
-        if ($api === 'public' || $api === 'perpetualPublic') {
+        if ($api === 'perpetualPrivate' || $url === 'https://api->coinex.com/perpetual/v1/market/user_deals') {
+            $this->check_required_credentials();
+            $nonce = $this->nonce();
+            $query = array_merge(array(
+                'access_id' => $this->apiKey,
+                'timestamp' => (string) $nonce,
+            ), $query);
+            $query = $this->keysort($query);
+            $urlencoded = $this->rawencode($query);
+            $signature = $this->hash($this->encode($urlencoded . '&secret_key=' . $this->secret), 'sha256');
+            $headers = array(
+                'Authorization' => strtolower($signature),
+                'AccessId' => $this->apiKey,
+            );
+            if (($method === 'GET') || ($method === 'DELETE')) {
+                $url .= '?' . $urlencoded;
+            } else {
+                $body = $this->json($query);
+            }
+        } else if ($api === 'public' || $api === 'perpetualPublic') {
             if ($query) {
                 $url .= '?' . $this->urlencode($query);
             }
