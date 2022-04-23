@@ -46,6 +46,9 @@ class aax(Exchange):
                 'createDepositAddress': None,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': True,
+                'createStopOrder': True,
                 'editOrder': True,
                 'fetchAccounts': None,
                 'fetchBalance': True,
@@ -75,8 +78,8 @@ class aax(Exchange):
                 'fetchLedger': None,
                 'fetchLedgerEntry': None,
                 'fetchLeverage': None,
-                'fetchLeverageTiers': True,
-                'fetchMarketLeverageTiers': 'emulated',
+                'fetchLeverageTiers': False,
+                'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyBuys': None,
@@ -105,7 +108,7 @@ class aax(Exchange):
                 'fetchTransactions': None,
                 'fetchTransfer': False,
                 'fetchTransfers': True,
-                'fetchWithdrawal': None,
+                'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
                 'fetchWithdrawalWhitelist': None,
                 'reduceMargin': None,
@@ -114,7 +117,7 @@ class aax(Exchange):
                 'setPositionMode': None,
                 'signIn': None,
                 'transfer': True,
-                'withdraw': None,
+                'withdraw': False,
             },
             'timeframes': {
                 '1m': '1m',
@@ -346,32 +349,50 @@ class aax(Exchange):
     def fetch_status(self, params={}):
         response = self.publicGetAnnouncementMaintenance(params)
         #
+        # note, when there is no maintenance, then data is `null`
+        #
         #     {
         #         "code": 1,
         #         "data": {
         #             "startTime":"2020-06-25T02:15:00.000Z",
         #             "endTime":"2020-06-25T02:45:00.000Z"，
-        #             "description":"Spot Trading :UTC Jun 25, 2020 02:15 to 02:45(HKT Jun 25 10:15 to 10:45),Futures Trading: UTC Jun 25, 2020 02:15 to 02:45(HKT Jun 25 10:15 to 10:45).We apologize for any inconvenience caused. Thank you for your patience and understanding.Should you have any enquiries, please do not hesitate our live chat support or via email at cs@aax.com."
+        #             "description":"Spot Trading :UTC Jun 25, 2020 02:15 to 02:45(HKT Jun 25 10:15 to 10:45),Futures Trading: UTC Jun 25, 2020 02:15 to 02:45(HKT Jun 25 10:15 to 10:45).We apologize for any inconvenience caused. Thank you for your patience and understanding.Should you have any enquiries, please do not hesitate our live chat support or via email at cs@aax.com.",
+        #             "haltReason":1,
+        #             "systemStatus":{
+        #                 "spotTrading":"readOnly",
+        #                 "futuresTreading":"closeOnly",
+        #                 "walletOperating":"enable",
+        #                 "otcTrading":"disable"
+        #             },
         #         },
         #         "message":"success",
         #         "ts":1593043237000
         #     }
         #
-        data = self.safe_value(response, 'data', {})
         timestamp = self.milliseconds()
-        startTime = self.parse8601(self.safe_string(data, 'startTime'))
-        endTime = self.parse8601(self.safe_string(data, 'endTime'))
-        update = {
-            'updated': self.safe_integer(response, 'ts', timestamp),
+        updated = self.safe_integer(response, 'ts', timestamp)
+        data = self.safe_value(response, 'data', {})
+        status = None
+        eta = None
+        if data:
+            startTime = self.parse8601(self.safe_string(data, 'startTime'))
+            endTime = self.parse8601(self.safe_string(data, 'endTime'))
+            if endTime is not None:
+                startTimeIsOk = True if (startTime is None) else (updated < startTime)
+                isOk = (updated > endTime) or startTimeIsOk
+                eta = endTime
+                status = 'ok' if isOk else 'maintenance'
+            else:
+                status = data
+        else:
+            eta = None
+            status = 'ok'
+        return {
+            'status': status,
+            'updated': updated,
+            'eta': eta,
             'info': response,
         }
-        if endTime is not None:
-            startTimeIsOk = True if (startTime is None) else (timestamp < startTime)
-            isOk = (timestamp > endTime) or startTimeIsOk
-            update['eta'] = endTime
-            update['status'] = 'ok' if isOk else 'maintenance'
-        self.status = self.extend(self.status, update)
-        return self.status
 
     def fetch_markets(self, params={}):
         response = self.publicGetInstruments(params)
@@ -2209,95 +2230,6 @@ class aax(Exchange):
             'leverage': leverage,
         }
         return self.privatePostFuturesPositionLeverage(self.extend(request, params))
-
-    def fetch_leverage_tiers(self, symbols=None, params={}):
-        self.load_markets()
-        response = self.publicGetInstruments(params)
-        #
-        #     {
-        #         "code":1,
-        #         "message":"success",
-        #         "ts":1610159448962,
-        #         "data":[
-        #             {
-        #                 "tickSize":"0.01",
-        #                 "lotSize":"1",
-        #                 "base":"BTC",
-        #                 "quote":"USDT",
-        #                 "minQuantity":"1.0000000000",
-        #                 "maxQuantity":"30000",
-        #                 "minPrice":"0.0100000000",
-        #                 "maxPrice":"999999.0000000000",
-        #                 "status":"readOnly",
-        #                 "symbol":"BTCUSDTFP",
-        #                 "code":"FP",
-        #                 "takerFee":"0.00040",
-        #                 "makerFee":"0.00020",
-        #                 "multiplier":"0.001000000000",
-        #                 "mmRate":"0.00500",
-        #                 "imRate":"0.01000",
-        #                 "type":"futures",
-        #                 "settleType":"Vanilla",
-        #                 "settleCurrency":"USDT"
-        #             },
-        #             ...
-        #         ]
-        #     }
-        #
-        data = self.safe_value(response, 'data')
-        return self.parse_leverage_tiers(data, symbols, 'symbol')
-
-    def parse_market_leverage_tiers(self, info, market):
-        """
-        :param dict info: Exchange market response
-        :param dict market: CCXT Market
-        """
-        #
-        #    {
-        #        "tickSize":"0.01",
-        #        "lotSize":"1",
-        #        "base":"BTC",
-        #        "quote":"USDT",
-        #        "minQuantity":"1.0000000000",
-        #        "maxQuantity":"30000",
-        #        "minPrice":"0.0100000000",
-        #        "maxPrice":"999999.0000000000",
-        #        "status":"readOnly",
-        #        "symbol":"BTCUSDTFP",
-        #        "code":"FP",
-        #        "takerFee":"0.00040",
-        #        "makerFee":"0.00020",
-        #        "multiplier":"0.001000000000",
-        #        "mmRate":"0.00500",
-        #        "imRate":"0.01000",
-        #        "type":"futures",
-        #        "settleType":"Vanilla",
-        #        "settleCurrency":"USDT"
-        #    }
-        #
-        maintenanceMarginRate = self.safe_string(info, 'mmRate')
-        initialMarginRate = self.safe_string(info, 'imRate')
-        maxVol = self.safe_string(info, 'maxQuantity')
-        riskIncrVol = maxVol  # TODO
-        riskIncrMmr = '0.0'  # TODO
-        riskIncrImr = '0.0'  # TODO
-        floor = '0'
-        tiers = []
-        while(Precise.string_lt(floor, maxVol)):
-            cap = Precise.string_add(floor, riskIncrVol)
-            tiers.append({
-                'tier': self.parse_number(Precise.string_div(cap, riskIncrVol)),
-                'currency': market['base'],
-                'minNotional': self.parse_number(floor),
-                'maxNotional': self.parse_number(cap),
-                'maintenanceMarginRate': self.parse_number(maintenanceMarginRate),
-                'maxLeverage': self.parse_number(Precise.string_div('1', initialMarginRate)),
-                'info': info,
-            })
-            maintenanceMarginRate = Precise.string_add(maintenanceMarginRate, riskIncrMmr)
-            initialMarginRate = Precise.string_add(initialMarginRate, riskIncrImr)
-            floor = cap
-        return tiers
 
     def parse_transfer(self, transfer, currency=None):
         #     {

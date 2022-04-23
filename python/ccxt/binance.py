@@ -55,6 +55,9 @@ class binance(Exchange):
                 'createDepositAddress': False,
                 'createOrder': True,
                 'createReduceOnlyOrder': True,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': False,
+                'createStopOrder': True,
                 'fetchAccounts': None,
                 'fetchBalance': True,
                 'fetchBidsAsks': True,
@@ -1188,6 +1191,7 @@ class binance(Exchange):
                     '-6020': BadRequest,  # {"code":-6020,"msg":"Project not exists"}
                     '-7001': BadRequest,  # {"code":-7001,"msg":"Date range is not supported."}
                     '-7002': BadRequest,  # {"code":-7002,"msg":"Data request type is not supported."}
+                    '-9000': InsufficientFunds,  # {"code":-9000,"msg":"user have no avaliable amount"}"
                     '-10017': BadRequest,  # {"code":-10017,"msg":"Repay amount should not be larger than liability."}
                     '-11008': InsufficientFunds,  # {"code":-11008,"msg":"Exceeding the account's maximum borrowable limit."}  # undocumented
                     '-12014': RateLimitExceeded,  # {"code":-12014,"msg":"More than 1 request in 3 seconds"}
@@ -2042,15 +2046,19 @@ class binance(Exchange):
 
     def fetch_status(self, params={}):
         response = self.sapiGetSystemStatus(params)
-        status = self.safe_string(response, 'status')
-        if status is not None:
-            status = 'ok' if (status == '0') else 'maintenance'
-            self.status = self.extend(self.status, {
-                'status': status,
-                'updated': self.milliseconds(),
-                'info': response,
-            })
-        return self.status
+        #
+        #     {
+        #         "status": 0,              # 0: normal，1：system maintenance
+        #         "msg": "normal"           # "normal", "system_maintenance"
+        #     }
+        #
+        statusRaw = self.safe_string(response, 'status')
+        return {
+            'status': self.safe_string({'0': 'ok', '1': 'maintenance'}, statusRaw, statusRaw),
+            'updated': self.milliseconds(),
+            'eta': None,
+            'info': response,
+        }
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

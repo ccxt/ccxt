@@ -369,26 +369,26 @@ class bitmart extends Exchange {
         $response = $this->publicSystemGetService ($params);
         //
         //     {
-        //         "code" => 1000,
-        //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
         //         "message" => "OK",
+        //         "code" => 1000,
+        //         "trace" => "1d3f28b0-763e-4f78-90c4-5e3ad19dc595",
         //         "data" => {
-        //             "serivce":array(
-        //                 array(
-        //                     "title" => "Spot API Stop",
-        //                     "service_type" => "spot",
-        //                     "status" => "2",
-        //                     "start_time" => 1527777538000,
-        //                     "end_time" => 1527777538000
-        //                 ),
-        //                 {
-        //                     "title" => "Contract API Stop",
-        //                     "service_type" => "contract",
-        //                     "status" => "2",
-        //                     "start_time" => 1527777538000,
-        //                     "end_time" => 1527777538000
-        //                 }
-        //             )
+        //           "service" => array(
+        //             array(
+        //               "title" => "Spot API Stop",
+        //               "service_type" => "spot",
+        //               "status" => 2,
+        //               "start_time" => 1648639069125,
+        //               "end_time" => 1648639069125
+        //             ),
+        //             {
+        //               "title" => "Contract API Stop",
+        //               "service_type" => "contract",
+        //               "status" => 2,
+        //               "start_time" => 1648639069125,
+        //               "end_time" => 1648639069125
+        //             }
+        //           )
         //         }
         //     }
         //
@@ -410,13 +410,12 @@ class bitmart extends Exchange {
                 $eta = $this->safe_integer($service, 'end_time');
             }
         }
-        $this->status = array_merge($this->status, array(
+        return array(
             'status' => $status,
             'updated' => $this->milliseconds(),
             'eta' => $eta,
             'info' => $response,
-        ));
-        return $this->status;
+        );
     }
 
     public function fetch_spot_markets($params = array ()) {

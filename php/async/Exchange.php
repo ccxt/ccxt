@@ -28,11 +28,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.80.13';
+$version = '1.80.50';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.80.13';
+    const VERSION = '1.80.50';
 
     public static $loop;
     public static $kernel;
@@ -370,5 +370,35 @@ class Exchange extends \ccxt\Exchange {
         $array = array('postOnly' => true);
         $query = $this->extend($params, $array);
         return yield $this->create_order($symbol, $type, $side, $amount, $price, $params);
+    }
+
+    public function create_stop_order($symbol, $type, $side, $amount, $price = null, $stopPrice = null, $params = array()) {
+        if (!$this->has['createStopOrder']) {
+            throw new NotSupported($this->id . ' create_stop_order() is not supported yet');
+        }
+        if ($stopPrice === null) {
+            throw new ArgumentsRequired($this->id . ' create_stop_order() requires a stopPrice argument');
+        }
+        $array = array('stopPrice' => $stopPrice);
+        $query = $this->extend($params, $array);
+        return yield $this->create_order($symbol, $type, $side, $amount, $price, $query);
+    }
+
+    public function create_stop_limit_order($symbol, $side, $amount, $price, $stopPrice, $params = array()) {
+        if (!$this->has['createStopLimitOrder']) {
+            throw new NotSupported($this->id . ' create_stop_limit_order() is not supported yet');
+        }
+        $array = array('stopPrice' => $stopPrice);
+        $query = $this->extend($params, $array);
+        return yield $this->create_order($symbol, 'limit', $side, $amount, $price, $query);
+    }
+
+    public function create_stop_market_order($symbol, $side, $amount, $stopPrice, $params = array()) {
+        if (!$this->has['createStopMarketOrder']) {
+            throw new NotSupported($this->id . ' create_stop_market_order() is not supported yet');
+        }
+        $array = array('stopPrice' => $stopPrice);
+        $query = $this->extend($params, $array);
+        return yield $this->create_order($symbol, 'market', $side, $amount, null, $query);
     }
 }

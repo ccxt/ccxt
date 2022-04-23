@@ -74,10 +74,12 @@ class bitget(Exchange):
                 'fetchTradingFees': True,
                 'fetchTransfer': False,
                 'fetchTransfers': None,
+                'fetchWithdrawal': False,
                 'fetchWithdrawals': False,
                 'setLeverage': True,
                 'setMarginMode': True,
                 'transfer': False,
+                'withdraw': False,
             },
             'timeframes': {
                 'spot': {

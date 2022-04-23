@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError, PermissionDenied, ExchangeNotAvailable, RequestTimeout } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, BadSymbol, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError, PermissionDenied, ExchangeNotAvailable, RequestTimeout } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -28,6 +28,8 @@ module.exports = class coinex extends Exchange {
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchDeposits': true,
+                'fetchFundingRate': true,
+                'fetchFundingRateHistory': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -758,7 +760,10 @@ module.exports = class coinex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetMarketKline (this.extend (request, params));
+        const method = market['swap'] ? 'perpetualPublicGetMarketKline' : 'publicGetMarketKline';
+        const response = await this[method] (this.extend (request, params));
+        //
+        // Spot
         //
         //     {
         //         "code": 0,
@@ -766,6 +771,18 @@ module.exports = class coinex extends Exchange {
         //             [1591484400, "0.02505349", "0.02506988", "0.02507000", "0.02505304", "343.19716223", "8.6021323866383196", "ETHBTC"],
         //             [1591484700, "0.02506990", "0.02508109", "0.02508109", "0.02506979", "91.59841581", "2.2972047780447000", "ETHBTC"],
         //             [1591485000, "0.02508106", "0.02507996", "0.02508106", "0.02507500", "65.15307697", "1.6340597822306000", "ETHBTC"],
+        //         ],
+        //         "message": "OK"
+        //     }
+        //
+        // Swap
+        //
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             [1650569400, "41524.64", "41489.31", "41564.61", "41480.58", "29.7060", "1233907.099562"],
+        //             [1650569700, "41489.31", "41438.29", "41489.31", "41391.87", "42.4115", "1756154.189061"],
+        //             [1650570000, "41438.29", "41482.21", "41485.05", "41427.31", "22.2892", "924000.317861"]
         //         ],
         //         "message": "OK"
         //     }
@@ -1153,6 +1170,101 @@ module.exports = class coinex extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
+    async fetchFundingRate (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadSymbol (this.id + ' fetchFundingRate() supports swap contracts only');
+        }
+        const request = {
+            'market': market['id'],
+        };
+        const response = await this.perpetualPublicGetMarketTicker (this.extend (request, params));
+        //
+        //     {
+        //          "code": 0,
+        //         "data":
+        //         {
+        //             "date": 1650678472474,
+        //             "ticker": {
+        //                 "vol": "6090.9430",
+        //                 "low": "39180.30",
+        //                 "open": "40474.97",
+        //                 "high": "40798.01",
+        //                 "last": "39659.30",
+        //                 "buy": "39663.79",
+        //                 "period": 86400,
+        //                 "funding_time": 372,
+        //                 "position_amount": "270.1956",
+        //                 "funding_rate_last": "0.00022913",
+        //                 "funding_rate_next": "0.00013158",
+        //                 "funding_rate_predict": "0.00016552",
+        //                 "insurance": "16045554.83969682659674035672",
+        //                 "sign_price": "39652.48",
+        //                 "index_price": "39648.44250000",
+        //                 "sell_total": "22.3913",
+        //                 "buy_total": "19.4498",
+        //                 "buy_amount": "12.8942",
+        //                 "sell": "39663.80",
+        //                 "sell_amount": "0.9388"
+        //             }
+        //         },
+        //         "message": "OK"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const ticker = this.safeValue (data, 'ticker', {});
+        return this.parseFundingRate (ticker, market);
+    }
+
+    parseFundingRate (contract, market = undefined) {
+        //
+        // fetchFundingRate
+        //
+        //     {
+        //         "vol": "6090.9430",
+        //         "low": "39180.30",
+        //         "open": "40474.97",
+        //         "high": "40798.01",
+        //         "last": "39659.30",
+        //         "buy": "39663.79",
+        //         "period": 86400,
+        //         "funding_time": 372,
+        //         "position_amount": "270.1956",
+        //         "funding_rate_last": "0.00022913",
+        //         "funding_rate_next": "0.00013158",
+        //         "funding_rate_predict": "0.00016552",
+        //         "insurance": "16045554.83969682659674035672",
+        //         "sign_price": "39652.48",
+        //         "index_price": "39648.44250000",
+        //         "sell_total": "22.3913",
+        //         "buy_total": "19.4498",
+        //         "buy_amount": "12.8942",
+        //         "sell": "39663.80",
+        //         "sell_amount": "0.9388"
+        //     }
+        //
+        return {
+            'info': contract,
+            'symbol': this.safeSymbol (undefined, market),
+            'markPrice': this.safeString (contract, 'sign_price'),
+            'indexPrice': this.safeString (contract, 'index_price'),
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fundingRate': this.safeString (contract, 'funding_rate_next'),
+            'fundingTimestamp': undefined,
+            'fundingDatetime': undefined,
+            'nextFundingRate': this.safeString (contract, 'funding_rate_predict'),
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': this.safeString (contract, 'funding_rate_last'),
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+        };
+    }
+
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
@@ -1202,6 +1314,61 @@ module.exports = class coinex extends Exchange {
             'fail': 'failed',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = 100, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+            'limit': limit,
+            'offset': 0,
+            // 'end_time': 1638990636,
+        };
+        if (since !== undefined) {
+            request['start_time'] = since;
+        }
+        const response = await this.perpetualPublicGetMarketFundingHistory (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "offset": 0,
+        //             "limit": 3,
+        //             "records": [
+        //                 {
+        //                     "time": 1650672021.6230309,
+        //                     "market": "BTCUSDT",
+        //                     "asset": "USDT",
+        //                     "funding_rate": "0.00022913",
+        //                     "funding_rate_real": "0.00022913"
+        //                 },
+        //             ]
+        //         },
+        //         "message": "OK"
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        const result = this.safeValue (data, 'records');
+        const rates = [];
+        for (let i = 0; i < result.length; i++) {
+            const entry = result[i];
+            const marketId = this.safeString (entry, 'market');
+            const symbol = this.safeSymbol (marketId);
+            const timestamp = this.safeTimestamp (entry, 'time');
+            rates.push ({
+                'info': entry,
+                'symbol': symbol,
+                'fundingRate': this.safeString (entry, 'funding_rate'),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+            });
+        }
+        const sorted = this.sortBy (rates, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
     }
 
     parseTransaction (transaction, currency = undefined) {

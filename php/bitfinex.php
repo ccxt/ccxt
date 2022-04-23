@@ -594,7 +594,7 @@ class bitfinex extends Exchange {
         $this->load_markets();
         $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
         $requestedType = $this->safe_string($params, 'type', 'exchange');
-        $accountType = $this->safe_string($accountsByType, $requestedType);
+        $accountType = $this->safe_string($accountsByType, $requestedType, $requestedType);
         if ($accountType === null) {
             $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
             throw new ExchangeError($this->id . ' fetchBalance $type parameter must be one of ' . implode(', ', $keys));

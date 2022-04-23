@@ -55,6 +55,9 @@ class okx(Exchange):
                 'createDepositAddress': None,
                 'createOrder': True,
                 'createReduceOnlyOrder': None,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': True,
+                'createStopOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': None,
@@ -721,8 +724,11 @@ class okx(Exchange):
     def fetch_status(self, params={}):
         response = self.publicGetSystemStatus(params)
         #
+        # Note, if there is no maintenance around, the 'data' array is empty
+        #
         #     {
         #         "code": "0",
+        #         "msg": "",
         #         "data": [
         #             {
         #                 "begin": "1621328400000",
@@ -734,15 +740,15 @@ class okx(Exchange):
         #                 "system": "classic",  # classic, unified
         #                 "title": "Classic Spot System Upgrade"
         #             },
-        #         ],
-        #         "msg": ""
+        #         ]
         #     }
         #
         data = self.safe_value(response, 'data', [])
+        dataLength = len(data)
         timestamp = self.milliseconds()
         update = {
             'updated': timestamp,
-            'status': 'ok',
+            'status': 'ok' if (dataLength == 0) else 'maintenance',
             'eta': None,
             'info': response,
         }
@@ -752,8 +758,7 @@ class okx(Exchange):
             if state == 'ongoing':
                 update['eta'] = self.safe_integer(event, 'end')
                 update['status'] = 'maintenance'
-        self.status = self.extend(self.status, update)
-        return self.status
+        return update
 
     def fetch_time(self, params={}):
         response = self.publicGetPublicTime(params)
@@ -2196,10 +2201,10 @@ class okx(Exchange):
         :param string id: The order id
         :param string symbol: Unified market symbol
         :param dict params: Extra and exchange specific parameters
-        :param integer params.till: Timestamp in ms of the latest time to retrieve orders for
-        :param boolean params.stop: True if fetching trigger orders
-        :param string params.ordType: "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
-        :param string params.algoId: Algo ID
+        :param integer params['till']: Timestamp in ms of the latest time to retrieve orders for
+        :param boolean params['stop']: True if fetching trigger orders
+        :param string params['ordType']: "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+        :param string params['algoId']: Algo ID
         :returns: `An order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
        """
         if symbol is None:
@@ -2345,10 +2350,10 @@ class okx(Exchange):
         :param int since: Timestamp in ms of the earliest time to retrieve orders for
         :param int limit: Number of results per request. The maximum is 100; The default is 100
         :param dict params: Extra and exchange specific parameters
-        :param int params.till: Timestamp in ms of the latest time to retrieve orders for
-        :param bool params.stop: True if fetching trigger orders
-        :param str params.ordType: "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
-        :param str params.algoId: Algo ID
+        :param int params['till']: Timestamp in ms of the latest time to retrieve orders for
+        :param bool params['stop']: True if fetching trigger orders
+        :param str params['ordType']: "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+        :param str params['algoId']: Algo ID
         :returns: `An order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
@@ -4443,7 +4448,7 @@ class okx(Exchange):
         :param int since: Timestamp in ms of the earliest time to receive interest records for
         :param int limit: The number of `borrow interest structures <https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure>` to retrieve
         :param dict params: Exchange specific parameters
-        :param int params.type: Loan type 1 - VIP loans 2 - Market loans *Default is Market loans*
+        :param int params['type']: Loan type 1 - VIP loans 2 - Market loans *Default is Market loans*
         :returns: An array of `borrow interest structures <https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure>`
         """
         self.load_markets()

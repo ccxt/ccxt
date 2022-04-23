@@ -592,7 +592,7 @@ module.exports = class bitfinex extends Exchange {
         await this.loadMarkets ();
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
         const requestedType = this.safeString (params, 'type', 'exchange');
-        const accountType = this.safeString (accountsByType, requestedType);
+        const accountType = this.safeString (accountsByType, requestedType, requestedType);
         if (accountType === undefined) {
             const keys = Object.keys (accountsByType);
             throw new ExchangeError (this.id + ' fetchBalance type parameter must be one of ' + keys.join (', '));

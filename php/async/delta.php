@@ -187,36 +187,76 @@ class delta extends Exchange {
 
     public function fetch_time($params = array ()) {
         $response = yield $this->publicGetSettings ($params);
-        //
-        //     {
-        //         "result":array(
-        //             "server_time":1605472733766141,
-        //             "deto_referral_mining_daily_reward":"25000",
-        //             "deto_total_reward_pool":"100000000",
-        //             "deto_trade_mining_daily_reward":"75000",
-        //             "kyc_deposit_limit":"20",
-        //             "kyc_withdrawal_limit":"2",
-        //             "under_maintenance":"false"
-        //         ),
-        //         "success":true
-        //     }
-        //
+        // full $response sample under `fetchStatus`
         $result = $this->safe_value($response, 'result', array());
         return $this->safe_integer_product($result, 'server_time', 0.001);
     }
 
     public function fetch_status($params = array ()) {
         $response = yield $this->publicGetSettings ($params);
+        //
+        //     {
+        //         "result" => array(
+        //           "deto_liquidity_mining_daily_reward" => "40775",
+        //           "deto_msp" => "1.0",
+        //           "deto_staking_daily_reward" => "23764.08",
+        //           "enabled_wallets" => array(
+        //             "BTC",
+        //             ...
+        //           ),
+        //           "portfolio_margin_params" => array(
+        //             "enabled_portfolios" => array(
+        //               ".DEAVAXUSDT" => array(
+        //                 "asset_id" => 5,
+        //                 "futures_contingency_margin_percent" => "1",
+        //                 "interest_rate" => "0",
+        //                 "maintenance_margin_multiplier" => "0.8",
+        //                 "max_price_shock" => "20",
+        //                 "max_short_notional_limit" => "2000",
+        //                 "options_contingency_margin_percent" => "1",
+        //                 "options_discount_range" => "10",
+        //                 "options_liq_band_range_percentage" => "25",
+        //                 "settling_asset" => "USDT",
+        //                 "sort_priority" => 5,
+        //                 "underlying_asset" => "AVAX",
+        //                 "volatility_down_shock" => "30",
+        //                 "volatility_up_shock" => "45"
+        //               ),
+        //               ...
+        //             ),
+        //             "portfolio_enabled_contracts" => array(
+        //               "futures",
+        //               "perpetual_futures",
+        //               "call_options",
+        //               "put_options"
+        //             )
+        //           ),
+        //           "server_time" => 1650640673500273,
+        //           "trade_farming_daily_reward" => "100000",
+        //           "circulating_supply" => "140000000",
+        //           "circulating_supply_update_time" => "1636752800",
+        //           "deto_referral_mining_daily_reward" => "0",
+        //           "deto_total_reward_pool" => "100000000",
+        //           "deto_trade_mining_daily_reward" => "0",
+        //           "kyc_deposit_limit" => "20",
+        //           "kyc_withdrawal_limit" => "10000",
+        //           "maintenance_start_time" => "1650387600000000",
+        //           "msp_deto_commission_percent" => "25",
+        //           "under_maintenance" => "false"
+        //         ),
+        //         "success" => true
+        //     }
+        //
         $result = $this->safe_value($response, 'result', array());
-        $underMaintenance = $this->safe_value($result, 'under_maintenance');
+        $underMaintenance = $this->safe_string($result, 'under_maintenance');
         $status = ($underMaintenance === 'true') ? 'maintenance' : 'ok';
-        $updated = $this->safe_integer_product($result, 'server_time', 0.001);
-        $this->status = array_merge($this->status, array(
+        $updated = $this->safe_integer_product($result, 'server_time', 0.001, $this->milliseconds());
+        return array(
             'status' => $status,
             'updated' => $updated,
+            'eta' => null,
             'info' => $response,
-        ));
-        return $this->status;
+        );
     }
 
     public function fetch_currencies($params = array ()) {

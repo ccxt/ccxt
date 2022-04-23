@@ -46,6 +46,9 @@ class mexc(Exchange):
                 'createMarketOrder': False,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': False,
+                'createStopOrder': True,
                 'fetchBalance': True,
                 'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,
@@ -268,11 +271,11 @@ class mexc(Exchange):
                     'ERC20': 'ERC-20',
                     'BEP20': 'BEP20(BSC)',
                 },
+                'accountsByType': {
+                    'spot': 'MAIN',
+                    'swap': 'CONTRACT',
+                },
                 'transfer': {
-                    'accounts': {
-                        'spot': 'MAIN',
-                        'swap': 'CONTRACT',
-                    },
                     'accountsById': {
                         'MAIN': 'spot',
                         'CONTRACT': 'swap',
@@ -371,17 +374,16 @@ class mexc(Exchange):
     def fetch_status(self, params={}):
         response = self.spotPublicGetCommonPing(params)
         #
-        # {"code":200}
+        #     {"code":200}
         #
         code = self.safe_integer(response, 'code')
-        if code is not None:
-            status = 'ok' if (code == 200) else 'maintenance'
-            self.status = self.extend(self.status, {
-                'status': status,
-                'updated': self.milliseconds(),
-                'info': response,
-            })
-        return self.status
+        status = 'ok' if (code == 200) else 'maintenance'
+        return {
+            'status': status,
+            'updated': self.milliseconds(),
+            'eta': None,
+            'info': response,
+        }
 
     def fetch_currencies(self, params={}):
         response = self.spotPublicGetMarketCoinList(params)
@@ -2507,16 +2509,9 @@ class mexc(Exchange):
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
         self.load_markets()
         currency = self.currency(code)
-        transferOptions = self.safe_value(self.options, 'transfer', {})
-        accounts = self.safe_value(transferOptions, 'accounts', {})
-        fromId = self.safe_string(accounts, fromAccount)
-        toId = self.safe_string(accounts, toAccount)
-        if fromId is None:
-            keys = list(accounts.keys())
-            raise ExchangeError(self.id + ' fromAccount must be one of ' + ', '.join(keys))
-        if toId is None:
-            keys = list(accounts.keys())
-            raise ExchangeError(self.id + ' toAccount must be one of ' + ', '.join(keys))
+        accountsByType = self.safe_value(self.options, 'accountsByType', {})
+        fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
+        toId = self.safe_string(accountsByType, toAccount, toAccount)
         request = {
             'currency': currency['id'],
             'amount': amount,

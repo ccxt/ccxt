@@ -38,6 +38,9 @@ class hitbtc3 extends Exchange {
                 'cancelOrder' => true,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => true,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => null,
@@ -313,9 +316,7 @@ class hitbtc3 extends Exchange {
                 'accountsByType' => array(
                     'spot' => 'spot',
                     'funding' => 'wallet',
-                    'wallet' => 'wallet',
                     'future' => 'derivatives',
-                    'derivatives' => 'derivatives',
                 ),
             ),
             'commonCurrencies' => array(
@@ -646,7 +647,7 @@ class hitbtc3 extends Exchange {
         $type = $this->safe_string_lower($params, 'type', 'spot');
         $params = $this->omit($params, array( 'type' ));
         $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
-        $account = $this->safe_string($accountsByType, $type);
+        $account = $this->safe_string($accountsByType, $type, $type);
         $response = null;
         if ($account === 'wallet') {
             $response = yield $this->privateGetWalletBalance ($params);
@@ -1708,15 +1709,8 @@ class hitbtc3 extends Exchange {
         $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
         $fromAccount = strtolower($fromAccount);
         $toAccount = strtolower($toAccount);
-        $fromId = $this->safe_string($accountsByType, $fromAccount);
-        $toId = $this->safe_string($accountsByType, $toAccount);
-        $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
-        if ($fromId === null) {
-            throw new ArgumentsRequired($this->id . ' $transfer() $fromAccount argument must be one of ' . implode(', ', $keys));
-        }
-        if ($toId === null) {
-            throw new ArgumentsRequired($this->id . ' $transfer() $toAccount argument must be one of ' . implode(', ', $keys));
-        }
+        $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
+        $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
         if ($fromId === $toId) {
             throw new BadRequest($this->id . ' $transfer() $fromAccount and $toAccount arguments cannot be the same account');
         }

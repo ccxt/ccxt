@@ -1251,14 +1251,8 @@ class cryptocom(Exchange):
         fromAccount = fromAccount.lower()
         toAccount = toAccount.lower()
         accountsById = self.safe_value(self.options, 'accountsByType', {})
-        fromId = self.safe_string(accountsById, fromAccount)
-        if fromId is None:
-            keys = list(accountsById.keys())
-            raise ExchangeError(self.id + ' fromAccount must be one of ' + ', '.join(keys))
-        toId = self.safe_string(accountsById, toAccount)
-        if toId is None:
-            keys = list(accountsById.keys())
-            raise ExchangeError(self.id + ' toAccount must be one of ' + ', '.join(keys))
+        fromId = self.safe_string(accountsById, fromAccount, fromAccount)
+        toId = self.safe_string(accountsById, toAccount, toAccount)
         request = {
             'currency': currency['id'],
             'amount': float(amount),

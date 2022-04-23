@@ -33,6 +33,9 @@ module.exports = class binance extends Exchange {
                 'createDepositAddress': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': false,
+                'createStopOrder': true,
                 'fetchAccounts': undefined,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
@@ -1166,6 +1169,7 @@ module.exports = class binance extends Exchange {
                     '-6020': BadRequest, // {"code":-6020,"msg":"Project not exists"}
                     '-7001': BadRequest, // {"code":-7001,"msg":"Date range is not supported."}
                     '-7002': BadRequest, // {"code":-7002,"msg":"Data request type is not supported."}
+                    '-9000': InsufficientFunds, // {"code":-9000,"msg":"user have no avaliable amount"}"
                     '-10017': BadRequest, // {"code":-10017,"msg":"Repay amount should not be larger than liability."}
                     '-11008': InsufficientFunds, // {"code":-11008,"msg":"Exceeding the account's maximum borrowable limit."} // undocumented
                     '-12014': RateLimitExceeded, // {"code":-12014,"msg":"More than 1 request in 3 seconds"}
@@ -2062,16 +2066,19 @@ module.exports = class binance extends Exchange {
 
     async fetchStatus (params = {}) {
         const response = await this.sapiGetSystemStatus (params);
-        let status = this.safeString (response, 'status');
-        if (status !== undefined) {
-            status = (status === '0') ? 'ok' : 'maintenance';
-            this.status = this.extend (this.status, {
-                'status': status,
-                'updated': this.milliseconds (),
-                'info': response,
-            });
-        }
-        return this.status;
+        //
+        //     {
+        //         "status": 0,              // 0: normal，1：system maintenance
+        //         "msg": "normal"           // "normal", "system_maintenance"
+        //     }
+        //
+        const statusRaw = this.safeString (response, 'status');
+        return {
+            'status': this.safeString ({ '0': 'ok', '1': 'maintenance' }, statusRaw, statusRaw),
+            'updated': this.milliseconds (),
+            'eta': undefined,
+            'info': response,
+        };
     }
 
     async fetchTicker (symbol, params = {}) {

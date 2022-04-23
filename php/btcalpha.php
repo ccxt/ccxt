@@ -37,6 +37,8 @@ class btcalpha extends Exchange {
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
+                'fetchDeposit' => false,
+                'fetchDeposits' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -59,10 +61,16 @@ class btcalpha extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
+                'fetchTransfer' => false,
+                'fetchTransfers' => false,
+                'fetchWithdrawal' => false,
+                'fetchWithdrawals' => true,
                 'reduceMargin' => false,
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
+                'transfer' => false,
+                'withdraw' => false,
             ),
             'timeframes' => array(
                 '1m' => '1',
@@ -293,6 +301,102 @@ class btcalpha extends Exchange {
         }
         $trades = $this->publicGetExchanges (array_merge($request, $params));
         return $this->parse_trades($trades, $market, $since, $limit);
+    }
+
+    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetDeposits ($params);
+        //
+        //     array(
+        //         {
+        //             "timestamp" => 1485363039.18359,
+        //             "id" => 317,
+        //             "currency" => "BTC",
+        //             "amount" => 530.00000000
+        //         }
+        //     )
+        //
+        return $this->parse_transactions($response, $code, $since, $limit, array( 'type' => 'deposit' ));
+    }
+
+    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $currency = null;
+        $request = array();
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency_id'] = $currency['id'];
+        }
+        $response = $this->privateGetWithdraws (array_merge($request, $params));
+        //
+        //     array(
+        //         {
+        //             "id" => 403,
+        //             "timestamp" => 1485363466.868539,
+        //             "currency" => "BTC",
+        //             "amount" => 0.53000000,
+        //             "status" => 20
+        //         }
+        //     )
+        //
+        return $this->parse_transactions($response, $code, $since, $limit, array( 'type' => 'withdrawal' ));
+    }
+
+    public function parse_transaction($transaction, $currency = null) {
+        //
+        //  deposit
+        //      {
+        //          "timestamp" => 1485363039.18359,
+        //          "id" => 317,
+        //          "currency" => "BTC",
+        //          "amount" => 530.00000000
+        //      }
+        //
+        //  withdrawal
+        //      {
+        //          "id" => 403,
+        //          "timestamp" => 1485363466.868539,
+        //          "currency" => "BTC",
+        //          "amount" => 0.53000000,
+        //          "status" => 20
+        //      }
+        //
+        $timestamp = $this->safe_string($transaction, 'timestamp');
+        $timestamp = Precise::string_mul($timestamp, '1000');
+        $currencyId = $this->safe_string($transaction, 'currency');
+        $statusId = $this->safe_string($transaction, 'status');
+        return array(
+            'id' => $this->safe_string($transaction, 'id'),
+            'info' => $transaction,
+            'timestamp' => $this->parse_number($timestamp),
+            'datetime' => $this->iso8601($timestamp),
+            'network' => null,
+            'address' => null,
+            'addressTo' => null,
+            'addressFrom' => null,
+            'tag' => null,
+            'tagTo' => null,
+            'tagFrom' => null,
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'amount' => $this->safe_number($transaction, 'amount'),
+            'txid' => null,
+            'type' => null,
+            'status' => $this->parse_transaction_status($statusId),
+            'comment' => null,
+            'fee' => null,
+            'updated' => null,
+        );
+    }
+
+    public function parse_transaction_status($status) {
+        $statuses = array(
+            '10' => 'pending',  // New
+            '20' => 'pending',  // Verified, waiting for approving
+            '30' => 'ok',       // Approved by moderator
+            '40' => 'failed',   // Refused by moderator. See your email for more details
+            '50' => 'canceled', // Cancelled by user
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {

@@ -83,6 +83,7 @@ class gemini(Exchange):
                 'fetchTradingFees': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': None,
+                'postOnly': True,
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setMarginMode': False,
@@ -881,6 +882,18 @@ class gemini(Exchange):
         id = self.safe_string(order, 'order_id')
         side = self.safe_string_lower(order, 'side')
         clientOrderId = self.safe_string(order, 'client_order_id')
+        optionsArray = self.safe_value(order, 'options', [])
+        option = self.safe_string(optionsArray, 0)
+        timeInForce = 'GTC'
+        postOnly = False
+        if option is not None:
+            if option == 'immediate-or-cancel':
+                timeInForce = 'IOC'
+            elif option == 'fill-or-kill':
+                timeInForce = 'FOK'
+            elif option == 'maker-or-cancel':
+                timeInForce = 'PO'
+                postOnly = True
         return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
@@ -891,8 +904,8 @@ class gemini(Exchange):
             'status': status,
             'symbol': symbol,
             'type': type,
-            'timeInForce': None,
-            'postOnly': None,
+            'timeInForce': timeInForce,  # default set to GTC
+            'postOnly': postOnly,
             'side': side,
             'price': price,
             'stopPrice': None,
@@ -970,21 +983,52 @@ class gemini(Exchange):
         return self.parse_orders(response, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
-        # TODO add unified postOnly and timeInForce support for fill-or-kill, maker-or-cancel, immediate-or-cancel,...
         await self.load_markets()
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
-        nonce = self.nonce()
+        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')
+        params = self.omit(params, ['clientOrderId', 'client_order_id'])
+        if clientOrderId is None:
+            clientOrderId = self.nonce()
         amountString = self.amount_to_precision(symbol, amount)
         priceString = self.price_to_precision(symbol, price)
         request = {
-            'client_order_id': str(nonce),
+            'client_order_id': str(clientOrderId),
             'symbol': self.market_id(symbol),
             'amount': amountString,
             'price': priceString,
             'side': side,
             'type': 'exchange limit',  # gemini allows limit orders only
+            # 'options': [], one of:  maker-or-cancel, immediate-or-cancel, fill-or-kill, auction-only, indication-of-interest
         }
+        type = self.safe_string(params, 'type', type)
+        params = self.omit(params, 'type')
+        rawStopPrice = self.safe_string_2(params, 'stop_price', 'stopPrice')
+        params = self.omit(params, ['stop_price', 'stopPrice', 'type'])
+        if type == 'stopLimit':
+            raise ArgumentsRequired(self.id + ' createOrder() requires a stopPrice parameter or a stop_price parameter for ' + type + ' orders')
+        if rawStopPrice is not None:
+            request['stop_price'] = self.price_to_precision(symbol, rawStopPrice)
+            request['type'] = 'exchange stop limit'
+        else:
+            # No options can be applied to stop-limit orders at self time.
+            timeInForce = self.safe_string(params, 'timeInForce')
+            params = self.omit(params, 'timeInForce')
+            if timeInForce is not None:
+                if (timeInForce == 'IOC') or (timeInForce == 'immediate-or-cancel'):
+                    request['options'] = ['immediate-or-cancel']
+                elif (timeInForce == 'FOK') or (timeInForce == 'fill-or-kill'):
+                    request['options'] = ['fill-or-kill']
+                elif timeInForce == 'PO':
+                    request['options'] = ['maker-or-cancel']
+            postOnly = self.safe_value(params, 'postOnly', False)
+            params = self.omit(params, 'postOnly')
+            if postOnly:
+                request['options'] = ['maker-or-cancel']
+            # allowing override for auction-only and indication-of-interest order options
+            options = self.safe_string(params, 'options')
+            if options is not None:
+                request['options'] = [options]
         response = await self.privatePostV1OrderNew(self.extend(request, params))
         #
         #      {

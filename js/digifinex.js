@@ -737,7 +737,6 @@ module.exports = class digifinex extends Exchange {
         return {
             'status': status,
             'updated': this.milliseconds (),
-            'eta': undefined,
             'info': response,
         };
     }

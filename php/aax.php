@@ -37,6 +37,9 @@ class aax extends Exchange {
                 'createDepositAddress' => null,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
                 'editOrder' => true,
                 'fetchAccounts' => null,
                 'fetchBalance' => true,
@@ -66,8 +69,8 @@ class aax extends Exchange {
                 'fetchLedger' => null,
                 'fetchLedgerEntry' => null,
                 'fetchLeverage' => null,
-                'fetchLeverageTiers' => true,
-                'fetchMarketLeverageTiers' => 'emulated',
+                'fetchLeverageTiers' => false,
+                'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyBuys' => null,
@@ -96,7 +99,7 @@ class aax extends Exchange {
                 'fetchTransactions' => null,
                 'fetchTransfer' => false,
                 'fetchTransfers' => true,
-                'fetchWithdrawal' => null,
+                'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
                 'fetchWithdrawalWhitelist' => null,
                 'reduceMargin' => null,
@@ -105,7 +108,7 @@ class aax extends Exchange {
                 'setPositionMode' => null,
                 'signIn' => null,
                 'transfer' => true,
-                'withdraw' => null,
+                'withdraw' => false,
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -339,33 +342,52 @@ class aax extends Exchange {
     public function fetch_status($params = array ()) {
         $response = $this->publicGetAnnouncementMaintenance ($params);
         //
+        // note, when there is no maintenance, then $data is `null`
+        //
         //     {
         //         "code" => 1,
         //         "data" => array(
         //             "startTime":"2020-06-25T02:15:00.000Z",
         //             "endTime":"2020-06-25T02:45:00.000Z"，
-        //             "description":"Spot Trading :UTC Jun 25, 2020 02:15 to 02:45 (HKT Jun 25 10:15 to 10:45),Futures Trading => UTC Jun 25, 2020 02:15 to 02:45 (HKT Jun 25 10:15 to 10:45).We apologize for any inconvenience caused. Thank you for your patience and understanding.Should you have any enquiries, please do not hesitate our live chat support or via email at cs@aax.com."
+        //             "description":"Spot Trading :UTC Jun 25, 2020 02:15 to 02:45 (HKT Jun 25 10:15 to 10:45),Futures Trading => UTC Jun 25, 2020 02:15 to 02:45 (HKT Jun 25 10:15 to 10:45).We apologize for any inconvenience caused. Thank you for your patience and understanding.Should you have any enquiries, please do not hesitate our live chat support or via email at cs@aax.com.",
+        //             "haltReason":1,
+        //             "systemStatus":array(
+        //                 "spotTrading":"readOnly",
+        //                 "futuresTreading":"closeOnly",
+        //                 "walletOperating":"enable",
+        //                 "otcTrading":"disable"
+        //             ),
         //         ),
         //         "message":"success",
         //         "ts":1593043237000
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
         $timestamp = $this->milliseconds();
-        $startTime = $this->parse8601($this->safe_string($data, 'startTime'));
-        $endTime = $this->parse8601($this->safe_string($data, 'endTime'));
-        $update = array(
-            'updated' => $this->safe_integer($response, 'ts', $timestamp),
+        $updated = $this->safe_integer($response, 'ts', $timestamp);
+        $data = $this->safe_value($response, 'data', array());
+        $status = null;
+        $eta = null;
+        if ($data) {
+            $startTime = $this->parse8601($this->safe_string($data, 'startTime'));
+            $endTime = $this->parse8601($this->safe_string($data, 'endTime'));
+            if ($endTime !== null) {
+                $startTimeIsOk = ($startTime === null) ? true : ($updated < $startTime);
+                $isOk = ($updated > $endTime) || $startTimeIsOk;
+                $eta = $endTime;
+                $status = $isOk ? 'ok' : 'maintenance';
+            } else {
+                $status = $data;
+            }
+        } else {
+            $eta = null;
+            $status = 'ok';
+        }
+        return array(
+            'status' => $status,
+            'updated' => $updated,
+            'eta' => $eta,
             'info' => $response,
         );
-        if ($endTime !== null) {
-            $startTimeIsOk = ($startTime === null) ? true : ($timestamp < $startTime);
-            $isOk = ($timestamp > $endTime) || $startTimeIsOk;
-            $update['eta'] = $endTime;
-            $update['status'] = $isOk ? 'ok' : 'maintenance';
-        }
-        $this->status = array_merge($this->status, $update);
-        return $this->status;
     }
 
     public function fetch_markets($params = array ()) {
@@ -2312,98 +2334,6 @@ class aax extends Exchange {
             'leverage' => $leverage,
         );
         return $this->privatePostFuturesPositionLeverage (array_merge($request, $params));
-    }
-
-    public function fetch_leverage_tiers($symbols = null, $params = array ()) {
-        $this->load_markets();
-        $response = $this->publicGetInstruments ($params);
-        //
-        //     {
-        //         "code":1,
-        //         "message":"success",
-        //         "ts":1610159448962,
-        //         "data":array(
-        //             array(
-        //                 "tickSize":"0.01",
-        //                 "lotSize":"1",
-        //                 "base":"BTC",
-        //                 "quote":"USDT",
-        //                 "minQuantity":"1.0000000000",
-        //                 "maxQuantity":"30000",
-        //                 "minPrice":"0.0100000000",
-        //                 "maxPrice":"999999.0000000000",
-        //                 "status":"readOnly",
-        //                 "symbol":"BTCUSDTFP",
-        //                 "code":"FP",
-        //                 "takerFee":"0.00040",
-        //                 "makerFee":"0.00020",
-        //                 "multiplier":"0.001000000000",
-        //                 "mmRate":"0.00500",
-        //                 "imRate":"0.01000",
-        //                 "type":"futures",
-        //                 "settleType":"Vanilla",
-        //                 "settleCurrency":"USDT"
-        //             ),
-        //             ...
-        //         )
-        //     }
-        //
-        $data = $this->safe_value($response, 'data');
-        return $this->parse_leverage_tiers($data, $symbols, 'symbol');
-    }
-
-    public function parse_market_leverage_tiers($info, $market) {
-        /**
-         * @param {dict} $info Exchange $market response
-         * @param {dict} $market CCXT Market
-         */
-        //
-        //    {
-        //        "tickSize":"0.01",
-        //        "lotSize":"1",
-        //        "base":"BTC",
-        //        "quote":"USDT",
-        //        "minQuantity":"1.0000000000",
-        //        "maxQuantity":"30000",
-        //        "minPrice":"0.0100000000",
-        //        "maxPrice":"999999.0000000000",
-        //        "status":"readOnly",
-        //        "symbol":"BTCUSDTFP",
-        //        "code":"FP",
-        //        "takerFee":"0.00040",
-        //        "makerFee":"0.00020",
-        //        "multiplier":"0.001000000000",
-        //        "mmRate":"0.00500",
-        //        "imRate":"0.01000",
-        //        "type":"futures",
-        //        "settleType":"Vanilla",
-        //        "settleCurrency":"USDT"
-        //    }
-        //
-        $maintenanceMarginRate = $this->safe_string($info, 'mmRate');
-        $initialMarginRate = $this->safe_string($info, 'imRate');
-        $maxVol = $this->safe_string($info, 'maxQuantity');
-        $riskIncrVol = $maxVol; // TODO
-        $riskIncrMmr = '0.0'; // TODO
-        $riskIncrImr = '0.0'; // TODO
-        $floor = '0';
-        $tiers = array();
-        while (Precise::string_lt($floor, $maxVol)) {
-            $cap = Precise::string_add($floor, $riskIncrVol);
-            $tiers[] = array(
-                'tier' => $this->parse_number(Precise::string_div($cap, $riskIncrVol)),
-                'currency' => $market['base'],
-                'minNotional' => $this->parse_number($floor),
-                'maxNotional' => $this->parse_number($cap),
-                'maintenanceMarginRate' => $this->parse_number($maintenanceMarginRate),
-                'maxLeverage' => $this->parse_number(Precise::string_div('1', $initialMarginRate)),
-                'info' => $info,
-            );
-            $maintenanceMarginRate = Precise::string_add($maintenanceMarginRate, $riskIncrMmr);
-            $initialMarginRate = Precise::string_add($initialMarginRate, $riskIncrImr);
-            $floor = $cap;
-        }
-        return $tiers;
     }
 
     public function parse_transfer($transfer, $currency = null) {

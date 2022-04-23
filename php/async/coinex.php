@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\BadSymbol;
 use \ccxt\InvalidOrder;
 
 class coinex extends Exchange {
@@ -32,6 +33,8 @@ class coinex extends Exchange {
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchDeposits' => true,
+                'fetchFundingRate' => true,
+                'fetchFundingRateHistory' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -762,7 +765,10 @@ class coinex extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = yield $this->publicGetMarketKline (array_merge($request, $params));
+        $method = $market['swap'] ? 'perpetualPublicGetMarketKline' : 'publicGetMarketKline';
+        $response = yield $this->$method (array_merge($request, $params));
+        //
+        // Spot
         //
         //     {
         //         "code" => 0,
@@ -770,6 +776,18 @@ class coinex extends Exchange {
         //             [1591484400, "0.02505349", "0.02506988", "0.02507000", "0.02505304", "343.19716223", "8.6021323866383196", "ETHBTC"],
         //             [1591484700, "0.02506990", "0.02508109", "0.02508109", "0.02506979", "91.59841581", "2.2972047780447000", "ETHBTC"],
         //             [1591485000, "0.02508106", "0.02507996", "0.02508106", "0.02507500", "65.15307697", "1.6340597822306000", "ETHBTC"],
+        //         ],
+        //         "message" => "OK"
+        //     }
+        //
+        // Swap
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => [
+        //             [1650569400, "41524.64", "41489.31", "41564.61", "41480.58", "29.7060", "1233907.099562"],
+        //             [1650569700, "41489.31", "41438.29", "41489.31", "41391.87", "42.4115", "1756154.189061"],
+        //             [1650570000, "41438.29", "41482.21", "41485.05", "41427.31", "22.2892", "924000.317861"]
         //         ],
         //         "message" => "OK"
         //     }
@@ -1157,6 +1175,101 @@ class coinex extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
+    public function fetch_funding_rate($symbol, $params = array ()) {
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['swap']) {
+            throw new BadSymbol($this->id . ' fetchFundingRate() supports swap contracts only');
+        }
+        $request = array(
+            'market' => $market['id'],
+        );
+        $response = yield $this->perpetualPublicGetMarketTicker (array_merge($request, $params));
+        //
+        //     {
+        //          "code" => 0,
+        //         "data":
+        //         {
+        //             "date" => 1650678472474,
+        //             "ticker" => array(
+        //                 "vol" => "6090.9430",
+        //                 "low" => "39180.30",
+        //                 "open" => "40474.97",
+        //                 "high" => "40798.01",
+        //                 "last" => "39659.30",
+        //                 "buy" => "39663.79",
+        //                 "period" => 86400,
+        //                 "funding_time" => 372,
+        //                 "position_amount" => "270.1956",
+        //                 "funding_rate_last" => "0.00022913",
+        //                 "funding_rate_next" => "0.00013158",
+        //                 "funding_rate_predict" => "0.00016552",
+        //                 "insurance" => "16045554.83969682659674035672",
+        //                 "sign_price" => "39652.48",
+        //                 "index_price" => "39648.44250000",
+        //                 "sell_total" => "22.3913",
+        //                 "buy_total" => "19.4498",
+        //                 "buy_amount" => "12.8942",
+        //                 "sell" => "39663.80",
+        //                 "sell_amount" => "0.9388"
+        //             }
+        //         ),
+        //         "message" => "OK"
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $ticker = $this->safe_value($data, 'ticker', array());
+        return $this->parse_funding_rate($ticker, $market);
+    }
+
+    public function parse_funding_rate($contract, $market = null) {
+        //
+        // fetchFundingRate
+        //
+        //     {
+        //         "vol" => "6090.9430",
+        //         "low" => "39180.30",
+        //         "open" => "40474.97",
+        //         "high" => "40798.01",
+        //         "last" => "39659.30",
+        //         "buy" => "39663.79",
+        //         "period" => 86400,
+        //         "funding_time" => 372,
+        //         "position_amount" => "270.1956",
+        //         "funding_rate_last" => "0.00022913",
+        //         "funding_rate_next" => "0.00013158",
+        //         "funding_rate_predict" => "0.00016552",
+        //         "insurance" => "16045554.83969682659674035672",
+        //         "sign_price" => "39652.48",
+        //         "index_price" => "39648.44250000",
+        //         "sell_total" => "22.3913",
+        //         "buy_total" => "19.4498",
+        //         "buy_amount" => "12.8942",
+        //         "sell" => "39663.80",
+        //         "sell_amount" => "0.9388"
+        //     }
+        //
+        return array(
+            'info' => $contract,
+            'symbol' => $this->safe_symbol(null, $market),
+            'markPrice' => $this->safe_string($contract, 'sign_price'),
+            'indexPrice' => $this->safe_string($contract, 'index_price'),
+            'interestRate' => null,
+            'estimatedSettlePrice' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'fundingRate' => $this->safe_string($contract, 'funding_rate_next'),
+            'fundingTimestamp' => null,
+            'fundingDatetime' => null,
+            'nextFundingRate' => $this->safe_string($contract, 'funding_rate_predict'),
+            'nextFundingTimestamp' => null,
+            'nextFundingDatetime' => null,
+            'previousFundingRate' => $this->safe_string($contract, 'funding_rate_last'),
+            'previousFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
+        );
+    }
+
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
@@ -1206,6 +1319,61 @@ class coinex extends Exchange {
             'fail' => 'failed',
         );
         return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function fetch_funding_rate_history($symbol = null, $since = null, $limit = 100, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+        }
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'market' => $market['id'],
+            'limit' => $limit,
+            'offset' => 0,
+            // 'end_time' => 1638990636,
+        );
+        if ($since !== null) {
+            $request['start_time'] = $since;
+        }
+        $response = yield $this->perpetualPublicGetMarketFundingHistory (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => array(
+        //             "offset" => 0,
+        //             "limit" => 3,
+        //             "records" => array(
+        //                 array(
+        //                     "time" => 1650672021.6230309,
+        //                     "market" => "BTCUSDT",
+        //                     "asset" => "USDT",
+        //                     "funding_rate" => "0.00022913",
+        //                     "funding_rate_real" => "0.00022913"
+        //                 ),
+        //             )
+        //         ),
+        //         "message" => "OK"
+        //     }
+        //
+        $data = $this->safe_value($response, 'data');
+        $result = $this->safe_value($data, 'records');
+        $rates = array();
+        for ($i = 0; $i < count($result); $i++) {
+            $entry = $result[$i];
+            $marketId = $this->safe_string($entry, 'market');
+            $symbol = $this->safe_symbol($marketId);
+            $timestamp = $this->safe_timestamp($entry, 'time');
+            $rates[] = array(
+                'info' => $entry,
+                'symbol' => $symbol,
+                'fundingRate' => $this->safe_string($entry, 'funding_rate'),
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+            );
+        }
+        $sorted = $this->sort_by($rates, 'timestamp');
+        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
     public function parse_transaction($transaction, $currency = null) {

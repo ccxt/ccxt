@@ -29,6 +29,9 @@ module.exports = class bitrue extends Exchange {
                 'cancelAllOrders': false,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
                 'fetchBorrowRate': false,
@@ -333,15 +336,20 @@ module.exports = class bitrue extends Exchange {
 
     async fetchStatus (params = {}) {
         const response = await this.v1PublicGetPing (params);
+        //
+        // empty means working status.
+        //
+        //     {}
+        //
         const keys = Object.keys (response);
         const keysLength = keys.length;
         const formattedStatus = keysLength ? 'maintenance' : 'ok';
-        this.status = this.extend (this.status, {
+        return {
             'status': formattedStatus,
             'updated': this.milliseconds (),
+            'eta': undefined,
             'info': response,
-        });
-        return this.status;
+        };
     }
 
     async fetchTime (params = {}) {

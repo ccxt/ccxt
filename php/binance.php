@@ -40,6 +40,9 @@ class binance extends Exchange {
                 'createDepositAddress' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => true,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => false,
+                'createStopOrder' => true,
                 'fetchAccounts' => null,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => true,
@@ -1173,6 +1176,7 @@ class binance extends Exchange {
                     '-6020' => '\\ccxt\\BadRequest', // array("code":-6020,"msg":"Project not exists")
                     '-7001' => '\\ccxt\\BadRequest', // array("code":-7001,"msg":"Date range is not supported.")
                     '-7002' => '\\ccxt\\BadRequest', // array("code":-7002,"msg":"Data request type is not supported.")
+                    '-9000' => '\\ccxt\\InsufficientFunds', // array("code":-9000,"msg":"user have no avaliable amount")"
                     '-10017' => '\\ccxt\\BadRequest', // array("code":-10017,"msg":"Repay amount should not be larger than liability.")
                     '-11008' => '\\ccxt\\InsufficientFunds', // array("code":-11008,"msg":"Exceeding the account's maximum borrowable limit.") // undocumented
                     '-12014' => '\\ccxt\\RateLimitExceeded', // array("code":-12014,"msg":"More than 1 request in 3 seconds")
@@ -2069,16 +2073,19 @@ class binance extends Exchange {
 
     public function fetch_status($params = array ()) {
         $response = $this->sapiGetSystemStatus ($params);
-        $status = $this->safe_string($response, 'status');
-        if ($status !== null) {
-            $status = ($status === '0') ? 'ok' : 'maintenance';
-            $this->status = array_merge($this->status, array(
-                'status' => $status,
-                'updated' => $this->milliseconds(),
-                'info' => $response,
-            ));
-        }
-        return $this->status;
+        //
+        //     {
+        //         "status" => 0,              // 0 => normal，1：system maintenance
+        //         "msg" => "normal"           // "normal", "system_maintenance"
+        //     }
+        //
+        $statusRaw = $this->safe_string($response, 'status');
+        return array(
+            'status' => $this->safe_string(array( '0' => 'ok', '1' => 'maintenance' ), $statusRaw, $statusRaw),
+            'updated' => $this->milliseconds(),
+            'eta' => null,
+            'info' => $response,
+        );
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

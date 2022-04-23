@@ -1304,16 +1304,8 @@ module.exports = class poloniex extends Exchange {
         const currency = this.currency (code);
         amount = this.currencyToPrecision (code, amount);
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-        const fromId = this.safeString (accountsByType, fromAccount);
-        const toId = this.safeString (accountsByType, toAccount);
-        if (fromId === undefined) {
-            const keys = Object.keys (accountsByType);
-            throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', '));
-        }
-        if (toId === undefined) {
-            const keys = Object.keys (accountsByType);
-            throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', '));
-        }
+        const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
+        const toId = this.safeString (accountsByType, toAccount, fromAccount);
         const request = {
             'amount': amount,
             'currency': currency['id'],

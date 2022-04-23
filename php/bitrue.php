@@ -32,6 +32,9 @@ class bitrue extends Exchange {
                 'cancelAllOrders' => false,
                 'cancelOrder' => true,
                 'createOrder' => true,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => true,
                 'fetchBorrowRate' => false,
@@ -336,15 +339,20 @@ class bitrue extends Exchange {
 
     public function fetch_status($params = array ()) {
         $response = $this->v1PublicGetPing ($params);
+        //
+        // empty means working status.
+        //
+        //     array()
+        //
         $keys = is_array($response) ? array_keys($response) : array();
         $keysLength = is_array($keys) ? count($keys) : 0;
         $formattedStatus = $keysLength ? 'maintenance' : 'ok';
-        $this->status = array_merge($this->status, array(
+        return array(
             'status' => $formattedStatus,
             'updated' => $this->milliseconds(),
+            'eta' => null,
             'info' => $response,
-        ));
-        return $this->status;
+        );
     }
 
     public function fetch_time($params = array ()) {

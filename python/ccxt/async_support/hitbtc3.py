@@ -47,6 +47,9 @@ class hitbtc3(Exchange):
                 'cancelOrder': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': True,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': True,
+                'createStopOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowRate': None,
@@ -322,9 +325,7 @@ class hitbtc3(Exchange):
                 'accountsByType': {
                     'spot': 'spot',
                     'funding': 'wallet',
-                    'wallet': 'wallet',
                     'future': 'derivatives',
-                    'derivatives': 'derivatives',
                 },
             },
             'commonCurrencies': {
@@ -636,7 +637,7 @@ class hitbtc3(Exchange):
         type = self.safe_string_lower(params, 'type', 'spot')
         params = self.omit(params, ['type'])
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
-        account = self.safe_string(accountsByType, type)
+        account = self.safe_string(accountsByType, type, type)
         response = None
         if account == 'wallet':
             response = await self.privateGetWalletBalance(params)
@@ -1618,13 +1619,8 @@ class hitbtc3(Exchange):
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
         fromAccount = fromAccount.lower()
         toAccount = toAccount.lower()
-        fromId = self.safe_string(accountsByType, fromAccount)
-        toId = self.safe_string(accountsByType, toAccount)
-        keys = list(accountsByType.keys())
-        if fromId is None:
-            raise ArgumentsRequired(self.id + ' transfer() fromAccount argument must be one of ' + ', '.join(keys))
-        if toId is None:
-            raise ArgumentsRequired(self.id + ' transfer() toAccount argument must be one of ' + ', '.join(keys))
+        fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
+        toId = self.safe_string(accountsByType, toAccount, toAccount)
         if fromId == toId:
             raise BadRequest(self.id + ' transfer() fromAccount and toAccount arguments cannot be the same account')
         request = {

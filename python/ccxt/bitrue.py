@@ -46,6 +46,9 @@ class bitrue(Exchange):
                 'cancelAllOrders': False,
                 'cancelOrder': True,
                 'createOrder': True,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': True,
+                'createStopOrder': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': True,
                 'fetchBorrowRate': False,
@@ -345,15 +348,20 @@ class bitrue(Exchange):
 
     def fetch_status(self, params={}):
         response = self.v1PublicGetPing(params)
+        #
+        # empty means working status.
+        #
+        #     {}
+        #
         keys = list(response.keys())
         keysLength = len(keys)
         formattedStatus = 'maintenance' if keysLength else 'ok'
-        self.status = self.extend(self.status, {
+        return {
             'status': formattedStatus,
             'updated': self.milliseconds(),
+            'eta': None,
             'info': response,
-        })
-        return self.status
+        }
 
     def fetch_time(self, params={}):
         response = self.v1PublicGetTime(params)

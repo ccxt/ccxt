@@ -44,6 +44,9 @@ class huobi extends Exchange {
                 'createDepositAddress' => null,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,
@@ -4319,17 +4322,9 @@ class huobi extends Exchange {
             $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
             $fromAccount = strtolower($fromAccount); // pro, futures
             $toAccount = strtolower($toAccount); // pro, futures
-            $fromId = $this->safe_string($accountsByType, $fromAccount);
-            $toId = $this->safe_string($accountsByType, $toAccount);
-            if ($fromId === null) {
-                $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
-                throw new ExchangeError($this->id . ' $fromAccount must be one of ' . implode(', ', $keys));
-            }
-            if ($toId === null) {
-                $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
-                throw new ExchangeError($this->id . ' $toAccount must be one of ' . implode(', ', $keys));
-            }
-            $type = $fromAccount . '-to-' . $toAccount;
+            $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
+            $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
+            $type = $fromId . '-to-' . $toId;
         }
         $request = array(
             'currency' => $currency['id'],

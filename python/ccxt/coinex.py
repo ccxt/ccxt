@@ -8,6 +8,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -37,6 +38,8 @@ class coinex(Exchange):
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchDeposits': True,
+                'fetchFundingRate': True,
+                'fetchFundingRateHistory': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -742,7 +745,10 @@ class coinex(Exchange):
         }
         if limit is not None:
             request['limit'] = limit
-        response = self.publicGetMarketKline(self.extend(request, params))
+        method = 'perpetualPublicGetMarketKline' if market['swap'] else 'publicGetMarketKline'
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        # Spot
         #
         #     {
         #         "code": 0,
@@ -750,6 +756,18 @@ class coinex(Exchange):
         #             [1591484400, "0.02505349", "0.02506988", "0.02507000", "0.02505304", "343.19716223", "8.6021323866383196", "ETHBTC"],
         #             [1591484700, "0.02506990", "0.02508109", "0.02508109", "0.02506979", "91.59841581", "2.2972047780447000", "ETHBTC"],
         #             [1591485000, "0.02508106", "0.02507996", "0.02508106", "0.02507500", "65.15307697", "1.6340597822306000", "ETHBTC"],
+        #         ],
+        #         "message": "OK"
+        #     }
+        #
+        # Swap
+        #
+        #     {
+        #         "code": 0,
+        #         "data": [
+        #             [1650569400, "41524.64", "41489.31", "41564.61", "41480.58", "29.7060", "1233907.099562"],
+        #             [1650569700, "41489.31", "41438.29", "41489.31", "41391.87", "42.4115", "1756154.189061"],
+        #             [1650570000, "41438.29", "41482.21", "41485.05", "41427.31", "22.2892", "924000.317861"]
         #         ],
         #         "message": "OK"
         #     }
@@ -1109,6 +1127,98 @@ class coinex(Exchange):
         trades = self.safe_value(data, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
+    def fetch_funding_rate(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise BadSymbol(self.id + ' fetchFundingRate() supports swap contracts only')
+        request = {
+            'market': market['id'],
+        }
+        response = self.perpetualPublicGetMarketTicker(self.extend(request, params))
+        #
+        #     {
+        #          "code": 0,
+        #         "data":
+        #         {
+        #             "date": 1650678472474,
+        #             "ticker": {
+        #                 "vol": "6090.9430",
+        #                 "low": "39180.30",
+        #                 "open": "40474.97",
+        #                 "high": "40798.01",
+        #                 "last": "39659.30",
+        #                 "buy": "39663.79",
+        #                 "period": 86400,
+        #                 "funding_time": 372,
+        #                 "position_amount": "270.1956",
+        #                 "funding_rate_last": "0.00022913",
+        #                 "funding_rate_next": "0.00013158",
+        #                 "funding_rate_predict": "0.00016552",
+        #                 "insurance": "16045554.83969682659674035672",
+        #                 "sign_price": "39652.48",
+        #                 "index_price": "39648.44250000",
+        #                 "sell_total": "22.3913",
+        #                 "buy_total": "19.4498",
+        #                 "buy_amount": "12.8942",
+        #                 "sell": "39663.80",
+        #                 "sell_amount": "0.9388"
+        #             }
+        #         },
+        #         "message": "OK"
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        ticker = self.safe_value(data, 'ticker', {})
+        return self.parse_funding_rate(ticker, market)
+
+    def parse_funding_rate(self, contract, market=None):
+        #
+        # fetchFundingRate
+        #
+        #     {
+        #         "vol": "6090.9430",
+        #         "low": "39180.30",
+        #         "open": "40474.97",
+        #         "high": "40798.01",
+        #         "last": "39659.30",
+        #         "buy": "39663.79",
+        #         "period": 86400,
+        #         "funding_time": 372,
+        #         "position_amount": "270.1956",
+        #         "funding_rate_last": "0.00022913",
+        #         "funding_rate_next": "0.00013158",
+        #         "funding_rate_predict": "0.00016552",
+        #         "insurance": "16045554.83969682659674035672",
+        #         "sign_price": "39652.48",
+        #         "index_price": "39648.44250000",
+        #         "sell_total": "22.3913",
+        #         "buy_total": "19.4498",
+        #         "buy_amount": "12.8942",
+        #         "sell": "39663.80",
+        #         "sell_amount": "0.9388"
+        #     }
+        #
+        return {
+            'info': contract,
+            'symbol': self.safe_symbol(None, market),
+            'markPrice': self.safe_string(contract, 'sign_price'),
+            'indexPrice': self.safe_string(contract, 'index_price'),
+            'interestRate': None,
+            'estimatedSettlePrice': None,
+            'timestamp': None,
+            'datetime': None,
+            'fundingRate': self.safe_string(contract, 'funding_rate_next'),
+            'fundingTimestamp': None,
+            'fundingDatetime': None,
+            'nextFundingRate': self.safe_string(contract, 'funding_rate_predict'),
+            'nextFundingTimestamp': None,
+            'nextFundingDatetime': None,
+            'previousFundingRate': self.safe_string(contract, 'funding_rate_last'),
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
+        }
+
     def withdraw(self, code, amount, address, tag=None, params={}):
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
@@ -1156,6 +1266,57 @@ class coinex(Exchange):
             'fail': 'failed',
         }
         return self.safe_string(statuses, status, status)
+
+    def fetch_funding_rate_history(self, symbol=None, since=None, limit=100, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'market': market['id'],
+            'limit': limit,
+            'offset': 0,
+            # 'end_time': 1638990636,
+        }
+        if since is not None:
+            request['start_time'] = since
+        response = self.perpetualPublicGetMarketFundingHistory(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "offset": 0,
+        #             "limit": 3,
+        #             "records": [
+        #                 {
+        #                     "time": 1650672021.6230309,
+        #                     "market": "BTCUSDT",
+        #                     "asset": "USDT",
+        #                     "funding_rate": "0.00022913",
+        #                     "funding_rate_real": "0.00022913"
+        #                 },
+        #             ]
+        #         },
+        #         "message": "OK"
+        #     }
+        #
+        data = self.safe_value(response, 'data')
+        result = self.safe_value(data, 'records')
+        rates = []
+        for i in range(0, len(result)):
+            entry = result[i]
+            marketId = self.safe_string(entry, 'market')
+            symbol = self.safe_symbol(marketId)
+            timestamp = self.safe_timestamp(entry, 'time')
+            rates.append({
+                'info': entry,
+                'symbol': symbol,
+                'fundingRate': self.safe_string(entry, 'funding_rate'),
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+            })
+        sorted = self.sort_by(rates, 'timestamp')
+        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
     def parse_transaction(self, transaction, currency=None):
         #

@@ -38,6 +38,9 @@ class okx extends Exchange {
                 'createDepositAddress' => null,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => null,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,
@@ -708,8 +711,11 @@ class okx extends Exchange {
     public function fetch_status($params = array ()) {
         $response = $this->publicGetSystemStatus ($params);
         //
+        // Note, if there is no maintenance around, the 'data' array is empty
+        //
         //     {
         //         "code" => "0",
+        //         "msg" => "",
         //         "data" => array(
         //             array(
         //                 "begin" => "1621328400000",
@@ -721,15 +727,15 @@ class okx extends Exchange {
         //                 "system" => "classic", // classic, unified
         //                 "title" => "Classic Spot System Upgrade"
         //             ),
-        //         ),
-        //         "msg" => ""
+        //         )
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
+        $dataLength = is_array($data) ? count($data) : 0;
         $timestamp = $this->milliseconds();
         $update = array(
             'updated' => $timestamp,
-            'status' => 'ok',
+            'status' => ($dataLength === 0) ? 'ok' : 'maintenance',
             'eta' => null,
             'info' => $response,
         );
@@ -741,8 +747,7 @@ class okx extends Exchange {
                 $update['status'] = 'maintenance';
             }
         }
-        $this->status = array_merge($this->status, $update);
-        return $this->status;
+        return $update;
     }
 
     public function fetch_time($params = array ()) {

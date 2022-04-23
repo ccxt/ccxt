@@ -33,6 +33,9 @@ class whitebit extends Exchange {
                 'createLimitOrder' => null,
                 'createMarketOrder' => null,
                 'createOrder' => true,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
                 'editOrder' => null,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,
@@ -753,14 +756,13 @@ class whitebit extends Exchange {
         //          "pong"
         //      )
         //
-        $status = $this->safe_string($response, 0, null);
-        $status = ($status === null) ? 'maintenance' : 'ok';
-        $this->status = array_merge($this->status, array(
-            'status' => $status,
+        $status = $this->safe_string($response, 0);
+        return array(
+            'status' => ($status === 'pong') ? 'ok' : $status,
             'updated' => $this->milliseconds(),
+            'eta' => null,
             'info' => $response,
-        ));
-        return $this->status;
+        );
     }
 
     public function fetch_time($params = array ()) {

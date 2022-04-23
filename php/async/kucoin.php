@@ -38,6 +38,9 @@ class kucoin extends Exchange {
                 'cancelOrder' => true,
                 'createDepositAddress' => true,
                 'createOrder' => true,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
@@ -419,17 +422,12 @@ class kucoin extends Exchange {
                     ),
                 ),
                 'accountsByType' => array(
-                    'trade' => 'trade',
-                    'trading' => 'trade',
                     'spot' => 'trade',
                     'margin' => 'margin',
                     'main' => 'main',
                     'funding' => 'main',
                     'future' => 'contract',
-                    'futures' => 'contract',
-                    'contract' => 'contract',
-                    'pool' => 'pool',
-                    'pool-x' => 'pool',
+                    'mining' => 'pool',
                 ),
                 'networks' => array(
                     'ETH' => 'eth',
@@ -465,22 +463,19 @@ class kucoin extends Exchange {
         //     {
         //         "code":"200000",
         //         "data":{
-        //             "msg":"",
-        //             "status":"open"
+        //             "status":"open", //open, close, cancelonly
+        //             "msg":"upgrade match engine" //remark for operation
         //         }
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $status = $this->safe_value($data, 'status');
-        if ($status !== null) {
-            $status = ($status === 'open') ? 'ok' : 'maintenance';
-            $this->status = array_merge($this->status, array(
-                'status' => $status,
-                'updated' => $this->milliseconds(),
-                'info' => $response,
-            ));
-        }
-        return $this->status;
+        $status = $this->safe_string($data, 'status');
+        return array(
+            'status' => ($status === 'open') ? 'ok' : 'maintenance',
+            'updated' => $this->milliseconds(),
+            'eta' => null,
+            'info' => $response,
+        );
     }
 
     public function fetch_markets($params = array ()) {
@@ -2164,19 +2159,11 @@ class kucoin extends Exchange {
         $currency = $this->currency($code);
         $requestedAmount = $this->currency_to_precision($code, $amount);
         $accountsById = $this->safe_value($this->options, 'accountsByType', array());
-        $fromId = $this->safe_string($accountsById, $fromAccount);
-        if ($fromId === null) {
-            $keys = is_array($accountsById) ? array_keys($accountsById) : array();
-            throw new ExchangeError($this->id . ' $fromAccount must be one of ' . implode(', ', $keys));
-        }
-        $toId = $this->safe_string($accountsById, $toAccount);
-        if ($toId === null) {
-            $keys = is_array($accountsById) ? array_keys($accountsById) : array();
-            throw new ExchangeError($this->id . ' $toAccount must be one of ' . implode(', ', $keys));
-        }
+        $fromId = $this->safe_string($accountsById, $fromAccount, $fromAccount);
+        $toId = $this->safe_string($accountsById, $toAccount, $toAccount);
         if ($fromId === 'contract') {
             if ($toId !== 'main') {
-                throw new ExchangeError($this->id . ' only supports transferring from futures account to main account');
+                throw new ExchangeError($this->id . ' transfer() only supports transferring from futures account to main account');
             }
             $request = array(
                 'currency' => $currency['id'],

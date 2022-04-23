@@ -84,6 +84,9 @@ class gateio(Exchange):
                 'createMarketOrder': False,
                 'createOrder': True,
                 'createPostOnlyOrder': True,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': False,
+                'createStopOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
@@ -2512,16 +2515,16 @@ class gateio(Exchange):
         :param float amount: the amount of currency to trade
         :param float price: *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
         :param dict params:  Extra parameters specific to the exchange API endpoint
-        :param float params.stopPrice: The price at which a trigger order is triggered at
-        :param str params.timeInForce: "GTC", "IOC", or "PO"
-        :param int params.iceberg: Amount to display for the iceberg order, Null or 0 for normal orders, Set to -1 to hide the order completely
-        :param str params.text: User defined information
-        :param str params.account: *spot and margin only* "spot", "margin" or "cross_margin"
-        :param bool params.auto_borrow: *margin only* Used in margin or cross margin trading to allow automatic loan of insufficient amount if balance is not enough
-        :param str params.settle: *contract only* Unified Currency Code for settle currency
-        :param bool params.reduceOnly: *contract only* Indicates if self order is to reduce the size of a position
-        :param bool params.close: *contract only* Set as True to close the position, with size set to 0
-        :param bool params.auto_size: *contract only* Set side to close dual-mode position, close_long closes the long side, while close_short the short one, size also needs to be set to 0
+        :param float params['stopPrice']: The price at which a trigger order is triggered at
+        :param str params['timeInForce']: "GTC", "IOC", or "PO"
+        :param int params['iceberg']: Amount to display for the iceberg order, Null or 0 for normal orders, Set to -1 to hide the order completely
+        :param str params['text']: User defined information
+        :param str params['account']: *spot and margin only* "spot", "margin" or "cross_margin"
+        :param bool params['auto_borrow']: *margin only* Used in margin or cross margin trading to allow automatic loan of insufficient amount if balance is not enough
+        :param str params['settle']: *contract only* Unified Currency Code for settle currency
+        :param bool params['reduceOnly']: *contract only* Indicates if self order is to reduce the size of a position
+        :param bool params['close']: *contract only* Set as True to close the position, with size set to 0
+        :param bool params['auto_size']: *contract only* Set side to close dual-mode position, close_long closes the long side, while close_short the short one, size also needs to be set to 0
         :returns: `An order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
@@ -2976,7 +2979,7 @@ class gateio(Exchange):
         Retrieves information on an order
         :param str id: Order id
         :param str symbol: Unified market symbol
-        :param bool params.stop: True if the order being fetched is a trigger order
+        :param bool params['stop']: True if the order being fetched is a trigger order
         :param dict params: Parameters specified by the exchange api
         :returns: Order structure
         """
@@ -3150,7 +3153,7 @@ class gateio(Exchange):
         Cancels an open order
         :param str id: Order id
         :param str symbol: Unified market symbol
-        :param bool params.stop: True if the order to be cancelled is a trigger order
+        :param bool params['stop']: True if the order to be cancelled is a trigger order
         :param dict params: Parameters specified by the exchange api
         :returns: Order structure
         """
