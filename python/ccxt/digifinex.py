@@ -725,12 +725,13 @@ class digifinex(Exchange):
         #         "code": 0
         #     }
         #
-        self.status = self.extend(self.status, {
-            'status': 'ok',
+        code = self.safe_integer(response, 'code')
+        status = 'ok' if (code == 0) else 'maintenance'
+        return {
+            'status': status,
             'updated': self.milliseconds(),
             'info': response,
-        })
-        return self.status
+        }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()

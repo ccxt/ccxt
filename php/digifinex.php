@@ -736,12 +736,13 @@ class digifinex extends Exchange {
         //         "code" => 0
         //     }
         //
-        $this->status = array_merge($this->status, array(
-            'status' => 'ok',
+        $code = $this->safe_integer($response, 'code');
+        $status = ($code === 0) ? 'ok' : 'maintenance';
+        return array(
+            'status' => $status,
             'updated' => $this->milliseconds(),
             'info' => $response,
-        ));
-        return $this->status;
+        );
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
