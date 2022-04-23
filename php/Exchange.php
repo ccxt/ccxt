@@ -382,6 +382,9 @@ class Exchange {
         'fetchMarketLeverageTiers' => 'fetch_market_leverage_tiers',
         'isPostOnly' => 'is_post_only',
         'createPostOnlyOrder' => 'create_post_only_order',
+        'createStopOrder' => 'create_stop_order',
+        'createStopLimitOrder' => 'create_stop_limit_order',
+        'createStopMarketOrder' => 'create_stop_market_order',
         'parseBorrowInterests' => 'parse_borrow_interests',
     );
 
@@ -1214,6 +1217,7 @@ class Exchange {
             'createMarketOrder' => true,
             'createOrder' => true,
             'createPostOnlyOrder' => null,
+            'createStopOrder' => null,
             'editOrder' => 'emulated',
             'fetchAccounts' => null,
             'fetchBalance' => true,
@@ -3847,5 +3851,35 @@ class Exchange {
             array_push($interest, $this->parseBorrowInterest ($row, $market));
         }
         return $interest;
+    }
+
+    public function create_stop_order($symbol, $type, $side, $amount, $price = null, $stopPrice = null, $params = array()) {
+        if (!$this->has['createStopOrder']) {
+            throw new NotSupported($this->id . ' create_stop_order() is not supported yet');
+        }
+        if ($stopPrice === null) {
+            throw new ArgumentsRequired($this->id . ' create_stop_order() requires a stopPrice argument');
+        }
+        $array = array('stopPrice' => $stopPrice);
+        $query = $this->extend($params, $array);
+        return $this->create_order($symbol, $type, $side, $amount, $price, $query);
+    }
+    
+    public function create_stop_limit_order($symbol, $side, $amount, $price, $stopPrice, $params = array()) {
+        if (!$this->has['createStopLimitOrder']) {
+            throw new NotSupported($this->id . ' create_stop_limit_order() is not supported yet');
+        }
+        $array = array('stopPrice' => $stopPrice);
+        $query = $this->extend($params, $array);
+        return $this->create_order($symbol, 'limit', $side, $amount, $price, $query);
+    }
+    
+    public function create_stop_market_order($symbol, $side, $amount, $stopPrice, $params = array()) {
+        if (!$this->has['createStopMarketOrder']) {
+            throw new NotSupported($this->id . ' create_stop_market_order() is not supported yet');
+        }
+        $array = array('stopPrice' => $stopPrice);
+        $query = $this->extend($params, $array);
+        return $this->create_order($symbol, 'market', $side, $amount, null, $query);
     }
 }

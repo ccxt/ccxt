@@ -257,6 +257,9 @@ class Exchange(object):
         'createMarketOrder': True,
         'createOrder': True,
         'createPostOnlyOrder': None,
+        'createStopOrder': None,
+        'createStopLimitOrder': None,
+        'createStopMarketOrder': None,
         'editOrder': 'emulated',
         'fetchAccounts': None,
         'fetchBalance': True,
@@ -2883,9 +2886,29 @@ class Exchange(object):
 
     def create_post_only_order(self, symbol, type, side, amount, price, params={}):
         if not self.has['createPostOnlyOrder']:
-            raise NotSupported(self.id + 'create_post_only_order() is not supported yet')
+            raise NotSupported(self.id + ' create_post_only_order() is not supported yet')
         query = self.extend(params, {'postOnly': True})
         return self.create_order(symbol, type, side, amount, price, query)
+
+    def create_stop_order(self, symbol, type, side, amount, price=None, stopPrice=None, params={}):
+        if not self.has['createStopOrder']:
+            raise NotSupported(self.id + 'create_stop_order() is not supported yet')
+        if stopPrice is None:
+            raise ArgumentsRequired(self.id + ' create_stop_order() requires a stopPrice argument')
+        query = self.extend(params, {'stopPrice': stopPrice})
+        return self.create_order(symbol, type, side, amount, price, query)
+
+    def create_stop_limit_order(self, symbol, side, amount, price, stopPrice, params={}):
+        if not self.has['createStopLimitOrder']:
+            raise NotSupported(self.id + ' create_stop_limit_order() is not supported yet')
+        query = self.extend(params, {'stopPrice': stopPrice})
+        return self.create_order(symbol, 'limit', side, amount, price, query)
+
+    def create_stop_market_order(self, symbol, side, amount, stopPrice, params={}):
+        if not self.has['createStopMarketOrder']:
+            raise NotSupported(self.id + ' create_stop_market_order() is not supported yet')
+        query = self.extend(params, {'stopPrice': stopPrice})
+        return self.create_order(symbol, 'market', side, amount, None, query)
 
     def parse_borrow_interests(self, response, market=None):
         interest = []
