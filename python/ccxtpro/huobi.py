@@ -1659,25 +1659,28 @@ class huobi(Exchange, ccxt.huobi):
         #             "feeDeductType":""
         #         }
         #     }
+        #
         # contract
-        # {
-        #     "symbol": "ADA/USDT:USDT"
-        #     "ch": "orders_cross.ada-usdt"
-        #      "trades": [
-        #          {
-        #              "trade_fee":-0.022099447513812154,
-        #              "fee_asset":"ADA",
-        #              "trade_id":113913755890,
-        #              "id":"113913755890-773207641127878656-1",
-        #              "trade_volume":1,
-        #              "trade_price":0.0905,
-        #              "trade_turnover":10,
-        #              "created_at":1604388667194,
-        #              "profit":0,
-        #              "real_profit": 0,
-        #              "role":"maker"
-        #          }
-        #      ],
+        #
+        #     {
+        #         "symbol": "ADA/USDT:USDT"
+        #         "ch": "orders_cross.ada-usdt"
+        #         "trades": [
+        #             {
+        #                 "trade_fee":-0.022099447513812154,
+        #                 "fee_asset":"ADA",
+        #                 "trade_id":113913755890,
+        #                 "id":"113913755890-773207641127878656-1",
+        #                 "trade_volume":1,
+        #                 "trade_price":0.0905,
+        #                 "trade_turnover":10,
+        #                 "created_at":1604388667194,
+        #                 "profit":0,
+        #                 "real_profit": 0,
+        #                 "role":"maker"
+        #             }
+        #         ],
+        #     }
         #
         if self.myTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
