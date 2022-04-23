@@ -385,16 +385,18 @@ class wazirx extends Exchange {
     public function fetch_status($params = array ()) {
         $response = $this->publicGetSystemStatus ($params);
         //
-        //  array( "status":"normal","message":"System is running normally." )
+        //     {
+        //         "status":"normal", // normal, system maintenance
+        //         "message":"System is running normally."
+        //     }
         //
         $status = $this->safe_string($response, 'status');
-        $status = ($status === 'normal') ? 'ok' : 'maintenance';
-        $this->status = array_merge($this->status, array(
-            'status' => $status,
+        return array(
+            'status' => ($status === 'normal') ? 'ok' : 'maintenance',
             'updated' => $this->milliseconds(),
+            'eta' => null,
             'info' => $response,
-        ));
-        return $this->status;
+        );
     }
 
     public function fetch_time($params = array ()) {

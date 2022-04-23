@@ -706,8 +706,11 @@ module.exports = class okx extends Exchange {
     async fetchStatus (params = {}) {
         const response = await this.publicGetSystemStatus (params);
         //
+        // Note, if there is no maintenance around, the 'data' array is empty
+        //
         //     {
         //         "code": "0",
+        //         "msg": "",
         //         "data": [
         //             {
         //                 "begin": "1621328400000",
@@ -719,15 +722,15 @@ module.exports = class okx extends Exchange {
         //                 "system": "classic", // classic, unified
         //                 "title": "Classic Spot System Upgrade"
         //             },
-        //         ],
-        //         "msg": ""
+        //         ]
         //     }
         //
         const data = this.safeValue (response, 'data', []);
+        const dataLength = data.length;
         const timestamp = this.milliseconds ();
         const update = {
             'updated': timestamp,
-            'status': 'ok',
+            'status': (dataLength === 0) ? 'ok' : 'maintenance',
             'eta': undefined,
             'info': response,
         };
@@ -739,8 +742,7 @@ module.exports = class okx extends Exchange {
                 update['status'] = 'maintenance';
             }
         }
-        this.status = this.extend (this.status, update);
-        return this.status;
+        return update;
     }
 
     async fetchTime (params = {}) {

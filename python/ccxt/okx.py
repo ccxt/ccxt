@@ -724,8 +724,11 @@ class okx(Exchange):
     def fetch_status(self, params={}):
         response = self.publicGetSystemStatus(params)
         #
+        # Note, if there is no maintenance around, the 'data' array is empty
+        #
         #     {
         #         "code": "0",
+        #         "msg": "",
         #         "data": [
         #             {
         #                 "begin": "1621328400000",
@@ -737,15 +740,15 @@ class okx(Exchange):
         #                 "system": "classic",  # classic, unified
         #                 "title": "Classic Spot System Upgrade"
         #             },
-        #         ],
-        #         "msg": ""
+        #         ]
         #     }
         #
         data = self.safe_value(response, 'data', [])
+        dataLength = len(data)
         timestamp = self.milliseconds()
         update = {
             'updated': timestamp,
-            'status': 'ok',
+            'status': 'ok' if (dataLength == 0) else 'maintenance',
             'eta': None,
             'info': response,
         }
@@ -755,8 +758,7 @@ class okx(Exchange):
             if state == 'ongoing':
                 update['eta'] = self.safe_integer(event, 'end')
                 update['status'] = 'maintenance'
-        self.status = self.extend(self.status, update)
-        return self.status
+        return update
 
     def fetch_time(self, params={}):
         response = self.publicGetPublicTime(params)
