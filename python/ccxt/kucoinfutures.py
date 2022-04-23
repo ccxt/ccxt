@@ -318,21 +318,19 @@ class kucoinfutures(kucoin):
         #     {
         #         "code":"200000",
         #         "data":{
-        #             "msg":"",
-        #             "status":"open"
+        #             "status": "open",  # open, close, cancelonly
+        #             "msg": "upgrade match engine"  # remark for operation when status not open
         #         }
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        status = self.safe_value(data, 'status')
-        if status is not None:
-            status = 'ok' if (status == 'open') else 'maintenance'
-            self.status = self.extend(self.status, {
-                'status': status,
-                'updated': self.milliseconds(),
-                'info': response,
-            })
-        return self.status
+        status = self.safe_string(data, 'status')
+        return {
+            'status': 'ok' if (status == 'open') else 'maintenance',
+            'updated': self.milliseconds(),
+            'eta': None,
+            'info': response,
+        }
 
     def fetch_markets(self, params={}):
         response = self.futuresPublicGetContractsActive(params)
