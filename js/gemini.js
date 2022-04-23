@@ -1166,7 +1166,7 @@ module.exports = class gemini extends Exchange {
         //         "txHash":"0x28267179f92926d85c5516bqc063b2631935573d8915258e95d9572eedcc8cc"
         //     }
         //
-        //   for error (many variations of )
+        //   for error (other variations of error messages are also expected)
         //     {
         //         "result":"error",
         //         "reason":"CryptoAddressWhitelistsNotEnabled",
@@ -1221,11 +1221,8 @@ module.exports = class gemini extends Exchange {
         const code = this.safeCurrencyCode (currencyId, currency);
         const address = this.safeString (transaction, 'destination');
         const type = this.safeStringLower (transaction, 'type');
-        let status = 'pending';
-        // When deposits show as Advanced or Complete they are available for trading.
-        if (transaction['status']) {
-            status = 'ok';
-        }
+        // if status field is available, then it's complete
+        const statusRaw = this.safeString (transaction, 'status');
         let fee = undefined;
         const feeAmount = this.safeNumber (transaction, 'feeAmount');
         if (feeAmount !== undefined) {
@@ -1250,10 +1247,18 @@ module.exports = class gemini extends Exchange {
             'type': type, // direction of the transaction, ('deposit' | 'withdraw')
             'amount': this.safeNumber (transaction, 'amount'),
             'currency': code,
-            'status': status,
+            'status': this.parseTransactionStatus (statusRaw),
             'updated': undefined,
             'fee': fee,
         };
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            'Advanced': 'ok',
+            'Complete': 'ok',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {
