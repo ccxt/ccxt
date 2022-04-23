@@ -1129,7 +1129,7 @@ class gemini(Exchange):
         #         "txHash":"0x28267179f92926d85c5516bqc063b2631935573d8915258e95d9572eedcc8cc"
         #     }
         #
-        #   for error(many variations of )
+        #   for error(other variations of error messages are also expected)
         #     {
         #         "result":"error",
         #         "reason":"CryptoAddressWhitelistsNotEnabled",
@@ -1178,10 +1178,8 @@ class gemini(Exchange):
         code = self.safe_currency_code(currencyId, currency)
         address = self.safe_string(transaction, 'destination')
         type = self.safe_string_lower(transaction, 'type')
-        status = 'pending'
-        # When deposits show as Advanced or Complete they are available for trading.
-        if transaction['status']:
-            status = 'ok'
+        # if status field is available, then it's complete
+        statusRaw = self.safe_string(transaction, 'status')
         fee = None
         feeAmount = self.safe_number(transaction, 'feeAmount')
         if feeAmount is not None:
@@ -1205,10 +1203,17 @@ class gemini(Exchange):
             'type': type,  # direction of the transaction,('deposit' | 'withdraw')
             'amount': self.safe_number(transaction, 'amount'),
             'currency': code,
-            'status': status,
+            'status': self.parse_transaction_status(statusRaw),
             'updated': None,
             'fee': fee,
         }
+
+    def parse_transaction_status(self, status):
+        statuses = {
+            'Advanced': 'ok',
+            'Complete': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
 
     def parse_deposit_address(self, depositAddress, currency=None):
         #

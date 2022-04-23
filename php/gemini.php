@@ -1169,7 +1169,7 @@ class gemini extends Exchange {
         //         "txHash":"0x28267179f92926d85c5516bqc063b2631935573d8915258e95d9572eedcc8cc"
         //     }
         //
-        //   for error (many variations of )
+        //   for error (other variations of error messages are also expected)
         //     {
         //         "result":"error",
         //         "reason":"CryptoAddressWhitelistsNotEnabled",
@@ -1224,11 +1224,8 @@ class gemini extends Exchange {
         $code = $this->safe_currency_code($currencyId, $currency);
         $address = $this->safe_string($transaction, 'destination');
         $type = $this->safe_string_lower($transaction, 'type');
-        $status = 'pending';
-        // When deposits show as Advanced or Complete they are available for trading.
-        if ($transaction['status']) {
-            $status = 'ok';
-        }
+        // if status field is available, then it's complete
+        $statusRaw = $this->safe_string($transaction, 'status');
         $fee = null;
         $feeAmount = $this->safe_number($transaction, 'feeAmount');
         if ($feeAmount !== null) {
@@ -1253,10 +1250,18 @@ class gemini extends Exchange {
             'type' => $type, // direction of the $transaction, ('deposit' | 'withdraw')
             'amount' => $this->safe_number($transaction, 'amount'),
             'currency' => $code,
-            'status' => $status,
+            'status' => $this->parse_transaction_status($statusRaw),
             'updated' => null,
             'fee' => $fee,
         );
+    }
+
+    public function parse_transaction_status($status) {
+        $statuses = array(
+            'Advanced' => 'ok',
+            'Complete' => 'ok',
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function parse_deposit_address($depositAddress, $currency = null) {
