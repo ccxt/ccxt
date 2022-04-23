@@ -393,7 +393,7 @@ class Exchange extends \ccxt\Exchange {
         return yield $this->create_order($symbol, 'limit', $side, $amount, $price, $query);
     }
 
-    public function create_stop_market_order($symbol, $side, $amount, $stop_price, $params=array()) {
+    public function create_stop_market_order($symbol, $side, $amount, $stop_price, $params = array()) {
         if (!$this->has['createStopMarketOrder']) {
             throw new NotSupported($this->id . ' create_stop_market_order() is not supported yet');
         }
