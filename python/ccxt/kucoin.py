@@ -433,17 +433,12 @@ class kucoin(Exchange):
                     },
                 },
                 'accountsByType': {
-                    'trade': 'trade',
-                    'trading': 'trade',
                     'spot': 'trade',
                     'margin': 'margin',
                     'main': 'main',
                     'funding': 'main',
                     'future': 'contract',
-                    'futures': 'contract',
-                    'contract': 'contract',
-                    'pool': 'pool',
-                    'pool-x': 'pool',
+                    'mining': 'pool',
                 },
                 'networks': {
                     'ETH': 'eth',
@@ -2070,17 +2065,11 @@ class kucoin(Exchange):
         currency = self.currency(code)
         requestedAmount = self.currency_to_precision(code, amount)
         accountsById = self.safe_value(self.options, 'accountsByType', {})
-        fromId = self.safe_string(accountsById, fromAccount)
-        if fromId is None:
-            keys = list(accountsById.keys())
-            raise ExchangeError(self.id + ' fromAccount must be one of ' + ', '.join(keys))
-        toId = self.safe_string(accountsById, toAccount)
-        if toId is None:
-            keys = list(accountsById.keys())
-            raise ExchangeError(self.id + ' toAccount must be one of ' + ', '.join(keys))
+        fromId = self.safe_string(accountsById, fromAccount, fromAccount)
+        toId = self.safe_string(accountsById, toAccount, toAccount)
         if fromId == 'contract':
             if toId != 'main':
-                raise ExchangeError(self.id + ' only supports transferring from futures account to main account')
+                raise ExchangeError(self.id + ' transfer() only supports transferring from futures account to main account')
             request = {
                 'currency': currency['id'],
                 'amount': requestedAmount,
