@@ -558,16 +558,6 @@ module.exports = class coinex extends Exchange {
         return this.parseOrderBook (result, symbol, timestamp);
     }
 
-    parseSide (sideId) {
-        if (sideId === 1) {
-            return 'sell';
-        } else if (sideId === 2) {
-            return 'buy';
-        } else {
-            return undefined;
-        }
-    }
-
     parseTrade (trade, market = undefined) {
         //
         // Spot fetchTrades (public)
@@ -660,8 +650,12 @@ module.exports = class coinex extends Exchange {
         }
         let side = undefined;
         if (market['type'] === 'swap') {
-            const sideId = this.safeInteger (trade, 'side');
-            side = this.parseSide (sideId);
+            side = this.safeInteger (trade, 'side');
+            if (side === 1) {
+                side = 'sell';
+            } else if (side === 2) {
+                side = 'buy';
+            }
         } else {
             side = this.safeString (trade, 'type');
         }
