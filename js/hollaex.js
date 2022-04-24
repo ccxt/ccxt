@@ -29,10 +29,10 @@ module.exports = class hollaex extends ccxt.hollaex {
             },
             'options': {
                 'watchBalance': {
-                    'api-expires': '',
+                    // 'api-expires': undefined,
                 },
                 'watchOrders': {
-                    'api-expires': '',
+                    // 'api-expires': undefined,
                 },
             },
             'streaming': {
