@@ -59,42 +59,25 @@ module.exports = class hollaex extends ccxt.hollaex {
 
     handleOrderBook (client, message) {
         //
-        // {
-        //     "topic":"orderbook",
-        //     "action":"partial",
-        //     "symbol":"ltc-usdt",
-        //     "data":{
-        //        "bids":[
-        //           [104.29, 5.2264],
-        //           [103.86,1.3629],
-        //           [101.82,0.5942]
-        //        ],
-        //        "asks":[
-        //           [104.81,9.5531],
-        //           [105.54,0.6416],
-        //           [106.18,1.4141],
-        //           [112.43,0.6525],
-        //           [114.4,0.3653],
-        //           [116.59,0.0377],
-        //           [118.67,0.3116],
-        //           [120.64,0.2881],
-        //           [122.84,0.3331],
-        //           [135.11,0.01],
-        //           [137.61,0.01],
-        //           [140.11,0.01],
-        //           [142.61,0.01],
-        //           [145.12,0.01],
-        //           [147.62,0.01],
-        //           [154,0.0048],
-        //           [300,0.0215],
-        //           [500,1],
-        //           [650,0.1],
-        //           [1000,1]
-        //        ],
-        //        "timestamp":"2022-04-12T08:17:05.932Z"
-        //     },
-        //     "time":1649751425
-        //  }
+        //     {
+        //         "topic":"orderbook",
+        //         "action":"partial",
+        //         "symbol":"ltc-usdt",
+        //         "data":{
+        //             "bids":[
+        //                 [104.29, 5.2264],
+        //                 [103.86,1.3629],
+        //                 [101.82,0.5942]
+        //             ],
+        //             "asks":[
+        //                 [104.81,9.5531],
+        //                 [105.54,0.6416],
+        //                 [106.18,1.4141],
+        //             ],
+        //             "timestamp":"2022-04-12T08:17:05.932Z"
+        //         },
+        //         "time":1649751425
+        //     }
         //
         const marketId = this.safeString (message, 'symbol');
         const channel = this.safeString (message, 'topic');
@@ -130,19 +113,19 @@ module.exports = class hollaex extends ccxt.hollaex {
 
     handleTrades (client, message) {
         //
-        //   {
-        //       topic: 'trade',
-        //       action: 'partial',
-        //       symbol: 'btc-usdt',
-        //       data: [
-        //         {
-        //           size: 0.05145,
-        //           price: 41977.9,
-        //           side: 'buy',
-        //           timestamp: '2022-04-11T09:40:10.881Z'
-        //         },
-        //         (...)
-        //    }
+        //     {
+        //         topic: 'trade',
+        //         action: 'partial',
+        //         symbol: 'btc-usdt',
+        //         data: [
+        //             {
+        //                 size: 0.05145,
+        //                 price: 41977.9,
+        //                 side: 'buy',
+        //                 timestamp: '2022-04-11T09:40:10.881Z'
+        //             },
+        //         ]
+        //     }
         //
         const channel = this.safeString (message, 'topic');
         const marketId = this.safeString (message, 'symbol');
@@ -190,29 +173,29 @@ module.exports = class hollaex extends ccxt.hollaex {
 
     handleOrder (client, message, subscription = undefined) {
         //
-        // {
-        //     topic: 'order',
-        //     action: 'insert',
-        //     user_id: 155328,
-        //     symbol: 'ltc-usdt',
-        //     data: {
-        //       symbol: 'ltc-usdt',
-        //       side: 'buy',
-        //       size: 0.05,
-        //       type: 'market',
-        //       price: 0,
-        //       fee_structure: { maker: 0.1, taker: 0.1 },
-        //       fee_coin: 'ltc',
-        //       id: 'ce38fd48-b336-400b-812b-60c636454231',
-        //       created_by: 155328,
-        //       filled: 0.05,
-        //       method: 'market',
-        //       created_at: '2022-04-11T14:09:00.760Z',
-        //       updated_at: '2022-04-11T14:09:00.760Z',
-        //       status: 'filled'
-        //     },
-        //     time: 1649686140
-        // }
+        //     {
+        //         topic: 'order',
+        //         action: 'insert',
+        //         user_id: 155328,
+        //         symbol: 'ltc-usdt',
+        //         data: {
+        //             symbol: 'ltc-usdt',
+        //             side: 'buy',
+        //             size: 0.05,
+        //             type: 'market',
+        //             price: 0,
+        //             fee_structure: { maker: 0.1, taker: 0.1 },
+        //             fee_coin: 'ltc',
+        //             id: 'ce38fd48-b336-400b-812b-60c636454231',
+        //             created_by: 155328,
+        //             filled: 0.05,
+        //             method: 'market',
+        //             created_at: '2022-04-11T14:09:00.760Z',
+        //             updated_at: '2022-04-11T14:09:00.760Z',
+        //             status: 'filled'
+        //         },
+        //         time: 1649686140
+        //     }
         //
         const channel = this.safeString (message, 'topic');
         const marketId = this.safeString (message, 'symbol');
@@ -258,60 +241,20 @@ module.exports = class hollaex extends ccxt.hollaex {
 
     handleBalance (client, message) {
         //
-        // {
-        //     topic: 'wallet',
-        //     action: 'partial',
-        //     user_id: 155328,
-        //     data: {
-        //       bch_balance: 0,
-        //       bch_available: 0,
-        //       xrp_balance: 0,
-        //       xrp_available: 0,
-        //       eth_balance: 0,
-        //       eth_available: 0,
-        //       usdt_balance: 18.94344188,
-        //       usdt_available: 18.94344188,
-        //       btc_balance: 0,
-        //       btc_available: 0,
-        //       xht_balance: 0,
-        //       xht_available: 0,
-        //       link_balance: 0,
-        //       link_available: 0,
-        //       ama_balance: 0,
-        //       ama_available: 0,
-        //       xlm_balance: 0,
-        //       xlm_available: 0,
-        //       xmr_balance: 0,
-        //       xmr_available: 0,
-        //       bnb_balance: 0,
-        //       bnb_available: 0,
-        //       trx_balance: 0,
-        //       trx_available: 0,
-        //       ada_balance: 0,
-        //       ada_available: 0,
-        //       dot_balance: 0,
-        //       dot_available: 0,
-        //       ltc_balance: 0.00005,
-        //       ltc_available: 0.00005,
-        //       uni_balance: 0,
-        //       uni_available: 0,
-        //       dai_balance: 0,
-        //       dai_available: 0,
-        //       xtz_balance: 0,
-        //       xtz_available: 0,
-        //       doge_balance: 0,
-        //       doge_available: 0,
-        //       axs_balance: 0,
-        //       axs_available: 0,
-        //       sol_balance: 0,
-        //       sol_available: 0,
-        //       avax_balance: 0,
-        //       avax_available: 0,
-        //       shib_balance: 0,
-        //       shib_available: 0
-        //     },
-        //     time: 1649687396
-        //   }
+        //     {
+        //         topic: 'wallet',
+        //         action: 'partial',
+        //         user_id: 155328,
+        //         data: {
+        //             eth_balance: 0,
+        //             eth_available: 0,
+        //             usdt_balance: 18.94344188,
+        //             usdt_available: 18.94344188,
+        //             ltc_balance: 0.00005,
+        //             ltc_available: 0.00005,
+        //         },
+        //         time: 1649687396
+        //     }
         //
         const messageHash = this.safeString (message, 'topic');
         const data = this.safeValue (message, 'data');
@@ -368,8 +311,10 @@ module.exports = class hollaex extends ccxt.hollaex {
     }
 
     handleErrorMessage (client, message) {
-        //  { error: 'Bearer or HMAC authentication required' }
-        //  { error: 'Error: wrong input' }
+        //
+        //     { error: 'Bearer or HMAC authentication required' }
+        //     { error: 'Error: wrong input' }
+        //
         const error = this.safeInteger (message, 'error');
         try {
             if (error !== undefined) {
@@ -385,67 +330,90 @@ module.exports = class hollaex extends ccxt.hollaex {
     }
 
     handleMessage (client, message) {
+        //
         // pong
         //
-        // { message: 'pong' }
+        //     { message: 'pong' }
         //
         // trade
-        //   {
-        //       topic: 'trade',
-        //       action: 'partial',
-        //       symbol: 'btc-usdt',
-        //       data: [
-        //         {
-        //           size: 0.05145,
-        //           price: 41977.9,
-        //           side: 'buy',
-        //           timestamp: '2022-04-11T09:40:10.881Z'
-        //         },
-        //         (...)
-        //    }
+        //
+        //     {
+        //         topic: 'trade',
+        //         action: 'partial',
+        //         symbol: 'btc-usdt',
+        //         data: [
+        //             {
+        //                 size: 0.05145,
+        //                 price: 41977.9,
+        //                 side: 'buy',
+        //                 timestamp: '2022-04-11T09:40:10.881Z'
+        //             },
+        //         ]
+        //     }
+        //
         // orderbook
-        //    {
-        //        topic: 'orderbook',
-        //        action: 'partial',
-        //        symbol: 'ltc-usdt',
-        //        data: {
-        //          bids: [ ],
-        //          asks: [ ],
-        //          timestamp: '2022-04-11T10:37:01.227Z'
-        //        },
-        //        time: 1649673421
-        //    }
+        //
+        //     {
+        //         topic: 'orderbook',
+        //         action: 'partial',
+        //         symbol: 'ltc-usdt',
+        //         data: {
+        //             bids: [
+        //                 [104.29, 5.2264],
+        //                 [103.86,1.3629],
+        //                 [101.82,0.5942]
+        //             ],
+        //             asks: [
+        //                 [104.81,9.5531],
+        //                 [105.54,0.6416],
+        //                 [106.18,1.4141],
+        //             ],
+        //             timestamp: '2022-04-11T10:37:01.227Z'
+        //         },
+        //         time: 1649673421
+        //     }
+        //
         // order
-        //  {
-        //      topic: 'order',
-        //      action: 'insert',
-        //      user_id: 155328,
-        //      symbol: 'ltc-usdt',
-        //      data: {
-        //        symbol: 'ltc-usdt',
-        //        side: 'buy',
-        //        size: 0.05,
-        //        type: 'market',
-        //        price: 0,
-        //        fee_structure: { maker: 0.1, taker: 0.1 },
-        //        fee_coin: 'ltc',
-        //        id: 'ce38fd48-b336-400b-812b-60c636454231',
-        //        created_by: 155328,
-        //        filled: 0.05,
-        //        method: 'market',
-        //        created_at: '2022-04-11T14:09:00.760Z',
-        //        updated_at: '2022-04-11T14:09:00.760Z',
-        //        status: 'filled'
-        //      },
-        //      time: 1649686140
-        //  }
+        //
+        //     {
+        //         topic: 'order',
+        //         action: 'insert',
+        //         user_id: 155328,
+        //         symbol: 'ltc-usdt',
+        //         data: {
+        //             symbol: 'ltc-usdt',
+        //             side: 'buy',
+        //             size: 0.05,
+        //             type: 'market',
+        //             price: 0,
+        //             fee_structure: { maker: 0.1, taker: 0.1 },
+        //             fee_coin: 'ltc',
+        //             id: 'ce38fd48-b336-400b-812b-60c636454231',
+        //             created_by: 155328,
+        //             filled: 0.05,
+        //             method: 'market',
+        //             created_at: '2022-04-11T14:09:00.760Z',
+        //             updated_at: '2022-04-11T14:09:00.760Z',
+        //             status: 'filled'
+        //         },
+        //         time: 1649686140
+        //     }
+        //
         // balance
-        //   {
-        //       topic: 'wallet',
-        //       action: 'partial',
-        //       user_id: 155328,
-        //       data: { }
-        //   }
+        //
+        //     {
+        //         topic: 'wallet',
+        //         action: 'partial',
+        //         user_id: 155328,
+        //         data: {
+        //             eth_balance: 0,
+        //             eth_available: 0,
+        //             usdt_balance: 18.94344188,
+        //             usdt_available: 18.94344188,
+        //             ltc_balance: 0.00005,
+        //             ltc_available: 0.00005,
+        //         }
+        //     }
         //
         if (!this.handleErrorMessage (client, message)) {
             return;
