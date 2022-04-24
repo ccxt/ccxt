@@ -14,12 +14,13 @@ module.exports = class hollaex extends ccxt.hollaex {
             'has': {
                 'ws': true,
                 'watchBalance': true,
-                'watchTickers': false, // for now
                 'watchMyTrades': false,
-                'watchTrades': true,
+                'watchOHLCV': false,
                 'watchOrderBook': true,
                 'watchOrders': true,
-                'watchOHLCV': false,
+                'watchTicker': false,
+                'watchTickers': false, // for now
+                'watchTrades': true,
             },
             'urls': {
                 'api': {
