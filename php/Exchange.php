@@ -235,6 +235,7 @@ class Exchange {
         'binaryToBase16' => 'binary_to_base16',
         'binaryConcat' => 'binary_concat',
         'binaryConcatArray' => 'binary_concat_array',
+        'urlencodeNested' => 'urlencode_nested',
         'urlencodeWithArrayRepeat' => 'urlencode_with_array_repeat',
         'urlencodeBase64' => 'urlencode_base64',
         'numberToLE' => 'number_to_le',
@@ -833,6 +834,11 @@ class Exchange {
             }
         }
         return http_build_query($array, '', $this->urlencode_glue);
+    }
+
+    public function urlencode_nested($array) {
+        // in PHP, we don't have to customly implement this method
+        return urlencode($array);
     }
 
     public function urlencode_with_array_repeat($array) {
