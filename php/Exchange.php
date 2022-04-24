@@ -3824,7 +3824,7 @@ class Exchange {
         $post_only = $this->safe_value_2($params, 'postOnly', 'post_only', false);
         $params = $this->omit($params, ['post_only', 'postOnly']);
         $time_in_force_upper = $time_in_force.upper();
-        $type_upper = $type.lower();
+        $type_upper = strtoupper($type);
         $ioc = $time_in_force_upper === 'IOC';
         $time_in_force_post_only = $time_in_force_upper === 'PO';
         $is_market = $type_lower === 'market';
