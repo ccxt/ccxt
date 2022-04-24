@@ -119,6 +119,7 @@ module.exports = class hollaex extends ccxt.hollaex {
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const messageHash = 'trade' + ':' + market['id'];
         const trades = await this.watchPublic (messageHash, params);
         if (this.newUpdates) {
@@ -169,6 +170,7 @@ module.exports = class hollaex extends ccxt.hollaex {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
+            symbol = market['symbol'];
             messageHash += ':' + market['id'];
         }
         const options = this.safeValue (this.options, 'watchOrders', {});
