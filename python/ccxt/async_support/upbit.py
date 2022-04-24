@@ -66,6 +66,7 @@ class upbit(Exchange):
                 'fetchTradingFees': False,
                 'fetchTransactions': None,
                 'fetchWithdrawals': True,
+                'transfer': False,
                 'withdraw': True,
             },
             'timeframes': {

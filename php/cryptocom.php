@@ -1140,11 +1140,7 @@ class cryptocom extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result');
-        $id = $this->safe_string($result, 'id');
-        return array(
-            'info' => $response,
-            'id' => $id,
-        );
+        return $this->parse_transaction($result, $currency);
     }
 
     public function fetch_deposit_addresses_by_network($code, $params = array ()) {
@@ -1313,23 +1309,23 @@ class cryptocom extends Exchange {
         $fromAccount = strtolower($fromAccount);
         $toAccount = strtolower($toAccount);
         $accountsById = $this->safe_value($this->options, 'accountsByType', array());
-        $fromId = $this->safe_string($accountsById, $fromAccount);
-        if ($fromId === null) {
-            $keys = is_array($accountsById) ? array_keys($accountsById) : array();
-            throw new ExchangeError($this->id . ' $fromAccount must be one of ' . implode(', ', $keys));
-        }
-        $toId = $this->safe_string($accountsById, $toAccount);
-        if ($toId === null) {
-            $keys = is_array($accountsById) ? array_keys($accountsById) : array();
-            throw new ExchangeError($this->id . ' $toAccount must be one of ' . implode(', ', $keys));
-        }
+        $fromId = $this->safe_string($accountsById, $fromAccount, $fromAccount);
+        $toId = $this->safe_string($accountsById, $toAccount, $toAccount);
         $request = array(
             'currency' => $currency['id'],
             'amount' => floatval($amount),
             'from' => $fromId,
             'to' => $toId,
         );
-        return $this->spotPrivatePostPrivateDerivTransfer (array_merge($request, $params));
+        $repsonse = $this->spotPrivatePostPrivateDerivTransfer (array_merge($request, $params));
+        //
+        //     {
+        //         "id" => 11,
+        //         "method" => "private/deriv/transfer",
+        //         "code" => 0
+        //     }
+        //
+        return $this->parse_transfer($repsonse, $currency);
     }
 
     public function fetch_transfers($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1349,7 +1345,7 @@ class cryptocom extends Exchange {
         //
         //     {
         //       id => '1641032709328',
-        //       method => 'private/deriv/get-$transfer-history',
+        //       method => 'private/deriv/get-transfer-history',
         //       $code => '0',
         //       $result => {
         //         transfer_list => array(
@@ -1367,12 +1363,7 @@ class cryptocom extends Exchange {
         //
         $result = $this->safe_value($response, 'result', array());
         $transferList = $this->safe_value($result, 'transfer_list', array());
-        $resultArray = array();
-        for ($i = 0; $i < count($transferList); $i++) {
-            $transfer = $transferList[$i];
-            $resultArray[] = $this->parse_transfer($transfer, $currency);
-        }
-        return $this->filter_by_since_limit($resultArray, $since, $limit);
+        return $this->parse_transfers($transferList, $currency, $since, $limit, $params);
     }
 
     public function parse_transfer_status($status) {
@@ -1410,7 +1401,7 @@ class cryptocom extends Exchange {
         $status = $this->parse_transfer_status($rawStatus);
         return array(
             'info' => $transfer,
-            'id' => null,
+            'id' => $this->safe_string($transfer, 'id'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'currency' => $code,
@@ -1701,30 +1692,42 @@ class cryptocom extends Exchange {
         //
         // fetchDeposits
         //
-        // {
-        //     "currency" => "XRP",
-        //     "fee" => 1.0,
-        //     "create_time" => 1607063412000,
-        //     "id" => "2220",
-        //     "update_time" => 1607063460000,
-        //     "amount" => 100,
-        //     "address" => "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf?1234567890",
-        //     "status" => "1"
-        // }
+        //     {
+        //         "currency" => "XRP",
+        //         "fee" => 1.0,
+        //         "create_time" => 1607063412000,
+        //         "id" => "2220",
+        //         "update_time" => 1607063460000,
+        //         "amount" => 100,
+        //         "address" => "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf?1234567890",
+        //         "status" => "1"
+        //     }
         //
         // fetchWithdrawals
         //
-        // {
-        //     "currency" => "XRP",
-        //     "client_wid" => "my_withdrawal_002",
-        //     "fee" => 1.0,
-        //     "create_time" => 1607063412000,
-        //     "id" => "2220",
-        //     "update_time" => 1607063460000,
-        //     "amount" => 100,
-        //     "address" => "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf?1234567890",
-        //     "status" => "1"
-        // }
+        //     {
+        //         "currency" => "XRP",
+        //         "client_wid" => "my_withdrawal_002",
+        //         "fee" => 1.0,
+        //         "create_time" => 1607063412000,
+        //         "id" => "2220",
+        //         "update_time" => 1607063460000,
+        //         "amount" => 100,
+        //         "address" => "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf?1234567890",
+        //         "status" => "1"
+        //     }
+        //
+        // withdraw
+        //
+        //     {
+        //         "id" => 2220,
+        //         "amount" => 1,
+        //         "fee" => 0.0004,
+        //         "symbol" => "BTC",
+        //         "address" => "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf",
+        //         "client_wid" => "my_withdrawal_002",
+        //         "create_time":1607063412000
+        //     }
         //
         $type = null;
         $rawStatus = $this->safe_string($transaction, 'status');

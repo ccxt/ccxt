@@ -16,7 +16,7 @@ class bitvavo extends Exchange {
             'id' => 'bitvavo',
             'name' => 'Bitvavo',
             'countries' => array( 'NL' ), // Netherlands
-            'rateLimit' => 60.1, // 1000 requests per second
+            'rateLimit' => 60, // 1000 requests per minute
             'version' => 'v2',
             'certified' => true,
             'pro' => true,
@@ -32,6 +32,9 @@ class bitvavo extends Exchange {
                 'cancelOrder' => true,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
@@ -262,8 +265,8 @@ class bitvavo extends Exchange {
         ));
     }
 
-    public function currency_to_precision($currency, $fee) {
-        return $this->decimal_to_precision($fee, 0, $this->currencies[$currency]['precision']);
+    public function currency_to_precision($code, $fee) {
+        return $this->decimal_to_precision($fee, 0, $this->currencies[$code]['precision']);
     }
 
     public function amount_to_precision($symbol, $amount) {

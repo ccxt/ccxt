@@ -31,7 +31,7 @@ class bitvavo(Exchange):
             'id': 'bitvavo',
             'name': 'Bitvavo',
             'countries': ['NL'],  # Netherlands
-            'rateLimit': 60.1,  # 1000 requests per second
+            'rateLimit': 60,  # 1000 requests per minute
             'version': 'v2',
             'certified': True,
             'pro': True,
@@ -47,6 +47,9 @@ class bitvavo(Exchange):
                 'cancelOrder': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': True,
+                'createStopOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
@@ -276,8 +279,8 @@ class bitvavo(Exchange):
             },
         })
 
-    def currency_to_precision(self, currency, fee):
-        return self.decimal_to_precision(fee, 0, self.currencies[currency]['precision'])
+    def currency_to_precision(self, code, fee):
+        return self.decimal_to_precision(fee, 0, self.currencies[code]['precision'])
 
     def amount_to_precision(self, symbol, amount):
         # https://docs.bitfinex.com/docs/introduction#amount-precision

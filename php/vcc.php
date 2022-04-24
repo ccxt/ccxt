@@ -32,6 +32,9 @@ class vcc extends Exchange {
                 'cancelOrder' => true,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
                 'editOrder' => null,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
@@ -76,6 +79,7 @@ class vcc extends Exchange {
                 'setMarginMode' => false,
                 'setPositionMode' => false,
                 'transfer' => false,
+                'withdraw' => false,
             ),
             'timeframes' => array(
                 '1m' => '60000',

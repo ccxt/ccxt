@@ -33,6 +33,9 @@ class blockchaincom(Exchange):
                 'cancelOrder': True,
                 'cancelOrders': True,
                 'createOrder': True,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': True,
+                'createStopOrder': True,
                 'fetchBalance': True,
                 'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,
@@ -739,10 +742,10 @@ class blockchaincom(Exchange):
 
     def withdraw(self, code, amount, address, tag=None, params={}):
         self.load_markets()
-        currencyid = self.currencyId(code)
+        currency = self.currency(code)
         request = {
             'amount': amount,
-            'currency': currencyid,
+            'currency': currency['id'],
             # 'beneficiary': address/id,
             'sendMax': False,
         }
@@ -758,12 +761,7 @@ class blockchaincom(Exchange):
         #         timestamp: "1634218452595"
         #     },
         #
-        withdrawalId = self.safe_string(response, 'withdrawalId')
-        result = {
-            'info': response,
-            'id': withdrawalId,
-        }
-        return result
+        return self.parse_transaction(response, currency)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         self.load_markets()

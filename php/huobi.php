@@ -23,7 +23,7 @@ class huobi extends Exchange {
             'name' => 'Huobi',
             'countries' => array( 'CN' ),
             'rateLimit' => 100,
-            'userAgent' => $this->userAgents['chrome39'],
+            'userAgent' => $this->userAgents['chrome100'],
             'certified' => true,
             'version' => 'v1',
             'accounts' => null,
@@ -44,6 +44,9 @@ class huobi extends Exchange {
                 'createDepositAddress' => null,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,
@@ -808,7 +811,10 @@ class huobi extends Exchange {
                     // err-msg
                     'invalid symbol' => '\\ccxt\\BadSymbol', // array("ts":1568813334794,"status":"error","err-code":"invalid-parameter","err-msg":"invalid symbol")
                     'symbol trade not open now' => '\\ccxt\\BadSymbol', // array("ts":1576210479343,"status":"error","err-code":"invalid-parameter","err-msg":"symbol trade not open now")
-                    'require-symbol' => '\\ccxt\\BadSymbol', // array("status":"error","err-code":"require-symbol","err-msg":"Parameter `symbol` is required.","data":null)
+                    'require-symbol' => '\\ccxt\\BadSymbol', // array("status":"error","err-code":"require-symbol","err-msg":"Parameter `symbol` is required.","data":null),
+                    'invalid-address' => '\\ccxt\\BadRequest', // array("status":"error","err-code":"invalid-address","err-msg":"Invalid address.","data":null),
+                    'base-currency-chain-error' => '\\ccxt\\BadRequest', // array("status":"error","err-code":"base-currency-chain-error","err-msg":"The current currency chain does not exist","data":null),
+                    'dw-insufficient-balance' => '\\ccxt\\InsufficientFunds', // array("status":"error","err-code":"dw-insufficient-balance","err-msg":"Insufficient balance. You can only transfer `12.3456` at most.","data":null)
                 ),
             ),
             'precisionMode' => TICK_SIZE,
@@ -2584,14 +2590,21 @@ class huobi extends Exchange {
                     $balance = $data[$i];
                     $marketId = $this->safe_string_2($balance, 'contract_code', 'margin_account');
                     $market = $this->safe_market($marketId);
-                    $account = $this->account();
-                    $account['free'] = $this->safe_string($balance, 'margin_balance');
-                    $account['used'] = $this->safe_string($balance, 'margin_frozen');
-                    $code = $market['settle'];
-                    $accountsByCode = array();
-                    $accountsByCode[$code] = $account;
-                    $symbol = $market['symbol'];
-                    $result[$symbol] = $this->safe_balance($accountsByCode);
+                    $currencyId = $this->safe_string($balance, 'margin_asset');
+                    $currency = $this->safe_currency($currencyId);
+                    $code = $this->safe_string($market, 'settle', $currency['code']);
+                    // the exchange outputs positions for delisted markets
+                    // https://www.huobi.com/support/en-us/detail/74882968522337
+                    // we skip it if the $market was delisted
+                    if ($code !== null) {
+                        $account = $this->account();
+                        $account['free'] = $this->safe_string($balance, 'margin_balance');
+                        $account['used'] = $this->safe_string($balance, 'margin_frozen');
+                        $accountsByCode = array();
+                        $accountsByCode[$code] = $account;
+                        $symbol = $market['symbol'];
+                        $result[$symbol] = $this->safe_balance($accountsByCode);
+                    }
                 }
                 return $result;
             }
@@ -3921,8 +3934,8 @@ class huobi extends Exchange {
         return $response;
     }
 
-    public function currency_to_precision($currency, $fee) {
-        return $this->decimal_to_precision($fee, 0, $this->currencies[$currency]['precision']);
+    public function currency_to_precision($code, $fee) {
+        return $this->decimal_to_precision($fee, 0, $this->currencies[$code]['precision']);
     }
 
     public function safe_network($networkId) {
@@ -4170,6 +4183,13 @@ class huobi extends Exchange {
         //         'updated-at' => 1552108032859
         //     }
         //
+        // withdraw
+        //
+        //     {
+        //         "status" => "ok",
+        //         "data" => "99562054"
+        //     }
+        //
         $timestamp = $this->safe_integer($transaction, 'created-at');
         $updated = $this->safe_integer($transaction, 'updated-at');
         $code = $this->safe_currency_code($this->safe_string($transaction, 'currency'));
@@ -4187,7 +4207,7 @@ class huobi extends Exchange {
         $network = $this->safe_string_upper($transaction, 'chain');
         return array(
             'info' => $transaction,
-            'id' => $this->safe_string($transaction, 'id'),
+            'id' => $this->safe_string_2($transaction, 'id', 'data'),
             'txid' => $this->safe_string($transaction, 'tx-hash'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -4261,11 +4281,13 @@ class huobi extends Exchange {
             $params = $this->omit($params, 'network');
         }
         $response = $this->spotPrivatePostV1DwWithdrawApiCreate (array_merge($request, $params));
-        $id = $this->safe_string($response, 'data');
-        return array(
-            'info' => $response,
-            'id' => $id,
-        );
+        //
+        //     {
+        //         "status" => "ok",
+        //         "data" => "99562054"
+        //     }
+        //
+        return $this->parse_transaction($response, $currency);
     }
 
     public function parse_transfer($transfer, $currency = null) {
@@ -4300,17 +4322,9 @@ class huobi extends Exchange {
             $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
             $fromAccount = strtolower($fromAccount); // pro, futures
             $toAccount = strtolower($toAccount); // pro, futures
-            $fromId = $this->safe_string($accountsByType, $fromAccount);
-            $toId = $this->safe_string($accountsByType, $toAccount);
-            if ($fromId === null) {
-                $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
-                throw new ExchangeError($this->id . ' $fromAccount must be one of ' . implode(', ', $keys));
-            }
-            if ($toId === null) {
-                $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
-                throw new ExchangeError($this->id . ' $toAccount must be one of ' . implode(', ', $keys));
-            }
-            $type = $fromAccount . '-to-' . $toAccount;
+            $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
+            $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
+            $type = $fromId . '-to-' . $toId;
         }
         $request = array(
             'currency' => $currency['id'],
@@ -4676,20 +4690,11 @@ class huobi extends Exchange {
         //    }
         //
         $data = $this->safe_value($response, 'data');
-        $interest = $this->parse_borrow_interests($data, $marginType, $market);
+        $interest = $this->parse_borrow_interests($data, $market);
         return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
     }
 
-    public function parse_borrow_interests($response, $marginType, $market = null) {
-        $interest = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $row = $response[$i];
-            $interest[] = $this->parse_borrow_interest($row, $marginType, $market);
-        }
-        return $interest;
-    }
-
-    public function parse_borrow_interest($info, $marginType, $market = null) {
+    public function parse_borrow_interest($info, $market = null) {
         // isolated
         //    {
         //        "interest-rate":"0.000040830000000000",
@@ -4732,12 +4737,14 @@ class huobi extends Exchange {
         //   }
         //
         $marketId = $this->safe_string($info, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
-        $account = ($marginType === 'cross') ? $marginType : $symbol;
+        $marginType = ($marketId === null) ? 'cross' : 'isolated';
+        $market = $this->safe_market($marketId);
+        $symbol = $this->safe_string($market, 'symbol');
         $timestamp = $this->safe_number($info, 'accrued-at');
         return array(
-            'account' => $account,  // isolated $symbol, will not be returned for crossed margin
+            'account' => ($marginType === 'isolated') ? $symbol : 'cross',  // deprecated
+            'symbol' => $symbol,
+            'marginType' => $marginType,
             'currency' => $this->safe_currency_code($this->safe_string($info, 'currency')),
             'interest' => $this->safe_number($info, 'interest-amount'),
             'interestRate' => $this->safe_number($info, 'interest-rate'),
@@ -5686,8 +5693,8 @@ class huobi extends Exchange {
                         $tiers[] = array(
                             'tier' => $this->safe_integer($bracket, 'ladder'),
                             'currency' => $this->safe_currency_code($currency),
-                            'notionalFloor' => $this->safe_number($bracket, 'min_size'),
-                            'notionalCap' => $this->safe_number($bracket, 'max_size'),
+                            'minNotional' => $this->safe_number($bracket, 'min_size'),
+                            'maxNotional' => $this->safe_number($bracket, 'max_size'),
                             'maintenanceMarginRate' => $this->parse_number(Precise::string_div($adjustFactor, $leverage)),
                             'maxLeverage' => $this->parse_number($leverage),
                             'info' => $bracket,

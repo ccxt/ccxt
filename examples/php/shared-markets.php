@@ -18,7 +18,6 @@ $keys = array(
     'ids',
     'markets',
     'markets_by_id',
-    'marketsById',
     'currencies',
     'currencies_by_id',
     'base_currencies',

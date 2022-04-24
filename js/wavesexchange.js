@@ -1095,8 +1095,8 @@ module.exports = class wavesexchange extends Exchange {
         return parseInt (parseFloat (this.toPrecision (amount, this.markets[symbol]['precision']['amount'])));
     }
 
-    currencyToPrecision (currency, amount) {
-        return parseInt (parseFloat (this.toPrecision (amount, this.currencies[currency]['precision'])));
+    currencyToPrecision (code, amount) {
+        return parseInt (parseFloat (this.toPrecision (amount, this.currencies[code]['precision'])));
     }
 
     fromPrecision (amount, scale) {
@@ -2124,6 +2124,54 @@ module.exports = class wavesexchange extends Exchange {
             'timestamp': timestamp,
             'signature': signature,
         };
-        return await this.nodePostTransactionsBroadcast (request);
+        const result = await this.nodePostTransactionsBroadcast (request);
+        //
+        //     {
+        //         "id": "string",
+        //         "signature": "string",
+        //         "fee": 0,
+        //         "timestamp": 1460678400000,
+        //         "recipient": "3P274YB5qseSE9DTTL3bpSjosZrYBPDpJ8k",
+        //         "amount": 0
+        //     }
+        //
+        return this.parseTransaction (result, currency);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // withdraw
+        //
+        //     {
+        //         "id": "string",
+        //         "signature": "string",
+        //         "fee": 0,
+        //         "timestamp": 1460678400000,
+        //         "recipient": "3P274YB5qseSE9DTTL3bpSjosZrYBPDpJ8k",
+        //         "amount": 0
+        //     }
+        //
+        currency = this.safeCurrency (undefined, currency);
+        return {
+            'id': undefined,
+            'txid': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'network': undefined,
+            'addressFrom': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'amount': undefined,
+            'type': undefined,
+            'currency': currency['code'],
+            'status': undefined,
+            'updated': undefined,
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'comment': undefined,
+            'fee': undefined,
+            'info': transaction,
+        };
     }
 };

@@ -58,6 +58,7 @@ module.exports = class upbit extends Exchange {
                 'fetchTradingFees': false,
                 'fetchTransactions': undefined,
                 'fetchWithdrawals': true,
+                'transfer': false,
                 'withdraw': true,
             },
             'timeframes': {

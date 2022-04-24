@@ -73,6 +73,10 @@ class gateio extends Exchange {
                 'cancelOrder' => true,
                 'createMarketOrder' => false,
                 'createOrder' => true,
+                'createPostOnlyOrder' => true,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => false,
+                'createStopOrder' => true,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
@@ -1111,7 +1115,7 @@ class gateio extends Exchange {
 
     public function fetch_currencies($params = array ()) {
         // sandbox/testnet only supports future markets
-        $apiBackup = $this->safe_string($this->urls, 'apiBackup');
+        $apiBackup = $this->safe_value($this->urls, 'apiBackup');
         if ($apiBackup !== null) {
             return null;
         }
@@ -1653,11 +1657,13 @@ class gateio extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 10, max 100
         }
+        $request['with_id'] = true;
         $response = yield $this->$method (array_merge($request, $params));
         //
         // SPOT
         //
         //     {
+        //         "id":6358770031
         //         "current" => 1634345973275,
         //         "update" => 1634345973271,
         //         "asks" => [
@@ -1688,6 +1694,7 @@ class gateio extends Exchange {
         // Perpetual Swap
         //
         //     {
+        //         "id":6358770031
         //         "current" => 1634350208.745,
         //         "asks" => array(
         //             array("s":24909,"p" => "61264.8"),
@@ -1722,7 +1729,10 @@ class gateio extends Exchange {
         }
         $priceKey = $spotOrMargin ? 0 : 'p';
         $amountKey = $spotOrMargin ? 1 : 's';
-        return $this->parse_order_book($response, $symbol, $timestamp, 'bids', 'asks', $priceKey, $amountKey);
+        $nonce = $this->safe_integer($response, 'id');
+        $result = $this->parse_order_book($response, $symbol, $timestamp, 'bids', 'asks', $priceKey, $amountKey);
+        $result['nonce'] = $nonce;
+        return $result;
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -2503,16 +2513,7 @@ class gateio extends Exchange {
         //       "memo" => null
         //     }
         //
-        $currencyId = $this->safe_string($response, 'currency');
-        $id = $this->safe_string($response, 'id');
-        return array(
-            'info' => $response,
-            'id' => $id,
-            'code' => $this->safe_currency_code($currencyId),
-            'amount' => $this->safe_number($response, 'amount'),
-            'address' => $this->safe_string($response, 'address'),
-            'tag' => $this->safe_string($response, 'memo'),
-        );
+        return $this->parse_transaction($response, $currency);
     }
 
     public function parse_transaction_status($status) {
@@ -2551,6 +2552,17 @@ class gateio extends Exchange {
         //     }
         //
         // withdrawals
+        //
+        // withdraw
+        //
+        //     {
+        //       "id" => "w13389675",
+        //       "currency" => "USDT",
+        //       "amount" => "50",
+        //       "address" => "TUu2rLFrmzUodiWfYki7QCNtv1akL682p1",
+        //       "memo" => null
+        //     }
+        //
         $id = $this->safe_string($transaction, 'id');
         $type = null;
         $amount = $this->safe_string($transaction, 'amount');
@@ -2597,26 +2609,24 @@ class gateio extends Exchange {
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         /**
-         * @$method
-         * @name gateio#createOrder
-         * @description Create an order on the exchange
-         * @param {string} $symbol Unified CCXT $market $symbol
-         * @param {string} $type "limit" or "market" *"market" is $contract only*
-         * @param {string} $side "buy" or "sell"
+         * Create an order on the exchange
+         * @param {str} $symbol Unified CCXT $market $symbol
+         * @param {str} $type "limit" or "market" *"market" is $contract only*
+         * @param {str} $side "buy" or "sell"
          * @param {float} $amount the $amount of currency to trade
          * @param {float} $price *ignored in "market" orders* the $price at which the order is to be fullfilled at in units of the quote currency
          * @param {dict} $params  Extra parameters specific to the exchange API endpoint
          * @param {float} $params->stopPrice The $price at which a $trigger order is triggered at
-         * @param {string} $params->timeInForce "gtc" for GoodTillCancelled, "ioc" for ImmediateOrCancelled or poc for PendingOrCancelled
-         * @param {integer} $params->iceberg Amount to display for the iceberg order, Null or 0 for normal orders, Set to -1 to hide the order completely
-         * @param {string} $params->text User defined information
-         * @param {string} $params->account *spot and margin only* "spot", "margin" or "cross_margin"
-         * @param {boolean} $params->auto_borrow *margin only* Used in margin or cross margin trading to allow automatic loan of insufficient $amount if balance is not enough
-         * @param {string} $params->settle *$contract only* Unified Currency Code for settle currency
-         * @param {boolean} $params->reduceOnly *$contract only* Indicates if this order is to reduce the size of a position
-         * @param {boolean} $params->close *$contract only* Set as true to close the position, with size set to 0
-         * @param {boolean} $params->auto_size *$contract only* Set $side to close dual-mode position, close_long closes the long $side, while close_short the short one, size also needs to be set to 0
-         * @returns [An order structure]array(@link https://docs.ccxt.com/en/latest/manual.html#order-structure)
+         * @param {str} $params->timeInForce "GTC", "IOC", or "PO"
+         * @param {int} $params->iceberg Amount to display for the iceberg order, Null or 0 for normal orders, Set to -1 to hide the order completely
+         * @param {str} $params->text User defined information
+         * @param {str} $params->account *spot and margin only* "spot", "margin" or "cross_margin"
+         * @param {bool} $params->auto_borrow *margin only* Used in margin or cross margin trading to allow automatic loan of insufficient $amount if balance is not enough
+         * @param {str} $params->settle *$contract only* Unified Currency Code for settle currency
+         * @param {bool} $params->reduceOnly *$contract only* Indicates if this order is to reduce the size of a position
+         * @param {bool} $params->close *$contract only* Set as true to close the position, with size set to 0
+         * @param {bool} $params->auto_size *$contract only* Set $side to close dual-mode position, close_long closes the long $side, while close_short the short one, size also needs to be set to 0
+         * @return {@link https://docs.ccxt.com/en/latest/manual.html#order-structure An order structure}
          */
         yield $this->load_markets();
         $market = $this->market($symbol);
@@ -2626,7 +2636,12 @@ class gateio extends Exchange {
         $reduceOnly = $this->safe_value_2($params, 'reduce_only', 'reduceOnly');
         $defaultTimeInForce = $this->safe_value_2($params, 'tif', 'time_in_force', 'gtc');
         $timeInForce = $this->safe_value($params, 'timeInForce', $defaultTimeInForce);
+        $postOnly = false;
+        list($type, $postOnly, $timeInForce, $params) = $this->is_post_only($type, $timeInForce, null, $params);
         $params = $this->omit($params, array( 'stopPrice', 'reduce_only', 'reduceOnly', 'tif', 'time_in_force', 'timeInForce' ));
+        if ($postOnly) {
+            $timeInForce = 'poc';
+        }
         $isLimitOrder = ($type === 'limit');
         $isMarketOrder = ($type === 'market');
         if ($isLimitOrder && $price === null) {
@@ -2656,7 +2671,7 @@ class gateio extends Exchange {
                     'price' => $this->price_to_precision($symbol, $price), // 0 for $market order with tif set as ioc
                     // 'close' => false, // true to close the position, with size set to 0
                     // 'reduce_only' => false, // St as true to be reduce-only order
-                    // 'tif' => 'gtc', // gtc, ioc, poc PendingOrCancelled == postOnly order
+                    // 'tif' => 'gtc', // gtc, ioc, poc PendingOrCancelled == $postOnly order
                     // 'text' => $clientOrderId, // 't-abcdef1234567890',
                     // 'auto_size' => '', // close_long, close_short, note size also needs to be set to 0
                     'settle' => $market['settleId'], // filled in prepareRequest above
@@ -2681,7 +2696,7 @@ class gateio extends Exchange {
                     'side' => $side,
                     'amount' => $this->amount_to_precision($symbol, $amount),
                     'price' => $this->price_to_precision($symbol, $price),
-                    // 'time_in_force' => 'gtc', // gtc, ioc, poc PendingOrCancelled == postOnly order
+                    // 'time_in_force' => 'gtc', // gtc, ioc, poc PendingOrCancelled == $postOnly order
                     // 'iceberg' => 0, // $amount to display for the iceberg order, null or 0 for normal orders, set to -1 to hide the order completely
                     // 'auto_borrow' => false, // used in margin or cross margin trading to allow automatic loan of insufficient $amount if balance is not enough
                     // 'auto_repay' => false, // automatic repayment for automatic borrow loan generated by cross margin order, diabled by default
@@ -3091,11 +3106,11 @@ class gateio extends Exchange {
     public function fetch_order($id, $symbol = null, $params = array ()) {
         /**
          * Retrieves information on an order
-         * @param {string} $id => Order $id
-         * @param {string} $symbol => Unified $market $symbol
-         * @param {boolean} $params->stop => True if the order being fetched is a trigger order
-         * @param {dictionary} $params => Parameters specified by the exchange api
-         * @returns Order structure
+         * @param {str} $id Order $id
+         * @param {str} $symbol Unified $market $symbol
+         * @param {bool} $params->stop True if the order being fetched is a trigger order
+         * @param {dict} $params Parameters specified by the exchange api
+         * @return Order structure
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
@@ -3104,8 +3119,17 @@ class gateio extends Exchange {
         $stop = $this->safe_value_2($params, 'is_stop_order', 'stop', false);
         $params = $this->omit($params, array( 'is_stop_order', 'stop' ));
         $market = $this->market($symbol);
+        $clientOrderId = $this->safe_string_2($params, 'text', 'clientOrderId');
+        $orderId = $id;
+        if ($clientOrderId !== null) {
+            $params = $this->omit($params, array( 'text', 'clientOrderId' ));
+            if ($clientOrderId[0] !== 't') {
+                $clientOrderId = 't-' . $clientOrderId;
+            }
+            $orderId = $clientOrderId;
+        }
         $request = array(
-            'order_id' => $id,
+            'order_id' => $orderId,
         );
         if ($market['spot'] || $market['margin']) {
             $request['currency_pair'] = $market['id'];
@@ -3272,11 +3296,11 @@ class gateio extends Exchange {
     public function cancel_order($id, $symbol = null, $params = array ()) {
         /**
          * Cancels an open order
-         * @param {string} $id => Order $id
-         * @param {string} $symbol => Unified $market $symbol
-         * @param {boolean} $params->stop => True if the order to be cancelled is a trigger order
-         * @param {dictionary} $params => Parameters specified by the exchange api
-         * @returns Order structure
+         * @param {str} $id Order $id
+         * @param {str} $symbol Unified $market $symbol
+         * @param {bool} $params->stop True if the order to be cancelled is a trigger order
+         * @param {dict} $params Parameters specified by the exchange api
+         * @return Order structure
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
@@ -3465,7 +3489,7 @@ class gateio extends Exchange {
         }
         $response = yield $this->privateWalletPostTransfers (array_merge($request, $params));
         //
-        // according to the docs
+        // according to the docs (however actual $response seems to be an empty string '')
         //
         //     {
         //       "currency" => "BTC",
@@ -3475,20 +3499,26 @@ class gateio extends Exchange {
         //       "currency_pair" => "BTC_USDT"
         //     }
         //
-        // actual $response
-        //
-        //  POST https://api.gateio.ws/api/v4/wallet/transfers 204 No Content
-        //
+        $transfer = $this->parse_transfer($response, $currency);
+        return array_merge($transfer, array(
+            'fromAccount' => $fromAccount,
+            'toAccount' => $toAccount,
+            'amount' => $this->parse_number($truncated),
+        ));
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        $timestamp = $this->milliseconds();
         return array(
-            'info' => $response,
             'id' => null,
-            'timestamp' => null,
-            'datetime' => null,
-            'currency' => $code,
-            'amount' => $truncated,
-            'fromAccount' => $fromId,
-            'toAccount' => $toId,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'currency' => $this->safe_currency_code(null, $currency),
+            'amount' => null,
+            'fromAccount' => null,
+            'toAccount' => null,
             'status' => null,
+            'info' => $transfer,
         );
     }
 
@@ -3806,93 +3836,96 @@ class gateio extends Exchange {
 
     public function parse_market_leverage_tiers($info, $market = null) {
         /**
-            https://www.gate.io/help/futures/perpetual/22162/instrctions-of-risk-limit
-            @param $info => Exchange $market response for 1 $market
-            Perpetual swap
-            {
-                "name" => "BTC_USDT",
-                "type" => "direct",
-                "quanto_multiplier" => "0.0001",
-                "ref_discount_rate" => "0",
-                "order_price_deviate" => "0.5",
-                "maintenance_rate" => "0.005",
-                "mark_type" => "index",
-                "last_price" => "38026",
-                "mark_price" => "37985.6",
-                "index_price" => "37954.92",
-                "funding_rate_indicative" => "0.000219",
-                "mark_price_round" => "0.01",
-                "funding_offset" => 0,
-                "in_delisting" => false,
-                "risk_limit_base" => "1000000",
-                "interest_rate" => "0.0003",
-                "order_price_round" => "0.1",
-                "order_size_min" => 1,
-                "ref_rebate_rate" => "0.2",
-                "funding_interval" => 28800,
-                "risk_limit_step" => "1000000",
-                "leverage_min" => "1",
-                "leverage_max" => "100",
-                "risk_limit_max" => "8000000",
-                "maker_fee_rate" => "-0.00025",
-                "taker_fee_rate" => "0.00075",
-                "funding_rate" => "0.002053",
-                "order_size_max" => 1000000,
-                "funding_next_apply" => 1610035200,
-                "short_users" => 977,
-                "config_change_time" => 1609899548,
-                "trade_size" => 28530850594,
-                "position_size" => 5223816,
-                "long_users" => 455,
-                "funding_impact_value" => "60000",
-                "orders_limit" => 50,
-                "trade_id" => 10851092,
-                "orderbook_id" => 2129638396
-            }
-            Delivery Futures
-            {
-                "name" => "BTC_USDT_20200814",
-                "underlying" => "BTC_USDT",
-                "cycle" => "WEEKLY",
-                "type" => "direct",
-                "quanto_multiplier" => "0.0001",
-                "mark_type" => "index",
-                "last_price" => "9017",
-                "mark_price" => "9019",
-                "index_price" => "9005.3",
-                "basis_rate" => "0.185095",
-                "basis_value" => "13.7",
-                "basis_impact_value" => "100000",
-                "settle_price" => "0",
-                "settle_price_interval" => 60,
-                "settle_price_duration" => 1800,
-                "settle_fee_rate" => "0.0015",
-                "expire_time" => 1593763200,
-                "order_price_round" => "0.1",
-                "mark_price_round" => "0.1",
-                "leverage_min" => "1",
-                "leverage_max" => "100",
-                "maintenance_rate" => "1000000",
-                "risk_limit_base" => "140.726652109199",
-                "risk_limit_step" => "1000000",
-                "risk_limit_max" => "8000000",
-                "maker_fee_rate" => "-0.00025",
-                "taker_fee_rate" => "0.00075",
-                "ref_discount_rate" => "0",
-                "ref_rebate_rate" => "0.2",
-                "order_price_deviate" => "0.5",
-                "order_size_min" => 1,
-                "order_size_max" => 1000000,
-                "orders_limit" => 50,
-                "orderbook_id" => 63,
-                "trade_id" => 26,
-                "trade_size" => 435,
-                "position_size" => 130,
-                "config_change_time" => 1593158867,
-                "in_delisting" => false
-            }
-            @param $market => CCXT $market
-        */
+         * @ignore
+         * https://www.gate.io/help/futures/perpetual/22162/instrctions-of-risk-limit
+         * @param {dict} $info Exchange $market response for 1 $market
+         * @param {dict} $market CCXT $market
+         */
+        //
+        //    Perpetual swap
+        //    {
+        //        "name" => "BTC_USDT",
+        //        "type" => "direct",
+        //        "quanto_multiplier" => "0.0001",
+        //        "ref_discount_rate" => "0",
+        //        "order_price_deviate" => "0.5",
+        //        "maintenance_rate" => "0.005",
+        //        "mark_type" => "index",
+        //        "last_price" => "38026",
+        //        "mark_price" => "37985.6",
+        //        "index_price" => "37954.92",
+        //        "funding_rate_indicative" => "0.000219",
+        //        "mark_price_round" => "0.01",
+        //        "funding_offset" => 0,
+        //        "in_delisting" => false,
+        //        "risk_limit_base" => "1000000",
+        //        "interest_rate" => "0.0003",
+        //        "order_price_round" => "0.1",
+        //        "order_size_min" => 1,
+        //        "ref_rebate_rate" => "0.2",
+        //        "funding_interval" => 28800,
+        //        "risk_limit_step" => "1000000",
+        //        "leverage_min" => "1",
+        //        "leverage_max" => "100",
+        //        "risk_limit_max" => "8000000",
+        //        "maker_fee_rate" => "-0.00025",
+        //        "taker_fee_rate" => "0.00075",
+        //        "funding_rate" => "0.002053",
+        //        "order_size_max" => 1000000,
+        //        "funding_next_apply" => 1610035200,
+        //        "short_users" => 977,
+        //        "config_change_time" => 1609899548,
+        //        "trade_size" => 28530850594,
+        //        "position_size" => 5223816,
+        //        "long_users" => 455,
+        //        "funding_impact_value" => "60000",
+        //        "orders_limit" => 50,
+        //        "trade_id" => 10851092,
+        //        "orderbook_id" => 2129638396
+        //    }
+        //    Delivery Futures
+        //    {
+        //        "name" => "BTC_USDT_20200814",
+        //        "underlying" => "BTC_USDT",
+        //        "cycle" => "WEEKLY",
+        //        "type" => "direct",
+        //        "quanto_multiplier" => "0.0001",
+        //        "mark_type" => "index",
+        //        "last_price" => "9017",
+        //        "mark_price" => "9019",
+        //        "index_price" => "9005.3",
+        //        "basis_rate" => "0.185095",
+        //        "basis_value" => "13.7",
+        //        "basis_impact_value" => "100000",
+        //        "settle_price" => "0",
+        //        "settle_price_interval" => 60,
+        //        "settle_price_duration" => 1800,
+        //        "settle_fee_rate" => "0.0015",
+        //        "expire_time" => 1593763200,
+        //        "order_price_round" => "0.1",
+        //        "mark_price_round" => "0.1",
+        //        "leverage_min" => "1",
+        //        "leverage_max" => "100",
+        //        "maintenance_rate" => "1000000",
+        //        "risk_limit_base" => "140.726652109199",
+        //        "risk_limit_step" => "1000000",
+        //        "risk_limit_max" => "8000000",
+        //        "maker_fee_rate" => "-0.00025",
+        //        "taker_fee_rate" => "0.00075",
+        //        "ref_discount_rate" => "0",
+        //        "ref_rebate_rate" => "0.2",
+        //        "order_price_deviate" => "0.5",
+        //        "order_size_min" => 1,
+        //        "order_size_max" => 1000000,
+        //        "orders_limit" => 50,
+        //        "orderbook_id" => 63,
+        //        "trade_id" => 26,
+        //        "trade_size" => 435,
+        //        "position_size" => 130,
+        //        "config_change_time" => 1593158867,
+        //        "in_delisting" => false
+        //    }
+        //
         $maintenanceMarginUnit = $this->safe_string($info, 'maintenance_rate'); // '0.005',
         $leverageMax = $this->safe_string($info, 'leverage_max'); // '100',
         $riskLimitStep = $this->safe_string($info, 'risk_limit_step'); // '1000000',
@@ -3907,8 +3940,8 @@ class gateio extends Exchange {
             $tiers[] = array(
                 'tier' => $this->parse_number(Precise::string_div($cap, $riskLimitStep)),
                 'currency' => $this->safe_string($market, 'settle'),
-                'notionalFloor' => $this->parse_number($floor),
-                'notionalCap' => $this->parse_number($cap),
+                'minNotional' => $this->parse_number($floor),
+                'maxNotional' => $this->parse_number($cap),
                 'maintenanceMarginRate' => $this->parse_number($maintenanceMarginRate),
                 'maxLeverage' => $this->parse_number(Precise::string_div('1', $initialMarginRatio)),
                 'info' => $info,

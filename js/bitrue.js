@@ -29,6 +29,9 @@ module.exports = class bitrue extends Exchange {
                 'cancelAllOrders': false,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
                 'fetchBorrowRate': false,
@@ -318,10 +321,10 @@ module.exports = class bitrue extends Exchange {
         return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['quote'], this.precisionMode, this.paddingMode);
     }
 
-    currencyToPrecision (currency, fee) {
+    currencyToPrecision (code, fee) {
         // info is available in currencies only if the user has configured his api keys
-        if (this.safeValue (this.currencies[currency], 'precision') !== undefined) {
-            return this.decimalToPrecision (fee, TRUNCATE, this.currencies[currency]['precision'], this.precisionMode, this.paddingMode);
+        if (this.safeValue (this.currencies[code], 'precision') !== undefined) {
+            return this.decimalToPrecision (fee, TRUNCATE, this.currencies[code]['precision'], this.precisionMode, this.paddingMode);
         } else {
             return this.numberToString (fee);
         }
@@ -333,14 +336,20 @@ module.exports = class bitrue extends Exchange {
 
     async fetchStatus (params = {}) {
         const response = await this.v1PublicGetPing (params);
+        //
+        // empty means working status.
+        //
+        //     {}
+        //
         const keys = Object.keys (response);
         const keysLength = keys.length;
         const formattedStatus = keysLength ? 'maintenance' : 'ok';
-        this.status = this.extend (this.status, {
+        return {
             'status': formattedStatus,
             'updated': this.milliseconds (),
-        });
-        return this.status;
+            'eta': undefined,
+            'info': response,
+        };
     }
 
     async fetchTime (params = {}) {
@@ -1619,10 +1628,7 @@ module.exports = class bitrue extends Exchange {
         }
         const response = await this.v1PrivatePostWithdrawCommit (this.extend (request, params));
         //     { id: '9a67628b16ba4988ae20d329333f16bc' }
-        return {
-            'info': response,
-            'id': this.safeString (response, 'id'),
-        };
+        return this.parseTransaction (response, currency);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

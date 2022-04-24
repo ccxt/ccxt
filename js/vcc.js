@@ -29,6 +29,9 @@ module.exports = class vcc extends Exchange {
                 'cancelOrder': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
                 'editOrder': undefined,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
@@ -73,6 +76,7 @@ module.exports = class vcc extends Exchange {
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'transfer': false,
+                'withdraw': false,
             },
             'timeframes': {
                 '1m': '60000',

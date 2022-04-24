@@ -46,6 +46,9 @@ class mexc(Exchange):
                 'createMarketOrder': False,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': False,
+                'createStopOrder': True,
                 'fetchBalance': True,
                 'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,
@@ -268,11 +271,11 @@ class mexc(Exchange):
                     'ERC20': 'ERC-20',
                     'BEP20': 'BEP20(BSC)',
                 },
+                'accountsByType': {
+                    'spot': 'MAIN',
+                    'swap': 'CONTRACT',
+                },
                 'transfer': {
-                    'accounts': {
-                        'spot': 'MAIN',
-                        'swap': 'CONTRACT',
-                    },
                     'accountsById': {
                         'MAIN': 'spot',
                         'CONTRACT': 'swap',
@@ -285,6 +288,9 @@ class mexc(Exchange):
                 },
                 'fetchOrdersByState': {
                     'method': 'spotPrivateGetOrderList',  # contractPrivateGetPlanorderListOrders
+                },
+                'cancelOrder': {
+                    'method': 'spotPrivateDeleteOrderCancel',  # contractPrivatePostOrderCancel contractPrivatePostPlanorderCancel
                 },
             },
             'commonCurrencies': {
@@ -368,16 +374,16 @@ class mexc(Exchange):
     def fetch_status(self, params={}):
         response = self.spotPublicGetCommonPing(params)
         #
-        # {"code":200}
+        #     {"code":200}
         #
         code = self.safe_integer(response, 'code')
-        if code is not None:
-            status = 'ok' if (code == 200) else 'maintenance'
-            self.status = self.extend(self.status, {
-                'status': status,
-                'updated': self.milliseconds(),
-            })
-        return self.status
+        status = 'ok' if (code == 200) else 'maintenance'
+        return {
+            'status': status,
+            'updated': self.milliseconds(),
+            'eta': None,
+            'info': response,
+        }
 
     def fetch_currencies(self, params={}):
         response = self.spotPublicGetMarketCoinList(params)
@@ -1782,20 +1788,71 @@ class mexc(Exchange):
         return self.parse_order(response, market)
 
     def cancel_order(self, id, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         self.load_markets()
+        market = self.market(symbol)
+        options = self.safe_value(self.options, 'cancelOrder', {})
+        defaultMethod = self.safe_string(options, 'method', 'spotPrivateDeleteOrderCancel')
+        method = self.safe_string(params, 'method', defaultMethod)
+        stop = self.safe_value(params, 'stop')
         request = {}
-        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_ids')
-        if clientOrderId is not None:
-            params = self.omit(params, ['clientOrderId', 'client_order_ids'])
-            request['client_order_ids'] = clientOrderId
-        else:
-            request['order_ids'] = id
-        response = self.spotPrivateDeleteOrderCancel(self.extend(request, params))
+        if market['type'] == 'spot':
+            method = 'spotPrivateDeleteOrderCancel'
+            clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_ids')
+            if clientOrderId is not None:
+                params = self.omit(params, ['clientOrderId', 'client_order_ids'])
+                request['client_order_ids'] = clientOrderId
+            else:
+                request['order_ids'] = id
+        elif stop:
+            method = 'contractPrivatePostPlanorderCancel'
+            request = []
+            if isinstance(id, list):
+                for i in range(0, len(id)):
+                    request.append({
+                        'symbol': market['id'],
+                        'orderId': id[i],
+                    })
+            elif isinstance(id, str):
+                request.append({
+                    'symbol': market['id'],
+                    'orderId': id,
+                })
+        elif market['type'] == 'swap':
+            method = 'contractPrivatePostOrderCancel'
+            request = [id]
+        response = getattr(self, method)(request)  # dont self.extend with params, otherwise ARRAY will be turned into OBJECT
         #
-        #    {"code":200,"data":{"965245851c444078a11a7d771323613b":"success"}}
+        # Spot
         #
-        data = self.safe_value(response, 'data')
-        return self.parse_order(data)
+        #     {"code":200,"data":{"965245851c444078a11a7d771323613b":"success"}}
+        #
+        # Swap
+        #
+        #     {
+        #         "success": True,
+        #         "code": 0,
+        #         "data": [
+        #             {
+        #                 "orderId": 268726891790294528,
+        #                 "errorCode": 0,
+        #                 "errorMsg": "success"
+        #             }
+        #         ]
+        #     }
+        #
+        # Trigger
+        #
+        #     {
+        #         "success": True,
+        #         "code": 0
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        if stop:
+            data = response
+        return self.parse_order(data, market)
 
     def parse_order_status(self, status, market=None):
         statuses = {}
@@ -1806,6 +1863,12 @@ class mexc(Exchange):
                 'PARTIALLY_FILLED': 'open',
                 'CANCELED': 'canceled',
                 'PARTIALLY_CANCELED': 'canceled',
+            }
+        elif market['type'] == 'swap':
+            statuses = {
+                '2': 'open',
+                '3': 'closed',
+                '4': 'canceled',
             }
         else:
             statuses = {
@@ -1827,7 +1890,7 @@ class mexc(Exchange):
         #
         #     {"success": True, "code": 0, "data": 102057569836905984}
         #
-        # fetchOpenOrders spot
+        # spot fetchOpenOrders
         #
         #     {
         #         "id":"965245851c444078a11a7d771323613b",
@@ -1843,8 +1906,7 @@ class mexc(Exchange):
         #         "order_type":"LIMIT_ORDER"
         #     }
         #
-        #
-        # fetchOpenOrders swap
+        # swap fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
         #
         #     {
         #         "orderId": "266578267438402048",
@@ -1873,7 +1935,7 @@ class mexc(Exchange):
         #         "positionMode": 1
         #     }
         #
-        # fetchClosedOrders, fetchCanceledOrders, fetchOrder
+        # spot fetchClosedOrders, fetchCanceledOrders, fetchOrder
         #
         #     {
         #         "id":"d798765285374222990bbd14decb86cd",
@@ -1909,9 +1971,24 @@ class mexc(Exchange):
         #         "updateTime": 1649230287000
         #     }
         #
-        # cancelOrder
+        # spot cancelOrder
         #
         #     {"965245851c444078a11a7d771323613b":"success"}
+        #
+        # swap cancelOrder
+        #
+        #     {
+        #         "orderId": 268726891790294528,
+        #         "errorCode": 0,
+        #         "errorMsg": "success"
+        #     }
+        #
+        # trigger cancelOrder
+        #
+        #     {
+        #         "success": True,
+        #         "code": 0
+        #     }
         #
         id = self.safe_string_2(order, 'data', 'id')
         status = None
@@ -2086,11 +2163,21 @@ class mexc(Exchange):
         return self.parse_orders(data, market, since, limit)
 
     def fetch_order(self, id, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol argument')
         self.load_markets()
+        market = self.market(symbol)
+        marketType, query = self.handle_market_type_and_params('fetchOrder', market, params)
         request = {
             'order_ids': id,
         }
-        response = self.spotPrivateGetOrderQuery(self.extend(request, params))
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'spotPrivateGetOrderQuery',
+            'swap': 'contractPrivateGetOrderBatchQuery',
+        })
+        response = getattr(self, method)(self.extend(request, query))
+        #
+        # Spot
         #
         #     {
         #         "code":200,
@@ -2110,15 +2197,50 @@ class mexc(Exchange):
         #         ]
         #     }
         #
+        # Swap
+        #
+        #     {
+        #         "success": True,
+        #         "code": 0,
+        #         "data": [
+        #             {
+        #                 "orderId": "259208506647860224",
+        #                 "symbol": "BTC_USDT",
+        #                 "positionId": 0,
+        #                 "price": 30000,
+        #                 "vol": 10,
+        #                 "leverage": 20,
+        #                 "side": 1,
+        #                 "category": 1,
+        #                 "orderType": 1,
+        #                 "dealAvgPrice": 0,
+        #                 "dealVol": 0,
+        #                 "orderMargin": 1.536,
+        #                 "takerFee": 0,
+        #                 "makerFee": 0,
+        #                 "profit": 0,
+        #                 "feeCurrency": "USDT",
+        #                 "openType": 1,
+        #                 "state": 4,
+        #                 "externalOid": "planorder_279208506303929856_10",
+        #                 "errorCode": 0,
+        #                 "usedMargin": 0,
+        #                 "createTime": 1647470524000,
+        #                 "updateTime": 1647470540000,
+        #                 "positionMode": 1
+        #             }
+        #         ]
+        #     }
+        #
         data = self.safe_value(response, 'data', [])
         firstOrder = self.safe_value(data, 0)
         if firstOrder is None:
             raise OrderNotFound(self.id + ' fetchOrder() could not find the order id ' + id)
-        return self.parse_order(firstOrder)
+        return self.parse_order(firstOrder, market)
 
     def fetch_orders_by_state(self, state, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrdersByState requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrdersByState() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -2140,6 +2262,10 @@ class mexc(Exchange):
         options = self.safe_value(self.options, 'fetchOrdersByState', {})
         defaultMethod = self.safe_string(options, 'method', 'spotPrivateGetOrderList')
         method = self.safe_string(params, 'method', defaultMethod)
+        method = self.get_supported_mapping(market['type'], {
+            'spot': 'spotPrivateGetOrderList',
+            'swap': 'contractPrivateGetOrderListHistoryOrders',
+        })
         if stop:
             method = 'contractPrivateGetPlanorderListOrders'
         query = self.omit(params, ['method', 'stop'])
@@ -2148,16 +2274,26 @@ class mexc(Exchange):
         return self.parse_orders(data, market, since, limit)
 
     def fetch_canceled_orders(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchCanceledOrders() requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
         stop = self.safe_value(params, 'stop')
         state = 'CANCELED'
-        if stop:
+        if market['type'] == 'swap':
+            state = '4'
+        elif stop:
             state = '2'
         return self.fetch_orders_by_state(state, symbol, since, limit, params)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
         stop = self.safe_value(params, 'stop')
         state = 'FILLED'
-        if stop:
+        if stop or market['type'] == 'swap':
             state = '3'
         return self.fetch_orders_by_state(state, symbol, since, limit, params)
 
@@ -2167,7 +2303,17 @@ class mexc(Exchange):
         request = {
             'symbol': market['id'],
         }
-        response = self.spotPrivateDeleteOrderCancelBySymbol(self.extend(request, params))
+        method = self.get_supported_mapping(market['type'], {
+            'spot': 'spotPrivateDeleteOrderCancelBySymbol',
+            'swap': 'contractPrivatePostOrderCancelAll',
+        })
+        stop = self.safe_value(params, 'stop')
+        if stop:
+            method = 'contractPrivatePostPlanorderCancelAll'
+        query = self.omit(params, ['method', 'stop'])
+        response = getattr(self, method)(self.extend(request, query))
+        #
+        # Spot
         #
         #     {
         #         "code": 200,
@@ -2188,11 +2334,18 @@ class mexc(Exchange):
         #         ]
         #     }
         #
+        # Swap and Trigger
+        #
+        #     {
+        #         "success": True,
+        #         "code": 0
+        #     }
+        #
         return response
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -2295,7 +2448,7 @@ class mexc(Exchange):
         }
         return self.contractPrivatePostPositionChangeLeverage(self.extend(request, params))
 
-    def fetch_transfer(self, id, since=None, limit=None, params={}):
+    def fetch_transfer(self, id, code=None, params={}):
         request = {
             'transact_id': id,
         }
@@ -2356,16 +2509,9 @@ class mexc(Exchange):
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
         self.load_markets()
         currency = self.currency(code)
-        transferOptions = self.safe_value(self.options, 'transfer', {})
-        accounts = self.safe_value(transferOptions, 'accounts', {})
-        fromId = self.safe_string(accounts, fromAccount)
-        toId = self.safe_string(accounts, toAccount)
-        if fromId is None:
-            keys = list(accounts.keys())
-            raise ExchangeError(self.id + ' fromAccount must be one of ' + ', '.join(keys))
-        if toId is None:
-            keys = list(accounts.keys())
-            raise ExchangeError(self.id + ' toAccount must be one of ' + ', '.join(keys))
+        accountsByType = self.safe_value(self.options, 'accountsByType', {})
+        fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
+        toId = self.safe_string(accountsByType, toAccount, toAccount)
         request = {
             'currency': currency['id'],
             'amount': amount,
@@ -2748,45 +2894,49 @@ class mexc(Exchange):
         return self.parse_leverage_tiers(data, symbols, 'symbol')
 
     def parse_market_leverage_tiers(self, info, market):
-        '''
-            @param info: Exchange response for 1 market
-            {
-                "symbol": "BTC_USDT",
-                "displayName": "BTC_USDT永续",
-                "displayNameEn": "BTC_USDT SWAP",
-                "positionOpenType": 3,
-                "baseCoin": "BTC",
-                "quoteCoin": "USDT",
-                "settleCoin": "USDT",
-                "contractSize": 0.0001,
-                "minLeverage": 1,
-                "maxLeverage": 125,
-                "priceScale": 2,
-                "volScale": 0,
-                "amountScale": 4,
-                "priceUnit": 0.5,
-                "volUnit": 1,
-                "minVol": 1,
-                "maxVol": 1000000,
-                "bidLimitPriceRate": 0.1,
-                "askLimitPriceRate": 0.1,
-                "takerFeeRate": 0.0006,
-                "makerFeeRate": 0.0002,
-                "maintenanceMarginRate": 0.004,
-                "initialMarginRate": 0.008,
-                "riskBaseVol": 10000,
-                "riskIncrVol": 200000,
-                "riskIncrMmr": 0.004,
-                "riskIncrImr": 0.004,
-                "riskLevelLimit": 5,
-                "priceCoefficientVariation": 0.1,
-                "indexOrigin": ["BINANCE","GATEIO","HUOBI","MXC"],
-                "state": 0,  # 0 enabled, 1 delivery, 2 completed, 3 offline, 4 pause
-                "isNew": False,
-                "isHot": True,
-                "isHidden": False
-            @param market: CCXT market
-        '''
+        """
+         * @ignore
+        :param dict info: Exchange response for 1 market
+        :param dict market: CCXT market
+        """
+        #
+        #    {
+        #        "symbol": "BTC_USDT",
+        #        "displayName": "BTC_USDT永续",
+        #        "displayNameEn": "BTC_USDT SWAP",
+        #        "positionOpenType": 3,
+        #        "baseCoin": "BTC",
+        #        "quoteCoin": "USDT",
+        #        "settleCoin": "USDT",
+        #        "contractSize": 0.0001,
+        #        "minLeverage": 1,
+        #        "maxLeverage": 125,
+        #        "priceScale": 2,
+        #        "volScale": 0,
+        #        "amountScale": 4,
+        #        "priceUnit": 0.5,
+        #        "volUnit": 1,
+        #        "minVol": 1,
+        #        "maxVol": 1000000,
+        #        "bidLimitPriceRate": 0.1,
+        #        "askLimitPriceRate": 0.1,
+        #        "takerFeeRate": 0.0006,
+        #        "makerFeeRate": 0.0002,
+        #        "maintenanceMarginRate": 0.004,
+        #        "initialMarginRate": 0.008,
+        #        "riskBaseVol": 10000,
+        #        "riskIncrVol": 200000,
+        #        "riskIncrMmr": 0.004,
+        #        "riskIncrImr": 0.004,
+        #        "riskLevelLimit": 5,
+        #        "priceCoefficientVariation": 0.1,
+        #        "indexOrigin": ["BINANCE","GATEIO","HUOBI","MXC"],
+        #        "state": 0,  # 0 enabled, 1 delivery, 2 completed, 3 offline, 4 pause
+        #        "isNew": False,
+        #        "isHot": True,
+        #        "isHidden": False
+        #    }
+        #
         maintenanceMarginRate = self.safe_string(info, 'maintenanceMarginRate')
         initialMarginRate = self.safe_string(info, 'initialMarginRate')
         maxVol = self.safe_string(info, 'maxVol')
@@ -2801,8 +2951,8 @@ class mexc(Exchange):
             tiers.append({
                 'tier': self.parse_number(Precise.string_div(cap, riskIncrVol)),
                 'currency': self.safe_currency_code(quoteId),
-                'notionalFloor': self.parse_number(floor),
-                'notionalCap': self.parse_number(cap),
+                'minNotional': self.parse_number(floor),
+                'maxNotional': self.parse_number(cap),
                 'maintenanceMarginRate': self.parse_number(maintenanceMarginRate),
                 'maxLeverage': self.parse_number(Precise.string_div('1', initialMarginRate)),
                 'info': info,

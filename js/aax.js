@@ -34,6 +34,9 @@ module.exports = class aax extends Exchange {
                 'createDepositAddress': undefined,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
                 'editOrder': true,
                 'fetchAccounts': undefined,
                 'fetchBalance': true,
@@ -63,8 +66,8 @@ module.exports = class aax extends Exchange {
                 'fetchLedger': undefined,
                 'fetchLedgerEntry': undefined,
                 'fetchLeverage': undefined,
-                'fetchLeverageTiers': true,
-                'fetchMarketLeverageTiers': 'emulated',
+                'fetchLeverageTiers': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyBuys': undefined,
@@ -78,8 +81,8 @@ module.exports = class aax extends Exchange {
                 'fetchOrderBooks': undefined,
                 'fetchOrders': true,
                 'fetchOrderTrades': undefined,
-                'fetchPosition': undefined,
-                'fetchPositions': undefined,
+                'fetchPosition': true,
+                'fetchPositions': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
@@ -93,7 +96,7 @@ module.exports = class aax extends Exchange {
                 'fetchTransactions': undefined,
                 'fetchTransfer': false,
                 'fetchTransfers': true,
-                'fetchWithdrawal': undefined,
+                'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': undefined,
                 'reduceMargin': undefined,
@@ -102,7 +105,7 @@ module.exports = class aax extends Exchange {
                 'setPositionMode': undefined,
                 'signIn': undefined,
                 'transfer': true,
-                'withdraw': undefined,
+                'withdraw': false,
             },
             'timeframes': {
                 '1m': '1m',
@@ -302,17 +305,11 @@ module.exports = class aax extends Exchange {
             'precisionMode': TICK_SIZE,
             'options': {
                 'defaultType': 'spot', // 'spot', 'future'
-                'types': {
+                'accountsByType': {
                     'spot': 'SPTP',
                     'future': 'FUTP',
                     'otc': 'F2CP',
                     'saving': 'VLTP',
-                },
-                'accounts': {
-                    'SPTP': 'spot',
-                    'FUTP': 'future',
-                    'F2CP': 'otc',
-                    'VLTP': 'saving',
                 },
                 'networks': {
                     'ETH': 'ERC20',
@@ -320,8 +317,7 @@ module.exports = class aax extends Exchange {
                     'SOL': 'SPL',
                 },
                 'transfer': {
-                    'fillFromAccountToAccount': true,
-                    'fillAmount': true,
+                    'fillResponseFromRequest': true,
                 },
             },
         });
@@ -343,32 +339,52 @@ module.exports = class aax extends Exchange {
     async fetchStatus (params = {}) {
         const response = await this.publicGetAnnouncementMaintenance (params);
         //
+        // note, when there is no maintenance, then data is `null`
+        //
         //     {
         //         "code": 1,
         //         "data": {
         //             "startTime":"2020-06-25T02:15:00.000Z",
         //             "endTime":"2020-06-25T02:45:00.000Z"，
-        //             "description":"Spot Trading :UTC Jun 25, 2020 02:15 to 02:45 (HKT Jun 25 10:15 to 10:45),Futures Trading: UTC Jun 25, 2020 02:15 to 02:45 (HKT Jun 25 10:15 to 10:45).We apologize for any inconvenience caused. Thank you for your patience and understanding.Should you have any enquiries, please do not hesitate our live chat support or via email at cs@aax.com."
+        //             "description":"Spot Trading :UTC Jun 25, 2020 02:15 to 02:45 (HKT Jun 25 10:15 to 10:45),Futures Trading: UTC Jun 25, 2020 02:15 to 02:45 (HKT Jun 25 10:15 to 10:45).We apologize for any inconvenience caused. Thank you for your patience and understanding.Should you have any enquiries, please do not hesitate our live chat support or via email at cs@aax.com.",
+        //             "haltReason":1,
+        //             "systemStatus":{
+        //                 "spotTrading":"readOnly",
+        //                 "futuresTreading":"closeOnly",
+        //                 "walletOperating":"enable",
+        //                 "otcTrading":"disable"
+        //             },
         //         },
         //         "message":"success",
         //         "ts":1593043237000
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
         const timestamp = this.milliseconds ();
-        const startTime = this.parse8601 (this.safeString (data, 'startTime'));
-        const endTime = this.parse8601 (this.safeString (data, 'endTime'));
-        const update = {
-            'updated': this.safeInteger (response, 'ts', timestamp),
-        };
-        if (endTime !== undefined) {
-            const startTimeIsOk = (startTime === undefined) ? true : (timestamp < startTime);
-            const isOk = (timestamp > endTime) || startTimeIsOk;
-            update['eta'] = endTime;
-            update['status'] = isOk ? 'ok' : 'maintenance';
+        const updated = this.safeInteger (response, 'ts', timestamp);
+        const data = this.safeValue (response, 'data', {});
+        let status = undefined;
+        let eta = undefined;
+        if (data) {
+            const startTime = this.parse8601 (this.safeString (data, 'startTime'));
+            const endTime = this.parse8601 (this.safeString (data, 'endTime'));
+            if (endTime !== undefined) {
+                const startTimeIsOk = (startTime === undefined) ? true : (updated < startTime);
+                const isOk = (updated > endTime) || startTimeIsOk;
+                eta = endTime;
+                status = isOk ? 'ok' : 'maintenance';
+            } else {
+                status = data;
+            }
+        } else {
+            eta = undefined;
+            status = 'ok';
         }
-        this.status = this.extend (this.status, update);
-        return this.status;
+        return {
+            'status': status,
+            'updated': updated,
+            'eta': eta,
+            'info': response,
+        };
     }
 
     async fetchMarkets (params = {}) {
@@ -933,7 +949,7 @@ module.exports = class aax extends Exchange {
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
-        const types = this.safeValue (this.options, 'types', {});
+        const types = this.safeValue (this.options, 'accountsByType', {});
         const purseType = this.safeString (types, type, type);
         const request = {
             'purseType': purseType,
@@ -2317,96 +2333,6 @@ module.exports = class aax extends Exchange {
         return await this.privatePostFuturesPositionLeverage (this.extend (request, params));
     }
 
-    async fetchLeverageTiers (symbols = undefined, params = {}) {
-        await this.loadMarkets ();
-        const response = await this.publicGetInstruments (params);
-        //
-        //     {
-        //         "code":1,
-        //         "message":"success",
-        //         "ts":1610159448962,
-        //         "data":[
-        //             {
-        //                 "tickSize":"0.01",
-        //                 "lotSize":"1",
-        //                 "base":"BTC",
-        //                 "quote":"USDT",
-        //                 "minQuantity":"1.0000000000",
-        //                 "maxQuantity":"30000",
-        //                 "minPrice":"0.0100000000",
-        //                 "maxPrice":"999999.0000000000",
-        //                 "status":"readOnly",
-        //                 "symbol":"BTCUSDTFP",
-        //                 "code":"FP",
-        //                 "takerFee":"0.00040",
-        //                 "makerFee":"0.00020",
-        //                 "multiplier":"0.001000000000",
-        //                 "mmRate":"0.00500",
-        //                 "imRate":"0.01000",
-        //                 "type":"futures",
-        //                 "settleType":"Vanilla",
-        //                 "settleCurrency":"USDT"
-        //             },
-        //             ...
-        //         ]
-        //     }
-        //
-        const data = this.safeValue (response, 'data');
-        return this.parseLeverageTiers (data, symbols, 'symbol');
-    }
-
-    parseMarketLeverageTiers (info, market) {
-        /**
-            @param info: Exchange market response
-            {
-                "tickSize":"0.01",
-                "lotSize":"1",
-                "base":"BTC",
-                "quote":"USDT",
-                "minQuantity":"1.0000000000",
-                "maxQuantity":"30000",
-                "minPrice":"0.0100000000",
-                "maxPrice":"999999.0000000000",
-                "status":"readOnly",
-                "symbol":"BTCUSDTFP",
-                "code":"FP",
-                "takerFee":"0.00040",
-                "makerFee":"0.00020",
-                "multiplier":"0.001000000000",
-                "mmRate":"0.00500",
-                "imRate":"0.01000",
-                "type":"futures",
-                "settleType":"Vanilla",
-                "settleCurrency":"USDT"
-            }
-            @param market: CCXT Market
-        */
-        let maintenanceMarginRate = this.safeString (info, 'mmRate');
-        let initialMarginRate = this.safeString (info, 'imRate');
-        const maxVol = this.safeString (info, 'maxQuantity');
-        const riskIncrVol = maxVol; // TODO
-        const riskIncrMmr = '0.0'; // TODO
-        const riskIncrImr = '0.0'; // TODO
-        let floor = '0';
-        const tiers = [];
-        while (Precise.stringLt (floor, maxVol)) {
-            const cap = Precise.stringAdd (floor, riskIncrVol);
-            tiers.push ({
-                'tier': this.parseNumber (Precise.stringDiv (cap, riskIncrVol)),
-                'currency': market['base'],
-                'notionalFloor': this.parseNumber (floor),
-                'notionalCap': this.parseNumber (cap),
-                'maintenanceMarginRate': this.parseNumber (maintenanceMarginRate),
-                'maxLeverage': this.parseNumber (Precise.stringDiv ('1', initialMarginRate)),
-                'info': info,
-            });
-            maintenanceMarginRate = Precise.stringAdd (maintenanceMarginRate, riskIncrMmr);
-            initialMarginRate = Precise.stringAdd (initialMarginRate, riskIncrImr);
-            floor = cap;
-        }
-        return tiers;
-    }
-
     parseTransfer (transfer, currency = undefined) {
         //     {
         //          quantity: '0.000010000000',
@@ -2449,17 +2375,9 @@ module.exports = class aax extends Exchange {
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const accountTypes = this.safeValue (this.options, 'types', {});
-        const fromId = this.safeString (accountTypes, fromAccount);
-        const toId = this.safeString (accountTypes, toAccount);
-        if (fromId === undefined) {
-            const keys = Object.keys (accountTypes);
-            throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', '));
-        }
-        if (toId === undefined) {
-            const keys = Object.keys (accountTypes);
-            throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', '));
-        }
+        const accountTypes = this.safeValue (this.options, 'accountsByType', {});
+        const fromId = this.safeString (accountTypes, fromAccount, fromAccount);
+        const toId = this.safeString (accountTypes, toAccount, toAccount);
         const request = {
             'currency': currency['id'],
             'fromPurse': fromId,
@@ -2481,21 +2399,225 @@ module.exports = class aax extends Exchange {
         const data = this.safeValue (response, 'data', {});
         const transfer = this.parseTransfer (data, currency);
         const transferOptions = this.safeValue (this.options, 'transfer', {});
-        const fillFromAccountToAccount = this.safeValue (transferOptions, 'fillFromAccountToAccount', true);
-        const fillAmount = this.safeValue (transferOptions, 'fillAmount', true);
-        if (fillFromAccountToAccount) {
+        const fillResponseFromRequest = this.safeValue (transferOptions, 'fillResponseFromRequest', true);
+        if (fillResponseFromRequest) {
             if (transfer['fromAccount'] === undefined) {
                 transfer['fromAccount'] = fromAccount;
             }
             if (transfer['toAccount'] === undefined) {
                 transfer['toAccount'] = toAccount;
             }
-        }
-        if (fillAmount && transfer['amount'] === undefined) {
-            transfer['amount'] = amount;
+            if (transfer['amount'] === undefined) {
+                transfer['amount'] = amount;
+            }
         }
         transfer['status'] = this.parseTransferStatus (this.safeString (response, 'code'));
         return transfer;
+    }
+
+    parsePosition (position, market = undefined) {
+        //
+        //    {
+        //        "autoMarginCall": false,
+        //        "avgEntryPrice": "3706.03",
+        //        "bankruptPrice": "2963.3415880000",
+        //        "base": "ETH",
+        //        "code": "FP",
+        //        "commission": "0.02964824",
+        //        "currentQty": "2",
+        //        "funding": "-0.04827355",
+        //        "fundingStatus": null,
+        //        "id": "385839395735639395",
+        //        "leverage": "5",
+        //        "liquidationPrice": "2983.07",
+        //        "marketPrice": "3731.84",
+        //        "openTime": "2021-12-31T18:57:25.930Z",
+        //        "posLeverage": "5.00",
+        //        "posMargin": "14.85376824",
+        //        "quote": "USDT",
+        //        "realisedPnl": "-0.07792179",
+        //        "riskLimit": "10000000",
+        //        "riskyPrice": "3272.25",
+        //        "settleType": "VANILLA",
+        //        "stopLossPrice": "0",
+        //        "stopLossSource": 1,
+        //        "symbol": "ETHUSDTFP",
+        //        "takeProfitPrice": "0",
+        //        "takeProfitSource": 1,
+        //        "unrealisedPnl": "0.51620000",
+        //        "userID": "3829384",
+        //        "ts": 1641027194500
+        //    }
+        //
+        const contract = this.safeString (position, 'symbol');
+        market = this.safeMarket (contract, market);
+        const size = this.safeString (position, 'currentQty');
+        let side = undefined;
+        if (Precise.stringGt (size, '0')) {
+            side = 'long';
+        } else if (Precise.stringLt (size, '0')) {
+            side = 'short';
+        }
+        const leverage = this.safeString (position, 'leverage');
+        const unrealisedPnl = this.safeString (position, 'unrealisedPnl');
+        const currentQty = this.safeString (position, 'currentQty');
+        const contractSize = this.safeString (market, 'contractSize');
+        const initialQuote = Precise.stringMul (currentQty, contractSize);
+        const marketPrice = this.safeString (position, 'marketPrice');
+        const notional = Precise.stringMul (initialQuote, marketPrice);
+        const timestamp = this.safeInteger (position, 'ts');
+        const liquidationPrice = this.safeString (position, 'liquidationPrice');
+        return {
+            'info': position,
+            'symbol': this.safeString (market, 'symbol'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'entryPrice': this.safeNumber (position, 'avgEntryPrice'),
+            'notional': this.parseNumber (notional),
+            'leverage': this.parseNumber (leverage),
+            'unrealizedPnl': this.parseNumber (unrealisedPnl),
+            'contracts': this.parseNumber (size),
+            'contractSize': this.parseNumber (contractSize),
+            'marginRatio': undefined,
+            'liquidationPrice': liquidationPrice,
+            'markPrice': this.safeNumber (position, 'marketPrice'),
+            'collateral': this.safeNumber (position, 'posMargin'),
+            'marginType': this.safeString (position, 'settleType'),
+            'side': side,
+            'percentage': undefined,
+        };
+    }
+
+    async fetchPosition (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.privateGetFuturesPosition (this.extend (request, params));
+        //
+        //    {
+        //        "code": 1,
+        //        "data": [
+        //            {
+        //                "autoMarginCall": false,
+        //                "avgEntryPrice": "3706.03",
+        //                "bankruptPrice": "2963.3415880000",
+        //                "base": "ETH",
+        //                "code": "FP",
+        //                "commission": "0.02964824",
+        //                "currentQty": "2",
+        //                "funding": "-0.04827355",
+        //                "fundingStatus": null,
+        //                "id": "385839395735639395",
+        //                "leverage": "5",
+        //                "liquidationPrice": "2983.07",
+        //                "marketPrice": "3731.84",
+        //                "openTime": "2021-12-31T18:57:25.930Z",
+        //                "posLeverage": "5.00",
+        //                "posMargin": "14.85376824",
+        //                "quote": "USDT",
+        //                "realisedPnl": "-0.07792179",
+        //                "riskLimit": "10000000",
+        //                "riskyPrice": "3272.25",
+        //                "settleType": "VANILLA",
+        //                "stopLossPrice": "0",
+        //                "stopLossSource": 1,
+        //                "symbol": "ETHUSDTFP",
+        //                "takeProfitPrice": "0",
+        //                "takeProfitSource": 1,
+        //                "unrealisedPnl": "0.51620000",
+        //                "userID": "3829384"
+        //            }
+        //            ...
+        //        ],
+        //        "message": "success",
+        //        "ts": 1641026778068
+        //    }
+        //
+        const positions = this.safeValue (response, 'data', []);
+        const timestamp = this.safeInteger (response, 'ts');
+        const first = this.safeValue (positions, 0);
+        const position = this.parsePosition (first);
+        return this.extend (position, {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        });
+    }
+
+    async fetchPositions (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        if (symbols !== undefined) {
+            let symbol = undefined;
+            if (Array.isArray (symbols)) {
+                const symbolsLength = symbols.length;
+                if (symbolsLength > 1) {
+                    throw new BadRequest (this.id + ' fetchPositions symbols argument cannot contain more than 1 symbol');
+                }
+                symbol = symbols[0];
+            } else {
+                symbol = symbols;
+            }
+            const market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        const response = await this.privateGetFuturesPosition (this.extend (request, params));
+        //
+        //    {
+        //        "code": 1,
+        //        "data": [
+        //            {
+        //                "autoMarginCall": false,
+        //                "avgEntryPrice": "3706.03",
+        //                "bankruptPrice": "2963.3415880000",
+        //                "base": "ETH",
+        //                "code": "FP",
+        //                "commission": "0.02964824",
+        //                "currentQty": "2",
+        //                "funding": "-0.04827355",
+        //                "fundingStatus": null,
+        //                "id": "385839395735639395",
+        //                "leverage": "5",
+        //                "liquidationPrice": "2983.07",
+        //                "marketPrice": "3731.84",
+        //                "openTime": "2021-12-31T18:57:25.930Z",
+        //                "posLeverage": "5.00",
+        //                "posMargin": "14.85376824",
+        //                "quote": "USDT",
+        //                "realisedPnl": "-0.07792179",
+        //                "riskLimit": "10000000",
+        //                "riskyPrice": "3272.25",
+        //                "settleType": "VANILLA",
+        //                "stopLossPrice": "0",
+        //                "stopLossSource": 1,
+        //                "symbol": "ETHUSDTFP",
+        //                "takeProfitPrice": "0",
+        //                "takeProfitSource": 1,
+        //                "unrealisedPnl": "0.51620000",
+        //                "userID": "3829384"
+        //            }
+        //            ...
+        //        ],
+        //        "message": "success",
+        //        "ts": 1641026778068
+        //    }
+        //
+        const result = [];
+        const positions = this.safeValue (response, 'data', []);
+        const timestamp = this.safeInteger (response, 'ts');
+        for (let i = 0; i < positions.length; i++) {
+            const position = this.parsePosition (positions[i]);
+            result.push (this.extend (position, {
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+            }));
+        }
+        return this.filterByArray (result, 'symbol', symbols, false);
     }
 
     nonce () {

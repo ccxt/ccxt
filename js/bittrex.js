@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { BadSymbol, ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, PermissionDenied, AddressPending, OnMaintenance, BadRequest, InvalidAddress } = require ('./base/errors');
+const { ArgumentsRequired, BadSymbol, ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, PermissionDenied, AddressPending, OnMaintenance, BadRequest, InvalidAddress } = require ('./base/errors');
 const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -33,6 +33,9 @@ module.exports = class bittrex extends Exchange {
                 'createMarketOrder': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
@@ -822,11 +825,60 @@ module.exports = class bittrex extends Exchange {
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
+        const stop = this.safeValue (params, 'stop');
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['marketSymbol'] = market['id'];
         }
-        const response = await this.privateGetOrdersOpen (this.extend (request, params));
+        let method = 'privateGetOrdersOpen';
+        if (stop) {
+            method = 'privateGetConditionalOrdersOpen';
+        }
+        const query = this.omit (params, 'stop');
+        const response = await this[method] (this.extend (request, query));
+        //
+        // Spot
+        //
+        //     [
+        //         {
+        //             "id": "df6cf5ee-fc27-4b61-991a-cc94b6459ac9",
+        //             "marketSymbol": "BTC-USDT",
+        //             "direction": "BUY",
+        //             "type": "LIMIT",
+        //             "quantity": "0.00023277",
+        //             "limit": "30000.00000000",
+        //             "timeInForce": "GOOD_TIL_CANCELLED",
+        //             "fillQuantity": "0.00000000",
+        //             "commission": "0.00000000",
+        //             "proceeds": "0.00000000",
+        //             "status": "OPEN",
+        //             "createdAt": "2022-04-20T02:33:53.16Z",
+        //             "updatedAt": "2022-04-20T02:33:53.16Z"
+        //         }
+        //     ]
+        //
+        // Stop
+        //
+        //     [
+        //         {
+        //             "id": "f64f7c4f-295c-408b-9cbc-601981abf100",
+        //             "marketSymbol": "BTC-USDT",
+        //             "operand": "LTE",
+        //             "triggerPrice": "0.10000000",
+        //             "orderToCreate": {
+        //                 "marketSymbol": "BTC-USDT",
+        //                 "direction": "BUY",
+        //                 "type": "LIMIT",
+        //                 "quantity": "0.00020000",
+        //                 "limit": "30000.00000000",
+        //                 "timeInForce": "GOOD_TIL_CANCELLED"
+        //             },
+        //             "status": "OPEN",
+        //             "createdAt": "2022-04-20T02:38:12.26Z",
+        //             "updatedAt": "2022-04-20T02:38:12.26Z"
+        //         }
+        //     ]
+        //
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -850,51 +902,132 @@ module.exports = class bittrex extends Exchange {
         // at the current market BTC price)
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const uppercaseType = type.toUpperCase ();
+        let uppercaseType = undefined;
+        if (type !== undefined) {
+            uppercaseType = type.toUpperCase ();
+        }
         const reverseId = market['baseId'] + '-' + market['quoteId'];
+        const stop = this.safeValue (params, 'stop');
+        const stopPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
         const request = {
-            'marketSymbol': reverseId,
-            'direction': side.toUpperCase (),
-            'type': uppercaseType, // LIMIT, MARKET, CEILING_LIMIT, CEILING_MARKET
-            // 'quantity': this.amountToPrecision (symbol, amount), // required for limit orders, excluded for ceiling orders
-            // 'ceiling': this.priceToPrecision (symbol, price), // required for ceiling orders, excluded for non-ceiling orders
-            // 'limit': this.priceToPrecision (symbol, price), // required for limit orders, excluded for market orders
-            // 'timeInForce': 'GOOD_TIL_CANCELLED', // IMMEDIATE_OR_CANCEL, FILL_OR_KILL, POST_ONLY_GOOD_TIL_CANCELLED
-            // 'useAwards': false, // optional
+            'marketSymbol': reverseId, // SPOT and STOP
+            // 'direction': side.toUpperCase (), // SPOT, STOP 'orderToCreate'
+            // 'type': uppercaseType, // SPOT: LIMIT, MARKET, CEILING_LIMIT, CEILING_MARKET
+            // 'quantity': this.amountToPrecision (symbol, amount), // SPOT, required for limit orders, excluded for ceiling orders
+            // 'ceiling': this.priceToPrecision (symbol, price), // SPOT, required for ceiling orders, excluded for non-ceiling orders
+            // 'limit': this.priceToPrecision (symbol, price), // SPOT, required for limit orders, excluded for market orders
+            // 'timeInForce': 'GOOD_TIL_CANCELLED', // SPOT, IMMEDIATE_OR_CANCEL, FILL_OR_KILL, POST_ONLY_GOOD_TIL_CANCELLED
+            // 'useAwards': false, // SPOT, optional
+            // 'operand': 'LTE', // STOP, price above (GTE) or below (LTE) which the conditional order will trigger. either this or trailingStopPercent must be specified.
+            // 'triggerPrice': this.priceToPrecision (symbol, stopPrice), // STOP
+            // 'trailingStopPercent': this.priceToPrecision (symbol, stopPrice), // STOP, either this or triggerPrice must be set
+            // 'orderToCreate': {direction:side,type:uppercaseType}, // STOP, The spot order to be triggered
+            // 'orderToCancel': {id:'f03d5e98-b5ac-48fb-8647-dd4db828a297',type:uppercaseType}, // STOP, The spot order to be canceled
+            // 'clineConditionalOrderId': 'f03d5e98-b5ac-48fb-8647-dd4db828a297', // STOP
         };
-        const isCeilingLimit = (uppercaseType === 'CEILING_LIMIT');
-        const isCeilingMarket = (uppercaseType === 'CEILING_MARKET');
-        const isCeilingOrder = isCeilingLimit || isCeilingMarket;
-        if (isCeilingOrder) {
-            let cost = undefined;
-            if (isCeilingLimit) {
-                request['limit'] = this.priceToPrecision (symbol, price);
-                cost = this.safeNumber2 (params, 'ceiling', 'cost', amount);
-            } else if (isCeilingMarket) {
-                cost = this.safeNumber2 (params, 'ceiling', 'cost');
-                if (cost === undefined) {
-                    if (price === undefined) {
-                        cost = amount;
+        let method = 'privatePostOrders';
+        if (stop || stopPrice) {
+            method = 'privatePostConditionalOrders';
+            const operand = this.safeString (params, 'operand');
+            if (operand === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires an operand parameter');
+            }
+            const trailingStopPercent = this.safeNumber (params, 'trailingStopPercent');
+            const orderToCreate = this.safeValue (params, 'orderToCreate');
+            const orderToCancel = this.safeValue (params, 'orderToCancel');
+            if (stopPrice === undefined) {
+                request['trailingStopPercent'] = this.priceToPrecision (symbol, trailingStopPercent);
+            }
+            if (orderToCreate) {
+                const isCeilingLimit = (uppercaseType === 'CEILING_LIMIT');
+                const isCeilingMarket = (uppercaseType === 'CEILING_MARKET');
+                const isCeilingOrder = isCeilingLimit || isCeilingMarket;
+                let ceiling = undefined;
+                let limit = undefined;
+                let timeInForce = undefined;
+                if (isCeilingOrder) {
+                    let cost = undefined;
+                    if (isCeilingLimit) {
+                        limit = this.priceToPrecision (symbol, price);
+                        cost = this.safeNumber2 (params, 'ceiling', 'cost', amount);
+                    } else if (isCeilingMarket) {
+                        cost = this.safeNumber2 (params, 'ceiling', 'cost');
+                        if (cost === undefined) {
+                            if (price === undefined) {
+                                cost = amount;
+                            } else {
+                                cost = amount * price;
+                            }
+                        }
+                    }
+                    ceiling = this.costToPrecision (symbol, cost);
+                    timeInForce = 'IMMEDIATE_OR_CANCEL';
+                } else {
+                    if (uppercaseType === 'LIMIT') {
+                        limit = this.priceToPrecision (symbol, price);
+                        timeInForce = 'GOOD_TIL_CANCELLED';
                     } else {
-                        cost = amount * price;
+                        timeInForce = 'IMMEDIATE_OR_CANCEL';
                     }
                 }
+                request['orderToCreate'] = {
+                    'marketSymbol': reverseId,
+                    'direction': side.toUpperCase (),
+                    'type': uppercaseType,
+                    'quantity': this.amountToPrecision (symbol, amount),
+                    'ceiling': ceiling,
+                    'limit': limit,
+                    'timeInForce': timeInForce,
+                    'clientOrderId': this.safeString (params, 'clientOrderId'),
+                    'useAwards': this.safeValue (params, 'useAwards'),
+                };
             }
-            params = this.omit (params, [ 'ceiling', 'cost' ]);
-            request['ceiling'] = this.costToPrecision (symbol, cost);
-            // bittrex only accepts IMMEDIATE_OR_CANCEL or FILL_OR_KILL for ceiling orders
-            request['timeInForce'] = 'IMMEDIATE_OR_CANCEL';
+            if (orderToCancel) {
+                request['orderToCancel'] = orderToCancel;
+            }
+            request['triggerPrice'] = this.priceToPrecision (symbol, stopPrice);
+            request['operand'] = operand;
         } else {
-            request['quantity'] = this.amountToPrecision (symbol, amount);
-            if (uppercaseType === 'LIMIT') {
-                request['limit'] = this.priceToPrecision (symbol, price);
-                request['timeInForce'] = 'GOOD_TIL_CANCELLED';
-            } else {
-                // bittrex does not allow GOOD_TIL_CANCELLED for market orders
+            if (side !== undefined) {
+                request['direction'] = side.toUpperCase ();
+            }
+            request['type'] = uppercaseType;
+            const isCeilingLimit = (uppercaseType === 'CEILING_LIMIT');
+            const isCeilingMarket = (uppercaseType === 'CEILING_MARKET');
+            const isCeilingOrder = isCeilingLimit || isCeilingMarket;
+            if (isCeilingOrder) {
+                let cost = undefined;
+                if (isCeilingLimit) {
+                    request['limit'] = this.priceToPrecision (symbol, price);
+                    cost = this.safeNumber2 (params, 'ceiling', 'cost', amount);
+                } else if (isCeilingMarket) {
+                    cost = this.safeNumber2 (params, 'ceiling', 'cost');
+                    if (cost === undefined) {
+                        if (price === undefined) {
+                            cost = amount;
+                        } else {
+                            cost = amount * price;
+                        }
+                    }
+                }
+                request['ceiling'] = this.costToPrecision (symbol, cost);
+                // bittrex only accepts IMMEDIATE_OR_CANCEL or FILL_OR_KILL for ceiling orders
                 request['timeInForce'] = 'IMMEDIATE_OR_CANCEL';
+            } else {
+                request['quantity'] = this.amountToPrecision (symbol, amount);
+                if (uppercaseType === 'LIMIT') {
+                    request['limit'] = this.priceToPrecision (symbol, price);
+                    request['timeInForce'] = 'GOOD_TIL_CANCELLED';
+                } else {
+                    // bittrex does not allow GOOD_TIL_CANCELLED for market orders
+                    request['timeInForce'] = 'IMMEDIATE_OR_CANCEL';
+                }
             }
         }
-        const response = await this.privatePostOrders (this.extend (request, params));
+        const query = this.omit (params, [ 'stop', 'stopPrice', 'ceiling', 'cost', 'operand', 'trailingStopPercent', 'orderToCreate', 'orderToCancel' ]);
+        const response = await this[method] (this.extend (request, query));
+        //
+        // Spot
         //
         //     {
         //         id: 'f03d5e98-b5ac-48fb-8647-dd4db828a297',
@@ -912,16 +1045,96 @@ module.exports = class bittrex extends Exchange {
         //         updatedAt: '2020-03-18T02:37:33.42Z'
         //       }
         //
+        // Stop
+        //
+        //     {
+        //         "id": "9791fe52-a3e5-4ac3-ae03-e327b2993571",
+        //         "marketSymbol": "BTC-USDT",
+        //         "operand": "LTE",
+        //         "triggerPrice": "0.1",
+        //         "orderToCreate": {
+        //             "marketSymbol": "BTC-USDT",
+        //             "direction": "BUY",
+        //             "type": "LIMIT",
+        //             "quantity": "0.0002",
+        //             "limit": "30000",
+        //             "timeInForce": "GOOD_TIL_CANCELLED"
+        //         },
+        //         "status": "OPEN",
+        //         "createdAt": "2022-04-19T21:02:14.17Z",
+        //         "updatedAt": "2022-04-19T21:02:14.17Z"
+        //     }
+        //
         return this.parseOrder (response, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {
-            'orderId': id,
-        };
-        const response = await this.privateDeleteOrdersOrderId (this.extend (request, params));
-        return this.extend (this.parseOrder (response), {
+        const stop = this.safeValue (params, 'stop');
+        let request = {};
+        let method = undefined;
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        if (stop) {
+            method = 'privateDeleteConditionalOrdersConditionalOrderId';
+            request = {
+                'conditionalOrderId': id,
+            };
+        } else {
+            method = 'privateDeleteOrdersOrderId';
+            request = {
+                'orderId': id,
+            };
+        }
+        const query = this.omit (params, 'stop');
+        const response = await this[method] (this.extend (request, query));
+        //
+        // Spot
+        //
+        //     [
+        //         {
+        //             "id": "df6cf5ee-fc27-4b61-991a-cc94b6459ac9",
+        //             "marketSymbol": "BTC-USDT",
+        //             "direction": "BUY",
+        //             "type": "LIMIT",
+        //             "quantity": "0.00023277",
+        //             "limit": "30000.00000000",
+        //             "timeInForce": "GOOD_TIL_CANCELLED",
+        //             "fillQuantity": "0.00000000",
+        //             "commission": "0.00000000",
+        //             "proceeds": "0.00000000",
+        //             "status": "CANCELLED",
+        //             "createdAt": "2022-04-20T02:33:53.16Z",
+        //             "updatedAt": "2022-04-20T02:33:53.16Z"
+        //         }
+        //     ]
+        //
+        // Stop
+        //
+        //     [
+        //         {
+        //             "id": "f64f7c4f-295c-408b-9cbc-601981abf100",
+        //             "marketSymbol": "BTC-USDT",
+        //             "operand": "LTE",
+        //             "triggerPrice": "0.10000000",
+        //             "orderToCreate": {
+        //                 "marketSymbol": "BTC-USDT",
+        //                 "direction": "BUY",
+        //                 "type": "LIMIT",
+        //                 "quantity": "0.00020000",
+        //                 "limit": "30000.00000000",
+        //                 "timeInForce": "GOOD_TIL_CANCELLED"
+        //             },
+        //             "status": "CANCELLED",
+        //             "createdAt": "2022-04-20T02:38:12.26Z",
+        //             "updatedAt": "2022-04-20T02:38:12.26Z"
+        //             "closedAt": "2022-04-20T03:47:24.69Z"
+        //         }
+        //     ]
+        //
+        return this.extend (this.parseOrder (response, market), {
             'id': id,
             'info': response,
             'status': 'canceled',
@@ -1001,6 +1214,7 @@ module.exports = class bittrex extends Exchange {
     parseTransaction (transaction, currency = undefined) {
         //
         // fetchDeposits
+        //
         //     {
         //         "id": "d00fdf2e-df9e-48f1-....",
         //         "currencySymbol": "BTC",
@@ -1015,6 +1229,7 @@ module.exports = class bittrex extends Exchange {
         //     }
         //
         // fetchWithdrawals
+        //
         //     {
         //         "PaymentUuid" : "e293da98-788c-4188-a8f9-8ec2c33fdfcf",
         //         "Currency" : "XC",
@@ -1029,7 +1244,18 @@ module.exports = class bittrex extends Exchange {
         //         "InvalidAddress" : false
         //     }
         //
-        const id = this.safeString (transaction, 'id');
+        // withdraw
+        //
+        //     {
+        //         "currencySymbol": "string",
+        //         "quantity": "number (double)",
+        //         "cryptoAddress": "string",
+        //         "cryptoAddressTag": "string",
+        //         "fundsTransferMethodId": "string (uuid)",
+        //         "clientWithdrawalId": "string (uuid)"
+        //     }
+        //
+        const id = this.safeString2 (transaction, 'id', 'clientWithdrawalId');
         const amount = this.safeNumber (transaction, 'quantity');
         const address = this.safeString (transaction, 'cryptoAddress');
         const txid = this.safeString (transaction, 'txId');
@@ -1110,6 +1336,8 @@ module.exports = class bittrex extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
+        // Spot createOrder, fetchOpenOrders, fetchClosedOrders, fetchOrder, cancelOrder
+        //
         //     {
         //         id: '1be35109-b763-44ce-b6ea-05b6b0735c0c',
         //         marketSymbol: 'LTC-ETH',
@@ -1128,11 +1356,31 @@ module.exports = class bittrex extends Exchange {
         //         closedAt: '2018-06-23T13:14:30.19Z'
         //     }
         //
+        // Stop createOrder, fetchOpenOrders, fetchClosedOrders, fetchOrder, cancelOrder
+        //
+        //     {
+        //         "id": "9791fe52-a3e5-4ac3-ae03-e327b2993571",
+        //         "marketSymbol": "BTC-USDT",
+        //         "operand": "LTE",
+        //         "triggerPrice": "0.1",
+        //         "orderToCreate": {
+        //             "marketSymbol": "BTC-USDT",
+        //             "direction": "BUY",
+        //             "type": "LIMIT",
+        //             "quantity": "0.0002",
+        //             "limit": "30000",
+        //             "timeInForce": "GOOD_TIL_CANCELLED"
+        //         },
+        //         "status": "OPEN",
+        //         "createdAt": "2022-04-19T21:02:14.17Z",
+        //         "updatedAt": "2022-04-19T21:02:14.17Z",
+        //         "closedAt": "2022-04-20T03:47:24.69Z"
+        //     }
+        //
         const marketSymbol = this.safeString (order, 'marketSymbol');
         market = this.safeMarket (marketSymbol, market, '-');
         const symbol = market['symbol'];
         const feeCurrency = market['quote'];
-        const direction = this.safeStringLower (order, 'direction');
         const createdAt = this.safeString (order, 'createdAt');
         const updatedAt = this.safeString (order, 'updatedAt');
         const closedAt = this.safeString (order, 'closedAt');
@@ -1144,14 +1392,50 @@ module.exports = class bittrex extends Exchange {
             lastTradeTimestamp = this.parse8601 (updatedAt);
         }
         const timestamp = this.parse8601 (createdAt);
-        const type = this.safeStringLower (order, 'type');
-        const quantity = this.safeString (order, 'quantity');
-        const limit = this.safeString (order, 'limit');
+        let direction = this.safeStringLower (order, 'direction');
+        if (direction === undefined) {
+            let conditionalOrder = this.safeValue (order, 'orderToCreate');
+            if (conditionalOrder === undefined) {
+                conditionalOrder = this.safeValue (order, 'orderToCancel');
+            }
+            direction = this.safeStringLower (conditionalOrder, 'direction');
+        }
+        let type = this.safeStringLower (order, 'type');
+        if (type === undefined) {
+            let conditionalOrder = this.safeValue (order, 'orderToCreate');
+            if (conditionalOrder === undefined) {
+                conditionalOrder = this.safeValue (order, 'orderToCancel');
+            }
+            type = this.safeStringLower (conditionalOrder, 'type');
+        }
+        let quantity = this.safeString (order, 'quantity');
+        if (quantity === undefined) {
+            let conditionalOrder = this.safeValue (order, 'orderToCreate');
+            if (conditionalOrder === undefined) {
+                conditionalOrder = this.safeValue (order, 'orderToCancel');
+            }
+            quantity = this.safeString (conditionalOrder, 'quantity');
+        }
+        let limit = this.safeString (order, 'limit');
+        if (limit === undefined) {
+            let conditionalOrder = this.safeValue (order, 'orderToCreate');
+            if (conditionalOrder === undefined) {
+                conditionalOrder = this.safeValue (order, 'orderToCancel');
+            }
+            limit = this.safeString (conditionalOrder, 'limit');
+        }
+        let timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
+        if (timeInForce === undefined) {
+            let conditionalOrder = this.safeValue (order, 'orderToCreate');
+            if (conditionalOrder === undefined) {
+                conditionalOrder = this.safeValue (order, 'orderToCancel');
+            }
+            timeInForce = this.parseTimeInForce (this.safeString (conditionalOrder, 'timeInForce'));
+        }
         const fillQuantity = this.safeString (order, 'fillQuantity');
         const commission = this.safeNumber (order, 'commission');
         const proceeds = this.safeString (order, 'proceeds');
         const status = this.safeStringLower (order, 'status');
-        const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
         const postOnly = (timeInForce === 'PO');
         return this.safeOrder ({
             'id': this.safeString (order, 'id'),
@@ -1165,7 +1449,7 @@ module.exports = class bittrex extends Exchange {
             'postOnly': postOnly,
             'side': direction,
             'price': limit,
-            'stopPrice': undefined,
+            'stopPrice': this.safeString (order, 'triggerPrice'),
             'cost': proceeds,
             'average': undefined,
             'amount': quantity,
@@ -1201,12 +1485,24 @@ module.exports = class bittrex extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
+        const stop = this.safeValue (params, 'stop');
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         let response = undefined;
+        let method = undefined;
         try {
-            const request = {
-                'orderId': id,
-            };
-            response = await this.privateGetOrdersOrderId (this.extend (request, params));
+            const request = {};
+            if (stop) {
+                method = 'privateGetConditionalOrdersConditionalOrderId';
+                request['conditionalOrderId'] = id;
+            } else {
+                method = 'privateGetOrdersOrderId';
+                request['orderId'] = id;
+            }
+            const query = this.omit (params, 'stop');
+            response = await this[method] (this.extend (request, query));
         } catch (e) {
             if (this.last_json_response) {
                 const message = this.safeString (this.last_json_response, 'message');
@@ -1216,7 +1512,7 @@ module.exports = class bittrex extends Exchange {
             }
             throw e;
         }
-        return this.parseOrder (response);
+        return this.parseOrder (response, market);
     }
 
     orderToTrade (order) {
@@ -1278,6 +1574,7 @@ module.exports = class bittrex extends Exchange {
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        const stop = this.safeValue (params, 'stop');
         const request = {};
         if (limit !== undefined) {
             request['pageSize'] = limit;
@@ -1297,7 +1594,55 @@ module.exports = class bittrex extends Exchange {
             // https://github.com/ccxt/ccxt/pull/5219#issuecomment-499646209
             request['marketSymbol'] = market['base'] + '-' + market['quote'];
         }
-        const response = await this.privateGetOrdersClosed (this.extend (request, params));
+        let method = 'privateGetOrdersClosed';
+        if (stop) {
+            method = 'privateGetConditionalOrdersClosed';
+        }
+        const query = this.omit (params, 'stop');
+        const response = await this[method] (this.extend (request, query));
+        //
+        // Spot
+        //
+        //     [
+        //         {
+        //             "id": "df6cf5ee-fc27-4b61-991a-cc94b6459ac9",
+        //             "marketSymbol": "BTC-USDT",
+        //             "direction": "BUY",
+        //             "type": "LIMIT",
+        //             "quantity": "0.00023277",
+        //             "limit": "30000.00000000",
+        //             "timeInForce": "GOOD_TIL_CANCELLED",
+        //             "fillQuantity": "0.00000000",
+        //             "commission": "0.00000000",
+        //             "proceeds": "0.00000000",
+        //             "status": "OPEN",
+        //             "createdAt": "2022-04-20T02:33:53.16Z",
+        //             "updatedAt": "2022-04-20T02:33:53.16Z"
+        //         }
+        //     ]
+        //
+        // Stop
+        //
+        //     [
+        //         {
+        //             "id": "f64f7c4f-295c-408b-9cbc-601981abf100",
+        //             "marketSymbol": "BTC-USDT",
+        //             "operand": "LTE",
+        //             "triggerPrice": "0.10000000",
+        //             "orderToCreate": {
+        //                 "marketSymbol": "BTC-USDT",
+        //                 "direction": "BUY",
+        //                 "type": "LIMIT",
+        //                 "quantity": "0.00020000",
+        //                 "limit": "30000.00000000",
+        //                 "timeInForce": "GOOD_TIL_CANCELLED"
+        //             },
+        //             "status": "OPEN",
+        //             "createdAt": "2022-04-20T02:38:12.26Z",
+        //             "updatedAt": "2022-04-20T02:38:12.26Z"
+        //         }
+        //     ]
+        //
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -1384,11 +1729,17 @@ module.exports = class bittrex extends Exchange {
             request['cryptoAddressTag'] = tag;
         }
         const response = await this.privatePostWithdrawals (this.extend (request, params));
-        const id = this.safeString (response, 'id');
-        return {
-            'info': response,
-            'id': id,
-        };
+        //
+        //     {
+        //         "currencySymbol": "string",
+        //         "quantity": "number (double)",
+        //         "cryptoAddress": "string",
+        //         "cryptoAddressTag": "string",
+        //         "fundsTransferMethodId": "string (uuid)",
+        //         "clientWithdrawalId": "string (uuid)"
+        //     }
+        //
+        return this.parseTransaction (response, currency);
     }
 
     sign (path, api = 'v3', method = 'GET', params = {}, headers = undefined, body = undefined) {

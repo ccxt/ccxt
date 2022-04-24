@@ -32,6 +32,9 @@ class bitrue extends Exchange {
                 'cancelAllOrders' => false,
                 'cancelOrder' => true,
                 'createOrder' => true,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => true,
                 'fetchBorrowRate' => false,
@@ -321,10 +324,10 @@ class bitrue extends Exchange {
         return $this->decimal_to_precision($cost, TRUNCATE, $this->markets[$symbol]['precision']['quote'], $this->precisionMode, $this->paddingMode);
     }
 
-    public function currency_to_precision($currency, $fee) {
+    public function currency_to_precision($code, $fee) {
         // info is available in currencies only if the user has configured his api keys
-        if ($this->safe_value($this->currencies[$currency], 'precision') !== null) {
-            return $this->decimal_to_precision($fee, TRUNCATE, $this->currencies[$currency]['precision'], $this->precisionMode, $this->paddingMode);
+        if ($this->safe_value($this->currencies[$code], 'precision') !== null) {
+            return $this->decimal_to_precision($fee, TRUNCATE, $this->currencies[$code]['precision'], $this->precisionMode, $this->paddingMode);
         } else {
             return $this->number_to_string($fee);
         }
@@ -336,14 +339,20 @@ class bitrue extends Exchange {
 
     public function fetch_status($params = array ()) {
         $response = $this->v1PublicGetPing ($params);
+        //
+        // empty means working status.
+        //
+        //     array()
+        //
         $keys = is_array($response) ? array_keys($response) : array();
         $keysLength = is_array($keys) ? count($keys) : 0;
         $formattedStatus = $keysLength ? 'maintenance' : 'ok';
-        $this->status = array_merge($this->status, array(
+        return array(
             'status' => $formattedStatus,
             'updated' => $this->milliseconds(),
-        ));
-        return $this->status;
+            'eta' => null,
+            'info' => $response,
+        );
     }
 
     public function fetch_time($params = array ()) {
@@ -1622,10 +1631,7 @@ class bitrue extends Exchange {
         }
         $response = $this->v1PrivatePostWithdrawCommit (array_merge($request, $params));
         //     array( id => '9a67628b16ba4988ae20d329333f16bc' )
-        return array(
-            'info' => $response,
-            'id' => $this->safe_string($response, 'id'),
-        );
+        return $this->parse_transaction($response, $currency);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

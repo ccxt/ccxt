@@ -53,10 +53,13 @@ module.exports = class bithumb extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchTransfer': false,
+                'fetchTransfers': false,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
+                'transfer': false,
                 'withdraw': true,
             },
             'hostname': 'bithumb.com',
@@ -882,9 +885,39 @@ module.exports = class bithumb extends Exchange {
             }
         }
         const response = await this.privatePostTradeBtcWithdrawal (this.extend (request, params));
+        //
+        // { "status" : "0000"}
+        //
+        return this.parseTransaction (response, currency);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // withdraw
+        //
+        //     { "status" : "0000"}
+        //
+        currency = this.safeCurrency (undefined, currency);
         return {
-            'info': response,
             'id': undefined,
+            'txid': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'network': undefined,
+            'addressFrom': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'amount': undefined,
+            'type': undefined,
+            'currency': currency['code'],
+            'status': undefined,
+            'updated': undefined,
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'comment': undefined,
+            'fee': undefined,
+            'info': transaction,
         };
     }
 

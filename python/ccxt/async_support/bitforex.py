@@ -49,6 +49,12 @@ class bitforex(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': None,
                 'fetchTrades': True,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
+                'fetchWithdrawal': False,
+                'fetchWithdrawals': False,
+                'transfer': False,
+                'withdraw': False,
             },
             'timeframes': {
                 '1m': '1min',

@@ -545,9 +545,64 @@ class mercado(Exchange):
                 else:
                     request['destination_tag'] = tag
         response = self.privatePostWithdrawCoin(self.extend(request, params))
+        #
+        #     {
+        #         "response_data": {
+        #             "withdrawal": {
+        #                 "id": 1,
+        #                 "coin": "BRL",
+        #                 "quantity": "300.56",
+        #                 "net_quantity": "291.68",
+        #                 "fee": "8.88",
+        #                 "account": "bco: 341, ag: 1111, cta: 23456-X",
+        #                 "status": 1,
+        #                 "created_timestamp": "1453912088",
+        #                 "updated_timestamp": "1453912088"
+        #             }
+        #         },
+        #         "status_code": 100,
+        #         "server_unix_timestamp": "1453912088"
+        #     }
+        #
+        responseData = self.safe_value(response, 'response_data', {})
+        withdrawal = self.safe_value(responseData, 'withdrawal')
+        return self.parse_transaction(withdrawal, currency)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        #     {
+        #         "id": 1,
+        #         "coin": "BRL",
+        #         "quantity": "300.56",
+        #         "net_quantity": "291.68",
+        #         "fee": "8.88",
+        #         "account": "bco: 341, ag: 1111, cta: 23456-X",
+        #         "status": 1,
+        #         "created_timestamp": "1453912088",
+        #         "updated_timestamp": "1453912088"
+        #     }
+        #
+        currency = self.safe_currency(None, currency)
         return {
-            'info': response,
-            'id': response['response_data']['withdrawal']['id'],
+            'id': self.safe_string(transaction, 'id'),
+            'txid': None,
+            'timestamp': None,
+            'datetime': None,
+            'network': None,
+            'addressFrom': None,
+            'address': None,
+            'addressTo': None,
+            'amount': None,
+            'type': None,
+            'currency': currency['code'],
+            'status': None,
+            'updated': None,
+            'tagFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'comment': None,
+            'fee': None,
+            'info': transaction,
         }
 
     def parse_ohlcv(self, ohlcv, market=None):

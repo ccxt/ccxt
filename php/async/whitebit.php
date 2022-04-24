@@ -33,6 +33,9 @@ class whitebit extends Exchange {
                 'createLimitOrder' => null,
                 'createMarketOrder' => null,
                 'createOrder' => true,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
                 'editOrder' => null,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,
@@ -58,6 +61,7 @@ class whitebit extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
+                'transfer' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -165,6 +169,7 @@ class whitebit extends Exchange {
                             'main-account/history',
                             'main-account/withdraw',
                             'main-account/withdraw-pay',
+                            'main-account/transfer',
                             'trade-account/balance',
                             'trade-account/executed-history',
                             'trade-account/order',
@@ -191,6 +196,14 @@ class whitebit extends Exchange {
             'options' => array(
                 'createMarketBuyOrderRequiresPrice' => true,
                 'fiatCurrencies' => array( 'EUR', 'USD', 'RUB', 'UAH' ),
+                'accountsByType' => array(
+                    'main' => 'main',
+                    'spot' => 'trade',
+                    'margin' => 'margin', // api does not suppot transfers to margin
+                ),
+                'transfer' => array(
+                    'fillTransferResponseFromRequest' => true,
+                ),
             ),
             'exceptions' => array(
                 'exact' => array(
@@ -743,13 +756,13 @@ class whitebit extends Exchange {
         //          "pong"
         //      )
         //
-        $status = $this->safe_string($response, 0, null);
-        $status = ($status === null) ? 'maintenance' : 'ok';
-        $this->status = array_merge($this->status, array(
-            'status' => $status,
+        $status = $this->safe_string($response, 0);
+        return array(
+            'status' => ($status === 'pong') ? 'ok' : $status,
             'updated' => $this->milliseconds(),
-        ));
-        return $this->status;
+            'eta' => null,
+            'info' => $response,
+        );
     }
 
     public function fetch_time($params = array ()) {
@@ -1155,6 +1168,58 @@ class whitebit extends Exchange {
         );
     }
 
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        yield $this->load_markets();
+        $currency = $this->currency($code);
+        $accountsByType = $this->safe_value($this->options, 'accountsByType');
+        $fromAccountId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
+        $toAccountId = $this->safe_string($accountsByType, $toAccount, $toAccount);
+        $type = null;
+        if ($fromAccountId === 'main' && $toAccountId === 'trade') {
+            $type = 'deposit';
+        } else if ($fromAccountId === 'trade' && $toAccountId === 'main') {
+            $type = 'withdraw';
+        }
+        if ($type === null) {
+            throw new ExchangeError($this->id . ' $transfer() only allows transfers between main account and spot account');
+        }
+        $request = array(
+            'ticker' => $currency['id'],
+            'method' => $type,
+            'amount' => $this->currency_to_precision($code, $amount),
+        );
+        $response = yield $this->v4PrivatePostMainAccountTransfer (array_merge($request, $params));
+        //
+        //    array()
+        //
+        $transfer = $this->parse_transfer($response, $currency);
+        $transferOptions = $this->safe_value($this->options, 'transfer', array());
+        $fillTransferResponseFromRequest = $this->safe_value($transferOptions, 'fillTransferResponseFromRequest', true);
+        if ($fillTransferResponseFromRequest) {
+            $transfer['amount'] = $amount;
+            $transfer['fromAccount'] = $fromAccount;
+            $transfer['toAccount'] = $toAccount;
+        }
+        return $transfer;
+    }
+
+    public function parse_transfer($transfer, $currency) {
+        //
+        //    array()
+        //
+        return array(
+            'info' => $transfer,
+            'id' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'currency' => $this->safe_currency_code(null, $currency),
+            'amount' => null,
+            'fromAccount' => null,
+            'toAccount' => null,
+            'status' => 'pending',
+        );
+    }
+
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         yield $this->load_markets();
         $currency = $this->currency($code); // check if it has canDeposit
@@ -1185,9 +1250,36 @@ class whitebit extends Exchange {
         //
         //     array()
         //
+        return array_merge(array( 'id' => $uniqueId ), $this->parse_transaction($response, $currency));
+    }
+
+    public function parse_transaction($transaction, $currency = null) {
+        //
+        // withdraw
+        //
+        //     array()
+        //
+        $currency = $this->safe_currency(null, $currency);
         return array(
-            'id' => $uniqueId,
-            'info' => $response,
+            'id' => null,
+            'txid' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'network' => null,
+            'addressFrom' => null,
+            'address' => null,
+            'addressTo' => null,
+            'amount' => null,
+            'type' => null,
+            'currency' => $currency['code'],
+            'status' => null,
+            'updated' => null,
+            'tagFrom' => null,
+            'tag' => null,
+            'tagTo' => null,
+            'comment' => null,
+            'fee' => null,
+            'info' => $transaction,
         );
     }
 

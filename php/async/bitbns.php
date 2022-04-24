@@ -53,7 +53,12 @@ class bitbns extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
+                'fetchTransfer' => false,
+                'fetchTransfers' => false,
+                'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
+                'transfer' => false,
+                'withdraw' => false,
             ),
             'timeframes' => array(
             ),
@@ -159,15 +164,13 @@ class bitbns extends Exchange {
         //         "code":200
         //     }
         //
-        $status = $this->safe_string($response, 'status');
-        if ($status !== null) {
-            $status = ($status === '1') ? 'ok' : 'maintenance';
-            $this->status = array_merge($this->status, array(
-                'status' => $status,
-                'updated' => $this->milliseconds(),
-            ));
-        }
-        return $this->status;
+        $statusRaw = $this->safe_string($response, 'status');
+        return array(
+            'status' => $this->safe_string(array( '1' => 'ok' ), $statusRaw, $statusRaw),
+            'updated' => $this->milliseconds(),
+            'eta' => null,
+            'info' => $response,
+        );
     }
 
     public function fetch_markets($params = array ()) {

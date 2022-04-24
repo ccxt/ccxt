@@ -18,6 +18,15 @@ module.exports = class binanceusdm extends binance {
                     'https://binance-docs.github.io/apidocs/spot/en',
                 ],
             },
+            'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': undefined,
+                'swap': undefined,
+                'future': undefined,
+                'option': undefined,
+                'createStopMarketOrder': true,
+            },
             'options': {
                 'defaultType': 'future',
                 // https://www.binance.com/en/support/faq/360033162192

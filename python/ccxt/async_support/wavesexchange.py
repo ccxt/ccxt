@@ -1045,8 +1045,8 @@ class wavesexchange(Exchange):
     def amount_to_precision(self, symbol, amount):
         return int(float(self.to_precision(amount, self.markets[symbol]['precision']['amount'])))
 
-    def currency_to_precision(self, currency, amount):
-        return int(float(self.to_precision(amount, self.currencies[currency]['precision'])))
+    def currency_to_precision(self, code, amount):
+        return int(float(self.to_precision(amount, self.currencies[code]['precision'])))
 
     def from_precision(self, amount, scale):
         if amount is None:
@@ -2005,4 +2005,51 @@ class wavesexchange(Exchange):
             'timestamp': timestamp,
             'signature': signature,
         }
-        return await self.nodePostTransactionsBroadcast(request)
+        result = await self.nodePostTransactionsBroadcast(request)
+        #
+        #     {
+        #         "id": "string",
+        #         "signature": "string",
+        #         "fee": 0,
+        #         "timestamp": 1460678400000,
+        #         "recipient": "3P274YB5qseSE9DTTL3bpSjosZrYBPDpJ8k",
+        #         "amount": 0
+        #     }
+        #
+        return self.parse_transaction(result, currency)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        # withdraw
+        #
+        #     {
+        #         "id": "string",
+        #         "signature": "string",
+        #         "fee": 0,
+        #         "timestamp": 1460678400000,
+        #         "recipient": "3P274YB5qseSE9DTTL3bpSjosZrYBPDpJ8k",
+        #         "amount": 0
+        #     }
+        #
+        currency = self.safe_currency(None, currency)
+        return {
+            'id': None,
+            'txid': None,
+            'timestamp': None,
+            'datetime': None,
+            'network': None,
+            'addressFrom': None,
+            'address': None,
+            'addressTo': None,
+            'amount': None,
+            'type': None,
+            'currency': currency['code'],
+            'status': None,
+            'updated': None,
+            'tagFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'comment': None,
+            'fee': None,
+            'info': transaction,
+        }

@@ -37,6 +37,8 @@ class coinfalcon(Exchange):
                 'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
+                'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
                 'fetchDeposits': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
@@ -60,11 +62,14 @@ class coinfalcon(Exchange):
                 'fetchTrades': True,
                 'fetchTradinFee': False,
                 'fetchTradingFees': True,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
+                'transfer': False,
                 'withdraw': True,
             },
             'urls': {
@@ -454,6 +459,42 @@ class coinfalcon(Exchange):
         response = await self.privateGetUserAccounts(params)
         return self.parse_balance(response)
 
+    def parse_deposit_address(self, depositAddress, currency=None):
+        #
+        #     {
+        #         "address":"0x77b5051f97efa9cc52c9ad5b023a53fc15c200d3",
+        #         "tag":"0"
+        #     }
+        #
+        address = self.safe_string(depositAddress, 'address')
+        tag = self.safe_string(depositAddress, 'tag')
+        self.check_address(address)
+        return {
+            'currency': self.safe_currency_code(None, currency),
+            'address': address,
+            'tag': tag,
+            'network': None,
+            'info': depositAddress,
+        }
+
+    async def fetch_deposit_address(self, code, params={}):
+        await self.load_markets()
+        currency = self.safe_currency(code)
+        request = {
+            'currency': self.safe_string_lower(currency, 'id'),
+        }
+        response = await self.privateGetAccountDepositAddress(self.extend(request, params))
+        #
+        #     {
+        #         data: {
+        #             address: '0x9918987bbe865a1a9301dc736cf6cf3205956694',
+        #             tag:null
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_deposit_address(data, currency)
+
     def parse_order_status(self, status):
         statuses = {
             'fulfilled': 'closed',
@@ -582,7 +623,7 @@ class coinfalcon(Exchange):
         currency = None
         if code is not None:
             currency = self.currency(code)
-            request['currency'] = currency['id'].lower()
+            request['currency'] = self.safe_string_lower(currency, 'id')
         if since is not None:
             request['since_time'] = self.iso8601(since)
         response = await self.privateGetAccountDeposits(self.extend(request, params))
@@ -616,7 +657,7 @@ class coinfalcon(Exchange):
         currency = None
         if code is not None:
             currency = self.currency(code)
-            request['currency'] = currency['id'].lower()
+            request['currency'] = self.safe_string_lower(currency, 'id')
         if since is not None:
             request['since_time'] = self.iso8601(since)
         response = await self.privateGetAccountWithdrawals(self.extend(request, params))
@@ -645,7 +686,7 @@ class coinfalcon(Exchange):
         await self.load_markets()
         currency = self.currency(code)
         request = {
-            'currency': currency['id'].lower(),
+            'currency': self.safeStingLower(currency, 'id'),
             'address': address,
             'amount': amount,
             # 'tag': 'string',  # withdraw tag/memo

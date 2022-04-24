@@ -447,7 +447,22 @@ class ripio extends Exchange {
 
     public function parse_trade($trade, $market = null) {
         //
-        // public fetchTrades, private fetchMyTrades
+        //
+        // fetchTrades (public)
+        //
+        //      {
+        //          "created_at":1649899167,
+        //          "amount":"0.00852",
+        //          "price":"3106.000000",
+        //          "side":"SELL",
+        //          "pair":"ETH_USDC",
+        //          "taker_fee":"0",
+        //          "taker_side":"SELL",
+        //          "maker_fee":"0"
+        //      }
+        //
+        //
+        // fetchMyTrades (private)
         //
         //     {
         //         "created_at":1601322501,
@@ -484,21 +499,18 @@ class ripio extends Exchange {
         }
         $priceString = $this->safe_string_2($trade, 'price', 'match_price');
         $amountString = $this->safe_string_2($trade, 'amount', 'exchanged');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $marketId = $this->safe_string($trade, 'pair');
         $market = $this->safe_market($marketId, $market);
-        $feeCost = $this->safe_number($trade, $takerOrMaker . '_fee');
+        $feeCostString = $this->safe_string($trade, $takerOrMaker . '_fee');
         $orderId = $this->safe_string($trade, $takerOrMaker);
         $fee = null;
-        if ($feeCost !== null) {
+        if ($feeCostString !== null) {
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => ($side === 'buy') ? $market['base'] : $market['quote'],
             );
         }
-        return array(
+        return $this->safe_trade(array(
             'id' => $id,
             'order' => $orderId,
             'timestamp' => $timestamp,
@@ -506,13 +518,13 @@ class ripio extends Exchange {
             'symbol' => $market['symbol'],
             'type' => null,
             'side' => $side,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'takerOrMaker' => $takerOrMaker,
             'fee' => $fee,
             'info' => $trade,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -523,20 +535,18 @@ class ripio extends Exchange {
         );
         $response = $this->publicGetTradehistoryPair (array_merge($request, $params));
         //
-        //     array(
-        //         {
-        //             "created_at":1601322501,
-        //             "amount":"0.00276",
-        //             "price":"10850.020000",
-        //             "side":"SELL",
-        //             "pair":"BTC_USDC",
-        //             "taker_fee":"0",
-        //             "taker_side":"SELL",
-        //             "maker_fee":"0",
-        //             "taker":2577953,
-        //             "maker":2577937
-        //         }
-        //     )
+        //      array(
+        //          {
+        //              "created_at":1649899167,
+        //              "amount":"0.00852",
+        //              "price":"3106.000000",
+        //              "side":"SELL",
+        //              "pair":"ETH_USDC",
+        //              "taker_fee":"0",
+        //              "taker_side":"SELL",
+        //              "maker_fee":"0"
+        //          }
+        //      )
         //
         return $this->parse_trades($response, $market, $since, $limit);
     }

@@ -41,6 +41,9 @@ class coinbasepro(Exchange):
                 'cancelOrder': True,
                 'createDepositAddress': True,
                 'createOrder': True,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': True,
+                'createStopOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
@@ -1021,16 +1024,14 @@ class coinbasepro(Exchange):
         return await self.privateGetPaymentMethods(params)
 
     async def deposit(self, code, amount, address, params={}):
-        '''
-         * @method
-         * @name coinbasepro#deposit
-         * @description Creates a new deposit address, as required by coinbasepro
-         * @param {string} code Unified CCXT currency code(e.g. `"USDT"`)
-         * @param {float} amount The amount of currency to send in the deposit(e.g. `20`)
-         * @param {string} address Not used by coinbasepro
-         * @param {dictionary} params Parameters specific to the exchange API endpoint(e.g. `{"network": "TRX"}`)
-         * @returns a [transaction structure](#https://docs.ccxt.com/en/latest/manual.html#transaction-structure)
-        '''
+        """
+        Creates a new deposit address, as required by coinbasepro
+        :param str code: Unified CCXT currency code(e.g. `"USDT"`)
+        :param float amount: The amount of currency to send in the deposit(e.g. `20`)
+        :param str address: Not used by coinbasepro
+        :param dict params: Parameters specific to the exchange API endpoint(e.g. `{"network": "TRX"}`)
+        :returns: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         await self.load_markets()
         currency = self.currency(code)
         request = {
@@ -1079,10 +1080,7 @@ class coinbasepro(Exchange):
         response = await getattr(self, method)(self.extend(request, params))
         if not response:
             raise ExchangeError(self.id + ' withdraw() error: ' + self.json(response))
-        return {
-            'info': response,
-            'id': response['id'],
-        }
+        return self.parse_transaction(response, currency)
 
     def parse_ledger_entry_type(self, type):
         types = {

@@ -72,6 +72,7 @@ class okcoin(Exchange):
                 'fetchTrades': True,
                 'fetchTransactions': None,
                 'fetchWithdrawals': True,
+                'transfer': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -767,6 +768,16 @@ class okcoin(Exchange):
                 'createMarketBuyOrderRequiresPrice': True,
                 'fetchMarkets': ['spot'],
                 'defaultType': 'spot',  # 'account', 'spot', 'margin', 'futures', 'swap', 'option'
+                'accountsByType': {
+                    'spot': '1',
+                    'margin': '5',
+                    'funding': '6',
+                },
+                'accountsById': {
+                    '1': 'spot',
+                    '5': 'margin',
+                    '6': 'funding',
+                },
                 'auth': {
                     'time': 'public',
                     'currencies': 'private',
@@ -2485,6 +2496,85 @@ class okcoin(Exchange):
             raise InvalidAddress(self.id + ' fetchDepositAddress cannot return nonexistent addresses, you should create withdrawal addresses with the exchange website first')
         return address
 
+    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        accountsByType = self.safe_value(self.options, 'accountsByType', {})
+        fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
+        toId = self.safe_string(accountsByType, toAccount, toAccount)
+        request = {
+            'amount': self.currency_to_precision(code, amount),
+            'currency': currency['id'],
+            'from': fromId,  # 1 spot, 5 margin, 6 funding
+            'to': toId,  # 1 spot, 5 margin, 6 funding
+            'type': '0',  # 0 Transfer between accounts in the main account/sub_account, 1 main account to sub_account, 2 sub_account to main account
+        }
+        if fromId == 'main':
+            request['type'] = '1'
+            request['sub_account'] = toId
+            request['to'] = '0'
+        elif toId == 'main':
+            request['type'] = '2'
+            request['sub_account'] = fromId
+            request['from'] = '0'
+            request['to'] = '6'
+        elif fromId == '5' or toId == '5':
+            marketId = self.safe_string_2(params, 'instrument_id', 'to_instrument_id')
+            if marketId is None:
+                symbol = self.safe_string(params, 'symbol')
+                if symbol is None:
+                    raise ArgumentsRequired(self.id + ' transfer() requires an exchange-specific instrument_id parameter or a unified symbol parameter')
+                else:
+                    params = self.omit(params, 'symbol')
+                    market = self.market(symbol)
+                    marketId = market['id']
+                if fromId == '5':
+                    request['instrument_id'] = marketId
+                if toId == '5':
+                    request['to_instrument_id'] = marketId
+        response = await self.accountPostTransfer(self.extend(request, params))
+        #
+        #      {
+        #          "transfer_id": "754147",
+        #          "currency": "ETC",
+        #          "from": "6",
+        #          "amount": "0.1",
+        #          "to": "1",
+        #          "result": True
+        #      }
+        #
+        return self.parse_transfer(response, currency)
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        #      {
+        #          "transfer_id": "754147",
+        #          "currency": "ETC",
+        #          "from": "6",
+        #          "amount": "0.1",
+        #          "to": "1",
+        #          "result": True
+        #      }
+        #
+        accountsById = self.safe_value(self.options, 'accountsById', {})
+        return {
+            'info': transfer,
+            'id': self.safe_string(transfer, 'transfer_id'),
+            'timestamp': None,
+            'datetime': None,
+            'currency': self.safe_currency_code(self.safe_string(transfer, 'currency'), currency),
+            'amount': self.safe_number(transfer, 'amount'),
+            'fromAccount': self.safe_string(accountsById, self.safe_string(transfer, 'from')),
+            'toAccount': self.safe_string(accountsById, self.safe_string(transfer, 'to')),
+            'status': self.parse_transfer_status(self.safe_string(transfer, 'result')),
+        }
+
+    def parse_transfer_status(self, status):
+        statuses = {
+            'true': 'ok',
+        }
+        return self.safe_string(statuses, status, 'failed')
+
     async def withdraw(self, code, amount, address, tag=None, params={}):
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
@@ -2520,10 +2610,7 @@ class okcoin(Exchange):
         #         "result":true
         #     }
         #
-        return {
-            'info': response,
-            'id': self.safe_string(response, 'withdrawal_id'),
-        }
+        return self.parse_transaction(response, currency)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()

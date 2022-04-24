@@ -46,6 +46,9 @@ class aax(Exchange):
                 'createDepositAddress': None,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': True,
+                'createStopOrder': True,
                 'editOrder': True,
                 'fetchAccounts': None,
                 'fetchBalance': True,
@@ -75,8 +78,8 @@ class aax(Exchange):
                 'fetchLedger': None,
                 'fetchLedgerEntry': None,
                 'fetchLeverage': None,
-                'fetchLeverageTiers': True,
-                'fetchMarketLeverageTiers': 'emulated',
+                'fetchLeverageTiers': False,
+                'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyBuys': None,
@@ -90,8 +93,8 @@ class aax(Exchange):
                 'fetchOrderBooks': None,
                 'fetchOrders': True,
                 'fetchOrderTrades': None,
-                'fetchPosition': None,
-                'fetchPositions': None,
+                'fetchPosition': True,
+                'fetchPositions': True,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
@@ -105,7 +108,7 @@ class aax(Exchange):
                 'fetchTransactions': None,
                 'fetchTransfer': False,
                 'fetchTransfers': True,
-                'fetchWithdrawal': None,
+                'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
                 'fetchWithdrawalWhitelist': None,
                 'reduceMargin': None,
@@ -114,7 +117,7 @@ class aax(Exchange):
                 'setPositionMode': None,
                 'signIn': None,
                 'transfer': True,
-                'withdraw': None,
+                'withdraw': False,
             },
             'timeframes': {
                 '1m': '1m',
@@ -314,17 +317,11 @@ class aax(Exchange):
             'precisionMode': TICK_SIZE,
             'options': {
                 'defaultType': 'spot',  # 'spot', 'future'
-                'types': {
+                'accountsByType': {
                     'spot': 'SPTP',
                     'future': 'FUTP',
                     'otc': 'F2CP',
                     'saving': 'VLTP',
-                },
-                'accounts': {
-                    'SPTP': 'spot',
-                    'FUTP': 'future',
-                    'F2CP': 'otc',
-                    'VLTP': 'saving',
                 },
                 'networks': {
                     'ETH': 'ERC20',
@@ -332,8 +329,7 @@ class aax(Exchange):
                     'SOL': 'SPL',
                 },
                 'transfer': {
-                    'fillFromAccountToAccount': True,
-                    'fillAmount': True,
+                    'fillResponseFromRequest': True,
                 },
             },
         })
@@ -353,31 +349,50 @@ class aax(Exchange):
     def fetch_status(self, params={}):
         response = self.publicGetAnnouncementMaintenance(params)
         #
+        # note, when there is no maintenance, then data is `null`
+        #
         #     {
         #         "code": 1,
         #         "data": {
         #             "startTime":"2020-06-25T02:15:00.000Z",
         #             "endTime":"2020-06-25T02:45:00.000Z"，
-        #             "description":"Spot Trading :UTC Jun 25, 2020 02:15 to 02:45(HKT Jun 25 10:15 to 10:45),Futures Trading: UTC Jun 25, 2020 02:15 to 02:45(HKT Jun 25 10:15 to 10:45).We apologize for any inconvenience caused. Thank you for your patience and understanding.Should you have any enquiries, please do not hesitate our live chat support or via email at cs@aax.com."
+        #             "description":"Spot Trading :UTC Jun 25, 2020 02:15 to 02:45(HKT Jun 25 10:15 to 10:45),Futures Trading: UTC Jun 25, 2020 02:15 to 02:45(HKT Jun 25 10:15 to 10:45).We apologize for any inconvenience caused. Thank you for your patience and understanding.Should you have any enquiries, please do not hesitate our live chat support or via email at cs@aax.com.",
+        #             "haltReason":1,
+        #             "systemStatus":{
+        #                 "spotTrading":"readOnly",
+        #                 "futuresTreading":"closeOnly",
+        #                 "walletOperating":"enable",
+        #                 "otcTrading":"disable"
+        #             },
         #         },
         #         "message":"success",
         #         "ts":1593043237000
         #     }
         #
-        data = self.safe_value(response, 'data', {})
         timestamp = self.milliseconds()
-        startTime = self.parse8601(self.safe_string(data, 'startTime'))
-        endTime = self.parse8601(self.safe_string(data, 'endTime'))
-        update = {
-            'updated': self.safe_integer(response, 'ts', timestamp),
+        updated = self.safe_integer(response, 'ts', timestamp)
+        data = self.safe_value(response, 'data', {})
+        status = None
+        eta = None
+        if data:
+            startTime = self.parse8601(self.safe_string(data, 'startTime'))
+            endTime = self.parse8601(self.safe_string(data, 'endTime'))
+            if endTime is not None:
+                startTimeIsOk = True if (startTime is None) else (updated < startTime)
+                isOk = (updated > endTime) or startTimeIsOk
+                eta = endTime
+                status = 'ok' if isOk else 'maintenance'
+            else:
+                status = data
+        else:
+            eta = None
+            status = 'ok'
+        return {
+            'status': status,
+            'updated': updated,
+            'eta': eta,
+            'info': response,
         }
-        if endTime is not None:
-            startTimeIsOk = True if (startTime is None) else (timestamp < startTime)
-            isOk = (timestamp > endTime) or startTimeIsOk
-            update['eta'] = endTime
-            update['status'] = 'ok' if isOk else 'maintenance'
-        self.status = self.extend(self.status, update)
-        return self.status
 
     def fetch_markets(self, params={}):
         response = self.publicGetInstruments(params)
@@ -915,7 +930,7 @@ class aax(Exchange):
         self.load_markets()
         defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
-        types = self.safe_value(self.options, 'types', {})
+        types = self.safe_value(self.options, 'accountsByType', {})
         purseType = self.safe_string(types, type, type)
         request = {
             'purseType': purseType,
@@ -2216,92 +2231,6 @@ class aax(Exchange):
         }
         return self.privatePostFuturesPositionLeverage(self.extend(request, params))
 
-    def fetch_leverage_tiers(self, symbols=None, params={}):
-        self.load_markets()
-        response = self.publicGetInstruments(params)
-        #
-        #     {
-        #         "code":1,
-        #         "message":"success",
-        #         "ts":1610159448962,
-        #         "data":[
-        #             {
-        #                 "tickSize":"0.01",
-        #                 "lotSize":"1",
-        #                 "base":"BTC",
-        #                 "quote":"USDT",
-        #                 "minQuantity":"1.0000000000",
-        #                 "maxQuantity":"30000",
-        #                 "minPrice":"0.0100000000",
-        #                 "maxPrice":"999999.0000000000",
-        #                 "status":"readOnly",
-        #                 "symbol":"BTCUSDTFP",
-        #                 "code":"FP",
-        #                 "takerFee":"0.00040",
-        #                 "makerFee":"0.00020",
-        #                 "multiplier":"0.001000000000",
-        #                 "mmRate":"0.00500",
-        #                 "imRate":"0.01000",
-        #                 "type":"futures",
-        #                 "settleType":"Vanilla",
-        #                 "settleCurrency":"USDT"
-        #             },
-        #             ...
-        #         ]
-        #     }
-        #
-        data = self.safe_value(response, 'data')
-        return self.parse_leverage_tiers(data, symbols, 'symbol')
-
-    def parse_market_leverage_tiers(self, info, market):
-        '''
-            @param info: Exchange market response
-            {
-                "tickSize":"0.01",
-                "lotSize":"1",
-                "base":"BTC",
-                "quote":"USDT",
-                "minQuantity":"1.0000000000",
-                "maxQuantity":"30000",
-                "minPrice":"0.0100000000",
-                "maxPrice":"999999.0000000000",
-                "status":"readOnly",
-                "symbol":"BTCUSDTFP",
-                "code":"FP",
-                "takerFee":"0.00040",
-                "makerFee":"0.00020",
-                "multiplier":"0.001000000000",
-                "mmRate":"0.00500",
-                "imRate":"0.01000",
-                "type":"futures",
-                "settleType":"Vanilla",
-                "settleCurrency":"USDT"
-            @param market: CCXT Market
-       '''
-        maintenanceMarginRate = self.safe_string(info, 'mmRate')
-        initialMarginRate = self.safe_string(info, 'imRate')
-        maxVol = self.safe_string(info, 'maxQuantity')
-        riskIncrVol = maxVol  # TODO
-        riskIncrMmr = '0.0'  # TODO
-        riskIncrImr = '0.0'  # TODO
-        floor = '0'
-        tiers = []
-        while(Precise.string_lt(floor, maxVol)):
-            cap = Precise.string_add(floor, riskIncrVol)
-            tiers.append({
-                'tier': self.parse_number(Precise.string_div(cap, riskIncrVol)),
-                'currency': market['base'],
-                'notionalFloor': self.parse_number(floor),
-                'notionalCap': self.parse_number(cap),
-                'maintenanceMarginRate': self.parse_number(maintenanceMarginRate),
-                'maxLeverage': self.parse_number(Precise.string_div('1', initialMarginRate)),
-                'info': info,
-            })
-            maintenanceMarginRate = Precise.string_add(maintenanceMarginRate, riskIncrMmr)
-            initialMarginRate = Precise.string_add(initialMarginRate, riskIncrImr)
-            floor = cap
-        return tiers
-
     def parse_transfer(self, transfer, currency=None):
         #     {
         #          quantity: '0.000010000000',
@@ -2342,15 +2271,9 @@ class aax(Exchange):
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
         self.load_markets()
         currency = self.currency(code)
-        accountTypes = self.safe_value(self.options, 'types', {})
-        fromId = self.safe_string(accountTypes, fromAccount)
-        toId = self.safe_string(accountTypes, toAccount)
-        if fromId is None:
-            keys = list(accountTypes.keys())
-            raise ExchangeError(self.id + ' fromAccount must be one of ' + ', '.join(keys))
-        if toId is None:
-            keys = list(accountTypes.keys())
-            raise ExchangeError(self.id + ' toAccount must be one of ' + ', '.join(keys))
+        accountTypes = self.safe_value(self.options, 'accountsByType', {})
+        fromId = self.safe_string(accountTypes, fromAccount, fromAccount)
+        toId = self.safe_string(accountTypes, toAccount, toAccount)
         request = {
             'currency': currency['id'],
             'fromPurse': fromId,
@@ -2372,17 +2295,213 @@ class aax(Exchange):
         data = self.safe_value(response, 'data', {})
         transfer = self.parse_transfer(data, currency)
         transferOptions = self.safe_value(self.options, 'transfer', {})
-        fillFromAccountToAccount = self.safe_value(transferOptions, 'fillFromAccountToAccount', True)
-        fillAmount = self.safe_value(transferOptions, 'fillAmount', True)
-        if fillFromAccountToAccount:
+        fillResponseFromRequest = self.safe_value(transferOptions, 'fillResponseFromRequest', True)
+        if fillResponseFromRequest:
             if transfer['fromAccount'] is None:
                 transfer['fromAccount'] = fromAccount
             if transfer['toAccount'] is None:
                 transfer['toAccount'] = toAccount
-        if fillAmount and transfer['amount'] is None:
-            transfer['amount'] = amount
+            if transfer['amount'] is None:
+                transfer['amount'] = amount
         transfer['status'] = self.parse_transfer_status(self.safe_string(response, 'code'))
         return transfer
+
+    def parse_position(self, position, market=None):
+        #
+        #    {
+        #        "autoMarginCall": False,
+        #        "avgEntryPrice": "3706.03",
+        #        "bankruptPrice": "2963.3415880000",
+        #        "base": "ETH",
+        #        "code": "FP",
+        #        "commission": "0.02964824",
+        #        "currentQty": "2",
+        #        "funding": "-0.04827355",
+        #        "fundingStatus": null,
+        #        "id": "385839395735639395",
+        #        "leverage": "5",
+        #        "liquidationPrice": "2983.07",
+        #        "marketPrice": "3731.84",
+        #        "openTime": "2021-12-31T18:57:25.930Z",
+        #        "posLeverage": "5.00",
+        #        "posMargin": "14.85376824",
+        #        "quote": "USDT",
+        #        "realisedPnl": "-0.07792179",
+        #        "riskLimit": "10000000",
+        #        "riskyPrice": "3272.25",
+        #        "settleType": "VANILLA",
+        #        "stopLossPrice": "0",
+        #        "stopLossSource": 1,
+        #        "symbol": "ETHUSDTFP",
+        #        "takeProfitPrice": "0",
+        #        "takeProfitSource": 1,
+        #        "unrealisedPnl": "0.51620000",
+        #        "userID": "3829384",
+        #        "ts": 1641027194500
+        #    }
+        #
+        contract = self.safe_string(position, 'symbol')
+        market = self.safe_market(contract, market)
+        size = self.safe_string(position, 'currentQty')
+        side = None
+        if Precise.string_gt(size, '0'):
+            side = 'long'
+        elif Precise.string_lt(size, '0'):
+            side = 'short'
+        leverage = self.safe_string(position, 'leverage')
+        unrealisedPnl = self.safe_string(position, 'unrealisedPnl')
+        currentQty = self.safe_string(position, 'currentQty')
+        contractSize = self.safe_string(market, 'contractSize')
+        initialQuote = Precise.string_mul(currentQty, contractSize)
+        marketPrice = self.safe_string(position, 'marketPrice')
+        notional = Precise.string_mul(initialQuote, marketPrice)
+        timestamp = self.safe_integer(position, 'ts')
+        liquidationPrice = self.safe_string(position, 'liquidationPrice')
+        return {
+            'info': position,
+            'symbol': self.safe_string(market, 'symbol'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'initialMargin': None,
+            'initialMarginPercentage': None,
+            'maintenanceMargin': None,
+            'maintenanceMarginPercentage': None,
+            'entryPrice': self.safe_number(position, 'avgEntryPrice'),
+            'notional': self.parse_number(notional),
+            'leverage': self.parse_number(leverage),
+            'unrealizedPnl': self.parse_number(unrealisedPnl),
+            'contracts': self.parse_number(size),
+            'contractSize': self.parse_number(contractSize),
+            'marginRatio': None,
+            'liquidationPrice': liquidationPrice,
+            'markPrice': self.safe_number(position, 'marketPrice'),
+            'collateral': self.safe_number(position, 'posMargin'),
+            'marginType': self.safe_string(position, 'settleType'),
+            'side': side,
+            'percentage': None,
+        }
+
+    def fetch_position(self, symbol=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = self.privateGetFuturesPosition(self.extend(request, params))
+        #
+        #    {
+        #        "code": 1,
+        #        "data": [
+        #            {
+        #                "autoMarginCall": False,
+        #                "avgEntryPrice": "3706.03",
+        #                "bankruptPrice": "2963.3415880000",
+        #                "base": "ETH",
+        #                "code": "FP",
+        #                "commission": "0.02964824",
+        #                "currentQty": "2",
+        #                "funding": "-0.04827355",
+        #                "fundingStatus": null,
+        #                "id": "385839395735639395",
+        #                "leverage": "5",
+        #                "liquidationPrice": "2983.07",
+        #                "marketPrice": "3731.84",
+        #                "openTime": "2021-12-31T18:57:25.930Z",
+        #                "posLeverage": "5.00",
+        #                "posMargin": "14.85376824",
+        #                "quote": "USDT",
+        #                "realisedPnl": "-0.07792179",
+        #                "riskLimit": "10000000",
+        #                "riskyPrice": "3272.25",
+        #                "settleType": "VANILLA",
+        #                "stopLossPrice": "0",
+        #                "stopLossSource": 1,
+        #                "symbol": "ETHUSDTFP",
+        #                "takeProfitPrice": "0",
+        #                "takeProfitSource": 1,
+        #                "unrealisedPnl": "0.51620000",
+        #                "userID": "3829384"
+        #            }
+        #            ...
+        #        ],
+        #        "message": "success",
+        #        "ts": 1641026778068
+        #    }
+        #
+        positions = self.safe_value(response, 'data', [])
+        timestamp = self.safe_integer(response, 'ts')
+        first = self.safe_value(positions, 0)
+        position = self.parse_position(first)
+        return self.extend(position, {
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        })
+
+    def fetch_positions(self, symbols=None, params={}):
+        self.load_markets()
+        request = {}
+        if symbols is not None:
+            symbol = None
+            if isinstance(symbols, list):
+                symbolsLength = len(symbols)
+                if symbolsLength > 1:
+                    raise BadRequest(self.id + ' fetchPositions symbols argument cannot contain more than 1 symbol')
+                symbol = symbols[0]
+            else:
+                symbol = symbols
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        response = self.privateGetFuturesPosition(self.extend(request, params))
+        #
+        #    {
+        #        "code": 1,
+        #        "data": [
+        #            {
+        #                "autoMarginCall": False,
+        #                "avgEntryPrice": "3706.03",
+        #                "bankruptPrice": "2963.3415880000",
+        #                "base": "ETH",
+        #                "code": "FP",
+        #                "commission": "0.02964824",
+        #                "currentQty": "2",
+        #                "funding": "-0.04827355",
+        #                "fundingStatus": null,
+        #                "id": "385839395735639395",
+        #                "leverage": "5",
+        #                "liquidationPrice": "2983.07",
+        #                "marketPrice": "3731.84",
+        #                "openTime": "2021-12-31T18:57:25.930Z",
+        #                "posLeverage": "5.00",
+        #                "posMargin": "14.85376824",
+        #                "quote": "USDT",
+        #                "realisedPnl": "-0.07792179",
+        #                "riskLimit": "10000000",
+        #                "riskyPrice": "3272.25",
+        #                "settleType": "VANILLA",
+        #                "stopLossPrice": "0",
+        #                "stopLossSource": 1,
+        #                "symbol": "ETHUSDTFP",
+        #                "takeProfitPrice": "0",
+        #                "takeProfitSource": 1,
+        #                "unrealisedPnl": "0.51620000",
+        #                "userID": "3829384"
+        #            }
+        #            ...
+        #        ],
+        #        "message": "success",
+        #        "ts": 1641026778068
+        #    }
+        #
+        result = []
+        positions = self.safe_value(response, 'data', [])
+        timestamp = self.safe_integer(response, 'ts')
+        for i in range(0, len(positions)):
+            position = self.parse_position(positions[i])
+            result.append(self.extend(position, {
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+            }))
+        return self.filter_by_array(result, 'symbol', symbols, False)
 
     def nonce(self):
         return self.milliseconds()

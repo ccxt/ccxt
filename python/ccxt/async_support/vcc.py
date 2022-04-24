@@ -41,6 +41,9 @@ class vcc(Exchange):
                 'cancelOrder': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': True,
+                'createStopOrder': True,
                 'editOrder': None,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
@@ -85,6 +88,7 @@ class vcc(Exchange):
                 'setMarginMode': False,
                 'setPositionMode': False,
                 'transfer': False,
+                'withdraw': False,
             },
             'timeframes': {
                 '1m': '60000',

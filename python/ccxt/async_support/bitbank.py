@@ -634,11 +634,65 @@ class bitbank(Exchange):
             'amount': amount,
         }
         response = await self.privatePostUserRequestWithdrawal(self.extend(request, params))
+        #
+        #     {
+        #         "success": 1,
+        #         "data": {
+        #             "uuid": "string",
+        #             "asset": "btc",
+        #             "amount": 0,
+        #             "account_uuid": "string",
+        #             "fee": 0,
+        #             "status": "DONE",
+        #             "label": "string",
+        #             "txid": "string",
+        #             "address": "string",
+        #             "requested_at": 0
+        #         }
+        #     }
+        #
         data = self.safe_value(response, 'data', {})
-        txid = self.safe_string(data, 'txid')
+        return self.parse_transaction(data, currency)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        # withdraw
+        #
+        #     {
+        #         "uuid": "string",
+        #         "asset": "btc",
+        #         "amount": 0,
+        #         "account_uuid": "string",
+        #         "fee": 0,
+        #         "status": "DONE",
+        #         "label": "string",
+        #         "txid": "string",
+        #         "address": "string",
+        #         "requested_at": 0
+        #     }
+        #
+        txid = self.safe_string(transaction, 'txid')
+        currency = self.safe_currency(None, currency)
         return {
-            'info': response,
             'id': txid,
+            'txid': txid,
+            'timestamp': None,
+            'datetime': None,
+            'network': None,
+            'addressFrom': None,
+            'address': None,
+            'addressTo': None,
+            'amount': None,
+            'type': None,
+            'currency': currency['code'],
+            'status': None,
+            'updated': None,
+            'tagFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'comment': None,
+            'fee': None,
+            'info': transaction,
         }
 
     def nonce(self):

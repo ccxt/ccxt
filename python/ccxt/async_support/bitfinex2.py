@@ -47,6 +47,9 @@ class bitfinex2(bitfinex):
                 'createLimitOrder': True,
                 'createMarketOrder': True,
                 'createOrder': True,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': True,
+                'createStopOrder': True,
                 'editOrder': None,
                 'fetchBalance': True,
                 'fetchClosedOrder': True,
@@ -340,6 +343,11 @@ class bitfinex2(bitfinex):
                     'derivatives': 'margin',
                     'future': 'margin',
                 },
+                'swap': {
+                    'fetchMarkets': {
+                        'settlementCurrencies': ['BTC', 'USDT', 'EURT'],
+                    },
+                },
             },
             'exceptions': {
                 'exact': {
@@ -359,6 +367,10 @@ class bitfinex2(bitfinex):
                     'symbol: invalid': BadSymbol,
                     'Invalid order': InvalidOrder,
                 },
+            },
+            'commonCurrencies': {
+                'EUTFO': 'EURT',
+                'USTF0': 'USDT',
             },
         })
 
@@ -380,13 +392,13 @@ class bitfinex2(bitfinex):
         #    [0]  # maintenance
         #
         response = await self.publicGetPlatformStatus(params)
-        status = self.safe_integer(response, 0)
-        formattedStatus = 'ok' if (status == 1) else 'maintenance'
-        self.status = self.extend(self.status, {
-            'status': formattedStatus,
+        statusRaw = self.safe_string(response, 0)
+        return {
+            'status': self.safe_string({'0': 'maintenance', '1': 'ok'}, statusRaw, statusRaw),
             'updated': self.milliseconds(),
-        })
-        return self.status
+            'eta': None,
+            'info': response,
+        }
 
     async def fetch_markets(self, params={}):
         # todo drop v1 in favor of v2 configs  ( temp-reference for v2update: https://pastebin.com/raw/S8CmqSHQ )
@@ -402,7 +414,6 @@ class bitfinex2(bitfinex):
             if self.in_array(id, swapMarketIds):
                 spot = False
             swap = not spot
-            type = 'spot' if spot else 'swap'
             baseId = None
             quoteId = None
             if id.find(':') >= 0:
@@ -414,9 +425,19 @@ class bitfinex2(bitfinex):
                 quoteId = id[3:6]
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            splitBase = base.split('F0')
+            splitQuote = quote.split('F0')
+            base = self.safe_string(splitBase, 0)
+            quote = self.safe_string(splitQuote, 0)
             symbol = base + '/' + quote
             baseId = self.get_currency_id(baseId)
             quoteId = self.get_currency_id(quoteId)
+            settleId = None
+            settle = None
+            if swap:
+                settleId = quoteId
+                settle = self.safe_currency_code(settleId)
+                symbol = symbol + ':' + settle
             minOrderSizeString = self.safe_string(market, 'minimum_order_size')
             maxOrderSizeString = self.safe_string(market, 'maximum_order_size')
             result.append({
@@ -424,22 +445,21 @@ class bitfinex2(bitfinex):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'settle': None,  # TODO
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': None,  # TODO
-                'type': type,
+                'settleId': settleId,
+                'type': 'spot' if spot else 'swap',
                 'spot': spot,
-                'margin': self.safe_value(market, 'margin'),
+                'margin': self.safe_value(market, 'margin', False),
                 'swap': swap,
                 'future': False,
                 'option': False,
                 'active': True,
                 'contract': swap,
-                'linear': None if spot else True,  # TODO
-                'inverse': None if spot else False,  # TODO
-                'contractSize': None,  # TODO
-                'maintenanceMarginRate': None,
+                'linear': True if swap else None,
+                'inverse': False if swap else None,
+                'contractSize': self.parse_number('1') if swap else None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
@@ -619,7 +639,7 @@ class bitfinex2(bitfinex):
         await self.load_markets()
         accountsByType = self.safe_value(self.options, 'v2AccountsByType', {})
         requestedType = self.safe_string(params, 'type', 'exchange')
-        accountType = self.safe_string(accountsByType, requestedType)
+        accountType = self.safe_string(accountsByType, requestedType, requestedType)
         if accountType is None:
             keys = list(accountsByType.keys())
             raise ExchangeError(self.id + ' fetchBalance type parameter must be one of ' + ', '.join(keys))
@@ -1712,7 +1732,7 @@ class bitfinex2(bitfinex):
 
     async def fetch_positions(self, symbols=None, params={}):
         await self.load_markets()
-        response = await self.privatePostPositions(params)
+        response = await self.privatePostAuthRPositions(params)
         #
         #     [
         #         [

@@ -35,6 +35,9 @@ class wazirx(Exchange):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': True,
+                'createStopOrder': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': False,
                 'fetchClosedOrders': False,
@@ -376,15 +379,18 @@ class wazirx(Exchange):
     async def fetch_status(self, params={}):
         response = await self.publicGetSystemStatus(params)
         #
-        #  {"status":"normal","message":"System is running normally."}
+        #     {
+        #         "status":"normal",  # normal, system maintenance
+        #         "message":"System is running normally."
+        #     }
         #
         status = self.safe_string(response, 'status')
-        status = 'ok' if (status == 'normal') else 'maintenance'
-        self.status = self.extend(self.status, {
-            'status': status,
+        return {
+            'status': 'ok' if (status == 'normal') else 'maintenance',
             'updated': self.milliseconds(),
-        })
-        return self.status
+            'eta': None,
+            'info': response,
+        }
 
     async def fetch_time(self, params={}):
         response = await self.publicGetTime(params)

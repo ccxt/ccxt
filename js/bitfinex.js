@@ -379,10 +379,7 @@ module.exports = class bitfinex extends Exchange {
                     'spot': 'exchange',
                     'margin': 'trading',
                     'funding': 'deposit',
-                    'exchange': 'exchange',
-                    'trading': 'trading',
-                    'deposit': 'deposit',
-                    'derivatives': 'trading',
+                    'swap': 'trading',
                 },
             },
         });
@@ -595,7 +592,7 @@ module.exports = class bitfinex extends Exchange {
         await this.loadMarkets ();
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
         const requestedType = this.safeString (params, 'type', 'exchange');
-        const accountType = this.safeString (accountsByType, requestedType);
+        const accountType = this.safeString (accountsByType, requestedType, requestedType);
         if (accountType === undefined) {
             const keys = Object.keys (accountsByType);
             throw new ExchangeError (this.id + ' fetchBalance type parameter must be one of ' + keys.join (', '));
@@ -647,16 +644,8 @@ module.exports = class bitfinex extends Exchange {
         // however we support it in CCXT (from just looking at web inspector)
         await this.loadMarkets ();
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-        const fromId = this.safeString (accountsByType, fromAccount);
-        if (fromId === undefined) {
-            const keys = Object.keys (accountsByType);
-            throw new ExchangeError (this.id + ' transfer fromAccount must be one of ' + keys.join (', '));
-        }
-        const toId = this.safeString (accountsByType, toAccount);
-        if (toId === undefined) {
-            const keys = Object.keys (accountsByType);
-            throw new ExchangeError (this.id + ' transfer toAccount must be one of ' + keys.join (', '));
-        }
+        const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
+        const toId = this.safeString (accountsByType, toAccount, toAccount);
         const currency = this.currency (code);
         const fromCurrencyId = this.convertDerivativesId (currency['id'], fromAccount);
         const toCurrencyId = this.convertDerivativesId (currency['id'], toAccount);
@@ -669,33 +658,52 @@ module.exports = class bitfinex extends Exchange {
             'walletto': toId,
         };
         const response = await this.privatePostTransfer (this.extend (request, params));
-        // [
-        //   {
-        //     status: 'success',
-        //     message: '0.0001 Bitcoin transfered from Margin to Exchange'
-        //   }
-        // ]
+        //
+        //     [
+        //         {
+        //             status: 'success',
+        //             message: '0.0001 Bitcoin transfered from Margin to Exchange'
+        //         }
+        //     ]
+        //
         const result = this.safeValue (response, 0);
-        const status = this.safeString (result, 'status');
         const message = this.safeString (result, 'message');
         if (message === undefined) {
             throw new ExchangeError (this.id + ' transfer failed');
         }
-        // [{"status":"error","message":"Momentary balance check. Please wait few seconds and try the transfer again."}]
-        if (status === 'error') {
-            this.throwExactlyMatchedException (this.exceptions['exact'], message, this.id + ' ' + message);
-            throw new ExchangeError (this.id + ' ' + message);
-        }
-        return {
-            'info': response,
-            'status': status,
-            'amount': requestedAmount,
-            'code': code,
+        return this.extend (this.parseTransfer (result, currency), {
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'amount': this.parseNumber (requestedAmount),
+        });
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        //     {
+        //         status: 'success',
+        //         message: '0.0001 Bitcoin transfered from Margin to Exchange'
+        //     }
+        //
+        const timestamp = this.milliseconds ();
+        return {
+            'info': transfer,
+            'id': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': this.safeCurrencyCode (undefined, currency),
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': this.parseTransferStatus (this.safeString (transfer, 'status')),
         };
+    }
+
+    parseTransferStatus (status) {
+        const statuses = {
+            'SUCCESS': 'ok',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     convertDerivativesId (currencyId, type) {
@@ -1238,6 +1246,14 @@ module.exports = class bitfinex extends Exchange {
         //         "timestamp_created": "1561716066.0"
         //     }
         //
+        // withdraw
+        //
+        //     {
+        //         "status":"success",
+        //         "message":"Your withdrawal request has been successfully submitted.",
+        //         "withdrawal_id":586829
+        //     }
+        //
         const timestamp = this.safeTimestamp (transaction, 'timestamp_created');
         const updated = this.safeTimestamp (transaction, 'timestamp');
         const currencyId = this.safeString (transaction, 'currency');
@@ -1251,7 +1267,7 @@ module.exports = class bitfinex extends Exchange {
         const tag = this.safeString (transaction, 'description');
         return {
             'info': transaction,
-            'id': this.safeString (transaction, 'id'),
+            'id': this.safeString2 (transaction, 'id', 'withdrawal_id'),
             'txid': this.safeString (transaction, 'txid'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1291,6 +1307,7 @@ module.exports = class bitfinex extends Exchange {
         await this.loadMarkets ();
         // todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
         const name = this.getCurrencyName (code);
+        const currency = this.currency (code);
         const request = {
             'withdraw_type': name,
             'walletselected': 'exchange',
@@ -1301,7 +1318,16 @@ module.exports = class bitfinex extends Exchange {
             request['payment_id'] = tag;
         }
         const responses = await this.privatePostWithdraw (this.extend (request, params));
-        const response = responses[0];
+        //
+        //     [
+        //         {
+        //             "status":"success",
+        //             "message":"Your withdrawal request has been successfully submitted.",
+        //             "withdrawal_id":586829
+        //         }
+        //     ]
+        //
+        const response = this.safeValue (responses, 0, {});
         const id = this.safeString (response, 'withdrawal_id');
         const message = this.safeString (response, 'message');
         const errorMessage = this.findBroadlyMatchedKey (this.exceptions['broad'], message);
@@ -1312,10 +1338,7 @@ module.exports = class bitfinex extends Exchange {
             }
             throw new ExchangeError (this.id + ' withdraw returned an id of zero: ' + this.json (response));
         }
-        return {
-            'info': response,
-            'id': id,
-        };
+        return this.parseTransaction (response, currency);
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
@@ -1384,14 +1407,27 @@ module.exports = class bitfinex extends Exchange {
         if (response === undefined) {
             return;
         }
+        let throwError = false;
         if (code >= 400) {
-            if (body[0] === '{') {
-                const feedback = this.id + ' ' + body;
-                const message = this.safeString2 (response, 'message', 'error');
-                this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-                this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
-                throw new ExchangeError (feedback); // unknown message
+            const firstChar = this.safeString (body, 0);
+            if (firstChar === '{') {
+                throwError = true;
             }
+        } else {
+            // json response with error, i.e:
+            // [{"status":"error","message":"Momentary balance check. Please wait few seconds and try the transfer again."}]
+            const responseObject = this.safeValue (response, 0, {});
+            const status = this.safeString (responseObject, 'status', '');
+            if (status === 'error') {
+                throwError = true;
+            }
+        }
+        if (throwError) {
+            const feedback = this.id + ' ' + body;
+            const message = this.safeString2 (response, 'message', 'error');
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            throw new ExchangeError (feedback); // unknown message
         }
     }
 };

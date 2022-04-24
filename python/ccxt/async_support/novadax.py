@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import AccountNotEnabled
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -43,6 +44,9 @@ class novadax(Exchange):
                 'cancelOrder': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': True,
+                'createStopOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
@@ -85,6 +89,7 @@ class novadax(Exchange):
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
+                'transfer': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -165,7 +170,7 @@ class novadax(Exchange):
                     'A10004': RateLimitExceeded,  # 429 Too many requests Too many requests are made
                     'A10005': PermissionDenied,  # 403 Kyc required Need to complete KYC firstly
                     'A10006': AccountSuspended,  # 403 Customer canceled Account is canceled
-                    'A10007': BadRequest,  # 400 Account not exist Sub account does not exist
+                    'A10007': AccountNotEnabled,  # 400 Account not exist Sub account does not exist
                     'A10011': BadSymbol,  # 400 Symbol not exist Trading symbol does not exist
                     'A10012': BadSymbol,  # 400 Symbol not trading Trading symbol is temporarily not available
                     'A10013': OnMaintenance,  # 503 Symbol maintain Trading symbol is in maintain
@@ -181,6 +186,7 @@ class novadax(Exchange):
                     'A30010': CancelPending,  # 400 Order cancelling The order is being cancelled
                     'A30011': InvalidOrder,  # 400 Order price too high The order price is too high
                     'A30012': InvalidOrder,  # 400 Order price too low The order price is too low
+                    'A40004': InsufficientFunds,  # {"code":"A40004","data":[],"message":"sub account balance Insufficient"}
                 },
                 'broad': {
                 },
@@ -188,6 +194,9 @@ class novadax(Exchange):
             'options': {
                 'fetchOHLCV': {
                     'volume': 'amount',  # 'amount' for base volume or 'vol' for quote volume
+                },
+                'transfer': {
+                    'fillResponseFromRequest': True,
                 },
             },
         })
@@ -922,6 +931,65 @@ class novadax(Exchange):
             'fee': fee,
             'trades': None,
         }, market)
+
+    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        if fromAccount != 'main' and toAccount != 'main':
+            raise ExchangeError(self.id + ' transfer() supports transfers between main account and subaccounts only')
+        # master-transfer-in = from master account to subaccount
+        # master-transfer-out = from subaccount to master account
+        type = 'master-transfer-in' if (fromAccount == 'main') else 'master-transfer-out'
+        request = {
+            'transferAmount': self.currency_to_precision(code, amount),
+            'currency': currency['id'],
+            'subId': toAccount if (type == 'master-transfer-in') else fromAccount,
+            'transferType': type,
+        }
+        response = await self.privatePostAccountSubsTransfer(self.extend(request, params))
+        #
+        #    {
+        #        "code":"A10000",
+        #        "message":"Success",
+        #        "data":40
+        #    }
+        #
+        transfer = self.parse_transfer(response, currency)
+        transferOptions = self.safe_value(self.options, 'transfer', {})
+        fillResponseFromRequest = self.safe_value(transferOptions, 'fillResponseFromRequest', True)
+        if fillResponseFromRequest:
+            transfer['fromAccount'] = fromAccount
+            transfer['toAccount'] = toAccount
+            transfer['amount'] = amount
+        return transfer
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        #    {
+        #        "code":"A10000",
+        #        "message":"Success",
+        #        "data":40
+        #    }
+        #
+        id = self.safe_string(transfer, 'data')
+        status = self.safe_string(transfer, 'message')
+        return {
+            'info': transfer,
+            'id': id,
+            'amount': None,
+            'code': self.safe_currency_code(None, currency),
+            'fromAccount': None,
+            'toAccount': None,
+            'timestamp': None,
+            'datetime': None,
+            'status': status,
+        }
+
+    def parse_transfer_status(self, status):
+        statuses = {
+            'SUCCESS': 'pending',
+        }
+        return self.safe_string(statuses, status, 'failed')
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
         tag, params = self.handle_withdraw_tag_and_params(tag, params)

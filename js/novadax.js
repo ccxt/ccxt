@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, CancelPending, OrderNotFound, InsufficientFunds, RateLimitExceeded, InvalidOrder, AccountSuspended, BadSymbol, OnMaintenance, ArgumentsRequired } = require ('./base/errors');
+const { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, CancelPending, OrderNotFound, InsufficientFunds, RateLimitExceeded, InvalidOrder, AccountSuspended, BadSymbol, OnMaintenance, ArgumentsRequired, AccountNotEnabled } = require ('./base/errors');
 const { TRUNCATE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -30,6 +30,9 @@ module.exports = class novadax extends Exchange {
                 'cancelOrder': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
@@ -72,6 +75,7 @@ module.exports = class novadax extends Exchange {
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
+                'transfer': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -152,7 +156,7 @@ module.exports = class novadax extends Exchange {
                     'A10004': RateLimitExceeded, // 429 Too many requests Too many requests are made
                     'A10005': PermissionDenied, // 403 Kyc required Need to complete KYC firstly
                     'A10006': AccountSuspended, // 403 Customer canceled Account is canceled
-                    'A10007': BadRequest, // 400 Account not exist Sub account does not exist
+                    'A10007': AccountNotEnabled, // 400 Account not exist Sub account does not exist
                     'A10011': BadSymbol, // 400 Symbol not exist Trading symbol does not exist
                     'A10012': BadSymbol, // 400 Symbol not trading Trading symbol is temporarily not available
                     'A10013': OnMaintenance, // 503 Symbol maintain Trading symbol is in maintain
@@ -168,6 +172,7 @@ module.exports = class novadax extends Exchange {
                     'A30010': CancelPending, // 400 Order cancelling The order is being cancelled
                     'A30011': InvalidOrder, // 400 Order price too high The order price is too high
                     'A30012': InvalidOrder, // 400 Order price too low The order price is too low
+                    'A40004': InsufficientFunds, // {"code":"A40004","data":[],"message":"sub account balance Insufficient"}
                 },
                 'broad': {
                 },
@@ -175,6 +180,9 @@ module.exports = class novadax extends Exchange {
             'options': {
                 'fetchOHLCV': {
                     'volume': 'amount', // 'amount' for base volume or 'vol' for quote volume
+                },
+                'transfer': {
+                    'fillResponseFromRequest': true,
                 },
             },
         });
@@ -951,6 +959,70 @@ module.exports = class novadax extends Exchange {
             'fee': fee,
             'trades': undefined,
         }, market);
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        if (fromAccount !== 'main' && toAccount !== 'main') {
+            throw new ExchangeError (this.id + ' transfer() supports transfers between main account and subaccounts only');
+        }
+        // master-transfer-in = from master account to subaccount
+        // master-transfer-out = from subaccount to master account
+        const type = (fromAccount === 'main') ? 'master-transfer-in' : 'master-transfer-out';
+        const request = {
+            'transferAmount': this.currencyToPrecision (code, amount),
+            'currency': currency['id'],
+            'subId': (type === 'master-transfer-in') ? toAccount : fromAccount,
+            'transferType': type,
+        };
+        const response = await this.privatePostAccountSubsTransfer (this.extend (request, params));
+        //
+        //    {
+        //        "code":"A10000",
+        //        "message":"Success",
+        //        "data":40
+        //    }
+        //
+        const transfer = this.parseTransfer (response, currency);
+        const transferOptions = this.safeValue (this.options, 'transfer', {});
+        const fillResponseFromRequest = this.safeValue (transferOptions, 'fillResponseFromRequest', true);
+        if (fillResponseFromRequest) {
+            transfer['fromAccount'] = fromAccount;
+            transfer['toAccount'] = toAccount;
+            transfer['amount'] = amount;
+        }
+        return transfer;
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        //    {
+        //        "code":"A10000",
+        //        "message":"Success",
+        //        "data":40
+        //    }
+        //
+        const id = this.safeString (transfer, 'data');
+        const status = this.safeString (transfer, 'message');
+        return {
+            'info': transfer,
+            'id': id,
+            'amount': undefined,
+            'code': this.safeCurrencyCode (undefined, currency),
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'status': status,
+        };
+    }
+
+    parseTransferStatus (status) {
+        const statuses = {
+            'SUCCESS': 'pending',
+        };
+        return this.safeString (statuses, status, 'failed');
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {

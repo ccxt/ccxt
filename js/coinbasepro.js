@@ -29,6 +29,9 @@ module.exports = class coinbasepro extends Exchange {
                 'cancelOrder': true,
                 'createDepositAddress': true,
                 'createOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
@@ -1073,11 +1076,11 @@ module.exports = class coinbasepro extends Exchange {
          * @method
          * @name coinbasepro#deposit
          * @description Creates a new deposit address, as required by coinbasepro
-         * @param {string} code Unified CCXT currency code (e.g. `"USDT"`)
+         * @param {str} code Unified CCXT currency code (e.g. `"USDT"`)
          * @param {float} amount The amount of currency to send in the deposit (e.g. `20`)
-         * @param {string} address Not used by coinbasepro
-         * @param {dictionary} params Parameters specific to the exchange API endpoint (e.g. `{"network": "TRX"}`)
-         * @returns a [transaction structure](#https://docs.ccxt.com/en/latest/manual.html#transaction-structure)
+         * @param {str} address Not used by coinbasepro
+         * @param {dict} params Parameters specific to the exchange API endpoint (e.g. `{"network": "TRX"}`)
+         * @returns a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1133,10 +1136,7 @@ module.exports = class coinbasepro extends Exchange {
         if (!response) {
             throw new ExchangeError (this.id + ' withdraw() error: ' + this.json (response));
         }
-        return {
-            'info': response,
-            'id': response['id'],
-        };
+        return this.parseTransaction (response, currency);
     }
 
     parseLedgerEntryType (type) {

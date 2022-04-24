@@ -37,6 +37,9 @@ class bitfinex2 extends bitfinex {
                 'createLimitOrder' => true,
                 'createMarketOrder' => true,
                 'createOrder' => true,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
                 'editOrder' => null,
                 'fetchBalance' => true,
                 'fetchClosedOrder' => true,
@@ -330,6 +333,11 @@ class bitfinex2 extends bitfinex {
                     'derivatives' => 'margin',
                     'future' => 'margin',
                 ),
+                'swap' => array(
+                    'fetchMarkets' => array(
+                        'settlementCurrencies' => array( 'BTC', 'USDT', 'EURT' ),
+                    ),
+                ),
             ),
             'exceptions' => array(
                 'exact' => array(
@@ -349,6 +357,10 @@ class bitfinex2 extends bitfinex {
                     'symbol => invalid' => '\\ccxt\\BadSymbol',
                     'Invalid order' => '\\ccxt\\InvalidOrder',
                 ),
+            ),
+            'commonCurrencies' => array(
+                'EUTFO' => 'EURT',
+                'USTF0' => 'USDT',
             ),
         ));
     }
@@ -375,13 +387,13 @@ class bitfinex2 extends bitfinex {
         //    [0] // maintenance
         //
         $response = yield $this->publicGetPlatformStatus ($params);
-        $status = $this->safe_integer($response, 0);
-        $formattedStatus = ($status === 1) ? 'ok' : 'maintenance';
-        $this->status = array_merge($this->status, array(
-            'status' => $formattedStatus,
+        $statusRaw = $this->safe_string($response, 0);
+        return array(
+            'status' => $this->safe_string(array( '0' => 'maintenance', '1' => 'ok' ), $statusRaw, $statusRaw),
             'updated' => $this->milliseconds(),
-        ));
-        return $this->status;
+            'eta' => null,
+            'info' => $response,
+        );
     }
 
     public function fetch_markets($params = array ()) {
@@ -399,7 +411,6 @@ class bitfinex2 extends bitfinex {
                 $spot = false;
             }
             $swap = !$spot;
-            $type = $spot ? 'spot' : 'swap';
             $baseId = null;
             $quoteId = null;
             if (mb_strpos($id, ':') !== false) {
@@ -412,9 +423,20 @@ class bitfinex2 extends bitfinex {
             }
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            $splitBase = explode('F0', $base);
+            $splitQuote = explode('F0', $quote);
+            $base = $this->safe_string($splitBase, 0);
+            $quote = $this->safe_string($splitQuote, 0);
             $symbol = $base . '/' . $quote;
             $baseId = $this->get_currency_id($baseId);
             $quoteId = $this->get_currency_id($quoteId);
+            $settleId = null;
+            $settle = null;
+            if ($swap) {
+                $settleId = $quoteId;
+                $settle = $this->safe_currency_code($settleId);
+                $symbol = $symbol . ':' . $settle;
+            }
             $minOrderSizeString = $this->safe_string($market, 'minimum_order_size');
             $maxOrderSizeString = $this->safe_string($market, 'maximum_order_size');
             $result[] = array(
@@ -422,22 +444,21 @@ class bitfinex2 extends bitfinex {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
-                'settle' => null, // TODO
+                'settle' => $settle,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'settleId' => null, // TODO
-                'type' => $type,
+                'settleId' => $settleId,
+                'type' => $spot ? 'spot' : 'swap',
                 'spot' => $spot,
-                'margin' => $this->safe_value($market, 'margin'),
+                'margin' => $this->safe_value($market, 'margin', false),
                 'swap' => $swap,
                 'future' => false,
                 'option' => false,
                 'active' => true,
                 'contract' => $swap,
-                'linear' => $spot ? null : true, // TODO
-                'inverse' => $spot ? null : false, // TODO
-                'contractSize' => null, // TODO
-                'maintenanceMarginRate' => null,
+                'linear' => $swap ? true : null,
+                'inverse' => $swap ? false : null,
+                'contractSize' => $swap ? $this->parse_number('1') : null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,
@@ -621,7 +642,7 @@ class bitfinex2 extends bitfinex {
         yield $this->load_markets();
         $accountsByType = $this->safe_value($this->options, 'v2AccountsByType', array());
         $requestedType = $this->safe_string($params, 'type', 'exchange');
-        $accountType = $this->safe_string($accountsByType, $requestedType);
+        $accountType = $this->safe_string($accountsByType, $requestedType, $requestedType);
         if ($accountType === null) {
             $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
             throw new ExchangeError($this->id . ' fetchBalance $type parameter must be one of ' . implode(', ', $keys));
@@ -1805,7 +1826,7 @@ class bitfinex2 extends bitfinex {
 
     public function fetch_positions($symbols = null, $params = array ()) {
         yield $this->load_markets();
-        $response = yield $this->privatePostPositions ($params);
+        $response = yield $this->privatePostAuthRPositions ($params);
         //
         //     array(
         //         array(

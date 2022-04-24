@@ -49,6 +49,9 @@ class kraken(Exchange):
                 'cancelOrder': True,
                 'createDepositAddress': True,
                 'createOrder': True,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': True,
+                'createStopOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowInterest': False,
                 'fetchBorrowRate': False,
@@ -1607,17 +1610,18 @@ class kraken(Exchange):
         #
         # fetchDeposits
         #
-        #     {method: "Ether(Hex)",
-        #       aclass: "currency",
-        #        asset: "XETH",
-        #        refid: "Q2CANKL-LBFVEE-U4Y2WQ",
+        #     {
+        #         method: "Ether(Hex)",
+        #         aclass: "currency",
+        #         asset: "XETH",
+        #         refid: "Q2CANKL-LBFVEE-U4Y2WQ",
         #         txid: "0x57fd704dab1a73c20e24c8696099b695d596924b401b261513cfdab23…",
         #         info: "0x615f9ba7a9575b0ab4d571b2b36b1b324bd83290",
-        #       amount: "7.9999257900",
-        #          fee: "0.0000000000",
+        #         amount: "7.9999257900",
+        #         fee: "0.0000000000",
         #         time:  1529223212,
-        #       status: "Success"                                                       }
-        #
+        #         status: "Success"
+        #     }
         #
         # there can be an additional 'status-prop' field present
         # deposit pending review by exchange => 'on-hold'
@@ -1641,19 +1645,25 @@ class kraken(Exchange):
         #
         # fetchWithdrawals
         #
-        #     {method: "Ether",
-        #       aclass: "currency",
-        #        asset: "XETH",
-        #        refid: "A2BF34S-O7LBNQ-UE4Y4O",
+        #     {
+        #         method: "Ether",
+        #         aclass: "currency",
+        #         asset: "XETH",
+        #         refid: "A2BF34S-O7LBNQ-UE4Y4O",
         #         txid: "0x288b83c6b0904d8400ef44e1c9e2187b5c8f7ea3d838222d53f701a15b5c274d",
         #         info: "0x7cb275a5e07ba943fee972e165d80daa67cb2dd0",
-        #       amount: "9.9950000000",
-        #          fee: "0.0050000000",
+        #         amount: "9.9950000000",
+        #         fee: "0.0050000000",
         #         time:  1530481750,
-        #       status: "Success"                                                             }
+        #         status: "Success"
+        #         status-prop: 'on-hold'  # self field might not be present in some cases
+        #     }
         #
-        # withdrawals may also have an additional 'status-prop' field present
+        # withdraw
         #
+        #     {
+        #         "refid": "AGBSO6T-UFMTTQ-I7KGS6"
+        #     }
         #
         id = self.safe_string(transaction, 'refid')
         txid = self.safe_string(transaction, 'txid')
@@ -1888,12 +1898,16 @@ class kraken(Exchange):
                 # 'address': address,  # they don't allow withdrawals to direct addresses
             }
             response = await self.privatePostWithdraw(self.extend(request, params))
+            #
+            #     {
+            #         "error": [],
+            #         "result": {
+            #             "refid": "AGBSO6T-UFMTTQ-I7KGS6"
+            #         }
+            #     }
+            #
             result = self.safe_value(response, 'result', {})
-            id = self.safe_string(result, 'refid')
-            return {
-                'info': result,
-                'id': id,
-            }
+            return self.parse_transaction(result, currency)
         raise ExchangeError(self.id + " withdraw() requires a 'key' parameter(withdrawal key name, as set up on your account)")
 
     async def fetch_positions(self, symbols=None, params={}):

@@ -42,6 +42,9 @@ class bybit(Exchange):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': True,
+                'createStopOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
@@ -876,29 +879,53 @@ class bybit(Exchange):
             quote = self.safe_currency_code(quoteId)
             settle = self.safe_currency_code(settleId)
             linear = (quote in linearQuoteCurrencies)
-            inverse = not linear
             symbol = base + '/' + quote
             baseQuote = base + quote
             type = 'swap'
             if baseQuote != id:
-                symbol = id
                 type = 'future'
             lotSizeFilter = self.safe_value(market, 'lot_size_filter', {})
             priceFilter = self.safe_value(market, 'price_filter', {})
-            precision = {
-                'amount': self.safe_number(lotSizeFilter, 'qty_step'),
-                'price': self.safe_number(priceFilter, 'tick_size'),
-            }
             leverage = self.safe_value(market, 'leverage_filter', {})
             status = self.safe_string(market, 'status')
             active = None
             if status is not None:
                 active = (status == 'Trading')
-            spot = (type == 'spot')
             swap = (type == 'swap')
             future = (type == 'future')
             option = (type == 'option')
             contract = swap or future or option
+            expiry = None
+            expiryDatetime = None
+            strike = None
+            optionType = None
+            if contract:
+                if settle is None:
+                    settleId = quoteId if linear else baseId
+                    settle = self.safe_currency_code(settleId)
+                symbol = symbol + ':' + settle
+                if future:
+                    alias = self.safe_string(market, 'alias')
+                    shortDate = alias[-4:]
+                    date = self.iso8601(self.milliseconds())
+                    splitDate = date.split('-')
+                    year = splitDate[0]
+                    expiryMonth = shortDate[0:2]
+                    expiryDay = shortDate[2:4]
+                    expiryDatetime = year + '-' + expiryMonth + '-' + expiryDay + 'T00:00:00Z'
+                    expiry = self.parse8601(expiryDatetime)
+                    symbol = symbol + '-' + self.yymmdd(expiry)
+                elif option:
+                    expiry = self.safe_integer(market, 'deliveryTime')
+                    expiryDatetime = self.iso8601(expiry)
+                    splitId = self.split(id, '-')
+                    strike = self.safe_string(splitId, 2)
+                    optionLetter = self.safe_string(splitId, 3)
+                    symbol = symbol + '-' + self.yymmdd(expiry) + ':' + strike + ':' + optionLetter
+                    if optionLetter == 'P':
+                        optionType = 'put'
+                    elif optionLetter == 'C':
+                        optionType = 'call'
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -908,26 +935,33 @@ class bybit(Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
-                'active': active,
-                'precision': precision,
-                'taker': self.safe_number(market, 'taker_fee'),
-                'maker': self.safe_number(market, 'maker_fee'),
                 'type': type,
-                'spot': spot,
+                'spot': (type == 'spot'),
                 'margin': None,  # todo
-                'contract': contract,
-                'contractSize': None,  # todo
                 'swap': swap,
                 'future': future,
                 'futures': future,  # Deprecated, use future
                 'option': option,
+                'active': active,
+                'contract': contract,
                 'linear': linear,
-                'inverse': inverse,
-                'expiry': None,  # todo
-                'expiryDatetime': None,  # todo
-                'optionType': None,
-                'strike': None,
+                'inverse': not linear,
+                'taker': self.safe_number(market, 'taker_fee'),
+                'maker': self.safe_number(market, 'maker_fee'),
+                'contractSize': None,  # todo
+                'expiry': expiry,
+                'expiryDatetime': expiryDatetime,
+                'strike': strike,
+                'optionType': optionType,
+                'precision': {
+                    'amount': self.safe_number(lotSizeFilter, 'qty_step'),
+                    'price': self.safe_number(priceFilter, 'tick_size'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': self.parse_number('1'),
+                        'max': self.safe_number(leverage, 'max_leverage', 1),
+                    },
                     'amount': {
                         'min': self.safe_number(lotSizeFilter, 'min_trading_qty'),
                         'max': self.safe_number(lotSizeFilter, 'max_trading_qty'),
@@ -939,9 +973,6 @@ class bybit(Exchange):
                     'cost': {
                         'min': None,
                         'max': None,
-                    },
-                    'leverage': {
-                        'max': self.safe_number(leverage, 'max_leverage', 1),
                     },
                 },
                 'info': market,
@@ -3082,19 +3113,19 @@ class bybit(Exchange):
         #        ...
         #    ]
         #
-        notionalFloor = 0
+        minNotional = 0
         tiers = []
         for i in range(0, len(info)):
             item = info[i]
-            notionalCap = self.safe_number(item, 'limit')
+            maxNotional = self.safe_number(item, 'limit')
             tiers.append({
                 'tier': self.sum(i, 1),
                 'currency': market['base'],
-                'notionalFloor': notionalFloor,
-                'notionalCap': notionalCap,
+                'minNotional': minNotional,
+                'maxNotional': maxNotional,
                 'maintenanceMarginRate': self.safe_number(item, 'maintain_margin'),
                 'maxLeverage': self.safe_number(item, 'max_leverage'),
                 'info': item,
             })
-            notionalFloor = notionalCap
+            minNotional = maxNotional
         return tiers

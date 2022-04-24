@@ -36,6 +36,9 @@ class ascendex extends Exchange {
                 'cancelOrder' => true,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => true,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
@@ -238,9 +241,9 @@ class ascendex extends Exchange {
                     'method' => 'v1PrivateAccountGroupGetOrderHist', // 'v1PrivateAccountGroupGetAccountCategoryOrderHistCurrent'
                 ),
                 'defaultType' => 'spot', // 'spot', 'margin', 'swap'
-                'accountCategories' => array(
+                'accountsByType' => array(
                     'spot' => 'cash',
-                    'swap' => 'futures',
+                    'future' => 'futures',
                     'margin' => 'margin',
                 ),
                 'transfer' => array(
@@ -687,8 +690,8 @@ class ascendex extends Exchange {
         yield $this->load_accounts();
         list($marketType, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         $options = $this->safe_value($this->options, 'fetchBalance', array());
-        $accountCategories = $this->safe_value($this->options, 'accountCategories', array());
-        $accountCategory = $this->safe_string($accountCategories, $marketType, 'cash');
+        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $accountCategory = $this->safe_string($accountsByType, $marketType, 'cash');
         $account = $this->safe_value($this->accounts, 0, array());
         $accountGroup = $this->safe_string($account, 'id');
         $request = array(
@@ -1237,8 +1240,8 @@ class ascendex extends Exchange {
         $market = $this->market($symbol);
         list($style, $query) = $this->handle_market_type_and_params('createOrder', $market, $params);
         $options = $this->safe_value($this->options, 'createOrder', array());
-        $accountCategories = $this->safe_value($this->options, 'accountCategories', array());
-        $accountCategory = $this->safe_string($accountCategories, $style, 'cash');
+        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $accountCategory = $this->safe_string($accountsByType, $style, 'cash');
         $account = $this->safe_value($this->accounts, 0, array());
         $accountGroup = $this->safe_value($account, 'id');
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'id');
@@ -1376,8 +1379,8 @@ class ascendex extends Exchange {
         }
         list($type, $query) = $this->handle_market_type_and_params('fetchOrder', $market, $params);
         $options = $this->safe_value($this->options, 'fetchOrder', array());
-        $accountCategories = $this->safe_value($this->options, 'accountCategories', array());
-        $accountCategory = $this->safe_string($accountCategories, $type, 'cash');
+        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $accountCategory = $this->safe_string($accountsByType, $type, 'cash');
         $account = $this->safe_value($this->accounts, 0, array());
         $accountGroup = $this->safe_value($account, 'id');
         $request = array(
@@ -1481,8 +1484,8 @@ class ascendex extends Exchange {
         $account = $this->safe_value($this->accounts, 0, array());
         $accountGroup = $this->safe_value($account, 'id');
         list($type, $query) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
-        $accountCategories = $this->safe_value($this->options, 'accountCategories', array());
-        $accountCategory = $this->safe_string($accountCategories, $type, 'cash');
+        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $accountCategory = $this->safe_string($accountsByType, $type, 'cash');
         $request = array(
             'account-group' => $accountGroup,
             'account-category' => $accountCategory,
@@ -1612,8 +1615,8 @@ class ascendex extends Exchange {
             'margin' => $defaultMethod,
             'swap' => 'v2PrivateAccountGroupGetFuturesOrderHistCurrent',
         ));
-        $accountCategories = $this->safe_value($this->options, 'accountCategories', array());
-        $accountCategory = $this->safe_string($accountCategories, $type, 'cash');
+        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $accountCategory = $this->safe_string($accountsByType, $type, 'cash');
         if ($method === 'v1PrivateAccountGroupGetOrderHist') {
             if ($accountCategory !== null) {
                 $request['category'] = $accountCategory;
@@ -1747,8 +1750,8 @@ class ascendex extends Exchange {
         $market = $this->market($symbol);
         list($type, $query) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
         $options = $this->safe_value($this->options, 'cancelOrder', array());
-        $accountCategories = $this->safe_value($this->options, 'accountCategories', array());
-        $accountCategory = $this->safe_string($accountCategories, $type, 'cash');
+        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $accountCategory = $this->safe_string($accountsByType, $type, 'cash');
         $account = $this->safe_value($this->accounts, 0, array());
         $accountGroup = $this->safe_value($account, 'id');
         $request = array(
@@ -1856,8 +1859,8 @@ class ascendex extends Exchange {
         }
         list($type, $query) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
         $options = $this->safe_value($this->options, 'cancelAllOrders', array());
-        $accountCategories = $this->safe_value($this->options, 'accountCategories', array());
-        $accountCategory = $this->safe_string($accountCategories, $type, 'cash');
+        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $accountCategory = $this->safe_string($accountsByType, $type, 'cash');
         $account = $this->safe_value($this->accounts, 0, array());
         $accountGroup = $this->safe_value($account, 'id');
         $request = array(
@@ -2367,30 +2370,32 @@ class ascendex extends Exchange {
 
     public function parse_market_leverage_tiers($info, $market = null) {
         /**
-            @param $info => Exchange $market response for 1 $market
-            {
-                "symbol":"BTC-PERP",
-                "status":"Normal",
-                "displayName":"BTCUSDT",
-                "settlementAsset":"USDT",
-                "underlying":"BTC/USDT",
-                "tradingStartTime":1579701600000,
-                "priceFilter":array("minPrice":"1","maxPrice":"1000000","tickSize":"1"),
-                "lotSizeFilter":array("minQty":"0.0001","maxQty":"1000000000","lotSize":"0.0001"),
-                "commissionType":"Quote",
-                "commissionReserveRate":"0.001",
-                "marketOrderPriceMarkup":"0.03",
-                "marginRequirements":array(
-                    array("positionNotionalLowerBound":"0","positionNotionalUpperBound":"50000","initialMarginRate":"0.01","maintenanceMarginRate":"0.006"),
-                    array("positionNotionalLowerBound":"50000","positionNotionalUpperBound":"200000","initialMarginRate":"0.02","maintenanceMarginRate":"0.012"),
-                    array("positionNotionalLowerBound":"200000","positionNotionalUpperBound":"2000000","initialMarginRate":"0.04","maintenanceMarginRate":"0.024"),
-                    array("positionNotionalLowerBound":"2000000","positionNotionalUpperBound":"20000000","initialMarginRate":"0.1","maintenanceMarginRate":"0.06"),
-                    array("positionNotionalLowerBound":"20000000","positionNotionalUpperBound":"40000000","initialMarginRate":"0.2","maintenanceMarginRate":"0.12"),
-                    array("positionNotionalLowerBound":"40000000","positionNotionalUpperBound":"1000000000","initialMarginRate":"0.333333","maintenanceMarginRate":"0.2")
-                )
-            }
-            @param $market => CCXT $market
-        */
+         * @param {dict} $info Exchange $market response for 1 $market
+         * @param {dict} $market CCXT $market
+         */
+        //
+        //    {
+        //        "symbol":"BTC-PERP",
+        //        "status":"Normal",
+        //        "displayName":"BTCUSDT",
+        //        "settlementAsset":"USDT",
+        //        "underlying":"BTC/USDT",
+        //        "tradingStartTime":1579701600000,
+        //        "priceFilter":array("minPrice":"1","maxPrice":"1000000","tickSize":"1"),
+        //        "lotSizeFilter":array("minQty":"0.0001","maxQty":"1000000000","lotSize":"0.0001"),
+        //        "commissionType":"Quote",
+        //        "commissionReserveRate":"0.001",
+        //        "marketOrderPriceMarkup":"0.03",
+        //        "marginRequirements":array(
+        //            array("positionNotionalLowerBound":"0","positionNotionalUpperBound":"50000","initialMarginRate":"0.01","maintenanceMarginRate":"0.006"),
+        //            array("positionNotionalLowerBound":"50000","positionNotionalUpperBound":"200000","initialMarginRate":"0.02","maintenanceMarginRate":"0.012"),
+        //            array("positionNotionalLowerBound":"200000","positionNotionalUpperBound":"2000000","initialMarginRate":"0.04","maintenanceMarginRate":"0.024"),
+        //            array("positionNotionalLowerBound":"2000000","positionNotionalUpperBound":"20000000","initialMarginRate":"0.1","maintenanceMarginRate":"0.06"),
+        //            array("positionNotionalLowerBound":"20000000","positionNotionalUpperBound":"40000000","initialMarginRate":"0.2","maintenanceMarginRate":"0.12"),
+        //            array("positionNotionalLowerBound":"40000000","positionNotionalUpperBound":"1000000000","initialMarginRate":"0.333333","maintenanceMarginRate":"0.2")
+        //        )
+        //    }
+        //
         $marginRequirements = $this->safe_value($info, 'marginRequirements');
         $id = $this->safe_string($info, 'symbol');
         $market = $this->safe_market($id, $market);
@@ -2401,8 +2406,8 @@ class ascendex extends Exchange {
             $tiers[] = array(
                 'tier' => $this->sum($i, 1),
                 'currency' => $market['quote'],
-                'notionalFloor' => $this->safe_number($tier, 'positionNotionalLowerBound'),
-                'notionalCap' => $this->safe_number($tier, 'positionNotionalUpperBound'),
+                'minNotional' => $this->safe_number($tier, 'positionNotionalLowerBound'),
+                'maxNotional' => $this->safe_number($tier, 'positionNotionalUpperBound'),
                 'maintenanceMarginRate' => $this->safe_number($tier, 'maintenanceMarginRate'),
                 'maxLeverage' => $this->parse_number(Precise::string_div('1', $initialMarginRate)),
                 'info' => $tier,
@@ -2418,19 +2423,11 @@ class ascendex extends Exchange {
         $accountGroup = $this->safe_string($account, 'id');
         $currency = $this->currency($code);
         $amount = $this->currency_to_precision($code, $amount);
-        $accountCategories = $this->safe_value($this->options, 'accountCategories', array());
-        $fromId = $this->safe_string($accountCategories, $fromAccount);
-        $toId = $this->safe_string($accountCategories, $toAccount);
-        if ($fromId === null) {
-            $keys = is_array($accountCategories) ? array_keys($accountCategories) : array();
-            throw new ExchangeError($this->id . ' $fromAccount must be one of ' . implode(', ', $keys));
-        }
-        if ($toId === null) {
-            $keys = is_array($accountCategories) ? array_keys($accountCategories) : array();
-            throw new ExchangeError($this->id . ' $toAccount must be one of ' . implode(', ', $keys));
-        }
-        if ($fromAccount !== 'spot' && $toAccount !== 'spot') {
-            throw new ExchangeError('This exchange only supports direct balance $transfer between spot and swap, spot and margin');
+        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
+        $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
+        if ($fromId !== 'cash' && $toId !== 'cash') {
+            throw new ExchangeError($this->id . ' $transfer() only supports direct balance $transfer between spot and future, spot and margin');
         }
         $request = array(
             'account-group' => $accountGroup,
@@ -2443,13 +2440,9 @@ class ascendex extends Exchange {
         //
         //    array( $code => '0' )
         //
-        $status = $this->safe_integer($response, 'code');
         $transferOptions = $this->safe_value($this->options, 'transfer', array());
         $fillResponseFromRequest = $this->safe_value($transferOptions, 'fillResponseFromRequest', true);
-        $transfer = array(
-            'info' => $response,
-            'status' => $this->parse_transfer_status($status),
-        );
+        $transfer = $this->parse_transfer($response, $currency);
         if ($fillResponseFromRequest) {
             $transfer['fromAccount'] = $fromAccount;
             $transfer['toAccount'] = $toAccount;
@@ -2457,6 +2450,26 @@ class ascendex extends Exchange {
             $transfer['currency'] = $code;
         }
         return $transfer;
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        //    array( code => '0' )
+        //
+        $status = $this->safe_integer($transfer, 'code');
+        $currencyCode = $this->safe_currency_code(null, $currency);
+        $timestamp = $this->milliseconds();
+        return array(
+            'info' => $transfer,
+            'id' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'currency' => $currencyCode,
+            'amount' => null,
+            'fromAccount' => null,
+            'toAccount' => null,
+            'status' => $this->parse_transfer_status($status),
+        );
     }
 
     public function parse_transfer_status($status) {

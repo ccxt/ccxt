@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.78.43';
+$version = '1.80.56';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.78.43';
+    const VERSION = '1.80.56';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -274,6 +274,7 @@ class Exchange {
         'onJsonResponse' => 'on_json_response',
         'setMarkets' => 'set_markets',
         'loadMarketsHelper' => 'load_markets_helper',
+        'fetchPermissions' => 'fetch_permissions',
         'loadMarkets' => 'load_markets',
         'loadAccounts' => 'load_accounts',
         'fetchBidsAsks' => 'fetch_bids_asks',
@@ -331,6 +332,7 @@ class Exchange {
         'parseTransactions' => 'parse_transactions',
         'parseTransfers' => 'parse_transfers',
         'parseLedger' => 'parse_ledger',
+        'safeLedgerEntry' => 'safe_ledger_entry',
         'parseOrders' => 'parse_orders',
         'safeCurrency' => 'safe_currency',
         'safeCurrencyCode' => 'safe_currency_code',
@@ -378,6 +380,12 @@ class Exchange {
         'loadTimeDifference' => 'load_time_difference',
         'parseLeverageTiers' => 'parse_leverage_tiers',
         'fetchMarketLeverageTiers' => 'fetch_market_leverage_tiers',
+        'isPostOnly' => 'is_post_only',
+        'createPostOnlyOrder' => 'create_post_only_order',
+        'createStopOrder' => 'create_stop_order',
+        'createStopLimitOrder' => 'create_stop_limit_order',
+        'createStopMarketOrder' => 'create_stop_market_order',
+        'parseBorrowInterests' => 'parse_borrow_interests',
     );
 
     public static function split($string, $delimiters = array(' ')) {
@@ -639,7 +647,7 @@ class Exchange {
         $result = array();
         foreach ($array as $element) {
             if (isset($key, $element) && ($element[$key] == $value)) {
-                $result[] = $element[$key];
+                $result[] = $element;
             }
         }
         return $result;
@@ -1168,6 +1176,7 @@ class Exchange {
         $this->userAgents = array(
             'chrome' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
             'chrome39' => 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
+            'chrome100' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36',
         );
         $this->minFundingAddressLength = 1; // used in check_address
         $this->substituteCommonCurrencyCodes = true;
@@ -1207,6 +1216,8 @@ class Exchange {
             'createLimitOrder' => true,
             'createMarketOrder' => true,
             'createOrder' => true,
+            'createPostOnlyOrder' => null,
+            'createStopOrder' => null,
             'editOrder' => 'emulated',
             'fetchAccounts' => null,
             'fetchBalance' => true,
@@ -1248,6 +1259,7 @@ class Exchange {
             'fetchOrderBooks' => null,
             'fetchOrders' => null,
             'fetchOrderTrades' => null,
+            'fetchPermissions' => null,
             'fetchPosition' => null,
             'fetchPositions' => null,
             'fetchPositionsRisk' => null,
@@ -1894,6 +1906,10 @@ class Exchange {
         return $this->markets;
     }
 
+    public function fetch_permissions($params = array()) {
+        throw new NotSupported($this->id . ' fetch_permissions() not supported yet');
+    }
+
     public function load_markets($reload = false, $params = array()) {
         if (!$reload && $this->markets) {
             if (!$this->markets_by_id) {
@@ -2297,15 +2313,69 @@ class Exchange {
         return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
     }
 
+    public function safe_ledger_entry($entry, $currency = null) {
+        $currency = $this->safe_currency(null, $currency);
+        $direction = $this->safe_string($entry, 'direction');
+        $before = $this->safe_string($entry, 'before');
+        $after = $this->safe_string($entry, 'after');
+        $amount = $this->safe_string($entry, 'amount');
+        $fee = $this->safe_string($entry, 'fee');
+        if ($amount !== null && $fee !== null) {
+            if ($before === null && $after !== null) {
+                $amountAndFee = Precise::string_add($amount, $fee);
+                $before = Precise::string_sub($after, $amountAndFee);
+            } else if ($before !== null && $after === null) {
+                $amountAndFee = Precise::string_add($amount, $fee);
+                $after = Precise::string_add($before, $amountAndFee);
+            }
+        }
+        if ($before !== null && $after !== null) {
+            if ($direction === null) {
+                if (Precise::string_gt($before, $after)) {
+                    $direction = 'out';
+                }
+                if (Precise::string_gt($after, $before)) {
+                    $direction = 'in';
+                }
+            }
+            if ($amount === null && $fee !== null) {
+                $betweenAfterBefore = Precise::string_sub($after, $before);
+                $amount = Precise::string_sub($betweenAfterBefore, $fee);
+            }
+            if ($amount !== null && $fee === null) {
+                $betweenAfterBefore = Precise::string_sub($after, $before);
+                $fee = Precise::string_sub($betweenAfterBefore, $amount);
+            }
+        }
+        return array_merge(array(
+            'id' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'direction' => null,
+            'account' => null,
+            'referenceId' => null,
+            'referenceAccount' => null,
+            'type' => null,
+            'currency' => $currency['code'],
+            'amount' => $amount,
+            'before' => $before,
+            'after' => $after,
+            'status' => null,
+            'fee' => $fee,
+            'info' => null,
+        ), $entry);
+    }
+
     public function parse_orders($orders, $market = null, $since = null, $limit = null, $params = array()) {
         $result = array();
-        if (count(array_filter(array_keys($orders), 'is_string')) == 0) {
+        $keys = array_keys($orders);
+        if ($keys === array_keys($keys)) {
             foreach ($orders as $order) {
                 $result[] = array_replace_recursive($this->parse_order($order, $market), $params);
             }
         } else {
             foreach ($orders as $id => $order) {
-                $result[] = array_replace_recursive($this->parse_order(array_replace_recursive(array('id' => $id), $order), $market), $params);
+                $result[] = array_replace_recursive($this->parse_order(array_replace_recursive(array('id' => (string) $id), $order), $market), $params);
             }
         }
         $result = $this->sort_by($result, 'timestamp');
@@ -2736,18 +2806,22 @@ class Exchange {
 
     public function fee_to_precision($symbol, $fee) {
         $market = $this->market($symbol);
-        return self::decimalToPrecision($fee, ROUND, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
+        return self::decimal_to_precision($fee, ROUND, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
     }
 
-    public function currency_to_precision($currency, $fee) {
-        return self::decimal_to_precision($fee, ROUND, $this->currencies[$currency]['precision'], $this->precisionMode, $this->paddingMode);
+    public function currency_to_precision($code, $fee) {
+        return self::decimal_to_precision($fee, ROUND, $this->currencies[$code]['precision'], $this->precisionMode, $this->paddingMode);
     }
 
     public function currency($code) {
-        return (('string' === gettype($code)) &&
-                   isset($this->currencies) &&
-                   isset($this->currencies[$code])) ?
-                        $this->currencies[$code] : $code;
+        if ('string' === gettype($code)) {
+            if (isset($this->currencies) && isset($this->currencies[$code])) {
+                return $this->currencies[$code];
+            } else if (isset($this->currencies_by_id) && isset($this->currencies_by_id[$code])) {
+                return $this->currencies_by_id[$code];
+            }
+        }
+        throw new ExchangeError ($this->id + ' does not have currency code ' + ((string) $code));
     }
 
     public function market($symbol) {
@@ -3668,12 +3742,12 @@ class Exchange {
     public function fetch_borrow_rate($code, $params = array()) {
         $this->load_markets();
         if (!$this->has['fetchBorrowRates']) {
-            throw new NotSupported($this->id + 'fetchBorrowRate() is not supported yet');
+            throw new NotSupported($this->id . ' fetchBorrowRate() is not supported yet');
         }
         $borrow_rates = $this->fetch_borrow_rates($params);
         $rate = $this->safe_value($borrow_rates, $code);
         if ($rate == null) {
-            throw new ExchangeError($this->id + 'fetchBorrowRate() could not find the borrow rate for currency code ' + $code);
+            throw new ExchangeError($this->id . ' fetchBorrowRate() could not find the borrow rate for currency code ' . $code);
         }
         return $rate;
     }
@@ -3725,16 +3799,87 @@ class Exchange {
         if ($this->has['fetchLeverageTiers']) {
             $market = $this->market($symbol);
             if (!$market['contract']) {
-                throw new BadRequest($this->id + ' fetchLeverageTiers() supports contract markets only');
+                throw new BadRequest($this->id . ' fetchLeverageTiers() supports contract markets only');
             }
             $tiers = $this->fetch_leverage_tiers(array($symbol));
             return $this->safe_value($tiers, $symbol);
         } else {
-            throw new NotSupported($this->id + 'fetch_market_leverage_tiers() is not supported yet');
+            throw new NotSupported($this->id . ' fetch_market_leverage_tiers() is not supported yet');
         }
     }
 
     public function sleep($milliseconds) {
         sleep($milliseconds / 1000);
+    }
+
+    public function is_post_only($type, $time_in_force, $exchange_specific_option, $params = array()){
+        $post_only = $this->safe_value2($params, 'postOnly', 'post_only', false);
+        $params = $this->omit($params, ['post_only', 'postOnly']);
+        $time_in_force_upper = $time_in_force.upper();
+        $type_upper = $type.lower();
+        $ioc = $time_in_force_upper === 'IOC';
+        $time_in_force_post_only = $time_in_force_upper === 'PO';
+        $is_market = $type_lower === 'market';
+        $post_only = $post_only || $type_lower === 'postonly' || $time_in_force_post_only || $exchange_specific_option;
+        if ($post_only) {
+            if ($ioc) {
+                throw new InvalidOrder($this->id . ' postOnly orders cannot have timeInForce equal to ' . $time_in_force);
+            } else if ($is_market) {
+                throw new InvalidOrder($this->id . ' postOnly orders cannot have type ' . $type);
+            } else {
+                $time_in_force = $time_in_force_post_only ? null : $time_in_force;
+                return ['limit', True, $time_in_force, $params];
+            }
+        } else {
+            return [$type, False, $time_in_force, $params];
+        }
+    }
+
+    public function create_post_only_order($symbol, $type, $side, $amount, $price, $params = array()) {
+        if (!$this->has['createPostOnlyOrder']) {
+            throw new NotSupported($this->id . ' create_post_only_order() is not supported yet');
+        }
+        $array = array('postOnly' => true);
+        $query = $this->extend($params, $array);
+        return $this->create_order($symbol, $type, $side, $amount, $price, $params);
+    }
+
+    public function parse_borrow_interests($response, $market = null) {
+        $interest = array();
+        for ($i = 0; $i < count($response); $i++){
+            $row = $response[$i];
+            array_push($interest, $this->parseBorrowInterest ($row, $market));
+        }
+        return $interest;
+    }
+
+    public function create_stop_order($symbol, $type, $side, $amount, $price = null, $stopPrice = null, $params = array()) {
+        if (!$this->has['createStopOrder']) {
+            throw new NotSupported($this->id . ' create_stop_order() is not supported yet');
+        }
+        if ($stopPrice === null) {
+            throw new ArgumentsRequired($this->id . ' create_stop_order() requires a stopPrice argument');
+        }
+        $array = array('stopPrice' => $stopPrice);
+        $query = $this->extend($params, $array);
+        return $this->create_order($symbol, $type, $side, $amount, $price, $query);
+    }
+
+    public function create_stop_limit_order($symbol, $side, $amount, $price, $stopPrice, $params = array()) {
+        if (!$this->has['createStopLimitOrder']) {
+            throw new NotSupported($this->id . ' create_stop_limit_order() is not supported yet');
+        }
+        $array = array('stopPrice' => $stopPrice);
+        $query = $this->extend($params, $array);
+        return $this->create_order($symbol, 'limit', $side, $amount, $price, $query);
+    }
+
+    public function create_stop_market_order($symbol, $side, $amount, $stopPrice, $params = array()) {
+        if (!$this->has['createStopMarketOrder']) {
+            throw new NotSupported($this->id . ' create_stop_market_order() is not supported yet');
+        }
+        $array = array('stopPrice' => $stopPrice);
+        $query = $this->extend($params, $array);
+        return $this->create_order($symbol, 'market', $side, $amount, null, $query);
     }
 }

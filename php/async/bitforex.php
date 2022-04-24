@@ -43,6 +43,12 @@ class bitforex extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => null,
                 'fetchTrades' => true,
+                'fetchTransfer' => false,
+                'fetchTransfers' => false,
+                'fetchWithdrawal' => false,
+                'fetchWithdrawals' => false,
+                'transfer' => false,
+                'withdraw' => false,
             ),
             'timeframes' => array(
                 '1m' => '1min',

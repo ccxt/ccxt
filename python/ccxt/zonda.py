@@ -70,6 +70,7 @@ class zonda(Exchange):
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
+                'transfer': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -229,6 +230,9 @@ class zonda(Exchange):
             },
             'options': {
                 'fiatCurrencies': ['EUR', 'USD', 'GBP', 'PLN'],
+                'transfer': {
+                    'fillResponseFromRequest': True,
+                },
             },
             'exceptions': {
                 '400': ExchangeError,  # At least one parameter wasn't set
@@ -1190,6 +1194,105 @@ class zonda(Exchange):
         }
         return self.safe_value(fiatCurrencies, currency, False)
 
+    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'source': fromAccount,
+            'destination': toAccount,
+            'currency': code,
+            'funds': self.currency_to_precision(code, amount),
+        }
+        response = self.v1_01PrivatePostBalancesBITBAYBalanceTransferSourceDestination(self.extend(request, params))
+        #
+        #     {
+        #         "status": "Ok",
+        #         "from": {
+        #             "id": "ad9397c5-3bd9-4372-82ba-22da6a90cb56",
+        #             "userId": "4bc43956-423f-47fd-9faa-acd37c58ed9f",
+        #             "availableFunds": 0.01803472,
+        #             "totalFunds": 0.01804161,
+        #             "lockedFunds": 0.00000689,
+        #             "currency": "BTC",
+        #             "type": "CRYPTO",
+        #             "name": "BTC",
+        #             "balanceEngine": "BITBAY"
+        #         },
+        #         "to": {
+        #             "id": "01931d52-536b-4ca5-a9f4-be28c86d0cc3",
+        #             "userId": "4bc43956-423f-47fd-9faa-acd37c58ed9f",
+        #             "availableFunds": 0.0001,
+        #             "totalFunds": 0.0001,
+        #             "lockedFunds": 0,
+        #             "currency": "BTC",
+        #             "type": "CRYPTO",
+        #             "name": "Prowizja",
+        #             "balanceEngine": "BITBAY"
+        #         },
+        #         "errors": null
+        #     }
+        #
+        transfer = self.parse_transfer(response, currency)
+        transferOptions = self.safe_value(self.options, 'transfer', {})
+        fillResponseFromRequest = self.safe_value(transferOptions, 'fillResponseFromRequest', True)
+        if fillResponseFromRequest:
+            transfer['amount'] = amount
+        return transfer
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        #     {
+        #         "status": "Ok",
+        #         "from": {
+        #             "id": "ad9397c5-3bd9-4372-82ba-22da6a90cb56",
+        #             "userId": "4bc43956-423f-47fd-9faa-acd37c58ed9f",
+        #             "availableFunds": 0.01803472,
+        #             "totalFunds": 0.01804161,
+        #             "lockedFunds": 0.00000689,
+        #             "currency": "BTC",
+        #             "type": "CRYPTO",
+        #             "name": "BTC",
+        #             "balanceEngine": "BITBAY"
+        #         },
+        #         "to": {
+        #             "id": "01931d52-536b-4ca5-a9f4-be28c86d0cc3",
+        #             "userId": "4bc43956-423f-47fd-9faa-acd37c58ed9f",
+        #             "availableFunds": 0.0001,
+        #             "totalFunds": 0.0001,
+        #             "lockedFunds": 0,
+        #             "currency": "BTC",
+        #             "type": "CRYPTO",
+        #             "name": "Prowizja",
+        #             "balanceEngine": "BITBAY"
+        #         },
+        #         "errors": null
+        #     }
+        #
+        status = self.safe_string(transfer, 'status')
+        fromAccount = self.safe_value(transfer, 'from', {})
+        fromId = self.safe_string(fromAccount, 'id')
+        to = self.safe_value(transfer, 'to', {})
+        toId = self.safe_string(to, 'id')
+        currencyId = self.safe_string(fromAccount, 'currency')
+        return {
+            'info': transfer,
+            'id': None,
+            'timestamp': None,
+            'datetime': None,
+            'currency': self.safe_currency_code(currencyId, currency),
+            'amount': None,
+            'fromAccount': fromId,
+            'toAccount': toId,
+            'status': self.parse_transfer_status(status),
+        }
+
+    def parse_transfer_status(self, status):
+        statuses = {
+            'Ok': 'ok',
+            'Fail': 'failed',
+        }
+        return self.safe_string(statuses, status, status)
+
     def withdraw(self, code, amount, address, tag=None, params={}):
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
@@ -1211,9 +1314,46 @@ class zonda(Exchange):
                 address += '?dt=' + str(tag)
             request['address'] = address
         response = getattr(self, method)(self.extend(request, params))
+        #
+        #     {
+        #         "status": "Ok",
+        #         "data": {
+        #           "id": "65e01087-afb0-4ab2-afdb-cc925e360296"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data')
+        return self.parse_transaction(data, currency)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        # withdraw
+        #
+        #     {
+        #         "id": "65e01087-afb0-4ab2-afdb-cc925e360296"
+        #     }
+        #
+        currency = self.safe_currency(None, currency)
         return {
-            'info': response,
-            'id': None,
+            'id': self.safe_string(transaction, 'id'),
+            'txid': None,
+            'timestamp': None,
+            'datetime': None,
+            'network': None,
+            'addressFrom': None,
+            'address': None,
+            'addressTo': None,
+            'amount': None,
+            'type': None,
+            'currency': currency['code'],
+            'status': None,
+            'updated': None,
+            'tagFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'comment': None,
+            'fee': None,
+            'info': transaction,
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

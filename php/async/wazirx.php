@@ -29,6 +29,9 @@ class wazirx extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => false,
                 'fetchClosedOrders' => false,
@@ -383,15 +386,18 @@ class wazirx extends Exchange {
     public function fetch_status($params = array ()) {
         $response = yield $this->publicGetSystemStatus ($params);
         //
-        //  array( "status":"normal","message":"System is running normally." )
+        //     {
+        //         "status":"normal", // normal, system maintenance
+        //         "message":"System is running normally."
+        //     }
         //
         $status = $this->safe_string($response, 'status');
-        $status = ($status === 'normal') ? 'ok' : 'maintenance';
-        $this->status = array_merge($this->status, array(
-            'status' => $status,
+        return array(
+            'status' => ($status === 'normal') ? 'ok' : 'maintenance',
             'updated' => $this->milliseconds(),
-        ));
-        return $this->status;
+            'eta' => null,
+            'info' => $response,
+        );
     }
 
     public function fetch_time($params = array ()) {

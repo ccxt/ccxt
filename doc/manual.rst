@@ -1028,9 +1028,9 @@ The CCXT library currently supports the following 114 cryptocurrency exchange ma
      
      - idex
      - `IDEX <https://idex.io>`__
-     - .. image:: https://img.shields.io/badge/2-lightgray
+     - .. image:: https://img.shields.io/badge/3-lightgray
           :target: https://docs.idex.io/
-          :alt: API Version 2
+          :alt: API Version 3
      
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
           :target: https://github.com/ccxt/ccxt/wiki/Certification
@@ -4133,18 +4133,18 @@ Leverage Tiers Structure
    [
        {
            "tier": 1,                       // tier index
-           "notionalCurrency": "USDT",      // the currency that notionalFloor and notionalCap are in
-           "notionalFloor": 0,              // the lowest amount of this tier // stake = 0.0
-           "notionalCap": 10000,            // the highest amount of this tier // max stake amount at 75x leverage = 133.33333333333334
+           "notionalCurrency": "USDT",      // the currency that minNotional and maxNotional are in
+           "minNotional": 0,                // the lowest amount of this tier // stake = 0.0
+           "maxNotional": 10000,            // the highest amount of this tier // max stake amount at 75x leverage = 133.33333333333334
            "maintenanceMarginRate": 0.0065, // maintenance margin rate
-           "maxLeverage": 75,               // max available leverage for this market when the value of the trade is > notionalFloor and < notionalCap
+           "maxLeverage": 75,               // max available leverage for this market when the value of the trade is > minNotional and < maxNotional
            "info": { ... }                  // Response from exchange
        },
        {
            "tier": 2,
            "notionalCurrency": "USDT",
-           "notionalFloor": 10000,          // min stake amount at 50x leverage = 200.0
-           "notionalCap": 50000,            // max stake amount at 50x leverage = 1000.0
+           "minNotional": 10000,            // min stake amount at 50x leverage = 200.0
+           "maxNotional": 50000,            // max stake amount at 50x leverage = 1000.0
            "maintenanceMarginRate": 0.01,
            "maxLeverage": 50,
            "info": { ... },
@@ -4153,8 +4153,8 @@ Leverage Tiers Structure
        {
            "tier": 9,
            "notionalCurrency": "USDT",
-           "notionalFloor": 20000000,
-           "notionalCap": 50000000,
+           "minNotional": 20000000,
+           "maxNotional": 50000000,
            "maintenanceMarginRate": 0.5,
            "maxLeverage": 1,
            "info": { ... },
@@ -5104,8 +5104,8 @@ Parameters
  * **type** a string literal type of order
   **Unified types:**
 
-  * :doc:`\ ``market`` <market orders>` not allowed by some exchanges, see :ref:`their docs <exchanges>` for details 
-  * :doc:`\ ``limit`` <limit orders>`
+  * :doc:`market <market orders>` not allowed by some exchanges, see :ref:`their docs <exchanges>` for details 
+  * :doc:`limit <limit orders>`
   * see #custom-order-params and #other-order-types for non-unified types
 
  * **amount**\ , how much of currency you want to trade usually, but not always, in units of the base currency of the trading pair symbol (the units for some exchanges are dependent on the side of the order: see their API docs for details.)
@@ -6237,7 +6237,7 @@ Be careful when specifying the ``tag`` and the ``address``. The ``tag`` is **NOT
 Transfers
 ---------
 
-The ``transfer`` method makes internal transfers of funds between accounts on the same exchange. If an exchange is separated on CCXT into a spot and futures class (e.g. ``binanceusdm``\ , ``kucoinfutures``\ , ...), then the method ``transferIn`` may be available to transfer funds into the futures account, and the method ``transferOut`` may be available to transfer funds out of the futures account
+The ``transfer`` method makes internal transfers of funds between accounts on the same exchange. This can include subaccounts or accounts of different types (\ ``spot``\ , ``margin``\ , ``future``\ , ...). If an exchange is separated on CCXT into a spot and futures class (e.g. ``binanceusdm``\ , ``kucoinfutures``\ , ...), then the method ``transferIn`` may be available to transfer funds into the futures account, and the method ``transferOut`` may be available to transfer funds out of the futures account
 
 .. code-block:: Javascript
 
@@ -6249,18 +6249,22 @@ Parameters
  * **code** (String) Unified CCXT currency code (e.g. ``"USDT"``\ )
  * **amount** (Float) The amount of currency to transfer (e.g. ``10.5``\ )
  * **fromAccount** (String) The account to transfer funds from.
- * **toAccount** (String) The account to transfer funds to
+ * **toAccount** (String) The account to transfer funds to.
  * **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. ``{"endTime": 1645807945000}``\ )
+ * **params.symbol** (String) Market symbol when transfering to or from a margin account (e.g. ``'BTC/USDT'``\ )
 
  **Account Types**
 
-Unified values for ``fromAccount`` and ``toAccount`` include
+``fromAccount`` and ``toAccount`` can accept the exchange account id or one of the following unified values:
 
 
- * ``funding`` *For some exchanges ``funding`` and ``spot`` are the same account*
+ * ``funding`` *for some exchanges ``funding`` and ``spot`` are the same account*
+ * ``main`` *for some exchanges that allow for subaccounts*
  * ``spot``
  * ``margin``
  * ``future``
+ * ``swap``
+ * ``lending``
 
 You can retrieve all the account types by selecting the keys from `exchange.options['accountsByType']
 
@@ -6302,6 +6306,23 @@ Returns
 
 
  * An array of :ref:`transfer structures <transfer structure>`
+
+.. code-block:: Javascript
+
+   fetchTransfer (id, since = undefined, limit = undefined, params = {})
+
+Parameters
+
+
+ * **id** (String) tranfer id (e.g. ``"12345"``\ )
+ * **since** (Integer) Timestamp (ms) of the earliest time to retrieve transfers for (e.g. ``1646940314000``\ )
+ * **limit** (Integer) The number of :ref:`transfer structures <transfer structure>` to retrieve (e.g. ``5``\ )
+ * **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. ``{"endTime": 1645807945000}``\ )
+
+Returns
+
+
+ * A :ref:`transfer structure <transfer structure>`
 
 Transfer Structure
 ^^^^^^^^^^^^^^^^^^

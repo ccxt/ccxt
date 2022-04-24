@@ -34,9 +34,14 @@ module.exports = class bitmart extends Exchange {
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
+                'fetchDeposit': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchFundingFee': true,
+                'fetchFundingFees': false,
+                'fetchFundingHistory': undefined,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -54,7 +59,12 @@ module.exports = class bitmart extends Exchange {
                 'fetchTradingFees': false,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
+                'fetchWithdrawAddressesByNetwork': false,
+                'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
                 'transfer': false,
                 'withdraw': true,
             },
@@ -355,26 +365,26 @@ module.exports = class bitmart extends Exchange {
         const response = await this.publicSystemGetService (params);
         //
         //     {
-        //         "code": 1000,
-        //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
         //         "message": "OK",
+        //         "code": 1000,
+        //         "trace": "1d3f28b0-763e-4f78-90c4-5e3ad19dc595",
         //         "data": {
-        //             "serivce":[
-        //                 {
-        //                     "title": "Spot API Stop",
-        //                     "service_type": "spot",
-        //                     "status": "2",
-        //                     "start_time": 1527777538000,
-        //                     "end_time": 1527777538000
-        //                 },
-        //                 {
-        //                     "title": "Contract API Stop",
-        //                     "service_type": "contract",
-        //                     "status": "2",
-        //                     "start_time": 1527777538000,
-        //                     "end_time": 1527777538000
-        //                 }
-        //             ]
+        //           "service": [
+        //             {
+        //               "title": "Spot API Stop",
+        //               "service_type": "spot",
+        //               "status": 2,
+        //               "start_time": 1648639069125,
+        //               "end_time": 1648639069125
+        //             },
+        //             {
+        //               "title": "Contract API Stop",
+        //               "service_type": "contract",
+        //               "status": 2,
+        //               "start_time": 1648639069125,
+        //               "end_time": 1648639069125
+        //             }
+        //           ]
         //         }
         //     }
         //
@@ -396,12 +406,12 @@ module.exports = class bitmart extends Exchange {
                 eta = this.safeInteger (service, 'end_time');
             }
         }
-        this.status = this.extend (this.status, {
+        return {
             'status': status,
             'updated': this.milliseconds (),
             'eta': eta,
-        });
-        return this.status;
+            'info': response,
+        };
     }
 
     async fetchSpotMarkets (params = {}) {
@@ -2229,8 +2239,74 @@ module.exports = class bitmart extends Exchange {
         return this.parseTransactions (records, currency, since, limit);
     }
 
+    async fetchDeposit (id, code = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'id': id,
+        };
+        const response = await this.privateAccountGetDepositWithdrawDetail (this.extend (request, params));
+        //
+        //     {
+        //         "message":"OK",
+        //         "code":1000,
+        //         "trace":"f7f74924-14da-42a6-b7f2-d3799dd9a612",
+        //         "data":{
+        //             "record":{
+        //                 "withdraw_id":"",
+        //                 "deposit_id":"1679952",
+        //                 "operation_type":"deposit",
+        //                 "currency":"BMX",
+        //                 "apply_time":1588867374000,
+        //                 "arrival_amount":"59.000000000000",
+        //                 "fee":"1.000000000000",
+        //                 "status":0,
+        //                 "address":"0xe57b69a8776b37860407965B73cdFFBDFe668Bb5",
+        //                 "address_memo":"",
+        //                 "tx_id":""
+        //             }
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const record = this.safeValue (data, 'record', {});
+        return this.parseTransaction (record);
+    }
+
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         return await this.fetchTransactionsByType ('deposit', code, since, limit, params);
+    }
+
+    async fetchWithdrawal (id, code = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'id': id,
+        };
+        const response = await this.privateAccountGetDepositWithdrawDetail (this.extend (request, params));
+        //
+        //     {
+        //         "message":"OK",
+        //         "code":1000,
+        //         "trace":"f7f74924-14da-42a6-b7f2-d3799dd9a612",
+        //         "data":{
+        //             "record":{
+        //                 "withdraw_id":"1679952",
+        //                 "deposit_id":"",
+        //                 "operation_type":"withdraw",
+        //                 "currency":"BMX",
+        //                 "apply_time":1588867374000,
+        //                 "arrival_amount":"59.000000000000",
+        //                 "fee":"1.000000000000",
+        //                 "status":0,
+        //                 "address":"0xe57b69a8776b37860407965B73cdFFBDFe668Bb5",
+        //                 "address_memo":"",
+        //                 "tx_id":""
+        //             }
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const record = this.safeValue (data, 'record', {});
+        return this.parseTransaction (record);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2257,7 +2333,7 @@ module.exports = class bitmart extends Exchange {
         //         "withdraw_id": "121212"
         //     }
         //
-        // fetchDeposits, fetchWithdrawals
+        // fetchDeposits, fetchWithdrawals, fetchWithdrawal
         //
         //     {
         //         "withdraw_id":"1679952",

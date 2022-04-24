@@ -33,6 +33,9 @@ class deribit extends Exchange {
                 'cancelOrder' => true,
                 'createDepositAddress' => true,
                 'createOrder' => true,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
@@ -391,25 +394,28 @@ class deribit extends Exchange {
     }
 
     public function fetch_status($params = array ()) {
-        $request = array(
-            // 'expected_result' => false, // true will trigger an error for testing purposes
-        );
-        $this->publicGetTest (array_merge($request, $params));
+        $response = $this->publicGetStatus ($params);
         //
         //     {
-        //         jsonrpc => '2.0',
-        //         result => array( version => '1.2.26' ),
-        //         usIn => 1583922623964485,
-        //         usOut => 1583922623964487,
-        //         usDiff => 2,
-        //         testnet => false
+        //         "jsonrpc" => "2.0",
+        //         "result" => array(
+        //             "locked" => "false" // true, partial, false
+        //         ),
+        //         "usIn" => 1650641690226788,
+        //         "usOut" => 1650641690226836,
+        //         "usDiff" => 48,
+        //         "testnet" => false
         //     }
         //
-        $this->status = array_merge($this->status, array(
-            'status' => 'ok',
-            'updated' => $this->milliseconds(),
-        ));
-        return $this->status;
+        $result = $this->safe_string($response, 'result');
+        $locked = $this->safe_string($result, 'locked');
+        $updateTime = $this->safe_integer_product($response, 'usIn', 0.001, $this->milliseconds());
+        return array(
+            'status' => ($locked === 'false') ? 'ok' : 'maintenance',
+            'updated' => $updateTime,
+            'eta' => null,
+            'info' => $response,
+        );
     }
 
     public function fetch_markets($params = array ()) {
@@ -2082,10 +2088,7 @@ class deribit extends Exchange {
             $request['tfa'] = $this->oath();
         }
         $response = $this->privateGetWithdraw (array_merge($request, $params));
-        return array(
-            'info' => $response,
-            'id' => $this->safe_string($response, 'id'),
-        );
+        return $this->parse_transaction($response, $currency);
     }
 
     public function nonce() {

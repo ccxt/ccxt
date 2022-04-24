@@ -556,9 +556,31 @@ class tidebit extends Exchange {
             $request['memo'] = $tag;
         }
         $result = yield $this->privatePostWithdrawsApply (array_merge($request, $params));
+        return $this->parse_transaction($result, $currency);
+    }
+
+    public function parse_transaction($transaction, $currency = null) {
+        $currency = $this->safe_currency(null, $currency);
         return array(
-            'info' => $result,
             'id' => null,
+            'txid' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'network' => null,
+            'addressFrom' => null,
+            'address' => null,
+            'addressTo' => null,
+            'amount' => null,
+            'type' => null,
+            'currency' => $currency['code'],
+            'status' => null,
+            'updated' => null,
+            'tagFrom' => null,
+            'tag' => null,
+            'tagTo' => null,
+            'comment' => null,
+            'fee' => null,
+            'info' => $transaction,
         );
     }
 

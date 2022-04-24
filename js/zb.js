@@ -31,11 +31,15 @@ module.exports = class zb extends Exchange {
                 'createMarketOrder': undefined,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': true,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': true,
+                'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
@@ -1725,37 +1729,34 @@ module.exports = class zb extends Exchange {
         const swap = market['swap'];
         const spot = market['spot'];
         const timeInForce = this.safeString (params, 'timeInForce');
+        const reduceOnly = this.safeValue (params, 'reduceOnly');
+        const stop = this.safeValue (params, 'stop');
+        const stopPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
         if (type === 'market') {
             throw new InvalidOrder (this.id + ' createOrder() on ' + market['type'] + ' markets does not allow market orders');
         }
-        const method = this.getSupportedMapping (market['type'], {
+        let method = this.getSupportedMapping (market['type'], {
             'spot': 'spotV1PrivateGetOrder',
             'swap': 'contractV2PrivatePostTradeOrder',
         });
         const request = {
             'amount': this.amountToPrecision (symbol, amount),
+            // 'symbol': market['id'],
             // 'acctType': 0, // Spot, Margin 0/1/2 [Spot/Isolated/Cross] Optional, Default to: 0 Spot
             // 'customerOrderId': '1f2g', // Spot, Margin
             // 'orderType': 1, // Spot, Margin order type 1/2 [PostOnly/IOC] Optional
+            // 'triggerPrice': 30000.0, // Stop trigger price
+            // 'algoPrice': 29000.0, // Stop order price
+            // 'priceType': 1, // Stop Loss Take Profit, 1: Mark price, 2: Last price
+            // 'bizType': 1, // Stop Loss Take Profit, 1: TP, 2: SL
         };
-        if (price) {
-            request['price'] = this.priceToPrecision (symbol, price);
-        }
-        if (spot) {
-            request['tradeType'] = (side === 'buy') ? '1' : '0';
-            request['currency'] = market['id'];
-            if (timeInForce !== undefined) {
-                if (timeInForce === 'PO') {
-                    request['orderType'] = 1;
-                } else if (timeInForce === 'IOC') {
-                    request['orderType'] = 2;
-                } else {
-                    throw new InvalidOrder (this.id + ' createOrder() on ' + market['type'] + ' markets does not allow ' + timeInForce + ' orders');
-                }
-            }
-        } else if (swap) {
-            const reduceOnly = this.safeValue (params, 'reduceOnly');
-            params = this.omit (params, 'reduceOnly');
+        if (stop || stopPrice) {
+            method = 'contractV2PrivatePostTradeOrderAlgo';
+            const orderType = this.safeInteger (params, 'orderType');
+            const priceType = this.safeInteger (params, 'priceType');
+            const bizType = this.safeInteger (params, 'bizType');
+            const algoPrice = this.safeNumber (params, 'algoPrice');
+            request['symbol'] = market['id'];
             if (side === 'sell' && reduceOnly) {
                 request['side'] = 3; // close long
             } else if (side === 'buy' && reduceOnly) {
@@ -1764,23 +1765,66 @@ module.exports = class zb extends Exchange {
                 request['side'] = 1; // open long
             } else if (side === 'sell') {
                 request['side'] = 2; // open short
+            } else if (side === 5) {
+                request['side'] = 5; // one way position buy
+            } else if (side === 6) {
+                request['side'] = 6; // one way position sell
+            } else if (side === 0) {
+                request['side'] = 0; // one way position close only
             }
-            if (type === 'limit') {
-                request['action'] = 1;
-            } else if (timeInForce === 'IOC') {
-                request['action'] = 3;
-            } else if (timeInForce === 'PO') {
-                request['action'] = 4;
-            } else if (timeInForce === 'FOK') {
-                request['action'] = 5;
-            } else {
-                request['action'] = type;
+            if (type === 'trigger' || orderType === 1) {
+                request['orderType'] = 1;
+            } else if (type === 'stop loss' || type === 'take profit' || orderType === 2 || priceType || bizType) {
+                request['orderType'] = 2;
+                request['priceType'] = priceType;
+                request['bizType'] = bizType;
             }
-            request['symbol'] = market['id'];
-            request['clientOrderId'] = params['clientOrderId']; // OPTIONAL '^[a-zA-Z0-9-_]{1,36}$', // The user-defined order number
-            request['extend'] = params['extend']; // OPTIONAL {"orderAlgos":[{"bizType":1,"priceType":1,"triggerPrice":"70000"},{"bizType":2,"priceType":1,"triggerPrice":"40000"}]}
+            request['triggerPrice'] = this.priceToPrecision (symbol, stopPrice);
+            request['algoPrice'] = this.priceToPrecision (symbol, algoPrice);
+        } else {
+            if (price) {
+                request['price'] = this.priceToPrecision (symbol, price);
+            }
+            if (spot) {
+                request['tradeType'] = (side === 'buy') ? '1' : '0';
+                request['currency'] = market['id'];
+                if (timeInForce !== undefined) {
+                    if (timeInForce === 'PO') {
+                        request['orderType'] = 1;
+                    } else if (timeInForce === 'IOC') {
+                        request['orderType'] = 2;
+                    } else {
+                        throw new InvalidOrder (this.id + ' createOrder() on ' + market['type'] + ' markets does not allow ' + timeInForce + ' orders');
+                    }
+                }
+            } else if (swap) {
+                if (side === 'sell' && reduceOnly) {
+                    request['side'] = 3; // close long
+                } else if (side === 'buy' && reduceOnly) {
+                    request['side'] = 4; // close short
+                } else if (side === 'buy') {
+                    request['side'] = 1; // open long
+                } else if (side === 'sell') {
+                    request['side'] = 2; // open short
+                }
+                if (type === 'limit') {
+                    request['action'] = 1;
+                } else if (timeInForce === 'IOC') {
+                    request['action'] = 3;
+                } else if (timeInForce === 'PO') {
+                    request['action'] = 4;
+                } else if (timeInForce === 'FOK') {
+                    request['action'] = 5;
+                } else {
+                    request['action'] = type;
+                }
+                request['symbol'] = market['id'];
+                request['clientOrderId'] = params['clientOrderId']; // OPTIONAL '^[a-zA-Z0-9-_]{1,36}$', // The user-defined order number
+                request['extend'] = params['extend']; // OPTIONAL {"orderAlgos":[{"bizType":1,"priceType":1,"triggerPrice":"70000"},{"bizType":2,"priceType":1,"triggerPrice":"40000"}]}
+            }
         }
-        let response = await this[method] (this.extend (request, params));
+        const query = this.omit (params, [ 'reduceOnly', 'stop', 'stopPrice', 'orderType', 'triggerPrice', 'algoPrice', 'priceType', 'bizType' ]);
+        let response = await this[method] (this.extend (request, query));
         //
         // Spot
         //
@@ -1801,13 +1845,21 @@ module.exports = class zb extends Exchange {
         //         }
         //     }
         //
-        if (swap) {
+        // Algo order
+        //
+        //     {
+        //         "code": 10000,
+        //         "data": "6919884551305242624",
+        //         "desc": "操作成功"
+        //     }
+        //
+        if (swap && stop === undefined && stopPrice === undefined) {
             response = this.safeValue (response, 'data');
+            response['timeInForce'] = timeInForce;
+            response['type'] = request['tradeType'];
+            response['total_amount'] = amount;
+            response['price'] = price;
         }
-        response['timeInForce'] = timeInForce;
-        response['type'] = request['tradeType'];
-        response['total_amount'] = amount;
-        response['price'] = price;
         return this.parseOrder (response, market);
     }
 
@@ -1858,13 +1910,21 @@ module.exports = class zb extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const stop = this.safeValue (params, 'stop');
         if (market['spot']) {
             throw new NotSupported (this.id + ' cancelAllOrders() is not supported on ' + market['type'] + ' markets');
         }
         const request = {
             'symbol': market['id'],
+            // 'ids': [ 6904603200733782016, 6819506476072247297 ], // STOP
+            // 'side': params['side'], // STOP, for stop orders: 1 Open long (buy), 2 Open short (sell), 3 Close long (sell), 4 Close Short (Buy). One-Way Positions: 5 Buy, 6 Sell, 0 Close Only
         };
-        return await this.contractV2PrivatePostTradeCancelAllOrders (this.extend (request, params));
+        let method = 'contractV2PrivatePostTradeCancelAllOrders';
+        if (stop) {
+            method = 'contractV2PrivatePostTradeCancelAlgos';
+        }
+        const query = this.omit (params, 'stop');
+        return await this[method] (this.extend (request, query));
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -1873,23 +1933,64 @@ module.exports = class zb extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const reduceOnly = this.safeValue (params, 'reduceOnly');
+        const stop = this.safeValue (params, 'stop');
         const swap = market['swap'];
         const request = {
             // 'currency': this.marketId (symbol), // only applicable to SPOT
             // 'id': id.toString (), // only applicable to SPOT
-            // 'symbol': this.marketId (symbol), // only applicable to SWAP
             // 'orderId': id.toString (), // only applicable to SWAP
             // 'clientOrderId': params['clientOrderId'], // only applicable to SWAP
+            // 'symbol': market['id'], // STOP and SWAP
+            // 'side': params['side'], // STOP and SWAP, for stop orders: 1 Open long (buy), 2 Open short (sell), 3 Close long (sell), 4 Close Short (Buy). One-Way Positions: 5 Buy, 6 Sell, 0 Close Only
+            // 'orderType': 1, // STOP, 1: Plan order, 2: SP/SL
+            // 'bizType': 1, // Plan order, 1: TP, 2: SL
+            // 'status': 1, // STOP, 1: untriggered, 2: cancelled, 3:triggered, 4:failed, 5:completed
+            // 'startTime': since, // STOP and SWAP
+            // 'endTime': params['endTime'], // STOP and SWAP
+            // 'pageNum': 1, // STOP and SWAP, default 1
+            // 'pageSize': limit, // STOP, default 10
         };
         const marketIdField = swap ? 'symbol' : 'currency';
         request[marketIdField] = this.marketId (symbol);
         const orderIdField = swap ? 'orderId' : 'id';
         request[orderIdField] = id.toString ();
-        const method = this.getSupportedMapping (market['type'], {
+        let method = this.getSupportedMapping (market['type'], {
             'spot': 'spotV1PrivateGetGetOrder',
             'swap': 'contractV2PrivateGetTradeGetOrder',
         });
-        let response = await this[method] (this.extend (request, params));
+        if (stop) {
+            method = 'contractV2PrivateGetTradeGetOrderAlgos';
+            const orderType = this.safeInteger (params, 'orderType');
+            if (orderType === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchOrder() requires an orderType parameter for stop orders');
+            }
+            const side = this.safeInteger (params, 'side');
+            const bizType = this.safeInteger (params, 'bizType');
+            if (side === 'sell' && reduceOnly) {
+                request['side'] = 3; // close long
+            } else if (side === 'buy' && reduceOnly) {
+                request['side'] = 4; // close short
+            } else if (side === 'buy') {
+                request['side'] = 1; // open long
+            } else if (side === 'sell') {
+                request['side'] = 2; // open short
+            } else if (side === 5) {
+                request['side'] = 5; // one way position buy
+            } else if (side === 6) {
+                request['side'] = 6; // one way position sell
+            } else if (side === 0) {
+                request['side'] = 0; // one way position close only
+            }
+            if (orderType === 1) {
+                request['orderType'] = 1;
+            } else if (orderType === 2 || bizType) {
+                request['orderType'] = 2;
+                request['bizType'] = bizType;
+            }
+        }
+        const query = this.omit (params, [ 'reduceOnly', 'stop', 'side', 'orderType', 'bizType' ]);
+        let response = await this[method] (this.extend (request, query));
         //
         // Spot
         //
@@ -1939,7 +2040,59 @@ module.exports = class zb extends Exchange {
         //         "desc":"操作成功"
         //     }
         //
-        if (swap) {
+        // Algo order
+        //
+        //     {
+        //         "code": 10000,
+        //         "data": {
+        //             "list": [
+        //                 {
+        //                     "action": 1,
+        //                     "algoPrice": "30000",
+        //                     "amount": "0.003",
+        //                     "bizType": 0,
+        //                     "canCancel": true,
+        //                     "createTime": "1649913941109",
+        //                     "errorCode": 0,
+        //                     "id": "6920240642849449984",
+        //                     "isLong": false,
+        //                     "leverage": 10,
+        //                     "marketId": "100",
+        //                     "modifyTime": "1649913941109",
+        //                     "orderType": 1,
+        //                     "priceType": 2,
+        //                     "side": 5,
+        //                     "sourceType": 4,
+        //                     "status": 1,
+        //                     "submitPrice": "41270.53",
+        //                     "symbol": "BTC_USDT",
+        //                     "tradedAmount": "0",
+        //                     "triggerCondition": "<=",
+        //                     "triggerPrice": "31000",
+        //                     "triggerTime": "0",
+        //                     "userId": "6896693805014120448"
+        //                 },
+        //             ],
+        //             "pageNum": 1,
+        //             "pageSize": 10
+        //         },
+        //         "desc": "操作成功"
+        //     }
+        //
+        if (stop) {
+            const data = this.safeValue (response, 'data', {});
+            response = this.safeValue (data, 'list', []);
+            const result = [];
+            for (let i = 0; i < response.length; i++) {
+                const entry = response[i];
+                const algoId = this.safeString (entry, 'id');
+                if (id === algoId) {
+                    result.push (entry);
+                }
+            }
+            response = result[0];
+        }
+        if (swap && !stop) {
             response = this.safeValue (response, 'data', {});
         }
         return this.parseOrder (response, market);
@@ -1951,19 +2104,25 @@ module.exports = class zb extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const reduceOnly = this.safeValue (params, 'reduceOnly');
+        const stop = this.safeValue (params, 'stop');
         const swap = market['swap'];
         const request = {
             'pageSize': limit, // default pageSize is 50 for spot, 30 for swap
             // 'currency': market['id'], // only applicable to SPOT
             // 'pageIndex': 1, // only applicable to SPOT
-            // 'symbol': market['id'], // only applicable to SWAP
-            // 'pageNum': 1, // only applicable to SWAP
             // 'type': params['type'], // only applicable to SWAP
-            // 'side': params['side'], // only applicable to SWAP
             // 'dateRange': params['dateRange'], // only applicable to SWAP
             // 'action': params['action'], // only applicable to SWAP
-            // 'endTime': params['endTime'], // only applicable to SWAP
-            // 'startTime': since, // only applicable to SWAP
+            // 'symbol': market['id'], // STOP and SWAP
+            // 'side': params['side'], // STOP and SWAP, for stop orders: 1 Open long (buy), 2 Open short (sell), 3 Close long (sell), 4 Close Short (Buy). One-Way Positions: 5 Buy, 6 Sell, 0 Close Only
+            // 'orderType': 1, // STOP, 1: Plan order, 2: SP/SL
+            // 'bizType': 1, // Plan order, 1: TP, 2: SL
+            // 'status': 1, // STOP, 1: untriggered, 2: cancelled, 3:triggered, 4:failed, 5:completed
+            // 'startTime': since, // STOP and SWAP
+            // 'endTime': params['endTime'], // STOP and SWAP
+            // 'pageNum': 1, // STOP and SWAP, default 1
+            // 'pageSize': limit, // STOP, default 10
         };
         const marketIdField = market['swap'] ? 'symbol' : 'currency';
         request[marketIdField] = market['id'];
@@ -1980,9 +2139,40 @@ module.exports = class zb extends Exchange {
         if ('tradeType' in params) {
             method = 'spotV1PrivateGetGetOrdersNew';
         }
+        if (stop) {
+            method = 'contractV2PrivateGetTradeGetOrderAlgos';
+            const orderType = this.safeInteger (params, 'orderType');
+            if (orderType === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchOrders() requires an orderType parameter for stop orders');
+            }
+            const side = this.safeInteger (params, 'side');
+            const bizType = this.safeInteger (params, 'bizType');
+            if (side === 'sell' && reduceOnly) {
+                request['side'] = 3; // close long
+            } else if (side === 'buy' && reduceOnly) {
+                request['side'] = 4; // close short
+            } else if (side === 'buy') {
+                request['side'] = 1; // open long
+            } else if (side === 'sell') {
+                request['side'] = 2; // open short
+            } else if (side === 5) {
+                request['side'] = 5; // one way position buy
+            } else if (side === 6) {
+                request['side'] = 6; // one way position sell
+            } else if (side === 0) {
+                request['side'] = 0; // one way position close only
+            }
+            if (orderType === 1) {
+                request['orderType'] = 1;
+            } else if (orderType === 2 || bizType) {
+                request['orderType'] = 2;
+                request['bizType'] = bizType;
+            }
+        }
+        const query = this.omit (params, [ 'reduceOnly', 'stop', 'side', 'orderType', 'bizType' ]);
         let response = undefined;
         try {
-            response = await this[method] (this.extend (request, params));
+            response = await this[method] (this.extend (request, query));
         } catch (e) {
             if (e instanceof OrderNotFound) {
                 return [];
@@ -2049,9 +2239,198 @@ module.exports = class zb extends Exchange {
         //         "desc": "操作成功"
         //     }
         //
+        // Algo order
+        //
+        //     {
+        //         "code": 10000,
+        //         "data": {
+        //             "list": [
+        //                 {
+        //                     "action": 1,
+        //                     "algoPrice": "30000",
+        //                     "amount": "0.003",
+        //                     "bizType": 0,
+        //                     "canCancel": true,
+        //                     "createTime": "1649913941109",
+        //                     "errorCode": 0,
+        //                     "id": "6920240642849449984",
+        //                     "isLong": false,
+        //                     "leverage": 10,
+        //                     "marketId": "100",
+        //                     "modifyTime": "1649913941109",
+        //                     "orderType": 1,
+        //                     "priceType": 2,
+        //                     "side": 5,
+        //                     "sourceType": 4,
+        //                     "status": 1,
+        //                     "submitPrice": "41270.53",
+        //                     "symbol": "BTC_USDT",
+        //                     "tradedAmount": "0",
+        //                     "triggerCondition": "<=",
+        //                     "triggerPrice": "31000",
+        //                     "triggerTime": "0",
+        //                     "userId": "6896693805014120448"
+        //                 },
+        //             ],
+        //             "pageNum": 1,
+        //             "pageSize": 10
+        //         },
+        //         "desc": "操作成功"
+        //     }
+        //
         if (swap) {
             const data = this.safeValue (response, 'data', {});
             response = this.safeValue (data, 'list', []);
+        }
+        return this.parseOrders (response, market, since, limit);
+    }
+
+    async fetchCanceledOrders (symbol = undefined, since = undefined, limit = 10, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchCanceledOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const reduceOnly = this.safeValue (params, 'reduceOnly');
+        const stop = this.safeValue (params, 'stop');
+        const request = {
+            'pageSize': limit, // SPOT and STOP, default pageSize is 10, doesn't work with other values now
+            // 'currency': market['id'], // SPOT
+            // 'pageIndex': 1, // SPOT, default pageIndex is 1
+            // 'symbol': market['id'], // STOP
+            // 'side': params['side'], // STOP, for stop orders: 1 Open long (buy), 2 Open short (sell), 3 Close long (sell), 4 Close Short (Buy). One-Way Positions: 5 Buy, 6 Sell, 0 Close Only
+            // 'orderType': 1, // STOP, 1: Plan order, 2: SP/SL
+            // 'bizType': 1, // Plan order, 1: TP, 2: SL
+            // 'status': 1, // STOP, 1: untriggered, 2: cancelled, 3:triggered, 4:failed, 5:completed
+            // 'startTime': since, // STOP
+            // 'endTime': params['endTime'], // STOP
+            // 'pageNum': 1, // STOP, default 1
+        };
+        const marketIdField = market['spot'] ? 'currency' : 'symbol';
+        request[marketIdField] = market['id'];
+        const pageNumField = market['spot'] ? 'pageIndex' : 'pageNum';
+        request[pageNumField] = 1;
+        let method = 'spotV1PrivateGetGetOrdersIgnoreTradeType';
+        if (stop) {
+            method = 'contractV2PrivateGetTradeGetOrderAlgos';
+            const orderType = this.safeInteger (params, 'orderType');
+            if (orderType === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchCanceledOrders() requires an orderType parameter for stop orders');
+            }
+            const side = this.safeInteger (params, 'side');
+            const bizType = this.safeInteger (params, 'bizType');
+            if (side === 'sell' && reduceOnly) {
+                request['side'] = 3; // close long
+            } else if (side === 'buy' && reduceOnly) {
+                request['side'] = 4; // close short
+            } else if (side === 'buy') {
+                request['side'] = 1; // open long
+            } else if (side === 'sell') {
+                request['side'] = 2; // open short
+            } else if (side === 5) {
+                request['side'] = 5; // one way position buy
+            } else if (side === 6) {
+                request['side'] = 6; // one way position sell
+            } else if (side === 0) {
+                request['side'] = 0; // one way position close only
+            }
+            if (orderType === 1) {
+                request['orderType'] = 1;
+            } else if (orderType === 2 || bizType) {
+                request['orderType'] = 2;
+                request['bizType'] = bizType;
+            }
+            request['status'] = 2;
+        }
+        // tradeType 交易类型1/0[buy/sell]
+        if ('tradeType' in params) {
+            method = 'spotV1PrivateGetGetOrdersNew';
+        }
+        let response = undefined;
+        try {
+            response = await this[method] (this.extend (request, params));
+        } catch (e) {
+            if (e instanceof OrderNotFound) {
+                return [];
+            }
+            throw e;
+        }
+        const query = this.omit (params, [ 'reduceOnly', 'stop', 'side', 'orderType', 'bizType' ]);
+        response = await this[method] (this.extend (request, query));
+        //
+        // Spot
+        //
+        //     [
+        //         {
+        //             "acctType": 0,
+        //             "currency": "btc_usdt",
+        //             "fees": 0,
+        //             "id": "202202234857482656",
+        //             "price": 30000.0,
+        //             "status": 1,
+        //             "total_amount": 0.0006,
+        //             "trade_amount": 0.0000,
+        //             "trade_date": 1645610254524,
+        //             "trade_money": 0.000000,
+        //             "type": 1,
+        //             "useZbFee": false,
+        //             "webId": 0
+        //         }
+        //     ]
+        //
+        // Algo order
+        //
+        //     {
+        //         "code": 10000,
+        //         "data": {
+        //             "list": [
+        //                 {
+        //                     "action": 1,
+        //                     "algoPrice": "30000",
+        //                     "amount": "0.003",
+        //                     "bizType": 0,
+        //                     "canCancel": true,
+        //                     "createTime": "1649913941109",
+        //                     "errorCode": 0,
+        //                     "id": "6920240642849449984",
+        //                     "isLong": false,
+        //                     "leverage": 10,
+        //                     "marketId": "100",
+        //                     "modifyTime": "1649913941109",
+        //                     "orderType": 1,
+        //                     "priceType": 2,
+        //                     "side": 5,
+        //                     "sourceType": 4,
+        //                     "status": 2,
+        //                     "submitPrice": "41270.53",
+        //                     "symbol": "BTC_USDT",
+        //                     "tradedAmount": "0",
+        //                     "triggerCondition": "<=",
+        //                     "triggerPrice": "31000",
+        //                     "triggerTime": "0",
+        //                     "userId": "6896693805014120448"
+        //                 },
+        //             ],
+        //             "pageNum": 1,
+        //             "pageSize": 10
+        //         },
+        //         "desc": "操作成功"
+        //     }
+        //
+        if (stop) {
+            const data = this.safeValue (response, 'data', {});
+            response = this.safeValue (data, 'list', []);
+        }
+        const result = [];
+        if (market['type'] === 'spot') {
+            for (let i = 0; i < response.length; i++) {
+                const entry = response[i];
+                const status = this.safeString (entry, 'status');
+                if (status === '1') {
+                    result.push (entry);
+                }
+            }
+            response = result;
         }
         return this.parseOrders (response, market, since, limit);
     }
@@ -2062,12 +2441,123 @@ module.exports = class zb extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const reduceOnly = this.safeValue (params, 'reduceOnly');
+        const stop = this.safeValue (params, 'stop');
         const request = {
-            'currency': market['id'],
-            'pageIndex': 1, // default pageIndex is 1
-            'pageSize': limit, // default pageSize is 10, doesn't work with other values now
+            'pageSize': limit, // SPOT and STOP, default pageSize is 10, doesn't work with other values now
+            // 'currency': market['id'], // SPOT
+            // 'pageIndex': 1, // SPOT, default pageIndex is 1
+            // 'symbol': market['id'], // STOP
+            // 'side': params['side'], // STOP, for stop orders: 1 Open long (buy), 2 Open short (sell), 3 Close long (sell), 4 Close Short (Buy). One-Way Positions: 5 Buy, 6 Sell, 0 Close Only
+            // 'orderType': 1, // STOP, 1: Plan order, 2: SP/SL
+            // 'bizType': 1, // Plan order, 1: TP, 2: SL
+            // 'status': 1, // STOP, 1: untriggered, 2: cancelled, 3:triggered, 4:failed, 5:completed
+            // 'startTime': since, // STOP
+            // 'endTime': params['endTime'], // STOP
+            // 'pageNum': 1, // STOP, default 1
         };
-        const response = await this.spotV1PrivateGetGetFinishedAndPartialOrders (this.extend (request, params));
+        const marketIdField = market['spot'] ? 'currency' : 'symbol';
+        request[marketIdField] = market['id'];
+        const pageNumField = market['spot'] ? 'pageIndex' : 'pageNum';
+        request[pageNumField] = 1;
+        let method = 'spotV1PrivateGetGetFinishedAndPartialOrders';
+        if (stop) {
+            method = 'contractV2PrivateGetTradeGetOrderAlgos';
+            const orderType = this.safeInteger (params, 'orderType');
+            if (orderType === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires an orderType parameter for stop orders');
+            }
+            const side = this.safeInteger (params, 'side');
+            const bizType = this.safeInteger (params, 'bizType');
+            if (side === 'sell' && reduceOnly) {
+                request['side'] = 3; // close long
+            } else if (side === 'buy' && reduceOnly) {
+                request['side'] = 4; // close short
+            } else if (side === 'buy') {
+                request['side'] = 1; // open long
+            } else if (side === 'sell') {
+                request['side'] = 2; // open short
+            } else if (side === 5) {
+                request['side'] = 5; // one way position buy
+            } else if (side === 6) {
+                request['side'] = 6; // one way position sell
+            } else if (side === 0) {
+                request['side'] = 0; // one way position close only
+            }
+            if (orderType === 1) {
+                request['orderType'] = 1;
+            } else if (orderType === 2 || bizType) {
+                request['orderType'] = 2;
+                request['bizType'] = bizType;
+            }
+            request['status'] = 5;
+        }
+        const query = this.omit (params, [ 'reduceOnly', 'stop', 'side', 'orderType', 'bizType' ]);
+        let response = await this[method] (this.extend (request, query));
+        //
+        // Spot
+        //
+        //     [
+        //         {
+        //             "acctType": 0,
+        //             "currency": "btc_usdt",
+        //             "fees": 0.00823354,
+        //             "id": "202204145086706337",
+        //             "price": 41167.7,
+        //             "status": 2,
+        //             "total_amount": 0.0001,
+        //             "trade_amount": 0.0001,
+        //             "trade_date": 1649917867370,
+        //             "trade_money": 4.116770,
+        //             "type": 0,
+        //             "useZbFee": false,
+        //             "webId": 0
+        //         },
+        //     ]
+        //
+        // Algo order
+        //
+        //     {
+        //         "code": 10000,
+        //         "data": {
+        //             "list": [
+        //                 {
+        //                     "action": 1,
+        //                     "algoPrice": "30000",
+        //                     "amount": "0.003",
+        //                     "bizType": 0,
+        //                     "canCancel": true,
+        //                     "createTime": "1649913941109",
+        //                     "errorCode": 0,
+        //                     "id": "6920240642849449984",
+        //                     "isLong": false,
+        //                     "leverage": 10,
+        //                     "marketId": "100",
+        //                     "modifyTime": "1649913941109",
+        //                     "orderType": 1,
+        //                     "priceType": 2,
+        //                     "side": 5,
+        //                     "sourceType": 4,
+        //                     "status": 1,
+        //                     "submitPrice": "41270.53",
+        //                     "symbol": "BTC_USDT",
+        //                     "tradedAmount": "0",
+        //                     "triggerCondition": "<=",
+        //                     "triggerPrice": "31000",
+        //                     "triggerTime": "0",
+        //                     "userId": "6896693805014120448"
+        //                 },
+        //             ],
+        //             "pageNum": 1,
+        //             "pageSize": 10
+        //         },
+        //         "desc": "操作成功"
+        //     }
+        //
+        if (stop) {
+            const data = this.safeValue (response, 'data', {});
+            response = this.safeValue (data, 'list', []);
+        }
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -2077,16 +2567,23 @@ module.exports = class zb extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const reduceOnly = this.safeValue (params, 'reduceOnly');
+        const stop = this.safeValue (params, 'stop');
         const swap = market['swap'];
         const request = {
             // 'pageSize': limit, // default pageSize is 10 for spot, 30 for swap
-            // 'currency': market['id'], // spot only
-            // 'pageIndex': 1, // spot only
-            // 'symbol': market['id'], // swap only
-            // 'pageNum': 1, // swap only
+            // 'currency': market['id'], // SPOT
+            // 'pageIndex': 1, // SPOT
+            // 'symbol': market['id'], // SWAP and STOP
+            // 'pageNum': 1, // SWAP and STOP, default 1
             // 'type': params['type'], // swap only
-            // 'side': params['side'], // swap only
-            // 'action': params['action'], // swap only
+            // 'side': params['side'], // SWAP and STOP, for stop orders: 1 Open long (buy), 2 Open short (sell), 3 Close long (sell), 4 Close Short (Buy). One-Way Positions: 5 Buy, 6 Sell, 0 Close Only
+            // 'action': params['action'], // SWAP
+            // 'orderType': 1, // STOP, 1: Plan order, 2: SP/SL
+            // 'bizType': 1, // Plan order, 1: TP, 2: SL
+            // 'status': 1, // STOP, 1: untriggered, 2: cancelled, 3:triggered, 4:failed, 5:completed
+            // 'startTime': since, // SWAP and STOP
+            // 'endTime': params['endTime'], // STOP
         };
         if (limit !== undefined) {
             request['pageSize'] = limit; // default pageSize is 10 for spot, 30 for swap
@@ -2102,13 +2599,45 @@ module.exports = class zb extends Exchange {
             'spot': 'spotV1PrivateGetGetUnfinishedOrdersIgnoreTradeType',
             'swap': 'contractV2PrivateGetTradeGetUndoneOrders',
         });
+        if (stop) {
+            method = 'contractV2PrivateGetTradeGetOrderAlgos';
+            const orderType = this.safeInteger (params, 'orderType');
+            if (orderType === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires an orderType parameter for stop orders');
+            }
+            const side = this.safeInteger (params, 'side');
+            const bizType = this.safeInteger (params, 'bizType');
+            if (side === 'sell' && reduceOnly) {
+                request['side'] = 3; // close long
+            } else if (side === 'buy' && reduceOnly) {
+                request['side'] = 4; // close short
+            } else if (side === 'buy') {
+                request['side'] = 1; // open long
+            } else if (side === 'sell') {
+                request['side'] = 2; // open short
+            } else if (side === 5) {
+                request['side'] = 5; // one way position buy
+            } else if (side === 6) {
+                request['side'] = 6; // one way position sell
+            } else if (side === 0) {
+                request['side'] = 0; // one way position close only
+            }
+            if (orderType === 1) {
+                request['orderType'] = 1;
+            } else if (orderType === 2 || bizType) {
+                request['orderType'] = 2;
+                request['bizType'] = bizType;
+            }
+            request['status'] = 1;
+        }
+        const query = this.omit (params, [ 'reduceOnly', 'stop', 'side', 'orderType', 'bizType' ]);
         // tradeType 交易类型1/0[buy/sell]
         if ('tradeType' in params) {
             method = 'spotV1PrivateGetGetOrdersNew';
         }
         let response = undefined;
         try {
-            response = await this[method] (this.extend (request, params));
+            response = await this[method] (this.extend (request, query));
         } catch (e) {
             if (e instanceof OrderNotFound) {
                 return [];
@@ -2174,6 +2703,45 @@ module.exports = class zb extends Exchange {
         //         "desc": "操作成功"
         //     }
         //
+        // Algo order
+        //
+        //     {
+        //         "code": 10000,
+        //         "data": {
+        //             "list": [
+        //                 {
+        //                     "action": 1,
+        //                     "algoPrice": "30000",
+        //                     "amount": "0.003",
+        //                     "bizType": 0,
+        //                     "canCancel": true,
+        //                     "createTime": "1649913941109",
+        //                     "errorCode": 0,
+        //                     "id": "6920240642849449984",
+        //                     "isLong": false,
+        //                     "leverage": 10,
+        //                     "marketId": "100",
+        //                     "modifyTime": "1649913941109",
+        //                     "orderType": 1,
+        //                     "priceType": 2,
+        //                     "side": 5,
+        //                     "sourceType": 4,
+        //                     "status": 1,
+        //                     "submitPrice": "41270.53",
+        //                     "symbol": "BTC_USDT",
+        //                     "tradedAmount": "0",
+        //                     "triggerCondition": "<=",
+        //                     "triggerPrice": "31000",
+        //                     "triggerTime": "0",
+        //                     "userId": "6896693805014120448"
+        //                 },
+        //             ],
+        //             "pageNum": 1,
+        //             "pageSize": 10
+        //         },
+        //         "desc": "操作成功"
+        //     }
+        //
         if (swap) {
             const data = this.safeValue (response, 'data', {});
             response = this.safeValue (data, 'list', []);
@@ -2183,7 +2751,7 @@ module.exports = class zb extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
-        // fetchOrder Spot
+        // Spot fetchOrder, fetchClosedOrders
         //
         //     {
         //         acctType: 0,
@@ -2200,7 +2768,7 @@ module.exports = class zb extends Exchange {
         //         useZbFee: false
         //     },
         //
-        // fetchOrder Swap
+        // Swap fetchOrder
         //
         //     {
         //         "action": 1,
@@ -2230,7 +2798,36 @@ module.exports = class zb extends Exchange {
         //         "value": "60"
         //     },
         //
-        // Spot
+        // Algo fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders
+        //
+        //     {
+        //         "action": 1,
+        //         "algoPrice": "30000",
+        //         "amount": "0.003",
+        //         "bizType": 0,
+        //         "canCancel": true,
+        //         "createTime": "1649913941109",
+        //         "errorCode": 0,
+        //         "id": "6920240642849449984",
+        //         "isLong": false,
+        //         "leverage": 10,
+        //         "marketId": "100",
+        //         "modifyTime": "1649913941109",
+        //         "orderType": 1,
+        //         "priceType": 2,
+        //         "side": 5,
+        //         "sourceType": 4,
+        //         "status": 1,
+        //         "submitPrice": "41270.53",
+        //         "symbol": "BTC_USDT",
+        //         "tradedAmount": "0",
+        //         "triggerCondition": "<=",
+        //         "triggerPrice": "31000",
+        //         "triggerTime": "0",
+        //         "userId": "6896693805014120448"
+        //     },
+        //
+        // Spot createOrder
         //
         //     {
         //         code: '1000',
@@ -2241,7 +2838,7 @@ module.exports = class zb extends Exchange {
         //         price: 30000
         //     }
         //
-        // Swap
+        // Swap createOrder
         //
         //     {
         //         orderId: '6901786759944937472',
@@ -2251,15 +2848,25 @@ module.exports = class zb extends Exchange {
         //         price: 30000
         //     }
         //
+        // Algo createOrder
+        //
+        //     {
+        //         "code": 10000,
+        //         "data": "6919884551305242624",
+        //         "desc": "操作成功"
+        //     }
+        //
         let orderId = market['swap'] ? this.safeValue (order, 'orderId') : this.safeValue (order, 'id');
         if (orderId === undefined) {
             orderId = this.safeValue (order, 'id');
         }
-        let side = this.safeInteger (order, 'type');
+        let side = this.safeInteger2 (order, 'type', 'side');
         if (side === undefined) {
             side = undefined;
         } else {
-            side = (side === 1) ? 'buy' : 'sell';
+            if (market['type'] === 'spot') {
+                side = (side === 1) ? 'buy' : 'sell';
+            }
         }
         let timestamp = this.safeInteger (order, 'trade_date');
         if (timestamp === undefined) {
@@ -2267,14 +2874,14 @@ module.exports = class zb extends Exchange {
         }
         const marketId = this.safeString (order, 'currency');
         market = this.safeMarket (marketId, market, '_');
-        const price = this.safeString (order, 'price');
+        const price = this.safeString2 (order, 'price', 'algoPrice');
         const filled = market['swap'] ? this.safeString (order, 'tradeAmount') : this.safeString (order, 'trade_amount');
         let amount = this.safeString (order, 'total_amount');
         if (amount === undefined) {
             amount = this.safeString (order, 'amount');
         }
         const cost = this.safeString (order, 'trade_money');
-        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const status = this.parseOrderStatus (this.safeString (order, 'status'), market);
         const timeInForce = this.safeString (order, 'timeInForce');
         const postOnly = (timeInForce === 'PO');
         const feeCost = this.safeNumber (order, 'fees');
@@ -2305,7 +2912,7 @@ module.exports = class zb extends Exchange {
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
+            'stopPrice': this.safeString (order, 'triggerPrice'),
             'average': this.safeString (order, 'avgPrice'),
             'cost': cost,
             'amount': amount,
@@ -2317,13 +2924,24 @@ module.exports = class zb extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
-            '0': 'open',
-            '1': 'canceled',
-            '2': 'closed',
-            '3': 'open', // partial
-        };
+    parseOrderStatus (status, market = undefined) {
+        let statuses = {};
+        if (market['type'] === 'spot') {
+            statuses = {
+                '0': 'open',
+                '1': 'canceled',
+                '2': 'closed',
+                '3': 'open', // partial
+            };
+        } else {
+            statuses = {
+                '1': 'open',
+                '2': 'canceled',
+                '3': 'open', // stop order triggered
+                '4': 'failed',
+                '5': 'closed',
+            };
+        }
         return this.safeString (statuses, status, status);
     }
 
@@ -3125,8 +3743,9 @@ module.exports = class zb extends Exchange {
         const swap = (marketType === 'swap');
         let side = undefined;
         let marginMethod = undefined;
+        const amountToPrecision = this.currencyToPrecision (code, amount);
         const request = {
-            'amount': amount, // Swap, Cross Margin, Isolated Margin
+            'amount': amountToPrecision, // Swap, Cross Margin, Isolated Margin
             // 'coin': currency['id'], // Margin
             // 'currencyName': currency['id'], // Swap
             // 'clientId': this.safeString (params, 'clientId'), // Swap "2sdfsdfsdf232342"
@@ -3182,44 +3801,25 @@ module.exports = class zb extends Exchange {
         //         "message": "Success"
         //     }
         //
-        const timestamp = this.milliseconds ();
-        const transfer = {
-            'id': this.safeString (response, 'data'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'currency': code,
-            'amount': amount,
+        return this.extend (this.parseTransfer (response, currency), {
+            'amount': this.parseNumber (amountToPrecision),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'status': this.safeInteger (response, 'code'),
-        };
-        return this.parseTransfer (transfer, code);
+        });
     }
 
     parseTransfer (transfer, currency = undefined) {
-        //
-        //     {
-        //         "id": "2sdfsdfsdf232342",
-        //         "timestamp": "",
-        //         "datetime": "",
-        //         "currency": "USDT",
-        //         "amount": "10",
-        //         "fromAccount": "futures account",
-        //         "toAccount": "zb account",
-        //         "status": 10000,
-        //     }
-        //
-        const currencyId = this.safeString (transfer, 'currency');
+        // response samples in 'transfer'
+        const timestamp = this.milliseconds ();
         return {
-            'info': transfer,
-            'id': this.safeString (transfer, 'id'),
-            'timestamp': this.safeInteger (transfer, 'timestamp'),
-            'datetime': this.safeString (transfer, 'datetime'),
-            'currency': this.safeCurrencyCode (currencyId, currency),
-            'amount': this.safeNumber (transfer, 'amount'),
-            'fromAccount': this.safeString (transfer, 'fromAccount'),
-            'toAccount': this.safeString (transfer, 'toAccount'),
-            'status': this.safeInteger (transfer, 'status'),
+            'id': this.safeString (transfer, 'data'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': this.safeCurrencyCode (undefined, 'currency'),
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': undefined,
         };
     }
 

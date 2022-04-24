@@ -25,6 +25,9 @@ module.exports = class bigone extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchDepositAddress': true,
@@ -43,6 +46,7 @@ module.exports = class bigone extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchWithdrawals': true,
+                'transfer': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -111,6 +115,17 @@ module.exports = class bigone extends Exchange {
                 },
                 'funding': {
                     'withdraw': {},
+                },
+            },
+            'options': {
+                'accountsByType': {
+                    'spot': 'SPOT',
+                    'funding': 'FUND',
+                    'future': 'CONTRACT',
+                    'swap': 'CONTRACT',
+                },
+                'transfer': {
+                    'fillResponseFromRequest': true,
                 },
             },
             'exceptions': {
@@ -1226,6 +1241,69 @@ module.exports = class bigone extends Exchange {
         //
         const withdrawals = this.safeValue (response, 'data', []);
         return this.parseTransactions (withdrawals, code, since, limit);
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
+        const toId = this.safeString (accountsByType, toAccount, toAccount);
+        const guid = this.safeString (params, 'guid', this.uuid ());
+        const request = {
+            'symbol': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+            'from': fromId,
+            'to': toId,
+            'guid': guid,
+            // 'type': type, // NORMAL, MASTER_TO_SUB, SUB_TO_MASTER, SUB_INTERNAL, default is NORMAL
+            // 'sub_acccunt': '', // when type is NORMAL, it should be empty, and when type is others it is required
+        };
+        const response = await this.privatePostTransfer (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": null
+        //     }
+        //
+        const transfer = this.parseTransfer (response, currency);
+        const transferOptions = this.safeValue (this.options, 'transfer', {});
+        const fillResponseFromRequest = this.safeValue (transferOptions, 'fillResponseFromRequest', true);
+        if (fillResponseFromRequest) {
+            transfer['fromAccount'] = fromAccount;
+            transfer['toAccount'] = toAccount;
+            transfer['amount'] = amount;
+            transfer['id'] = guid;
+        }
+        return transfer;
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        //     {
+        //         "code": 0,
+        //         "data": null
+        //     }
+        //
+        const code = this.safeNumber (transfer, 'code');
+        return {
+            'info': transfer,
+            'id': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': code,
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': this.parseTransferStatus (code),
+        };
+    }
+
+    parseTransferStatus (status) {
+        const statuses = {
+            '0': 'ok',
+        };
+        return this.safeString (statuses, status, 'failed');
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {

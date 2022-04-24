@@ -31,6 +31,9 @@ module.exports = class bitfinex2 extends bitfinex {
                 'createLimitOrder': true,
                 'createMarketOrder': true,
                 'createOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
                 'editOrder': undefined,
                 'fetchBalance': true,
                 'fetchClosedOrder': true,
@@ -324,6 +327,11 @@ module.exports = class bitfinex2 extends bitfinex {
                     'derivatives': 'margin',
                     'future': 'margin',
                 },
+                'swap': {
+                    'fetchMarkets': {
+                        'settlementCurrencies': [ 'BTC', 'USDT', 'EURT' ],
+                    },
+                },
             },
             'exceptions': {
                 'exact': {
@@ -343,6 +351,10 @@ module.exports = class bitfinex2 extends bitfinex {
                     'symbol: invalid': BadSymbol,
                     'Invalid order': InvalidOrder,
                 },
+            },
+            'commonCurrencies': {
+                'EUTFO': 'EURT',
+                'USTF0': 'USDT',
             },
         });
     }
@@ -369,13 +381,13 @@ module.exports = class bitfinex2 extends bitfinex {
         //    [0] // maintenance
         //
         const response = await this.publicGetPlatformStatus (params);
-        const status = this.safeInteger (response, 0);
-        const formattedStatus = (status === 1) ? 'ok' : 'maintenance';
-        this.status = this.extend (this.status, {
-            'status': formattedStatus,
+        const statusRaw = this.safeString (response, 0);
+        return {
+            'status': this.safeString ({ '0': 'maintenance', '1': 'ok' }, statusRaw, statusRaw),
             'updated': this.milliseconds (),
-        });
-        return this.status;
+            'eta': undefined,
+            'info': response,
+        };
     }
 
     async fetchMarkets (params = {}) {
@@ -393,7 +405,6 @@ module.exports = class bitfinex2 extends bitfinex {
                 spot = false;
             }
             const swap = !spot;
-            const type = spot ? 'spot' : 'swap';
             let baseId = undefined;
             let quoteId = undefined;
             if (id.indexOf (':') >= 0) {
@@ -404,11 +415,22 @@ module.exports = class bitfinex2 extends bitfinex {
                 baseId = id.slice (0, 3);
                 quoteId = id.slice (3, 6);
             }
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
+            let base = this.safeCurrencyCode (baseId);
+            let quote = this.safeCurrencyCode (quoteId);
+            const splitBase = base.split ('F0');
+            const splitQuote = quote.split ('F0');
+            base = this.safeString (splitBase, 0);
+            quote = this.safeString (splitQuote, 0);
+            let symbol = base + '/' + quote;
             baseId = this.getCurrencyId (baseId);
             quoteId = this.getCurrencyId (quoteId);
+            let settleId = undefined;
+            let settle = undefined;
+            if (swap) {
+                settleId = quoteId;
+                settle = this.safeCurrencyCode (settleId);
+                symbol = symbol + ':' + settle;
+            }
             const minOrderSizeString = this.safeString (market, 'minimum_order_size');
             const maxOrderSizeString = this.safeString (market, 'maximum_order_size');
             result.push ({
@@ -416,22 +438,21 @@ module.exports = class bitfinex2 extends bitfinex {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'settle': undefined, // TODO
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': undefined, // TODO
-                'type': type,
+                'settleId': settleId,
+                'type': spot ? 'spot' : 'swap',
                 'spot': spot,
-                'margin': this.safeValue (market, 'margin'),
+                'margin': this.safeValue (market, 'margin', false),
                 'swap': swap,
                 'future': false,
                 'option': false,
                 'active': true,
                 'contract': swap,
-                'linear': spot ? undefined : true, // TODO
-                'inverse': spot ? undefined : false, // TODO
-                'contractSize': undefined, // TODO
-                'maintenanceMarginRate': undefined,
+                'linear': swap ? true : undefined,
+                'inverse': swap ? false : undefined,
+                'contractSize': swap ? this.parseNumber ('1') : undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
@@ -615,7 +636,7 @@ module.exports = class bitfinex2 extends bitfinex {
         await this.loadMarkets ();
         const accountsByType = this.safeValue (this.options, 'v2AccountsByType', {});
         const requestedType = this.safeString (params, 'type', 'exchange');
-        const accountType = this.safeString (accountsByType, requestedType);
+        const accountType = this.safeString (accountsByType, requestedType, requestedType);
         if (accountType === undefined) {
             const keys = Object.keys (accountsByType);
             throw new ExchangeError (this.id + ' fetchBalance type parameter must be one of ' + keys.join (', '));
@@ -1799,7 +1820,7 @@ module.exports = class bitfinex2 extends bitfinex {
 
     async fetchPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.privatePostPositions (params);
+        const response = await this.privatePostAuthRPositions (params);
         //
         //     [
         //         [
