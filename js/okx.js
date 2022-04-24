@@ -636,9 +636,14 @@ module.exports = class okx extends Exchange {
                     'twap': true,
                 },
                 'accountsByType': {
+                    'spot': '1',
+                    'future': '3',
+                    'futures': '3',
+                    'margin': '5',
                     'funding': '6',
-                    'spot': '18',
-                    'main': 'master',
+                    'swap': '9',
+                    'option': '12',
+                    'trading': '18', // unified trading account
                 },
                 'accountsById': {
                     '1': 'spot',
@@ -647,8 +652,7 @@ module.exports = class okx extends Exchange {
                     '6': 'funding',
                     '9': 'swap',
                     '12': 'option',
-                    '18': 'spot', // unified trading account
-                    'master': 'main',
+                    '18': 'trading', // unified trading account
                 },
                 'exchangeType': {
                     'spot': 'SPOT',
