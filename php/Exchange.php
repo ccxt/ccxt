@@ -647,7 +647,7 @@ class Exchange {
         $result = array();
         foreach ($array as $element) {
             if (isset($key, $element) && ($element[$key] == $value)) {
-                $result[] = $element[$key];
+                $result[] = $element;
             }
         }
         return $result;
@@ -3864,7 +3864,7 @@ class Exchange {
         $query = $this->extend($params, $array);
         return $this->create_order($symbol, $type, $side, $amount, $price, $query);
     }
-    
+
     public function create_stop_limit_order($symbol, $side, $amount, $price, $stopPrice, $params = array()) {
         if (!$this->has['createStopLimitOrder']) {
             throw new NotSupported($this->id . ' create_stop_limit_order() is not supported yet');
@@ -3873,7 +3873,7 @@ class Exchange {
         $query = $this->extend($params, $array);
         return $this->create_order($symbol, 'limit', $side, $amount, $price, $query);
     }
-    
+
     public function create_stop_market_order($symbol, $side, $amount, $stopPrice, $params = array()) {
         if (!$this->has['createStopMarketOrder']) {
             throw new NotSupported($this->id . ' create_stop_market_order() is not supported yet');
