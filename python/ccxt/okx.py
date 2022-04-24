@@ -669,9 +669,8 @@ class okx(Exchange):
                     'swap': '9',
                     'option': '12',
                     'trading': '18',  # unified trading account
-                    'unified': '18',
                 },
-                'typesByAccount': {
+                'accountsById': {
                     '1': 'spot',
                     '3': 'future',
                     '5': 'margin',
@@ -3682,14 +3681,8 @@ class okx(Exchange):
         self.load_markets()
         currency = self.currency(code)
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
-        fromId = self.safe_string(accountsByType, fromAccount)
-        toId = self.safe_string(accountsByType, toAccount)
-        if fromId is None:
-            keys = list(accountsByType.keys())
-            raise ExchangeError(self.id + ' fromAccount must be one of ' + ', '.join(keys))
-        if toId is None:
-            keys = list(accountsByType.keys())
-            raise ExchangeError(self.id + ' toAccount must be one of ' + ', '.join(keys))
+        fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
+        toId = self.safe_string(accountsByType, toAccount, toAccount)
         request = {
             'ccy': currency['id'],
             'amt': self.currency_to_precision(code, amount),
@@ -3700,6 +3693,16 @@ class okx(Exchange):
             # 'instId': market['id'],  # required when from is 3, 5 or 9, margin trading pair like BTC-USDT or contract underlying like BTC-USD to be transferred out
             # 'toInstId': market['id'],  # required when from is 3, 5 or 9, margin trading pair like BTC-USDT or contract underlying like BTC-USD to be transferred in
         }
+        if fromId == 'master':
+            request['type'] = '1'
+            request['subAcct'] = toId
+            request['from'] = self.safe_string(params, 'from', '6')
+            request['to'] = self.safe_string(params, 'to', '6')
+        elif toId == 'master':
+            request['type'] = '2'
+            request['subAcct'] = fromId
+            request['from'] = self.safe_string(params, 'from', '6')
+            request['to'] = self.safe_string(params, 'to', '6')
         response = self.privatePostAssetTransfer(self.extend(request, params))
         #
         #     {
@@ -3753,9 +3756,9 @@ class okx(Exchange):
         amount = self.safe_number(transfer, 'amt')
         fromAccountId = self.safe_string(transfer, 'from')
         toAccountId = self.safe_string(transfer, 'to')
-        typesByAccount = self.safe_value(self.options, 'typesByAccount', {})
-        fromAccount = self.safe_string(typesByAccount, fromAccountId)
-        toAccount = self.safe_string(typesByAccount, toAccountId)
+        accountsById = self.safe_value(self.options, 'accountsById', {})
+        fromAccount = self.safe_string(accountsById, fromAccountId)
+        toAccount = self.safe_string(accountsById, toAccountId)
         timestamp = self.milliseconds()
         status = self.safe_string(transfer, 'state')
         return {

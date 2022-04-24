@@ -653,9 +653,8 @@ class okx extends Exchange {
                     'swap' => '9',
                     'option' => '12',
                     'trading' => '18', // unified trading account
-                    'unified' => '18',
                 ),
-                'typesByAccount' => array(
+                'accountsById' => array(
                     '1' => 'spot',
                     '3' => 'future',
                     '5' => 'margin',
@@ -3845,16 +3844,8 @@ class okx extends Exchange {
         yield $this->load_markets();
         $currency = $this->currency($code);
         $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
-        $fromId = $this->safe_string($accountsByType, $fromAccount);
-        $toId = $this->safe_string($accountsByType, $toAccount);
-        if ($fromId === null) {
-            $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
-            throw new ExchangeError($this->id . ' $fromAccount must be one of ' . implode(', ', $keys));
-        }
-        if ($toId === null) {
-            $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
-            throw new ExchangeError($this->id . ' $toAccount must be one of ' . implode(', ', $keys));
-        }
+        $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
+        $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
         $request = array(
             'ccy' => $currency['id'],
             'amt' => $this->currency_to_precision($code, $amount),
@@ -3865,6 +3856,17 @@ class okx extends Exchange {
             // 'instId' => market['id'], // required when from is 3, 5 or 9, margin trading pair like BTC-USDT or contract underlying like BTC-USD to be transferred out
             // 'toInstId' => market['id'], // required when from is 3, 5 or 9, margin trading pair like BTC-USDT or contract underlying like BTC-USD to be transferred in
         );
+        if ($fromId === 'master') {
+            $request['type'] = '1';
+            $request['subAcct'] = $toId;
+            $request['from'] = $this->safe_string($params, 'from', '6');
+            $request['to'] = $this->safe_string($params, 'to', '6');
+        } else if ($toId === 'master') {
+            $request['type'] = '2';
+            $request['subAcct'] = $fromId;
+            $request['from'] = $this->safe_string($params, 'from', '6');
+            $request['to'] = $this->safe_string($params, 'to', '6');
+        }
         $response = yield $this->privatePostAssetTransfer (array_merge($request, $params));
         //
         //     {
@@ -3919,9 +3921,9 @@ class okx extends Exchange {
         $amount = $this->safe_number($transfer, 'amt');
         $fromAccountId = $this->safe_string($transfer, 'from');
         $toAccountId = $this->safe_string($transfer, 'to');
-        $typesByAccount = $this->safe_value($this->options, 'typesByAccount', array());
-        $fromAccount = $this->safe_string($typesByAccount, $fromAccountId);
-        $toAccount = $this->safe_string($typesByAccount, $toAccountId);
+        $accountsById = $this->safe_value($this->options, 'accountsById', array());
+        $fromAccount = $this->safe_string($accountsById, $fromAccountId);
+        $toAccount = $this->safe_string($accountsById, $toAccountId);
         $timestamp = $this->milliseconds();
         $status = $this->safe_string($transfer, 'state');
         return array(
