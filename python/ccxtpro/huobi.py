@@ -120,6 +120,7 @@ class huobi(Exchange, ccxt.huobi):
     async def watch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         messageHash = 'market.' + market['id'] + '.detail'
         url = self.get_url_by_market_type(market['type'], market['linear'])
         return await self.subscribe_public(url, symbol, messageHash, None, params)
@@ -159,6 +160,7 @@ class huobi(Exchange, ccxt.huobi):
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         messageHash = 'market.' + market['id'] + '.trade.detail'
         url = self.get_url_by_market_type(market['type'], market['linear'])
         trades = await self.subscribe_public(url, symbol, messageHash, None, params)
@@ -208,6 +210,7 @@ class huobi(Exchange, ccxt.huobi):
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         interval = self.timeframes[timeframe]
         messageHash = 'market.' + market['id'] + '.kline.' + interval
         url = self.get_url_by_market_type(market['type'], market['linear'])
@@ -256,6 +259,7 @@ class huobi(Exchange, ccxt.huobi):
             raise ExchangeError(self.id + ' watchOrderBook accepts limit = 150 only')
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         # only supports a limit of 150 at self time
         limit = 150 if (limit is None) else limit
         messageHash = None
@@ -538,81 +542,108 @@ class huobi(Exchange, ccxt.huobi):
         self.check_required_credentials()
         type = None
         marketId = '*'  # wildcard
+        market = None
+        messageHash = None
+        channel = None
+        trades = None
+        subType = None
         if symbol is not None:
             await self.load_markets()
             market = self.market(symbol)
+            symbol = market['symbol']
             type = market['type']
+            subType = 'linear' if market['linear'] else 'inverse'
             marketId = market['lowercaseId']
         else:
-            type, params = self.handle_market_type_and_params('watchMyTrades', None, params)
-        if type != 'spot':
-            raise ArgumentsRequired(self.id + ' watchMyTrades supports spot markets only')
-        mode = None
-        if mode is None:
-            mode = self.safe_string_2(self.options, 'watchMyTrades', 'mode', 0)
-            mode = self.safe_string(params, 'mode', mode)
-        messageHash = 'trade.clearing' + '#' + marketId + '#' + mode
-        trades = await self.subscribe_private(messageHash, messageHash, type, 'linear', params)
+            type = self.safe_string(self.options, 'defaultType', 'spot')
+            type = self.safe_string(params, 'type', type)
+            subType = self.safe_string_2(self.options, 'subType', 'defaultSubType', 'linear')
+            subType = self.safe_string(params, 'subType', subType)
+            params = self.omit(params, ['type', 'subType'])
+        if type == 'spot':
+            mode = None
+            if mode is None:
+                mode = self.safe_string_2(self.options, 'watchMyTrades', 'mode', 0)
+                mode = self.safe_string(params, 'mode', mode)
+                params = self.omit(params, 'mode')
+            messageHash = 'trade.clearing' + '#' + marketId + '#' + mode
+            channel = messageHash
+        else:
+            channelAndMessageHash = self.get_order_channel_and_message_hash(type, subType, market, params)
+            channel = self.safe_string(channelAndMessageHash, 0)
+            orderMessageHash = self.safe_string(channelAndMessageHash, 1)
+            # we will take advantage of the order messageHash because already handles stuff
+            # like symbol/margin/subtype/type variations
+            messageHash = orderMessageHash + ':' + 'trade'
+        trades = await self.subscribe_private(channel, messageHash, type, subType, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
+
+    def get_order_channel_and_message_hash(self, type, subType, market=None, params={}):
+        messageHash = None
+        channel = None
+        orderType = self.safe_string(self.options, 'orderType', 'orders')  # orders or matchOrders
+        orderType = self.safe_string(params, 'orderType', orderType)
+        params = self.omit(params, 'orderType')
+        marketCode = market['lowercaseId'] if (market is not None) else None
+        baseId = market['lowercaseBaseId'] if (market is not None) else None
+        prefix = orderType
+        messageHash = prefix
+        if subType == 'linear':
+            # USDT Margined Contracts Example: LTC/USDT:USDT
+            marginMode = self.safe_string(params, 'margin', 'cross')
+            marginPrefix = prefix + '_cross' if (marginMode == 'cross') else prefix
+            messageHash = marginPrefix
+            if marketCode is not None:
+                messageHash += '.' + marketCode
+                channel = messageHash
+            else:
+                channel = marginPrefix + '.' + '*'
+        elif type == 'future':
+            # inverse futures Example: BCH/USD:BCH-220408
+            if baseId is not None:
+                channel = prefix + '.' + baseId
+                messageHash = channel
+            else:
+                channel = prefix + '.' + '*'
+        else:
+            # inverse swaps: Example: BTC/USD:BTC
+            if marketCode is not None:
+                channel = prefix + '.' + marketCode
+                messageHash = channel
+            else:
+                channel = prefix + '.' + '*'
+        return [channel, messageHash]
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
-        query = params
         type = None
         subType = None
         market = None
         suffix = '*'  # wildcard
         if symbol is not None:
             market = self.market(symbol)
+            symbol = market['symbol']
             type = market['type']
             suffix = market['lowercaseId']
             subType = 'linear' if market['linear'] else 'inverse'
-        if type is None:
-            type = self.safe_string_2(self.options, 'watchOrders', 'defaultType', 'spot')
+        else:
+            type = self.safe_string(self.options, 'defaultType', 'spot')
             type = self.safe_string(params, 'type', type)
-            subType = self.safe_string_2(self.options, 'watchOrders', 'subType', 'linear')
-            subType = self.safe_string(params, 'subType', type)
-            query = self.omit(params, ['type', 'subtype'])
+            subType = self.safe_string_2(self.options, 'subType', 'defaultSubType', 'linear')
+            subType = self.safe_string(params, 'subType', subType)
+            params = self.omit(params, ['type', 'subType'])
         messageHash = None
         channel = None
         if type == 'spot':
             messageHash = 'orders' + '#' + suffix
             channel = messageHash
         else:
-            orderType = self.safe_string_2(self.options, 'watchOrders', 'orderType', 'orders')  # orders or matchOrders
-            orderType = self.safe_string(params, 'orderType', orderType)
-            query = self.omit(params, 'orderType')
-            marketCode = market['lowercaseId'] if (market is not None) else None
-            baseId = market['lowercaseBaseId'] if (market is not None) else None
-            prefix = orderType
-            messageHash = prefix
-            if subType == 'linear':
-                # USDT Margined Contracts Example: LTC/USDT:USDT
-                marginMode = self.safe_string(params, 'margin', 'cross')
-                marginPrefix = prefix + '_cross' if (marginMode == 'cross') else prefix
-                messageHash = marginPrefix
-                if marketCode is not None:
-                    messageHash += '.' + marketCode
-                    channel = messageHash
-                else:
-                    channel = marginPrefix + '.' + '*'
-            elif type == 'future':
-                # inverse futures Example: BCH/USD:BCH-220408
-                if baseId is not None:
-                    channel = prefix + '.' + baseId
-                    messageHash = channel
-                else:
-                    channel = prefix + '.' + '*'
-            else:
-                # inverse swaps: Example: BTC/USD:BTC
-                if marketCode is not None:
-                    channel = prefix + '.' + marketCode
-                    messageHash = channel
-                else:
-                    channel = prefix + '.' + '*'
-        orders = await self.subscribe_private(channel, messageHash, type, subType, query)
+            channelAndMessageHash = self.get_order_channel_and_message_hash(type, subType, market, params)
+            channel = self.safe_string(channelAndMessageHash, 0)
+            messageHash = self.safe_string(channelAndMessageHash, 1)
+        orders = await self.subscribe_private(channel, messageHash, type, subType, params)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_since_limit(orders, since, limit)
@@ -665,62 +696,121 @@ class huobi(Exchange, ccxt.huobi):
         #
         # non spot order
         #
-        #     {
-        #         "contract_type":"swap",
-        #         "pair":"BTC-USDT",
-        #         "business_type":"swap",
-        #         "op":"notify",
-        #         "topic":"orders_cross.btc-usdt",
-        #         "ts":1645205382242,
-        #         "symbol":"BTC",
-        #         "contract_code":"BTC-USDT",
-        #     }
+        # {
+        #     contract_type: 'swap',
+        #     pair: 'LTC-USDT',
+        #     business_type: 'swap',
+        #     op: 'notify',
+        #     topic: 'orders_cross.ltc-usdt',
+        #     ts: 1650354508696,
+        #     symbol: 'LTC',
+        #     contract_code: 'LTC-USDT',
+        #     volume: 1,
+        #     price: 110.34,
+        #     order_price_type: 'lightning',
+        #     direction: 'sell',
+        #     offset: 'close',
+        #     status: 6,
+        #     lever_rate: 1,
+        #     order_id: '966002354015051776',
+        #     order_id_str: '966002354015051776',
+        #     client_order_id: null,
+        #     order_source: 'web',
+        #     order_type: 1,
+        #     created_at: 1650354508649,
+        #     trade_volume: 1,
+        #     trade_turnover: 11.072,
+        #     fee: -0.005536,
+        #     trade_avg_price: 110.72,
+        #     margin_frozen: 0,
+        #     profit: -0.045,
+        #     trade: [
+        #       {
+        #         trade_fee: -0.005536,
+        #         fee_asset: 'USDT',
+        #         real_profit: 0.473,
+        #         profit: -0.045,
+        #         trade_id: 86678766507,
+        #         id: '86678766507-966002354015051776-1',
+        #         trade_volume: 1,
+        #         trade_price: 110.72,
+        #         trade_turnover: 11.072,
+        #         created_at: 1650354508656,
+        #         role: 'taker'
+        #       }
+        #     ],
+        #     canceled_at: 0,
+        #     fee_asset: 'USDT',
+        #     margin_asset: 'USDT',
+        #     uid: '359305390',
+        #     liquidation_type: '0',
+        #     margin_mode: 'cross',
+        #     margin_account: 'USDT',
+        #     is_tpsl: 0,
+        #     real_profit: 0.473,
+        #     trade_partition: 'USDT',
+        #     reduce_only: 1
+        #   }
         #
-        messageHash = self.safe_string_2(message, 'ch', 'topic', '')
+        #
+        messageHash = self.safe_string_2(message, 'ch', 'topic')
+        data = self.safe_value(message, 'data')
         marketId = self.safe_string(message, 'contract_code')
-        market = None
         if marketId is None:
-            messageParts = messageHash.split('#')
-            marketId = self.safe_string(messageParts, 1)
-            if (marketId is not None) and (marketId != '*'):
-                market = self.market(marketId)
-        data = self.safe_value(message, 'data', message)
-        eventType = self.safe_string(data, 'eventType')
+            marketId = self.safe_string(data, 'symbol')
+        market = self.safe_market(marketId)
         parsedOrder = None
-        parsedTrade = None
-        symbol = None
-        if eventType == 'trade':
-            parsedTrade = self.parse_order_trade(data, market)
-            symbol = parsedTrade['symbol']
-        else:
-            parsedOrder = self.parse_ws_order(data, market)
-            symbol = parsedOrder['symbol']
-        if symbol is not None:
-            market = self.market(symbol)
-            if self.orders is None:
-                limit = self.safe_integer(self.options, 'ordersLimit', 1000)
-                self.orders = ArrayCacheBySymbolById(limit)
-            cachedOrders = self.orders
-            parsed = None
-            if parsedTrade is not None:
+        if data is not None:
+            # spot updates
+            eventType = self.safe_string(data, 'eventType')
+            if eventType == 'trade':
+                # when a spot order is filled we get an update message
+                # with the trade info
+                parsedTrade = self.parse_order_trade(data, market)
                 # inject trade in existing order by faking an order object
                 orderId = self.safe_string(parsedTrade, 'order')
-                trades = []
-                trades.append(parsedTrade)
+                trades = [parsedTrade]
                 order = {
                     'id': orderId,
                     'trades': trades,
+                    'status': 'closed',
+                    'symbol': market['symbol'],
                 }
-                parsed = order
+                parsedOrder = order
             else:
-                parsed = parsedOrder
-            cachedOrders.append(parsed)
-            client.resolve(self.orders, messageHash)
-            # when we make a global subscription our message hash can't have a symbol/currency attached
-            # so we're removing it here
-            genericMessageHash = messageHash.replace('.' + market['lowercaseId'], '')
-            genericMessageHash = genericMessageHash.replace('.' + market['lowercaseBaseId'], '')
-            client.resolve(self.orders, genericMessageHash)
+                parsedOrder = self.parse_ws_order(data, market)
+        else:
+            # contract branch
+            parsedOrder = self.parse_ws_order(message, market)
+            rawTrades = self.safe_value(message, 'trade', [])
+            tradesLength = len(rawTrades)
+            if tradesLength > 0:
+                tradesObject = {
+                    'trades': rawTrades,
+                    'ch': messageHash,
+                    'symbol': marketId,
+                }
+                # inject order params in every trade
+                extendTradeParams = {
+                    'order': self.safe_string(parsedOrder, 'id'),
+                    'type': self.safe_string(parsedOrder, 'type'),
+                    'side': self.safe_string(parsedOrder, 'side'),
+                }
+                # trades arrive inside an order update
+                # we're forwarding them to handleMyTrade
+                # so they can be properly resolved
+                self.handle_my_trade(client, tradesObject, extendTradeParams)
+        if self.orders is None:
+            limit = self.safe_integer(self.options, 'ordersLimit', 1000)
+            self.orders = ArrayCacheBySymbolById(limit)
+        cachedOrders = self.orders
+        cachedOrders.append(parsedOrder)
+        client.resolve(self.orders, messageHash)
+        # when we make a global subscription(for contracts only) our message hash can't have a symbol/currency attached
+        # so we're removing it here
+        genericMessageHash = messageHash.replace('.' + market['lowercaseId'], '')
+        genericMessageHash = genericMessageHash.replace('.' + market['lowercaseBaseId'], '')
+        client.resolve(self.orders, genericMessageHash)
 
     def parse_ws_order(self, order, market=None):
         #
@@ -838,6 +928,7 @@ class huobi(Exchange, ccxt.huobi):
         lastTradeTimestamp = self.safe_integer_2(order, 'lastActTime', 'ts')
         created = self.safe_integer(order, 'orderCreateTime')
         marketId = self.safe_string_2(order, 'contract_code', 'symbol')
+        market = self.safe_market(marketId, market)
         symbol = self.safe_symbol(marketId, market)
         amount = self.safe_string_2(order, 'orderSize', 'volume')
         status = self.parse_order_status(self.safe_string_2(order, 'orderStatus', 'status'))
@@ -856,9 +947,6 @@ class huobi(Exchange, ccxt.huobi):
             }
         avgPrice = self.safe_string(order, 'trade_avg_price')
         rawTrades = self.safe_value(order, 'trade')
-        trades = []
-        if rawTrades is not None:
-            trades = self.parse_trades(rawTrades, market)
         if typeSide is not None:
             typeSide = typeSide.split('-')
         type = self.safe_string_lower(typeSide, 1)
@@ -887,7 +975,7 @@ class huobi(Exchange, ccxt.huobi):
             'cost': None,
             'fee': fee,
             'average': avgPrice,
-            'trades': trades,
+            'trades': rawTrades,
         }, market)
 
     def parse_order_trade(self, trade, market=None):
@@ -1174,14 +1262,20 @@ class huobi(Exchange, ccxt.huobi):
                             balance = balances[i]
                             marketId = self.safe_string_2(balance, 'contract_code', 'margin_account')
                             market = self.safe_market(marketId)
-                            account = self.account()
-                            account['free'] = self.safe_string(balance, 'margin_balance')
-                            account['used'] = self.safe_string(balance, 'margin_frozen')
-                            code = market['settle']
-                            accountsByCode = {}
-                            accountsByCode[code] = account
-                            symbol = market['symbol']
-                            self.balance[symbol] = self.safe_balance(accountsByCode)
+                            currencyId = self.safe_string(balance, 'margin_asset')
+                            currency = self.safe_currency(currencyId)
+                            code = self.safe_string(market, 'settle', currency['code'])
+                            # the exchange outputs positions for delisted markets
+                            # https://www.huobi.com/support/en-us/detail/74882968522337
+                            # we skip it if the market was delisted
+                            if code is not None:
+                                account = self.account()
+                                account['free'] = self.safe_string(balance, 'margin_balance')
+                                account['used'] = self.safe_string(balance, 'margin_frozen')
+                                accountsByCode = {}
+                                accountsByCode[code] = account
+                                symbol = market['symbol']
+                                self.balance[symbol] = self.safe_balance(accountsByCode)
                 else:
                     # isolated margin
                     for i in range(0, len(data)):
@@ -1536,7 +1630,7 @@ class huobi(Exchange, ccxt.huobi):
             if 'ping' in message:
                 self.handle_ping(client, message)
 
-    def handle_my_trade(self, client, message):
+    def handle_my_trade(self, client, message, extendParams={}):
         #
         # spot
         #
@@ -1566,6 +1660,28 @@ class huobi(Exchange, ccxt.huobi):
         #         }
         #     }
         #
+        # contract
+        #
+        #     {
+        #         "symbol": "ADA/USDT:USDT"
+        #         "ch": "orders_cross.ada-usdt"
+        #         "trades": [
+        #             {
+        #                 "trade_fee":-0.022099447513812154,
+        #                 "fee_asset":"ADA",
+        #                 "trade_id":113913755890,
+        #                 "id":"113913755890-773207641127878656-1",
+        #                 "trade_volume":1,
+        #                 "trade_price":0.0905,
+        #                 "trade_turnover":10,
+        #                 "created_at":1604388667194,
+        #                 "profit":0,
+        #                 "real_profit": 0,
+        #                 "role":"maker"
+        #             }
+        #         ],
+        #     }
+        #
         if self.myTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             self.myTrades = ArrayCacheBySymbolById(limit)
@@ -1573,11 +1689,37 @@ class huobi(Exchange, ccxt.huobi):
         messageHash = self.safe_string(message, 'ch')
         if messageHash is not None:
             data = self.safe_value(message, 'data')
-            parsed = self.parse_ws_trade(data)
-            symbol = self.safe_string(parsed, 'symbol')
-            if symbol is not None:
-                cachedTrades.append(parsed)
-            client.resolve(self.myTrades, messageHash)
+            if data is not None:
+                parsed = self.parse_ws_trade(data)
+                symbol = self.safe_string(parsed, 'symbol')
+                if symbol is not None:
+                    cachedTrades.append(parsed)
+                    client.resolve(self.myTrades, messageHash)
+            else:
+                # self trades object is artificially created
+                # in handleOrder
+                rawTrades = self.safe_value(message, 'trades', [])
+                marketId = self.safe_value(message, 'symbol')
+                market = self.market(marketId)
+                for i in range(0, len(rawTrades)):
+                    trade = rawTrades[i]
+                    parsedTrade = self.parse_trade(trade, market)
+                    # add extra params(side, type, ...) coming from the order
+                    parsedTrade = self.extend(parsedTrade, extendParams)
+                    cachedTrades.append(parsedTrade)
+                # messageHash here is the orders one, so
+                # we have to recreate the trades messageHash = orderMessageHash + ':' + 'trade'
+                tradesHash = messageHash + ':' + 'trade'
+                client.resolve(self.myTrades, tradesHash)
+                # when we make an global order sub we have to send the channel like self
+                # ch = orders_cross.* and we store messageHash = 'orders_cross'
+                # however it is returned with the specific order update symbol: ch = orders_cross.btc-usd
+                # since self is a global sub, our messageHash does not specify any symbol(ex: orders_cross:trade)
+                # so we must remove it
+                genericOrderHash = messageHash.replace('.' + market['lowercaseId'], '')
+                genericOrderHash = genericOrderHash.replace('.' + market['lowercaseBaseId'], '')
+                genericTradesHash = genericOrderHash + ':' + 'trade'
+                client.resolve(self.myTrades, genericTradesHash)
 
     def parse_ws_trade(self, trade):
         # spot private
@@ -1708,7 +1850,7 @@ class huobi(Exchange, ccxt.huobi):
         if type == 'spot':
             self.options['ws']['gunzip'] = False
         await self.authenticate(authParams)
-        return await self.watch(url, messageHash, self.extend(request, params), messageHash, extendedSubsription)
+        return await self.watch(url, messageHash, self.extend(request, params), channel, extendedSubsription)
 
     async def authenticate(self, params={}):
         url = self.safe_string(params, 'url')

@@ -101,6 +101,7 @@ class ndax(Exchange, ccxt.ndax):
         omsId = self.safe_integer(self.options, 'omsId', 1)
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         name = 'SubscribeTrades'
         messageHash = name + ':' + market['id']
         url = self.urls['api']['ws']
@@ -167,6 +168,7 @@ class ndax(Exchange, ccxt.ndax):
         omsId = self.safe_integer(self.options, 'omsId', 1)
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         name = 'SubscribeTicker'
         messageHash = name + ':' + timeframe + ':' + market['id']
         url = self.urls['api']['ws']
@@ -277,6 +279,7 @@ class ndax(Exchange, ccxt.ndax):
         omsId = self.safe_integer(self.options, 'omsId', 1)
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         name = 'SubscribeLevel2'
         messageHash = name + ':' + market['id']
         url = self.urls['api']['ws']

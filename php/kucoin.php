@@ -843,7 +843,7 @@ class kucoin extends \ccxt\async\kucoin {
         yield $this->load_markets();
         $this->check_required_credentials();
         $messageHash = '/account/balance';
-        $selectedType = $this->safe_string_2($this->options, 'watchBalance', 'defaultType', 'trade'); // trade, main, margin or other
+        $selectedType = $this->safe_string_2($this->options, 'watchBalance', 'defaultType', 'spot'); // spot, margin, main, funding, future, mining, trade, contract, pool
         $params = array(
             'type' => $selectedType,
         );
