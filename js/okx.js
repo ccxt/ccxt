@@ -647,9 +647,8 @@ module.exports = class okx extends Exchange {
                     'swap': '9',
                     'option': '12',
                     'trading': '18', // unified trading account
-                    'unified': '18',
                 },
-                'typesByAccount': {
+                'accountsById': {
                     '1': 'spot',
                     '3': 'future',
                     '5': 'margin',
@@ -3843,16 +3842,8 @@ module.exports = class okx extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-        const fromId = this.safeString (accountsByType, fromAccount);
-        const toId = this.safeString (accountsByType, toAccount);
-        if (fromId === undefined) {
-            const keys = Object.keys (accountsByType);
-            throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', '));
-        }
-        if (toId === undefined) {
-            const keys = Object.keys (accountsByType);
-            throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', '));
-        }
+        const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
+        const toId = this.safeString (accountsByType, toAccount, toAccount);
         const request = {
             'ccy': currency['id'],
             'amt': this.currencyToPrecision (code, amount),
@@ -3863,6 +3854,17 @@ module.exports = class okx extends Exchange {
             // 'instId': market['id'], // required when from is 3, 5 or 9, margin trading pair like BTC-USDT or contract underlying like BTC-USD to be transferred out
             // 'toInstId': market['id'], // required when from is 3, 5 or 9, margin trading pair like BTC-USDT or contract underlying like BTC-USD to be transferred in
         };
+        if (fromId === 'master') {
+            request['type'] = '1';
+            request['subAcct'] = toId;
+            request['from'] = this.safeString (params, 'from', '6');
+            request['to'] = this.safeString (params, 'to', '6');
+        } else if (toId === 'master') {
+            request['type'] = '2';
+            request['subAcct'] = fromId;
+            request['from'] = this.safeString (params, 'from', '6');
+            request['to'] = this.safeString (params, 'to', '6');
+        }
         const response = await this.privatePostAssetTransfer (this.extend (request, params));
         //
         //     {
@@ -3917,9 +3919,9 @@ module.exports = class okx extends Exchange {
         const amount = this.safeNumber (transfer, 'amt');
         const fromAccountId = this.safeString (transfer, 'from');
         const toAccountId = this.safeString (transfer, 'to');
-        const typesByAccount = this.safeValue (this.options, 'typesByAccount', {});
-        const fromAccount = this.safeString (typesByAccount, fromAccountId);
-        const toAccount = this.safeString (typesByAccount, toAccountId);
+        const accountsById = this.safeValue (this.options, 'accountsById', {});
+        const fromAccount = this.safeString (accountsById, fromAccountId);
+        const toAccount = this.safeString (accountsById, toAccountId);
         const timestamp = this.milliseconds ();
         const status = this.safeString (transfer, 'state');
         return {
