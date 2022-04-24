@@ -3836,10 +3836,10 @@ class Exchange {
                 throw new InvalidOrder($this->id . ' postOnly orders cannot have type ' . $type);
             } else {
                 $time_in_force = $time_in_force_post_only ? null : $time_in_force;
-                return array('limit', True, $time_in_force, $params);
+                return array('limit', true, $time_in_force, $params);
             }
         } else {
-            return array($type, False, $time_in_force, $params);
+            return array($type, false, $time_in_force, $params);
         }
     }
 
