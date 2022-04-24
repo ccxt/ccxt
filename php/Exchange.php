@@ -837,7 +837,9 @@ class Exchange {
     }
 
     public function urlencode_nested($array) {
-        // in PHP, we don't have to customly implement this method
+        // we don't have to implement this method in PHP
+        // https://github.com/ccxt/ccxt/issues/12872
+        // https://github.com/ccxt/ccxt/issues/12900
         return $this->urlencode($array);
     }
 
