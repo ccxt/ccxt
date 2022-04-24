@@ -217,7 +217,7 @@ class Exchange {
         'safeInteger2' => 'safe_integer2',
         'safeIntegerProduct2' => 'safe_integer_product2',
         'safeTimestamp2' => 'safe_timestamp2',
-        'safeValue2' => 'safe_value2',
+        'safeValue2' => 'safe_value_2',
         'safeString2' => 'safe_string2',
         'safeStringLower2' => 'safe_string_lower2',
         'safeStringUpper2' => 'safe_string_upper2',
@@ -3813,7 +3813,7 @@ class Exchange {
     }
 
     public function is_post_only($type, $time_in_force, $exchange_specific_option, $params = array()){
-        $post_only = $this->safe_value2($params, 'postOnly', 'post_only', false);
+        $post_only = $this->safe_value_2($params, 'postOnly', 'post_only', false);
         $params = $this->omit($params, ['post_only', 'postOnly']);
         $time_in_force_upper = $time_in_force.upper();
         $type_upper = $type.lower();
