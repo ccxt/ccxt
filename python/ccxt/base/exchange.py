@@ -1012,7 +1012,7 @@ class Exchange(object):
     @staticmethod
     def urlencode_nested(params):
         result = {}
-        
+
         def _encode_params(params, p_key=None):
             encode_params = {}
             if isinstance(params, dict):
