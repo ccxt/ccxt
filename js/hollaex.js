@@ -156,15 +156,7 @@ module.exports = class hollaex extends ccxt.hollaex {
             symbol = market['symbol'];
             messageHash += ':' + market['id'];
         }
-        const options = this.safeValue (this.options, 'watchOrders', {});
-        let expiresString = this.safeString (options, 'api-expires');
-        if (expiresString === undefined || expiresString.length === 0) {
-            expiresString = this.getExpirationTime ();
-            // we need to memoize these values to avoid generating a new url on each method execution
-            // that would trigger a new connection on each received message
-            this.options['watchOrders']['api-expires'] = expiresString;
-        }
-        const orders = await this.watchPrivate (messageHash, expiresString, params);
+        const orders = await this.watchPrivate (messageHash, 'watchOrders', params);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -221,22 +213,7 @@ module.exports = class hollaex extends ccxt.hollaex {
 
     async watchBalance (params = {}) {
         const messageHash = 'wallet';
-        const options = this.safeValue (this.options, 'watchBalance', {});
-        let expiresString = this.safeInteger (options, 'api-expires');
-        if (expiresString === undefined || expiresString.length === 0) {
-            expiresString = this.getExpirationTime ();
-            // we need to memoize these values to avoid generating a new url on each method execution
-            // that would trigger a new connection on each received message
-            this.options['watchBalance']['api-expires'] = expiresString;
-        }
-        return await this.watchPrivate (messageHash, expiresString, params);
-    }
-
-    getExpirationTime () {
-        const defaultValue = parseInt (this.timeout / 1000);
-        const expires = this.sum (this.seconds (), defaultValue);
-        const expiresString = expires.toString ();
-        return expiresString;
+        return await this.watchPrivate (messageHash, 'watchBalance', params);
     }
 
     handleBalance (client, message) {
@@ -258,25 +235,20 @@ module.exports = class hollaex extends ccxt.hollaex {
         //
         const messageHash = this.safeString (message, 'topic');
         const data = this.safeValue (message, 'data');
-        const balanceKeys = Object.keys (data);
-        const currencies = {};
-        for (let i = 0; i < balanceKeys.length; i++) {
-            const rawKey = balanceKeys[i];
-            const keyParts = rawKey.split ('_');
-            const currency = this.safeValue (keyParts, 0);
-            currencies[currency] = true;
-        }
-        const currenciesKeys = Object.keys (currencies);
-        for (let i = 0; i < currenciesKeys.length; i++) {
-            const currencyId = currenciesKeys[i];
+        const keys = Object.keys (data);
+        const results = {};
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const parts = key.split ('_');
+            const currencyId = this.safeString (parts, 0);
             const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            const availableKey = currencyId + '_available';
-            const totalKey = currencyId + '_balance';
-            account['free'] = this.safeString (data, availableKey);
-            account['total'] = this.safeString (data, totalKey);
-            this.balance[code] = account;
+            const account = (code in results) ? results[code] : this.account ();
+            const second = this.safeString (parts, 1);
+            const freeOrTotal = (second === 'available') ? 'free' : 'total';
+            account[freeOrTotal] = this.safeString (data, key);
+            results[code] = account;
         }
+        this.balance = this.extend (this.balance, results);
         this.balance = this.safeBalance (this.balance);
         client.resolve (this.balance, messageHash);
     }
@@ -291,7 +263,17 @@ module.exports = class hollaex extends ccxt.hollaex {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    async watchPrivate (messageHash, expires, params = {}) {
+    async watchPrivate (messageHash, method, params = {}) {
+        const options = this.safeValue (this.options, method, {});
+        let expires = this.safeString (options, 'api-expires');
+        if (expires === undefined) {
+            const timeout = parseInt (this.timeout / 1000);
+            expires = this.sum (this.seconds (), timeout);
+            expires = expires.toString ();
+            // we need to memoize these values to avoid generating a new url on each method execution
+            // that would trigger a new connection on each received message
+            this.options[method]['api-expires'] = expires;
+        }
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'];
         const auth = 'CONNECT' + '/stream' + expires;
