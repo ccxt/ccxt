@@ -3,7 +3,7 @@
 const ccxt = require ('../../ccxt.js');
 
 const exchange = new ccxt.binanceusdm ();
-const timeframe = '1h';
+const timeframe = '5m';
 const type = 'swap';
 
 async function fetchOHLCV (symbol) {
@@ -13,7 +13,7 @@ async function fetchOHLCV (symbol) {
      * @returns {[float|str]} 1d array with a single ohlcv record with the market symbol appended
      */
     try {
-        const ohlcv = await exchange.fetchOHLCV (symbol, timeframe, undefined, 1);
+        const ohlcv = await exchange.fetchOHLCV (symbol, timeframe, undefined, 2);
         ohlcv[0].push (symbol);
         return ohlcv[0];
     } catch (err) {
@@ -24,7 +24,7 @@ async function fetchOHLCV (symbol) {
 function getPriceChangePercent (ohlcv) {
     /**
      * @description Gets the price change of a market as a percentage
-     * @param {[float]} ohlcv A single ohlcv record
+     * @param {[float]} ohlcv A single ohlcv record with the market symbol appended
      * @returns {[float, str]} The price change as a percent with the symbol for the market
      */
     const open = ohlcv[1];
@@ -40,13 +40,14 @@ function sort (a, b) {
     return a[0] - b[0];
 }
 
-/**
- * @description Gets the price change as a percent of every market matching type over the last timeframe matching timeframe and prints a sorted list. The timeframe is the incomplete candle
- */
 async function main () {
+    /**
+     * @description Gets the price change as a percent of every market matching type over the last timeframe matching timeframe and prints a sorted list. The timeframe is the incomplete candle
+     */
     await exchange.loadMarkets ();
     const allSwapSymbols = exchange.symbols.filter (symbol => exchange.market (symbol)[type] );
     const ohlcvs = await Promise.all (allSwapSymbols.map (symbol => fetchOHLCV (symbol)));
+    console.log (ohlcvs)
     const priceChanges = ohlcvs.map (ohlcv => getPriceChangePercent (ohlcv));
     const sorted = priceChanges.sort (sort);
     console.dir(sorted, {'maxArrayLength': null})
