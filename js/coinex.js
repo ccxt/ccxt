@@ -561,7 +561,7 @@ module.exports = class coinex extends Exchange {
 
     parseTrade (trade, market = undefined) {
         //
-        // Spot fetchTrades (public)
+        // Spot and Swap fetchTrades (public)
         //
         //      {
         //          "id":  2611511379,
@@ -657,6 +657,9 @@ module.exports = class coinex extends Exchange {
             } else if (side === 2) {
                 side = 'buy';
             }
+            if (side === undefined) {
+                side = this.safeString (trade, 'type');
+            }
         } else {
             side = this.safeString (trade, 'type');
         }
@@ -682,8 +685,15 @@ module.exports = class coinex extends Exchange {
         const market = this.market (symbol);
         const request = {
             'market': market['id'],
+            // 'last_id': 0,
         };
-        const response = await this.publicGetMarketDeals (this.extend (request, params));
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const method = market['swap'] ? 'perpetualPublicGetMarketDeals' : 'publicGetMarketDeals';
+        const response = await this[method] (this.extend (request, params));
+        //
+        // Spot and Swap
         //
         //      {
         //          "code":    0,
