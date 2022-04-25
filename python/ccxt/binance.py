@@ -3447,8 +3447,9 @@ class binance(Exchange):
         if feeCost is not None:
             fee = {'currency': code, 'cost': feeCost}
         updated = self.safe_integer_2(transaction, 'successTime', 'updateTime')
-        internal = self.safe_integer(transaction, 'transferType', False)
-        internal = True if internal else False
+        internal = self.safe_integer(transaction, 'transferType')
+        if internal is not None:
+            internal = True if internal else False
         network = self.safe_string(transaction, 'network')
         return {
             'info': transaction,

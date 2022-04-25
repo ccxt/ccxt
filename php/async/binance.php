@@ -3603,8 +3603,10 @@ class binance extends Exchange {
             $fee = array( 'currency' => $code, 'cost' => $feeCost );
         }
         $updated = $this->safe_integer_2($transaction, 'successTime', 'updateTime');
-        $internal = $this->safe_integer($transaction, 'transferType', false);
-        $internal = $internal ? true : false;
+        $internal = $this->safe_integer($transaction, 'transferType');
+        if ($internal !== null) {
+            $internal = $internal ? true : false;
+        }
         $network = $this->safe_string($transaction, 'network');
         return array(
             'info' => $transaction,
