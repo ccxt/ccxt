@@ -1302,8 +1302,14 @@ class zb extends Exchange {
         }
         $ids = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($ids); $i++) {
-            $market = $marketsByIdWithoutUnderscore[$ids[$i]];
-            $result[$market['symbol']] = $this->parse_ticker($response[$ids[$i]], $market);
+            $market = $this->safe_value($marketsByIdWithoutUnderscore, $ids[$i]);
+            if ($market !== null) {
+                $symbol = $market['symbol'];
+                $ticker = $this->safe_value($response, $ids[$i]);
+                if ($ticker !== null) {
+                    $result[$symbol] = $this->parse_ticker($ticker, $market);
+                }
+            }
         }
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
