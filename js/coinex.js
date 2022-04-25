@@ -990,6 +990,16 @@ module.exports = class coinex extends Exchange {
         }, market);
     }
 
+    async createOrder2 (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const method = 'privatePostOrder' + this.capitalize (type);
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+            'type': side,
+        };
+    }
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const method = 'privatePostOrder' + this.capitalize (type);
