@@ -236,19 +236,17 @@ module.exports = class hollaex extends ccxt.hollaex {
         const messageHash = this.safeString (message, 'topic');
         const data = this.safeValue (message, 'data');
         const keys = Object.keys (data);
-        const results = {};
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const parts = key.split ('_');
             const currencyId = this.safeString (parts, 0);
             const code = this.safeCurrencyCode (currencyId);
-            const account = (code in results) ? results[code] : this.account ();
+            const account = (code in this.balance) ? this.balance[code] : this.account ();
             const second = this.safeString (parts, 1);
             const freeOrTotal = (second === 'available') ? 'free' : 'total';
             account[freeOrTotal] = this.safeString (data, key);
-            results[code] = account;
+            this.balance[code] = account;
         }
-        this.balance = this.extend (this.balance, results);
         this.balance = this.safeBalance (this.balance);
         client.resolve (this.balance, messageHash);
     }
