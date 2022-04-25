@@ -18,6 +18,7 @@ module.exports = class hollaex extends Exchange {
             // 4 requests per second => 1000ms / 4 = 250 ms between requests
             'rateLimit': 250,
             'version': 'v2',
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,
