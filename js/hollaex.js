@@ -276,8 +276,8 @@ module.exports = class hollaex extends ccxt.hollaex {
             account['free'] = this.safeString (data, availableKey);
             account['total'] = this.safeString (data, totalKey);
             this.balance[code] = account;
-            this.balance = this.safeBalance (this.balance);
         }
+        this.balance = this.safeBalance (this.balance);
         client.resolve (this.balance, messageHash);
     }
 
