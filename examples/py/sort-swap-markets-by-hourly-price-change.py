@@ -2,7 +2,9 @@
 
 import os
 import sys
+import asyncio
 from pprint import pprint
+
 
 # -----------------------------------------------------------------------------
 
@@ -17,13 +19,23 @@ import ccxt  # noqa: E402
 
 # -----------------------------------------------------------------------------
 
+exchange = ccxt.binanceusdm()
+exchange.load_markets()
+timeframe = '1h'
+ohlcvs = []
 
-def main():
 
-    exchange = ccxt.binanceusdm()
-    exchange.load_markets()
+async def fetchOHLCV(symbol):
+    try:
+        ohlcv = exchange.fetchOHLCV(symbol, timeframe, None, 1)
+        ohlcv[0].append(symbol)
+        ohlcvs.append(ohlcv[0])
+    except Exception as e:
+        print(f'{symbol} failed fetchOHLCV with exception {e}')
 
-    timeframe = '1h'
+
+async def main():
+
     symbols = exchange.symbols
 
     allSwapSymbols = []
@@ -33,15 +45,10 @@ def main():
         if market['swap']:
             allSwapSymbols.append(symbol)
 
-    ohlcvs = []
-    for i in range(0, len(allSwapSymbols)):
-        symbol = allSwapSymbols[i]
-        ohlcv = exchange.fetchOHLCV(symbol, timeframe, None, 1)
-        ohlcv[0].append(symbol)
-        ohlcvs.append(ohlcv[0])
+    await asyncio.gather(*[fetchOHLCV(symbol) for symbol in allSwapSymbols])
 
     priceChanges = []
-    for i in range(0, len(ohlcvs)):
+    for i in range(len(ohlcvs)):
         ohlcv = ohlcvs[i]
         open = ohlcv[1]
         close = ohlcv[4]
@@ -53,5 +60,6 @@ def main():
     priceChanges.sort()
     pprint(priceChanges)
 
-
-main()
+loop = asyncio.get_event_loop()
+loop.run_until_complete(main())
+loop.close()
