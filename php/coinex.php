@@ -566,7 +566,7 @@ class coinex extends Exchange {
 
     public function parse_trade($trade, $market = null) {
         //
-        // Spot fetchTrades (public)
+        // Spot and Swap fetchTrades (public)
         //
         //      array(
         //          "id" =>  2611511379,
@@ -662,6 +662,9 @@ class coinex extends Exchange {
             } else if ($side === 2) {
                 $side = 'buy';
             }
+            if ($side === null) {
+                $side = $this->safe_string($trade, 'type');
+            }
         } else {
             $side = $this->safe_string($trade, 'type');
         }
@@ -687,8 +690,15 @@ class coinex extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
+            // 'last_id' => 0,
         );
-        $response = $this->publicGetMarketDeals (array_merge($request, $params));
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $method = $market['swap'] ? 'perpetualPublicGetMarketDeals' : 'publicGetMarketDeals';
+        $response = $this->$method (array_merge($request, $params));
+        //
+        // Spot and Swap
         //
         //      {
         //          "code" =>    0,

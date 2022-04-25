@@ -556,7 +556,7 @@ class coinex(Exchange):
 
     def parse_trade(self, trade, market=None):
         #
-        # Spot fetchTrades(public)
+        # Spot and Swap fetchTrades(public)
         #
         #      {
         #          "id":  2611511379,
@@ -648,6 +648,8 @@ class coinex(Exchange):
                 side = 'sell'
             elif side == 2:
                 side = 'buy'
+            if side is None:
+                side = self.safe_string(trade, 'type')
         else:
             side = self.safe_string(trade, 'type')
         return self.safe_trade({
@@ -671,8 +673,14 @@ class coinex(Exchange):
         market = self.market(symbol)
         request = {
             'market': market['id'],
+            # 'last_id': 0,
         }
-        response = self.publicGetMarketDeals(self.extend(request, params))
+        if limit is not None:
+            request['limit'] = limit
+        method = 'perpetualPublicGetMarketDeals' if market['swap'] else 'publicGetMarketDeals'
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        # Spot and Swap
         #
         #      {
         #          "code":    0,
