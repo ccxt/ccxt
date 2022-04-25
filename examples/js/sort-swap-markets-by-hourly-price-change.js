@@ -42,7 +42,7 @@ function sort (a, b) {
 
 async function main () {
     /**
-     * @description Gets the price change as a percent of every market matching type over the last timeframe matching timeframe and prints a sorted list. The timeframe is the incomplete candle
+     * @description Gets the price change as a percent of every market matching type over the last timeframe matching timeframe and prints a sorted list. The most immediate candle is ignored because it is incomplete
      */
     await exchange.loadMarkets ();
     const allSwapSymbols = exchange.symbols.filter (symbol => exchange.market (symbol)[type] );
