@@ -3,7 +3,7 @@
 const ccxt = require ('../../ccxt.js');
 
 const exchange = new ccxt.binanceusdm ();
-const timeframe = '5m';
+const timeframe = '1h';
 const type = 'swap';
 
 async function fetchOHLCV (symbol) {

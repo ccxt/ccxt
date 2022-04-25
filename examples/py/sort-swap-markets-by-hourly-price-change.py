@@ -21,7 +21,7 @@ import ccxt  # noqa: E402
 
 exchange = ccxt.binanceusdm()
 exchange.load_markets()
-timeframe = '5m'
+timeframe = '1h'
 ohlcvs = []
 
 
