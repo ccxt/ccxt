@@ -2556,6 +2556,8 @@ module.exports = class ftx extends Exchange {
         await this.loadMarkets ();
         const request = {};
         let numCodes = 0;
+        let endTime = this.safeNumber2 (params, 'till', 'end_time');
+        const millisecondsPer2Days = 172800000;
         if (codes !== undefined) {
             numCodes = codes.length;
         }
@@ -2569,13 +2571,11 @@ module.exports = class ftx extends Exchange {
             if (limit > 48) {
                 throw new BadRequest (this.id + ' fetchBorrowRateHistories() limit cannot exceed 48 for multiple currencies');
             }
+            if ((endTime - since) > millisecondsPer2Days) {
+                throw new BadRequest (this.id + ' fetchBorrowRateHistories() requires the time range between the since time and the end time to be less than 48 hours for multiple currencies');
+            }
         }
-        let endTime = this.safeNumber2 (params, 'till', 'end_time');
         const millisecondsPerHour = 3600000;
-        const millisecondsPer2Days = 172800000;
-        if ((endTime - since) > millisecondsPer2Days) {
-            throw new BadRequest (this.id + ' fetchBorrowRateHistories() requires the time range between the since time and the end time to be less than 48 hours');
-        }
         if (since !== undefined) {
             request['start_time'] = parseInt (since / 1000);
             if (endTime === undefined) {
