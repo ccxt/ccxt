@@ -2440,6 +2440,15 @@ class ftx(Exchange):
         return self.parse_borrow_rates(result, 'coin')
 
     async def fetch_borrow_rate_histories(self, codes=None, since=None, limit=None, params={}):
+        """
+        Gets the history of the borrow rate for mutiple currencies
+        :param str code: Unified currency code
+        :param int since: Timestamp in ms of the earliest time to fetch the borrow rate
+        :param int limit: Max number of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>` to return per currency, max=48 for multiple currencies, max=5000 for a single currency
+        :param dict params: Exchange specific parameters
+        :param dict params['till']: Timestamp in ms of the latest time to fetch the borrow rate
+        :returns: A dictionary of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>` with unified currency codes as keys
+        """
         await self.load_markets()
         request = {}
         numCodes = 0
@@ -2495,6 +2504,15 @@ class ftx(Exchange):
         return self.parse_borrow_rate_histories(result, codes, since, limit)
 
     async def fetch_borrow_rate_history(self, code, since=None, limit=None, params={}):
+        """
+        Gets the history of the borrow rate for a currency
+        :param str code: Unified currency code
+        :param int since: Timestamp in ms of the earliest time to fetch the borrow rate
+        :param int limit: Max number of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>` to return, max=5000
+        :param dict params: Exchange specific parameters
+        :param dict params['till']: Timestamp in ms of the latest time to fetch the borrow rate
+        :returns: An array of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>`
+        """
         histories = await self.fetch_borrow_rate_histories([code], since, limit, params)
         borrowRateHistory = self.safe_value(histories, code)
         if borrowRateHistory is None:
@@ -2510,7 +2528,7 @@ class ftx(Exchange):
         for i in range(0, len(response)):
             item = response[i]
             code = self.safe_currency_code(self.safe_string(item, 'coin'))
-            if codes is None or codes.includes(code):
+            if codes is None or self.in_array(code, codes):
                 if not (code in borrowRateHistories):
                     borrowRateHistories[code] = []
                 lendingRate = self.safe_string(item, 'rate')
