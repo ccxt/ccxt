@@ -3635,7 +3635,7 @@ module.exports = class mexc3 extends Exchange {
             if (access === 'private') {
                 this.checkRequiredCredentials ();
                 const signature = this.hmac (this.encode (paramsEncoded), this.encode (this.secret), 'sha256');
-                url += '&signature=' + signature;
+                url += '&' + 'signature=' + signature;
                 headers = {
                     'X-MEXC-APIKEY': this.apiKey,
                 };
