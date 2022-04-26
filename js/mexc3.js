@@ -1379,9 +1379,9 @@ module.exports = class mexc3 extends Exchange {
         let changePcnt = undefined;
         let changeValue = undefined;
         let prevClose = undefined;
-        let isSwap = this.safeValue (market, 'swap');
+        const isSwap = this.safeValue (market, 'swap');
         // if swap
-        if (isSwap || 'timestamp' in ticker) {
+        if (isSwap || ('timestamp' in ticker)) {
             //
             //     {
             //         "symbol":"ETH_USDT",
