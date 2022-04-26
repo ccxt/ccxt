@@ -3625,7 +3625,7 @@ module.exports = class mexc3 extends Exchange {
             url = this.urls['api'][section][access] + '/api/' + this.version + '/' + path;
             let paramsEncoded = '';
             if (access === 'private') {
-                params['timestamp'] = Date.now ();
+                params['timestamp'] = this.milliseconds ();
                 params['recvWindow'] = this.safeInteger (this.options, 'recvWindow', 5000);
             }
             if (Object.keys (params).length) {
