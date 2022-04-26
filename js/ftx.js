@@ -2553,6 +2553,17 @@ module.exports = class ftx extends Exchange {
     }
 
     async fetchBorrowRateHistories (codes = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name ftx#fetchBorrowRateHistory
+         * @description Gets the history of the borrow rate for mutiple currencies
+         * @param {str} code Unified currency code
+         * @param {int} since Timestamp in ms of the earliest time to fetch the borrow rate
+         * @param {int} limit Max number of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure} to return per currency, max=48 for multiple currencies, max=5000 for a single currency
+         * @param {dict} params Exchange specific parameters
+         * @param {dict} params.till Timestamp in ms of the latest time to fetch the borrow rate
+         * @returns A dictionary of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure} with unified currency codes as keys
+         */
         await this.loadMarkets ();
         const request = {};
         let numCodes = 0;
@@ -2620,6 +2631,17 @@ module.exports = class ftx extends Exchange {
     }
 
     async fetchBorrowRateHistory (code, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name ftx#fetchBorrowRateHistory
+         * @description Gets the history of the borrow rate for a currency
+         * @param {str} code Unified currency code
+         * @param {int} since Timestamp in ms of the earliest time to fetch the borrow rate
+         * @param {int} limit Max number of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure} to return, max=5000
+         * @param {dict} params Exchange specific parameters
+         * @param {dict} params.till Timestamp in ms of the latest time to fetch the borrow rate
+         * @returns An array of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
+         */
         const histories = await this.fetchBorrowRateHistories ([ code ], since, limit, params);
         const borrowRateHistory = this.safeValue (histories, code);
         if (borrowRateHistory === undefined) {
