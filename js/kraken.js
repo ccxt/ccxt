@@ -1188,7 +1188,20 @@ module.exports = class kraken extends Exchange {
                 }
             }
         }
-        params = this.omit (params, [ 'price', 'stopPrice', 'price2' ]);
+        let close = this.safeValue (params, 'close');
+        if (close !== undefined) {
+            close = this.extend ({}, close);
+            const closePrice = this.safeValue (close, 'price');
+            if (closePrice !== undefined) {
+                close['price'] = this.priceToPrecision (symbol, closePrice);
+            }
+            const closePrice2 = this.safeValue (close, 'price2'); // stopPrice
+            if (closePrice2 !== undefined) {
+                close['price2'] = this.priceToPrecision (symbol, closePrice2);
+            }
+            request['close'] = close;
+        }
+        params = this.omit (params, [ 'price', 'stopPrice', 'price2', 'close' ]);
         const response = await this.privatePostAddOrder (this.extend (request, params));
         //
         //     {
@@ -2091,12 +2104,14 @@ module.exports = class kraken extends Exchange {
         let url = '/' + this.version + '/' + api + '/' + path;
         if (api === 'public') {
             if (Object.keys (params).length) {
-                url += '?' + this.urlencode (params);
+                // urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
+                url += '?' + this.urlencodeNested (params);
             }
         } else if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
-            body = this.urlencode (this.extend ({ 'nonce': nonce }, params));
+            // urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
+            body = this.urlencodeNested (this.extend ({ 'nonce': nonce }, params));
             const auth = this.encode (nonce + body);
             const hash = this.hash (auth, 'sha256', 'binary');
             const binary = this.stringToBinary (this.encode (url));

@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.80.56';
+$version = '1.80.78';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.80.56';
+    const VERSION = '1.80.78';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -235,6 +235,7 @@ class Exchange {
         'binaryToBase16' => 'binary_to_base16',
         'binaryConcat' => 'binary_concat',
         'binaryConcatArray' => 'binary_concat_array',
+        'urlencodeNested' => 'urlencode_nested',
         'urlencodeWithArrayRepeat' => 'urlencode_with_array_repeat',
         'urlencodeBase64' => 'urlencode_base64',
         'numberToLE' => 'number_to_le',
@@ -833,6 +834,13 @@ class Exchange {
             }
         }
         return http_build_query($array, '', $this->urlencode_glue);
+    }
+
+    public function urlencode_nested($array) {
+        // we don't have to implement this method in PHP
+        // https://github.com/ccxt/ccxt/issues/12872
+        // https://github.com/ccxt/ccxt/issues/12900
+        return $this->urlencode($array);
     }
 
     public function urlencode_with_array_repeat($array) {
@@ -3813,10 +3821,10 @@ class Exchange {
     }
 
     public function is_post_only($type, $time_in_force, $exchange_specific_option, $params = array()){
-        $post_only = $this->safe_value2($params, 'postOnly', 'post_only', false);
-        $params = $this->omit($params, ['post_only', 'postOnly']);
-        $time_in_force_upper = $time_in_force.upper();
-        $type_upper = $type.lower();
+        $post_only = $this->safe_value_2($params, 'postOnly', 'post_only', false);
+        $params = $this->omit($params, array('post_only', 'postOnly'));
+        $time_in_force_upper = strtoupper($time_in_force);
+        $type_lower = strtolower($type);
         $ioc = $time_in_force_upper === 'IOC';
         $time_in_force_post_only = $time_in_force_upper === 'PO';
         $is_market = $type_lower === 'market';
@@ -3828,10 +3836,10 @@ class Exchange {
                 throw new InvalidOrder($this->id . ' postOnly orders cannot have type ' . $type);
             } else {
                 $time_in_force = $time_in_force_post_only ? null : $time_in_force;
-                return ['limit', True, $time_in_force, $params];
+                return array('limit', true, $time_in_force, $params);
             }
         } else {
-            return [$type, False, $time_in_force, $params];
+            return array($type, false, $time_in_force, $params);
         }
     }
 

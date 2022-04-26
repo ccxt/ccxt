@@ -1294,8 +1294,14 @@ module.exports = class zb extends Exchange {
         }
         const ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
-            const market = marketsByIdWithoutUnderscore[ids[i]];
-            result[market['symbol']] = this.parseTicker (response[ids[i]], market);
+            const market = this.safeValue (marketsByIdWithoutUnderscore, ids[i]);
+            if (market !== undefined) {
+                const symbol = market['symbol'];
+                const ticker = this.safeValue (response, ids[i]);
+                if (ticker !== undefined) {
+                    result[symbol] = this.parseTicker (ticker, market);
+                }
+            }
         }
         return this.filterByArray (result, 'symbol', symbols);
     }

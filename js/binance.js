@@ -3595,8 +3595,10 @@ module.exports = class binance extends Exchange {
             fee = { 'currency': code, 'cost': feeCost };
         }
         const updated = this.safeInteger2 (transaction, 'successTime', 'updateTime');
-        let internal = this.safeInteger (transaction, 'transferType', false);
-        internal = internal ? true : false;
+        let internal = this.safeInteger (transaction, 'transferType');
+        if (internal !== undefined) {
+            internal = internal ? true : false;
+        }
         const network = this.safeString (transaction, 'network');
         return {
             'info': transaction,

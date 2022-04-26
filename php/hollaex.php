@@ -19,6 +19,7 @@ class hollaex extends Exchange {
             // 4 requests per second => 1000ms / 4 = 250 ms between requests
             'rateLimit' => 250,
             'version' => 'v2',
+            'pro' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -93,7 +94,9 @@ class hollaex extends Exchange {
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/75841031-ca375180-5ddd-11ea-8417-b975674c23cb.jpg',
-                'test' => 'https://api.sandbox.hollaex.com',
+                'test' => array(
+                    'rest' => 'https://api.sandbox.hollaex.com',
+                ),
                 'api' => array(
                     'rest' => 'https://api.hollaex.com',
                 ),

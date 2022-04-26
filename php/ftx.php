@@ -2557,17 +2557,42 @@ class ftx extends Exchange {
     }
 
     public function fetch_borrow_rate_histories($codes = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * Gets the history of the borrow rate for mutiple currencies
+         * @param {str} code Unified $currency code
+         * @param {int} $since Timestamp in ms of the earliest time to fetch the borrow rate
+         * @param {int} $limit Max number of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures} to return per $currency, max=48 for multiple currencies, max=5000 for a single $currency
+         * @param {dict} $params Exchange specific parameters
+         * @param {dict} $params->till Timestamp in ms of the latest time to fetch the borrow rate
+         * @return A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures} with unified $currency $codes as keys
+         */
         $this->load_markets();
         $request = array();
+        $numCodes = 0;
         $endTime = $this->safe_number_2($params, 'till', 'end_time');
-        if ($limit > 48) {
-            throw new BadRequest($this->id . ' fetchBorrowRateHistories() $limit cannot exceed 48');
+        if ($codes !== null) {
+            $numCodes = is_array($codes) ? count($codes) : 0;
+        }
+        if ($numCodes === 1) {
+            $millisecondsPer5000Hours = 18000000000;
+            if (($limit !== null) && ($limit > 5000)) {
+                throw new BadRequest($this->id . ' fetchBorrowRateHistories() $limit cannot exceed 5000 for a single currency');
+            }
+            if (($endTime !== null) && ($since !== null) && (($endTime - $since) > $millisecondsPer5000Hours)) {
+                throw new BadRequest($this->id . ' fetchBorrowRateHistories() requires the time range between the $since time and the end time to be less than 5000 hours for a single currency');
+            }
+            $currency = $this->currency($codes[0]);
+            $request['coin'] = $currency['id'];
+        } else {
+            $millisecondsPer2Days = 172800000;
+            if (($limit !== null) && ($limit > 48)) {
+                throw new BadRequest($this->id . ' fetchBorrowRateHistories() $limit cannot exceed 48 for multiple currencies');
+            }
+            if (($endTime !== null) && ($since !== null) && (($endTime - $since) > $millisecondsPer2Days)) {
+                throw new BadRequest($this->id . ' fetchBorrowRateHistories() requires the time range between the $since time and the end time to be less than 48 hours for multiple currencies');
+            }
         }
         $millisecondsPerHour = 3600000;
-        $millisecondsPer2Days = 172800000;
-        if (($endTime - $since) > $millisecondsPer2Days) {
-            throw new BadRequest($this->id . ' fetchBorrowRateHistories() requires the time range between the $since time and the end time to be less than 48 hours');
-        }
         if ($since !== null) {
             $request['start_time'] = intval($since / 1000);
             if ($endTime === null) {
@@ -2608,6 +2633,15 @@ class ftx extends Exchange {
     }
 
     public function fetch_borrow_rate_history($code, $since = null, $limit = null, $params = array ()) {
+        /**
+         * Gets the history of the borrow rate for a currency
+         * @param {str} $code Unified currency $code
+         * @param {int} $since Timestamp in ms of the earliest time to fetch the borrow rate
+         * @param {int} $limit Max number of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures} to return, max=5000
+         * @param {dict} $params Exchange specific parameters
+         * @param {dict} $params->till Timestamp in ms of the latest time to fetch the borrow rate
+         * @return An array of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures}
+         */
         $histories = $this->fetch_borrow_rate_histories(array( $code ), $since, $limit, $params);
         $borrowRateHistory = $this->safe_value($histories, $code);
         if ($borrowRateHistory === null) {
@@ -2625,7 +2659,7 @@ class ftx extends Exchange {
         for ($i = 0; $i < count($response); $i++) {
             $item = $response[$i];
             $code = $this->safe_currency_code($this->safe_string($item, 'coin'));
-            if ($codes === null || $codes->includes ($code)) {
+            if ($codes === null || $this->in_array($code, $codes)) {
                 if (!(is_array($borrowRateHistories) && array_key_exists($code, $borrowRateHistories))) {
                     $borrowRateHistories[$code] = array();
                 }

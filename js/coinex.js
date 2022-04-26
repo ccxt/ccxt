@@ -28,6 +28,7 @@ module.exports = class coinex extends Exchange {
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchDeposits': true,
+                'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchMarkets': true,
@@ -606,7 +607,7 @@ module.exports = class coinex extends Exchange {
 
     parseTrade (trade, market = undefined) {
         //
-        // Spot fetchTrades (public)
+        // Spot and Swap fetchTrades (public)
         //
         //      {
         //          "id":  2611511379,
@@ -702,6 +703,9 @@ module.exports = class coinex extends Exchange {
             } else if (side === 2) {
                 side = 'buy';
             }
+            if (side === undefined) {
+                side = this.safeString (trade, 'type');
+            }
         } else {
             side = this.safeString (trade, 'type');
         }
@@ -727,8 +731,15 @@ module.exports = class coinex extends Exchange {
         const market = this.market (symbol);
         const request = {
             'market': market['id'],
+            // 'last_id': 0,
         };
-        const response = await this.publicGetMarketDeals (this.extend (request, params));
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const method = market['swap'] ? 'perpetualPublicGetMarketDeals' : 'publicGetMarketDeals';
+        const response = await this[method] (this.extend (request, params));
+        //
+        // Spot and Swap
         //
         //      {
         //          "code":    0,
@@ -1422,6 +1433,72 @@ module.exports = class coinex extends Exchange {
             '0': 'ok',
         };
         return this.safeString (statuses, status, 'failed');
+    }
+
+    async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires a symbol argument');
+        }
+        limit = (limit === undefined) ? 100 : limit;
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+            'limit': limit,
+            // 'offset': 0,
+            // 'end_time': 1638990636000,
+            // 'windowtime': 1638990636000,
+        };
+        if (since !== undefined) {
+            request['start_time'] = since;
+        }
+        const response = await this.perpetualPrivateGetPositionFunding (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "limit": 100,
+        //             "offset": 0,
+        //             "records": [
+        //                 {
+        //                     "amount": "0.0012",
+        //                     "asset": "USDT",
+        //                     "funding": "-0.0095688273996",
+        //                     "funding_rate": "0.00020034",
+        //                     "market": "BTCUSDT",
+        //                     "position_id": 62052321,
+        //                     "price": "39802.45",
+        //                     "real_funding_rate": "0.00020034",
+        //                     "side": 2,
+        //                     "time": 1650729623.933885,
+        //                     "type": 1,
+        //                     "user_id": 3620173,
+        //                     "value": "47.76294"
+        //                 },
+        //             ]
+        //         },
+        //         "message": "OK"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const resultList = this.safeValue (data, 'records', []);
+        const result = [];
+        for (let i = 0; i < resultList.length; i++) {
+            const entry = resultList[i];
+            const timestamp = this.safeTimestamp (entry, 'time');
+            const currencyId = this.safeString (entry, 'asset');
+            const code = this.safeCurrencyCode (currencyId);
+            result.push ({
+                'info': entry,
+                'symbol': symbol,
+                'code': code,
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'id': this.safeNumber (entry, 'position_id'),
+                'amount': this.safeNumber (entry, 'funding'),
+            });
+        }
+        return result;
     }
 
     async fetchFundingRate (symbol, params = {}) {

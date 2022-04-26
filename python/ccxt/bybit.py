@@ -1647,6 +1647,33 @@ class bybit(Exchange):
         #         "order_id" : "dd2504b9-0157-406a-99e1-efa522373944"
         #     }
         #
+        # fetchOrders linear swaps
+        #
+        #     {
+        #         "order_id":"7917bd70-e7c3-4af5-8147-3285cd99c509",
+        #         "user_id":22919890,
+        #         "symbol":"GMTUSDT",
+        #         "side":"Buy",
+        #         "order_type":"Limit",
+        #         "price":2.9262,
+        #         "qty":50,
+        #         "time_in_force":"GoodTillCancel",
+        #         "order_status":"Filled",
+        #         "last_exec_price":2.9219,
+        #         "cum_exec_qty":50,
+        #         "cum_exec_value":146.095,
+        #         "cum_exec_fee":0.087657,
+        #         "reduce_only":false,
+        #         "close_on_trigger":false,
+        #         "order_link_id":"",
+        #         "created_time":"2022-04-18T17:09:54Z",
+        #         "updated_time":"2022-04-18T17:09:54Z",
+        #         "take_profit":0,
+        #         "stop_loss":0,
+        #         "tp_trigger_by":"UNKNOWN",
+        #         "sl_trigger_by":"UNKNOWN"
+        #     }
+        #
         # conditional order
         #
         #     {
@@ -1686,7 +1713,7 @@ class bybit(Exchange):
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
         feeCurrency = None
-        timestamp = self.parse8601(self.safe_string(order, 'created_at'))
+        timestamp = self.parse8601(self.safe_string_2(order, 'created_at', 'created_time'))
         id = self.safe_string_2(order, 'order_id', 'stop_order_id')
         type = self.safe_string_lower(order, 'order_type')
         price = None
@@ -2240,6 +2267,48 @@ class bybit(Exchange):
         #         "rate_limit_status": 98,
         #         "rate_limit_reset_ms": 1580885703683,
         #         "rate_limit": 100
+        #     }
+        #
+        # linear swaps
+        #
+        #     {
+        #         "ret_code":0,
+        #         "ret_msg":"OK",
+        #         "ext_code":"",
+        #         "ext_info":"",
+        #         "result":{
+        #             "current_page":1,
+        #             "data":[
+        #                 {
+        #                     "order_id":"7917bd70-e7c3-4af5-8147-3285cd99c509",
+        #                     "user_id":22919890,
+        #                     "symbol":"GMTUSDT",
+        #                     "side":"Buy",
+        #                     "order_type":"Limit",
+        #                     "price":2.9262,
+        #                     "qty":50,
+        #                     "time_in_force":"GoodTillCancel",
+        #                     "order_status":"Filled",
+        #                     "last_exec_price":2.9219,
+        #                     "cum_exec_qty":50,
+        #                     "cum_exec_value":146.095,
+        #                     "cum_exec_fee":0.087657,
+        #                     "reduce_only":false,
+        #                     "close_on_trigger":false,
+        #                     "order_link_id":"",
+        #                     "created_time":"2022-04-18T17:09:54Z",
+        #                     "updated_time":"2022-04-18T17:09:54Z",
+        #                     "take_profit":0,
+        #                     "stop_loss":0,
+        #                     "tp_trigger_by":"UNKNOWN",
+        #                     "sl_trigger_by":"UNKNOWN"
+        #                 }
+        #             ]
+        #         },
+        #         "time_now":"1650970113.283952",
+        #         "rate_limit_status":599,
+        #         "rate_limit_reset_ms":1650970113275,
+        #         "rate_limit":600
         #     }
         #
         # conditional orders

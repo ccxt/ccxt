@@ -1287,8 +1287,12 @@ class zb(Exchange):
             marketsByIdWithoutUnderscore[tickerId] = self.markets_by_id[marketIds[i]]
         ids = list(response.keys())
         for i in range(0, len(ids)):
-            market = marketsByIdWithoutUnderscore[ids[i]]
-            result[market['symbol']] = self.parse_ticker(response[ids[i]], market)
+            market = self.safe_value(marketsByIdWithoutUnderscore, ids[i])
+            if market is not None:
+                symbol = market['symbol']
+                ticker = self.safe_value(response, ids[i])
+                if ticker is not None:
+                    result[symbol] = self.parse_ticker(ticker, market)
         return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):

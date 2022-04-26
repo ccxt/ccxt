@@ -33,6 +33,7 @@ class coinex extends Exchange {
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchDeposits' => true,
+                'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchMarkets' => true,
@@ -566,7 +567,7 @@ class coinex extends Exchange {
 
     public function parse_trade($trade, $market = null) {
         //
-        // Spot fetchTrades (public)
+        // Spot and Swap fetchTrades (public)
         //
         //      array(
         //          "id" =>  2611511379,
@@ -662,6 +663,9 @@ class coinex extends Exchange {
             } else if ($side === 2) {
                 $side = 'buy';
             }
+            if ($side === null) {
+                $side = $this->safe_string($trade, 'type');
+            }
         } else {
             $side = $this->safe_string($trade, 'type');
         }
@@ -687,8 +691,15 @@ class coinex extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
+            // 'last_id' => 0,
         );
-        $response = yield $this->publicGetMarketDeals (array_merge($request, $params));
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $method = $market['swap'] ? 'perpetualPublicGetMarketDeals' : 'publicGetMarketDeals';
+        $response = yield $this->$method (array_merge($request, $params));
+        //
+        // Spot and Swap
         //
         //      {
         //          "code" =>    0,
@@ -1288,6 +1299,72 @@ class coinex extends Exchange {
         $data = $this->safe_value($response, 'data');
         $trades = $this->safe_value($data, $tradeRequest, array());
         return $this->parse_trades($trades, $market, $since, $limit);
+    }
+
+    public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires a $symbol argument');
+        }
+        $limit = ($limit === null) ? 100 : $limit;
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'market' => $market['id'],
+            'limit' => $limit,
+            // 'offset' => 0,
+            // 'end_time' => 1638990636000,
+            // 'windowtime' => 1638990636000,
+        );
+        if ($since !== null) {
+            $request['start_time'] = $since;
+        }
+        $response = yield $this->perpetualPrivateGetPositionFunding (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => array(
+        //             "limit" => 100,
+        //             "offset" => 0,
+        //             "records" => array(
+        //                 array(
+        //                     "amount" => "0.0012",
+        //                     "asset" => "USDT",
+        //                     "funding" => "-0.0095688273996",
+        //                     "funding_rate" => "0.00020034",
+        //                     "market" => "BTCUSDT",
+        //                     "position_id" => 62052321,
+        //                     "price" => "39802.45",
+        //                     "real_funding_rate" => "0.00020034",
+        //                     "side" => 2,
+        //                     "time" => 1650729623.933885,
+        //                     "type" => 1,
+        //                     "user_id" => 3620173,
+        //                     "value" => "47.76294"
+        //                 ),
+        //             )
+        //         ),
+        //         "message" => "OK"
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $resultList = $this->safe_value($data, 'records', array());
+        $result = array();
+        for ($i = 0; $i < count($resultList); $i++) {
+            $entry = $resultList[$i];
+            $timestamp = $this->safe_timestamp($entry, 'time');
+            $currencyId = $this->safe_string($entry, 'asset');
+            $code = $this->safe_currency_code($currencyId);
+            $result[] = array(
+                'info' => $entry,
+                'symbol' => $symbol,
+                'code' => $code,
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+                'id' => $this->safe_number($entry, 'position_id'),
+                'amount' => $this->safe_number($entry, 'funding'),
+            );
+        }
+        return $result;
     }
 
     public function fetch_funding_rate($symbol, $params = array ()) {

@@ -2337,7 +2337,7 @@ module.exports = class Exchange {
         if (!this.has['createStopOrder']) {
             throw new NotSupported (this.id + ' createStopOrder() is not supported yet');
         }
-        if ($stopPrice === undefined) {
+        if (stopPrice === undefined) {
             throw new ArgumentsRequired(this.id + ' create_stop_order() requires a stopPrice argument');
         }
         const query = this.extend (params, { 'stopPrice': stopPrice });
