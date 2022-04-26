@@ -1460,6 +1460,11 @@ module.exports = class woo extends Exchange {
             toAccount = undefined;
         }
         const timestamp = this.safeTimestamp (transfer, 'created_time');
+        const success = this.safeValue (transfer, 'success');
+        let status;
+        if (success !== undefined) {
+            status = success ? 'ok' : 'failed';
+        }
         return {
             'id': this.safeString (transfer, 'id'),
             'timestamp': timestamp,
@@ -1468,17 +1473,20 @@ module.exports = class woo extends Exchange {
             'amount': this.safeNumber (transfer, 'amount'),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'status': this.parseTransferStatus (this.safeString2 (transfer, 'status', 'success')),
+            'status': this.parseTransferStatus (this.safeString (transfer, 'status', status)),
             'info': transfer,
         };
     }
 
     parseTransferStatus (status) {
         const statuses = {
-            'true': 'ok',
-            'false': 'failed',
+            'NEW': 'pending',
+            'CONFIRMING': 'pending',
+            'PROCESSING': 'pending',
+            'COMPLETED': 'ok',
+            'CANCELED': 'canceled',
         };
-        return this.safeString (statuses, status, this.parseTransactionStatus (status));
+        return this.safeString (statuses, status, status);
     }
 
     nonce () {
