@@ -3613,7 +3613,7 @@ module.exports = class mexc3 extends Exchange {
             url = this.urls['api'][section][access] + '/api/' + this.version + '/' + path;
             let paramsEncoded = '';
             if (access === 'private') {
-                params['timestamp'] = Date.now ();
+                params['timestamp'] = this.milliseconds ();
                 params['recvWindow'] = this.safeInteger (this.options, 'recvWindow', 5000);
             }
             if (Object.keys (params).length) {
@@ -3623,7 +3623,7 @@ module.exports = class mexc3 extends Exchange {
             if (access === 'private') {
                 this.checkRequiredCredentials ();
                 const signature = this.hmac (this.encode (paramsEncoded), this.encode (this.secret), 'sha256');
-                url += '&signature=' + signature;
+                url += '&' + 'signature=' + signature;
                 headers = {
                     'X-MEXC-APIKEY': this.apiKey,
                 };
