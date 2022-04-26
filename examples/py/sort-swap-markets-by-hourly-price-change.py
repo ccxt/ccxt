@@ -15,12 +15,11 @@ sys.path.append(this_folder)
 
 # -----------------------------------------------------------------------------
 
-import ccxt  # noqa: E402
+import ccxt.async_support as ccxt  # noqa: E402
 
 # -----------------------------------------------------------------------------
 
 exchange = ccxt.binanceusdm()
-exchange.load_markets()
 timeframe = '1h'
 ohlcvs = []
 
@@ -32,7 +31,7 @@ async def fetchOHLCV(symbol):
     :returns [float|str]: 1d array with a single ohlcv record with the market symbol appended
     '''
     try:
-        ohlcv = exchange.fetchOHLCV(symbol, timeframe, None, 2)
+        ohlcv = await exchange.fetchOHLCV(symbol, timeframe, None, 2)
         ohlcv[0].append(symbol)
         ohlcvs.append(ohlcv[0])
     except Exception as e:
@@ -58,8 +57,10 @@ async def main():
     Gets the price change as a percent of every market matching type over the last timeframe matching timeframe and prints a sorted list.
     The most immediate candle is ignored because it is incomplete
     '''
+    await exchange.load_markets()
     allSwapSymbols = [symbol for symbol in exchange.symbols if exchange.market(symbol)['swap']]
     await asyncio.gather(*[fetchOHLCV(symbol) for symbol in allSwapSymbols])
+    await exchange.close()
     priceChanges = [getPriceChangePercent(ohlcv) for ohlcv in ohlcvs]
     priceChanges.sort()
     pprint(priceChanges)
