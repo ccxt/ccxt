@@ -3162,6 +3162,10 @@ module.exports = class gateio extends Exchange {
          * @param {str} symbol Unified market symbol
          * @param {dict} params Parameters specified by the exchange api
          * @param {bool} params.stop True if the order being fetched is a trigger order
+<<<<<<< HEAD
+=======
+         * @param {str} params.marginType 'cross' or 'isolated' - marginType for type='margin', if not provided this.options['defaultMarginType'] is used
+>>>>>>> 1b9c92cf61 (gateio.fetchOrder cross_margin)
          * @returns An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -3169,11 +3173,12 @@ module.exports = class gateio extends Exchange {
         params = this.omit (params, [ 'is_stop_order', 'stop' ]);
         let market = undefined;
         let settle = undefined;
+        let type = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             settle = market['settle'];
         }
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
         let clientOrderId = this.safeString2 (params, 'text', 'clientOrderId');
         let orderId = id;
         if (clientOrderId !== undefined) {
@@ -3196,6 +3201,16 @@ module.exports = class gateio extends Exchange {
         }
         if (contract) {
             request['settle'] = settle;
+        } else {
+            let marginType = undefined;
+            [ marginType, params ] = this.getMarginType (params);
+            if (marginType === 'cross_margin') {
+                if (stop) {
+                    throw new BadRequest (this.id + ' does not allow stop orders for cross_margin');
+                } else {
+                    request['account'] = marginType;
+                }
+            }
         }
         let method = undefined;
         if (stop) {
@@ -3213,7 +3228,7 @@ module.exports = class gateio extends Exchange {
                 'future': 'privateDeliveryGetSettleOrdersOrderId',
             });
         }
-        const response = await this[method] (this.extend (request, query));
+        const response = await this[method] (this.extend (request, params));
         return this.parseOrder (response, market);
     }
 
