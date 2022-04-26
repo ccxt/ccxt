@@ -72,7 +72,6 @@ module.exports = class ascendex extends Exchange {
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'fetchWithdrawal': false,
-                'fetchWithdrawalWhitelist': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
                 'setLeverage': true,
