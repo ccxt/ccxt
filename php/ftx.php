@@ -2559,15 +2559,31 @@ class ftx extends Exchange {
     public function fetch_borrow_rate_histories($codes = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array();
+        $numCodes = 0;
         $endTime = $this->safe_number_2($params, 'till', 'end_time');
-        if ($limit > 48) {
-            throw new BadRequest($this->id . ' fetchBorrowRateHistories() $limit cannot exceed 48');
+        if ($codes !== null) {
+            $numCodes = is_array($codes) ? count($codes) : 0;
+        }
+        if ($numCodes === 1) {
+            $millisecondsPer5000Hours = 18000000000;
+            if (($limit !== null) && ($limit > 5000)) {
+                throw new BadRequest($this->id . ' fetchBorrowRateHistories() $limit cannot exceed 5000 for a single currency');
+            }
+            if (($endTime !== null) && ($since !== null) && (($endTime - $since) > $millisecondsPer5000Hours)) {
+                throw new BadRequest($this->id . ' fetchBorrowRateHistories() requires the time range between the $since time and the end time to be less than 5000 hours for a single currency');
+            }
+            $currency = $this->currency($codes[0]);
+            $request['coin'] = $currency['id'];
+        } else {
+            $millisecondsPer2Days = 172800000;
+            if (($limit !== null) && ($limit > 48)) {
+                throw new BadRequest($this->id . ' fetchBorrowRateHistories() $limit cannot exceed 48 for multiple currencies');
+            }
+            if (($endTime !== null) && ($since !== null) && (($endTime - $since) > $millisecondsPer2Days)) {
+                throw new BadRequest($this->id . ' fetchBorrowRateHistories() requires the time range between the $since time and the end time to be less than 48 hours for multiple currencies');
+            }
         }
         $millisecondsPerHour = 3600000;
-        $millisecondsPer2Days = 172800000;
-        if (($endTime - $since) > $millisecondsPer2Days) {
-            throw new BadRequest($this->id . ' fetchBorrowRateHistories() requires the time range between the $since time and the end time to be less than 48 hours');
-        }
         if ($since !== null) {
             $request['start_time'] = intval($since / 1000);
             if ($endTime === null) {

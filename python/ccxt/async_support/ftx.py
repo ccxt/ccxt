@@ -2442,13 +2442,25 @@ class ftx(Exchange):
     async def fetch_borrow_rate_histories(self, codes=None, since=None, limit=None, params={}):
         await self.load_markets()
         request = {}
+        numCodes = 0
         endTime = self.safe_number_2(params, 'till', 'end_time')
-        if limit > 48:
-            raise BadRequest(self.id + ' fetchBorrowRateHistories() limit cannot exceed 48')
+        if codes is not None:
+            numCodes = len(codes)
+        if numCodes == 1:
+            millisecondsPer5000Hours = 18000000000
+            if (limit is not None) and (limit > 5000):
+                raise BadRequest(self.id + ' fetchBorrowRateHistories() limit cannot exceed 5000 for a single currency')
+            if (endTime is not None) and (since is not None) and ((endTime - since) > millisecondsPer5000Hours):
+                raise BadRequest(self.id + ' fetchBorrowRateHistories() requires the time range between the since time and the end time to be less than 5000 hours for a single currency')
+            currency = self.currency(codes[0])
+            request['coin'] = currency['id']
+        else:
+            millisecondsPer2Days = 172800000
+            if (limit is not None) and (limit > 48):
+                raise BadRequest(self.id + ' fetchBorrowRateHistories() limit cannot exceed 48 for multiple currencies')
+            if (endTime is not None) and (since is not None) and ((endTime - since) > millisecondsPer2Days):
+                raise BadRequest(self.id + ' fetchBorrowRateHistories() requires the time range between the since time and the end time to be less than 48 hours for multiple currencies')
         millisecondsPerHour = 3600000
-        millisecondsPer2Days = 172800000
-        if (endTime - since) > millisecondsPer2Days:
-            raise BadRequest(self.id + ' fetchBorrowRateHistories() requires the time range between the since time and the end time to be less than 48 hours')
         if since is not None:
             request['start_time'] = int(since / 1000)
             if endTime is None:
