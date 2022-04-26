@@ -3199,14 +3199,15 @@ module.exports = class gateio extends Exchange {
                 const defaultSettle = swap ? 'usdt' : 'btc';
                 settle = this.safeStringLower (params, 'settle', defaultSettle);
                 params = this.omit (params, 'settle');
-            } else {
-                throw new ArgumentsRequired (this.id + ' ' + type + ' fetchOrder() requires a symbol argument');
             }
+            // } else {
+            //     throw new ArgumentsRequired (this.id + ' ' + type + ' fetchOrder() requires a symbol argument');
+            // }
         }
         if (contract) {
             request['settle'] = settle;
         } else {
-            request['currency_pair'] = market['id'];
+            // request['currency_pair'] = market['id'];
             let marginType = undefined;
             [ marginType, params ] = this.getMarginType (params);
             if (marginType === 'cross_margin') {
@@ -3607,6 +3608,14 @@ module.exports = class gateio extends Exchange {
             'to': toId,
             'amount': truncated,
         };
+        if (fromAccount === 'margin' || toAccount === 'margin') {
+            const symbol = this.safeString2 (params, 'symbol', 'currency_pair');
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' transfer requires a params.symbol argument for isolated margin transfers');
+            }
+            const market = this.market (symbol);
+            request['currency_pair'] = market['id'];
+        }
         if ((toId === 'futures') || (toId === 'delivery') || (fromId === 'futures') || (fromId === 'delivery')) {
             request['settle'] = currency['lowerCaseId'];
         }
