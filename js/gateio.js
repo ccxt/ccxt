@@ -3159,7 +3159,7 @@ module.exports = class gateio extends Exchange {
          * @name gateio#fetchOrder
          * @description Retrieves information on an order
          * @param {str} id Order id
-         * @param {str} symbol Unified market symbol
+         * @param {str} symbol Unified market symbol, *required for spot and margin*
          * @param {dict} params Parameters specified by the exchange api
          * @param {bool} params.stop True if the order being fetched is a trigger order
 <<<<<<< HEAD
@@ -3194,14 +3194,19 @@ module.exports = class gateio extends Exchange {
         const swap = type === 'swap';
         const future = type === 'future';
         const contract = (swap || future);
-        if (symbol === undefined && contract) {
-            const defaultSettle = swap ? 'usdt' : 'btc';
-            settle = this.safeStringLower (params, 'settle', defaultSettle);
-            params = this.omit (params, 'settle');
+        if (symbol === undefined) {
+            if (contract) {
+                const defaultSettle = swap ? 'usdt' : 'btc';
+                settle = this.safeStringLower (params, 'settle', defaultSettle);
+                params = this.omit (params, 'settle');
+            } else {
+                throw new ArgumentsRequired (this.id + ' ' + type + ' fetchOrder() requires a symbol argument');
+            }
         }
         if (contract) {
             request['settle'] = settle;
         } else {
+            request['currency_pair'] = market['id'];
             let marginType = undefined;
             [ marginType, params ] = this.getMarginType (params);
             if (marginType === 'cross_margin') {
