@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError, PermissionDenied, ExchangeNotAvailable, RequestTimeout } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, BadSymbol, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError, PermissionDenied, ExchangeNotAvailable, RequestTimeout } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 //  ---------------------------------------------------------------------------
 
@@ -28,6 +28,9 @@ module.exports = class coinex extends Exchange {
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchDeposits': true,
+                'fetchFundingHistory': true,
+                'fetchFundingRate': true,
+                'fetchFundingRateHistory': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -559,7 +562,7 @@ module.exports = class coinex extends Exchange {
 
     parseTrade (trade, market = undefined) {
         //
-        // fetchTrades (public)
+        // Spot and Swap fetchTrades (public)
         //
         //      {
         //          "id":  2611511379,
@@ -570,7 +573,7 @@ module.exports = class coinex extends Exchange {
         //          "date_ms":  1638990110518
         //      },
         //
-        // fetchMyTrades (private)
+        // Spot fetchMyTrades (private)
         //
         //      {
         //          "id": 2611520950,
@@ -587,7 +590,40 @@ module.exports = class coinex extends Exchange {
         //          "deal_money": "18.84442"
         //      }
         //
-        let timestamp = this.safeTimestamp (trade, 'create_time');
+        // Swap fetchMyTrades (private)
+        //
+        //     {
+        //         "amount": "0.0012",
+        //         "deal_fee": "0.0237528",
+        //         "deal_insurance": "0",
+        //         "deal_margin": "15.8352",
+        //         "deal_order_id": 17797031903,
+        //         "deal_profit": "0",
+        //         "deal_stock": "47.5056",
+        //         "deal_type": 1,
+        //         "deal_user_id": 2969195,
+        //         "fee_asset": "",
+        //         "fee_discount": "0",
+        //         "fee_price": "0",
+        //         "fee_rate": "0.0005",
+        //         "fee_real_rate": "0.0005",
+        //         "id": 379044296,
+        //         "leverage": "3",
+        //         "margin_amount": "15.8352",
+        //         "market": "BTCUSDT",
+        //         "open_price": "39588",
+        //         "order_id": 17797092987,
+        //         "position_amount": "0.0012",
+        //         "position_id": 62052321,
+        //         "position_type": 1,
+        //         "price": "39588",
+        //         "role": 2,
+        //         "side": 2,
+        //         "time": 1650675936.016103,
+        //         "user_id": 3620173
+        //     }
+        //
+        let timestamp = this.safeTimestamp2 (trade, 'create_time', 'time');
         if (timestamp === undefined) {
             timestamp = this.safeInteger (trade, 'date_ms');
         }
@@ -599,7 +635,7 @@ module.exports = class coinex extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const costString = this.safeString (trade, 'deal_money');
         let fee = undefined;
-        const feeCostString = this.safeString (trade, 'fee');
+        const feeCostString = this.safeString2 (trade, 'fee', 'deal_fee');
         if (feeCostString !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fee_asset');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
@@ -608,8 +644,26 @@ module.exports = class coinex extends Exchange {
                 'currency': feeCurrencyCode,
             };
         }
-        const takerOrMaker = this.safeString (trade, 'role');
-        const side = this.safeString (trade, 'type');
+        let takerOrMaker = this.safeString (trade, 'role');
+        if (takerOrMaker === '1') {
+            takerOrMaker = 'maker';
+        } else if (takerOrMaker === '2') {
+            takerOrMaker = 'taker';
+        }
+        let side = undefined;
+        if (market['type'] === 'swap') {
+            side = this.safeInteger (trade, 'side');
+            if (side === 1) {
+                side = 'sell';
+            } else if (side === 2) {
+                side = 'buy';
+            }
+            if (side === undefined) {
+                side = this.safeString (trade, 'type');
+            }
+        } else {
+            side = this.safeString (trade, 'type');
+        }
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
@@ -632,8 +686,15 @@ module.exports = class coinex extends Exchange {
         const market = this.market (symbol);
         const request = {
             'market': market['id'],
+            // 'last_id': 0,
         };
-        const response = await this.publicGetMarketDeals (this.extend (request, params));
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const method = market['swap'] ? 'perpetualPublicGetMarketDeals' : 'publicGetMarketDeals';
+        const response = await this[method] (this.extend (request, params));
+        //
+        // Spot and Swap
         //
         //      {
         //          "code":    0,
@@ -1183,20 +1244,43 @@ module.exports = class coinex extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+        }
         await this.loadMarkets ();
+        const market = this.market (symbol);
+        const swap = market['swap'];
         if (limit === undefined) {
             limit = 100;
         }
         const request = {
-            'page': 1,
-            'limit': limit,
+            'market': market['id'], // SPOT and SWAP
+            'limit': limit, // SPOT and SWAP
+            'offset': 0, // SWAP, means query from a certain record
+            // 'page': 1, // SPOT
+            // 'side': 2, // SWAP, 0 for no limit, 1 for sell, 2 for buy
+            // 'start_time': since, // SWAP
+            // 'end_time': 1524228297, // SWAP
         };
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['market'] = market['id'];
+        let method = undefined;
+        if (swap) {
+            method = 'perpetualPublicGetMarketUserDeals';
+            const side = this.safeInteger (params, 'side');
+            if (side === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a side parameter for swap markets');
+            }
+            if (since !== undefined) {
+                request['start_time'] = since;
+            }
+            request['side'] = side;
+            params = this.omit (params, 'side');
+        } else {
+            method = 'privateGetOrderUserDeals';
+            request['page'] = 1;
         }
-        const response = await this.privateGetOrderUserDeals (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
+        //
+        // Spot
         //
         //      {
         //          "code": 0,
@@ -1224,9 +1308,214 @@ module.exports = class coinex extends Exchange {
         //          "message": "Success"
         //      }
         //
+        // Swap
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "limit": 100,
+        //             "offset": 0,
+        //             "records": [
+        //                 {
+        //                     "amount": "0.0012",
+        //                     "deal_fee": "0.0237528",
+        //                     "deal_insurance": "0",
+        //                     "deal_margin": "15.8352",
+        //                     "deal_order_id": 17797031903,
+        //                     "deal_profit": "0",
+        //                     "deal_stock": "47.5056",
+        //                     "deal_type": 1,
+        //                     "deal_user_id": 2969195,
+        //                     "fee_asset": "",
+        //                     "fee_discount": "0",
+        //                     "fee_price": "0",
+        //                     "fee_rate": "0.0005",
+        //                     "fee_real_rate": "0.0005",
+        //                     "id": 379044296,
+        //                     "leverage": "3",
+        //                     "margin_amount": "15.8352",
+        //                     "market": "BTCUSDT",
+        //                     "open_price": "39588",
+        //                     "order_id": 17797092987,
+        //                     "position_amount": "0.0012",
+        //                     "position_id": 62052321,
+        //                     "position_type": 1,
+        //                     "price": "39588",
+        //                     "role": 2,
+        //                     "side": 2,
+        //                     "time": 1650675936.016103,
+        //                     "user_id": 3620173
+        //                 }
+        //             ]
+        //         },
+        //         "message": "OK"
+        //     }
+        //
+        const tradeRequest = swap ? 'records' : 'data';
         const data = this.safeValue (response, 'data');
-        const trades = this.safeValue (data, 'data', []);
+        const trades = this.safeValue (data, tradeRequest, []);
         return this.parseTrades (trades, market, since, limit);
+    }
+
+    async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires a symbol argument');
+        }
+        limit = (limit === undefined) ? 100 : limit;
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+            'limit': limit,
+            // 'offset': 0,
+            // 'end_time': 1638990636000,
+            // 'windowtime': 1638990636000,
+        };
+        if (since !== undefined) {
+            request['start_time'] = since;
+        }
+        const response = await this.perpetualPrivateGetPositionFunding (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "limit": 100,
+        //             "offset": 0,
+        //             "records": [
+        //                 {
+        //                     "amount": "0.0012",
+        //                     "asset": "USDT",
+        //                     "funding": "-0.0095688273996",
+        //                     "funding_rate": "0.00020034",
+        //                     "market": "BTCUSDT",
+        //                     "position_id": 62052321,
+        //                     "price": "39802.45",
+        //                     "real_funding_rate": "0.00020034",
+        //                     "side": 2,
+        //                     "time": 1650729623.933885,
+        //                     "type": 1,
+        //                     "user_id": 3620173,
+        //                     "value": "47.76294"
+        //                 },
+        //             ]
+        //         },
+        //         "message": "OK"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const resultList = this.safeValue (data, 'records', []);
+        const result = [];
+        for (let i = 0; i < resultList.length; i++) {
+            const entry = resultList[i];
+            const timestamp = this.safeTimestamp (entry, 'time');
+            const currencyId = this.safeString (entry, 'asset');
+            const code = this.safeCurrencyCode (currencyId);
+            result.push ({
+                'info': entry,
+                'symbol': symbol,
+                'code': code,
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'id': this.safeNumber (entry, 'position_id'),
+                'amount': this.safeNumber (entry, 'funding'),
+            });
+        }
+        return result;
+    }
+
+    async fetchFundingRate (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadSymbol (this.id + ' fetchFundingRate() supports swap contracts only');
+        }
+        const request = {
+            'market': market['id'],
+        };
+        const response = await this.perpetualPublicGetMarketTicker (this.extend (request, params));
+        //
+        //     {
+        //          "code": 0,
+        //         "data":
+        //         {
+        //             "date": 1650678472474,
+        //             "ticker": {
+        //                 "vol": "6090.9430",
+        //                 "low": "39180.30",
+        //                 "open": "40474.97",
+        //                 "high": "40798.01",
+        //                 "last": "39659.30",
+        //                 "buy": "39663.79",
+        //                 "period": 86400,
+        //                 "funding_time": 372,
+        //                 "position_amount": "270.1956",
+        //                 "funding_rate_last": "0.00022913",
+        //                 "funding_rate_next": "0.00013158",
+        //                 "funding_rate_predict": "0.00016552",
+        //                 "insurance": "16045554.83969682659674035672",
+        //                 "sign_price": "39652.48",
+        //                 "index_price": "39648.44250000",
+        //                 "sell_total": "22.3913",
+        //                 "buy_total": "19.4498",
+        //                 "buy_amount": "12.8942",
+        //                 "sell": "39663.80",
+        //                 "sell_amount": "0.9388"
+        //             }
+        //         },
+        //         "message": "OK"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const ticker = this.safeValue (data, 'ticker', {});
+        return this.parseFundingRate (ticker, market);
+    }
+
+    parseFundingRate (contract, market = undefined) {
+        //
+        // fetchFundingRate
+        //
+        //     {
+        //         "vol": "6090.9430",
+        //         "low": "39180.30",
+        //         "open": "40474.97",
+        //         "high": "40798.01",
+        //         "last": "39659.30",
+        //         "buy": "39663.79",
+        //         "period": 86400,
+        //         "funding_time": 372,
+        //         "position_amount": "270.1956",
+        //         "funding_rate_last": "0.00022913",
+        //         "funding_rate_next": "0.00013158",
+        //         "funding_rate_predict": "0.00016552",
+        //         "insurance": "16045554.83969682659674035672",
+        //         "sign_price": "39652.48",
+        //         "index_price": "39648.44250000",
+        //         "sell_total": "22.3913",
+        //         "buy_total": "19.4498",
+        //         "buy_amount": "12.8942",
+        //         "sell": "39663.80",
+        //         "sell_amount": "0.9388"
+        //     }
+        //
+        return {
+            'info': contract,
+            'symbol': this.safeSymbol (undefined, market),
+            'markPrice': this.safeString (contract, 'sign_price'),
+            'indexPrice': this.safeString (contract, 'index_price'),
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fundingRate': this.safeString (contract, 'funding_rate_next'),
+            'fundingTimestamp': undefined,
+            'fundingDatetime': undefined,
+            'nextFundingRate': this.safeString (contract, 'funding_rate_predict'),
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': this.safeString (contract, 'funding_rate_last'),
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+        };
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
@@ -1278,6 +1567,61 @@ module.exports = class coinex extends Exchange {
             'fail': 'failed',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = 100, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+            'limit': limit,
+            'offset': 0,
+            // 'end_time': 1638990636,
+        };
+        if (since !== undefined) {
+            request['start_time'] = since;
+        }
+        const response = await this.perpetualPublicGetMarketFundingHistory (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "offset": 0,
+        //             "limit": 3,
+        //             "records": [
+        //                 {
+        //                     "time": 1650672021.6230309,
+        //                     "market": "BTCUSDT",
+        //                     "asset": "USDT",
+        //                     "funding_rate": "0.00022913",
+        //                     "funding_rate_real": "0.00022913"
+        //                 },
+        //             ]
+        //         },
+        //         "message": "OK"
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        const result = this.safeValue (data, 'records');
+        const rates = [];
+        for (let i = 0; i < result.length; i++) {
+            const entry = result[i];
+            const marketId = this.safeString (entry, 'market');
+            const symbol = this.safeSymbol (marketId);
+            const timestamp = this.safeTimestamp (entry, 'time');
+            rates.push ({
+                'info': entry,
+                'symbol': symbol,
+                'fundingRate': this.safeString (entry, 'funding_rate'),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+            });
+        }
+        const sorted = this.sortBy (rates, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
     }
 
     parseTransaction (transaction, currency = undefined) {
@@ -1487,7 +1831,26 @@ module.exports = class coinex extends Exchange {
         path = this.implodeParams (path, params);
         let url = this.urls['api'][api] + '/' + this.version + '/' + path;
         let query = this.omit (params, this.extractParams (path));
-        if (api === 'public' || api === 'perpetualPublic') {
+        if (api === 'perpetualPrivate' || url === 'https://api.coinex.com/perpetual/v1/market/user_deals') {
+            this.checkRequiredCredentials ();
+            const nonce = this.nonce ();
+            query = this.extend ({
+                'access_id': this.apiKey,
+                'timestamp': nonce.toString (),
+            }, query);
+            query = this.keysort (query);
+            const urlencoded = this.rawencode (query);
+            const signature = this.hash (this.encode (urlencoded + '&secret_key=' + this.secret), 'sha256');
+            headers = {
+                'Authorization': signature.toLowerCase (),
+                'AccessId': this.apiKey,
+            };
+            if ((method === 'GET') || (method === 'DELETE')) {
+                url += '?' + urlencoded;
+            } else {
+                body = this.json (query);
+            }
+        } else if (api === 'public' || api === 'perpetualPublic') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }

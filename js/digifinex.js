@@ -732,12 +732,13 @@ module.exports = class digifinex extends Exchange {
         //         "code": 0
         //     }
         //
-        this.status = this.extend (this.status, {
-            'status': 'ok',
+        const code = this.safeInteger (response, 'code');
+        const status = (code === 0) ? 'ok' : 'maintenance';
+        return {
+            'status': status,
             'updated': this.milliseconds (),
             'info': response,
-        });
-        return this.status;
+        };
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {

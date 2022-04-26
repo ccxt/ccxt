@@ -31,6 +31,9 @@ module.exports = class bybit extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
@@ -1677,6 +1680,33 @@ module.exports = class bybit extends Exchange {
         //         "order_id" : "dd2504b9-0157-406a-99e1-efa522373944"
         //     }
         //
+        // fetchOrders linear swaps
+        //
+        //     {
+        //         "order_id":"7917bd70-e7c3-4af5-8147-3285cd99c509",
+        //         "user_id":22919890,
+        //         "symbol":"GMTUSDT",
+        //         "side":"Buy",
+        //         "order_type":"Limit",
+        //         "price":2.9262,
+        //         "qty":50,
+        //         "time_in_force":"GoodTillCancel",
+        //         "order_status":"Filled",
+        //         "last_exec_price":2.9219,
+        //         "cum_exec_qty":50,
+        //         "cum_exec_value":146.095,
+        //         "cum_exec_fee":0.087657,
+        //         "reduce_only":false,
+        //         "close_on_trigger":false,
+        //         "order_link_id":"",
+        //         "created_time":"2022-04-18T17:09:54Z",
+        //         "updated_time":"2022-04-18T17:09:54Z",
+        //         "take_profit":0,
+        //         "stop_loss":0,
+        //         "tp_trigger_by":"UNKNOWN",
+        //         "sl_trigger_by":"UNKNOWN"
+        //     }
+        //
         // conditional order
         //
         //     {
@@ -1716,7 +1746,7 @@ module.exports = class bybit extends Exchange {
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         let feeCurrency = undefined;
-        const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
+        const timestamp = this.parse8601 (this.safeString2 (order, 'created_at', 'created_time'));
         const id = this.safeString2 (order, 'order_id', 'stop_order_id');
         const type = this.safeStringLower (order, 'order_type');
         let price = undefined;
@@ -2325,6 +2355,48 @@ module.exports = class bybit extends Exchange {
         //         "rate_limit_status": 98,
         //         "rate_limit_reset_ms": 1580885703683,
         //         "rate_limit": 100
+        //     }
+        //
+        // linear swaps
+        //
+        //     {
+        //         "ret_code":0,
+        //         "ret_msg":"OK",
+        //         "ext_code":"",
+        //         "ext_info":"",
+        //         "result":{
+        //             "current_page":1,
+        //             "data":[
+        //                 {
+        //                     "order_id":"7917bd70-e7c3-4af5-8147-3285cd99c509",
+        //                     "user_id":22919890,
+        //                     "symbol":"GMTUSDT",
+        //                     "side":"Buy",
+        //                     "order_type":"Limit",
+        //                     "price":2.9262,
+        //                     "qty":50,
+        //                     "time_in_force":"GoodTillCancel",
+        //                     "order_status":"Filled",
+        //                     "last_exec_price":2.9219,
+        //                     "cum_exec_qty":50,
+        //                     "cum_exec_value":146.095,
+        //                     "cum_exec_fee":0.087657,
+        //                     "reduce_only":false,
+        //                     "close_on_trigger":false,
+        //                     "order_link_id":"",
+        //                     "created_time":"2022-04-18T17:09:54Z",
+        //                     "updated_time":"2022-04-18T17:09:54Z",
+        //                     "take_profit":0,
+        //                     "stop_loss":0,
+        //                     "tp_trigger_by":"UNKNOWN",
+        //                     "sl_trigger_by":"UNKNOWN"
+        //                 }
+        //             ]
+        //         },
+        //         "time_now":"1650970113.283952",
+        //         "rate_limit_status":599,
+        //         "rate_limit_reset_ms":1650970113275,
+        //         "rate_limit":600
         //     }
         //
         // conditional orders

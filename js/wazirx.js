@@ -22,6 +22,9 @@ module.exports = class wazirx extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
                 'fetchClosedOrders': false,
@@ -376,16 +379,18 @@ module.exports = class wazirx extends Exchange {
     async fetchStatus (params = {}) {
         const response = await this.publicGetSystemStatus (params);
         //
-        //  { "status":"normal","message":"System is running normally." }
+        //     {
+        //         "status":"normal", // normal, system maintenance
+        //         "message":"System is running normally."
+        //     }
         //
-        let status = this.safeString (response, 'status');
-        status = (status === 'normal') ? 'ok' : 'maintenance';
-        this.status = this.extend (this.status, {
-            'status': status,
+        const status = this.safeString (response, 'status');
+        return {
+            'status': (status === 'normal') ? 'ok' : 'maintenance',
             'updated': this.milliseconds (),
+            'eta': undefined,
             'info': response,
-        });
-        return this.status;
+        };
     }
 
     async fetchTime (params = {}) {

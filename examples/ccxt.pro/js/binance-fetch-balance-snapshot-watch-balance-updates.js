@@ -43,11 +43,11 @@ async function main() {
         'secret': 'YOUR_SECRET',
     })
 
-    await exchange.loadMarkets () // await here
+    await exchange.loadMarkets ()
 
     // exchange.verbose = true // uncomment for debugging purposes if necessary
 
-    watchBalance (exchange) // no await
+    await watchBalance (exchange)
 
     await exchange.close ()
 }

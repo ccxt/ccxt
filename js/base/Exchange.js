@@ -80,6 +80,9 @@ module.exports = class Exchange {
                 'createMarketOrder': true,
                 'createOrder': true,
                 'createPostOnlyOrder': undefined,
+                'createStopOrder': undefined,
+                'createStopLimitOrder': undefined,
+                'createStopMarketOrder': undefined,
                 'editOrder': 'emulated',
                 'fetchAccounts': undefined,
                 'fetchBalance': true,
@@ -2328,6 +2331,33 @@ module.exports = class Exchange {
         }
         const query = this.extend (params, { 'postOnly': true });
         return await this.createOrder (symbol, type, side, amount, price, query);
+    }
+
+    async createStopOrder (symbol, type, side, amount, price = undefined, stopPrice = undefined, params = {}) {
+        if (!this.has['createStopOrder']) {
+            throw new NotSupported (this.id + ' createStopOrder() is not supported yet');
+        }
+        if (stopPrice === undefined) {
+            throw new ArgumentsRequired(this.id + ' create_stop_order() requires a stopPrice argument');
+        }
+        const query = this.extend (params, { 'stopPrice': stopPrice });
+        return await this.createOrder (symbol, type, side, amount, price, query);
+    }
+
+    async createStopLimitOrder(symbol, side, amount, price, stopPrice, params = {}) {
+        if (!this.has['createStopLimitOrder']) {
+            throw new NotSupported(this.id + ' createStopLimitOrder() is not supported yet');
+        }
+        const query = this.extend(params, {'stopPrice': stopPrice});
+        return this.createOrder(symbol, 'limit', side, amount, price, query);
+    }
+
+    async createStopMarketOrder(symbol, side, amount, stopPrice, params = {}) {
+        if (!this.has['createStopMarketOrder']) {
+            throw new NotSupported(this.id + ' createStopMarketOrder() is not supported yet');
+        }
+        const query = this.extend(params, {'stopPrice': stopPrice});
+        return this.createOrder(symbol, 'market', side, amount, undefined, query);
     }
 
     parseBorrowInterests (response, market = undefined) {

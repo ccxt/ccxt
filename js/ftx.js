@@ -48,6 +48,9 @@ module.exports = class ftx extends Exchange {
                 'cancelOrder': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': true,
@@ -2550,17 +2553,44 @@ module.exports = class ftx extends Exchange {
     }
 
     async fetchBorrowRateHistories (codes = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name ftx#fetchBorrowRateHistory
+         * @description Gets the history of the borrow rate for mutiple currencies
+         * @param {str} code Unified currency code
+         * @param {int} since Timestamp in ms of the earliest time to fetch the borrow rate
+         * @param {int} limit Max number of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure} to return per currency, max=48 for multiple currencies, max=5000 for a single currency
+         * @param {dict} params Exchange specific parameters
+         * @param {dict} params.till Timestamp in ms of the latest time to fetch the borrow rate
+         * @returns A dictionary of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure} with unified currency codes as keys
+         */
         await this.loadMarkets ();
         const request = {};
+        let numCodes = 0;
         let endTime = this.safeNumber2 (params, 'till', 'end_time');
-        if (limit > 48) {
-            throw new BadRequest (this.id + ' fetchBorrowRateHistories() limit cannot exceed 48');
+        if (codes !== undefined) {
+            numCodes = codes.length;
+        }
+        if (numCodes === 1) {
+            const millisecondsPer5000Hours = 18000000000;
+            if ((limit !== undefined) && (limit > 5000)) {
+                throw new BadRequest (this.id + ' fetchBorrowRateHistories() limit cannot exceed 5000 for a single currency');
+            }
+            if ((endTime !== undefined) && (since !== undefined) && ((endTime - since) > millisecondsPer5000Hours)) {
+                throw new BadRequest (this.id + ' fetchBorrowRateHistories() requires the time range between the since time and the end time to be less than 5000 hours for a single currency');
+            }
+            const currency = this.currency (codes[0]);
+            request['coin'] = currency['id'];
+        } else {
+            const millisecondsPer2Days = 172800000;
+            if ((limit !== undefined) && (limit > 48)) {
+                throw new BadRequest (this.id + ' fetchBorrowRateHistories() limit cannot exceed 48 for multiple currencies');
+            }
+            if ((endTime !== undefined) && (since !== undefined) && ((endTime - since) > millisecondsPer2Days)) {
+                throw new BadRequest (this.id + ' fetchBorrowRateHistories() requires the time range between the since time and the end time to be less than 48 hours for multiple currencies');
+            }
         }
         const millisecondsPerHour = 3600000;
-        const millisecondsPer2Days = 172800000;
-        if ((endTime - since) > millisecondsPer2Days) {
-            throw new BadRequest (this.id + ' fetchBorrowRateHistories() requires the time range between the since time and the end time to be less than 48 hours');
-        }
         if (since !== undefined) {
             request['start_time'] = parseInt (since / 1000);
             if (endTime === undefined) {
@@ -2601,6 +2631,17 @@ module.exports = class ftx extends Exchange {
     }
 
     async fetchBorrowRateHistory (code, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name ftx#fetchBorrowRateHistory
+         * @description Gets the history of the borrow rate for a currency
+         * @param {str} code Unified currency code
+         * @param {int} since Timestamp in ms of the earliest time to fetch the borrow rate
+         * @param {int} limit Max number of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure} to return, max=5000
+         * @param {dict} params Exchange specific parameters
+         * @param {dict} params.till Timestamp in ms of the latest time to fetch the borrow rate
+         * @returns An array of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
+         */
         const histories = await this.fetchBorrowRateHistories ([ code ], since, limit, params);
         const borrowRateHistory = this.safeValue (histories, code);
         if (borrowRateHistory === undefined) {
@@ -2618,7 +2659,7 @@ module.exports = class ftx extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const item = response[i];
             const code = this.safeCurrencyCode (this.safeString (item, 'coin'));
-            if (codes === undefined || codes.includes (code)) {
+            if (codes === undefined || this.inArray (code, codes)) {
                 if (!(code in borrowRateHistories)) {
                     borrowRateHistories[code] = [];
                 }

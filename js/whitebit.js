@@ -28,6 +28,9 @@ module.exports = class whitebit extends Exchange {
                 'createLimitOrder': undefined,
                 'createMarketOrder': undefined,
                 'createOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
                 'editOrder': undefined,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
@@ -748,14 +751,13 @@ module.exports = class whitebit extends Exchange {
         //          "pong"
         //      ]
         //
-        let status = this.safeString (response, 0, undefined);
-        status = (status === undefined) ? 'maintenance' : 'ok';
-        this.status = this.extend (this.status, {
-            'status': status,
+        const status = this.safeString (response, 0);
+        return {
+            'status': (status === 'pong') ? 'ok' : status,
             'updated': this.milliseconds (),
+            'eta': undefined,
             'info': response,
-        });
-        return this.status;
+        };
     }
 
     async fetchTime (params = {}) {

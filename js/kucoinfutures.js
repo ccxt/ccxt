@@ -33,6 +33,9 @@ module.exports = class kucoinfutures extends kucoin {
                 'cancelOrder': true,
                 'createDepositAddress': true,
                 'createOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
@@ -306,22 +309,19 @@ module.exports = class kucoinfutures extends kucoin {
         //     {
         //         "code":"200000",
         //         "data":{
-        //             "msg":"",
-        //             "status":"open"
+        //             "status": "open", // open, close, cancelonly
+        //             "msg": "upgrade match engine" // remark for operation when status not open
         //         }
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        let status = this.safeValue (data, 'status');
-        if (status !== undefined) {
-            status = (status === 'open') ? 'ok' : 'maintenance';
-            this.status = this.extend (this.status, {
-                'status': status,
-                'updated': this.milliseconds (),
-                'info': response,
-            });
-        }
-        return this.status;
+        const status = this.safeString (data, 'status');
+        return {
+            'status': (status === 'open') ? 'ok' : 'maintenance',
+            'updated': this.milliseconds (),
+            'eta': undefined,
+            'info': response,
+        };
     }
 
     async fetchMarkets (params = {}) {

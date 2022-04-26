@@ -35,6 +35,9 @@ module.exports = class kucoin extends Exchange {
                 'cancelOrder': true,
                 'createDepositAddress': true,
                 'createOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
@@ -75,8 +78,8 @@ module.exports = class kucoin extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87295558-132aaf80-c50e-11ea-9801-a2fb0c57c799.jpg',
                 'referral': 'https://www.kucoin.com/?rcode=E5wkqe',
                 'api': {
-                    'public': 'https://openapi-v2.kucoin.com',
-                    'private': 'https://openapi-v2.kucoin.com',
+                    'public': 'https://api.kucoin.com',
+                    'private': 'https://api.kucoin.com',
                     'futuresPrivate': 'https://api-futures.kucoin.com',
                     'futuresPublic': 'https://api-futures.kucoin.com',
                 },
@@ -416,17 +419,12 @@ module.exports = class kucoin extends Exchange {
                     },
                 },
                 'accountsByType': {
-                    'trade': 'trade',
-                    'trading': 'trade',
                     'spot': 'trade',
                     'margin': 'margin',
                     'main': 'main',
                     'funding': 'main',
                     'future': 'contract',
-                    'futures': 'contract',
-                    'contract': 'contract',
-                    'pool': 'pool',
-                    'pool-x': 'pool',
+                    'mining': 'pool',
                 },
                 'networks': {
                     'ETH': 'eth',
@@ -462,22 +460,19 @@ module.exports = class kucoin extends Exchange {
         //     {
         //         "code":"200000",
         //         "data":{
-        //             "msg":"",
-        //             "status":"open"
+        //             "status":"open", //open, close, cancelonly
+        //             "msg":"upgrade match engine" //remark for operation
         //         }
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        let status = this.safeValue (data, 'status');
-        if (status !== undefined) {
-            status = (status === 'open') ? 'ok' : 'maintenance';
-            this.status = this.extend (this.status, {
-                'status': status,
-                'updated': this.milliseconds (),
-                'info': response,
-            });
-        }
-        return this.status;
+        const status = this.safeString (data, 'status');
+        return {
+            'status': (status === 'open') ? 'ok' : 'maintenance',
+            'updated': this.milliseconds (),
+            'eta': undefined,
+            'info': response,
+        };
     }
 
     async fetchMarkets (params = {}) {
@@ -2125,14 +2120,10 @@ module.exports = class kucoin extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'trade');
+        const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
         const requestedType = this.safeString (params, 'type', defaultType);
         const accountsByType = this.safeValue (this.options, 'accountsByType');
-        const type = this.safeString (accountsByType, requestedType);
-        if (type === undefined) {
-            const keys = Object.keys (accountsByType);
-            throw new ExchangeError (this.id + ' type must be one of ' + keys.join (', '));
-        }
+        const type = this.safeString (accountsByType, requestedType, requestedType);
         params = this.omit (params, 'type');
         const request = {
             'type': type,
@@ -2175,19 +2166,11 @@ module.exports = class kucoin extends Exchange {
         const currency = this.currency (code);
         const requestedAmount = this.currencyToPrecision (code, amount);
         const accountsById = this.safeValue (this.options, 'accountsByType', {});
-        const fromId = this.safeString (accountsById, fromAccount);
-        if (fromId === undefined) {
-            const keys = Object.keys (accountsById);
-            throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', '));
-        }
-        const toId = this.safeString (accountsById, toAccount);
-        if (toId === undefined) {
-            const keys = Object.keys (accountsById);
-            throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', '));
-        }
+        const fromId = this.safeString (accountsById, fromAccount, fromAccount);
+        const toId = this.safeString (accountsById, toAccount, toAccount);
         if (fromId === 'contract') {
             if (toId !== 'main') {
-                throw new ExchangeError (this.id + ' only supports transferring from futures account to main account');
+                throw new ExchangeError (this.id + ' transfer() only supports transferring from futures account to main account');
             }
             const request = {
                 'currency': currency['id'],
