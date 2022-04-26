@@ -38,6 +38,7 @@ class coinex(Exchange):
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchDeposits': True,
+                'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchMarkets': True,
@@ -1243,6 +1244,68 @@ class coinex(Exchange):
         data = self.safe_value(response, 'data')
         trades = self.safe_value(data, tradeRequest, [])
         return self.parse_trades(trades, market, since, limit)
+
+    def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires a symbol argument')
+        limit = 100 if (limit is None) else limit
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'market': market['id'],
+            'limit': limit,
+            # 'offset': 0,
+            # 'end_time': 1638990636000,
+            # 'windowtime': 1638990636000,
+        }
+        if since is not None:
+            request['start_time'] = since
+        response = self.perpetualPrivateGetPositionFunding(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "limit": 100,
+        #             "offset": 0,
+        #             "records": [
+        #                 {
+        #                     "amount": "0.0012",
+        #                     "asset": "USDT",
+        #                     "funding": "-0.0095688273996",
+        #                     "funding_rate": "0.00020034",
+        #                     "market": "BTCUSDT",
+        #                     "position_id": 62052321,
+        #                     "price": "39802.45",
+        #                     "real_funding_rate": "0.00020034",
+        #                     "side": 2,
+        #                     "time": 1650729623.933885,
+        #                     "type": 1,
+        #                     "user_id": 3620173,
+        #                     "value": "47.76294"
+        #                 },
+        #             ]
+        #         },
+        #         "message": "OK"
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        resultList = self.safe_value(data, 'records', [])
+        result = []
+        for i in range(0, len(resultList)):
+            entry = resultList[i]
+            timestamp = self.safe_timestamp(entry, 'time')
+            currencyId = self.safe_string(entry, 'asset')
+            code = self.safe_currency_code(currencyId)
+            result.append({
+                'info': entry,
+                'symbol': symbol,
+                'code': code,
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+                'id': self.safe_number(entry, 'position_id'),
+                'amount': self.safe_number(entry, 'funding'),
+            })
+        return result
 
     def fetch_funding_rate(self, symbol, params={}):
         self.load_markets()

@@ -33,6 +33,7 @@ class coinex extends Exchange {
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchDeposits' => true,
+                'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchMarkets' => true,
@@ -1298,6 +1299,72 @@ class coinex extends Exchange {
         $data = $this->safe_value($response, 'data');
         $trades = $this->safe_value($data, $tradeRequest, array());
         return $this->parse_trades($trades, $market, $since, $limit);
+    }
+
+    public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires a $symbol argument');
+        }
+        $limit = ($limit === null) ? 100 : $limit;
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'market' => $market['id'],
+            'limit' => $limit,
+            // 'offset' => 0,
+            // 'end_time' => 1638990636000,
+            // 'windowtime' => 1638990636000,
+        );
+        if ($since !== null) {
+            $request['start_time'] = $since;
+        }
+        $response = $this->perpetualPrivateGetPositionFunding (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => array(
+        //             "limit" => 100,
+        //             "offset" => 0,
+        //             "records" => array(
+        //                 array(
+        //                     "amount" => "0.0012",
+        //                     "asset" => "USDT",
+        //                     "funding" => "-0.0095688273996",
+        //                     "funding_rate" => "0.00020034",
+        //                     "market" => "BTCUSDT",
+        //                     "position_id" => 62052321,
+        //                     "price" => "39802.45",
+        //                     "real_funding_rate" => "0.00020034",
+        //                     "side" => 2,
+        //                     "time" => 1650729623.933885,
+        //                     "type" => 1,
+        //                     "user_id" => 3620173,
+        //                     "value" => "47.76294"
+        //                 ),
+        //             )
+        //         ),
+        //         "message" => "OK"
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $resultList = $this->safe_value($data, 'records', array());
+        $result = array();
+        for ($i = 0; $i < count($resultList); $i++) {
+            $entry = $resultList[$i];
+            $timestamp = $this->safe_timestamp($entry, 'time');
+            $currencyId = $this->safe_string($entry, 'asset');
+            $code = $this->safe_currency_code($currencyId);
+            $result[] = array(
+                'info' => $entry,
+                'symbol' => $symbol,
+                'code' => $code,
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+                'id' => $this->safe_number($entry, 'position_id'),
+                'amount' => $this->safe_number($entry, 'funding'),
+            );
+        }
+        return $result;
     }
 
     public function fetch_funding_rate($symbol, $params = array ()) {
