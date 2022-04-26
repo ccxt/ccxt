@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError, PermissionDenied, ExchangeNotAvailable, RequestTimeout } = require ('./base/errors');
-
+const Precise = require ('./base/Precise');
 //  ---------------------------------------------------------------------------
 
 module.exports = class coinex extends Exchange {
@@ -945,6 +945,33 @@ module.exports = class coinex extends Exchange {
         //         "type": "sell",
         //     }
         //
+        // createOrder (succesful market order)
+        //
+        //      {
+        //          "amount":"1.5",
+        //          "asset_fee":"0",
+        //          "avg_price":"0.14208538",
+        //          "client_id":"",
+        //          "create_time":1650993819,
+        //          "deal_amount":"10.55703267",
+        //          "deal_fee":"0.0029999999971787292",
+        //          "deal_money":"1.4999999985893646",
+        //          "fee_asset":null,
+        //          "fee_discount":"1",
+        //          "finished_time":null,
+        //          "id":74556296907,
+        //          "left":"0.0000000014106354",
+        //          "maker_fee_rate":"0",
+        //          "market":"DOGEUSDT",
+        //          "money_fee":"0.0029999999971787292",
+        //          "order_type":"market",
+        //          "price":"0",
+        //          "status":"done",
+        //          "stock_fee":"0",
+        //          "taker_fee_rate":"0.002",
+        //          "type":"buy"
+        //      }
+        //
         const timestamp = this.safeTimestamp (order, 'create_time');
         const priceString = this.safeString (order, 'price');
         const costString = this.safeString (order, 'deal_money');
@@ -990,7 +1017,7 @@ module.exports = class coinex extends Exchange {
         }, market);
     }
 
-    async createOrder2 (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let method = 'privatePostOrder' + this.capitalize (type);
         const market = this.market (symbol);
@@ -998,69 +1025,20 @@ module.exports = class coinex extends Exchange {
             'market': market['id'],
             'type': side,
         };
-        // suppport for market, limit, stop-limit, stop-market
         const timeInForce = this.safeString (params, 'timeInForce'); // IOC, FOK, PO, GTC, ... NORMAL (default), MAKER_ONLY
         const postOnly = this.safeValue (params, 'postOnly', false);
         const stopPrice = this.safeString2 (params, 'stopPrice', 'stop_price');
         params = this.omit (params, [ 'timeInForce', 'postOnly', 'stopPrice', 'stop_price' ]);
-        // market order
-        if (type === 'market') {
-            if (side === 'buy') {
-                if (this.options['createMarketBuyOrderRequiresPrice']) {
-                    if (price === undefined) {
-                        throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
-                    } else {
-                        request['amount'] = this.costToPrecision (symbol, amount * price);
-                    }
-                } else {
-                    request['amount'] = this.costToPrecision (symbol, amount);
-                }
-            }
-            // stop-market order
-            if (stopPrice !== undefined) {
-                request['stopPrice'] = this.priceToPrecision (symbol, price);
-                method = 'privatePostOrderStopMarket';
-                if ((timeInForce !== undefined) || (postOnly !== undefined)) {
-                    let isMakerOrder = false;
-                    if ((timeInForce === 'PO') || (postOnly)) {
-                        isMakerOrder = true;
-                    }
-                    if (isMakerOrder) {
-                        request['options'] = 'MAKER_ONLY';
-                    } else {
-                        request['options'] = timeInForce; // exchange takes 'IOC' and 'FOK'
-                    }
-                }
-            }
-        }
-        if ((type === 'limit') || (type === 'ioc')) {
-            request['price'] = this.priceToPrecision (symbol, price);
-        }
-        //
-        // limit order + IOC, FOK, PO, MAKER_ONLY, postOnly
-        //
-        // stop-limit order + IOC, FOK, PO, MAKER_ONLY, postOnly, stopPrice
-        //
-        const response = await this[method] (this.extend (request, params));
-        const data = this.safeValue (response, 'data');
-        return this.parseOrder (data, market);
-    }
-
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets ();
-        const method = 'privatePostOrder' + this.capitalize (type);
-        const market = this.market (symbol);
-        const request = {
-            'market': market['id'],
-            'type': side,
-        };
-        // for market buy it requires the amount of quote currency to spend
         if ((type === 'market') && (side === 'buy')) {
             if (this.options['createMarketBuyOrderRequiresPrice']) {
                 if (price === undefined) {
                     throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
                 } else {
-                    request['amount'] = this.costToPrecision (symbol, amount * price);
+                    const amountString = this.amountToPrecision (symbol, amount);
+                    const priceString = this.priceToPrecision (symbol, price);
+                    const costString = Precise.stringMul (amountString, priceString);
+                    const costNumber = this.parseNumber (costString);
+                    request['amount'] = this.costToPrecision (symbol, costNumber);
                 }
             } else {
                 request['amount'] = this.costToPrecision (symbol, amount);
@@ -1070,6 +1048,33 @@ module.exports = class coinex extends Exchange {
         }
         if ((type === 'limit') || (type === 'ioc')) {
             request['price'] = this.priceToPrecision (symbol, price);
+        }
+        if (stopPrice !== undefined) {
+            request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
+            if (type === 'limit') {
+                method = 'privatePostOrderStopLimit';
+            } else if (type === 'market') {
+                method = 'privatePostOrderStopMarket';
+            }
+        }
+        if ((type !== 'market') || (stopPrice !== undefined)) {
+            // following options cannot be applied to vanilla market orders (but can be applied to stop-market orders)
+            if ((timeInForce !== undefined) || (postOnly !== undefined)) {
+                let isMakerOrder = false;
+                if ((timeInForce === 'PO') || (postOnly)) {
+                    isMakerOrder = true;
+                }
+                if ((isMakerOrder || (timeInForce !== 'IOC')) && ((type === 'limit') && (stopPrice !== undefined))) {
+                    throw new InvalidOrder (this.id + ' createOrder() only supports the IOC option for stop-limit orders');
+                }
+                if (isMakerOrder) {
+                    request['option'] = 'MAKER_ONLY';
+                } else {
+                    if (timeInForce !== undefined) {
+                        request['option'] = timeInForce; // exchange takes 'IOC' and 'FOK'
+                    }
+                }
+            }
         }
         const response = await this[method] (this.extend (request, params));
         const data = this.safeValue (response, 'data');
