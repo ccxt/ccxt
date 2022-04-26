@@ -992,12 +992,58 @@ module.exports = class coinex extends Exchange {
 
     async createOrder2 (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        const method = 'privatePostOrder' + this.capitalize (type);
+        let method = 'privatePostOrder' + this.capitalize (type);
         const market = this.market (symbol);
         const request = {
             'market': market['id'],
             'type': side,
         };
+        // suppport for market, limit, stop-limit, stop-market
+        const timeInForce = this.safeString (params, 'timeInForce'); // IOC, FOK, PO, GTC, ... NORMAL (default), MAKER_ONLY
+        const postOnly = this.safeValue (params, 'postOnly', false);
+        const stopPrice = this.safeString2 (params, 'stopPrice', 'stop_price');
+        params = this.omit (params, [ 'timeInForce', 'postOnly', 'stopPrice', 'stop_price' ]);
+        // market order
+        if (type === 'market') {
+            if (side === 'buy') {
+                if (this.options['createMarketBuyOrderRequiresPrice']) {
+                    if (price === undefined) {
+                        throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
+                    } else {
+                        request['amount'] = this.costToPrecision (symbol, amount * price);
+                    }
+                } else {
+                    request['amount'] = this.costToPrecision (symbol, amount);
+                }
+            }
+            // stop-market order
+            if (stopPrice !== undefined) {
+                request['stopPrice'] = this.priceToPrecision (symbol, price);
+                method = 'privatePostOrderStopMarket';
+                if ((timeInForce !== undefined) || (postOnly !== undefined)) {
+                    let isMakerOrder = false;
+                    if ((timeInForce === 'PO') || (postOnly)) {
+                        isMakerOrder = true;
+                    }
+                    if (isMakerOrder) {
+                        request['options'] = 'MAKER_ONLY';
+                    } else {
+                        request['options'] = timeInForce; // exchange takes 'IOC' and 'FOK'
+                    }
+                }
+            }
+        }
+        if ((type === 'limit') || (type === 'ioc')) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        //
+        // limit order + IOC, FOK, PO, MAKER_ONLY, postOnly
+        //
+        // stop-limit order + IOC, FOK, PO, MAKER_ONLY, postOnly, stopPrice
+        //
+        const response = await this[method] (this.extend (request, params));
+        const data = this.safeValue (response, 'data');
+        return this.parseOrder (data, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
