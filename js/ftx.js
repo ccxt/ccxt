@@ -2555,10 +2555,22 @@ module.exports = class ftx extends Exchange {
     async fetchBorrowRateHistories (codes = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
-        let endTime = this.safeNumber2 (params, 'till', 'end_time');
-        if (limit > 48) {
-            throw new BadRequest (this.id + ' fetchBorrowRateHistories() limit cannot exceed 48');
+        let numCodes = 0;
+        if (codes !== undefined) {
+            numCodes = codes.length;
         }
+        if (numCodes === 1) {
+            if (limit > 5000) {
+                throw new BadRequest (this.id + ' fetchBorrowRateHistories() limit cannot exceed 5000 for a single currency');
+            }
+            const currency = this.currency (codes[0]);
+            request['coin'] = currency['id'];
+        } else {
+            if (limit > 48) {
+                throw new BadRequest (this.id + ' fetchBorrowRateHistories() limit cannot exceed 48 for multiple currencies');
+            }
+        }
+        let endTime = this.safeNumber2 (params, 'till', 'end_time');
         const millisecondsPerHour = 3600000;
         const millisecondsPer2Days = 172800000;
         if ((endTime - since) > millisecondsPer2Days) {
