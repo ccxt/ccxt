@@ -610,12 +610,9 @@ module.exports = class mexc3 extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
-        if (marketType === 'spot') {
-            return await this.fetchSpotMarkets (query);
-        } else if (marketType === 'swap') {
-            return await this.fetchSwapMarkets (query);
-        }
+        const spotMarket = this.fetchSpotMarkets (params);
+        const swapMarket = this.fetchSwapMarkets (params);
+        return this.arrayConcat (spotMarket, swapMarket);
     }
 
     async fetchSpotMarkets (params = {}) {
@@ -1221,7 +1218,8 @@ module.exports = class mexc3 extends Exchange {
         if (symbols !== undefined) {
             const length = symbols.length;
             isSingularMarket = length === 1;
-            market = this.market (symbols[0]);
+            const firstSymbol = this.safeString (symbols, 0);
+            market = this.market (firstSymbol);
         }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         let tickers = undefined;
@@ -1739,7 +1737,6 @@ module.exports = class mexc3 extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrders', undefined, params);
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -1747,7 +1744,8 @@ module.exports = class mexc3 extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        if (marketType === 'spot' || (market && market['spot'])) {
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
+        if (marketType === 'spot') {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument for spot market');
             }
@@ -1872,7 +1870,6 @@ module.exports = class mexc3 extends Exchange {
     }
 
     async fetchOrdersByIds (ids, symbol = undefined, params = {}) {
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrdersByIds', undefined, params);
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -1880,7 +1877,8 @@ module.exports = class mexc3 extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        if (marketType === 'spot' || (market !== undefined && market['spot'])) {
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrdersByIds', market, params);
+        if (marketType === 'spot') {
             throw new BadRequest (this.id + ' fetchOrdersByIds() is not supported for ' + marketType);
         } else {
             request['order_ids'] = ids.join (',');
@@ -1925,7 +1923,6 @@ module.exports = class mexc3 extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', undefined, params);
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -1933,7 +1930,8 @@ module.exports = class mexc3 extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        if (marketType === 'spot' || (market !== undefined && market['spot'])) {
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        if (marketType === 'spot') {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument for spot market');
             }
@@ -1980,7 +1978,6 @@ module.exports = class mexc3 extends Exchange {
     }
 
     async fetchOrdersByState (state, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrdersByState', undefined, params);
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -1988,16 +1985,16 @@ module.exports = class mexc3 extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        if (marketType === 'spot' || (market && market['spot'])) {
+        const [ marketType ] = this.handleMarketTypeAndParams ('fetchOrdersByState', market, params);
+        if (marketType === 'spot') {
             throw new BadRequest (this.id + ' fetchOrdersByState() is not supported for ' + marketType);
         } else {
-            query['states'] = state;
-            return this.fetchOrders (symbol, since, limit, query);
+            params['states'] = state;
+            return this.fetchOrders (symbol, since, limit, params);
         }
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelOrder', undefined, params);
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -2005,8 +2002,9 @@ module.exports = class mexc3 extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
         let data = undefined;
-        if (marketType === 'spot' || (market && market['spot'])) {
+        if (marketType === 'spot') {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
             }
@@ -2060,10 +2058,10 @@ module.exports = class mexc3 extends Exchange {
     }
 
     async cancelOrders (ids, symbol = undefined, params = {}) {
-        const [ marketType ] = this.handleMarketTypeAndParams ('cancelOrders', undefined, params);
         await this.loadMarkets ();
         const market = symbol !== undefined ? this.market (symbol) : undefined;
-        if (marketType === 'spot' || (market !== undefined && market['spot'])) {
+        const [ marketType ] = this.handleMarketTypeAndParams ('cancelOrders', market, params);
+        if (marketType === 'spot') {
             throw new BadRequest (this.id + ' cancelOrders() is not supported for ' + marketType);
         } else {
             const response = await this.contractPrivatePostOrderCancel (ids); // the request cannot be changed or extended. The only way to send.
@@ -2086,16 +2084,14 @@ module.exports = class mexc3 extends Exchange {
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', undefined, params);
         await this.loadMarkets ();
         const market = symbol !== undefined ? this.market (symbol) : undefined;
         const request = {};
-        if (marketType === 'spot' || (market && market['spot'])) {
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
+        if (marketType === 'spot') {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument on spot');
             }
-            await this.loadMarkets ();
-            const market = this.market (symbol);
             request['symbol'] = market['id'];
             const response = await this.spotPrivateDeleteOpenOrders (this.extend (request, query));
             //
@@ -2458,14 +2454,14 @@ module.exports = class mexc3 extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', undefined, params);
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         const request = {
             'symbol': market['id'],
         };
         let trades = undefined;
-        if (marketType === 'spot' || (market && market['spot'])) {
+        if (marketType === 'spot') {
             if (since !== undefined) {
                 request['start_time'] = since;
             }
@@ -2535,7 +2531,6 @@ module.exports = class mexc3 extends Exchange {
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrderTrades', undefined, params);
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -2543,8 +2538,9 @@ module.exports = class mexc3 extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrderTrades', market, params);
         let trades = undefined;
-        if (marketType === 'spot' || (market && market['spot'])) {
+        if (marketType === 'spot') {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchOrderTrades() requires a symbol argument');
             }
