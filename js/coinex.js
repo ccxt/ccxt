@@ -1286,10 +1286,11 @@ module.exports = class coinex extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchFundingHistory (symbol = undefined, since = undefined, limit = 100, params = {}) {
+    async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires a symbol argument');
         }
+        limit = (limit === undefined) ? 100 : limit;
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
