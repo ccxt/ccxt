@@ -1563,9 +1563,21 @@ module.exports = class mexc3 extends Exchange {
     async createSwapOrder (market, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const symbol = market['symbol'];
-        const openType = this.safeInteger (params, 'openType');
-        if (openType === undefined) {
-            throw new ArgumentsRequired (this.id + ' createSwapOrder() requires an integer openType parameter, 1 for isolated margin, 2 for cross margin');
+        let openType = undefined;
+        const marginType = this.safeStringLower (params, 'margin');
+        if (marginType !== undefined) {
+            if (marginType === 'cross') {
+                openType = 2;
+            } else if (marginType === 'isolated') {
+                openType = 1;
+            } else {
+                throw new ArgumentsRequired (this.id + ' createSwapOrder() margin parameter should be either "cross" or "isolated"');
+            }
+        } else {
+            openType = this.safeInteger (params, 'openType');
+            if (openType === undefined) {
+                throw new ArgumentsRequired (this.id + ' createSwapOrder() requires an integer openType parameter, 1 for isolated margin, 2 for cross margin');
+            }
         }
         if ((type !== 'limit') && (type !== 'market') && (type !== 1) && (type !== 2) && (type !== 3) && (type !== 4) && (type !== 5) && (type !== 6)) {
             throw new InvalidOrder (this.id + ' createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price');
