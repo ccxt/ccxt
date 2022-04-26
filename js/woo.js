@@ -1461,7 +1461,7 @@ module.exports = class woo extends Exchange {
         }
         const timestamp = this.safeTimestamp (transfer, 'created_time');
         const success = this.safeValue (transfer, 'success');
-        let status;
+        let status = undefined;
         if (success !== undefined) {
             status = success ? 'ok' : 'failed';
         }
