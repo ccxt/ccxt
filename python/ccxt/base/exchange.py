@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.79.20'
+__version__ = '1.80.75'
 
 # -----------------------------------------------------------------------------
 
@@ -16,6 +16,7 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidAddress
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import BadRequest
@@ -114,6 +115,7 @@ class Exchange(object):
     userAgents = {
         'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
         'chrome39': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
+        'chrome100': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36',
     }
     verbose = False
     markets = None
@@ -254,6 +256,10 @@ class Exchange(object):
         'createLimitOrder': True,
         'createMarketOrder': True,
         'createOrder': True,
+        'createPostOnlyOrder': None,
+        'createStopOrder': None,
+        'createStopLimitOrder': None,
+        'createStopMarketOrder': None,
         'editOrder': 'emulated',
         'fetchAccounts': None,
         'fetchBalance': True,
@@ -570,6 +576,8 @@ class Exchange(object):
 
     def prepare_request_headers(self, headers=None):
         headers = headers or {}
+        if self.session:
+            headers.update(self.session.headers)
         headers.update(self.headers)
         if self.userAgent:
             if type(self.userAgent) is str:
@@ -1009,6 +1017,30 @@ class Exchange(object):
         return re.sub(r'%5B\d*%5D', '', Exchange.urlencode(params, True))
 
     @staticmethod
+    def urlencode_nested(params):
+        result = {}
+
+        def _encode_params(params, p_key=None):
+            encode_params = {}
+            if isinstance(params, dict):
+                for key in params:
+                    encode_key = '{}[{}]'.format(p_key, key)
+                    encode_params[encode_key] = params[key]
+            elif isinstance(params, (list, tuple)):
+                for offset, value in enumerate(params):
+                    encode_key = '{}[{}]'.format(p_key, offset)
+                    encode_params[encode_key] = value
+            else:
+                result[p_key] = params
+            for key in encode_params:
+                value = encode_params[key]
+                _encode_params(value, key)
+        if isinstance(params, dict):
+            for key in params:
+                _encode_params(params[key], key)
+        return _urlencode.urlencode(result)
+
+    @staticmethod
     def rawencode(params={}):
         return _urlencode.unquote(Exchange.urlencode(params))
 
@@ -1424,8 +1456,8 @@ class Exchange(object):
         market = self.market(symbol)
         return self.decimal_to_precision(fee, ROUND, market['precision']['price'], self.precisionMode, self.paddingMode)
 
-    def currency_to_precision(self, currency, fee):
-        return self.decimal_to_precision(fee, ROUND, self.currencies[currency]['precision'], self.precisionMode, self.paddingMode)
+    def currency_to_precision(self, code, fee):
+        return self.decimal_to_precision(fee, ROUND, self.currencies[code]['precision'], self.precisionMode, self.paddingMode)
 
     def set_markets(self, markets, currencies=None):
         values = list(markets.values()) if type(markets) is dict else markets
@@ -1997,43 +2029,6 @@ class Exchange(object):
         tail = since is None
         return self.filter_by_symbol_since_limit(array, symbol, since, limit, tail)
 
-    def safe_transfer(self, transfer, currency=None):
-        currency = self.safe_currency(None, currency)
-        return self.extend({
-            'id': None,
-            'timestamp': None,
-            'datetime': None,
-            'currency': currency['code'],
-            'amount': None,
-            'fromAccount': None,
-            'toAccount': None,
-            'status': None,
-            'info': None,
-        }, transfer)
-
-    def safe_transaction(self, transaction, currency=None):
-        currency = self.safe_currency(None, currency)
-        return self.extend({
-            'id': None,
-            'currency': currency['code'],
-            'amount': None,
-            'network': None,
-            'address': None,
-            'addressTo': None,
-            'addressFrom': None,
-            'tag': None,
-            'tagTo': None,
-            'tagFrom': None,
-            'status': None,
-            'type': None,
-            'updated': None,
-            'txid': None,
-            'timestamp': None,
-            'datetime': None,
-            'fee': None,
-            'info': None,
-        }, transaction)
-
     def parse_transactions(self, transactions, currency=None, since=None, limit=None, params={}):
         array = self.to_array(transactions)
         array = [self.extend(self.parse_transaction(transaction, currency), params) for transaction in array]
@@ -2063,6 +2058,50 @@ class Exchange(object):
         code = currency['code'] if currency else None
         tail = since is None
         return self.filter_by_currency_since_limit(result, code, since, limit, tail)
+
+    def safe_ledger_entry(self, entry, currency=None):
+        currency = self.safe_currency(None, currency)
+        direction = self.safe_string(entry, 'direction')
+        before = self.safe_string(entry, 'before')
+        after = self.safe_string(entry, 'after')
+        amount = self.safe_string(entry, 'amount')
+        fee = self.safe_string(entry, 'fee')
+        if amount is not None and fee is not None:
+            if before is None and after is not None:
+                amountAndFee = Precise.string_add(amount, fee)
+                before = Precise.string_sub(after, amountAndFee)
+            elif before is not None and after is None:
+                amountAndFee = Precise.string_add(amount, fee)
+                after = Precise.string_add(before, amountAndFee)
+        if before is not None and after is not None:
+            if direction is None:
+                if Precise.string_gt(before, after):
+                    direction = 'out'
+                if Precise.string_gt(after, before):
+                    direction = 'in'
+            if amount is None and fee is not None:
+                betweenAfterBefore = Precise.string_sub(after, before)
+                amount = Precise.string_sub(betweenAfterBefore, fee)
+            if amount is not None and fee is None:
+                betweenAfterBefore = Precise.string_sub(after, before)
+                fee = Precise.string_sub(betweenAfterBefore, amount)
+        return self.extend({
+            'id': None,
+            'timestamp': None,
+            'datetime': None,
+            'direction': None,
+            'account': None,
+            'referenceId': None,
+            'referenceAccount': None,
+            'type': None,
+            'currency': currency['code'],
+            'amount': amount,
+            'before': before,
+            'after': after,
+            'status': None,
+            'fee': fee,
+            'info': None,
+        }, entry)
 
     def parse_orders(self, orders, market=None, since=None, limit=None, params={}):
         if isinstance(orders, list):
@@ -2181,15 +2220,18 @@ class Exchange(object):
     def currency(self, code):
         if not self.currencies:
             raise ExchangeError('Currencies not loaded')
-        if isinstance(code, str) and (code in self.currencies):
-            return self.currencies[code]
-        raise ExchangeError('Does not have currency code ' + str(code))
+        if isinstance(code, str):
+            if code in self.currencies:
+                return self.currencies[code]
+            elif code in self.currencies_by_id:
+                return self.currencies_by_id[code]
+        raise ExchangeError(self.id + ' does not have currency code ' + str(code))
 
     def market(self, symbol):
         if not self.markets:
-            raise ExchangeError('Markets not loaded')
+            raise ExchangeError(self.id + ' markets not loaded')
         if not self.markets_by_id:
-            raise ExchangeError('Markets not loaded')
+            raise ExchangeError(self.id + ' markets not loaded')
         if isinstance(symbol, str):
             if symbol in self.markets:
                 return self.markets[symbol]
@@ -2845,6 +2887,52 @@ class Exchange(object):
             return self.safe_value(tiers, symbol)
         else:
             raise NotSupported(self.id + 'fetch_market_leverage_tiers() is not supported yet')
+
+    def is_post_only(self, type, time_in_force, exchange_specific_option, params={}):
+        post_only = self.safe_value_2(params, 'postOnly', 'post_only', False)
+        params = self.omit(params, ['post_only', 'postOnly'])
+        time_in_force_upper = time_in_force.upper()
+        type_lower = type.lower()
+        ioc = time_in_force_upper == 'IOC'
+        time_in_force_post_only = time_in_force_upper == 'PO'
+        is_market = type_lower == 'market'
+        post_only = post_only or type_lower == 'postonly' or time_in_force_post_only or exchange_specific_option
+        if (post_only):
+            if (ioc):
+                raise InvalidOrder(self.id + ' postOnly orders cannot have timeInForce equal to ' + time_in_force)
+            elif (is_market):
+                raise InvalidOrder(self.id + ' postOnly orders cannot have type ' + type)
+            else:
+                time_in_force = None if time_in_force_post_only else time_in_force
+                return ['limit', True, time_in_force, params]
+        else:
+            return [type, False, time_in_force, params]
+
+    def create_post_only_order(self, symbol, type, side, amount, price, params={}):
+        if not self.has['createPostOnlyOrder']:
+            raise NotSupported(self.id + ' create_post_only_order() is not supported yet')
+        query = self.extend(params, {'postOnly': True})
+        return self.create_order(symbol, type, side, amount, price, query)
+
+    def create_stop_order(self, symbol, type, side, amount, price=None, stopPrice=None, params={}):
+        if not self.has['createStopOrder']:
+            raise NotSupported(self.id + 'create_stop_order() is not supported yet')
+        if stopPrice is None:
+            raise ArgumentsRequired(self.id + ' create_stop_order() requires a stopPrice argument')
+        query = self.extend(params, {'stopPrice': stopPrice})
+        return self.create_order(symbol, type, side, amount, price, query)
+
+    def create_stop_limit_order(self, symbol, side, amount, price, stopPrice, params={}):
+        if not self.has['createStopLimitOrder']:
+            raise NotSupported(self.id + ' create_stop_limit_order() is not supported yet')
+        query = self.extend(params, {'stopPrice': stopPrice})
+        return self.create_order(symbol, 'limit', side, amount, price, query)
+
+    def create_stop_market_order(self, symbol, side, amount, stopPrice, params={}):
+        if not self.has['createStopMarketOrder']:
+            raise NotSupported(self.id + ' create_stop_market_order() is not supported yet')
+        query = self.extend(params, {'stopPrice': stopPrice})
+        return self.create_order(symbol, 'market', side, amount, None, query)
 
     def parse_borrow_interests(self, response, market=None):
         interest = []

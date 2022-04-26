@@ -138,6 +138,11 @@ class Transpiler {
             [ /\.appendInactiveMarkets\s/g, '.append_inactive_markets'],
             [ /\.fetchCategories\s/g, '.fetch_categories'],
             [ /\.calculateFee\s/g, '.calculate_fee'],
+            [ /\.createOrder\s/g, '.create_order'],
+            [ /\.createPostOnlyOrder\s/g, '.create_post_only_order'],
+            [ /\.createStopOrder\s/g, '.create_stop_order'],
+            [ /\.createStopLimitOrder\s/g, '.create_stop_limit_order'],
+            [ /\.createStopMarketOrder\s/g, '.create_stop_market_order'],
             [ /\.editLimitBuyOrder\s/g, '.edit_limit_buy_order'],
             [ /\.editLimitSellOrder\s/g, '.edit_limit_sell_order'],
             [ /\.editLimitOrder\s/g, '.edit_limit_order'],
@@ -159,8 +164,6 @@ class Transpiler {
             [ /\.safeMarket\s/g, '.safe_market'],
             [ /\.safeOrder\s/g, '.safe_order'],
             [ /\.safeTicker\s/g, '.safe_ticker'],
-            [ /\.safeTransaction\s/g, '.safe_transaction'],
-            [ /\.safeTransfer\s/g, '.safe_transfer'],
             [ /\.roundTimeframe\s/g, '.round_timeframe'],
             [ /\.calculateRateLimiterCost\s/g, '.calculate_rate_limiter_cost' ],
             [ /\.parseAccountPosition\s/g, '.parse_account_position' ],
@@ -176,18 +179,19 @@ class Transpiler {
             [ /errorHierarchy/g, 'error_hierarchy'],
             [ /\.base16ToBinary/g, '.base16_to_binary'],
             [ /\'use strict\';?\s+/g, '' ],
+            [ /\.urlencodeNested\s/g, '.urlencode_nested' ],
             [ /\.urlencodeWithArrayRepeat\s/g, '.urlencode_with_array_repeat' ],
             [ /\.call\s*\(this, /g, '(' ],
             [ /\.getSupportedMapping\s/g, '.get_supported_mapping'],
             [ /\.fetchBorrowRate\s/g, '.fetch_borrow_rate'],
             [ /\.handleMarketTypeAndParams\s/g, '.handle_market_type_and_params'],
+            [ /\.isPostOnly\s/g, '.is_post_only'],
         ]
     }
 
     getPythonRegexes () {
 
         return [
-
             [ /Array\.isArray\s*\(([^\)]+)\)/g, 'isinstance($1, list)' ],
             [ /([^\(\s]+)\s+instanceof\s+String/g, 'isinstance($1, str)' ],
             [ /([^\(\s]+)\s+instanceof\s+([^\)\s]+)/g, 'isinstance($1, $2)' ],
@@ -345,7 +349,8 @@ class Transpiler {
             [ /(\s+) \* @description (.*)/g, '$1$2' ], // docstring description
             [ /\s+\* @name .*/g, '' ], // docstring @name
             [ /(\s+) \* @returns/g, '$1:returns:' ], // docstring return
-            [ /(\s+) \* @([a-z]+) \{([a-z]+)\} ([a-zA-Z0-9_\-\.]+)/g, '$1:$2 $3 $4:' ], // docstring param
+            [ /(\s+ \* @param \{[a-z]+\} )([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+) (.*)/g, '$1$2[\'$3\'] $4' ], // docstring params.anything
+            [ /(\s+) \* @([a-z]+) \{([a-z]+)\} ([a-zA-Z0-9_\-\.\[\]\']+)/g, '$1:$2 $3 $4:' ], // docstring param
         ])
     }
 

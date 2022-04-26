@@ -40,6 +40,9 @@ class whitebit(Exchange):
                 'createLimitOrder': None,
                 'createMarketOrder': None,
                 'createOrder': True,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': True,
+                'createStopOrder': True,
                 'editOrder': None,
                 'fetchBalance': True,
                 'fetchBidsAsks': None,
@@ -65,6 +68,7 @@ class whitebit(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
+                'transfer': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -172,6 +176,7 @@ class whitebit(Exchange):
                             'main-account/history',
                             'main-account/withdraw',
                             'main-account/withdraw-pay',
+                            'main-account/transfer',
                             'trade-account/balance',
                             'trade-account/executed-history',
                             'trade-account/order',
@@ -198,6 +203,14 @@ class whitebit(Exchange):
             'options': {
                 'createMarketBuyOrderRequiresPrice': True,
                 'fiatCurrencies': ['EUR', 'USD', 'RUB', 'UAH'],
+                'accountsByType': {
+                    'main': 'main',
+                    'spot': 'trade',
+                    'margin': 'margin',  # api does not suppot transfers to margin
+                },
+                'transfer': {
+                    'fillTransferResponseFromRequest': True,
+                },
             },
             'exceptions': {
                 'exact': {
@@ -726,14 +739,13 @@ class whitebit(Exchange):
         #          "pong"
         #      ]
         #
-        status = self.safe_string(response, 0, None)
-        status = 'maintenance' if (status is None) else 'ok'
-        self.status = self.extend(self.status, {
-            'status': status,
+        status = self.safe_string(response, 0)
+        return {
+            'status': 'ok' if (status == 'pong') else status,
             'updated': self.milliseconds(),
+            'eta': None,
             'info': response,
-        })
-        return self.status
+        }
 
     async def fetch_time(self, params={}):
         response = await self.v4PublicGetTime(params)
@@ -1097,6 +1109,53 @@ class whitebit(Exchange):
             'info': response,
         }
 
+    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        accountsByType = self.safe_value(self.options, 'accountsByType')
+        fromAccountId = self.safe_string(accountsByType, fromAccount, fromAccount)
+        toAccountId = self.safe_string(accountsByType, toAccount, toAccount)
+        type = None
+        if fromAccountId == 'main' and toAccountId == 'trade':
+            type = 'deposit'
+        elif fromAccountId == 'trade' and toAccountId == 'main':
+            type = 'withdraw'
+        if type is None:
+            raise ExchangeError(self.id + ' transfer() only allows transfers between main account and spot account')
+        request = {
+            'ticker': currency['id'],
+            'method': type,
+            'amount': self.currency_to_precision(code, amount),
+        }
+        response = await self.v4PrivatePostMainAccountTransfer(self.extend(request, params))
+        #
+        #    []
+        #
+        transfer = self.parse_transfer(response, currency)
+        transferOptions = self.safe_value(self.options, 'transfer', {})
+        fillTransferResponseFromRequest = self.safe_value(transferOptions, 'fillTransferResponseFromRequest', True)
+        if fillTransferResponseFromRequest:
+            transfer['amount'] = amount
+            transfer['fromAccount'] = fromAccount
+            transfer['toAccount'] = toAccount
+        return transfer
+
+    def parse_transfer(self, transfer, currency):
+        #
+        #    []
+        #
+        return {
+            'info': transfer,
+            'id': None,
+            'timestamp': None,
+            'datetime': None,
+            'currency': self.safe_currency_code(None, currency),
+            'amount': None,
+            'fromAccount': None,
+            'toAccount': None,
+            'status': 'pending',
+        }
+
     async def withdraw(self, code, amount, address, tag=None, params={}):
         await self.load_markets()
         currency = self.currency(code)  # check if it has canDeposit
@@ -1123,9 +1182,35 @@ class whitebit(Exchange):
         #
         #     []
         #
+        return self.extend({'id': uniqueId}, self.parse_transaction(response, currency))
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        # withdraw
+        #
+        #     []
+        #
+        currency = self.safe_currency(None, currency)
         return {
-            'id': uniqueId,
-            'info': response,
+            'id': None,
+            'txid': None,
+            'timestamp': None,
+            'datetime': None,
+            'network': None,
+            'addressFrom': None,
+            'address': None,
+            'addressTo': None,
+            'amount': None,
+            'type': None,
+            'currency': currency['code'],
+            'status': None,
+            'updated': None,
+            'tagFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'comment': None,
+            'fee': None,
+            'info': transaction,
         }
 
     def is_fiat(self, currency):

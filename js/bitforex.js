@@ -42,7 +42,10 @@ export default class bitforex extends Exchange {
                 'fetchTrades': true,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
+                'fetchWithdrawal': false,
+                'fetchWithdrawals': false,
                 'transfer': false,
+                'withdraw': false,
             },
             'timeframes': {
                 '1m': '1min',

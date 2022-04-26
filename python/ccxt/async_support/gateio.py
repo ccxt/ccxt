@@ -83,6 +83,10 @@ class gateio(Exchange):
                 'cancelOrder': True,
                 'createMarketOrder': False,
                 'createOrder': True,
+                'createPostOnlyOrder': True,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': False,
+                'createStopOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
@@ -2414,16 +2418,7 @@ class gateio(Exchange):
         #       "memo": null
         #     }
         #
-        currencyId = self.safe_string(response, 'currency')
-        id = self.safe_string(response, 'id')
-        return {
-            'info': response,
-            'id': id,
-            'code': self.safe_currency_code(currencyId),
-            'amount': self.safe_number(response, 'amount'),
-            'address': self.safe_string(response, 'address'),
-            'tag': self.safe_string(response, 'memo'),
-        }
+        return self.parse_transaction(response, currency)
 
     def parse_transaction_status(self, status):
         statuses = {
@@ -2459,6 +2454,17 @@ class gateio(Exchange):
         #     }
         #
         # withdrawals
+        #
+        # withdraw
+        #
+        #     {
+        #       "id": "w13389675",
+        #       "currency": "USDT",
+        #       "amount": "50",
+        #       "address": "TUu2rLFrmzUodiWfYki7QCNtv1akL682p1",
+        #       "memo": null
+        #     }
+        #
         id = self.safe_string(transaction, 'id')
         type = None
         amount = self.safe_string(transaction, 'amount')
@@ -2509,16 +2515,16 @@ class gateio(Exchange):
         :param float amount: the amount of currency to trade
         :param float price: *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
         :param dict params:  Extra parameters specific to the exchange API endpoint
-        :param float params.stopPrice: The price at which a trigger order is triggered at
-        :param str params.timeInForce: "gtc" for GoodTillCancelled, "ioc" for ImmediateOrCancelled or poc for PendingOrCancelled
-        :param int params.iceberg: Amount to display for the iceberg order, Null or 0 for normal orders, Set to -1 to hide the order completely
-        :param str params.text: User defined information
-        :param str params.account: *spot and margin only* "spot", "margin" or "cross_margin"
-        :param bool params.auto_borrow: *margin only* Used in margin or cross margin trading to allow automatic loan of insufficient amount if balance is not enough
-        :param str params.settle: *contract only* Unified Currency Code for settle currency
-        :param bool params.reduceOnly: *contract only* Indicates if self order is to reduce the size of a position
-        :param bool params.close: *contract only* Set as True to close the position, with size set to 0
-        :param bool params.auto_size: *contract only* Set side to close dual-mode position, close_long closes the long side, while close_short the short one, size also needs to be set to 0
+        :param float params['stopPrice']: The price at which a trigger order is triggered at
+        :param str params['timeInForce']: "GTC", "IOC", or "PO"
+        :param int params['iceberg']: Amount to display for the iceberg order, Null or 0 for normal orders, Set to -1 to hide the order completely
+        :param str params['text']: User defined information
+        :param str params['account']: *spot and margin only* "spot", "margin" or "cross_margin"
+        :param bool params['auto_borrow']: *margin only* Used in margin or cross margin trading to allow automatic loan of insufficient amount if balance is not enough
+        :param str params['settle']: *contract only* Unified Currency Code for settle currency
+        :param bool params['reduceOnly']: *contract only* Indicates if self order is to reduce the size of a position
+        :param bool params['close']: *contract only* Set as True to close the position, with size set to 0
+        :param bool params['auto_size']: *contract only* Set side to close dual-mode position, close_long closes the long side, while close_short the short one, size also needs to be set to 0
         :returns: `An order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
@@ -2529,7 +2535,11 @@ class gateio(Exchange):
         reduceOnly = self.safe_value_2(params, 'reduce_only', 'reduceOnly')
         defaultTimeInForce = self.safe_value_2(params, 'tif', 'time_in_force', 'gtc')
         timeInForce = self.safe_value(params, 'timeInForce', defaultTimeInForce)
+        postOnly = False
+        type, postOnly, timeInForce, params = self.is_post_only(type, timeInForce, None, params)
         params = self.omit(params, ['stopPrice', 'reduce_only', 'reduceOnly', 'tif', 'time_in_force', 'timeInForce'])
+        if postOnly:
+            timeInForce = 'poc'
         isLimitOrder = (type == 'limit')
         isMarketOrder = (type == 'market')
         if isLimitOrder and price is None:
@@ -2969,7 +2979,7 @@ class gateio(Exchange):
         Retrieves information on an order
         :param str id: Order id
         :param str symbol: Unified market symbol
-        :param bool params.stop: True if the order being fetched is a trigger order
+        :param bool params['stop']: True if the order being fetched is a trigger order
         :param dict params: Parameters specified by the exchange api
         :returns: Order structure
         """
@@ -3143,7 +3153,7 @@ class gateio(Exchange):
         Cancels an open order
         :param str id: Order id
         :param str symbol: Unified market symbol
-        :param bool params.stop: True if the order to be cancelled is a trigger order
+        :param bool params['stop']: True if the order to be cancelled is a trigger order
         :param dict params: Parameters specified by the exchange api
         :returns: Order structure
         """
@@ -3325,7 +3335,7 @@ class gateio(Exchange):
             request['settle'] = currency['lowerCaseId']
         response = await self.privateWalletPostTransfers(self.extend(request, params))
         #
-        # according to the docs
+        # according to the docs(however actual response seems to be an empty string '')
         #
         #     {
         #       "currency": "BTC",
@@ -3335,20 +3345,25 @@ class gateio(Exchange):
         #       "currency_pair": "BTC_USDT"
         #     }
         #
-        # actual response
-        #
-        #  POST https://api.gateio.ws/api/v4/wallet/transfers 204 No Content
-        #
+        transfer = self.parse_transfer(response, currency)
+        return self.extend(transfer, {
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'amount': self.parse_number(truncated),
+        })
+
+    def parse_transfer(self, transfer, currency=None):
+        timestamp = self.milliseconds()
         return {
-            'info': response,
             'id': None,
-            'timestamp': None,
-            'datetime': None,
-            'currency': code,
-            'amount': truncated,
-            'fromAccount': fromId,
-            'toAccount': toId,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'currency': self.safe_currency_code(None, currency),
+            'amount': None,
+            'fromAccount': None,
+            'toAccount': None,
             'status': None,
+            'info': transfer,
         }
 
     async def set_leverage(self, leverage, symbol=None, params={}):
@@ -3756,8 +3771,8 @@ class gateio(Exchange):
             tiers.append({
                 'tier': self.parse_number(Precise.string_div(cap, riskLimitStep)),
                 'currency': self.safe_string(market, 'settle'),
-                'notionalFloor': self.parse_number(floor),
-                'notionalCap': self.parse_number(cap),
+                'minNotional': self.parse_number(floor),
+                'maxNotional': self.parse_number(cap),
                 'maintenanceMarginRate': self.parse_number(maintenanceMarginRate),
                 'maxLeverage': self.parse_number(Precise.string_div('1', initialMarginRatio)),
                 'info': info,

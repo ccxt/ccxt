@@ -28,7 +28,12 @@ class aax(Exchange):
             'name': 'AAX',
             'countries': ['MT'],  # Malta
             'enableRateLimit': True,
-            'rateLimit': 500,
+            # 6000 /  hour => 100 per minute => 1.66 requests per second => rateLimit = 600
+            # market endpoints ratelimits arent mentioned in docs so they are also set to "all other authenticated endpoints"
+            # 5000 / hour => weight = 1.2("all other authenticated endpoints")
+            # 600 / hour => weight = 10
+            # 200 / hour => weight = 30
+            'rateLimit': 600,
             'version': 'v2',
             'hostname': 'aaxpro.com',  # aax.com
             'pro': True,
@@ -46,6 +51,9 @@ class aax(Exchange):
                 'createDepositAddress': None,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': True,
+                'createStopOrder': True,
                 'editOrder': True,
                 'fetchAccounts': None,
                 'fetchBalance': True,
@@ -75,8 +83,8 @@ class aax(Exchange):
                 'fetchLedger': None,
                 'fetchLedgerEntry': None,
                 'fetchLeverage': None,
-                'fetchLeverageTiers': True,
-                'fetchMarketLeverageTiers': 'emulated',
+                'fetchLeverageTiers': False,
+                'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyBuys': None,
@@ -105,7 +113,7 @@ class aax(Exchange):
                 'fetchTransactions': None,
                 'fetchTransfer': False,
                 'fetchTransfers': True,
-                'fetchWithdrawal': None,
+                'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
                 'fetchWithdrawalWhitelist': None,
                 'reduceMargin': None,
@@ -114,7 +122,7 @@ class aax(Exchange):
                 'setPositionMode': None,
                 'signIn': None,
                 'transfer': True,
-                'withdraw': None,
+                'withdraw': False,
             },
             'timeframes': {
                 '1m': '1m',
@@ -162,65 +170,65 @@ class aax(Exchange):
                     #     'tickers',  # Get ticker of all markets
                     #     'tickers/{market}',  # Get ticker of specific market
                     # ],
-                    'get': [
-                        'currencies',
-                        'announcement/maintenance',  # System Maintenance Notice
-                        'time',
-                        'instruments',  # Retrieve all trading pairs information
-                        'market/orderbook',  # Order Book
-                        'futures/position/openInterest',  # Open Interest
-                        'market/tickers',  # Get the Last 24h Market Summary
-                        'market/candles',  # Get Current Candlestick
-                        'market/history/candles',  # Get Current Candlestick
-                        'market/trades',  # Get the Most Recent Trades
-                        'market/markPrice',  # Get Current Mark Price
-                        'futures/funding/predictedFunding/{symbol}',  # Get Predicted Funding Rate
-                        'futures/funding/prevFundingRate/{symbol}',  # Get Last Funding Rate
-                        'futures/funding/fundingRate',
-                        'market/candles/index',  # * Deprecated
-                        'market/index/candles',
-                    ],
+                    'get': {
+                        'currencies': 1.2,
+                        'announcement/maintenance': 1.2,  # System Maintenance Notice
+                        'time': 1.2,
+                        'instruments': 1.2,  # Retrieve all trading pairs information
+                        'market/orderbook': 1.2,  # Order Book
+                        'futures/position/openInterest': 1.2,  # Open Interest
+                        'market/tickers': 1.2,  # Get the Last 24h Market Summary
+                        'market/candles': 1.2,  # Get Current Candlestick
+                        'market/history/candles': 1.2,  # Get Current Candlestick
+                        'market/trades': 1.2,  # Get the Most Recent Trades
+                        'market/markPrice': 1.2,  # Get Current Mark Price
+                        'futures/funding/predictedFunding/{symbol}': 1.2,  # Get Predicted Funding Rate
+                        'futures/funding/prevFundingRate/{symbol}': 1.2,  # Get Last Funding Rate
+                        'futures/funding/fundingRate': 1.2,
+                        'market/candles/index': 1.2,  # * Deprecated
+                        'market/index/candles': 1.2,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'user/info',  # Retrieve user information
-                        'account/balances',  # Get Account Balances
-                        'account/deposit/address',  # undocumented
-                        'account/deposits',  # Get account deposits history
-                        'account/transfer',
-                        'account/withdraws',  # Get account withdrawals history
-                        'spot/trades',  # Retrieve trades details for a spot order
-                        'spot/openOrders',  # Retrieve spot open orders
-                        'spot/orders',  # Retrieve historical spot orders
-                        'futures/position',  # Get positions for all contracts
-                        'futures/position/closed',  # Get closed positions
-                        'futures/trades',  # Retrieve trade details for a futures order
-                        'futures/openOrders',  # Retrieve futures open orders
-                        'futures/orders',  # Retrieve historical futures orders
-                        'futures/funding/fundingFee',
-                        'futures/funding/predictedFundingFee/{symbol}',  # Get predicted funding fee
-                    ],
-                    'post': [
-                        'account/transfer',  # Asset Transfer
-                        'spot/orders',  # Create a new spot order
-                        'spot/orders/cancelAllOnTimeout',  # Automatically cancel all your spot orders after a specified timeout.
-                        'futures/orders',  # Create a new futures order
-                        'futures/orders/cancelAllOnTimeout',  # Automatically cancel all your futures orders after a specified timeout.
-                        'futures/position/sltp',  # Set take profit and stop loss orders for an opening position
-                        'futures/position/close',  # Close position
-                        'futures/position/leverage',  # Update leverage for position
-                        'futures/position/margin',  # Modify Isolated Position Margin
-                    ],
-                    'put': [
-                        'spot/orders',  # Amend spot order
-                        'futures/orders',  # Amend the quantity of an open futures order
-                    ],
-                    'delete': [
-                        'spot/orders/cancel/{orderID}',  # Cancel a spot order
-                        'spot/orders/cancel/all',  # Batch cancel spot orders
-                        'futures/orders/cancel/{orderID}',  # Cancel a futures order
-                        'futures/orders/cancel/all',  # Batch cancel futures orders
-                    ],
+                    'get': {
+                        'user/info': 1.2,  # Retrieve user information
+                        'account/balances': 1.2,  # Get Account Balances
+                        'account/deposit/address': 1.2,  # undocumented
+                        'account/deposits': 1.2,  # Get account deposits history
+                        'account/transfer': 1.2,
+                        'account/withdraws': 1.2,  # Get account withdrawals history
+                        'spot/trades': 1.2,  # Retrieve trades details for a spot order
+                        'spot/openOrders': 1.2,  # Retrieve spot open orders
+                        'spot/orders': 1.2,  # Retrieve historical spot orders
+                        'futures/position': 1.2,  # Get positions for all contracts
+                        'futures/position/closed': 1.2,  # Get closed positions
+                        'futures/trades': 1.2,  # Retrieve trade details for a futures order
+                        'futures/openOrders': 1.2,  # Retrieve futures open orders
+                        'futures/orders': 1.2,  # Retrieve historical futures orders
+                        'futures/funding/fundingFee': 1.2,
+                        'futures/funding/predictedFundingFee/{symbol}': 1.2,  # Get predicted funding fee
+                    },
+                    'post': {
+                        'account/transfer': 1.2,  # Asset Transfer
+                        'spot/orders': 1.2,  # Create a new spot order
+                        'spot/orders/cancelAllOnTimeout': 10,  # Automatically cancel all your spot orders after a specified timeout.
+                        'futures/orders': 1.2,  # Create a new futures order
+                        'futures/orders/cancelAllOnTimeout': 10,  # Automatically cancel all your futures orders after a specified timeout.
+                        'futures/position/sltp': 1.2,  # Set take profit and stop loss orders for an opening position
+                        'futures/position/close': 1.2,  # Close position
+                        'futures/position/leverage': 30,  # Update leverage for position
+                        'futures/position/margin': 1.2,  # Modify Isolated Position Margin
+                    },
+                    'put': {
+                        'spot/orders': 1.2,  # Amend spot order
+                        'futures/orders': 1.2,  # Amend the quantity of an open futures order
+                    },
+                    'delete': {
+                        'spot/orders/cancel/{orderID}': 1,  # Cancel a spot order
+                        'spot/orders/cancel/all': 10,  # Batch cancel spot orders
+                        'futures/orders/cancel/{orderID}': 1,  # Cancel a futures order
+                        'futures/orders/cancel/all': 10,  # Batch cancel futures orders
+                    },
                 },
             },
             'fees': {
@@ -314,17 +322,11 @@ class aax(Exchange):
             'precisionMode': TICK_SIZE,
             'options': {
                 'defaultType': 'spot',  # 'spot', 'future'
-                'types': {
+                'accountsByType': {
                     'spot': 'SPTP',
                     'future': 'FUTP',
                     'otc': 'F2CP',
                     'saving': 'VLTP',
-                },
-                'accounts': {
-                    'SPTP': 'spot',
-                    'FUTP': 'future',
-                    'F2CP': 'otc',
-                    'VLTP': 'saving',
                 },
                 'networks': {
                     'ETH': 'ERC20',
@@ -332,8 +334,7 @@ class aax(Exchange):
                     'SOL': 'SPL',
                 },
                 'transfer': {
-                    'fillFromAccountToAccount': True,
-                    'fillAmount': True,
+                    'fillResponseFromRequest': True,
                 },
             },
         })
@@ -353,32 +354,50 @@ class aax(Exchange):
     async def fetch_status(self, params={}):
         response = await self.publicGetAnnouncementMaintenance(params)
         #
+        # note, when there is no maintenance, then data is `null`
+        #
         #     {
         #         "code": 1,
         #         "data": {
         #             "startTime":"2020-06-25T02:15:00.000Z",
         #             "endTime":"2020-06-25T02:45:00.000Z"，
-        #             "description":"Spot Trading :UTC Jun 25, 2020 02:15 to 02:45(HKT Jun 25 10:15 to 10:45),Futures Trading: UTC Jun 25, 2020 02:15 to 02:45(HKT Jun 25 10:15 to 10:45).We apologize for any inconvenience caused. Thank you for your patience and understanding.Should you have any enquiries, please do not hesitate our live chat support or via email at cs@aax.com."
+        #             "description":"Spot Trading :UTC Jun 25, 2020 02:15 to 02:45(HKT Jun 25 10:15 to 10:45),Futures Trading: UTC Jun 25, 2020 02:15 to 02:45(HKT Jun 25 10:15 to 10:45).We apologize for any inconvenience caused. Thank you for your patience and understanding.Should you have any enquiries, please do not hesitate our live chat support or via email at cs@aax.com.",
+        #             "haltReason":1,
+        #             "systemStatus":{
+        #                 "spotTrading":"readOnly",
+        #                 "futuresTreading":"closeOnly",
+        #                 "walletOperating":"enable",
+        #                 "otcTrading":"disable"
+        #             },
         #         },
         #         "message":"success",
         #         "ts":1593043237000
         #     }
         #
-        data = self.safe_value(response, 'data', {})
         timestamp = self.milliseconds()
-        startTime = self.parse8601(self.safe_string(data, 'startTime'))
-        endTime = self.parse8601(self.safe_string(data, 'endTime'))
-        update = {
-            'updated': self.safe_integer(response, 'ts', timestamp),
+        updated = self.safe_integer(response, 'ts', timestamp)
+        data = self.safe_value(response, 'data', {})
+        status = None
+        eta = None
+        if data:
+            startTime = self.parse8601(self.safe_string(data, 'startTime'))
+            endTime = self.parse8601(self.safe_string(data, 'endTime'))
+            if endTime is not None:
+                startTimeIsOk = True if (startTime is None) else (updated < startTime)
+                isOk = (updated > endTime) or startTimeIsOk
+                eta = endTime
+                status = 'ok' if isOk else 'maintenance'
+            else:
+                status = data
+        else:
+            eta = None
+            status = 'ok'
+        return {
+            'status': status,
+            'updated': updated,
+            'eta': eta,
             'info': response,
         }
-        if endTime is not None:
-            startTimeIsOk = True if (startTime is None) else (timestamp < startTime)
-            isOk = (timestamp > endTime) or startTimeIsOk
-            update['eta'] = endTime
-            update['status'] = 'ok' if isOk else 'maintenance'
-        self.status = self.extend(self.status, update)
-        return self.status
 
     async def fetch_markets(self, params={}):
         response = await self.publicGetInstruments(params)
@@ -916,7 +935,7 @@ class aax(Exchange):
         await self.load_markets()
         defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
-        types = self.safe_value(self.options, 'types', {})
+        types = self.safe_value(self.options, 'accountsByType', {})
         purseType = self.safe_string(types, type, type)
         request = {
             'purseType': purseType,
@@ -2217,95 +2236,6 @@ class aax(Exchange):
         }
         return await self.privatePostFuturesPositionLeverage(self.extend(request, params))
 
-    async def fetch_leverage_tiers(self, symbols=None, params={}):
-        await self.load_markets()
-        response = await self.publicGetInstruments(params)
-        #
-        #     {
-        #         "code":1,
-        #         "message":"success",
-        #         "ts":1610159448962,
-        #         "data":[
-        #             {
-        #                 "tickSize":"0.01",
-        #                 "lotSize":"1",
-        #                 "base":"BTC",
-        #                 "quote":"USDT",
-        #                 "minQuantity":"1.0000000000",
-        #                 "maxQuantity":"30000",
-        #                 "minPrice":"0.0100000000",
-        #                 "maxPrice":"999999.0000000000",
-        #                 "status":"readOnly",
-        #                 "symbol":"BTCUSDTFP",
-        #                 "code":"FP",
-        #                 "takerFee":"0.00040",
-        #                 "makerFee":"0.00020",
-        #                 "multiplier":"0.001000000000",
-        #                 "mmRate":"0.00500",
-        #                 "imRate":"0.01000",
-        #                 "type":"futures",
-        #                 "settleType":"Vanilla",
-        #                 "settleCurrency":"USDT"
-        #             },
-        #             ...
-        #         ]
-        #     }
-        #
-        data = self.safe_value(response, 'data')
-        return self.parse_leverage_tiers(data, symbols, 'symbol')
-
-    def parse_market_leverage_tiers(self, info, market):
-        """
-        :param dict info: Exchange market response
-        :param dict market: CCXT Market
-        """
-        #
-        #    {
-        #        "tickSize":"0.01",
-        #        "lotSize":"1",
-        #        "base":"BTC",
-        #        "quote":"USDT",
-        #        "minQuantity":"1.0000000000",
-        #        "maxQuantity":"30000",
-        #        "minPrice":"0.0100000000",
-        #        "maxPrice":"999999.0000000000",
-        #        "status":"readOnly",
-        #        "symbol":"BTCUSDTFP",
-        #        "code":"FP",
-        #        "takerFee":"0.00040",
-        #        "makerFee":"0.00020",
-        #        "multiplier":"0.001000000000",
-        #        "mmRate":"0.00500",
-        #        "imRate":"0.01000",
-        #        "type":"futures",
-        #        "settleType":"Vanilla",
-        #        "settleCurrency":"USDT"
-        #    }
-        #
-        maintenanceMarginRate = self.safe_string(info, 'mmRate')
-        initialMarginRate = self.safe_string(info, 'imRate')
-        maxVol = self.safe_string(info, 'maxQuantity')
-        riskIncrVol = maxVol  # TODO
-        riskIncrMmr = '0.0'  # TODO
-        riskIncrImr = '0.0'  # TODO
-        floor = '0'
-        tiers = []
-        while(Precise.string_lt(floor, maxVol)):
-            cap = Precise.string_add(floor, riskIncrVol)
-            tiers.append({
-                'tier': self.parse_number(Precise.string_div(cap, riskIncrVol)),
-                'currency': market['base'],
-                'notionalFloor': self.parse_number(floor),
-                'notionalCap': self.parse_number(cap),
-                'maintenanceMarginRate': self.parse_number(maintenanceMarginRate),
-                'maxLeverage': self.parse_number(Precise.string_div('1', initialMarginRate)),
-                'info': info,
-            })
-            maintenanceMarginRate = Precise.string_add(maintenanceMarginRate, riskIncrMmr)
-            initialMarginRate = Precise.string_add(initialMarginRate, riskIncrImr)
-            floor = cap
-        return tiers
-
     def parse_transfer(self, transfer, currency=None):
         #     {
         #          quantity: '0.000010000000',
@@ -2346,15 +2276,9 @@ class aax(Exchange):
     async def transfer(self, code, amount, fromAccount, toAccount, params={}):
         await self.load_markets()
         currency = self.currency(code)
-        accountTypes = self.safe_value(self.options, 'types', {})
-        fromId = self.safe_string(accountTypes, fromAccount)
-        toId = self.safe_string(accountTypes, toAccount)
-        if fromId is None:
-            keys = list(accountTypes.keys())
-            raise ExchangeError(self.id + ' fromAccount must be one of ' + ', '.join(keys))
-        if toId is None:
-            keys = list(accountTypes.keys())
-            raise ExchangeError(self.id + ' toAccount must be one of ' + ', '.join(keys))
+        accountTypes = self.safe_value(self.options, 'accountsByType', {})
+        fromId = self.safe_string(accountTypes, fromAccount, fromAccount)
+        toId = self.safe_string(accountTypes, toAccount, toAccount)
         request = {
             'currency': currency['id'],
             'fromPurse': fromId,
@@ -2376,15 +2300,14 @@ class aax(Exchange):
         data = self.safe_value(response, 'data', {})
         transfer = self.parse_transfer(data, currency)
         transferOptions = self.safe_value(self.options, 'transfer', {})
-        fillFromAccountToAccount = self.safe_value(transferOptions, 'fillFromAccountToAccount', True)
-        fillAmount = self.safe_value(transferOptions, 'fillAmount', True)
-        if fillFromAccountToAccount:
+        fillResponseFromRequest = self.safe_value(transferOptions, 'fillResponseFromRequest', True)
+        if fillResponseFromRequest:
             if transfer['fromAccount'] is None:
                 transfer['fromAccount'] = fromAccount
             if transfer['toAccount'] is None:
                 transfer['toAccount'] = toAccount
-        if fillAmount and transfer['amount'] is None:
-            transfer['amount'] = amount
+            if transfer['amount'] is None:
+                transfer['amount'] = amount
         transfer['status'] = self.parse_transfer_status(self.safe_string(response, 'code'))
         return transfer
 

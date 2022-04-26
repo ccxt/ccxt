@@ -27,6 +27,9 @@ export default class whitebit extends Exchange {
                 'createLimitOrder': undefined,
                 'createMarketOrder': undefined,
                 'createOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
                 'editOrder': undefined,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
@@ -52,6 +55,7 @@ export default class whitebit extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
+                'transfer': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -159,6 +163,7 @@ export default class whitebit extends Exchange {
                             'main-account/history',
                             'main-account/withdraw',
                             'main-account/withdraw-pay',
+                            'main-account/transfer',
                             'trade-account/balance',
                             'trade-account/executed-history',
                             'trade-account/order',
@@ -185,6 +190,14 @@ export default class whitebit extends Exchange {
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
                 'fiatCurrencies': [ 'EUR', 'USD', 'RUB', 'UAH' ],
+                'accountsByType': {
+                    'main': 'main',
+                    'spot': 'trade',
+                    'margin': 'margin', // api does not suppot transfers to margin
+                },
+                'transfer': {
+                    'fillTransferResponseFromRequest': true,
+                },
             },
             'exceptions': {
                 'exact': {
@@ -737,14 +750,13 @@ export default class whitebit extends Exchange {
         //          "pong"
         //      ]
         //
-        let status = this.safeString (response, 0, undefined);
-        status = (status === undefined) ? 'maintenance' : 'ok';
-        this.status = this.extend (this.status, {
-            'status': status,
+        const status = this.safeString (response, 0);
+        return {
+            'status': (status === 'pong') ? 'ok' : status,
             'updated': this.milliseconds (),
+            'eta': undefined,
             'info': response,
-        });
-        return this.status;
+        };
     }
 
     async fetchTime (params = {}) {
@@ -1150,6 +1162,58 @@ export default class whitebit extends Exchange {
         };
     }
 
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const accountsByType = this.safeValue (this.options, 'accountsByType');
+        const fromAccountId = this.safeString (accountsByType, fromAccount, fromAccount);
+        const toAccountId = this.safeString (accountsByType, toAccount, toAccount);
+        let type = undefined;
+        if (fromAccountId === 'main' && toAccountId === 'trade') {
+            type = 'deposit';
+        } else if (fromAccountId === 'trade' && toAccountId === 'main') {
+            type = 'withdraw';
+        }
+        if (type === undefined) {
+            throw new ExchangeError (this.id + ' transfer() only allows transfers between main account and spot account');
+        }
+        const request = {
+            'ticker': currency['id'],
+            'method': type,
+            'amount': this.currencyToPrecision (code, amount),
+        };
+        const response = await this.v4PrivatePostMainAccountTransfer (this.extend (request, params));
+        //
+        //    []
+        //
+        const transfer = this.parseTransfer (response, currency);
+        const transferOptions = this.safeValue (this.options, 'transfer', {});
+        const fillTransferResponseFromRequest = this.safeValue (transferOptions, 'fillTransferResponseFromRequest', true);
+        if (fillTransferResponseFromRequest) {
+            transfer['amount'] = amount;
+            transfer['fromAccount'] = fromAccount;
+            transfer['toAccount'] = toAccount;
+        }
+        return transfer;
+    }
+
+    parseTransfer (transfer, currency) {
+        //
+        //    []
+        //
+        return {
+            'info': transfer,
+            'id': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': this.safeCurrencyCode (undefined, currency),
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': 'pending',
+        };
+    }
+
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code); // check if it has canDeposit
@@ -1180,9 +1244,36 @@ export default class whitebit extends Exchange {
         //
         //     []
         //
+        return this.extend ({ 'id': uniqueId }, this.parseTransaction (response, currency));
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // withdraw
+        //
+        //     []
+        //
+        currency = this.safeCurrency (undefined, currency);
         return {
-            'id': uniqueId,
-            'info': response,
+            'id': undefined,
+            'txid': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'network': undefined,
+            'addressFrom': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'amount': undefined,
+            'type': undefined,
+            'currency': currency['code'],
+            'status': undefined,
+            'updated': undefined,
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'comment': undefined,
+            'fee': undefined,
+            'info': transaction,
         };
     }
 

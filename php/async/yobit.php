@@ -699,40 +699,29 @@ class yobit extends Exchange {
             'rate' => $this->price_to_precision($symbol, $price),
         );
         $response = yield $this->privatePostTrade (array_merge($request, $params));
-        $id = null;
-        $status = 'open';
-        $filled = 0.0;
-        $remaining = $amount;
-        if (is_array($response) && array_key_exists('return', $response)) {
-            $id = $this->safe_string($response['return'], 'order_id');
-            if ($id === '0') {
-                $id = $this->safe_string($response['return'], 'init_order_id');
-                $status = 'closed';
-            }
-            $filled = $this->safe_number($response['return'], 'received', 0.0);
-            $remaining = $this->safe_number($response['return'], 'remains', $amount);
-        }
-        $timestamp = $this->milliseconds();
-        return array(
-            'id' => $id,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => null,
-            'status' => $status,
-            'symbol' => $symbol,
-            'type' => $type,
-            'side' => $side,
-            'price' => $price,
-            'cost' => $price * $filled,
-            'amount' => $amount,
-            'remaining' => $remaining,
-            'filled' => $filled,
-            'fee' => null,
-            'info' => $response,
-            'clientOrderId' => null,
-            'average' => null,
-            'trades' => null,
-        );
+        //
+        //      {
+        //          "success":1,
+        //          "return" => {
+        //              "received":0,
+        //              "remains":10,
+        //              "order_id":1101103635125179,
+        //              "funds" => array(
+        //                  "usdt":27.84756553,
+        //                  "usdttrc20":0,
+        //                  "doge":19.98327206
+        //              ),
+        //              "funds_incl_orders" => array(
+        //                  "usdt":30.35256553,
+        //                  "usdttrc20":0,
+        //                  "doge":19.98327206
+        //               ),
+        //               "server_time":1650114256
+        //           }
+        //       }
+        //
+        $result = $this->safe_value($response, 'return');
+        return $this->parse_order($result, $market);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
@@ -740,7 +729,28 @@ class yobit extends Exchange {
         $request = array(
             'order_id' => intval($id),
         );
-        return yield $this->privatePostCancelOrder (array_merge($request, $params));
+        $response = yield $this->privatePostCancelOrder (array_merge($request, $params));
+        //
+        //      {
+        //          "success":1,
+        //          "return" => {
+        //              "order_id":1101103632552304,
+        //              "funds" => array(
+        //                  "usdt":30.71055443,
+        //                  "usdttrc20":0,
+        //                  "doge":9.98327206
+        //              ),
+        //              "funds_incl_orders" => array(
+        //                  "usdt":31.81275443,
+        //                  "usdttrc20":0,
+        //                  "doge":9.98327206
+        //              ),
+        //              "server_time":1649918298
+        //          }
+        //      }
+        //
+        $result = $this->safe_value($response, 'return', array());
+        return $this->parse_order($result);
     }
 
     public function parse_order_status($status) {
@@ -754,13 +764,79 @@ class yobit extends Exchange {
     }
 
     public function parse_order($order, $market = null) {
-        $id = $this->safe_string($order, 'id');
-        $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $timestamp = $this->safe_timestamp($order, 'timestamp_created');
+        //
+        // createOrder (private)
+        //
+        //      {
+        //          "received":0,
+        //          "remains":10,
+        //          "order_id":1101103635125179,
+        //          "funds" => array(
+        //              "usdt":27.84756553,
+        //              "usdttrc20":0,
+        //              "doge":19.98327206
+        //          ),
+        //          "funds_incl_orders" => array(
+        //              "usdt":30.35256553,
+        //              "usdttrc20":0,
+        //              "doge":19.98327206
+        //          ),
+        //          "server_time":1650114256
+        //      }
+        //
+        // fetchOrder (private)
+        //
+        //      {
+        //          "id => "1101103635103335",  // $id-field is manually added in fetchOrder () from exchange response $id-$order dictionary structure
+        //          "pair":"doge_usdt",
+        //          "type":"buy",
+        //          "start_amount":10,
+        //          "amount":10,
+        //          "rate":0.05,
+        //          "timestamp_created":"1650112553",
+        //          "status":0
+        //      }
+        //
+        // fetchOpenOrders (private)
+        //
+        //      {
+        //          "id":"1101103635103335", // $id-field is manually added in fetchOpenOrders () from exchange response $id-$order dictionary structure
+        //          "pair":"doge_usdt",
+        //          "type":"buy",
+        //          "amount":10,
+        //          "rate":0.05,
+        //          "timestamp_created":"1650112553",
+        //          "status":0
+        //      }
+        //
+        // cancelOrder (private)
+        //
+        //      {
+        //          "order_id":1101103634000197,
+        //          "funds" => array(
+        //              "usdt":31.81275443,
+        //              "usdttrc20":0,
+        //              "doge":9.98327206
+        //          ),
+        //          "funds_incl_orders" => {
+        //              "usdt":31.81275443,
+        //              "usdttrc20":0,
+        //              "doge":9.98327206
+        //          }
+        //      }
+        //
+        $id = $this->safe_string_2($order, 'id', 'order_id');
+        $status = $this->parse_order_status($this->safe_string($order, 'status', 'open'));
+        if ($id === '0') {
+            $id = $this->safe_string($order, 'init_order_id');
+            $status = 'closed';
+        }
+        $timestamp = $this->safe_timestamp_2($order, 'timestamp_created', 'server_time');
         $marketId = $this->safe_string($order, 'pair');
         $symbol = $this->safe_symbol($marketId, $market);
-        $remaining = $this->safe_string($order, 'amount');
         $amount = $this->safe_string($order, 'start_amount');
+        $remaining = $this->safe_string_2($order, 'amount', 'remains');
+        $filled = $this->safe_string($order, 'received', '0.0');
         $price = $this->safe_string($order, 'rate');
         $fee = null;
         $type = 'limit';
@@ -782,7 +858,7 @@ class yobit extends Exchange {
             'cost' => null,
             'amount' => $amount,
             'remaining' => $remaining,
-            'filled' => null,
+            'filled' => $filled,
             'status' => $status,
             'fee' => $fee,
             'average' => null,
@@ -798,6 +874,22 @@ class yobit extends Exchange {
         $response = yield $this->privatePostOrderInfo (array_merge($request, $params));
         $id = (string) $id;
         $orders = $this->safe_value($response, 'return', array());
+        //
+        //      {
+        //          "success":1,
+        //          "return" => {
+        //              "1101103635103335" => {
+        //                  "pair":"doge_usdt",
+        //                  "type":"buy",
+        //                  "start_amount":10,
+        //                  "amount":10,
+        //                  "rate":0.05,
+        //                  "timestamp_created":"1650112553",
+        //                  "status":0
+        //              }
+        //          }
+        //      }
+        //
         return $this->parse_order(array_merge(array( 'id' => $id ), $orders[$id]));
     }
 
@@ -813,8 +905,31 @@ class yobit extends Exchange {
             $request['pair'] = $market['id'];
         }
         $response = yield $this->privatePostActiveOrders (array_merge($request, $params));
-        $orders = $this->safe_value($response, 'return', array());
-        return $this->parse_orders($orders, $market, $since, $limit);
+        //
+        //      {
+        //          "success":1,
+        //          "return" => {
+        //              "1101103634006799" => array(
+        //                  "pair":"doge_usdt",
+        //                  "type":"buy",
+        //                  "amount":10,
+        //                  "rate":0.1,
+        //                  "timestamp_created":"1650034937",
+        //                  "status":0
+        //              ),
+        //              "1101103634006738" => {
+        //                  "pair":"doge_usdt",
+        //                  "type":"buy",
+        //                  "amount":10,
+        //                  "rate":0.1,
+        //                  "timestamp_created":"1650034932",
+        //                  "status":0
+        //              }
+        //          }
+        //      }
+        //
+        $result = $this->safe_value($response, 'return', array());
+        return $this->parse_orders($result, $market, $since, $limit);
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {

@@ -6,7 +6,6 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
 use \ccxt\BadSymbol;
@@ -21,7 +20,12 @@ class aax extends Exchange {
             'name' => 'AAX',
             'countries' => array( 'MT' ), // Malta
             'enableRateLimit' => true,
-            'rateLimit' => 500,
+            // 6000 /  hour => 100 per minute => 1.66 requests per second => rateLimit = 600
+            // market endpoints ratelimits arent mentioned in docs so they are also set to "all other authenticated endpoints"
+            // 5000 / hour => weight = 1.2 ("all other authenticated endpoints")
+            // 600 / hour => weight = 10
+            // 200 / hour => weight = 30
+            'rateLimit' => 600,
             'version' => 'v2',
             'hostname' => 'aaxpro.com', // aax.com
             'pro' => true,
@@ -39,6 +43,9 @@ class aax extends Exchange {
                 'createDepositAddress' => null,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
                 'editOrder' => true,
                 'fetchAccounts' => null,
                 'fetchBalance' => true,
@@ -68,8 +75,8 @@ class aax extends Exchange {
                 'fetchLedger' => null,
                 'fetchLedgerEntry' => null,
                 'fetchLeverage' => null,
-                'fetchLeverageTiers' => true,
-                'fetchMarketLeverageTiers' => 'emulated',
+                'fetchLeverageTiers' => false,
+                'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyBuys' => null,
@@ -98,7 +105,7 @@ class aax extends Exchange {
                 'fetchTransactions' => null,
                 'fetchTransfer' => false,
                 'fetchTransfers' => true,
-                'fetchWithdrawal' => null,
+                'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
                 'fetchWithdrawalWhitelist' => null,
                 'reduceMargin' => null,
@@ -107,7 +114,7 @@ class aax extends Exchange {
                 'setPositionMode' => null,
                 'signIn' => null,
                 'transfer' => true,
-                'withdraw' => null,
+                'withdraw' => false,
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -156,63 +163,63 @@ class aax extends Exchange {
                     //     'tickers/{market}', // Get ticker of specific market
                     // ),
                     'get' => array(
-                        'currencies',
-                        'announcement/maintenance', // System Maintenance Notice
-                        'time',
-                        'instruments', // Retrieve all trading pairs information
-                        'market/orderbook', // Order Book
-                        'futures/position/openInterest', // Open Interest
-                        'market/tickers', // Get the Last 24h Market Summary
-                        'market/candles', // Get Current Candlestick
-                        'market/history/candles', // Get Current Candlestick
-                        'market/trades', // Get the Most Recent Trades
-                        'market/markPrice', // Get Current Mark Price
-                        'futures/funding/predictedFunding/{symbol}', // Get Predicted Funding Rate
-                        'futures/funding/prevFundingRate/{symbol}', // Get Last Funding Rate
-                        'futures/funding/fundingRate',
-                        'market/candles/index', // * Deprecated
-                        'market/index/candles',
+                        'currencies' => 1.2,
+                        'announcement/maintenance' => 1.2, // System Maintenance Notice
+                        'time' => 1.2,
+                        'instruments' => 1.2, // Retrieve all trading pairs information
+                        'market/orderbook' => 1.2, // Order Book
+                        'futures/position/openInterest' => 1.2, // Open Interest
+                        'market/tickers' => 1.2, // Get the Last 24h Market Summary
+                        'market/candles' => 1.2, // Get Current Candlestick
+                        'market/history/candles' => 1.2, // Get Current Candlestick
+                        'market/trades' => 1.2, // Get the Most Recent Trades
+                        'market/markPrice' => 1.2, // Get Current Mark Price
+                        'futures/funding/predictedFunding/{symbol}' => 1.2, // Get Predicted Funding Rate
+                        'futures/funding/prevFundingRate/{symbol}' => 1.2, // Get Last Funding Rate
+                        'futures/funding/fundingRate' => 1.2,
+                        'market/candles/index' => 1.2, // * Deprecated
+                        'market/index/candles' => 1.2,
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'user/info', // Retrieve user information
-                        'account/balances', // Get Account Balances
-                        'account/deposit/address', // undocumented
-                        'account/deposits', // Get account deposits history
-                        'account/transfer',
-                        'account/withdraws', // Get account withdrawals history
-                        'spot/trades', // Retrieve trades details for a spot order
-                        'spot/openOrders', // Retrieve spot open orders
-                        'spot/orders', // Retrieve historical spot orders
-                        'futures/position', // Get positions for all contracts
-                        'futures/position/closed', // Get closed positions
-                        'futures/trades', // Retrieve trade details for a futures order
-                        'futures/openOrders', // Retrieve futures open orders
-                        'futures/orders', // Retrieve historical futures orders
-                        'futures/funding/fundingFee',
-                        'futures/funding/predictedFundingFee/{symbol}', // Get predicted funding fee
+                        'user/info' => 1.2, // Retrieve user information
+                        'account/balances' => 1.2, // Get Account Balances
+                        'account/deposit/address' => 1.2, // undocumented
+                        'account/deposits' => 1.2, // Get account deposits history
+                        'account/transfer' => 1.2,
+                        'account/withdraws' => 1.2, // Get account withdrawals history
+                        'spot/trades' => 1.2, // Retrieve trades details for a spot order
+                        'spot/openOrders' => 1.2, // Retrieve spot open orders
+                        'spot/orders' => 1.2, // Retrieve historical spot orders
+                        'futures/position' => 1.2, // Get positions for all contracts
+                        'futures/position/closed' => 1.2, // Get closed positions
+                        'futures/trades' => 1.2, // Retrieve trade details for a futures order
+                        'futures/openOrders' => 1.2, // Retrieve futures open orders
+                        'futures/orders' => 1.2, // Retrieve historical futures orders
+                        'futures/funding/fundingFee' => 1.2,
+                        'futures/funding/predictedFundingFee/{symbol}' => 1.2, // Get predicted funding fee
                     ),
                     'post' => array(
-                        'account/transfer', // Asset Transfer
-                        'spot/orders', // Create a new spot order
-                        'spot/orders/cancelAllOnTimeout', // Automatically cancel all your spot orders after a specified timeout.
-                        'futures/orders', // Create a new futures order
-                        'futures/orders/cancelAllOnTimeout', // Automatically cancel all your futures orders after a specified timeout.
-                        'futures/position/sltp', // Set take profit and stop loss orders for an opening position
-                        'futures/position/close', // Close position
-                        'futures/position/leverage', // Update leverage for position
-                        'futures/position/margin', // Modify Isolated Position Margin
+                        'account/transfer' => 1.2, // Asset Transfer
+                        'spot/orders' => 1.2, // Create a new spot order
+                        'spot/orders/cancelAllOnTimeout' => 10, // Automatically cancel all your spot orders after a specified timeout.
+                        'futures/orders' => 1.2, // Create a new futures order
+                        'futures/orders/cancelAllOnTimeout' => 10, // Automatically cancel all your futures orders after a specified timeout.
+                        'futures/position/sltp' => 1.2, // Set take profit and stop loss orders for an opening position
+                        'futures/position/close' => 1.2, // Close position
+                        'futures/position/leverage' => 30, // Update leverage for position
+                        'futures/position/margin' => 1.2, // Modify Isolated Position Margin
                     ),
                     'put' => array(
-                        'spot/orders', // Amend spot order
-                        'futures/orders', // Amend the quantity of an open futures order
+                        'spot/orders' => 1.2, // Amend spot order
+                        'futures/orders' => 1.2, // Amend the quantity of an open futures order
                     ),
                     'delete' => array(
-                        'spot/orders/cancel/{orderID}', // Cancel a spot order
-                        'spot/orders/cancel/all', // Batch cancel spot orders
-                        'futures/orders/cancel/{orderID}', // Cancel a futures order
-                        'futures/orders/cancel/all', // Batch cancel futures orders
+                        'spot/orders/cancel/{orderID}' => 1, // Cancel a spot order
+                        'spot/orders/cancel/all' => 10, // Batch cancel spot orders
+                        'futures/orders/cancel/{orderID}' => 1, // Cancel a futures order
+                        'futures/orders/cancel/all' => 10, // Batch cancel futures orders
                     ),
                 ),
             ),
@@ -307,17 +314,11 @@ class aax extends Exchange {
             'precisionMode' => TICK_SIZE,
             'options' => array(
                 'defaultType' => 'spot', // 'spot', 'future'
-                'types' => array(
+                'accountsByType' => array(
                     'spot' => 'SPTP',
                     'future' => 'FUTP',
                     'otc' => 'F2CP',
                     'saving' => 'VLTP',
-                ),
-                'accounts' => array(
-                    'SPTP' => 'spot',
-                    'FUTP' => 'future',
-                    'F2CP' => 'otc',
-                    'VLTP' => 'saving',
                 ),
                 'networks' => array(
                     'ETH' => 'ERC20',
@@ -325,8 +326,7 @@ class aax extends Exchange {
                     'SOL' => 'SPL',
                 ),
                 'transfer' => array(
-                    'fillFromAccountToAccount' => true,
-                    'fillAmount' => true,
+                    'fillResponseFromRequest' => true,
                 ),
             ),
         ));
@@ -348,33 +348,52 @@ class aax extends Exchange {
     public function fetch_status($params = array ()) {
         $response = yield $this->publicGetAnnouncementMaintenance ($params);
         //
+        // note, when there is no maintenance, then $data is `null`
+        //
         //     {
         //         "code" => 1,
         //         "data" => array(
         //             "startTime":"2020-06-25T02:15:00.000Z",
         //             "endTime":"2020-06-25T02:45:00.000Z"，
-        //             "description":"Spot Trading :UTC Jun 25, 2020 02:15 to 02:45 (HKT Jun 25 10:15 to 10:45),Futures Trading => UTC Jun 25, 2020 02:15 to 02:45 (HKT Jun 25 10:15 to 10:45).We apologize for any inconvenience caused. Thank you for your patience and understanding.Should you have any enquiries, please do not hesitate our live chat support or via email at cs@aax.com."
+        //             "description":"Spot Trading :UTC Jun 25, 2020 02:15 to 02:45 (HKT Jun 25 10:15 to 10:45),Futures Trading => UTC Jun 25, 2020 02:15 to 02:45 (HKT Jun 25 10:15 to 10:45).We apologize for any inconvenience caused. Thank you for your patience and understanding.Should you have any enquiries, please do not hesitate our live chat support or via email at cs@aax.com.",
+        //             "haltReason":1,
+        //             "systemStatus":array(
+        //                 "spotTrading":"readOnly",
+        //                 "futuresTreading":"closeOnly",
+        //                 "walletOperating":"enable",
+        //                 "otcTrading":"disable"
+        //             ),
         //         ),
         //         "message":"success",
         //         "ts":1593043237000
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
         $timestamp = $this->milliseconds();
-        $startTime = $this->parse8601($this->safe_string($data, 'startTime'));
-        $endTime = $this->parse8601($this->safe_string($data, 'endTime'));
-        $update = array(
-            'updated' => $this->safe_integer($response, 'ts', $timestamp),
+        $updated = $this->safe_integer($response, 'ts', $timestamp);
+        $data = $this->safe_value($response, 'data', array());
+        $status = null;
+        $eta = null;
+        if ($data) {
+            $startTime = $this->parse8601($this->safe_string($data, 'startTime'));
+            $endTime = $this->parse8601($this->safe_string($data, 'endTime'));
+            if ($endTime !== null) {
+                $startTimeIsOk = ($startTime === null) ? true : ($updated < $startTime);
+                $isOk = ($updated > $endTime) || $startTimeIsOk;
+                $eta = $endTime;
+                $status = $isOk ? 'ok' : 'maintenance';
+            } else {
+                $status = $data;
+            }
+        } else {
+            $eta = null;
+            $status = 'ok';
+        }
+        return array(
+            'status' => $status,
+            'updated' => $updated,
+            'eta' => $eta,
             'info' => $response,
         );
-        if ($endTime !== null) {
-            $startTimeIsOk = ($startTime === null) ? true : ($timestamp < $startTime);
-            $isOk = ($timestamp > $endTime) || $startTimeIsOk;
-            $update['eta'] = $endTime;
-            $update['status'] = $isOk ? 'ok' : 'maintenance';
-        }
-        $this->status = array_merge($this->status, $update);
-        return $this->status;
     }
 
     public function fetch_markets($params = array ()) {
@@ -939,7 +958,7 @@ class aax extends Exchange {
         yield $this->load_markets();
         $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
-        $types = $this->safe_value($this->options, 'types', array());
+        $types = $this->safe_value($this->options, 'accountsByType', array());
         $purseType = $this->safe_string($types, $type, $type);
         $request = array(
             'purseType' => $purseType,
@@ -2323,98 +2342,6 @@ class aax extends Exchange {
         return yield $this->privatePostFuturesPositionLeverage (array_merge($request, $params));
     }
 
-    public function fetch_leverage_tiers($symbols = null, $params = array ()) {
-        yield $this->load_markets();
-        $response = yield $this->publicGetInstruments ($params);
-        //
-        //     {
-        //         "code":1,
-        //         "message":"success",
-        //         "ts":1610159448962,
-        //         "data":array(
-        //             array(
-        //                 "tickSize":"0.01",
-        //                 "lotSize":"1",
-        //                 "base":"BTC",
-        //                 "quote":"USDT",
-        //                 "minQuantity":"1.0000000000",
-        //                 "maxQuantity":"30000",
-        //                 "minPrice":"0.0100000000",
-        //                 "maxPrice":"999999.0000000000",
-        //                 "status":"readOnly",
-        //                 "symbol":"BTCUSDTFP",
-        //                 "code":"FP",
-        //                 "takerFee":"0.00040",
-        //                 "makerFee":"0.00020",
-        //                 "multiplier":"0.001000000000",
-        //                 "mmRate":"0.00500",
-        //                 "imRate":"0.01000",
-        //                 "type":"futures",
-        //                 "settleType":"Vanilla",
-        //                 "settleCurrency":"USDT"
-        //             ),
-        //             ...
-        //         )
-        //     }
-        //
-        $data = $this->safe_value($response, 'data');
-        return $this->parse_leverage_tiers($data, $symbols, 'symbol');
-    }
-
-    public function parse_market_leverage_tiers($info, $market) {
-        /**
-         * @param {dict} $info Exchange $market response
-         * @param {dict} $market CCXT Market
-         */
-        //
-        //    {
-        //        "tickSize":"0.01",
-        //        "lotSize":"1",
-        //        "base":"BTC",
-        //        "quote":"USDT",
-        //        "minQuantity":"1.0000000000",
-        //        "maxQuantity":"30000",
-        //        "minPrice":"0.0100000000",
-        //        "maxPrice":"999999.0000000000",
-        //        "status":"readOnly",
-        //        "symbol":"BTCUSDTFP",
-        //        "code":"FP",
-        //        "takerFee":"0.00040",
-        //        "makerFee":"0.00020",
-        //        "multiplier":"0.001000000000",
-        //        "mmRate":"0.00500",
-        //        "imRate":"0.01000",
-        //        "type":"futures",
-        //        "settleType":"Vanilla",
-        //        "settleCurrency":"USDT"
-        //    }
-        //
-        $maintenanceMarginRate = $this->safe_string($info, 'mmRate');
-        $initialMarginRate = $this->safe_string($info, 'imRate');
-        $maxVol = $this->safe_string($info, 'maxQuantity');
-        $riskIncrVol = $maxVol; // TODO
-        $riskIncrMmr = '0.0'; // TODO
-        $riskIncrImr = '0.0'; // TODO
-        $floor = '0';
-        $tiers = array();
-        while (Precise::string_lt($floor, $maxVol)) {
-            $cap = Precise::string_add($floor, $riskIncrVol);
-            $tiers[] = array(
-                'tier' => $this->parse_number(Precise::string_div($cap, $riskIncrVol)),
-                'currency' => $market['base'],
-                'notionalFloor' => $this->parse_number($floor),
-                'notionalCap' => $this->parse_number($cap),
-                'maintenanceMarginRate' => $this->parse_number($maintenanceMarginRate),
-                'maxLeverage' => $this->parse_number(Precise::string_div('1', $initialMarginRate)),
-                'info' => $info,
-            );
-            $maintenanceMarginRate = Precise::string_add($maintenanceMarginRate, $riskIncrMmr);
-            $initialMarginRate = Precise::string_add($initialMarginRate, $riskIncrImr);
-            $floor = $cap;
-        }
-        return $tiers;
-    }
-
     public function parse_transfer($transfer, $currency = null) {
         //     array(
         //          quantity => '0.000010000000',
@@ -2457,17 +2384,9 @@ class aax extends Exchange {
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
         yield $this->load_markets();
         $currency = $this->currency($code);
-        $accountTypes = $this->safe_value($this->options, 'types', array());
-        $fromId = $this->safe_string($accountTypes, $fromAccount);
-        $toId = $this->safe_string($accountTypes, $toAccount);
-        if ($fromId === null) {
-            $keys = is_array($accountTypes) ? array_keys($accountTypes) : array();
-            throw new ExchangeError($this->id . ' $fromAccount must be one of ' . implode(', ', $keys));
-        }
-        if ($toId === null) {
-            $keys = is_array($accountTypes) ? array_keys($accountTypes) : array();
-            throw new ExchangeError($this->id . ' $toAccount must be one of ' . implode(', ', $keys));
-        }
+        $accountTypes = $this->safe_value($this->options, 'accountsByType', array());
+        $fromId = $this->safe_string($accountTypes, $fromAccount, $fromAccount);
+        $toId = $this->safe_string($accountTypes, $toAccount, $toAccount);
         $request = array(
             'currency' => $currency['id'],
             'fromPurse' => $fromId,
@@ -2489,18 +2408,17 @@ class aax extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $transfer = $this->parse_transfer($data, $currency);
         $transferOptions = $this->safe_value($this->options, 'transfer', array());
-        $fillFromAccountToAccount = $this->safe_value($transferOptions, 'fillFromAccountToAccount', true);
-        $fillAmount = $this->safe_value($transferOptions, 'fillAmount', true);
-        if ($fillFromAccountToAccount) {
+        $fillResponseFromRequest = $this->safe_value($transferOptions, 'fillResponseFromRequest', true);
+        if ($fillResponseFromRequest) {
             if ($transfer['fromAccount'] === null) {
                 $transfer['fromAccount'] = $fromAccount;
             }
             if ($transfer['toAccount'] === null) {
                 $transfer['toAccount'] = $toAccount;
             }
-        }
-        if ($fillAmount && $transfer['amount'] === null) {
-            $transfer['amount'] = $amount;
+            if ($transfer['amount'] === null) {
+                $transfer['amount'] = $amount;
+            }
         }
         $transfer['status'] = $this->parse_transfer_status($this->safe_string($response, 'code'));
         return $transfer;

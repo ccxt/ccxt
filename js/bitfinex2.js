@@ -30,6 +30,9 @@ export default class bitfinex2 extends bitfinex {
                 'createLimitOrder': true,
                 'createMarketOrder': true,
                 'createOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
                 'editOrder': undefined,
                 'fetchBalance': true,
                 'fetchClosedOrder': true,
@@ -377,14 +380,13 @@ export default class bitfinex2 extends bitfinex {
         //    [0] // maintenance
         //
         const response = await this.publicGetPlatformStatus (params);
-        const status = this.safeInteger (response, 0);
-        const formattedStatus = (status === 1) ? 'ok' : 'maintenance';
-        this.status = this.extend (this.status, {
-            'status': formattedStatus,
+        const statusRaw = this.safeString (response, 0);
+        return {
+            'status': this.safeString ({ '0': 'maintenance', '1': 'ok' }, statusRaw, statusRaw),
             'updated': this.milliseconds (),
+            'eta': undefined,
             'info': response,
-        });
-        return this.status;
+        };
     }
 
     async fetchMarkets (params = {}) {
@@ -633,7 +635,7 @@ export default class bitfinex2 extends bitfinex {
         await this.loadMarkets ();
         const accountsByType = this.safeValue (this.options, 'v2AccountsByType', {});
         const requestedType = this.safeString (params, 'type', 'exchange');
-        const accountType = this.safeString (accountsByType, requestedType);
+        const accountType = this.safeString (accountsByType, requestedType, requestedType);
         if (accountType === undefined) {
             const keys = Object.keys (accountsByType);
             throw new ExchangeError (this.id + ' fetchBalance type parameter must be one of ' + keys.join (', '));
@@ -1817,7 +1819,7 @@ export default class bitfinex2 extends bitfinex {
 
     async fetchPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.privatePostPositions (params);
+        const response = await this.privatePostAuthRPositions (params);
         //
         //     [
         //         [

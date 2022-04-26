@@ -50,9 +50,14 @@ class bitmart(Exchange):
                 'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
+                'fetchDeposit': True,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
                 'fetchFundingFee': True,
+                'fetchFundingFees': False,
+                'fetchFundingHistory': None,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -70,7 +75,12 @@ class bitmart(Exchange):
                 'fetchTradingFees': False,
                 'fetchTransfer': False,
                 'fetchTransfers': False,
+                'fetchWithdrawAddressesByNetwork': False,
+                'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
                 'transfer': False,
                 'withdraw': True,
             },
@@ -369,26 +379,26 @@ class bitmart(Exchange):
         response = await self.publicSystemGetService(params)
         #
         #     {
-        #         "code": 1000,
-        #         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
         #         "message": "OK",
+        #         "code": 1000,
+        #         "trace": "1d3f28b0-763e-4f78-90c4-5e3ad19dc595",
         #         "data": {
-        #             "serivce":[
-        #                 {
-        #                     "title": "Spot API Stop",
-        #                     "service_type": "spot",
-        #                     "status": "2",
-        #                     "start_time": 1527777538000,
-        #                     "end_time": 1527777538000
-        #                 },
-        #                 {
-        #                     "title": "Contract API Stop",
-        #                     "service_type": "contract",
-        #                     "status": "2",
-        #                     "start_time": 1527777538000,
-        #                     "end_time": 1527777538000
-        #                 }
-        #             ]
+        #           "service": [
+        #             {
+        #               "title": "Spot API Stop",
+        #               "service_type": "spot",
+        #               "status": 2,
+        #               "start_time": 1648639069125,
+        #               "end_time": 1648639069125
+        #             },
+        #             {
+        #               "title": "Contract API Stop",
+        #               "service_type": "contract",
+        #               "status": 2,
+        #               "start_time": 1648639069125,
+        #               "end_time": 1648639069125
+        #             }
+        #           ]
         #         }
         #     }
         #
@@ -407,13 +417,12 @@ class bitmart(Exchange):
             else:
                 status = 'maintenance'
                 eta = self.safe_integer(service, 'end_time')
-        self.status = self.extend(self.status, {
+        return {
             'status': status,
             'updated': self.milliseconds(),
             'eta': eta,
             'info': response,
-        })
-        return self.status
+        }
 
     async def fetch_spot_markets(self, params={}):
         response = await self.publicSpotGetSymbolsDetails(params)
@@ -2131,8 +2140,72 @@ class bitmart(Exchange):
         records = self.safe_value(data, 'records', [])
         return self.parse_transactions(records, currency, since, limit)
 
+    async def fetch_deposit(self, id, code=None, params={}):
+        await self.load_markets()
+        request = {
+            'id': id,
+        }
+        response = await self.privateAccountGetDepositWithdrawDetail(self.extend(request, params))
+        #
+        #     {
+        #         "message":"OK",
+        #         "code":1000,
+        #         "trace":"f7f74924-14da-42a6-b7f2-d3799dd9a612",
+        #         "data":{
+        #             "record":{
+        #                 "withdraw_id":"",
+        #                 "deposit_id":"1679952",
+        #                 "operation_type":"deposit",
+        #                 "currency":"BMX",
+        #                 "apply_time":1588867374000,
+        #                 "arrival_amount":"59.000000000000",
+        #                 "fee":"1.000000000000",
+        #                 "status":0,
+        #                 "address":"0xe57b69a8776b37860407965B73cdFFBDFe668Bb5",
+        #                 "address_memo":"",
+        #                 "tx_id":""
+        #             }
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        record = self.safe_value(data, 'record', {})
+        return self.parse_transaction(record)
+
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         return await self.fetch_transactions_by_type('deposit', code, since, limit, params)
+
+    async def fetch_withdrawal(self, id, code=None, params={}):
+        await self.load_markets()
+        request = {
+            'id': id,
+        }
+        response = await self.privateAccountGetDepositWithdrawDetail(self.extend(request, params))
+        #
+        #     {
+        #         "message":"OK",
+        #         "code":1000,
+        #         "trace":"f7f74924-14da-42a6-b7f2-d3799dd9a612",
+        #         "data":{
+        #             "record":{
+        #                 "withdraw_id":"1679952",
+        #                 "deposit_id":"",
+        #                 "operation_type":"withdraw",
+        #                 "currency":"BMX",
+        #                 "apply_time":1588867374000,
+        #                 "arrival_amount":"59.000000000000",
+        #                 "fee":"1.000000000000",
+        #                 "status":0,
+        #                 "address":"0xe57b69a8776b37860407965B73cdFFBDFe668Bb5",
+        #                 "address_memo":"",
+        #                 "tx_id":""
+        #             }
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        record = self.safe_value(data, 'record', {})
+        return self.parse_transaction(record)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         return await self.fetch_transactions_by_type('withdraw', code, since, limit, params)
@@ -2156,7 +2229,7 @@ class bitmart(Exchange):
         #         "withdraw_id": "121212"
         #     }
         #
-        # fetchDeposits, fetchWithdrawals
+        # fetchDeposits, fetchWithdrawals, fetchWithdrawal
         #
         #     {
         #         "withdraw_id":"1679952",

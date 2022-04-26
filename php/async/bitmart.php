@@ -39,9 +39,14 @@ class bitmart extends Exchange {
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
+                'fetchDeposit' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchFundingFee' => true,
+                'fetchFundingFees' => false,
+                'fetchFundingHistory' => null,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -59,7 +64,12 @@ class bitmart extends Exchange {
                 'fetchTradingFees' => false,
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
+                'fetchWithdrawAddressesByNetwork' => false,
+                'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
                 'transfer' => false,
                 'withdraw' => true,
             ),
@@ -360,26 +370,26 @@ class bitmart extends Exchange {
         $response = yield $this->publicSystemGetService ($params);
         //
         //     {
-        //         "code" => 1000,
-        //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
         //         "message" => "OK",
+        //         "code" => 1000,
+        //         "trace" => "1d3f28b0-763e-4f78-90c4-5e3ad19dc595",
         //         "data" => {
-        //             "serivce":array(
-        //                 array(
-        //                     "title" => "Spot API Stop",
-        //                     "service_type" => "spot",
-        //                     "status" => "2",
-        //                     "start_time" => 1527777538000,
-        //                     "end_time" => 1527777538000
-        //                 ),
-        //                 {
-        //                     "title" => "Contract API Stop",
-        //                     "service_type" => "contract",
-        //                     "status" => "2",
-        //                     "start_time" => 1527777538000,
-        //                     "end_time" => 1527777538000
-        //                 }
-        //             )
+        //           "service" => array(
+        //             array(
+        //               "title" => "Spot API Stop",
+        //               "service_type" => "spot",
+        //               "status" => 2,
+        //               "start_time" => 1648639069125,
+        //               "end_time" => 1648639069125
+        //             ),
+        //             {
+        //               "title" => "Contract API Stop",
+        //               "service_type" => "contract",
+        //               "status" => 2,
+        //               "start_time" => 1648639069125,
+        //               "end_time" => 1648639069125
+        //             }
+        //           )
         //         }
         //     }
         //
@@ -401,13 +411,12 @@ class bitmart extends Exchange {
                 $eta = $this->safe_integer($service, 'end_time');
             }
         }
-        $this->status = array_merge($this->status, array(
+        return array(
             'status' => $status,
             'updated' => $this->milliseconds(),
             'eta' => $eta,
             'info' => $response,
-        ));
-        return $this->status;
+        );
     }
 
     public function fetch_spot_markets($params = array ()) {
@@ -2235,8 +2244,74 @@ class bitmart extends Exchange {
         return $this->parse_transactions($records, $currency, $since, $limit);
     }
 
+    public function fetch_deposit($id, $code = null, $params = array ()) {
+        yield $this->load_markets();
+        $request = array(
+            'id' => $id,
+        );
+        $response = yield $this->privateAccountGetDepositWithdrawDetail (array_merge($request, $params));
+        //
+        //     {
+        //         "message":"OK",
+        //         "code":1000,
+        //         "trace":"f7f74924-14da-42a6-b7f2-d3799dd9a612",
+        //         "data":{
+        //             "record":{
+        //                 "withdraw_id":"",
+        //                 "deposit_id":"1679952",
+        //                 "operation_type":"deposit",
+        //                 "currency":"BMX",
+        //                 "apply_time":1588867374000,
+        //                 "arrival_amount":"59.000000000000",
+        //                 "fee":"1.000000000000",
+        //                 "status":0,
+        //                 "address":"0xe57b69a8776b37860407965B73cdFFBDFe668Bb5",
+        //                 "address_memo":"",
+        //                 "tx_id":""
+        //             }
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $record = $this->safe_value($data, 'record', array());
+        return $this->parse_transaction($record);
+    }
+
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
         return yield $this->fetch_transactions_by_type('deposit', $code, $since, $limit, $params);
+    }
+
+    public function fetch_withdrawal($id, $code = null, $params = array ()) {
+        yield $this->load_markets();
+        $request = array(
+            'id' => $id,
+        );
+        $response = yield $this->privateAccountGetDepositWithdrawDetail (array_merge($request, $params));
+        //
+        //     {
+        //         "message":"OK",
+        //         "code":1000,
+        //         "trace":"f7f74924-14da-42a6-b7f2-d3799dd9a612",
+        //         "data":{
+        //             "record":{
+        //                 "withdraw_id":"1679952",
+        //                 "deposit_id":"",
+        //                 "operation_type":"withdraw",
+        //                 "currency":"BMX",
+        //                 "apply_time":1588867374000,
+        //                 "arrival_amount":"59.000000000000",
+        //                 "fee":"1.000000000000",
+        //                 "status":0,
+        //                 "address":"0xe57b69a8776b37860407965B73cdFFBDFe668Bb5",
+        //                 "address_memo":"",
+        //                 "tx_id":""
+        //             }
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $record = $this->safe_value($data, 'record', array());
+        return $this->parse_transaction($record);
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
@@ -2263,7 +2338,7 @@ class bitmart extends Exchange {
         //         "withdraw_id" => "121212"
         //     }
         //
-        // fetchDeposits, fetchWithdrawals
+        // fetchDeposits, fetchWithdrawals, fetchWithdrawal
         //
         //     {
         //         "withdraw_id":"1679952",

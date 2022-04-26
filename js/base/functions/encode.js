@@ -32,6 +32,7 @@ const json =  (data, params = undefined) => JSON.stringify (data)
     , binaryConcatArray = (arr) => arr.reduce ((a, b) => a.concat (b))
 
     , urlencode = object => qs.stringify (object)
+    , urlencodeNested =  object => qs.stringify (object) // implemented only in python
     , urlencodeWithArrayRepeat = object => qs.stringify (object, { arrayFormat: 'repeat' })
     , rawencode = object => qs.stringify (object, { encode: false })
     , encode = x => x
@@ -131,6 +132,7 @@ export {
     , base58ToBinary
     , binaryToBase58
     , byteArrayToWordArray
+    , urlencodeNested
 }
 
 /*  ------------------------------------------------------------------------ */

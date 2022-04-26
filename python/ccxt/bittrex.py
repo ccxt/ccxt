@@ -9,6 +9,7 @@ import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
@@ -49,6 +50,9 @@ class bittrex(Exchange):
                 'createMarketOrder': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': True,
+                'createStopOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
@@ -804,10 +808,58 @@ class bittrex(Exchange):
         self.load_markets()
         request = {}
         market = None
+        stop = self.safe_value(params, 'stop')
         if symbol is not None:
             market = self.market(symbol)
             request['marketSymbol'] = market['id']
-        response = self.privateGetOrdersOpen(self.extend(request, params))
+        method = 'privateGetOrdersOpen'
+        if stop:
+            method = 'privateGetConditionalOrdersOpen'
+        query = self.omit(params, 'stop')
+        response = getattr(self, method)(self.extend(request, query))
+        #
+        # Spot
+        #
+        #     [
+        #         {
+        #             "id": "df6cf5ee-fc27-4b61-991a-cc94b6459ac9",
+        #             "marketSymbol": "BTC-USDT",
+        #             "direction": "BUY",
+        #             "type": "LIMIT",
+        #             "quantity": "0.00023277",
+        #             "limit": "30000.00000000",
+        #             "timeInForce": "GOOD_TIL_CANCELLED",
+        #             "fillQuantity": "0.00000000",
+        #             "commission": "0.00000000",
+        #             "proceeds": "0.00000000",
+        #             "status": "OPEN",
+        #             "createdAt": "2022-04-20T02:33:53.16Z",
+        #             "updatedAt": "2022-04-20T02:33:53.16Z"
+        #         }
+        #     ]
+        #
+        # Stop
+        #
+        #     [
+        #         {
+        #             "id": "f64f7c4f-295c-408b-9cbc-601981abf100",
+        #             "marketSymbol": "BTC-USDT",
+        #             "operand": "LTE",
+        #             "triggerPrice": "0.10000000",
+        #             "orderToCreate": {
+        #                 "marketSymbol": "BTC-USDT",
+        #                 "direction": "BUY",
+        #                 "type": "LIMIT",
+        #                 "quantity": "0.00020000",
+        #                 "limit": "30000.00000000",
+        #                 "timeInForce": "GOOD_TIL_CANCELLED"
+        #             },
+        #             "status": "OPEN",
+        #             "createdAt": "2022-04-20T02:38:12.26Z",
+        #             "updatedAt": "2022-04-20T02:38:12.26Z"
+        #         }
+        #     ]
+        #
         return self.parse_orders(response, market, since, limit)
 
     def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
@@ -828,46 +880,115 @@ class bittrex(Exchange):
         # at the current market BTC price)
         self.load_markets()
         market = self.market(symbol)
-        uppercaseType = type.upper()
+        uppercaseType = None
+        if type is not None:
+            uppercaseType = type.upper()
         reverseId = market['baseId'] + '-' + market['quoteId']
+        stop = self.safe_value(params, 'stop')
+        stopPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
         request = {
-            'marketSymbol': reverseId,
-            'direction': side.upper(),
-            'type': uppercaseType,  # LIMIT, MARKET, CEILING_LIMIT, CEILING_MARKET
-            # 'quantity': self.amount_to_precision(symbol, amount),  # required for limit orders, excluded for ceiling orders
-            # 'ceiling': self.price_to_precision(symbol, price),  # required for ceiling orders, excluded for non-ceiling orders
-            # 'limit': self.price_to_precision(symbol, price),  # required for limit orders, excluded for market orders
-            # 'timeInForce': 'GOOD_TIL_CANCELLED',  # IMMEDIATE_OR_CANCEL, FILL_OR_KILL, POST_ONLY_GOOD_TIL_CANCELLED
-            # 'useAwards': False,  # optional
+            'marketSymbol': reverseId,  # SPOT and STOP
+            # 'direction': side.upper(),  # SPOT, STOP 'orderToCreate'
+            # 'type': uppercaseType,  # SPOT: LIMIT, MARKET, CEILING_LIMIT, CEILING_MARKET
+            # 'quantity': self.amount_to_precision(symbol, amount),  # SPOT, required for limit orders, excluded for ceiling orders
+            # 'ceiling': self.price_to_precision(symbol, price),  # SPOT, required for ceiling orders, excluded for non-ceiling orders
+            # 'limit': self.price_to_precision(symbol, price),  # SPOT, required for limit orders, excluded for market orders
+            # 'timeInForce': 'GOOD_TIL_CANCELLED',  # SPOT, IMMEDIATE_OR_CANCEL, FILL_OR_KILL, POST_ONLY_GOOD_TIL_CANCELLED
+            # 'useAwards': False,  # SPOT, optional
+            # 'operand': 'LTE',  # STOP, price above(GTE) or below(LTE) which the conditional order will trigger. either self or trailingStopPercent must be specified.
+            # 'triggerPrice': self.price_to_precision(symbol, stopPrice),  # STOP
+            # 'trailingStopPercent': self.price_to_precision(symbol, stopPrice),  # STOP, either self or triggerPrice must be set
+            # 'orderToCreate': {direction:side,type:uppercaseType},  # STOP, The spot order to be triggered
+            # 'orderToCancel': {id:'f03d5e98-b5ac-48fb-8647-dd4db828a297',type:uppercaseType},  # STOP, The spot order to be canceled
+            # 'clineConditionalOrderId': 'f03d5e98-b5ac-48fb-8647-dd4db828a297',  # STOP
         }
-        isCeilingLimit = (uppercaseType == 'CEILING_LIMIT')
-        isCeilingMarket = (uppercaseType == 'CEILING_MARKET')
-        isCeilingOrder = isCeilingLimit or isCeilingMarket
-        if isCeilingOrder:
-            cost = None
-            if isCeilingLimit:
-                request['limit'] = self.price_to_precision(symbol, price)
-                cost = self.safe_number_2(params, 'ceiling', 'cost', amount)
-            elif isCeilingMarket:
-                cost = self.safe_number_2(params, 'ceiling', 'cost')
-                if cost is None:
-                    if price is None:
-                        cost = amount
+        method = 'privatePostOrders'
+        if stop or stopPrice:
+            method = 'privatePostConditionalOrders'
+            operand = self.safe_string(params, 'operand')
+            if operand is None:
+                raise ArgumentsRequired(self.id + ' createOrder() requires an operand parameter')
+            trailingStopPercent = self.safe_number(params, 'trailingStopPercent')
+            orderToCreate = self.safe_value(params, 'orderToCreate')
+            orderToCancel = self.safe_value(params, 'orderToCancel')
+            if stopPrice is None:
+                request['trailingStopPercent'] = self.price_to_precision(symbol, trailingStopPercent)
+            if orderToCreate:
+                isCeilingLimit = (uppercaseType == 'CEILING_LIMIT')
+                isCeilingMarket = (uppercaseType == 'CEILING_MARKET')
+                isCeilingOrder = isCeilingLimit or isCeilingMarket
+                ceiling = None
+                limit = None
+                timeInForce = None
+                if isCeilingOrder:
+                    cost = None
+                    if isCeilingLimit:
+                        limit = self.price_to_precision(symbol, price)
+                        cost = self.safe_number_2(params, 'ceiling', 'cost', amount)
+                    elif isCeilingMarket:
+                        cost = self.safe_number_2(params, 'ceiling', 'cost')
+                        if cost is None:
+                            if price is None:
+                                cost = amount
+                            else:
+                                cost = amount * price
+                    ceiling = self.cost_to_precision(symbol, cost)
+                    timeInForce = 'IMMEDIATE_OR_CANCEL'
+                else:
+                    if uppercaseType == 'LIMIT':
+                        limit = self.price_to_precision(symbol, price)
+                        timeInForce = 'GOOD_TIL_CANCELLED'
                     else:
-                        cost = amount * price
-            params = self.omit(params, ['ceiling', 'cost'])
-            request['ceiling'] = self.cost_to_precision(symbol, cost)
-            # bittrex only accepts IMMEDIATE_OR_CANCEL or FILL_OR_KILL for ceiling orders
-            request['timeInForce'] = 'IMMEDIATE_OR_CANCEL'
+                        timeInForce = 'IMMEDIATE_OR_CANCEL'
+                request['orderToCreate'] = {
+                    'marketSymbol': reverseId,
+                    'direction': side.upper(),
+                    'type': uppercaseType,
+                    'quantity': self.amount_to_precision(symbol, amount),
+                    'ceiling': ceiling,
+                    'limit': limit,
+                    'timeInForce': timeInForce,
+                    'clientOrderId': self.safe_string(params, 'clientOrderId'),
+                    'useAwards': self.safe_value(params, 'useAwards'),
+                }
+            if orderToCancel:
+                request['orderToCancel'] = orderToCancel
+            request['triggerPrice'] = self.price_to_precision(symbol, stopPrice)
+            request['operand'] = operand
         else:
-            request['quantity'] = self.amount_to_precision(symbol, amount)
-            if uppercaseType == 'LIMIT':
-                request['limit'] = self.price_to_precision(symbol, price)
-                request['timeInForce'] = 'GOOD_TIL_CANCELLED'
-            else:
-                # bittrex does not allow GOOD_TIL_CANCELLED for market orders
+            if side is not None:
+                request['direction'] = side.upper()
+            request['type'] = uppercaseType
+            isCeilingLimit = (uppercaseType == 'CEILING_LIMIT')
+            isCeilingMarket = (uppercaseType == 'CEILING_MARKET')
+            isCeilingOrder = isCeilingLimit or isCeilingMarket
+            if isCeilingOrder:
+                cost = None
+                if isCeilingLimit:
+                    request['limit'] = self.price_to_precision(symbol, price)
+                    cost = self.safe_number_2(params, 'ceiling', 'cost', amount)
+                elif isCeilingMarket:
+                    cost = self.safe_number_2(params, 'ceiling', 'cost')
+                    if cost is None:
+                        if price is None:
+                            cost = amount
+                        else:
+                            cost = amount * price
+                request['ceiling'] = self.cost_to_precision(symbol, cost)
+                # bittrex only accepts IMMEDIATE_OR_CANCEL or FILL_OR_KILL for ceiling orders
                 request['timeInForce'] = 'IMMEDIATE_OR_CANCEL'
-        response = self.privatePostOrders(self.extend(request, params))
+            else:
+                request['quantity'] = self.amount_to_precision(symbol, amount)
+                if uppercaseType == 'LIMIT':
+                    request['limit'] = self.price_to_precision(symbol, price)
+                    request['timeInForce'] = 'GOOD_TIL_CANCELLED'
+                else:
+                    # bittrex does not allow GOOD_TIL_CANCELLED for market orders
+                    request['timeInForce'] = 'IMMEDIATE_OR_CANCEL'
+        query = self.omit(params, ['stop', 'stopPrice', 'ceiling', 'cost', 'operand', 'trailingStopPercent', 'orderToCreate', 'orderToCancel'])
+        response = getattr(self, method)(self.extend(request, query))
+        #
+        # Spot
         #
         #     {
         #         id: 'f03d5e98-b5ac-48fb-8647-dd4db828a297',
@@ -885,15 +1006,93 @@ class bittrex(Exchange):
         #         updatedAt: '2020-03-18T02:37:33.42Z'
         #       }
         #
+        # Stop
+        #
+        #     {
+        #         "id": "9791fe52-a3e5-4ac3-ae03-e327b2993571",
+        #         "marketSymbol": "BTC-USDT",
+        #         "operand": "LTE",
+        #         "triggerPrice": "0.1",
+        #         "orderToCreate": {
+        #             "marketSymbol": "BTC-USDT",
+        #             "direction": "BUY",
+        #             "type": "LIMIT",
+        #             "quantity": "0.0002",
+        #             "limit": "30000",
+        #             "timeInForce": "GOOD_TIL_CANCELLED"
+        #         },
+        #         "status": "OPEN",
+        #         "createdAt": "2022-04-19T21:02:14.17Z",
+        #         "updatedAt": "2022-04-19T21:02:14.17Z"
+        #     }
+        #
         return self.parse_order(response, market)
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        request = {
-            'orderId': id,
-        }
-        response = self.privateDeleteOrdersOrderId(self.extend(request, params))
-        return self.extend(self.parse_order(response), {
+        stop = self.safe_value(params, 'stop')
+        request = {}
+        method = None
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        if stop:
+            method = 'privateDeleteConditionalOrdersConditionalOrderId'
+            request = {
+                'conditionalOrderId': id,
+            }
+        else:
+            method = 'privateDeleteOrdersOrderId'
+            request = {
+                'orderId': id,
+            }
+        query = self.omit(params, 'stop')
+        response = getattr(self, method)(self.extend(request, query))
+        #
+        # Spot
+        #
+        #     [
+        #         {
+        #             "id": "df6cf5ee-fc27-4b61-991a-cc94b6459ac9",
+        #             "marketSymbol": "BTC-USDT",
+        #             "direction": "BUY",
+        #             "type": "LIMIT",
+        #             "quantity": "0.00023277",
+        #             "limit": "30000.00000000",
+        #             "timeInForce": "GOOD_TIL_CANCELLED",
+        #             "fillQuantity": "0.00000000",
+        #             "commission": "0.00000000",
+        #             "proceeds": "0.00000000",
+        #             "status": "CANCELLED",
+        #             "createdAt": "2022-04-20T02:33:53.16Z",
+        #             "updatedAt": "2022-04-20T02:33:53.16Z"
+        #         }
+        #     ]
+        #
+        # Stop
+        #
+        #     [
+        #         {
+        #             "id": "f64f7c4f-295c-408b-9cbc-601981abf100",
+        #             "marketSymbol": "BTC-USDT",
+        #             "operand": "LTE",
+        #             "triggerPrice": "0.10000000",
+        #             "orderToCreate": {
+        #                 "marketSymbol": "BTC-USDT",
+        #                 "direction": "BUY",
+        #                 "type": "LIMIT",
+        #                 "quantity": "0.00020000",
+        #                 "limit": "30000.00000000",
+        #                 "timeInForce": "GOOD_TIL_CANCELLED"
+        #             },
+        #             "status": "CANCELLED",
+        #             "createdAt": "2022-04-20T02:38:12.26Z",
+        #             "updatedAt": "2022-04-20T02:38:12.26Z"
+        #             "closedAt": "2022-04-20T03:47:24.69Z"
+        #         }
+        #     ]
+        #
+        return self.extend(self.parse_order(response, market), {
             'id': id,
             'info': response,
             'status': 'canceled',
@@ -1081,6 +1280,8 @@ class bittrex(Exchange):
 
     def parse_order(self, order, market=None):
         #
+        # Spot createOrder, fetchOpenOrders, fetchClosedOrders, fetchOrder, cancelOrder
+        #
         #     {
         #         id: '1be35109-b763-44ce-b6ea-05b6b0735c0c',
         #         marketSymbol: 'LTC-ETH',
@@ -1099,11 +1300,31 @@ class bittrex(Exchange):
         #         closedAt: '2018-06-23T13:14:30.19Z'
         #     }
         #
+        # Stop createOrder, fetchOpenOrders, fetchClosedOrders, fetchOrder, cancelOrder
+        #
+        #     {
+        #         "id": "9791fe52-a3e5-4ac3-ae03-e327b2993571",
+        #         "marketSymbol": "BTC-USDT",
+        #         "operand": "LTE",
+        #         "triggerPrice": "0.1",
+        #         "orderToCreate": {
+        #             "marketSymbol": "BTC-USDT",
+        #             "direction": "BUY",
+        #             "type": "LIMIT",
+        #             "quantity": "0.0002",
+        #             "limit": "30000",
+        #             "timeInForce": "GOOD_TIL_CANCELLED"
+        #         },
+        #         "status": "OPEN",
+        #         "createdAt": "2022-04-19T21:02:14.17Z",
+        #         "updatedAt": "2022-04-19T21:02:14.17Z",
+        #         "closedAt": "2022-04-20T03:47:24.69Z"
+        #     }
+        #
         marketSymbol = self.safe_string(order, 'marketSymbol')
         market = self.safe_market(marketSymbol, market, '-')
         symbol = market['symbol']
         feeCurrency = market['quote']
-        direction = self.safe_string_lower(order, 'direction')
         createdAt = self.safe_string(order, 'createdAt')
         updatedAt = self.safe_string(order, 'updatedAt')
         closedAt = self.safe_string(order, 'closedAt')
@@ -1114,14 +1335,40 @@ class bittrex(Exchange):
         elif updatedAt:
             lastTradeTimestamp = self.parse8601(updatedAt)
         timestamp = self.parse8601(createdAt)
+        direction = self.safe_string_lower(order, 'direction')
+        if direction is None:
+            conditionalOrder = self.safe_value(order, 'orderToCreate')
+            if conditionalOrder is None:
+                conditionalOrder = self.safe_value(order, 'orderToCancel')
+            direction = self.safe_string_lower(conditionalOrder, 'direction')
         type = self.safe_string_lower(order, 'type')
+        if type is None:
+            conditionalOrder = self.safe_value(order, 'orderToCreate')
+            if conditionalOrder is None:
+                conditionalOrder = self.safe_value(order, 'orderToCancel')
+            type = self.safe_string_lower(conditionalOrder, 'type')
         quantity = self.safe_string(order, 'quantity')
+        if quantity is None:
+            conditionalOrder = self.safe_value(order, 'orderToCreate')
+            if conditionalOrder is None:
+                conditionalOrder = self.safe_value(order, 'orderToCancel')
+            quantity = self.safe_string(conditionalOrder, 'quantity')
         limit = self.safe_string(order, 'limit')
+        if limit is None:
+            conditionalOrder = self.safe_value(order, 'orderToCreate')
+            if conditionalOrder is None:
+                conditionalOrder = self.safe_value(order, 'orderToCancel')
+            limit = self.safe_string(conditionalOrder, 'limit')
+        timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
+        if timeInForce is None:
+            conditionalOrder = self.safe_value(order, 'orderToCreate')
+            if conditionalOrder is None:
+                conditionalOrder = self.safe_value(order, 'orderToCancel')
+            timeInForce = self.parse_time_in_force(self.safe_string(conditionalOrder, 'timeInForce'))
         fillQuantity = self.safe_string(order, 'fillQuantity')
         commission = self.safe_number(order, 'commission')
         proceeds = self.safe_string(order, 'proceeds')
         status = self.safe_string_lower(order, 'status')
-        timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
         postOnly = (timeInForce == 'PO')
         return self.safe_order({
             'id': self.safe_string(order, 'id'),
@@ -1135,7 +1382,7 @@ class bittrex(Exchange):
             'postOnly': postOnly,
             'side': direction,
             'price': limit,
-            'stopPrice': None,
+            'stopPrice': self.safe_string(order, 'triggerPrice'),
             'cost': proceeds,
             'average': None,
             'amount': quantity,
@@ -1167,19 +1414,29 @@ class bittrex(Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
+        stop = self.safe_value(params, 'stop')
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
         response = None
+        method = None
         try:
-            request = {
-                'orderId': id,
-            }
-            response = self.privateGetOrdersOrderId(self.extend(request, params))
+            request = {}
+            if stop:
+                method = 'privateGetConditionalOrdersConditionalOrderId'
+                request['conditionalOrderId'] = id
+            else:
+                method = 'privateGetOrdersOrderId'
+                request['orderId'] = id
+            query = self.omit(params, 'stop')
+            response = getattr(self, method)(self.extend(request, query))
         except Exception as e:
             if self.last_json_response:
                 message = self.safe_string(self.last_json_response, 'message')
                 if message == 'UUID_INVALID':
                     raise OrderNotFound(self.id + ' fetchOrder() error: ' + self.last_http_response)
             raise e
-        return self.parse_order(response)
+        return self.parse_order(response, market)
 
     def order_to_trade(self, order):
         # self entire method should be moved to the base class
@@ -1233,6 +1490,7 @@ class bittrex(Exchange):
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
+        stop = self.safe_value(params, 'stop')
         request = {}
         if limit is not None:
             request['pageSize'] = limit
@@ -1249,7 +1507,54 @@ class bittrex(Exchange):
             # which is prone to errors, as was shown here
             # https://github.com/ccxt/ccxt/pull/5219#issuecomment-499646209
             request['marketSymbol'] = market['base'] + '-' + market['quote']
-        response = self.privateGetOrdersClosed(self.extend(request, params))
+        method = 'privateGetOrdersClosed'
+        if stop:
+            method = 'privateGetConditionalOrdersClosed'
+        query = self.omit(params, 'stop')
+        response = getattr(self, method)(self.extend(request, query))
+        #
+        # Spot
+        #
+        #     [
+        #         {
+        #             "id": "df6cf5ee-fc27-4b61-991a-cc94b6459ac9",
+        #             "marketSymbol": "BTC-USDT",
+        #             "direction": "BUY",
+        #             "type": "LIMIT",
+        #             "quantity": "0.00023277",
+        #             "limit": "30000.00000000",
+        #             "timeInForce": "GOOD_TIL_CANCELLED",
+        #             "fillQuantity": "0.00000000",
+        #             "commission": "0.00000000",
+        #             "proceeds": "0.00000000",
+        #             "status": "OPEN",
+        #             "createdAt": "2022-04-20T02:33:53.16Z",
+        #             "updatedAt": "2022-04-20T02:33:53.16Z"
+        #         }
+        #     ]
+        #
+        # Stop
+        #
+        #     [
+        #         {
+        #             "id": "f64f7c4f-295c-408b-9cbc-601981abf100",
+        #             "marketSymbol": "BTC-USDT",
+        #             "operand": "LTE",
+        #             "triggerPrice": "0.10000000",
+        #             "orderToCreate": {
+        #                 "marketSymbol": "BTC-USDT",
+        #                 "direction": "BUY",
+        #                 "type": "LIMIT",
+        #                 "quantity": "0.00020000",
+        #                 "limit": "30000.00000000",
+        #                 "timeInForce": "GOOD_TIL_CANCELLED"
+        #             },
+        #             "status": "OPEN",
+        #             "createdAt": "2022-04-20T02:38:12.26Z",
+        #             "updatedAt": "2022-04-20T02:38:12.26Z"
+        #         }
+        #     ]
+        #
         return self.parse_orders(response, market, since, limit)
 
     def create_deposit_address(self, code, params={}):

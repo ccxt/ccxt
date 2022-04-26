@@ -133,7 +133,7 @@ The CCXT library currently supports the following 114 cryptocurrency exchange ma
 | [![gemini](https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg)](https://gemini.com/)                                                             | gemini             | [Gemini](https://gemini.com/)                                                            | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.gemini.com/rest-api)                                                     |                                                                                                                             |                                                                              |
 | [![hitbtc](https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg)](https://hitbtc.com/?ref_id=5a5d39a65d466)                                        | hitbtc             | [HitBTC](https://hitbtc.com/?ref_id=5a5d39a65d466)                                       | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://api.hitbtc.com/v2)                                                            |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![hitbtc3](https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg)](https://hitbtc.com/?ref_id=5a5d39a65d466)                                       | hitbtc3            | [HitBTC](https://hitbtc.com/?ref_id=5a5d39a65d466)                                       | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://api.hitbtc.com)                                                               |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![hollaex](https://user-images.githubusercontent.com/1294454/75841031-ca375180-5ddd-11ea-8417-b975674c23cb.jpg)](https://pro.hollaex.com/signup?affiliation_code=QSWA6G)                         | hollaex            | [HollaEx](https://pro.hollaex.com/signup?affiliation_code=QSWA6G)                        | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://apidocs.hollaex.com)                                                          |                                                                                                                             |                                                                              |
+| [![hollaex](https://user-images.githubusercontent.com/1294454/75841031-ca375180-5ddd-11ea-8417-b975674c23cb.jpg)](https://pro.hollaex.com/signup?affiliation_code=QSWA6G)                         | hollaex            | [HollaEx](https://pro.hollaex.com/signup?affiliation_code=QSWA6G)                        | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://apidocs.hollaex.com)                                                          |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![huobi](https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg)](https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223)            | huobi              | [Huobi](https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223)           | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://huobiapi.github.io/docs/spot/v1/cn/)                                          | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![huobijp](https://user-images.githubusercontent.com/1294454/85734211-85755480-b705-11ea-8b35-0b7f1db33a2f.jpg)](https://www.huobi.co.jp/register/?invite_code=znnq3)                            | huobijp            | [Huobi Japan](https://www.huobi.co.jp/register/?invite_code=znnq3)                       | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://api-doc.huobi.co.jp)                                                          |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![idex](https://user-images.githubusercontent.com/51840849/94481303-2f222100-01e0-11eb-97dd-bc14c5943a86.jpg)](https://idex.io)                                                                  | idex               | [IDEX](https://idex.io)                                                                  | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://docs.idex.io/)                                                                | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
@@ -2564,18 +2564,18 @@ Returns
 [
     {
         "tier": 1,                       // tier index
-        "notionalCurrency": "USDT",      // the currency that notionalFloor and notionalCap are in
-        "notionalFloor": 0,              // the lowest amount of this tier // stake = 0.0
-        "notionalCap": 10000,            // the highest amount of this tier // max stake amount at 75x leverage = 133.33333333333334
+        "notionalCurrency": "USDT",      // the currency that minNotional and maxNotional are in
+        "minNotional": 0,                // the lowest amount of this tier // stake = 0.0
+        "maxNotional": 10000,            // the highest amount of this tier // max stake amount at 75x leverage = 133.33333333333334
         "maintenanceMarginRate": 0.0065, // maintenance margin rate
-        "maxLeverage": 75,               // max available leverage for this market when the value of the trade is > notionalFloor and < notionalCap
+        "maxLeverage": 75,               // max available leverage for this market when the value of the trade is > minNotional and < maxNotional
         "info": { ... }                  // Response from exchange
     },
     {
         "tier": 2,
         "notionalCurrency": "USDT",
-        "notionalFloor": 10000,          // min stake amount at 50x leverage = 200.0
-        "notionalCap": 50000,            // max stake amount at 50x leverage = 1000.0
+        "minNotional": 10000,            // min stake amount at 50x leverage = 200.0
+        "maxNotional": 50000,            // max stake amount at 50x leverage = 1000.0
         "maintenanceMarginRate": 0.01,
         "maxLeverage": 50,
         "info": { ... },
@@ -2584,8 +2584,8 @@ Returns
     {
         "tier": 9,
         "notionalCurrency": "USDT",
-        "notionalFloor": 20000000,
-        "notionalCap": 50000000,
+        "minNotional": 20000000,
+        "maxNotional": 50000000,
         "maintenanceMarginRate": 0.5,
         "maxLeverage": 1,
         "info": { ... },
@@ -3484,8 +3484,8 @@ Parameters
   - `sell` give base currency and receive quote currency; for example, buying `BTC/USD` means that you will receive dollars for your bitcoins.
 - **type** a string literal type of order
   **Unified types:**
-  - [`market`](market-orders) not allowed by some exchanges, see [their docs](#exchanges) for details 
-  - [`limit`](limit-orders)
+  - [market](market-orders) not allowed by some exchanges, see [their docs](#exchanges) for details 
+  - [limit](limit-orders)
   - see #custom-order-params and #other-order-types for non-unified types
 - **amount**, how much of currency you want to trade usually, but not always, in units of the base currency of the trading pair symbol (the units for some exchanges are dependent on the side of the order: see their API docs for details.)
 - **price** the price at which the order is to be fullfilled at in units of the quote currency (ignored in market orders)
@@ -4523,7 +4523,7 @@ Be careful when specifying the `tag` and the `address`. The `tag` is **NOT an ar
 
 ## Transfers
 
-The `transfer` method makes internal transfers of funds between accounts on the same exchange. If an exchange is separated on CCXT into a spot and futures class (e.g. `binanceusdm`, `kucoinfutures`, ...), then the method `transferIn` may be available to transfer funds into the futures account, and the method `transferOut` may be available to transfer funds out of the futures account
+The `transfer` method makes internal transfers of funds between accounts on the same exchange. This can include subaccounts or accounts of different types (`spot`, `margin`, `future`, ...). If an exchange is separated on CCXT into a spot and futures class (e.g. `binanceusdm`, `kucoinfutures`, ...), then the method `transferIn` may be available to transfer funds into the futures account, and the method `transferOut` may be available to transfer funds out of the futures account
 
 ```Javascript
 transfer (code, amount, fromAccount, toAccount, params = {})
@@ -4534,17 +4534,21 @@ Parameters
 - **code** (String) Unified CCXT currency code (e.g. `"USDT"`)
 - **amount** (Float) The amount of currency to transfer (e.g. `10.5`)
 - **fromAccount** (String) The account to transfer funds from.
-- **toAccount** (String) The account to transfer funds to
+- **toAccount** (String) The account to transfer funds to.
 - **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+- **params.symbol** (String) Market symbol when transfering to or from a margin account (e.g. `'BTC/USDT'`)
 
 **Account Types**
 
-Unified values for `fromAccount` and `toAccount` include
+`fromAccount` and `toAccount` can accept the exchange account id or one of the following unified values:
 
-- `funding` *For some exchanges `funding` and `spot` are the same account*
+- `funding` *for some exchanges `funding` and `spot` are the same account*
+- `main` *for some exchanges that allow for subaccounts*
 - `spot`
 - `margin`
 - `future`
+- `swap`
+- `lending`
 
 You can retrieve all the account types by selecting the keys from `exchange.options['accountsByType']
 
@@ -4581,6 +4585,21 @@ Parameters
 Returns
 
 - An array of [transfer structures](#transfer-structure)
+
+```Javascript
+fetchTransfer (id, since = undefined, limit = undefined, params = {})
+```
+
+Parameters
+
+- **id** (String) tranfer id (e.g. `"12345"`)
+- **since** (Integer) Timestamp (ms) of the earliest time to retrieve transfers for (e.g. `1646940314000`)
+- **limit** (Integer) The number of [transfer structures](#transfer-structure) to retrieve (e.g. `5`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- A [transfer structure](#transfer-structure)
 
 ### Transfer Structure
 

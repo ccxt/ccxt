@@ -812,7 +812,14 @@ export default class bibox extends Exchange {
         //         'status': 3
         //     }
         //
-        const id = this.safeString (transaction, 'id');
+        // withdraw
+        //
+        //     {
+        //         "result": 228, // withdrawal id
+        //         "cmd":"transfer/transferOut"
+        //     }
+        //
+        const id = this.safeString2 (transaction, 'id', 'result');
         const address = this.safeString (transaction, 'to_address');
         const currencyId = this.safeString (transaction, 'coin_symbol');
         const code = this.safeCurrencyCode (currencyId, currency);
@@ -1289,11 +1296,7 @@ export default class bibox extends Exchange {
         //
         const outerResults = this.safeValue (response, 'result');
         const firstResult = this.safeValue (outerResults, 0, {});
-        const id = this.safeValue (firstResult, 'result');
-        return {
-            'info': response,
-            'id': id,
-        };
+        return this.parseTransaction (firstResult, currency);
     }
 
     async fetchFundingFees (codes = undefined, params = {}) {

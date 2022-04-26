@@ -9,6 +9,7 @@ import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import AccountNotEnabled
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -55,6 +56,9 @@ class okx(Exchange):
                 'createDepositAddress': None,
                 'createOrder': True,
                 'createReduceOnlyOrder': None,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': True,
+                'createStopOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': None,
@@ -387,7 +391,7 @@ class okx(Exchange):
                     '51007': InvalidOrder,  # Order placement failed. Order amount should be at least 1 contract(showing up when placing an order with less than 1 contract)
                     '51008': InsufficientFunds,  # Order placement failed due to insufficient balance
                     '51009': AccountSuspended,  # Order placement function is blocked by the platform
-                    '51010': InsufficientFunds,  # Account level too low
+                    '51010': AccountNotEnabled,  # Account level too low {"code":"1","data":[{"clOrdId":"uJrfGFth9F","ordId":"","sCode":"51010","sMsg":"The current account mode does not support self API interface. ","tag":""}],"msg":"Operation failed."}
                     '51011': InvalidOrder,  # Duplicated order ID
                     '51012': BadSymbol,  # Token does not exist
                     '51014': BadSymbol,  # Index does not exist
@@ -666,9 +670,8 @@ class okx(Exchange):
                     'swap': '9',
                     'option': '12',
                     'trading': '18',  # unified trading account
-                    'unified': '18',
                 },
-                'typesByAccount': {
+                'accountsById': {
                     '1': 'spot',
                     '3': 'future',
                     '5': 'margin',
@@ -721,8 +724,11 @@ class okx(Exchange):
     async def fetch_status(self, params={}):
         response = await self.publicGetSystemStatus(params)
         #
+        # Note, if there is no maintenance around, the 'data' array is empty
+        #
         #     {
         #         "code": "0",
+        #         "msg": "",
         #         "data": [
         #             {
         #                 "begin": "1621328400000",
@@ -734,15 +740,15 @@ class okx(Exchange):
         #                 "system": "classic",  # classic, unified
         #                 "title": "Classic Spot System Upgrade"
         #             },
-        #         ],
-        #         "msg": ""
+        #         ]
         #     }
         #
         data = self.safe_value(response, 'data', [])
+        dataLength = len(data)
         timestamp = self.milliseconds()
         update = {
             'updated': timestamp,
-            'status': 'ok',
+            'status': 'ok' if (dataLength == 0) else 'maintenance',
             'eta': None,
             'info': response,
         }
@@ -752,8 +758,7 @@ class okx(Exchange):
             if state == 'ongoing':
                 update['eta'] = self.safe_integer(event, 'end')
                 update['status'] = 'maintenance'
-        self.status = self.extend(self.status, update)
-        return self.status
+        return update
 
     async def fetch_time(self, params={}):
         response = await self.publicGetPublicTime(params)
@@ -2197,10 +2202,10 @@ class okx(Exchange):
         :param string id: The order id
         :param string symbol: Unified market symbol
         :param dict params: Extra and exchange specific parameters
-        :param integer params.till: Timestamp in ms of the latest time to retrieve orders for
-        :param boolean params.stop: True if fetching trigger orders
-        :param string params.ordType: "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
-        :param string params.algoId: Algo ID
+        :param integer params['till']: Timestamp in ms of the latest time to retrieve orders for
+        :param boolean params['stop']: True if fetching trigger orders
+        :param string params['ordType']: "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+        :param string params['algoId']: Algo ID
         :returns: `An order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
        """
         if symbol is None:
@@ -2346,10 +2351,10 @@ class okx(Exchange):
         :param int since: Timestamp in ms of the earliest time to retrieve orders for
         :param int limit: Number of results per request. The maximum is 100; The default is 100
         :param dict params: Extra and exchange specific parameters
-        :param int params.till: Timestamp in ms of the latest time to retrieve orders for
-        :param bool params.stop: True if fetching trigger orders
-        :param str params.ordType: "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
-        :param str params.algoId: Algo ID
+        :param int params['till']: Timestamp in ms of the latest time to retrieve orders for
+        :param bool params['stop']: True if fetching trigger orders
+        :param str params['ordType']: "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+        :param str params['algoId']: Algo ID
         :returns: `An order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
@@ -3678,14 +3683,8 @@ class okx(Exchange):
         await self.load_markets()
         currency = self.currency(code)
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
-        fromId = self.safe_string(accountsByType, fromAccount)
-        toId = self.safe_string(accountsByType, toAccount)
-        if fromId is None:
-            keys = list(accountsByType.keys())
-            raise ExchangeError(self.id + ' fromAccount must be one of ' + ', '.join(keys))
-        if toId is None:
-            keys = list(accountsByType.keys())
-            raise ExchangeError(self.id + ' toAccount must be one of ' + ', '.join(keys))
+        fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
+        toId = self.safe_string(accountsByType, toAccount, toAccount)
         request = {
             'ccy': currency['id'],
             'amt': self.currency_to_precision(code, amount),
@@ -3696,6 +3695,16 @@ class okx(Exchange):
             # 'instId': market['id'],  # required when from is 3, 5 or 9, margin trading pair like BTC-USDT or contract underlying like BTC-USD to be transferred out
             # 'toInstId': market['id'],  # required when from is 3, 5 or 9, margin trading pair like BTC-USDT or contract underlying like BTC-USD to be transferred in
         }
+        if fromId == 'master':
+            request['type'] = '1'
+            request['subAcct'] = toId
+            request['from'] = self.safe_string(params, 'from', '6')
+            request['to'] = self.safe_string(params, 'to', '6')
+        elif toId == 'master':
+            request['type'] = '2'
+            request['subAcct'] = fromId
+            request['from'] = self.safe_string(params, 'from', '6')
+            request['to'] = self.safe_string(params, 'to', '6')
         response = await self.privatePostAssetTransfer(self.extend(request, params))
         #
         #     {
@@ -3749,9 +3758,9 @@ class okx(Exchange):
         amount = self.safe_number(transfer, 'amt')
         fromAccountId = self.safe_string(transfer, 'from')
         toAccountId = self.safe_string(transfer, 'to')
-        typesByAccount = self.safe_value(self.options, 'typesByAccount', {})
-        fromAccount = self.safe_string(typesByAccount, fromAccountId)
-        toAccount = self.safe_string(typesByAccount, toAccountId)
+        accountsById = self.safe_value(self.options, 'accountsById', {})
+        fromAccount = self.safe_string(accountsById, fromAccountId)
+        toAccount = self.safe_string(accountsById, toAccountId)
         timestamp = self.milliseconds()
         status = self.safe_string(transfer, 'state')
         return {
@@ -3766,7 +3775,7 @@ class okx(Exchange):
             'status': status,
         }
 
-    async def fetch_transfer(self, id, since=None, limit=None, params={}):
+    async def fetch_transfer(self, id, code=None, params={}):
         await self.load_markets()
         request = {
             'transId': id,
@@ -3794,11 +3803,8 @@ class okx(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        resultArray = []
-        for i in range(0, len(data)):
-            transfer = data[i]
-            resultArray.append(self.parse_transfer(transfer, None))
-        return self.filter_by_since_limit(resultArray, since, limit)
+        transfer = self.safe_value(data, 0)
+        return self.parse_transfer(transfer)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         isArray = isinstance(params, list)
@@ -4431,8 +4437,8 @@ class okx(Exchange):
             tiers.append({
                 'tier': self.safe_integer(tier, 'tier'),
                 'currency': market['quote'],
-                'notionalFloor': self.safe_number(tier, 'minSz'),
-                'notionalCap': self.safe_number(tier, 'maxSz'),
+                'minNotional': self.safe_number(tier, 'minSz'),
+                'maxNotional': self.safe_number(tier, 'maxSz'),
                 'maintenanceMarginRate': self.safe_number(tier, 'mmr'),
                 'maxLeverage': self.safe_number(tier, 'maxLever'),
                 'info': tier,
@@ -4447,7 +4453,7 @@ class okx(Exchange):
         :param int since: Timestamp in ms of the earliest time to receive interest records for
         :param int limit: The number of `borrow interest structures <https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure>` to retrieve
         :param dict params: Exchange specific parameters
-        :param int params.type: Loan type 1 - VIP loans 2 - Market loans *Default is Market loans*
+        :param int params['type']: Loan type 1 - VIP loans 2 - Market loans *Default is Market loans*
         :returns: An array of `borrow interest structures <https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure>`
         """
         await self.load_markets()

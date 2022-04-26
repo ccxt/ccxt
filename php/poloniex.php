@@ -1306,16 +1306,8 @@ class poloniex extends Exchange {
         $currency = $this->currency($code);
         $amount = $this->currency_to_precision($code, $amount);
         $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
-        $fromId = $this->safe_string($accountsByType, $fromAccount);
-        $toId = $this->safe_string($accountsByType, $toAccount);
-        if ($fromId === null) {
-            $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
-            throw new ExchangeError($this->id . ' $fromAccount must be one of ' . implode(', ', $keys));
-        }
-        if ($toId === null) {
-            $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
-            throw new ExchangeError($this->id . ' $toAccount must be one of ' . implode(', ', $keys));
-        }
+        $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
+        $toId = $this->safe_string($accountsByType, $toAccount, $fromAccount);
         $request = array(
             'amount' => $amount,
             'currency' => $currency['id'],
@@ -1394,10 +1386,7 @@ class poloniex extends Exchange {
         //         withdrawalNumber => 13449869
         //     }
         //
-        return array(
-            'info' => $response,
-            'id' => $this->safe_string($response, 'withdrawalNumber'),
-        );
+        return $this->parse_transaction($response, $currency);
     }
 
     public function fetch_transactions_helper($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1566,6 +1555,14 @@ class poloniex extends Exchange {
         //         "timestamp" => 1523834337,
         //         "canResendEmail" => 0,
         //         "withdrawalNumber" => 11162900
+        //     }
+        //
+        // withdraw
+        //
+        //     {
+        //         response => 'Withdrew 1.00000000 USDT.',
+        //         email2FA => false,
+        //         withdrawalNumber => 13449869
         //     }
         //
         $timestamp = $this->safe_timestamp($transaction, 'timestamp');

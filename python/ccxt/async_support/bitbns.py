@@ -59,8 +59,10 @@ class bitbns(Exchange):
                 'fetchTradingFees': False,
                 'fetchTransfer': False,
                 'fetchTransfers': False,
+                'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
                 'transfer': False,
+                'withdraw': False,
             },
             'timeframes': {
             },
@@ -165,15 +167,13 @@ class bitbns(Exchange):
         #         "code":200
         #     }
         #
-        status = self.safe_string(response, 'status')
-        if status is not None:
-            status = 'ok' if (status == '1') else 'maintenance'
-            self.status = self.extend(self.status, {
-                'status': status,
-                'updated': self.milliseconds(),
-                'info': response,
-            })
-        return self.status
+        statusRaw = self.safe_string(response, 'status')
+        return {
+            'status': self.safe_string({'1': 'ok'}, statusRaw, statusRaw),
+            'updated': self.milliseconds(),
+            'eta': None,
+            'info': response,
+        }
 
     async def fetch_markets(self, params={}):
         response = await self.wwwGetOrderFetchMarkets(params)

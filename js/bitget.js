@@ -54,10 +54,12 @@ export default class bitget extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTransfer': false,
                 'fetchTransfers': undefined,
+                'fetchWithdrawal': false,
                 'fetchWithdrawals': false,
                 'setLeverage': true,
                 'setMarginMode': true,
                 'transfer': false,
+                'withdraw': false,
             },
             'timeframes': {
                 'spot': {

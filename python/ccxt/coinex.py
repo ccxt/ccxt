@@ -8,6 +8,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -29,14 +30,17 @@ class coinex(Exchange):
                 'spot': True,
                 'margin': None,  # has but unimplemented
                 'swap': None,  # has but unimplemented
-                'future': None,  # has but unimplemented
-                'option': None,
+                'future': False,
+                'option': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchDeposits': True,
+                'fetchFundingHistory': True,
+                'fetchFundingRate': True,
+                'fetchFundingRateHistory': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -232,6 +236,8 @@ class coinex(Exchange):
             },
             'options': {
                 'createMarketBuyOrderRequiresPrice': True,
+                'defaultType': 'spot',  # spot, swap, margin
+                'defaultSubType': 'linear',  # linear, inverse
             },
             'commonCurrencies': {
                 'ACM': 'Actinium',
@@ -239,6 +245,17 @@ class coinex(Exchange):
         })
 
     def fetch_markets(self, params={}):
+        result = []
+        type, query = self.handle_market_type_and_params('fetchMarkets', None, params)
+        if type == 'spot' or type == 'margin':
+            result = self.fetch_spot_markets(query)
+        elif type == 'swap':
+            result = self.fetch_contract_markets(query)
+        else:
+            raise ExchangeError(self.id + " does not support the '" + type + "' market type, set exchange.options['defaultType'] to 'spot', 'margin' or 'swap'")
+        return result
+
+    def fetch_spot_markets(self, params):
         response = self.publicGetMarketInfo(params)
         #
         #     {
@@ -324,6 +341,100 @@ class coinex(Exchange):
             })
         return result
 
+    def fetch_contract_markets(self, params):
+        response = self.perpetualPublicGetMarketList(params)
+        #
+        #     {
+        #         "code": 0,
+        #         "data": [
+        #             {
+        #                 "name": "BTCUSD",
+        #                 "type": 2,  # 1: USDT-M Contracts, 2: Coin-M Contracts
+        #                 "leverages": ["3", "5", "8", "10", "15", "20", "30", "50", "100"],
+        #                 "stock": "BTC",
+        #                 "money": "USD",
+        #                 "fee_prec": 5,
+        #                 "stock_prec": 8,
+        #                 "money_prec": 1,
+        #                 "amount_prec": 0,
+        #                 "amount_min": "10",
+        #                 "multiplier": "1",
+        #                 "tick_size": "0.1",  # Min. Price Increment
+        #                 "available": True
+        #             },
+        #         ],
+        #         "message": "OK"
+        #     }
+        #
+        markets = self.safe_value(response, 'data', [])
+        result = []
+        for i in range(0, len(markets)):
+            entry = markets[i]
+            fees = self.fees
+            leverages = self.safe_value(entry, 'leverages', [])
+            subType = self.safe_integer(entry, 'type')
+            linear = True if (subType == 1) else False
+            inverse = True if (subType == 2) else False
+            id = self.safe_string(entry, 'name')
+            baseId = self.safe_string(entry, 'stock')
+            quoteId = self.safe_string(entry, 'money')
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
+            settleId = 'USDT' if (subType == 1) else baseId
+            settle = self.safe_currency_code(settleId)
+            symbol = base + '/' + quote + ':' + settle
+            result.append({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'settle': settle,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': settleId,
+                'type': 'swap',
+                'spot': False,
+                'margin': False,
+                'swap': True,
+                'future': False,
+                'option': False,
+                'active': self.safe_string(entry, 'available'),
+                'contract': True,
+                'linear': linear,
+                'inverse': inverse,
+                'taker': fees['trading']['taker'],
+                'maker': fees['trading']['maker'],
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.safe_integer(entry, 'stock_prec'),
+                    'price': self.safe_integer(entry, 'money_prec'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': self.safe_string(leverages, 0),
+                        'max': self.safe_string(leverages, len(leverages) - 1),
+                    },
+                    'amount': {
+                        'min': self.safe_string(entry, 'amount_min'),
+                        'max': None,
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+                'info': entry,
+            })
+        return result
+
     def parse_ticker(self, ticker, market=None):
         timestamp = self.safe_integer(ticker, 'date')
         symbol = self.safe_symbol(None, market)
@@ -382,7 +493,10 @@ class coinex(Exchange):
         return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_order_book(self, symbol, limit=20, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOrderBook() requires a symbol argument')
         self.load_markets()
+        market = self.market(symbol)
         if limit is None:
             limit = 20  # default
         request = {
@@ -390,12 +504,60 @@ class coinex(Exchange):
             'merge': '0.0000000001',
             'limit': str(limit),
         }
-        response = self.publicGetMarketDepth(self.extend(request, params))
-        return self.parse_order_book(response['data'], symbol)
+        method = 'perpetualPublicGetMarketDepth' if market['swap'] else 'publicGetMarketDepth'
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        # Spot
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "asks": [
+        #                 ["41056.33", "0.31727613"],
+        #                 ["41056.34", "1.05657294"],
+        #                 ["41056.35", "0.02346648"]
+        #             ],
+        #             "bids": [
+        #                 ["41050.61", "0.40618608"],
+        #                 ["41046.98", "0.13800000"],
+        #                 ["41046.56", "0.22579234"]
+        #             ],
+        #             "last": "41050.61",
+        #             "time": 1650573220346
+        #         },
+        #         "message": "OK"
+        #     }
+        #
+        # Swap
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "asks": [
+        #                 ["40620.90", "0.0384"],
+        #                 ["40625.50", "0.0219"],
+        #                 ["40625.90", "0.3506"]
+        #             ],
+        #             "bids": [
+        #                 ["40620.89", "19.6861"],
+        #                 ["40620.80", "0.0012"],
+        #                 ["40619.87", "0.0365"]
+        #             ],
+        #             "last": "40620.89",
+        #             "time": 1650587672406,
+        #             "sign_price": "40619.32",
+        #             "index_price": "40609.93"
+        #         },
+        #         "message": "OK"
+        #     }
+        #
+        result = self.safe_value(response, 'data', {})
+        timestamp = self.safe_integer(result, 'time')
+        return self.parse_order_book(result, symbol, timestamp)
 
     def parse_trade(self, trade, market=None):
         #
-        # fetchTrades(public)
+        # Spot and Swap fetchTrades(public)
         #
         #      {
         #          "id":  2611511379,
@@ -406,7 +568,7 @@ class coinex(Exchange):
         #          "date_ms":  1638990110518
         #      },
         #
-        # fetchMyTrades(private)
+        # Spot fetchMyTrades(private)
         #
         #      {
         #          "id": 2611520950,
@@ -423,7 +585,40 @@ class coinex(Exchange):
         #          "deal_money": "18.84442"
         #      }
         #
-        timestamp = self.safe_timestamp(trade, 'create_time')
+        # Swap fetchMyTrades(private)
+        #
+        #     {
+        #         "amount": "0.0012",
+        #         "deal_fee": "0.0237528",
+        #         "deal_insurance": "0",
+        #         "deal_margin": "15.8352",
+        #         "deal_order_id": 17797031903,
+        #         "deal_profit": "0",
+        #         "deal_stock": "47.5056",
+        #         "deal_type": 1,
+        #         "deal_user_id": 2969195,
+        #         "fee_asset": "",
+        #         "fee_discount": "0",
+        #         "fee_price": "0",
+        #         "fee_rate": "0.0005",
+        #         "fee_real_rate": "0.0005",
+        #         "id": 379044296,
+        #         "leverage": "3",
+        #         "margin_amount": "15.8352",
+        #         "market": "BTCUSDT",
+        #         "open_price": "39588",
+        #         "order_id": 17797092987,
+        #         "position_amount": "0.0012",
+        #         "position_id": 62052321,
+        #         "position_type": 1,
+        #         "price": "39588",
+        #         "role": 2,
+        #         "side": 2,
+        #         "time": 1650675936.016103,
+        #         "user_id": 3620173
+        #     }
+        #
+        timestamp = self.safe_timestamp_2(trade, 'create_time', 'time')
         if timestamp is None:
             timestamp = self.safe_integer(trade, 'date_ms')
         tradeId = self.safe_string(trade, 'id')
@@ -434,7 +629,7 @@ class coinex(Exchange):
         symbol = self.safe_symbol(marketId, market)
         costString = self.safe_string(trade, 'deal_money')
         fee = None
-        feeCostString = self.safe_string(trade, 'fee')
+        feeCostString = self.safe_string_2(trade, 'fee', 'deal_fee')
         if feeCostString is not None:
             feeCurrencyId = self.safe_string(trade, 'fee_asset')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
@@ -443,7 +638,21 @@ class coinex(Exchange):
                 'currency': feeCurrencyCode,
             }
         takerOrMaker = self.safe_string(trade, 'role')
-        side = self.safe_string(trade, 'type')
+        if takerOrMaker == '1':
+            takerOrMaker = 'maker'
+        elif takerOrMaker == '2':
+            takerOrMaker = 'taker'
+        side = None
+        if market['type'] == 'swap':
+            side = self.safe_integer(trade, 'side')
+            if side == 1:
+                side = 'sell'
+            elif side == 2:
+                side = 'buy'
+            if side is None:
+                side = self.safe_string(trade, 'type')
+        else:
+            side = self.safe_string(trade, 'type')
         return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
@@ -465,8 +674,14 @@ class coinex(Exchange):
         market = self.market(symbol)
         request = {
             'market': market['id'],
+            # 'last_id': 0,
         }
-        response = self.publicGetMarketDeals(self.extend(request, params))
+        if limit is not None:
+            request['limit'] = limit
+        method = 'perpetualPublicGetMarketDeals' if market['swap'] else 'publicGetMarketDeals'
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        # Spot and Swap
         #
         #      {
         #          "code":    0,
@@ -584,7 +799,10 @@ class coinex(Exchange):
         }
         if limit is not None:
             request['limit'] = limit
-        response = self.publicGetMarketKline(self.extend(request, params))
+        method = 'perpetualPublicGetMarketKline' if market['swap'] else 'publicGetMarketKline'
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        # Spot
         #
         #     {
         #         "code": 0,
@@ -592,6 +810,18 @@ class coinex(Exchange):
         #             [1591484400, "0.02505349", "0.02506988", "0.02507000", "0.02505304", "343.19716223", "8.6021323866383196", "ETHBTC"],
         #             [1591484700, "0.02506990", "0.02508109", "0.02508109", "0.02506979", "91.59841581", "2.2972047780447000", "ETHBTC"],
         #             [1591485000, "0.02508106", "0.02507996", "0.02508106", "0.02507500", "65.15307697", "1.6340597822306000", "ETHBTC"],
+        #         ],
+        #         "message": "OK"
+        #     }
+        #
+        # Swap
+        #
+        #     {
+        #         "code": 0,
+        #         "data": [
+        #             [1650569400, "41524.64", "41489.31", "41564.61", "41480.58", "29.7060", "1233907.099562"],
+        #             [1650569700, "41489.31", "41438.29", "41489.31", "41391.87", "42.4115", "1756154.189061"],
+        #             [1650570000, "41438.29", "41482.21", "41485.05", "41427.31", "22.2892", "924000.317861"]
         #         ],
         #         "message": "OK"
         #     }
@@ -908,18 +1138,38 @@ class coinex(Exchange):
         return self.fetch_orders_by_status('finished', symbol, since, limit, params)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
+        market = self.market(symbol)
+        swap = market['swap']
         if limit is None:
             limit = 100
         request = {
-            'page': 1,
-            'limit': limit,
+            'market': market['id'],  # SPOT and SWAP
+            'limit': limit,  # SPOT and SWAP
+            'offset': 0,  # SWAP, means query from a certain record
+            # 'page': 1,  # SPOT
+            # 'side': 2,  # SWAP, 0 for no limit, 1 for sell, 2 for buy
+            # 'start_time': since,  # SWAP
+            # 'end_time': 1524228297,  # SWAP
         }
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-            request['market'] = market['id']
-        response = self.privateGetOrderUserDeals(self.extend(request, params))
+        method = None
+        if swap:
+            method = 'perpetualPublicGetMarketUserDeals'
+            side = self.safe_integer(params, 'side')
+            if side is None:
+                raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a side parameter for swap markets')
+            if since is not None:
+                request['start_time'] = since
+            request['side'] = side
+            params = self.omit(params, 'side')
+        else:
+            method = 'privateGetOrderUserDeals'
+            request['page'] = 1
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        # Spot
         #
         #      {
         #          "code": 0,
@@ -947,9 +1197,207 @@ class coinex(Exchange):
         #          "message": "Success"
         #      }
         #
+        # Swap
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "limit": 100,
+        #             "offset": 0,
+        #             "records": [
+        #                 {
+        #                     "amount": "0.0012",
+        #                     "deal_fee": "0.0237528",
+        #                     "deal_insurance": "0",
+        #                     "deal_margin": "15.8352",
+        #                     "deal_order_id": 17797031903,
+        #                     "deal_profit": "0",
+        #                     "deal_stock": "47.5056",
+        #                     "deal_type": 1,
+        #                     "deal_user_id": 2969195,
+        #                     "fee_asset": "",
+        #                     "fee_discount": "0",
+        #                     "fee_price": "0",
+        #                     "fee_rate": "0.0005",
+        #                     "fee_real_rate": "0.0005",
+        #                     "id": 379044296,
+        #                     "leverage": "3",
+        #                     "margin_amount": "15.8352",
+        #                     "market": "BTCUSDT",
+        #                     "open_price": "39588",
+        #                     "order_id": 17797092987,
+        #                     "position_amount": "0.0012",
+        #                     "position_id": 62052321,
+        #                     "position_type": 1,
+        #                     "price": "39588",
+        #                     "role": 2,
+        #                     "side": 2,
+        #                     "time": 1650675936.016103,
+        #                     "user_id": 3620173
+        #                 }
+        #             ]
+        #         },
+        #         "message": "OK"
+        #     }
+        #
+        tradeRequest = 'records' if swap else 'data'
         data = self.safe_value(response, 'data')
-        trades = self.safe_value(data, 'data', [])
+        trades = self.safe_value(data, tradeRequest, [])
         return self.parse_trades(trades, market, since, limit)
+
+    def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires a symbol argument')
+        limit = 100 if (limit is None) else limit
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'market': market['id'],
+            'limit': limit,
+            # 'offset': 0,
+            # 'end_time': 1638990636000,
+            # 'windowtime': 1638990636000,
+        }
+        if since is not None:
+            request['start_time'] = since
+        response = self.perpetualPrivateGetPositionFunding(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "limit": 100,
+        #             "offset": 0,
+        #             "records": [
+        #                 {
+        #                     "amount": "0.0012",
+        #                     "asset": "USDT",
+        #                     "funding": "-0.0095688273996",
+        #                     "funding_rate": "0.00020034",
+        #                     "market": "BTCUSDT",
+        #                     "position_id": 62052321,
+        #                     "price": "39802.45",
+        #                     "real_funding_rate": "0.00020034",
+        #                     "side": 2,
+        #                     "time": 1650729623.933885,
+        #                     "type": 1,
+        #                     "user_id": 3620173,
+        #                     "value": "47.76294"
+        #                 },
+        #             ]
+        #         },
+        #         "message": "OK"
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        resultList = self.safe_value(data, 'records', [])
+        result = []
+        for i in range(0, len(resultList)):
+            entry = resultList[i]
+            timestamp = self.safe_timestamp(entry, 'time')
+            currencyId = self.safe_string(entry, 'asset')
+            code = self.safe_currency_code(currencyId)
+            result.append({
+                'info': entry,
+                'symbol': symbol,
+                'code': code,
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+                'id': self.safe_number(entry, 'position_id'),
+                'amount': self.safe_number(entry, 'funding'),
+            })
+        return result
+
+    def fetch_funding_rate(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise BadSymbol(self.id + ' fetchFundingRate() supports swap contracts only')
+        request = {
+            'market': market['id'],
+        }
+        response = self.perpetualPublicGetMarketTicker(self.extend(request, params))
+        #
+        #     {
+        #          "code": 0,
+        #         "data":
+        #         {
+        #             "date": 1650678472474,
+        #             "ticker": {
+        #                 "vol": "6090.9430",
+        #                 "low": "39180.30",
+        #                 "open": "40474.97",
+        #                 "high": "40798.01",
+        #                 "last": "39659.30",
+        #                 "buy": "39663.79",
+        #                 "period": 86400,
+        #                 "funding_time": 372,
+        #                 "position_amount": "270.1956",
+        #                 "funding_rate_last": "0.00022913",
+        #                 "funding_rate_next": "0.00013158",
+        #                 "funding_rate_predict": "0.00016552",
+        #                 "insurance": "16045554.83969682659674035672",
+        #                 "sign_price": "39652.48",
+        #                 "index_price": "39648.44250000",
+        #                 "sell_total": "22.3913",
+        #                 "buy_total": "19.4498",
+        #                 "buy_amount": "12.8942",
+        #                 "sell": "39663.80",
+        #                 "sell_amount": "0.9388"
+        #             }
+        #         },
+        #         "message": "OK"
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        ticker = self.safe_value(data, 'ticker', {})
+        return self.parse_funding_rate(ticker, market)
+
+    def parse_funding_rate(self, contract, market=None):
+        #
+        # fetchFundingRate
+        #
+        #     {
+        #         "vol": "6090.9430",
+        #         "low": "39180.30",
+        #         "open": "40474.97",
+        #         "high": "40798.01",
+        #         "last": "39659.30",
+        #         "buy": "39663.79",
+        #         "period": 86400,
+        #         "funding_time": 372,
+        #         "position_amount": "270.1956",
+        #         "funding_rate_last": "0.00022913",
+        #         "funding_rate_next": "0.00013158",
+        #         "funding_rate_predict": "0.00016552",
+        #         "insurance": "16045554.83969682659674035672",
+        #         "sign_price": "39652.48",
+        #         "index_price": "39648.44250000",
+        #         "sell_total": "22.3913",
+        #         "buy_total": "19.4498",
+        #         "buy_amount": "12.8942",
+        #         "sell": "39663.80",
+        #         "sell_amount": "0.9388"
+        #     }
+        #
+        return {
+            'info': contract,
+            'symbol': self.safe_symbol(None, market),
+            'markPrice': self.safe_string(contract, 'sign_price'),
+            'indexPrice': self.safe_string(contract, 'index_price'),
+            'interestRate': None,
+            'estimatedSettlePrice': None,
+            'timestamp': None,
+            'datetime': None,
+            'fundingRate': self.safe_string(contract, 'funding_rate_next'),
+            'fundingTimestamp': None,
+            'fundingDatetime': None,
+            'nextFundingRate': self.safe_string(contract, 'funding_rate_predict'),
+            'nextFundingTimestamp': None,
+            'nextFundingDatetime': None,
+            'previousFundingRate': self.safe_string(contract, 'funding_rate_last'),
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
+        }
 
     def withdraw(self, code, amount, address, tag=None, params={}):
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
@@ -998,6 +1446,57 @@ class coinex(Exchange):
             'fail': 'failed',
         }
         return self.safe_string(statuses, status, status)
+
+    def fetch_funding_rate_history(self, symbol=None, since=None, limit=100, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'market': market['id'],
+            'limit': limit,
+            'offset': 0,
+            # 'end_time': 1638990636,
+        }
+        if since is not None:
+            request['start_time'] = since
+        response = self.perpetualPublicGetMarketFundingHistory(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "offset": 0,
+        #             "limit": 3,
+        #             "records": [
+        #                 {
+        #                     "time": 1650672021.6230309,
+        #                     "market": "BTCUSDT",
+        #                     "asset": "USDT",
+        #                     "funding_rate": "0.00022913",
+        #                     "funding_rate_real": "0.00022913"
+        #                 },
+        #             ]
+        #         },
+        #         "message": "OK"
+        #     }
+        #
+        data = self.safe_value(response, 'data')
+        result = self.safe_value(data, 'records')
+        rates = []
+        for i in range(0, len(result)):
+            entry = result[i]
+            marketId = self.safe_string(entry, 'market')
+            symbol = self.safe_symbol(marketId)
+            timestamp = self.safe_timestamp(entry, 'time')
+            rates.append({
+                'info': entry,
+                'symbol': symbol,
+                'fundingRate': self.safe_string(entry, 'funding_rate'),
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+            })
+        sorted = self.sort_by(rates, 'timestamp')
+        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
     def parse_transaction(self, transaction, currency=None):
         #
@@ -1190,7 +1689,25 @@ class coinex(Exchange):
         path = self.implode_params(path, params)
         url = self.urls['api'][api] + '/' + self.version + '/' + path
         query = self.omit(params, self.extract_params(path))
-        if api == 'public' or api == 'perpetualPublic':
+        if api == 'perpetualPrivate' or url == 'https://api.coinex.com/perpetual/v1/market/user_deals':
+            self.check_required_credentials()
+            nonce = self.nonce()
+            query = self.extend({
+                'access_id': self.apiKey,
+                'timestamp': str(nonce),
+            }, query)
+            query = self.keysort(query)
+            urlencoded = self.rawencode(query)
+            signature = self.hash(self.encode(urlencoded + '&secret_key=' + self.secret), 'sha256')
+            headers = {
+                'Authorization': signature.lower(),
+                'AccessId': self.apiKey,
+            }
+            if (method == 'GET') or (method == 'DELETE'):
+                url += '?' + urlencoded
+            else:
+                body = self.json(query)
+        elif api == 'public' or api == 'perpetualPublic':
             if query:
                 url += '?' + self.urlencode(query)
         else:

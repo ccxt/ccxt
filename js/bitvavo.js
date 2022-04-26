@@ -29,6 +29,9 @@ export default class bitvavo extends Exchange {
                 'cancelOrder': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
@@ -259,8 +262,8 @@ export default class bitvavo extends Exchange {
         });
     }
 
-    currencyToPrecision (currency, fee) {
-        return this.decimalToPrecision (fee, 0, this.currencies[currency]['precision']);
+    currencyToPrecision (code, fee) {
+        return this.decimalToPrecision (fee, 0, this.currencies[code]['precision']);
     }
 
     amountToPrecision (symbol, amount) {

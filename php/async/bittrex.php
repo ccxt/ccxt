@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\AuthenticationError;
+use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
 use \ccxt\InvalidAddress;
 use \ccxt\AddressPending;
@@ -41,6 +42,9 @@ class bittrex extends Exchange {
                 'createMarketOrder' => true,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
@@ -830,11 +834,60 @@ class bittrex extends Exchange {
         yield $this->load_markets();
         $request = array();
         $market = null;
+        $stop = $this->safe_value($params, 'stop');
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['marketSymbol'] = $market['id'];
         }
-        $response = yield $this->privateGetOrdersOpen (array_merge($request, $params));
+        $method = 'privateGetOrdersOpen';
+        if ($stop) {
+            $method = 'privateGetConditionalOrdersOpen';
+        }
+        $query = $this->omit($params, 'stop');
+        $response = yield $this->$method (array_merge($request, $query));
+        //
+        // Spot
+        //
+        //     array(
+        //         {
+        //             "id" => "df6cf5ee-fc27-4b61-991a-cc94b6459ac9",
+        //             "marketSymbol" => "BTC-USDT",
+        //             "direction" => "BUY",
+        //             "type" => "LIMIT",
+        //             "quantity" => "0.00023277",
+        //             "limit" => "30000.00000000",
+        //             "timeInForce" => "GOOD_TIL_CANCELLED",
+        //             "fillQuantity" => "0.00000000",
+        //             "commission" => "0.00000000",
+        //             "proceeds" => "0.00000000",
+        //             "status" => "OPEN",
+        //             "createdAt" => "2022-04-20T02:33:53.16Z",
+        //             "updatedAt" => "2022-04-20T02:33:53.16Z"
+        //         }
+        //     )
+        //
+        // Stop
+        //
+        //     array(
+        //         {
+        //             "id" => "f64f7c4f-295c-408b-9cbc-601981abf100",
+        //             "marketSymbol" => "BTC-USDT",
+        //             "operand" => "LTE",
+        //             "triggerPrice" => "0.10000000",
+        //             "orderToCreate" => array(
+        //                 "marketSymbol" => "BTC-USDT",
+        //                 "direction" => "BUY",
+        //                 "type" => "LIMIT",
+        //                 "quantity" => "0.00020000",
+        //                 "limit" => "30000.00000000",
+        //                 "timeInForce" => "GOOD_TIL_CANCELLED"
+        //             ),
+        //             "status" => "OPEN",
+        //             "createdAt" => "2022-04-20T02:38:12.26Z",
+        //             "updatedAt" => "2022-04-20T02:38:12.26Z"
+        //         }
+        //     )
+        //
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
@@ -852,57 +905,138 @@ class bittrex extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        // A ceiling order is a $market or limit order that allows you to specify
+        // A $ceiling order is a $market or $limit order that allows you to specify
         // the $amount of quote currency you want to spend (or receive, if selling)
         // instead of the quantity of the $market currency (e.g. buy $100 USD of BTC
         // at the current $market BTC $price)
         yield $this->load_markets();
         $market = $this->market($symbol);
-        $uppercaseType = strtoupper($type);
+        $uppercaseType = null;
+        if ($type !== null) {
+            $uppercaseType = strtoupper($type);
+        }
         $reverseId = $market['baseId'] . '-' . $market['quoteId'];
+        $stop = $this->safe_value($params, 'stop');
+        $stopPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
         $request = array(
-            'marketSymbol' => $reverseId,
-            'direction' => strtoupper($side),
-            'type' => $uppercaseType, // LIMIT, MARKET, CEILING_LIMIT, CEILING_MARKET
-            // 'quantity' => $this->amount_to_precision($symbol, $amount), // required for limit orders, excluded for ceiling orders
-            // 'ceiling' => $this->price_to_precision($symbol, $price), // required for ceiling orders, excluded for non-ceiling orders
-            // 'limit' => $this->price_to_precision($symbol, $price), // required for limit orders, excluded for $market orders
-            // 'timeInForce' => 'GOOD_TIL_CANCELLED', // IMMEDIATE_OR_CANCEL, FILL_OR_KILL, POST_ONLY_GOOD_TIL_CANCELLED
-            // 'useAwards' => false, // optional
+            'marketSymbol' => $reverseId, // SPOT and STOP
+            // 'direction' => strtoupper($side), // SPOT, STOP 'orderToCreate'
+            // 'type' => $uppercaseType, // SPOT => LIMIT, MARKET, CEILING_LIMIT, CEILING_MARKET
+            // 'quantity' => $this->amount_to_precision($symbol, $amount), // SPOT, required for $limit orders, excluded for $ceiling orders
+            // 'ceiling' => $this->price_to_precision($symbol, $price), // SPOT, required for $ceiling orders, excluded for non-$ceiling orders
+            // 'limit' => $this->price_to_precision($symbol, $price), // SPOT, required for $limit orders, excluded for $market orders
+            // 'timeInForce' => 'GOOD_TIL_CANCELLED', // SPOT, IMMEDIATE_OR_CANCEL, FILL_OR_KILL, POST_ONLY_GOOD_TIL_CANCELLED
+            // 'useAwards' => false, // SPOT, optional
+            // 'operand' => 'LTE', // STOP, $price above (GTE) or below (LTE) which the conditional order will trigger. either this or $trailingStopPercent must be specified.
+            // 'triggerPrice' => $this->price_to_precision($symbol, $stopPrice), // STOP
+            // 'trailingStopPercent' => $this->price_to_precision($symbol, $stopPrice), // STOP, either this or triggerPrice must be set
+            // 'orderToCreate' => array(direction:$side,$type:$uppercaseType), // STOP, The spot order to be triggered
+            // 'orderToCancel' => array(id:'f03d5e98-b5ac-48fb-8647-dd4db828a297',$type:$uppercaseType), // STOP, The spot order to be canceled
+            // 'clineConditionalOrderId' => 'f03d5e98-b5ac-48fb-8647-dd4db828a297', // STOP
         );
-        $isCeilingLimit = ($uppercaseType === 'CEILING_LIMIT');
-        $isCeilingMarket = ($uppercaseType === 'CEILING_MARKET');
-        $isCeilingOrder = $isCeilingLimit || $isCeilingMarket;
-        if ($isCeilingOrder) {
-            $cost = null;
-            if ($isCeilingLimit) {
-                $request['limit'] = $this->price_to_precision($symbol, $price);
-                $cost = $this->safe_number_2($params, 'ceiling', 'cost', $amount);
-            } else if ($isCeilingMarket) {
-                $cost = $this->safe_number_2($params, 'ceiling', 'cost');
-                if ($cost === null) {
-                    if ($price === null) {
-                        $cost = $amount;
+        $method = 'privatePostOrders';
+        if ($stop || $stopPrice) {
+            $method = 'privatePostConditionalOrders';
+            $operand = $this->safe_string($params, 'operand');
+            if ($operand === null) {
+                throw new ArgumentsRequired($this->id . ' createOrder() requires an $operand parameter');
+            }
+            $trailingStopPercent = $this->safe_number($params, 'trailingStopPercent');
+            $orderToCreate = $this->safe_value($params, 'orderToCreate');
+            $orderToCancel = $this->safe_value($params, 'orderToCancel');
+            if ($stopPrice === null) {
+                $request['trailingStopPercent'] = $this->price_to_precision($symbol, $trailingStopPercent);
+            }
+            if ($orderToCreate) {
+                $isCeilingLimit = ($uppercaseType === 'CEILING_LIMIT');
+                $isCeilingMarket = ($uppercaseType === 'CEILING_MARKET');
+                $isCeilingOrder = $isCeilingLimit || $isCeilingMarket;
+                $ceiling = null;
+                $limit = null;
+                $timeInForce = null;
+                if ($isCeilingOrder) {
+                    $cost = null;
+                    if ($isCeilingLimit) {
+                        $limit = $this->price_to_precision($symbol, $price);
+                        $cost = $this->safe_number_2($params, 'ceiling', 'cost', $amount);
+                    } else if ($isCeilingMarket) {
+                        $cost = $this->safe_number_2($params, 'ceiling', 'cost');
+                        if ($cost === null) {
+                            if ($price === null) {
+                                $cost = $amount;
+                            } else {
+                                $cost = $amount * $price;
+                            }
+                        }
+                    }
+                    $ceiling = $this->cost_to_precision($symbol, $cost);
+                    $timeInForce = 'IMMEDIATE_OR_CANCEL';
+                } else {
+                    if ($uppercaseType === 'LIMIT') {
+                        $limit = $this->price_to_precision($symbol, $price);
+                        $timeInForce = 'GOOD_TIL_CANCELLED';
                     } else {
-                        $cost = $amount * $price;
+                        $timeInForce = 'IMMEDIATE_OR_CANCEL';
                     }
                 }
+                $request['orderToCreate'] = array(
+                    'marketSymbol' => $reverseId,
+                    'direction' => strtoupper($side),
+                    'type' => $uppercaseType,
+                    'quantity' => $this->amount_to_precision($symbol, $amount),
+                    'ceiling' => $ceiling,
+                    'limit' => $limit,
+                    'timeInForce' => $timeInForce,
+                    'clientOrderId' => $this->safe_string($params, 'clientOrderId'),
+                    'useAwards' => $this->safe_value($params, 'useAwards'),
+                );
             }
-            $params = $this->omit($params, array( 'ceiling', 'cost' ));
-            $request['ceiling'] = $this->cost_to_precision($symbol, $cost);
-            // bittrex only accepts IMMEDIATE_OR_CANCEL or FILL_OR_KILL for ceiling orders
-            $request['timeInForce'] = 'IMMEDIATE_OR_CANCEL';
+            if ($orderToCancel) {
+                $request['orderToCancel'] = $orderToCancel;
+            }
+            $request['triggerPrice'] = $this->price_to_precision($symbol, $stopPrice);
+            $request['operand'] = $operand;
         } else {
-            $request['quantity'] = $this->amount_to_precision($symbol, $amount);
-            if ($uppercaseType === 'LIMIT') {
-                $request['limit'] = $this->price_to_precision($symbol, $price);
-                $request['timeInForce'] = 'GOOD_TIL_CANCELLED';
-            } else {
-                // bittrex does not allow GOOD_TIL_CANCELLED for $market orders
+            if ($side !== null) {
+                $request['direction'] = strtoupper($side);
+            }
+            $request['type'] = $uppercaseType;
+            $isCeilingLimit = ($uppercaseType === 'CEILING_LIMIT');
+            $isCeilingMarket = ($uppercaseType === 'CEILING_MARKET');
+            $isCeilingOrder = $isCeilingLimit || $isCeilingMarket;
+            if ($isCeilingOrder) {
+                $cost = null;
+                if ($isCeilingLimit) {
+                    $request['limit'] = $this->price_to_precision($symbol, $price);
+                    $cost = $this->safe_number_2($params, 'ceiling', 'cost', $amount);
+                } else if ($isCeilingMarket) {
+                    $cost = $this->safe_number_2($params, 'ceiling', 'cost');
+                    if ($cost === null) {
+                        if ($price === null) {
+                            $cost = $amount;
+                        } else {
+                            $cost = $amount * $price;
+                        }
+                    }
+                }
+                $request['ceiling'] = $this->cost_to_precision($symbol, $cost);
+                // bittrex only accepts IMMEDIATE_OR_CANCEL or FILL_OR_KILL for $ceiling orders
                 $request['timeInForce'] = 'IMMEDIATE_OR_CANCEL';
+            } else {
+                $request['quantity'] = $this->amount_to_precision($symbol, $amount);
+                if ($uppercaseType === 'LIMIT') {
+                    $request['limit'] = $this->price_to_precision($symbol, $price);
+                    $request['timeInForce'] = 'GOOD_TIL_CANCELLED';
+                } else {
+                    // bittrex does not allow GOOD_TIL_CANCELLED for $market orders
+                    $request['timeInForce'] = 'IMMEDIATE_OR_CANCEL';
+                }
             }
         }
-        $response = yield $this->privatePostOrders (array_merge($request, $params));
+        $query = $this->omit($params, array( 'stop', 'stopPrice', 'ceiling', 'cost', 'operand', 'trailingStopPercent', 'orderToCreate', 'orderToCancel' ));
+        $response = yield $this->$method (array_merge($request, $query));
+        //
+        // Spot
         //
         //     {
         //         id => 'f03d5e98-b5ac-48fb-8647-dd4db828a297',
@@ -910,8 +1044,8 @@ class bittrex extends Exchange {
         //         direction => 'SELL',
         //         $type => 'LIMIT',
         //         quantity => '0.01',
-        //         limit => '6000',
-        //         timeInForce => 'GOOD_TIL_CANCELLED',
+        //         $limit => '6000',
+        //         $timeInForce => 'GOOD_TIL_CANCELLED',
         //         fillQuantity => '0.00000000',
         //         commission => '0.00000000',
         //         proceeds => '0.00000000',
@@ -920,16 +1054,96 @@ class bittrex extends Exchange {
         //         updatedAt => '2020-03-18T02:37:33.42Z'
         //       }
         //
+        // Stop
+        //
+        //     {
+        //         "id" => "9791fe52-a3e5-4ac3-ae03-e327b2993571",
+        //         "marketSymbol" => "BTC-USDT",
+        //         "operand" => "LTE",
+        //         "triggerPrice" => "0.1",
+        //         "orderToCreate" => array(
+        //             "marketSymbol" => "BTC-USDT",
+        //             "direction" => "BUY",
+        //             "type" => "LIMIT",
+        //             "quantity" => "0.0002",
+        //             "limit" => "30000",
+        //             "timeInForce" => "GOOD_TIL_CANCELLED"
+        //         ),
+        //         "status" => "OPEN",
+        //         "createdAt" => "2022-04-19T21:02:14.17Z",
+        //         "updatedAt" => "2022-04-19T21:02:14.17Z"
+        //     }
+        //
         return $this->parse_order($response, $market);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
         yield $this->load_markets();
-        $request = array(
-            'orderId' => $id,
-        );
-        $response = yield $this->privateDeleteOrdersOrderId (array_merge($request, $params));
-        return array_merge($this->parse_order($response), array(
+        $stop = $this->safe_value($params, 'stop');
+        $request = array();
+        $method = null;
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        if ($stop) {
+            $method = 'privateDeleteConditionalOrdersConditionalOrderId';
+            $request = array(
+                'conditionalOrderId' => $id,
+            );
+        } else {
+            $method = 'privateDeleteOrdersOrderId';
+            $request = array(
+                'orderId' => $id,
+            );
+        }
+        $query = $this->omit($params, 'stop');
+        $response = yield $this->$method (array_merge($request, $query));
+        //
+        // Spot
+        //
+        //     array(
+        //         {
+        //             "id" => "df6cf5ee-fc27-4b61-991a-cc94b6459ac9",
+        //             "marketSymbol" => "BTC-USDT",
+        //             "direction" => "BUY",
+        //             "type" => "LIMIT",
+        //             "quantity" => "0.00023277",
+        //             "limit" => "30000.00000000",
+        //             "timeInForce" => "GOOD_TIL_CANCELLED",
+        //             "fillQuantity" => "0.00000000",
+        //             "commission" => "0.00000000",
+        //             "proceeds" => "0.00000000",
+        //             "status" => "CANCELLED",
+        //             "createdAt" => "2022-04-20T02:33:53.16Z",
+        //             "updatedAt" => "2022-04-20T02:33:53.16Z"
+        //         }
+        //     )
+        //
+        // Stop
+        //
+        //     array(
+        //         {
+        //             "id" => "f64f7c4f-295c-408b-9cbc-601981abf100",
+        //             "marketSymbol" => "BTC-USDT",
+        //             "operand" => "LTE",
+        //             "triggerPrice" => "0.10000000",
+        //             "orderToCreate" => array(
+        //                 "marketSymbol" => "BTC-USDT",
+        //                 "direction" => "BUY",
+        //                 "type" => "LIMIT",
+        //                 "quantity" => "0.00020000",
+        //                 "limit" => "30000.00000000",
+        //                 "timeInForce" => "GOOD_TIL_CANCELLED"
+        //             ),
+        //             "status" => "CANCELLED",
+        //             "createdAt" => "2022-04-20T02:38:12.26Z",
+        //             "updatedAt" => "2022-04-20T02:38:12.26Z"
+        //             "closedAt" => "2022-04-20T03:47:24.69Z"
+        //         }
+        //     )
+        //
+        return array_merge($this->parse_order($response, $market), array(
             'id' => $id,
             'info' => $response,
             'status' => 'canceled',
@@ -1131,6 +1345,8 @@ class bittrex extends Exchange {
 
     public function parse_order($order, $market = null) {
         //
+        // Spot createOrder, fetchOpenOrders, fetchClosedOrders, fetchOrder, cancelOrder
+        //
         //     {
         //         id => '1be35109-b763-44ce-b6ea-05b6b0735c0c',
         //         $marketSymbol => 'LTC-ETH',
@@ -1149,11 +1365,31 @@ class bittrex extends Exchange {
         //         $closedAt => '2018-06-23T13:14:30.19Z'
         //     }
         //
+        // Stop createOrder, fetchOpenOrders, fetchClosedOrders, fetchOrder, cancelOrder
+        //
+        //     {
+        //         "id" => "9791fe52-a3e5-4ac3-ae03-e327b2993571",
+        //         "marketSymbol" => "BTC-USDT",
+        //         "operand" => "LTE",
+        //         "triggerPrice" => "0.1",
+        //         "orderToCreate" => array(
+        //             "marketSymbol" => "BTC-USDT",
+        //             "direction" => "BUY",
+        //             "type" => "LIMIT",
+        //             "quantity" => "0.0002",
+        //             "limit" => "30000",
+        //             "timeInForce" => "GOOD_TIL_CANCELLED"
+        //         ),
+        //         "status" => "OPEN",
+        //         "createdAt" => "2022-04-19T21:02:14.17Z",
+        //         "updatedAt" => "2022-04-19T21:02:14.17Z",
+        //         "closedAt" => "2022-04-20T03:47:24.69Z"
+        //     }
+        //
         $marketSymbol = $this->safe_string($order, 'marketSymbol');
         $market = $this->safe_market($marketSymbol, $market, '-');
         $symbol = $market['symbol'];
         $feeCurrency = $market['quote'];
-        $direction = $this->safe_string_lower($order, 'direction');
         $createdAt = $this->safe_string($order, 'createdAt');
         $updatedAt = $this->safe_string($order, 'updatedAt');
         $closedAt = $this->safe_string($order, 'closedAt');
@@ -1165,14 +1401,50 @@ class bittrex extends Exchange {
             $lastTradeTimestamp = $this->parse8601($updatedAt);
         }
         $timestamp = $this->parse8601($createdAt);
+        $direction = $this->safe_string_lower($order, 'direction');
+        if ($direction === null) {
+            $conditionalOrder = $this->safe_value($order, 'orderToCreate');
+            if ($conditionalOrder === null) {
+                $conditionalOrder = $this->safe_value($order, 'orderToCancel');
+            }
+            $direction = $this->safe_string_lower($conditionalOrder, 'direction');
+        }
         $type = $this->safe_string_lower($order, 'type');
+        if ($type === null) {
+            $conditionalOrder = $this->safe_value($order, 'orderToCreate');
+            if ($conditionalOrder === null) {
+                $conditionalOrder = $this->safe_value($order, 'orderToCancel');
+            }
+            $type = $this->safe_string_lower($conditionalOrder, 'type');
+        }
         $quantity = $this->safe_string($order, 'quantity');
+        if ($quantity === null) {
+            $conditionalOrder = $this->safe_value($order, 'orderToCreate');
+            if ($conditionalOrder === null) {
+                $conditionalOrder = $this->safe_value($order, 'orderToCancel');
+            }
+            $quantity = $this->safe_string($conditionalOrder, 'quantity');
+        }
         $limit = $this->safe_string($order, 'limit');
+        if ($limit === null) {
+            $conditionalOrder = $this->safe_value($order, 'orderToCreate');
+            if ($conditionalOrder === null) {
+                $conditionalOrder = $this->safe_value($order, 'orderToCancel');
+            }
+            $limit = $this->safe_string($conditionalOrder, 'limit');
+        }
+        $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
+        if ($timeInForce === null) {
+            $conditionalOrder = $this->safe_value($order, 'orderToCreate');
+            if ($conditionalOrder === null) {
+                $conditionalOrder = $this->safe_value($order, 'orderToCancel');
+            }
+            $timeInForce = $this->parse_time_in_force($this->safe_string($conditionalOrder, 'timeInForce'));
+        }
         $fillQuantity = $this->safe_string($order, 'fillQuantity');
         $commission = $this->safe_number($order, 'commission');
         $proceeds = $this->safe_string($order, 'proceeds');
         $status = $this->safe_string_lower($order, 'status');
-        $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
         $postOnly = ($timeInForce === 'PO');
         return $this->safe_order(array(
             'id' => $this->safe_string($order, 'id'),
@@ -1186,7 +1458,7 @@ class bittrex extends Exchange {
             'postOnly' => $postOnly,
             'side' => $direction,
             'price' => $limit,
-            'stopPrice' => null,
+            'stopPrice' => $this->safe_string($order, 'triggerPrice'),
             'cost' => $proceeds,
             'average' => null,
             'amount' => $quantity,
@@ -1222,12 +1494,24 @@ class bittrex extends Exchange {
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
         yield $this->load_markets();
+        $stop = $this->safe_value($params, 'stop');
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
         $response = null;
+        $method = null;
         try {
-            $request = array(
-                'orderId' => $id,
-            );
-            $response = yield $this->privateGetOrdersOrderId (array_merge($request, $params));
+            $request = array();
+            if ($stop) {
+                $method = 'privateGetConditionalOrdersConditionalOrderId';
+                $request['conditionalOrderId'] = $id;
+            } else {
+                $method = 'privateGetOrdersOrderId';
+                $request['orderId'] = $id;
+            }
+            $query = $this->omit($params, 'stop');
+            $response = yield $this->$method (array_merge($request, $query));
         } catch (Exception $e) {
             if ($this->last_json_response) {
                 $message = $this->safe_string($this->last_json_response, 'message');
@@ -1237,7 +1521,7 @@ class bittrex extends Exchange {
             }
             throw $e;
         }
-        return $this->parse_order($response);
+        return $this->parse_order($response, $market);
     }
 
     public function order_to_trade($order) {
@@ -1299,6 +1583,7 @@ class bittrex extends Exchange {
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
+        $stop = $this->safe_value($params, 'stop');
         $request = array();
         if ($limit !== null) {
             $request['pageSize'] = $limit;
@@ -1318,7 +1603,55 @@ class bittrex extends Exchange {
             // https://github.com/ccxt/ccxt/pull/5219#issuecomment-499646209
             $request['marketSymbol'] = $market['base'] . '-' . $market['quote'];
         }
-        $response = yield $this->privateGetOrdersClosed (array_merge($request, $params));
+        $method = 'privateGetOrdersClosed';
+        if ($stop) {
+            $method = 'privateGetConditionalOrdersClosed';
+        }
+        $query = $this->omit($params, 'stop');
+        $response = yield $this->$method (array_merge($request, $query));
+        //
+        // Spot
+        //
+        //     array(
+        //         {
+        //             "id" => "df6cf5ee-fc27-4b61-991a-cc94b6459ac9",
+        //             "marketSymbol" => "BTC-USDT",
+        //             "direction" => "BUY",
+        //             "type" => "LIMIT",
+        //             "quantity" => "0.00023277",
+        //             "limit" => "30000.00000000",
+        //             "timeInForce" => "GOOD_TIL_CANCELLED",
+        //             "fillQuantity" => "0.00000000",
+        //             "commission" => "0.00000000",
+        //             "proceeds" => "0.00000000",
+        //             "status" => "OPEN",
+        //             "createdAt" => "2022-04-20T02:33:53.16Z",
+        //             "updatedAt" => "2022-04-20T02:33:53.16Z"
+        //         }
+        //     )
+        //
+        // Stop
+        //
+        //     array(
+        //         {
+        //             "id" => "f64f7c4f-295c-408b-9cbc-601981abf100",
+        //             "marketSymbol" => "BTC-USDT",
+        //             "operand" => "LTE",
+        //             "triggerPrice" => "0.10000000",
+        //             "orderToCreate" => array(
+        //                 "marketSymbol" => "BTC-USDT",
+        //                 "direction" => "BUY",
+        //                 "type" => "LIMIT",
+        //                 "quantity" => "0.00020000",
+        //                 "limit" => "30000.00000000",
+        //                 "timeInForce" => "GOOD_TIL_CANCELLED"
+        //             ),
+        //             "status" => "OPEN",
+        //             "createdAt" => "2022-04-20T02:38:12.26Z",
+        //             "updatedAt" => "2022-04-20T02:38:12.26Z"
+        //         }
+        //     )
+        //
         return $this->parse_orders($response, $market, $since, $limit);
     }
 

@@ -661,11 +661,66 @@ class bitbank extends Exchange {
             'amount' => $amount,
         );
         $response = yield $this->privatePostUserRequestWithdrawal (array_merge($request, $params));
+        //
+        //     {
+        //         "success" => 1,
+        //         "data" => {
+        //             "uuid" => "string",
+        //             "asset" => "btc",
+        //             "amount" => 0,
+        //             "account_uuid" => "string",
+        //             "fee" => 0,
+        //             "status" => "DONE",
+        //             "label" => "string",
+        //             "txid" => "string",
+        //             "address" => "string",
+        //             "requested_at" => 0
+        //         }
+        //     }
+        //
         $data = $this->safe_value($response, 'data', array());
-        $txid = $this->safe_string($data, 'txid');
+        return $this->parse_transaction($data, $currency);
+    }
+
+    public function parse_transaction($transaction, $currency = null) {
+        //
+        // withdraw
+        //
+        //     {
+        //         "uuid" => "string",
+        //         "asset" => "btc",
+        //         "amount" => 0,
+        //         "account_uuid" => "string",
+        //         "fee" => 0,
+        //         "status" => "DONE",
+        //         "label" => "string",
+        //         "txid" => "string",
+        //         "address" => "string",
+        //         "requested_at" => 0
+        //     }
+        //
+        $txid = $this->safe_string($transaction, 'txid');
+        $currency = $this->safe_currency(null, $currency);
         return array(
-            'info' => $response,
             'id' => $txid,
+            'txid' => $txid,
+            'timestamp' => null,
+            'datetime' => null,
+            'network' => null,
+            'addressFrom' => null,
+            'address' => null,
+            'addressTo' => null,
+            'amount' => null,
+            'type' => null,
+            'currency' => $currency['code'],
+            'status' => null,
+            'updated' => null,
+            'tagFrom' => null,
+            'tag' => null,
+            'tagTo' => null,
+            'comment' => null,
+            'fee' => null,
+            'info' => $transaction,
         );
     }
 

@@ -60,6 +60,7 @@ class digifinex(Exchange):
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
                 'fetchWithdrawals': True,
+                'transfer': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -98,7 +99,7 @@ class digifinex(Exchange):
                         'trades',
                         'trades/symbols',
                         'ticker',
-                        'currencies',  # todo add fetchCurrencies
+                        'currencies',
                     ],
                 },
                 'private': {
@@ -106,7 +107,7 @@ class digifinex(Exchange):
                         '{market}/financelog',
                         '{market}/mytrades',
                         '{market}/order',
-                        '{market}​/order​/detail',  # todo add fetchOrder
+                        '{market}/order/detail',
                         '{market}/order/current',
                         '{market}/order/history',
                         'margin/assets',
@@ -123,21 +124,21 @@ class digifinex(Exchange):
                         'spot/order',
                         'spot/order/current',
                         'spot/order/history',
-                        'deposit/address',  # todo add fetchDepositAddress
-                        'deposit/history',  # todo add fetchDeposits
-                        'withdraw/history',  # todo add fetchWithdrawals
+                        'deposit/address',
+                        'deposit/history',
+                        'withdraw/history',
                     ],
                     'post': [
                         '{market}/order/cancel',
                         '{market}/order/new',
-                        '{market}​/order​/batch_new',
+                        '{market}/order/batch_new',
                         'margin/order/cancel',
                         'margin/order/new',
                         'margin/position/close',
                         'spot/order/cancel',
                         'spot/order/new',
                         'transfer',
-                        'withdraw/new',  # todo add withdraw()
+                        'withdraw/new',
                         'withdraw/cancel',
                     ],
                 },
@@ -206,6 +207,11 @@ class digifinex(Exchange):
             'options': {
                 'defaultType': 'spot',
                 'types': ['spot', 'margin', 'otc'],
+                'accountsByType': {
+                    'spot': '1',
+                    'margin': '2',
+                    'OTC': '3',
+                },
             },
             'commonCurrencies': {
                 'BHT': 'Black House Test',
@@ -719,12 +725,13 @@ class digifinex(Exchange):
         #         "code": 0
         #     }
         #
-        self.status = self.extend(self.status, {
-            'status': 'ok',
+        code = self.safe_integer(response, 'code')
+        status = 'ok' if (code == 0) else 'maintenance'
+        return {
+            'status': status,
             'updated': self.milliseconds(),
             'info': response,
-        })
-        return self.status
+        }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
@@ -1387,6 +1394,56 @@ class digifinex(Exchange):
             'updated': updated,
             'fee': fee,
         }
+
+    def parse_transfer_status(self, status):
+        statuses = {
+            '0': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        #     {
+        #         "code": 0
+        #     }
+        #
+        return {
+            'info': transfer,
+            'id': None,
+            'timestamp': None,
+            'datetime': None,
+            'currency': self.safe_currency_code(None, currency),
+            'amount': self.safe_number(transfer, 'amount'),
+            'fromAccount': self.safe_string(transfer, 'fromAccount'),
+            'toAccount': self.safe_string(transfer, 'toAccount'),
+            'status': self.parse_transfer_status(self.safe_string(transfer, 'code')),
+        }
+
+    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        accountsByType = self.safe_value(self.options, 'accountsByType', {})
+        fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
+        toId = self.safe_string(accountsByType, toAccount, toAccount)
+        request = {
+            'currency_mark': currency['id'],
+            'num': float(self.currency_to_precision(code, amount)),
+            'from': fromId,  # 1 = SPOT, 2 = MARGIN, 3 = OTC
+            'to': toId,  # 1 = SPOT, 2 = MARGIN, 3 = OTC
+        }
+        response = await self.privatePostTransfer(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0
+        #     }
+        #
+        transfer = self.parse_transfer(response, currency)
+        return self.extend(transfer, {
+            'amount': amount,
+            'currency': code,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+        })
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
         tag, params = self.handle_withdraw_tag_and_params(tag, params)

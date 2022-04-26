@@ -1303,16 +1303,8 @@ export default class poloniex extends Exchange {
         const currency = this.currency (code);
         amount = this.currencyToPrecision (code, amount);
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-        const fromId = this.safeString (accountsByType, fromAccount);
-        const toId = this.safeString (accountsByType, toAccount);
-        if (fromId === undefined) {
-            const keys = Object.keys (accountsByType);
-            throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', '));
-        }
-        if (toId === undefined) {
-            const keys = Object.keys (accountsByType);
-            throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', '));
-        }
+        const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
+        const toId = this.safeString (accountsByType, toAccount, fromAccount);
         const request = {
             'amount': amount,
             'currency': currency['id'],
@@ -1391,10 +1383,7 @@ export default class poloniex extends Exchange {
         //         withdrawalNumber: 13449869
         //     }
         //
-        return {
-            'info': response,
-            'id': this.safeString (response, 'withdrawalNumber'),
-        };
+        return this.parseTransaction (response, currency);
     }
 
     async fetchTransactionsHelper (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1563,6 +1552,14 @@ export default class poloniex extends Exchange {
         //         "timestamp": 1523834337,
         //         "canResendEmail": 0,
         //         "withdrawalNumber": 11162900
+        //     }
+        //
+        // withdraw
+        //
+        //     {
+        //         response: 'Withdrew 1.00000000 USDT.',
+        //         email2FA: false,
+        //         withdrawalNumber: 13449869
         //     }
         //
         const timestamp = this.safeTimestamp (transaction, 'timestamp');

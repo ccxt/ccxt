@@ -646,13 +646,48 @@ export default class indodax extends Exchange {
         //         "withdraw_memo": "123123"
         //     }
         //
-        let id = undefined;
-        if (('txid' in response) && (response['txid'].length > 0)) {
-            id = response['txid'];
-        }
+        return this.parseTransaction (response, currency);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // withdraw
+        //
+        //     {
+        //         "success": 1,
+        //         "status": "approved",
+        //         "withdraw_currency": "xrp",
+        //         "withdraw_address": "rwWr7KUZ3ZFwzgaDGjKBysADByzxvohQ3C",
+        //         "withdraw_amount": "10000.00000000",
+        //         "fee": "2.00000000",
+        //         "amount_after_fee": "9998.00000000",
+        //         "submit_time": "1509469200",
+        //         "withdraw_id": "xrp-12345",
+        //         "txid": "",
+        //         "withdraw_memo": "123123"
+        //     }
+        //
+        currency = this.safeCurrency (undefined, currency);
         return {
-            'info': response,
-            'id': id,
+            'id': this.safeString (transaction, 'withdraw_id'),
+            'txid': this.safeString (transaction, 'txid'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'network': undefined,
+            'addressFrom': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'amount': undefined,
+            'type': undefined,
+            'currency': currency['code'],
+            'status': undefined,
+            'updated': undefined,
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'comment': undefined,
+            'fee': undefined,
+            'info': transaction,
         };
     }
 

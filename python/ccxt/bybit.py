@@ -42,6 +42,9 @@ class bybit(Exchange):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': True,
+                'createStopOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
@@ -876,29 +879,53 @@ class bybit(Exchange):
             quote = self.safe_currency_code(quoteId)
             settle = self.safe_currency_code(settleId)
             linear = (quote in linearQuoteCurrencies)
-            inverse = not linear
             symbol = base + '/' + quote
             baseQuote = base + quote
             type = 'swap'
             if baseQuote != id:
-                symbol = id
                 type = 'future'
             lotSizeFilter = self.safe_value(market, 'lot_size_filter', {})
             priceFilter = self.safe_value(market, 'price_filter', {})
-            precision = {
-                'amount': self.safe_number(lotSizeFilter, 'qty_step'),
-                'price': self.safe_number(priceFilter, 'tick_size'),
-            }
             leverage = self.safe_value(market, 'leverage_filter', {})
             status = self.safe_string(market, 'status')
             active = None
             if status is not None:
                 active = (status == 'Trading')
-            spot = (type == 'spot')
             swap = (type == 'swap')
             future = (type == 'future')
             option = (type == 'option')
             contract = swap or future or option
+            expiry = None
+            expiryDatetime = None
+            strike = None
+            optionType = None
+            if contract:
+                if settle is None:
+                    settleId = quoteId if linear else baseId
+                    settle = self.safe_currency_code(settleId)
+                symbol = symbol + ':' + settle
+                if future:
+                    alias = self.safe_string(market, 'alias')
+                    shortDate = alias[-4:]
+                    date = self.iso8601(self.milliseconds())
+                    splitDate = date.split('-')
+                    year = splitDate[0]
+                    expiryMonth = shortDate[0:2]
+                    expiryDay = shortDate[2:4]
+                    expiryDatetime = year + '-' + expiryMonth + '-' + expiryDay + 'T00:00:00Z'
+                    expiry = self.parse8601(expiryDatetime)
+                    symbol = symbol + '-' + self.yymmdd(expiry)
+                elif option:
+                    expiry = self.safe_integer(market, 'deliveryTime')
+                    expiryDatetime = self.iso8601(expiry)
+                    splitId = self.split(id, '-')
+                    strike = self.safe_string(splitId, 2)
+                    optionLetter = self.safe_string(splitId, 3)
+                    symbol = symbol + '-' + self.yymmdd(expiry) + ':' + strike + ':' + optionLetter
+                    if optionLetter == 'P':
+                        optionType = 'put'
+                    elif optionLetter == 'C':
+                        optionType = 'call'
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -908,26 +935,33 @@ class bybit(Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
-                'active': active,
-                'precision': precision,
-                'taker': self.safe_number(market, 'taker_fee'),
-                'maker': self.safe_number(market, 'maker_fee'),
                 'type': type,
-                'spot': spot,
+                'spot': (type == 'spot'),
                 'margin': None,  # todo
-                'contract': contract,
-                'contractSize': None,  # todo
                 'swap': swap,
                 'future': future,
                 'futures': future,  # Deprecated, use future
                 'option': option,
+                'active': active,
+                'contract': contract,
                 'linear': linear,
-                'inverse': inverse,
-                'expiry': None,  # todo
-                'expiryDatetime': None,  # todo
-                'optionType': None,
-                'strike': None,
+                'inverse': not linear,
+                'taker': self.safe_number(market, 'taker_fee'),
+                'maker': self.safe_number(market, 'maker_fee'),
+                'contractSize': None,  # todo
+                'expiry': expiry,
+                'expiryDatetime': expiryDatetime,
+                'strike': strike,
+                'optionType': optionType,
+                'precision': {
+                    'amount': self.safe_number(lotSizeFilter, 'qty_step'),
+                    'price': self.safe_number(priceFilter, 'tick_size'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': self.parse_number('1'),
+                        'max': self.safe_number(leverage, 'max_leverage', 1),
+                    },
                     'amount': {
                         'min': self.safe_number(lotSizeFilter, 'min_trading_qty'),
                         'max': self.safe_number(lotSizeFilter, 'max_trading_qty'),
@@ -939,9 +973,6 @@ class bybit(Exchange):
                     'cost': {
                         'min': None,
                         'max': None,
-                    },
-                    'leverage': {
-                        'max': self.safe_number(leverage, 'max_leverage', 1),
                     },
                 },
                 'info': market,
@@ -1616,6 +1647,33 @@ class bybit(Exchange):
         #         "order_id" : "dd2504b9-0157-406a-99e1-efa522373944"
         #     }
         #
+        # fetchOrders linear swaps
+        #
+        #     {
+        #         "order_id":"7917bd70-e7c3-4af5-8147-3285cd99c509",
+        #         "user_id":22919890,
+        #         "symbol":"GMTUSDT",
+        #         "side":"Buy",
+        #         "order_type":"Limit",
+        #         "price":2.9262,
+        #         "qty":50,
+        #         "time_in_force":"GoodTillCancel",
+        #         "order_status":"Filled",
+        #         "last_exec_price":2.9219,
+        #         "cum_exec_qty":50,
+        #         "cum_exec_value":146.095,
+        #         "cum_exec_fee":0.087657,
+        #         "reduce_only":false,
+        #         "close_on_trigger":false,
+        #         "order_link_id":"",
+        #         "created_time":"2022-04-18T17:09:54Z",
+        #         "updated_time":"2022-04-18T17:09:54Z",
+        #         "take_profit":0,
+        #         "stop_loss":0,
+        #         "tp_trigger_by":"UNKNOWN",
+        #         "sl_trigger_by":"UNKNOWN"
+        #     }
+        #
         # conditional order
         #
         #     {
@@ -1655,7 +1713,7 @@ class bybit(Exchange):
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
         feeCurrency = None
-        timestamp = self.parse8601(self.safe_string(order, 'created_at'))
+        timestamp = self.parse8601(self.safe_string_2(order, 'created_at', 'created_time'))
         id = self.safe_string_2(order, 'order_id', 'stop_order_id')
         type = self.safe_string_lower(order, 'order_type')
         price = None
@@ -2209,6 +2267,48 @@ class bybit(Exchange):
         #         "rate_limit_status": 98,
         #         "rate_limit_reset_ms": 1580885703683,
         #         "rate_limit": 100
+        #     }
+        #
+        # linear swaps
+        #
+        #     {
+        #         "ret_code":0,
+        #         "ret_msg":"OK",
+        #         "ext_code":"",
+        #         "ext_info":"",
+        #         "result":{
+        #             "current_page":1,
+        #             "data":[
+        #                 {
+        #                     "order_id":"7917bd70-e7c3-4af5-8147-3285cd99c509",
+        #                     "user_id":22919890,
+        #                     "symbol":"GMTUSDT",
+        #                     "side":"Buy",
+        #                     "order_type":"Limit",
+        #                     "price":2.9262,
+        #                     "qty":50,
+        #                     "time_in_force":"GoodTillCancel",
+        #                     "order_status":"Filled",
+        #                     "last_exec_price":2.9219,
+        #                     "cum_exec_qty":50,
+        #                     "cum_exec_value":146.095,
+        #                     "cum_exec_fee":0.087657,
+        #                     "reduce_only":false,
+        #                     "close_on_trigger":false,
+        #                     "order_link_id":"",
+        #                     "created_time":"2022-04-18T17:09:54Z",
+        #                     "updated_time":"2022-04-18T17:09:54Z",
+        #                     "take_profit":0,
+        #                     "stop_loss":0,
+        #                     "tp_trigger_by":"UNKNOWN",
+        #                     "sl_trigger_by":"UNKNOWN"
+        #                 }
+        #             ]
+        #         },
+        #         "time_now":"1650970113.283952",
+        #         "rate_limit_status":599,
+        #         "rate_limit_reset_ms":1650970113275,
+        #         "rate_limit":600
         #     }
         #
         # conditional orders
@@ -3082,19 +3182,19 @@ class bybit(Exchange):
         #        ...
         #    ]
         #
-        notionalFloor = 0
+        minNotional = 0
         tiers = []
         for i in range(0, len(info)):
             item = info[i]
-            notionalCap = self.safe_number(item, 'limit')
+            maxNotional = self.safe_number(item, 'limit')
             tiers.append({
                 'tier': self.sum(i, 1),
                 'currency': market['base'],
-                'notionalFloor': notionalFloor,
-                'notionalCap': notionalCap,
+                'minNotional': minNotional,
+                'maxNotional': maxNotional,
                 'maintenanceMarginRate': self.safe_number(item, 'maintain_margin'),
                 'maxLeverage': self.safe_number(item, 'max_leverage'),
                 'info': item,
             })
-            notionalFloor = notionalCap
+            minNotional = maxNotional
         return tiers

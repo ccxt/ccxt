@@ -526,10 +526,69 @@ class zaif extends Exchange {
             $request['message'] = $tag;
         }
         $result = $this->privatePostWithdraw (array_merge($request, $params));
+        //
+        //     {
+        //         "success" => 1,
+        //         "return" => {
+        //             "id" => 23634,
+        //             "fee" => 0.001,
+        //             "txid":,
+        //             "funds" => {
+        //                 "jpy" => 15320,
+        //                 "btc" => 1.392,
+        //                 "xem" => 100.2,
+        //                 "mona" => 2600
+        //             }
+        //         }
+        //     }
+        //
+        $returnData = $this->safe_value($result, 'return');
+        return $this->parse_transaction($returnData, $currency);
+    }
+
+    public function parse_transaction($transaction, $currency = null) {
+        //
+        //     {
+        //         "id" => 23634,
+        //         "fee" => 0.001,
+        //         "txid":,
+        //         "funds" => {
+        //             "jpy" => 15320,
+        //             "btc" => 1.392,
+        //             "xem" => 100.2,
+        //             "mona" => 2600
+        //         }
+        //     }
+        //
+        $currency = $this->safe_currency(null, $currency);
+        $fee = null;
+        $feeCost = $this->safe_value($transaction, 'fee');
+        if ($feeCost !== null) {
+            $fee = array(
+                'cost' => $feeCost,
+                'currency' => $currency['code'],
+            );
+        }
         return array(
-            'info' => $result,
-            'id' => $result['return']['txid'],
-            'fee' => $result['return']['fee'],
+            'id' => $this->safe_string($transaction, 'id'),
+            'txid' => $this->safe_string($transaction, 'txid'),
+            'timestamp' => null,
+            'datetime' => null,
+            'network' => null,
+            'addressFrom' => null,
+            'address' => null,
+            'addressTo' => null,
+            'amount' => null,
+            'type' => null,
+            'currency' => $currency['code'],
+            'status' => null,
+            'updated' => null,
+            'tagFrom' => null,
+            'tag' => null,
+            'tagTo' => null,
+            'comment' => null,
+            'fee' => $fee,
+            'info' => $transaction,
         );
     }
 

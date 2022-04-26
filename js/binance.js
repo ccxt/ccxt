@@ -32,6 +32,9 @@ export default class binance extends Exchange {
                 'createDepositAddress': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': false,
+                'createStopOrder': true,
                 'fetchAccounts': undefined,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
@@ -817,7 +820,7 @@ export default class binance extends Exchange {
                     'delivery': 'CMFUTURE',
                     'mining': 'MINING',
                 },
-                'typesByAccount': {
+                'accountsById': {
                     'MAIN': 'spot',
                     'FUNDING': 'funding',
                     'MARGIN': 'margin',
@@ -1165,6 +1168,7 @@ export default class binance extends Exchange {
                     '-6020': BadRequest, // {"code":-6020,"msg":"Project not exists"}
                     '-7001': BadRequest, // {"code":-7001,"msg":"Date range is not supported."}
                     '-7002': BadRequest, // {"code":-7002,"msg":"Data request type is not supported."}
+                    '-9000': InsufficientFunds, // {"code":-9000,"msg":"user have no avaliable amount"}"
                     '-10017': BadRequest, // {"code":-10017,"msg":"Repay amount should not be larger than liability."}
                     '-11008': InsufficientFunds, // {"code":-11008,"msg":"Exceeding the account's maximum borrowable limit."} // undocumented
                     '-12014': RateLimitExceeded, // {"code":-12014,"msg":"More than 1 request in 3 seconds"}
@@ -1190,10 +1194,10 @@ export default class binance extends Exchange {
         return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['quote'], this.precisionMode, this.paddingMode);
     }
 
-    currencyToPrecision (currency, fee) {
+    currencyToPrecision (code, fee) {
         // info is available in currencies only if the user has configured his api keys
-        if (this.safeValue (this.currencies[currency], 'precision') !== undefined) {
-            return this.decimalToPrecision (fee, TRUNCATE, this.currencies[currency]['precision'], this.precisionMode, this.paddingMode);
+        if (this.safeValue (this.currencies[code], 'precision') !== undefined) {
+            return this.decimalToPrecision (fee, TRUNCATE, this.currencies[code]['precision'], this.precisionMode, this.paddingMode);
         } else {
             return this.numberToString (fee);
         }
@@ -2061,16 +2065,19 @@ export default class binance extends Exchange {
 
     async fetchStatus (params = {}) {
         const response = await this.sapiGetSystemStatus (params);
-        let status = this.safeString (response, 'status');
-        if (status !== undefined) {
-            status = (status === '0') ? 'ok' : 'maintenance';
-            this.status = this.extend (this.status, {
-                'status': status,
-                'updated': this.milliseconds (),
-                'info': response,
-            });
-        }
-        return this.status;
+        //
+        //     {
+        //         "status": 0,              // 0: normal，1：system maintenance
+        //         "msg": "normal"           // "normal", "system_maintenance"
+        //     }
+        //
+        const statusRaw = this.safeString (response, 'status');
+        return {
+            'status': this.safeString ({ '0': 'ok', '1': 'maintenance' }, statusRaw, statusRaw),
+            'updated': this.milliseconds (),
+            'eta': undefined,
+            'info': response,
+        };
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -3587,8 +3594,10 @@ export default class binance extends Exchange {
             fee = { 'currency': code, 'cost': feeCost };
         }
         const updated = this.safeInteger2 (transaction, 'successTime', 'updateTime');
-        let internal = this.safeInteger (transaction, 'transferType', false);
-        internal = internal ? true : false;
+        let internal = this.safeInteger (transaction, 'transferType');
+        if (internal !== undefined) {
+            internal = internal ? true : false;
+        }
         const network = this.safeString (transaction, 'network');
         return {
             'info': transaction,
@@ -3646,13 +3655,13 @@ export default class binance extends Exchange {
         const type = this.safeString (transfer, 'type');
         let fromAccount = undefined;
         let toAccount = undefined;
-        const typesByAccount = this.safeValue (this.options, 'typesByAccount', {});
+        const accountsById = this.safeValue (this.options, 'accountsById', {});
         if (type !== undefined) {
             const parts = type.split ('_');
             fromAccount = this.safeValue (parts, 0);
             toAccount = this.safeValue (parts, 1);
-            fromAccount = this.safeString (typesByAccount, fromAccount, fromAccount);
-            toAccount = this.safeString (typesByAccount, toAccount, toAccount);
+            fromAccount = this.safeString (accountsById, fromAccount, fromAccount);
+            toAccount = this.safeString (accountsById, toAccount, toAccount);
         }
         const timestamp = this.safeInteger (transfer, 'timestamp');
         const status = this.parseTransferStatus (this.safeString (transfer, 'status'));
@@ -3717,18 +3726,8 @@ export default class binance extends Exchange {
         let type = this.safeString (params, 'type');
         if (type === undefined) {
             const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-            fromAccount = fromAccount.toLowerCase ();
-            toAccount = toAccount.toLowerCase ();
-            const fromId = this.safeString (accountsByType, fromAccount);
-            const toId = this.safeString (accountsByType, toAccount);
-            if (fromId === undefined) {
-                const keys = Object.keys (accountsByType);
-                throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', '));
-            }
-            if (toId === undefined) {
-                const keys = Object.keys (accountsByType);
-                throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', '));
-            }
+            const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
+            const toId = this.safeString (accountsByType, toAccount, toAccount);
             type = fromId + '_' + toId;
         }
         const request = {
@@ -4830,6 +4829,8 @@ export default class binance extends Exchange {
         }
         const response = await this[method] (query);
         //
+        // usdm
+        //
         //    [
         //        {
         //            "symbol": "SUSHIUSDT",
@@ -4846,6 +4847,24 @@ export default class binance extends Exchange {
         //            ]
         //        }
         //    ]
+        //
+        // coinm
+        //
+        //     [
+        //         {
+        //             "symbol":"XRPUSD_210326",
+        //             "brackets":[
+        //                 {
+        //                     "bracket":1,
+        //                     "initialLeverage":20,
+        //                     "qtyCap":500000,
+        //                     "qtyFloor":0,
+        //                     "maintMarginRatio":0.0185,
+        //                     "cum":0.0
+        //                 }
+        //             ]
+        //         }
+        //     ]
         //
         return this.parseLeverageTiers (response, symbols, 'symbol');
     }
@@ -4883,8 +4902,8 @@ export default class binance extends Exchange {
             tiers.push ({
                 'tier': this.safeNumber (bracket, 'bracket'),
                 'currency': market['quote'],
-                'notionalFloor': this.safeNumber2 (bracket, 'notionalFloor', 'qtyFloor'),
-                'notionalCap': this.safeNumber (bracket, 'notionalCap'),
+                'minNotional': this.safeNumber2 (bracket, 'notionalFloor', 'qtyFloor'),
+                'maxNotional': this.safeNumber (bracket, 'notionalCap', 'qtyCap'),
                 'maintenanceMarginRate': this.safeNumber (bracket, 'maintMarginRatio'),
                 'maxLeverage': this.safeNumber (bracket, 'initialLeverage'),
                 'info': bracket,

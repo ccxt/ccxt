@@ -1102,8 +1102,8 @@ class wavesexchange extends Exchange {
         return intval(floatval($this->to_precision($amount, $this->markets[$symbol]['precision']['amount'])));
     }
 
-    public function currency_to_precision($currency, $amount) {
-        return intval(floatval($this->to_precision($amount, $this->currencies[$currency]['precision'])));
+    public function currency_to_precision($code, $amount) {
+        return intval(floatval($this->to_precision($amount, $this->currencies[$code]['precision'])));
     }
 
     public function from_precision($amount, $scale) {
@@ -2131,6 +2131,54 @@ class wavesexchange extends Exchange {
             'timestamp' => $timestamp,
             'signature' => $signature,
         );
-        return yield $this->nodePostTransactionsBroadcast ($request);
+        $result = yield $this->nodePostTransactionsBroadcast ($request);
+        //
+        //     {
+        //         "id" => "string",
+        //         "signature" => "string",
+        //         "fee" => 0,
+        //         "timestamp" => 1460678400000,
+        //         "recipient" => "3P274YB5qseSE9DTTL3bpSjosZrYBPDpJ8k",
+        //         "amount" => 0
+        //     }
+        //
+        return $this->parse_transaction($result, $currency);
+    }
+
+    public function parse_transaction($transaction, $currency = null) {
+        //
+        // withdraw
+        //
+        //     {
+        //         "id" => "string",
+        //         "signature" => "string",
+        //         "fee" => 0,
+        //         "timestamp" => 1460678400000,
+        //         "recipient" => "3P274YB5qseSE9DTTL3bpSjosZrYBPDpJ8k",
+        //         "amount" => 0
+        //     }
+        //
+        $currency = $this->safe_currency(null, $currency);
+        return array(
+            'id' => null,
+            'txid' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'network' => null,
+            'addressFrom' => null,
+            'address' => null,
+            'addressTo' => null,
+            'amount' => null,
+            'type' => null,
+            'currency' => $currency['code'],
+            'status' => null,
+            'updated' => null,
+            'tagFrom' => null,
+            'tag' => null,
+            'tagTo' => null,
+            'comment' => null,
+            'fee' => null,
+            'info' => $transaction,
+        );
     }
 }

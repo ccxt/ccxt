@@ -39,6 +39,9 @@ class okx extends Exchange {
                 'createDepositAddress' => null,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => null,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,
@@ -371,7 +374,7 @@ class okx extends Exchange {
                     '51007' => '\\ccxt\\InvalidOrder', // Order placement failed. Order amount should be at least 1 contract (showing up when placing an order with less than 1 contract)
                     '51008' => '\\ccxt\\InsufficientFunds', // Order placement failed due to insufficient balance
                     '51009' => '\\ccxt\\AccountSuspended', // Order placement function is blocked by the platform
-                    '51010' => '\\ccxt\\InsufficientFunds', // Account level too low
+                    '51010' => '\\ccxt\\AccountNotEnabled', // Account level too low array("code":"1","data":[array("clOrdId":"uJrfGFth9F","ordId":"","sCode":"51010","sMsg":"The current account mode does not support this API interface. ","tag":"")],"msg":"Operation failed.")
                     '51011' => '\\ccxt\\InvalidOrder', // Duplicated order ID
                     '51012' => '\\ccxt\\BadSymbol', // Token does not exist
                     '51014' => '\\ccxt\\BadSymbol', // Index does not exist
@@ -650,9 +653,8 @@ class okx extends Exchange {
                     'swap' => '9',
                     'option' => '12',
                     'trading' => '18', // unified trading account
-                    'unified' => '18',
                 ),
-                'typesByAccount' => array(
+                'accountsById' => array(
                     '1' => 'spot',
                     '3' => 'future',
                     '5' => 'margin',
@@ -709,8 +711,11 @@ class okx extends Exchange {
     public function fetch_status($params = array ()) {
         $response = yield $this->publicGetSystemStatus ($params);
         //
+        // Note, if there is no maintenance around, the 'data' array is empty
+        //
         //     {
         //         "code" => "0",
+        //         "msg" => "",
         //         "data" => array(
         //             array(
         //                 "begin" => "1621328400000",
@@ -722,15 +727,15 @@ class okx extends Exchange {
         //                 "system" => "classic", // classic, unified
         //                 "title" => "Classic Spot System Upgrade"
         //             ),
-        //         ),
-        //         "msg" => ""
+        //         )
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
+        $dataLength = is_array($data) ? count($data) : 0;
         $timestamp = $this->milliseconds();
         $update = array(
             'updated' => $timestamp,
-            'status' => 'ok',
+            'status' => ($dataLength === 0) ? 'ok' : 'maintenance',
             'eta' => null,
             'info' => $response,
         );
@@ -742,8 +747,7 @@ class okx extends Exchange {
                 $update['status'] = 'maintenance';
             }
         }
-        $this->status = array_merge($this->status, $update);
-        return $this->status;
+        return $update;
     }
 
     public function fetch_time($params = array ()) {
@@ -3840,16 +3844,8 @@ class okx extends Exchange {
         yield $this->load_markets();
         $currency = $this->currency($code);
         $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
-        $fromId = $this->safe_string($accountsByType, $fromAccount);
-        $toId = $this->safe_string($accountsByType, $toAccount);
-        if ($fromId === null) {
-            $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
-            throw new ExchangeError($this->id . ' $fromAccount must be one of ' . implode(', ', $keys));
-        }
-        if ($toId === null) {
-            $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
-            throw new ExchangeError($this->id . ' $toAccount must be one of ' . implode(', ', $keys));
-        }
+        $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
+        $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
         $request = array(
             'ccy' => $currency['id'],
             'amt' => $this->currency_to_precision($code, $amount),
@@ -3860,6 +3856,17 @@ class okx extends Exchange {
             // 'instId' => market['id'], // required when from is 3, 5 or 9, margin trading pair like BTC-USDT or contract underlying like BTC-USD to be transferred out
             // 'toInstId' => market['id'], // required when from is 3, 5 or 9, margin trading pair like BTC-USDT or contract underlying like BTC-USD to be transferred in
         );
+        if ($fromId === 'master') {
+            $request['type'] = '1';
+            $request['subAcct'] = $toId;
+            $request['from'] = $this->safe_string($params, 'from', '6');
+            $request['to'] = $this->safe_string($params, 'to', '6');
+        } else if ($toId === 'master') {
+            $request['type'] = '2';
+            $request['subAcct'] = $fromId;
+            $request['from'] = $this->safe_string($params, 'from', '6');
+            $request['to'] = $this->safe_string($params, 'to', '6');
+        }
         $response = yield $this->privatePostAssetTransfer (array_merge($request, $params));
         //
         //     {
@@ -3914,9 +3921,9 @@ class okx extends Exchange {
         $amount = $this->safe_number($transfer, 'amt');
         $fromAccountId = $this->safe_string($transfer, 'from');
         $toAccountId = $this->safe_string($transfer, 'to');
-        $typesByAccount = $this->safe_value($this->options, 'typesByAccount', array());
-        $fromAccount = $this->safe_string($typesByAccount, $fromAccountId);
-        $toAccount = $this->safe_string($typesByAccount, $toAccountId);
+        $accountsById = $this->safe_value($this->options, 'accountsById', array());
+        $fromAccount = $this->safe_string($accountsById, $fromAccountId);
+        $toAccount = $this->safe_string($accountsById, $toAccountId);
         $timestamp = $this->milliseconds();
         $status = $this->safe_string($transfer, 'state');
         return array(
@@ -3932,7 +3939,7 @@ class okx extends Exchange {
         );
     }
 
-    public function fetch_transfer($id, $since = null, $limit = null, $params = array ()) {
+    public function fetch_transfer($id, $code = null, $params = array ()) {
         yield $this->load_markets();
         $request = array(
             'transId' => $id,
@@ -3960,12 +3967,8 @@ class okx extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $resultArray = array();
-        for ($i = 0; $i < count($data); $i++) {
-            $transfer = $data[$i];
-            $resultArray[] = $this->parse_transfer($transfer, null);
-        }
-        return $this->filter_by_since_limit($resultArray, $since, $limit);
+        $transfer = $this->safe_value($data, 0);
+        return $this->parse_transfer($transfer);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -4648,8 +4651,8 @@ class okx extends Exchange {
             $tiers[] = array(
                 'tier' => $this->safe_integer($tier, 'tier'),
                 'currency' => $market['quote'],
-                'notionalFloor' => $this->safe_number($tier, 'minSz'),
-                'notionalCap' => $this->safe_number($tier, 'maxSz'),
+                'minNotional' => $this->safe_number($tier, 'minSz'),
+                'maxNotional' => $this->safe_number($tier, 'maxSz'),
                 'maintenanceMarginRate' => $this->safe_number($tier, 'mmr'),
                 'maxLeverage' => $this->safe_number($tier, 'maxLever'),
                 'info' => $tier,

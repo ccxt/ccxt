@@ -1097,11 +1097,7 @@ class cryptocom(Exchange):
         #     }
         #
         result = self.safe_value(response, 'result')
-        id = self.safe_string(result, 'id')
-        return {
-            'info': response,
-            'id': id,
-        }
+        return self.parse_transaction(result, currency)
 
     def fetch_deposit_addresses_by_network(self, code, params={}):
         self.load_markets()
@@ -1255,21 +1251,23 @@ class cryptocom(Exchange):
         fromAccount = fromAccount.lower()
         toAccount = toAccount.lower()
         accountsById = self.safe_value(self.options, 'accountsByType', {})
-        fromId = self.safe_string(accountsById, fromAccount)
-        if fromId is None:
-            keys = list(accountsById.keys())
-            raise ExchangeError(self.id + ' fromAccount must be one of ' + ', '.join(keys))
-        toId = self.safe_string(accountsById, toAccount)
-        if toId is None:
-            keys = list(accountsById.keys())
-            raise ExchangeError(self.id + ' toAccount must be one of ' + ', '.join(keys))
+        fromId = self.safe_string(accountsById, fromAccount, fromAccount)
+        toId = self.safe_string(accountsById, toAccount, toAccount)
         request = {
             'currency': currency['id'],
             'amount': float(amount),
             'from': fromId,
             'to': toId,
         }
-        return self.spotPrivatePostPrivateDerivTransfer(self.extend(request, params))
+        repsonse = self.spotPrivatePostPrivateDerivTransfer(self.extend(request, params))
+        #
+        #     {
+        #         "id": 11,
+        #         "method": "private/deriv/transfer",
+        #         "code": 0
+        #     }
+        #
+        return self.parse_transfer(repsonse, currency)
 
     def fetch_transfers(self, code=None, since=None, limit=None, params={}):
         if not ('direction' in params):
@@ -1304,11 +1302,7 @@ class cryptocom(Exchange):
         #
         result = self.safe_value(response, 'result', {})
         transferList = self.safe_value(result, 'transfer_list', [])
-        resultArray = []
-        for i in range(0, len(transferList)):
-            transfer = transferList[i]
-            resultArray.append(self.parse_transfer(transfer, currency))
-        return self.filter_by_since_limit(resultArray, since, limit)
+        return self.parse_transfers(transferList, currency, since, limit, params)
 
     def parse_transfer_status(self, status):
         statuses = {
@@ -1343,7 +1337,7 @@ class cryptocom(Exchange):
         status = self.parse_transfer_status(rawStatus)
         return {
             'info': transfer,
-            'id': None,
+            'id': self.safe_string(transfer, 'id'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'currency': code,
@@ -1618,30 +1612,42 @@ class cryptocom(Exchange):
         #
         # fetchDeposits
         #
-        # {
-        #     "currency": "XRP",
-        #     "fee": 1.0,
-        #     "create_time": 1607063412000,
-        #     "id": "2220",
-        #     "update_time": 1607063460000,
-        #     "amount": 100,
-        #     "address": "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf?1234567890",
-        #     "status": "1"
-        # }
+        #     {
+        #         "currency": "XRP",
+        #         "fee": 1.0,
+        #         "create_time": 1607063412000,
+        #         "id": "2220",
+        #         "update_time": 1607063460000,
+        #         "amount": 100,
+        #         "address": "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf?1234567890",
+        #         "status": "1"
+        #     }
         #
         # fetchWithdrawals
         #
-        # {
-        #     "currency": "XRP",
-        #     "client_wid": "my_withdrawal_002",
-        #     "fee": 1.0,
-        #     "create_time": 1607063412000,
-        #     "id": "2220",
-        #     "update_time": 1607063460000,
-        #     "amount": 100,
-        #     "address": "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf?1234567890",
-        #     "status": "1"
-        # }
+        #     {
+        #         "currency": "XRP",
+        #         "client_wid": "my_withdrawal_002",
+        #         "fee": 1.0,
+        #         "create_time": 1607063412000,
+        #         "id": "2220",
+        #         "update_time": 1607063460000,
+        #         "amount": 100,
+        #         "address": "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf?1234567890",
+        #         "status": "1"
+        #     }
+        #
+        # withdraw
+        #
+        #     {
+        #         "id": 2220,
+        #         "amount": 1,
+        #         "fee": 0.0004,
+        #         "symbol": "BTC",
+        #         "address": "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf",
+        #         "client_wid": "my_withdrawal_002",
+        #         "create_time":1607063412000
+        #     }
         #
         type = None
         rawStatus = self.safe_string(transaction, 'status')

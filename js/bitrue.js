@@ -28,6 +28,9 @@ export default class bitrue extends Exchange {
                 'cancelAllOrders': false,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
                 'fetchBorrowRate': false,
@@ -317,10 +320,10 @@ export default class bitrue extends Exchange {
         return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['quote'], this.precisionMode, this.paddingMode);
     }
 
-    currencyToPrecision (currency, fee) {
+    currencyToPrecision (code, fee) {
         // info is available in currencies only if the user has configured his api keys
-        if (this.safeValue (this.currencies[currency], 'precision') !== undefined) {
-            return this.decimalToPrecision (fee, TRUNCATE, this.currencies[currency]['precision'], this.precisionMode, this.paddingMode);
+        if (this.safeValue (this.currencies[code], 'precision') !== undefined) {
+            return this.decimalToPrecision (fee, TRUNCATE, this.currencies[code]['precision'], this.precisionMode, this.paddingMode);
         } else {
             return this.numberToString (fee);
         }
@@ -332,15 +335,20 @@ export default class bitrue extends Exchange {
 
     async fetchStatus (params = {}) {
         const response = await this.v1PublicGetPing (params);
+        //
+        // empty means working status.
+        //
+        //     {}
+        //
         const keys = Object.keys (response);
         const keysLength = keys.length;
         const formattedStatus = keysLength ? 'maintenance' : 'ok';
-        this.status = this.extend (this.status, {
+        return {
             'status': formattedStatus,
             'updated': this.milliseconds (),
+            'eta': undefined,
             'info': response,
-        });
-        return this.status;
+        };
     }
 
     async fetchTime (params = {}) {

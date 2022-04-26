@@ -33,6 +33,9 @@ class bybit extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
@@ -679,7 +682,7 @@ class bybit extends Exchange {
         }
         $response = $this->publicGetV2PublicSymbols ($params);
         //
-        // $linear swaps and $inverse swaps and futures
+        // $linear swaps and inverse swaps and futures
         // $swapsResponse = $this->publicGetV2PublicSymbols ($params);
         //
         //     {
@@ -688,7 +691,7 @@ class bybit extends Exchange {
         //         "ext_code":"",
         //         "ext_info":"",
         //         "result":array(
-        //             // $inverse $swap
+        //             // inverse $swap
         //             array(
         //                 "name":"BTCUSD",
         //                 "alias":"BTCUSD",
@@ -716,7 +719,7 @@ class bybit extends Exchange {
         //                 "price_filter":array("min_price":"0.5","max_price":"999999","tick_size":"0.5"),
         //                 "lot_size_filter":array("max_trading_qty":100,"min_trading_qty":0.001, "qty_step":0.001)
         //             ),
-        //             // $inverse futures
+        //             // inverse futures
         //             array(
         //                 "name":"BTCUSDM22",
         //                 "alias":"BTCUSD0624",
@@ -747,7 +750,7 @@ class bybit extends Exchange {
         //         "time_now":"1642369942.072113"
         //     }
         //
-        // $spot $markets
+        // spot $markets
         // $spotResponse = $this->publicGetSpotV1Symbols ($params);
         //
         //     {
@@ -871,31 +874,59 @@ class bybit extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $settle = $this->safe_currency_code($settleId);
             $linear = (is_array($linearQuoteCurrencies) && array_key_exists($quote, $linearQuoteCurrencies));
-            $inverse = !$linear;
             $symbol = $base . '/' . $quote;
             $baseQuote = $base . $quote;
             $type = 'swap';
             if ($baseQuote !== $id) {
-                $symbol = $id;
                 $type = 'future';
             }
             $lotSizeFilter = $this->safe_value($market, 'lot_size_filter', array());
             $priceFilter = $this->safe_value($market, 'price_filter', array());
-            $precision = array(
-                'amount' => $this->safe_number($lotSizeFilter, 'qty_step'),
-                'price' => $this->safe_number($priceFilter, 'tick_size'),
-            );
             $leverage = $this->safe_value($market, 'leverage_filter', array());
             $status = $this->safe_string($market, 'status');
             $active = null;
             if ($status !== null) {
                 $active = ($status === 'Trading');
             }
-            $spot = ($type === 'spot');
             $swap = ($type === 'swap');
             $future = ($type === 'future');
             $option = ($type === 'option');
             $contract = $swap || $future || $option;
+            $expiry = null;
+            $expiryDatetime = null;
+            $strike = null;
+            $optionType = null;
+            if ($contract) {
+                if ($settle === null) {
+                    $settleId = $linear ? $quoteId : $baseId;
+                    $settle = $this->safe_currency_code($settleId);
+                }
+                $symbol = $symbol . ':' . $settle;
+                if ($future) {
+                    $alias = $this->safe_string($market, 'alias');
+                    $shortDate = mb_substr($alias, -4);
+                    $date = $this->iso8601($this->milliseconds());
+                    $splitDate = explode('-', $date);
+                    $year = $splitDate[0];
+                    $expiryMonth = mb_substr($shortDate, 0, 2 - 0);
+                    $expiryDay = mb_substr($shortDate, 2, 4 - 2);
+                    $expiryDatetime = $year . '-' . $expiryMonth . '-' . $expiryDay . 'T00:00:00Z';
+                    $expiry = $this->parse8601($expiryDatetime);
+                    $symbol = $symbol . '-' . $this->yymmdd($expiry);
+                } else if ($option) {
+                    $expiry = $this->safe_integer($market, 'deliveryTime');
+                    $expiryDatetime = $this->iso8601($expiry);
+                    $splitId = $this->split ($id, '-');
+                    $strike = $this->safe_string($splitId, 2);
+                    $optionLetter = $this->safe_string($splitId, 3);
+                    $symbol = $symbol . '-' . $this->yymmdd($expiry) . ':' . $strike . ':' . $optionLetter;
+                    if ($optionLetter === 'P') {
+                        $optionType = 'put';
+                    } else if ($optionLetter === 'C') {
+                        $optionType = 'call';
+                    }
+                }
+            }
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -905,26 +936,33 @@ class bybit extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'settleId' => $settleId,
-                'active' => $active,
-                'precision' => $precision,
-                'taker' => $this->safe_number($market, 'taker_fee'),
-                'maker' => $this->safe_number($market, 'maker_fee'),
                 'type' => $type,
-                'spot' => $spot,
+                'spot' => ($type === 'spot'),
                 'margin' => null, // todo
-                'contract' => $contract,
-                'contractSize' => null, // todo
                 'swap' => $swap,
                 'future' => $future,
                 'futures' => $future, // Deprecated, use $future
                 'option' => $option,
+                'active' => $active,
+                'contract' => $contract,
                 'linear' => $linear,
-                'inverse' => $inverse,
-                'expiry' => null, // todo
-                'expiryDatetime' => null, // todo
-                'optionType' => null,
-                'strike' => null,
+                'inverse' => !$linear,
+                'taker' => $this->safe_number($market, 'taker_fee'),
+                'maker' => $this->safe_number($market, 'maker_fee'),
+                'contractSize' => null, // todo
+                'expiry' => $expiry,
+                'expiryDatetime' => $expiryDatetime,
+                'strike' => $strike,
+                'optionType' => $optionType,
+                'precision' => array(
+                    'amount' => $this->safe_number($lotSizeFilter, 'qty_step'),
+                    'price' => $this->safe_number($priceFilter, 'tick_size'),
+                ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => $this->parse_number('1'),
+                        'max' => $this->safe_number($leverage, 'max_leverage', 1),
+                    ),
                     'amount' => array(
                         'min' => $this->safe_number($lotSizeFilter, 'min_trading_qty'),
                         'max' => $this->safe_number($lotSizeFilter, 'max_trading_qty'),
@@ -936,9 +974,6 @@ class bybit extends Exchange {
                     'cost' => array(
                         'min' => null,
                         'max' => null,
-                    ),
-                    'leverage' => array(
-                        'max' => $this->safe_number($leverage, 'max_leverage', 1),
                     ),
                 ),
                 'info' => $market,
@@ -1647,6 +1682,33 @@ class bybit extends Exchange {
         //         "order_id" : "dd2504b9-0157-406a-99e1-efa522373944"
         //     }
         //
+        // fetchOrders linear swaps
+        //
+        //     {
+        //         "order_id":"7917bd70-e7c3-4af5-8147-3285cd99c509",
+        //         "user_id":22919890,
+        //         "symbol":"GMTUSDT",
+        //         "side":"Buy",
+        //         "order_type":"Limit",
+        //         "price":2.9262,
+        //         "qty":50,
+        //         "time_in_force":"GoodTillCancel",
+        //         "order_status":"Filled",
+        //         "last_exec_price":2.9219,
+        //         "cum_exec_qty":50,
+        //         "cum_exec_value":146.095,
+        //         "cum_exec_fee":0.087657,
+        //         "reduce_only":false,
+        //         "close_on_trigger":false,
+        //         "order_link_id":"",
+        //         "created_time":"2022-04-18T17:09:54Z",
+        //         "updated_time":"2022-04-18T17:09:54Z",
+        //         "take_profit":0,
+        //         "stop_loss":0,
+        //         "tp_trigger_by":"UNKNOWN",
+        //         "sl_trigger_by":"UNKNOWN"
+        //     }
+        //
         // conditional $order
         //
         //     {
@@ -1686,7 +1748,7 @@ class bybit extends Exchange {
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
         $feeCurrency = null;
-        $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
+        $timestamp = $this->parse8601($this->safe_string_2($order, 'created_at', 'created_time'));
         $id = $this->safe_string_2($order, 'order_id', 'stop_order_id');
         $type = $this->safe_string_lower($order, 'order_type');
         $price = null;
@@ -2295,6 +2357,48 @@ class bybit extends Exchange {
         //         "rate_limit_status" => 98,
         //         "rate_limit_reset_ms" => 1580885703683,
         //         "rate_limit" => 100
+        //     }
+        //
+        // $linear swaps
+        //
+        //     {
+        //         "ret_code":0,
+        //         "ret_msg":"OK",
+        //         "ext_code":"",
+        //         "ext_info":"",
+        //         "result":{
+        //             "current_page":1,
+        //             "data":array(
+        //                 array(
+        //                     "order_id":"7917bd70-e7c3-4af5-8147-3285cd99c509",
+        //                     "user_id":22919890,
+        //                     "symbol":"GMTUSDT",
+        //                     "side":"Buy",
+        //                     "order_type":"Limit",
+        //                     "price":2.9262,
+        //                     "qty":50,
+        //                     "time_in_force":"GoodTillCancel",
+        //                     "order_status":"Filled",
+        //                     "last_exec_price":2.9219,
+        //                     "cum_exec_qty":50,
+        //                     "cum_exec_value":146.095,
+        //                     "cum_exec_fee":0.087657,
+        //                     "reduce_only":false,
+        //                     "close_on_trigger":false,
+        //                     "order_link_id":"",
+        //                     "created_time":"2022-04-18T17:09:54Z",
+        //                     "updated_time":"2022-04-18T17:09:54Z",
+        //                     "take_profit":0,
+        //                     "stop_loss":0,
+        //                     "tp_trigger_by":"UNKNOWN",
+        //                     "sl_trigger_by":"UNKNOWN"
+        //                 }
+        //             )
+        //         ),
+        //         "time_now":"1650970113.283952",
+        //         "rate_limit_status":599,
+        //         "rate_limit_reset_ms":1650970113275,
+        //         "rate_limit":600
         //     }
         //
         // conditional orders
@@ -3236,21 +3340,21 @@ class bybit extends Exchange {
         //        ...
         //    )
         //
-        $notionalFloor = 0;
+        $minNotional = 0;
         $tiers = array();
         for ($i = 0; $i < count($info); $i++) {
             $item = $info[$i];
-            $notionalCap = $this->safe_number($item, 'limit');
+            $maxNotional = $this->safe_number($item, 'limit');
             $tiers[] = array(
                 'tier' => $this->sum($i, 1),
                 'currency' => $market['base'],
-                'notionalFloor' => $notionalFloor,
-                'notionalCap' => $notionalCap,
+                'minNotional' => $minNotional,
+                'maxNotional' => $maxNotional,
                 'maintenanceMarginRate' => $this->safe_number($item, 'maintain_margin'),
                 'maxLeverage' => $this->safe_number($item, 'max_leverage'),
                 'info' => $item,
             );
-            $notionalFloor = $notionalCap;
+            $minNotional = $maxNotional;
         }
         return $tiers;
     }

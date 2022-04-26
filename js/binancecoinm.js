@@ -17,6 +17,15 @@ export default class binancecoinm extends binance {
                     'https://binance-docs.github.io/apidocs/spot/en',
                 ],
             },
+            'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': undefined,
+                'swap': undefined,
+                'future': undefined,
+                'option': undefined,
+                'createStopMarketOrder': true,
+            },
             'options': {
                 'defaultType': 'delivery',
                 'leverageBrackets': undefined,

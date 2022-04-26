@@ -1237,14 +1237,8 @@ class poloniex(Exchange):
         currency = self.currency(code)
         amount = self.currency_to_precision(code, amount)
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
-        fromId = self.safe_string(accountsByType, fromAccount)
-        toId = self.safe_string(accountsByType, toAccount)
-        if fromId is None:
-            keys = list(accountsByType.keys())
-            raise ExchangeError(self.id + ' fromAccount must be one of ' + ', '.join(keys))
-        if toId is None:
-            keys = list(accountsByType.keys())
-            raise ExchangeError(self.id + ' toAccount must be one of ' + ', '.join(keys))
+        fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
+        toId = self.safe_string(accountsByType, toAccount, fromAccount)
         request = {
             'amount': amount,
             'currency': currency['id'],
@@ -1318,10 +1312,7 @@ class poloniex(Exchange):
         #         withdrawalNumber: 13449869
         #     }
         #
-        return {
-            'info': response,
-            'id': self.safe_string(response, 'withdrawalNumber'),
-        }
+        return self.parse_transaction(response, currency)
 
     def fetch_transactions_helper(self, code=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -1480,6 +1471,14 @@ class poloniex(Exchange):
         #         "timestamp": 1523834337,
         #         "canResendEmail": 0,
         #         "withdrawalNumber": 11162900
+        #     }
+        #
+        # withdraw
+        #
+        #     {
+        #         response: 'Withdrew 1.00000000 USDT.',
+        #         email2FA: False,
+        #         withdrawalNumber: 13449869
         #     }
         #
         timestamp = self.safe_timestamp(transaction, 'timestamp')

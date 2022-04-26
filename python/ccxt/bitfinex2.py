@@ -47,6 +47,9 @@ class bitfinex2(bitfinex):
                 'createLimitOrder': True,
                 'createMarketOrder': True,
                 'createOrder': True,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': True,
+                'createStopOrder': True,
                 'editOrder': None,
                 'fetchBalance': True,
                 'fetchClosedOrder': True,
@@ -389,14 +392,13 @@ class bitfinex2(bitfinex):
         #    [0]  # maintenance
         #
         response = self.publicGetPlatformStatus(params)
-        status = self.safe_integer(response, 0)
-        formattedStatus = 'ok' if (status == 1) else 'maintenance'
-        self.status = self.extend(self.status, {
-            'status': formattedStatus,
+        statusRaw = self.safe_string(response, 0)
+        return {
+            'status': self.safe_string({'0': 'maintenance', '1': 'ok'}, statusRaw, statusRaw),
             'updated': self.milliseconds(),
+            'eta': None,
             'info': response,
-        })
-        return self.status
+        }
 
     def fetch_markets(self, params={}):
         # todo drop v1 in favor of v2 configs  ( temp-reference for v2update: https://pastebin.com/raw/S8CmqSHQ )
@@ -637,7 +639,7 @@ class bitfinex2(bitfinex):
         self.load_markets()
         accountsByType = self.safe_value(self.options, 'v2AccountsByType', {})
         requestedType = self.safe_string(params, 'type', 'exchange')
-        accountType = self.safe_string(accountsByType, requestedType)
+        accountType = self.safe_string(accountsByType, requestedType, requestedType)
         if accountType is None:
             keys = list(accountsByType.keys())
             raise ExchangeError(self.id + ' fetchBalance type parameter must be one of ' + ', '.join(keys))
@@ -1730,7 +1732,7 @@ class bitfinex2(bitfinex):
 
     def fetch_positions(self, symbols=None, params={}):
         self.load_markets()
-        response = self.privatePostPositions(params)
+        response = self.privatePostAuthRPositions(params)
         #
         #     [
         #         [

@@ -36,6 +36,9 @@ class kucoinfutures extends kucoin {
                 'cancelOrder' => true,
                 'createDepositAddress' => true,
                 'createOrder' => true,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
@@ -309,22 +312,19 @@ class kucoinfutures extends kucoin {
         //     {
         //         "code":"200000",
         //         "data":{
-        //             "msg":"",
-        //             "status":"open"
+        //             "status" => "open", // open, close, cancelonly
+        //             "msg" => "upgrade match engine" // remark for operation when $status not open
         //         }
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $status = $this->safe_value($data, 'status');
-        if ($status !== null) {
-            $status = ($status === 'open') ? 'ok' : 'maintenance';
-            $this->status = array_merge($this->status, array(
-                'status' => $status,
-                'updated' => $this->milliseconds(),
-                'info' => $response,
-            ));
-        }
-        return $this->status;
+        $status = $this->safe_string($data, 'status');
+        return array(
+            'status' => ($status === 'open') ? 'ok' : 'maintenance',
+            'updated' => $this->milliseconds(),
+            'eta' => null,
+            'info' => $response,
+        );
     }
 
     public function fetch_markets($params = array ()) {
@@ -935,7 +935,7 @@ class kucoinfutures extends kucoin {
         /**
          * Create an order on the exchange
          * @param {str} $symbol Unified CCXT $market $symbol
-         * @param {str} $type "limit" or "market" *"market" is contract only*
+         * @param {str} $type "limit" or "market"
          * @param {str} $side "buy" or "sell"
          * @param {float} $amount the $amount of currency to trade
          * @param {float} $price *ignored in "market" orders* the $price at which the order is to be fullfilled at in units of the quote currency
@@ -1317,15 +1317,12 @@ class kucoinfutures extends kucoin {
         if (($toAccount !== 'main' && $toAccount !== 'funding') || ($fromAccount !== 'futures' && $fromAccount !== 'future' && $fromAccount !== 'contract')) {
             throw new BadRequest($this->id . ' only supports transfers from contract(future) account to main(funding) account');
         }
-        return $this->transfer_out($code, $amount, $params);
-    }
-
-    public function transfer_out($code, $amount, $params = array ()) {
         yield $this->load_markets();
         $currency = $this->currency($code);
+        $amountToPrecision = $this->currency_to_precision($code, $amount);
         $request = array(
             'currency' => $this->safe_string($currency, 'id'), // Currency,including XBT,USDT
-            'amount' => $amount,
+            'amount' => $amountToPrecision,
         );
         // transfer from usdm futures wallet to spot wallet
         $response = yield $this->futuresPrivatePostTransferOut (array_merge($request, $params));
@@ -1338,18 +1335,40 @@ class kucoinfutures extends kucoin {
         //    }
         //
         $data = $this->safe_value($response, 'data');
-        $timestamp = $this->safe_string($data, 'updatedAt');
-        return array(
-            'info' => $response,
-            'id' => $this->safe_string($data, 'applyId'),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'currency' => $code,
-            'amount' => $amount,
+        return array_merge($this->parse_transfer($data, $currency), array(
+            'amount' => $this->parse_number($amountToPrecision),
             'fromAccount' => 'future',
             'toAccount' => 'spot',
-            'status' => $this->safe_string($data, 'status'),
+        ));
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        // $transfer
+        //
+        //     {
+        //            "applyId" => "5bffb63303aa675e8bbe18f9" // Transfer-out request ID
+        //     }
+        //
+        $timestamp = $this->safe_string($transfer, 'updatedAt');
+        return array(
+            'id' => $this->safe_string($transfer, 'applyId'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'currency' => $this->safe_currency_code(null, $currency),
+            'amount' => null,
+            'fromAccount' => null,
+            'toAccount' => null,
+            'status' => $this->safe_string($transfer, 'status'),
+            'info' => $transfer,
         );
+    }
+
+    public function parse_transfer_status($status) {
+        $statuses = array(
+            'PROCESSING' => 'pending',
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -1710,8 +1729,8 @@ class kucoinfutures extends kucoin {
             $tiers[] = array(
                 'tier' => $this->safe_number($tier, 'level'),
                 'currency' => $market['base'],
-                'notionalFloor' => $this->safe_number($tier, 'minRiskLimit'),
-                'notionalCap' => $this->safe_number($tier, 'maxRiskLimit'),
+                'minNotional' => $this->safe_number($tier, 'minRiskLimit'),
+                'maxNotional' => $this->safe_number($tier, 'maxRiskLimit'),
                 'maintenanceMarginRate' => $this->safe_number($tier, 'maintainMargin'),
                 'maxLeverage' => $this->safe_number($tier, 'maxLeverage'),
                 'info' => $tier,

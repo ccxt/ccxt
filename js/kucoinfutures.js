@@ -32,6 +32,9 @@ export default class kucoinfutures extends kucoin {
                 'cancelOrder': true,
                 'createDepositAddress': true,
                 'createOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
@@ -305,22 +308,19 @@ export default class kucoinfutures extends kucoin {
         //     {
         //         "code":"200000",
         //         "data":{
-        //             "msg":"",
-        //             "status":"open"
+        //             "status": "open", // open, close, cancelonly
+        //             "msg": "upgrade match engine" // remark for operation when status not open
         //         }
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        let status = this.safeValue (data, 'status');
-        if (status !== undefined) {
-            status = (status === 'open') ? 'ok' : 'maintenance';
-            this.status = this.extend (this.status, {
-                'status': status,
-                'updated': this.milliseconds (),
-                'info': response,
-            });
-        }
-        return this.status;
+        const status = this.safeString (data, 'status');
+        return {
+            'status': (status === 'open') ? 'ok' : 'maintenance',
+            'updated': this.milliseconds (),
+            'eta': undefined,
+            'info': response,
+        };
     }
 
     async fetchMarkets (params = {}) {
@@ -933,7 +933,7 @@ export default class kucoinfutures extends kucoin {
          * @name kucoinfutures#createOrder
          * @description Create an order on the exchange
          * @param {str} symbol Unified CCXT market symbol
-         * @param {str} type "limit" or "market" *"market" is contract only*
+         * @param {str} type "limit" or "market"
          * @param {str} side "buy" or "sell"
          * @param {float} amount the amount of currency to trade
          * @param {float} price *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
@@ -1319,15 +1319,12 @@ export default class kucoinfutures extends kucoin {
         if ((toAccount !== 'main' && toAccount !== 'funding') || (fromAccount !== 'futures' && fromAccount !== 'future' && fromAccount !== 'contract')) {
             throw new BadRequest (this.id + ' only supports transfers from contract(future) account to main(funding) account');
         }
-        return this.transferOut (code, amount, params);
-    }
-
-    async transferOut (code, amount, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
+        const amountToPrecision = this.currencyToPrecision (code, amount);
         const request = {
             'currency': this.safeString (currency, 'id'), // Currency,including XBT,USDT
-            'amount': amount,
+            'amount': amountToPrecision,
         };
         // transfer from usdm futures wallet to spot wallet
         const response = await this.futuresPrivatePostTransferOut (this.extend (request, params));
@@ -1340,18 +1337,40 @@ export default class kucoinfutures extends kucoin {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        const timestamp = this.safeString (data, 'updatedAt');
-        return {
-            'info': response,
-            'id': this.safeString (data, 'applyId'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'currency': code,
-            'amount': amount,
+        return this.extend (this.parseTransfer (data, currency), {
+            'amount': this.parseNumber (amountToPrecision),
             'fromAccount': 'future',
             'toAccount': 'spot',
-            'status': this.safeString (data, 'status'),
+        });
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        // transfer
+        //
+        //     {
+        //            "applyId": "5bffb63303aa675e8bbe18f9" // Transfer-out request ID
+        //     }
+        //
+        const timestamp = this.safeString (transfer, 'updatedAt');
+        return {
+            'id': this.safeString (transfer, 'applyId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': this.safeCurrencyCode (undefined, currency),
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': this.safeString (transfer, 'status'),
+            'info': transfer,
         };
+    }
+
+    parseTransferStatus (status) {
+        const statuses = {
+            'PROCESSING': 'pending',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1713,8 +1732,8 @@ export default class kucoinfutures extends kucoin {
             tiers.push ({
                 'tier': this.safeNumber (tier, 'level'),
                 'currency': market['base'],
-                'notionalFloor': this.safeNumber (tier, 'minRiskLimit'),
-                'notionalCap': this.safeNumber (tier, 'maxRiskLimit'),
+                'minNotional': this.safeNumber (tier, 'minRiskLimit'),
+                'maxNotional': this.safeNumber (tier, 'maxRiskLimit'),
                 'maintenanceMarginRate': this.safeNumber (tier, 'maintainMargin'),
                 'maxLeverage': this.safeNumber (tier, 'maxLeverage'),
                 'info': tier,

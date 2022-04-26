@@ -51,8 +51,10 @@ export default class bitbns extends Exchange {
                 'fetchTradingFees': false,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
+                'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'transfer': false,
+                'withdraw': false,
             },
             'timeframes': {
             },
@@ -158,16 +160,13 @@ export default class bitbns extends Exchange {
         //         "code":200
         //     }
         //
-        let status = this.safeString (response, 'status');
-        if (status !== undefined) {
-            status = (status === '1') ? 'ok' : 'maintenance';
-            this.status = this.extend (this.status, {
-                'status': status,
-                'updated': this.milliseconds (),
-                'info': response,
-            });
-        }
-        return this.status;
+        const statusRaw = this.safeString (response, 'status');
+        return {
+            'status': this.safeString ({ '1': 'ok' }, statusRaw, statusRaw),
+            'updated': this.milliseconds (),
+            'eta': undefined,
+            'info': response,
+        };
     }
 
     async fetchMarkets (params = {}) {

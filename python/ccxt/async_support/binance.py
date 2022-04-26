@@ -55,6 +55,9 @@ class binance(Exchange):
                 'createDepositAddress': False,
                 'createOrder': True,
                 'createReduceOnlyOrder': True,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': False,
+                'createStopOrder': True,
                 'fetchAccounts': None,
                 'fetchBalance': True,
                 'fetchBidsAsks': True,
@@ -840,7 +843,7 @@ class binance(Exchange):
                     'delivery': 'CMFUTURE',
                     'mining': 'MINING',
                 },
-                'typesByAccount': {
+                'accountsById': {
                     'MAIN': 'spot',
                     'FUNDING': 'funding',
                     'MARGIN': 'margin',
@@ -1188,6 +1191,7 @@ class binance(Exchange):
                     '-6020': BadRequest,  # {"code":-6020,"msg":"Project not exists"}
                     '-7001': BadRequest,  # {"code":-7001,"msg":"Date range is not supported."}
                     '-7002': BadRequest,  # {"code":-7002,"msg":"Data request type is not supported."}
+                    '-9000': InsufficientFunds,  # {"code":-9000,"msg":"user have no avaliable amount"}"
                     '-10017': BadRequest,  # {"code":-10017,"msg":"Repay amount should not be larger than liability."}
                     '-11008': InsufficientFunds,  # {"code":-11008,"msg":"Exceeding the account's maximum borrowable limit."}  # undocumented
                     '-12014': RateLimitExceeded,  # {"code":-12014,"msg":"More than 1 request in 3 seconds"}
@@ -1211,10 +1215,10 @@ class binance(Exchange):
     def cost_to_precision(self, symbol, cost):
         return self.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['quote'], self.precisionMode, self.paddingMode)
 
-    def currency_to_precision(self, currency, fee):
+    def currency_to_precision(self, code, fee):
         # info is available in currencies only if the user has configured his api keys
-        if self.safe_value(self.currencies[currency], 'precision') is not None:
-            return self.decimal_to_precision(fee, TRUNCATE, self.currencies[currency]['precision'], self.precisionMode, self.paddingMode)
+        if self.safe_value(self.currencies[code], 'precision') is not None:
+            return self.decimal_to_precision(fee, TRUNCATE, self.currencies[code]['precision'], self.precisionMode, self.paddingMode)
         else:
             return self.number_to_string(fee)
 
@@ -2042,15 +2046,19 @@ class binance(Exchange):
 
     async def fetch_status(self, params={}):
         response = await self.sapiGetSystemStatus(params)
-        status = self.safe_string(response, 'status')
-        if status is not None:
-            status = 'ok' if (status == '0') else 'maintenance'
-            self.status = self.extend(self.status, {
-                'status': status,
-                'updated': self.milliseconds(),
-                'info': response,
-            })
-        return self.status
+        #
+        #     {
+        #         "status": 0,              # 0: normal，1：system maintenance
+        #         "msg": "normal"           # "normal", "system_maintenance"
+        #     }
+        #
+        statusRaw = self.safe_string(response, 'status')
+        return {
+            'status': self.safe_string({'0': 'ok', '1': 'maintenance'}, statusRaw, statusRaw),
+            'updated': self.milliseconds(),
+            'eta': None,
+            'info': response,
+        }
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
@@ -3439,8 +3447,9 @@ class binance(Exchange):
         if feeCost is not None:
             fee = {'currency': code, 'cost': feeCost}
         updated = self.safe_integer_2(transaction, 'successTime', 'updateTime')
-        internal = self.safe_integer(transaction, 'transferType', False)
-        internal = True if internal else False
+        internal = self.safe_integer(transaction, 'transferType')
+        if internal is not None:
+            internal = True if internal else False
         network = self.safe_string(transaction, 'network')
         return {
             'info': transaction,
@@ -3496,13 +3505,13 @@ class binance(Exchange):
         type = self.safe_string(transfer, 'type')
         fromAccount = None
         toAccount = None
-        typesByAccount = self.safe_value(self.options, 'typesByAccount', {})
+        accountsById = self.safe_value(self.options, 'accountsById', {})
         if type is not None:
             parts = type.split('_')
             fromAccount = self.safe_value(parts, 0)
             toAccount = self.safe_value(parts, 1)
-            fromAccount = self.safe_string(typesByAccount, fromAccount, fromAccount)
-            toAccount = self.safe_string(typesByAccount, toAccount, toAccount)
+            fromAccount = self.safe_string(accountsById, fromAccount, fromAccount)
+            toAccount = self.safe_string(accountsById, toAccount, toAccount)
         timestamp = self.safe_integer(transfer, 'timestamp')
         status = self.parse_transfer_status(self.safe_string(transfer, 'status'))
         return {
@@ -3562,16 +3571,8 @@ class binance(Exchange):
         type = self.safe_string(params, 'type')
         if type is None:
             accountsByType = self.safe_value(self.options, 'accountsByType', {})
-            fromAccount = fromAccount.lower()
-            toAccount = toAccount.lower()
-            fromId = self.safe_string(accountsByType, fromAccount)
-            toId = self.safe_string(accountsByType, toAccount)
-            if fromId is None:
-                keys = list(accountsByType.keys())
-                raise ExchangeError(self.id + ' fromAccount must be one of ' + ', '.join(keys))
-            if toId is None:
-                keys = list(accountsByType.keys())
-                raise ExchangeError(self.id + ' toAccount must be one of ' + ', '.join(keys))
+            fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
+            toId = self.safe_string(accountsByType, toAccount, toAccount)
             type = fromId + '_' + toId
         request = {
             'asset': currency['id'],
@@ -4592,6 +4593,8 @@ class binance(Exchange):
             raise NotSupported(self.id + ' fetchLeverageTiers() supports linear and inverse contracts only')
         response = await getattr(self, method)(query)
         #
+        # usdm
+        #
         #    [
         #        {
         #            "symbol": "SUSHIUSDT",
@@ -4608,6 +4611,24 @@ class binance(Exchange):
         #            ]
         #        }
         #    ]
+        #
+        # coinm
+        #
+        #     [
+        #         {
+        #             "symbol":"XRPUSD_210326",
+        #             "brackets":[
+        #                 {
+        #                     "bracket":1,
+        #                     "initialLeverage":20,
+        #                     "qtyCap":500000,
+        #                     "qtyFloor":0,
+        #                     "maintMarginRatio":0.0185,
+        #                     "cum":0.0
+        #                 }
+        #             ]
+        #         }
+        #     ]
         #
         return self.parse_leverage_tiers(response, symbols, 'symbol')
 
@@ -4643,8 +4664,8 @@ class binance(Exchange):
             tiers.append({
                 'tier': self.safe_number(bracket, 'bracket'),
                 'currency': market['quote'],
-                'notionalFloor': self.safe_number_2(bracket, 'notionalFloor', 'qtyFloor'),
-                'notionalCap': self.safe_number(bracket, 'notionalCap'),
+                'minNotional': self.safe_number_2(bracket, 'notionalFloor', 'qtyFloor'),
+                'maxNotional': self.safe_number(bracket, 'notionalCap', 'qtyCap'),
                 'maintenanceMarginRate': self.safe_number(bracket, 'maintMarginRatio'),
                 'maxLeverage': self.safe_number(bracket, 'initialLeverage'),
                 'info': bracket,

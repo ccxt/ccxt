@@ -381,10 +381,7 @@ class bitfinex extends Exchange {
                     'spot' => 'exchange',
                     'margin' => 'trading',
                     'funding' => 'deposit',
-                    'exchange' => 'exchange',
-                    'trading' => 'trading',
-                    'deposit' => 'deposit',
-                    'derivatives' => 'trading',
+                    'swap' => 'trading',
                 ),
             ),
         ));
@@ -597,7 +594,7 @@ class bitfinex extends Exchange {
         $this->load_markets();
         $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
         $requestedType = $this->safe_string($params, 'type', 'exchange');
-        $accountType = $this->safe_string($accountsByType, $requestedType);
+        $accountType = $this->safe_string($accountsByType, $requestedType, $requestedType);
         if ($accountType === null) {
             $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
             throw new ExchangeError($this->id . ' fetchBalance $type parameter must be one of ' . implode(', ', $keys));
@@ -649,16 +646,8 @@ class bitfinex extends Exchange {
         // however we support it in CCXT (from just looking at web inspector)
         $this->load_markets();
         $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
-        $fromId = $this->safe_string($accountsByType, $fromAccount);
-        if ($fromId === null) {
-            $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
-            throw new ExchangeError($this->id . ' transfer $fromAccount must be one of ' . implode(', ', $keys));
-        }
-        $toId = $this->safe_string($accountsByType, $toAccount);
-        if ($toId === null) {
-            $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
-            throw new ExchangeError($this->id . ' transfer $toAccount must be one of ' . implode(', ', $keys));
-        }
+        $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
+        $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
         $currency = $this->currency($code);
         $fromCurrencyId = $this->convert_derivatives_id($currency['id'], $fromAccount);
         $toCurrencyId = $this->convert_derivatives_id($currency['id'], $toAccount);
@@ -671,33 +660,52 @@ class bitfinex extends Exchange {
             'walletto' => $toId,
         );
         $response = $this->privatePostTransfer (array_merge($request, $params));
-        // array(
-        //   {
-        //     $status => 'success',
-        //     $message => '0.0001 Bitcoin transfered from Margin to Exchange'
-        //   }
-        // )
+        //
+        //     array(
+        //         {
+        //             status => 'success',
+        //             $message => '0.0001 Bitcoin transfered from Margin to Exchange'
+        //         }
+        //     )
+        //
         $result = $this->safe_value($response, 0);
-        $status = $this->safe_string($result, 'status');
         $message = $this->safe_string($result, 'message');
         if ($message === null) {
             throw new ExchangeError($this->id . ' transfer failed');
         }
-        // [array("status":"error","message":"Momentary balance check. Please wait few seconds and try the transfer again.")]
-        if ($status === 'error') {
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $this->id . ' ' . $message);
-            throw new ExchangeError($this->id . ' ' . $message);
-        }
-        return array(
-            'info' => $response,
-            'status' => $status,
-            'amount' => $requestedAmount,
-            'code' => $code,
+        return array_merge($this->parse_transfer($result, $currency), array(
             'fromAccount' => $fromAccount,
             'toAccount' => $toAccount,
-            'timestamp' => null,
-            'datetime' => null,
+            'amount' => $this->parse_number($requestedAmount),
+        ));
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        //     {
+        //         status => 'success',
+        //         message => '0.0001 Bitcoin transfered from Margin to Exchange'
+        //     }
+        //
+        $timestamp = $this->milliseconds();
+        return array(
+            'info' => $transfer,
+            'id' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'currency' => $this->safe_currency_code(null, $currency),
+            'amount' => null,
+            'fromAccount' => null,
+            'toAccount' => null,
+            'status' => $this->parse_transfer_status($this->safe_string($transfer, 'status')),
         );
+    }
+
+    public function parse_transfer_status($status) {
+        $statuses = array(
+            'SUCCESS' => 'ok',
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function convert_derivatives_id($currencyId, $type) {
@@ -1313,13 +1321,15 @@ class bitfinex extends Exchange {
         }
         $responses = $this->privatePostWithdraw (array_merge($request, $params));
         //
-        //     [array(
-        //         "status":"success",
-        //         "message":"Your withdrawal $request has been successfully submitted.",
-        //         "withdrawal_id":586829
-        //     )]
+        //     array(
+        //         {
+        //             "status":"success",
+        //             "message":"Your withdrawal $request has been successfully submitted.",
+        //             "withdrawal_id":586829
+        //         }
+        //     )
         //
-        $response = $responses[0];
+        $response = $this->safe_value($responses, 0, array());
         $id = $this->safe_string($response, 'withdrawal_id');
         $message = $this->safe_string($response, 'message');
         $errorMessage = $this->find_broadly_matched_key($this->exceptions['broad'], $message);
@@ -1399,14 +1409,27 @@ class bitfinex extends Exchange {
         if ($response === null) {
             return;
         }
+        $throwError = false;
         if ($code >= 400) {
-            if ($body[0] === '{') {
-                $feedback = $this->id . ' ' . $body;
-                $message = $this->safe_string_2($response, 'message', 'error');
-                $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
-                $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
-                throw new ExchangeError($feedback); // unknown $message
+            $firstChar = $this->safe_string($body, 0);
+            if ($firstChar === '{') {
+                $throwError = true;
             }
+        } else {
+            // json $response with error, i.e:
+            // [array("status":"error","message":"Momentary balance check. Please wait few seconds and try the transfer again.")]
+            $responseObject = $this->safe_value($response, 0, array());
+            $status = $this->safe_string($responseObject, 'status', '');
+            if ($status === 'error') {
+                $throwError = true;
+            }
+        }
+        if ($throwError) {
+            $feedback = $this->id . ' ' . $body;
+            $message = $this->safe_string_2($response, 'message', 'error');
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
+            throw new ExchangeError($feedback); // unknown $message
         }
     }
 }

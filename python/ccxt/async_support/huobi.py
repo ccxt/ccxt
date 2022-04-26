@@ -36,7 +36,7 @@ class huobi(Exchange):
             'name': 'Huobi',
             'countries': ['CN'],
             'rateLimit': 100,
-            'userAgent': self.userAgents['chrome39'],
+            'userAgent': self.userAgents['chrome100'],
             'certified': True,
             'version': 'v1',
             'accounts': None,
@@ -57,6 +57,9 @@ class huobi(Exchange):
                 'createDepositAddress': None,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': True,
+                'createStopOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': None,
@@ -821,7 +824,10 @@ class huobi(Exchange):
                     # err-msg
                     'invalid symbol': BadSymbol,  # {"ts":1568813334794,"status":"error","err-code":"invalid-parameter","err-msg":"invalid symbol"}
                     'symbol trade not open now': BadSymbol,  # {"ts":1576210479343,"status":"error","err-code":"invalid-parameter","err-msg":"symbol trade not open now"}
-                    'require-symbol': BadSymbol,  # {"status":"error","err-code":"require-symbol","err-msg":"Parameter `symbol` is required.","data":null}
+                    'require-symbol': BadSymbol,  # {"status":"error","err-code":"require-symbol","err-msg":"Parameter `symbol` is required.","data":null},
+                    'invalid-address': BadRequest,  # {"status":"error","err-code":"invalid-address","err-msg":"Invalid address.","data":null},
+                    'base-currency-chain-error': BadRequest,  # {"status":"error","err-code":"base-currency-chain-error","err-msg":"The current currency chain does not exist","data":null},
+                    'dw-insufficient-balance': InsufficientFunds,  # {"status":"error","err-code":"dw-insufficient-balance","err-msg":"Insufficient balance. You can only transfer `12.3456` at most.","data":null}
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -2480,14 +2486,20 @@ class huobi(Exchange):
                     balance = data[i]
                     marketId = self.safe_string_2(balance, 'contract_code', 'margin_account')
                     market = self.safe_market(marketId)
-                    account = self.account()
-                    account['free'] = self.safe_string(balance, 'margin_balance')
-                    account['used'] = self.safe_string(balance, 'margin_frozen')
-                    code = market['settle']
-                    accountsByCode = {}
-                    accountsByCode[code] = account
-                    symbol = market['symbol']
-                    result[symbol] = self.safe_balance(accountsByCode)
+                    currencyId = self.safe_string(balance, 'margin_asset')
+                    currency = self.safe_currency(currencyId)
+                    code = self.safe_string(market, 'settle', currency['code'])
+                    # the exchange outputs positions for delisted markets
+                    # https://www.huobi.com/support/en-us/detail/74882968522337
+                    # we skip it if the market was delisted
+                    if code is not None:
+                        account = self.account()
+                        account['free'] = self.safe_string(balance, 'margin_balance')
+                        account['used'] = self.safe_string(balance, 'margin_frozen')
+                        accountsByCode = {}
+                        accountsByCode[code] = account
+                        symbol = market['symbol']
+                        result[symbol] = self.safe_balance(accountsByCode)
                 return result
         elif inverse:
             for i in range(0, len(data)):
@@ -3711,8 +3723,8 @@ class huobi(Exchange):
         #
         return response
 
-    def currency_to_precision(self, currency, fee):
-        return self.decimal_to_precision(fee, 0, self.currencies[currency]['precision'])
+    def currency_to_precision(self, code, fee):
+        return self.decimal_to_precision(fee, 0, self.currencies[code]['precision'])
 
     def safe_network(self, networkId):
         lastCharacterIndex = len(networkId) - 1
@@ -3929,6 +3941,13 @@ class huobi(Exchange):
         #         'updated-at': 1552108032859
         #     }
         #
+        # withdraw
+        #
+        #     {
+        #         "status": "ok",
+        #         "data": "99562054"
+        #     }
+        #
         timestamp = self.safe_integer(transaction, 'created-at')
         updated = self.safe_integer(transaction, 'updated-at')
         code = self.safe_currency_code(self.safe_string(transaction, 'currency'))
@@ -3944,7 +3963,7 @@ class huobi(Exchange):
         network = self.safe_string_upper(transaction, 'chain')
         return {
             'info': transaction,
-            'id': self.safe_string(transaction, 'id'),
+            'id': self.safe_string_2(transaction, 'id', 'data'),
             'txid': self.safe_string(transaction, 'tx-hash'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -4013,11 +4032,13 @@ class huobi(Exchange):
                 request['chain'] = network + currency['id']
             params = self.omit(params, 'network')
         response = await self.spotPrivatePostV1DwWithdrawApiCreate(self.extend(request, params))
-        id = self.safe_string(response, 'data')
-        return {
-            'info': response,
-            'id': id,
-        }
+        #
+        #     {
+        #         "status": "ok",
+        #         "data": "99562054"
+        #     }
+        #
+        return self.parse_transaction(response, currency)
 
     def parse_transfer(self, transfer, currency=None):
         #
@@ -4050,15 +4071,9 @@ class huobi(Exchange):
             accountsByType = self.safe_value(self.options, 'accountsByType', {})
             fromAccount = fromAccount.lower()  # pro, futures
             toAccount = toAccount.lower()  # pro, futures
-            fromId = self.safe_string(accountsByType, fromAccount)
-            toId = self.safe_string(accountsByType, toAccount)
-            if fromId is None:
-                keys = list(accountsByType.keys())
-                raise ExchangeError(self.id + ' fromAccount must be one of ' + ', '.join(keys))
-            if toId is None:
-                keys = list(accountsByType.keys())
-                raise ExchangeError(self.id + ' toAccount must be one of ' + ', '.join(keys))
-            type = fromAccount + '-to-' + toAccount
+            fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
+            toId = self.safe_string(accountsByType, toAccount, toAccount)
+            type = fromId + '-to-' + toId
         request = {
             'currency': currency['id'],
             'amount': float(self.currency_to_precision(code, amount)),
@@ -5354,8 +5369,8 @@ class huobi(Exchange):
                         tiers.append({
                             'tier': self.safe_integer(bracket, 'ladder'),
                             'currency': self.safe_currency_code(currency),
-                            'notionalFloor': self.safe_number(bracket, 'min_size'),
-                            'notionalCap': self.safe_number(bracket, 'max_size'),
+                            'minNotional': self.safe_number(bracket, 'min_size'),
+                            'maxNotional': self.safe_number(bracket, 'max_size'),
                             'maintenanceMarginRate': self.parse_number(Precise.string_div(adjustFactor, leverage)),
                             'maxLeverage': self.parse_number(leverage),
                             'info': bracket,

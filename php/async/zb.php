@@ -40,11 +40,15 @@ class zb extends Exchange {
                 'createMarketOrder' => null,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => true,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
                 'fetchBorrowRates' => true,
+                'fetchCanceledOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
@@ -1299,8 +1303,14 @@ class zb extends Exchange {
         }
         $ids = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($ids); $i++) {
-            $market = $marketsByIdWithoutUnderscore[$ids[$i]];
-            $result[$market['symbol']] = $this->parse_ticker($response[$ids[$i]], $market);
+            $market = $this->safe_value($marketsByIdWithoutUnderscore, $ids[$i]);
+            if ($market !== null) {
+                $symbol = $market['symbol'];
+                $ticker = $this->safe_value($response, $ids[$i]);
+                if ($ticker !== null) {
+                    $result[$symbol] = $this->parse_ticker($ticker, $market);
+                }
+            }
         }
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
@@ -1915,13 +1925,21 @@ class zb extends Exchange {
         }
         yield $this->load_markets();
         $market = $this->market($symbol);
+        $stop = $this->safe_value($params, 'stop');
         if ($market['spot']) {
             throw new NotSupported($this->id . ' cancelAllOrders() is not supported on ' . $market['type'] . ' markets');
         }
         $request = array(
             'symbol' => $market['id'],
+            // 'ids' => array( 6904603200733782016, 6819506476072247297 ), // STOP
+            // 'side' => $params['side'], // STOP, for $stop orders => 1 Open long (buy), 2 Open short (sell), 3 Close long (sell), 4 Close Short (Buy). One-Way Positions => 5 Buy, 6 Sell, 0 Close Only
         );
-        return yield $this->contractV2PrivatePostTradeCancelAllOrders (array_merge($request, $params));
+        $method = 'contractV2PrivatePostTradeCancelAllOrders';
+        if ($stop) {
+            $method = 'contractV2PrivatePostTradeCancelAlgos';
+        }
+        $query = $this->omit($params, 'stop');
+        return yield $this->$method (array_merge($request, $query));
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
@@ -1930,13 +1948,23 @@ class zb extends Exchange {
         }
         yield $this->load_markets();
         $market = $this->market($symbol);
+        $reduceOnly = $this->safe_value($params, 'reduceOnly');
+        $stop = $this->safe_value($params, 'stop');
         $swap = $market['swap'];
         $request = array(
             // 'currency' => $this->market_id($symbol), // only applicable to SPOT
             // 'id' => (string) $id, // only applicable to SPOT
-            // 'symbol' => $this->market_id($symbol), // only applicable to SWAP
             // 'orderId' => (string) $id, // only applicable to SWAP
             // 'clientOrderId' => $params['clientOrderId'], // only applicable to SWAP
+            // 'symbol' => $market['id'], // STOP and SWAP
+            // 'side' => $params['side'], // STOP and SWAP, for $stop orders => 1 Open long (buy), 2 Open short (sell), 3 Close long (sell), 4 Close Short (Buy). One-Way Positions => 5 Buy, 6 Sell, 0 Close Only
+            // 'orderType' => 1, // STOP, 1 => Plan order, 2 => SP/SL
+            // 'bizType' => 1, // Plan order, 1 => TP, 2 => SL
+            // 'status' => 1, // STOP, 1 => untriggered, 2 => cancelled, 3:triggered, 4:failed, 5:completed
+            // 'startTime' => since, // STOP and SWAP
+            // 'endTime' => $params['endTime'], // STOP and SWAP
+            // 'pageNum' => 1, // STOP and SWAP, default 1
+            // 'pageSize' => limit, // STOP, default 10
         );
         $marketIdField = $swap ? 'symbol' : 'currency';
         $request[$marketIdField] = $this->market_id($symbol);
@@ -1946,7 +1974,38 @@ class zb extends Exchange {
             'spot' => 'spotV1PrivateGetGetOrder',
             'swap' => 'contractV2PrivateGetTradeGetOrder',
         ));
-        $response = yield $this->$method (array_merge($request, $params));
+        if ($stop) {
+            $method = 'contractV2PrivateGetTradeGetOrderAlgos';
+            $orderType = $this->safe_integer($params, 'orderType');
+            if ($orderType === null) {
+                throw new ArgumentsRequired($this->id . ' fetchOrder() requires an $orderType parameter for $stop orders');
+            }
+            $side = $this->safe_integer($params, 'side');
+            $bizType = $this->safe_integer($params, 'bizType');
+            if ($side === 'sell' && $reduceOnly) {
+                $request['side'] = 3; // close long
+            } else if ($side === 'buy' && $reduceOnly) {
+                $request['side'] = 4; // close short
+            } else if ($side === 'buy') {
+                $request['side'] = 1; // open long
+            } else if ($side === 'sell') {
+                $request['side'] = 2; // open short
+            } else if ($side === 5) {
+                $request['side'] = 5; // one way position buy
+            } else if ($side === 6) {
+                $request['side'] = 6; // one way position sell
+            } else if ($side === 0) {
+                $request['side'] = 0; // one way position close only
+            }
+            if ($orderType === 1) {
+                $request['orderType'] = 1;
+            } else if ($orderType === 2 || $bizType) {
+                $request['orderType'] = 2;
+                $request['bizType'] = $bizType;
+            }
+        }
+        $query = $this->omit($params, array( 'reduceOnly', 'stop', 'side', 'orderType', 'bizType' ));
+        $response = yield $this->$method (array_merge($request, $query));
         //
         // Spot
         //
@@ -1996,7 +2055,59 @@ class zb extends Exchange {
         //         "desc":"操作成功"
         //     }
         //
-        if ($swap) {
+        // Algo order
+        //
+        //     {
+        //         "code" => 10000,
+        //         "data" => array(
+        //             "list" => array(
+        //                 array(
+        //                     "action" => 1,
+        //                     "algoPrice" => "30000",
+        //                     "amount" => "0.003",
+        //                     "bizType" => 0,
+        //                     "canCancel" => true,
+        //                     "createTime" => "1649913941109",
+        //                     "errorCode" => 0,
+        //                     "id" => "6920240642849449984",
+        //                     "isLong" => false,
+        //                     "leverage" => 10,
+        //                     "marketId" => "100",
+        //                     "modifyTime" => "1649913941109",
+        //                     "orderType" => 1,
+        //                     "priceType" => 2,
+        //                     "side" => 5,
+        //                     "sourceType" => 4,
+        //                     "status" => 1,
+        //                     "submitPrice" => "41270.53",
+        //                     "symbol" => "BTC_USDT",
+        //                     "tradedAmount" => "0",
+        //                     "triggerCondition" => "<=",
+        //                     "triggerPrice" => "31000",
+        //                     "triggerTime" => "0",
+        //                     "userId" => "6896693805014120448"
+        //                 ),
+        //             ),
+        //             "pageNum" => 1,
+        //             "pageSize" => 10
+        //         ),
+        //         "desc" => "操作成功"
+        //     }
+        //
+        if ($stop) {
+            $data = $this->safe_value($response, 'data', array());
+            $response = $this->safe_value($data, 'list', array());
+            $result = array();
+            for ($i = 0; $i < count($response); $i++) {
+                $entry = $response[$i];
+                $algoId = $this->safe_string($entry, 'id');
+                if ($id === $algoId) {
+                    $result[] = $entry;
+                }
+            }
+            $response = $result[0];
+        }
+        if ($swap && !$stop) {
             $response = $this->safe_value($response, 'data', array());
         }
         return $this->parse_order($response, $market);
@@ -2008,19 +2119,25 @@ class zb extends Exchange {
         }
         yield $this->load_markets();
         $market = $this->market($symbol);
+        $reduceOnly = $this->safe_value($params, 'reduceOnly');
+        $stop = $this->safe_value($params, 'stop');
         $swap = $market['swap'];
         $request = array(
             'pageSize' => $limit, // default pageSize is 50 for spot, 30 for $swap
             // 'currency' => $market['id'], // only applicable to SPOT
             // 'pageIndex' => 1, // only applicable to SPOT
-            // 'symbol' => $market['id'], // only applicable to SWAP
-            // 'pageNum' => 1, // only applicable to SWAP
             // 'type' => $params['type'], // only applicable to SWAP
-            // 'side' => $params['side'], // only applicable to SWAP
             // 'dateRange' => $params['dateRange'], // only applicable to SWAP
             // 'action' => $params['action'], // only applicable to SWAP
-            // 'endTime' => $params['endTime'], // only applicable to SWAP
-            // 'startTime' => $since, // only applicable to SWAP
+            // 'symbol' => $market['id'], // STOP and SWAP
+            // 'side' => $params['side'], // STOP and SWAP, for $stop orders => 1 Open long (buy), 2 Open short (sell), 3 Close long (sell), 4 Close Short (Buy). One-Way Positions => 5 Buy, 6 Sell, 0 Close Only
+            // 'orderType' => 1, // STOP, 1 => Plan order, 2 => SP/SL
+            // 'bizType' => 1, // Plan order, 1 => TP, 2 => SL
+            // 'status' => 1, // STOP, 1 => untriggered, 2 => cancelled, 3:triggered, 4:failed, 5:completed
+            // 'startTime' => $since, // STOP and SWAP
+            // 'endTime' => $params['endTime'], // STOP and SWAP
+            // 'pageNum' => 1, // STOP and SWAP, default 1
+            // 'pageSize' => $limit, // STOP, default 10
         );
         $marketIdField = $market['swap'] ? 'symbol' : 'currency';
         $request[$marketIdField] = $market['id'];
@@ -2037,9 +2154,40 @@ class zb extends Exchange {
         if (is_array($params) && array_key_exists('tradeType', $params)) {
             $method = 'spotV1PrivateGetGetOrdersNew';
         }
+        if ($stop) {
+            $method = 'contractV2PrivateGetTradeGetOrderAlgos';
+            $orderType = $this->safe_integer($params, 'orderType');
+            if ($orderType === null) {
+                throw new ArgumentsRequired($this->id . ' fetchOrders() requires an $orderType parameter for $stop orders');
+            }
+            $side = $this->safe_integer($params, 'side');
+            $bizType = $this->safe_integer($params, 'bizType');
+            if ($side === 'sell' && $reduceOnly) {
+                $request['side'] = 3; // close long
+            } else if ($side === 'buy' && $reduceOnly) {
+                $request['side'] = 4; // close short
+            } else if ($side === 'buy') {
+                $request['side'] = 1; // open long
+            } else if ($side === 'sell') {
+                $request['side'] = 2; // open short
+            } else if ($side === 5) {
+                $request['side'] = 5; // one way position buy
+            } else if ($side === 6) {
+                $request['side'] = 6; // one way position sell
+            } else if ($side === 0) {
+                $request['side'] = 0; // one way position close only
+            }
+            if ($orderType === 1) {
+                $request['orderType'] = 1;
+            } else if ($orderType === 2 || $bizType) {
+                $request['orderType'] = 2;
+                $request['bizType'] = $bizType;
+            }
+        }
+        $query = $this->omit($params, array( 'reduceOnly', 'stop', 'side', 'orderType', 'bizType' ));
         $response = null;
         try {
-            $response = yield $this->$method (array_merge($request, $params));
+            $response = yield $this->$method (array_merge($request, $query));
         } catch (Exception $e) {
             if ($e instanceof OrderNotFound) {
                 return array();
@@ -2106,9 +2254,198 @@ class zb extends Exchange {
         //         "desc" => "操作成功"
         //     }
         //
+        // Algo order
+        //
+        //     {
+        //         "code" => 10000,
+        //         "data" => array(
+        //             "list" => array(
+        //                 array(
+        //                     "action" => 1,
+        //                     "algoPrice" => "30000",
+        //                     "amount" => "0.003",
+        //                     "bizType" => 0,
+        //                     "canCancel" => true,
+        //                     "createTime" => "1649913941109",
+        //                     "errorCode" => 0,
+        //                     "id" => "6920240642849449984",
+        //                     "isLong" => false,
+        //                     "leverage" => 10,
+        //                     "marketId" => "100",
+        //                     "modifyTime" => "1649913941109",
+        //                     "orderType" => 1,
+        //                     "priceType" => 2,
+        //                     "side" => 5,
+        //                     "sourceType" => 4,
+        //                     "status" => 1,
+        //                     "submitPrice" => "41270.53",
+        //                     "symbol" => "BTC_USDT",
+        //                     "tradedAmount" => "0",
+        //                     "triggerCondition" => "<=",
+        //                     "triggerPrice" => "31000",
+        //                     "triggerTime" => "0",
+        //                     "userId" => "6896693805014120448"
+        //                 ),
+        //             ),
+        //             "pageNum" => 1,
+        //             "pageSize" => 10
+        //         ),
+        //         "desc" => "操作成功"
+        //     }
+        //
         if ($swap) {
             $data = $this->safe_value($response, 'data', array());
             $response = $this->safe_value($data, 'list', array());
+        }
+        return $this->parse_orders($response, $market, $since, $limit);
+    }
+
+    public function fetch_canceled_orders($symbol = null, $since = null, $limit = 10, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchCanceledOrders() requires a $symbol argument');
+        }
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $reduceOnly = $this->safe_value($params, 'reduceOnly');
+        $stop = $this->safe_value($params, 'stop');
+        $request = array(
+            'pageSize' => $limit, // SPOT and STOP, default pageSize is 10, doesn't work with other values now
+            // 'currency' => $market['id'], // SPOT
+            // 'pageIndex' => 1, // SPOT, default pageIndex is 1
+            // 'symbol' => $market['id'], // STOP
+            // 'side' => $params['side'], // STOP, for $stop orders => 1 Open long (buy), 2 Open short (sell), 3 Close long (sell), 4 Close Short (Buy). One-Way Positions => 5 Buy, 6 Sell, 0 Close Only
+            // 'orderType' => 1, // STOP, 1 => Plan order, 2 => SP/SL
+            // 'bizType' => 1, // Plan order, 1 => TP, 2 => SL
+            // 'status' => 1, // STOP, 1 => untriggered, 2 => cancelled, 3:triggered, 4:failed, 5:completed
+            // 'startTime' => $since, // STOP
+            // 'endTime' => $params['endTime'], // STOP
+            // 'pageNum' => 1, // STOP, default 1
+        );
+        $marketIdField = $market['spot'] ? 'currency' : 'symbol';
+        $request[$marketIdField] = $market['id'];
+        $pageNumField = $market['spot'] ? 'pageIndex' : 'pageNum';
+        $request[$pageNumField] = 1;
+        $method = 'spotV1PrivateGetGetOrdersIgnoreTradeType';
+        if ($stop) {
+            $method = 'contractV2PrivateGetTradeGetOrderAlgos';
+            $orderType = $this->safe_integer($params, 'orderType');
+            if ($orderType === null) {
+                throw new ArgumentsRequired($this->id . ' fetchCanceledOrders() requires an $orderType parameter for $stop orders');
+            }
+            $side = $this->safe_integer($params, 'side');
+            $bizType = $this->safe_integer($params, 'bizType');
+            if ($side === 'sell' && $reduceOnly) {
+                $request['side'] = 3; // close long
+            } else if ($side === 'buy' && $reduceOnly) {
+                $request['side'] = 4; // close short
+            } else if ($side === 'buy') {
+                $request['side'] = 1; // open long
+            } else if ($side === 'sell') {
+                $request['side'] = 2; // open short
+            } else if ($side === 5) {
+                $request['side'] = 5; // one way position buy
+            } else if ($side === 6) {
+                $request['side'] = 6; // one way position sell
+            } else if ($side === 0) {
+                $request['side'] = 0; // one way position close only
+            }
+            if ($orderType === 1) {
+                $request['orderType'] = 1;
+            } else if ($orderType === 2 || $bizType) {
+                $request['orderType'] = 2;
+                $request['bizType'] = $bizType;
+            }
+            $request['status'] = 2;
+        }
+        // tradeType 交易类型1/0[buy/sell]
+        if (is_array($params) && array_key_exists('tradeType', $params)) {
+            $method = 'spotV1PrivateGetGetOrdersNew';
+        }
+        $response = null;
+        try {
+            $response = yield $this->$method (array_merge($request, $params));
+        } catch (Exception $e) {
+            if ($e instanceof OrderNotFound) {
+                return array();
+            }
+            throw $e;
+        }
+        $query = $this->omit($params, array( 'reduceOnly', 'stop', 'side', 'orderType', 'bizType' ));
+        $response = yield $this->$method (array_merge($request, $query));
+        //
+        // Spot
+        //
+        //     array(
+        //         {
+        //             "acctType" => 0,
+        //             "currency" => "btc_usdt",
+        //             "fees" => 0,
+        //             "id" => "202202234857482656",
+        //             "price" => 30000.0,
+        //             "status" => 1,
+        //             "total_amount" => 0.0006,
+        //             "trade_amount" => 0.0000,
+        //             "trade_date" => 1645610254524,
+        //             "trade_money" => 0.000000,
+        //             "type" => 1,
+        //             "useZbFee" => false,
+        //             "webId" => 0
+        //         }
+        //     )
+        //
+        // Algo order
+        //
+        //     {
+        //         "code" => 10000,
+        //         "data" => array(
+        //             "list" => array(
+        //                 array(
+        //                     "action" => 1,
+        //                     "algoPrice" => "30000",
+        //                     "amount" => "0.003",
+        //                     "bizType" => 0,
+        //                     "canCancel" => true,
+        //                     "createTime" => "1649913941109",
+        //                     "errorCode" => 0,
+        //                     "id" => "6920240642849449984",
+        //                     "isLong" => false,
+        //                     "leverage" => 10,
+        //                     "marketId" => "100",
+        //                     "modifyTime" => "1649913941109",
+        //                     "orderType" => 1,
+        //                     "priceType" => 2,
+        //                     "side" => 5,
+        //                     "sourceType" => 4,
+        //                     "status" => 2,
+        //                     "submitPrice" => "41270.53",
+        //                     "symbol" => "BTC_USDT",
+        //                     "tradedAmount" => "0",
+        //                     "triggerCondition" => "<=",
+        //                     "triggerPrice" => "31000",
+        //                     "triggerTime" => "0",
+        //                     "userId" => "6896693805014120448"
+        //                 ),
+        //             ),
+        //             "pageNum" => 1,
+        //             "pageSize" => 10
+        //         ),
+        //         "desc" => "操作成功"
+        //     }
+        //
+        if ($stop) {
+            $data = $this->safe_value($response, 'data', array());
+            $response = $this->safe_value($data, 'list', array());
+        }
+        $result = array();
+        if ($market['type'] === 'spot') {
+            for ($i = 0; $i < count($response); $i++) {
+                $entry = $response[$i];
+                $status = $this->safe_string($entry, 'status');
+                if ($status === '1') {
+                    $result[] = $entry;
+                }
+            }
+            $response = $result;
         }
         return $this->parse_orders($response, $market, $since, $limit);
     }
@@ -2143,7 +2480,7 @@ class zb extends Exchange {
             $method = 'contractV2PrivateGetTradeGetOrderAlgos';
             $orderType = $this->safe_integer($params, 'orderType');
             if ($orderType === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrders() requires an $orderType parameter for $stop orders');
+                throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires an $orderType parameter for $stop orders');
             }
             $side = $this->safe_integer($params, 'side');
             $bizType = $this->safe_integer($params, 'bizType');
@@ -2245,16 +2582,23 @@ class zb extends Exchange {
         }
         yield $this->load_markets();
         $market = $this->market($symbol);
+        $reduceOnly = $this->safe_value($params, 'reduceOnly');
+        $stop = $this->safe_value($params, 'stop');
         $swap = $market['swap'];
         $request = array(
             // 'pageSize' => $limit, // default pageSize is 10 for spot, 30 for $swap
-            // 'currency' => $market['id'], // spot only
-            // 'pageIndex' => 1, // spot only
-            // 'symbol' => $market['id'], // $swap only
-            // 'pageNum' => 1, // $swap only
+            // 'currency' => $market['id'], // SPOT
+            // 'pageIndex' => 1, // SPOT
+            // 'symbol' => $market['id'], // SWAP and STOP
+            // 'pageNum' => 1, // SWAP and STOP, default 1
             // 'type' => $params['type'], // $swap only
-            // 'side' => $params['side'], // $swap only
-            // 'action' => $params['action'], // $swap only
+            // 'side' => $params['side'], // SWAP and STOP, for $stop orders => 1 Open long (buy), 2 Open short (sell), 3 Close long (sell), 4 Close Short (Buy). One-Way Positions => 5 Buy, 6 Sell, 0 Close Only
+            // 'action' => $params['action'], // SWAP
+            // 'orderType' => 1, // STOP, 1 => Plan order, 2 => SP/SL
+            // 'bizType' => 1, // Plan order, 1 => TP, 2 => SL
+            // 'status' => 1, // STOP, 1 => untriggered, 2 => cancelled, 3:triggered, 4:failed, 5:completed
+            // 'startTime' => $since, // SWAP and STOP
+            // 'endTime' => $params['endTime'], // STOP
         );
         if ($limit !== null) {
             $request['pageSize'] = $limit; // default pageSize is 10 for spot, 30 for $swap
@@ -2270,13 +2614,45 @@ class zb extends Exchange {
             'spot' => 'spotV1PrivateGetGetUnfinishedOrdersIgnoreTradeType',
             'swap' => 'contractV2PrivateGetTradeGetUndoneOrders',
         ));
+        if ($stop) {
+            $method = 'contractV2PrivateGetTradeGetOrderAlgos';
+            $orderType = $this->safe_integer($params, 'orderType');
+            if ($orderType === null) {
+                throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires an $orderType parameter for $stop orders');
+            }
+            $side = $this->safe_integer($params, 'side');
+            $bizType = $this->safe_integer($params, 'bizType');
+            if ($side === 'sell' && $reduceOnly) {
+                $request['side'] = 3; // close long
+            } else if ($side === 'buy' && $reduceOnly) {
+                $request['side'] = 4; // close short
+            } else if ($side === 'buy') {
+                $request['side'] = 1; // open long
+            } else if ($side === 'sell') {
+                $request['side'] = 2; // open short
+            } else if ($side === 5) {
+                $request['side'] = 5; // one way position buy
+            } else if ($side === 6) {
+                $request['side'] = 6; // one way position sell
+            } else if ($side === 0) {
+                $request['side'] = 0; // one way position close only
+            }
+            if ($orderType === 1) {
+                $request['orderType'] = 1;
+            } else if ($orderType === 2 || $bizType) {
+                $request['orderType'] = 2;
+                $request['bizType'] = $bizType;
+            }
+            $request['status'] = 1;
+        }
+        $query = $this->omit($params, array( 'reduceOnly', 'stop', 'side', 'orderType', 'bizType' ));
         // tradeType 交易类型1/0[buy/sell]
         if (is_array($params) && array_key_exists('tradeType', $params)) {
             $method = 'spotV1PrivateGetGetOrdersNew';
         }
         $response = null;
         try {
-            $response = yield $this->$method (array_merge($request, $params));
+            $response = yield $this->$method (array_merge($request, $query));
         } catch (Exception $e) {
             if ($e instanceof OrderNotFound) {
                 return array();
@@ -2342,6 +2718,45 @@ class zb extends Exchange {
         //         "desc" => "操作成功"
         //     }
         //
+        // Algo order
+        //
+        //     {
+        //         "code" => 10000,
+        //         "data" => array(
+        //             "list" => array(
+        //                 array(
+        //                     "action" => 1,
+        //                     "algoPrice" => "30000",
+        //                     "amount" => "0.003",
+        //                     "bizType" => 0,
+        //                     "canCancel" => true,
+        //                     "createTime" => "1649913941109",
+        //                     "errorCode" => 0,
+        //                     "id" => "6920240642849449984",
+        //                     "isLong" => false,
+        //                     "leverage" => 10,
+        //                     "marketId" => "100",
+        //                     "modifyTime" => "1649913941109",
+        //                     "orderType" => 1,
+        //                     "priceType" => 2,
+        //                     "side" => 5,
+        //                     "sourceType" => 4,
+        //                     "status" => 1,
+        //                     "submitPrice" => "41270.53",
+        //                     "symbol" => "BTC_USDT",
+        //                     "tradedAmount" => "0",
+        //                     "triggerCondition" => "<=",
+        //                     "triggerPrice" => "31000",
+        //                     "triggerTime" => "0",
+        //                     "userId" => "6896693805014120448"
+        //                 ),
+        //             ),
+        //             "pageNum" => 1,
+        //             "pageSize" => 10
+        //         ),
+        //         "desc" => "操作成功"
+        //     }
+        //
         if ($swap) {
             $data = $this->safe_value($response, 'data', array());
             $response = $this->safe_value($data, 'list', array());
@@ -2398,7 +2813,7 @@ class zb extends Exchange {
         //         "value" => "60"
         //     ),
         //
-        // Algo fetchOrders, fetchClosedOrders
+        // Algo fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders
         //
         //     array(
         //         "action" => 1,
@@ -3343,8 +3758,9 @@ class zb extends Exchange {
         $swap = ($marketType === 'swap');
         $side = null;
         $marginMethod = null;
+        $amountToPrecision = $this->currency_to_precision($code, $amount);
         $request = array(
-            'amount' => $amount, // Swap, Cross Margin, Isolated Margin
+            'amount' => $amountToPrecision, // Swap, Cross Margin, Isolated Margin
             // 'coin' => $currency['id'], // Margin
             // 'currencyName' => $currency['id'], // Swap
             // 'clientId' => $this->safe_string($params, 'clientId'), // Swap "2sdfsdfsdf232342"
@@ -3400,44 +3816,25 @@ class zb extends Exchange {
         //         "message" => "Success"
         //     }
         //
-        $timestamp = $this->milliseconds();
-        $transfer = array(
-            'id' => $this->safe_string($response, 'data'),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'currency' => $code,
-            'amount' => $amount,
+        return array_merge($this->parse_transfer($response, $currency), array(
+            'amount' => $this->parse_number($amountToPrecision),
             'fromAccount' => $fromAccount,
             'toAccount' => $toAccount,
-            'status' => $this->safe_integer($response, 'code'),
-        );
-        return $this->parse_transfer($transfer, $code);
+        ));
     }
 
     public function parse_transfer($transfer, $currency = null) {
-        //
-        //     {
-        //         "id" => "2sdfsdfsdf232342",
-        //         "timestamp" => "",
-        //         "datetime" => "",
-        //         "currency" => "USDT",
-        //         "amount" => "10",
-        //         "fromAccount" => "futures account",
-        //         "toAccount" => "zb account",
-        //         "status" => 10000,
-        //     }
-        //
-        $currencyId = $this->safe_string($transfer, 'currency');
+        // response samples in 'transfer'
+        $timestamp = $this->milliseconds();
         return array(
-            'info' => $transfer,
-            'id' => $this->safe_string($transfer, 'id'),
-            'timestamp' => $this->safe_integer($transfer, 'timestamp'),
-            'datetime' => $this->safe_string($transfer, 'datetime'),
-            'currency' => $this->safe_currency_code($currencyId, $currency),
-            'amount' => $this->safe_number($transfer, 'amount'),
-            'fromAccount' => $this->safe_string($transfer, 'fromAccount'),
-            'toAccount' => $this->safe_string($transfer, 'toAccount'),
-            'status' => $this->safe_integer($transfer, 'status'),
+            'id' => $this->safe_string($transfer, 'data'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'currency' => $this->safe_currency_code(null, 'currency'),
+            'amount' => null,
+            'fromAccount' => null,
+            'toAccount' => null,
+            'status' => null,
         );
     }
 

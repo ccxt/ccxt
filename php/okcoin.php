@@ -56,6 +56,7 @@ class okcoin extends Exchange {
                 'fetchTrades' => true,
                 'fetchTransactions' => null,
                 'fetchWithdrawals' => true,
+                'transfer' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -751,6 +752,16 @@ class okcoin extends Exchange {
                 'createMarketBuyOrderRequiresPrice' => true,
                 'fetchMarkets' => array( 'spot' ),
                 'defaultType' => 'spot', // 'account', 'spot', 'margin', 'futures', 'swap', 'option'
+                'accountsByType' => array(
+                    'spot' => '1',
+                    'margin' => '5',
+                    'funding' => '6',
+                ),
+                'accountsById' => array(
+                    '1' => 'spot',
+                    '5' => 'margin',
+                    '6' => 'funding',
+                ),
                 'auth' => array(
                     'time' => 'public',
                     'currencies' => 'private',
@@ -2580,6 +2591,93 @@ class okcoin extends Exchange {
         return $address;
     }
 
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
+        $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
+        $request = array(
+            'amount' => $this->currency_to_precision($code, $amount),
+            'currency' => $currency['id'],
+            'from' => $fromId, // 1 spot, 5 margin, 6 funding
+            'to' => $toId, // 1 spot, 5 margin, 6 funding
+            'type' => '0', // 0 Transfer between accounts in the main account/sub_account, 1 main account to sub_account, 2 sub_account to main account
+        );
+        if ($fromId === 'main') {
+            $request['type'] = '1';
+            $request['sub_account'] = $toId;
+            $request['to'] = '0';
+        } else if ($toId === 'main') {
+            $request['type'] = '2';
+            $request['sub_account'] = $fromId;
+            $request['from'] = '0';
+            $request['to'] = '6';
+        } else if ($fromId === '5' || $toId === '5') {
+            $marketId = $this->safe_string_2($params, 'instrument_id', 'to_instrument_id');
+            if ($marketId === null) {
+                $symbol = $this->safe_string($params, 'symbol');
+                if ($symbol === null) {
+                    throw new ArgumentsRequired($this->id . ' transfer() requires an exchange-specific instrument_id parameter or a unified $symbol parameter');
+                } else {
+                    $params = $this->omit($params, 'symbol');
+                    $market = $this->market($symbol);
+                    $marketId = $market['id'];
+                }
+                if ($fromId === '5') {
+                    $request['instrument_id'] = $marketId;
+                }
+                if ($toId === '5') {
+                    $request['to_instrument_id'] = $marketId;
+                }
+            }
+        }
+        $response = $this->accountPostTransfer (array_merge($request, $params));
+        //
+        //      {
+        //          "transfer_id" => "754147",
+        //          "currency" => "ETC",
+        //          "from" => "6",
+        //          "amount" => "0.1",
+        //          "to" => "1",
+        //          "result" => true
+        //      }
+        //
+        return $this->parse_transfer($response, $currency);
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        //      {
+        //          "transfer_id" => "754147",
+        //          "currency" => "ETC",
+        //          "from" => "6",
+        //          "amount" => "0.1",
+        //          "to" => "1",
+        //          "result" => true
+        //      }
+        //
+        $accountsById = $this->safe_value($this->options, 'accountsById', array());
+        return array(
+            'info' => $transfer,
+            'id' => $this->safe_string($transfer, 'transfer_id'),
+            'timestamp' => null,
+            'datetime' => null,
+            'currency' => $this->safe_currency_code($this->safe_string($transfer, 'currency'), $currency),
+            'amount' => $this->safe_number($transfer, 'amount'),
+            'fromAccount' => $this->safe_string($accountsById, $this->safe_string($transfer, 'from')),
+            'toAccount' => $this->safe_string($accountsById, $this->safe_string($transfer, 'to')),
+            'status' => $this->parse_transfer_status($this->safe_string($transfer, 'result')),
+        );
+    }
+
+    public function parse_transfer_status($status) {
+        $statuses = array(
+            'true' => 'ok',
+        );
+        return $this->safe_string($statuses, $status, 'failed');
+    }
+
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
@@ -2619,10 +2717,7 @@ class okcoin extends Exchange {
         //         "result":true
         //     }
         //
-        return array(
-            'info' => $response,
-            'id' => $this->safe_string($response, 'withdrawal_id'),
-        );
+        return $this->parse_transaction($response, $currency);
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {

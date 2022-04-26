@@ -30,6 +30,9 @@ export default class bybit extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
@@ -863,36 +866,64 @@ export default class bybit extends Exchange {
             const id = this.safeString2 (market, 'name', 'symbol');
             const baseId = this.safeString2 (market, 'base_currency', 'baseCoin');
             const quoteId = this.safeString2 (market, 'quote_currency', 'quoteCoin');
-            const settleId = this.safeString (market, 'settleCoin');
+            let settleId = this.safeString (market, 'settleCoin');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const settle = this.safeCurrencyCode (settleId);
+            let settle = this.safeCurrencyCode (settleId);
             const linear = (quote in linearQuoteCurrencies);
-            const inverse = !linear;
             let symbol = base + '/' + quote;
             const baseQuote = base + quote;
             let type = 'swap';
             if (baseQuote !== id) {
-                symbol = id;
                 type = 'future';
             }
             const lotSizeFilter = this.safeValue (market, 'lot_size_filter', {});
             const priceFilter = this.safeValue (market, 'price_filter', {});
-            const precision = {
-                'amount': this.safeNumber (lotSizeFilter, 'qty_step'),
-                'price': this.safeNumber (priceFilter, 'tick_size'),
-            };
             const leverage = this.safeValue (market, 'leverage_filter', {});
             const status = this.safeString (market, 'status');
             let active = undefined;
             if (status !== undefined) {
                 active = (status === 'Trading');
             }
-            const spot = (type === 'spot');
             const swap = (type === 'swap');
             const future = (type === 'future');
             const option = (type === 'option');
             const contract = swap || future || option;
+            let expiry = undefined;
+            let expiryDatetime = undefined;
+            let strike = undefined;
+            let optionType = undefined;
+            if (contract) {
+                if (settle === undefined) {
+                    settleId = linear ? quoteId : baseId;
+                    settle = this.safeCurrencyCode (settleId);
+                }
+                symbol = symbol + ':' + settle;
+                if (future) {
+                    const alias = this.safeString (market, 'alias');
+                    const shortDate = alias.slice (-4);
+                    const date = this.iso8601 (this.milliseconds ());
+                    const splitDate = date.split ('-');
+                    const year = splitDate[0];
+                    const expiryMonth = shortDate.slice (0, 2);
+                    const expiryDay = shortDate.slice (2, 4);
+                    expiryDatetime = year + '-' + expiryMonth + '-' + expiryDay + 'T00:00:00Z';
+                    expiry = this.parse8601 (expiryDatetime);
+                    symbol = symbol + '-' + this.yymmdd (expiry);
+                } else if (option) {
+                    expiry = this.safeInteger (market, 'deliveryTime');
+                    expiryDatetime = this.iso8601 (expiry);
+                    const splitId = this.split (id, '-');
+                    strike = this.safeString (splitId, 2);
+                    const optionLetter = this.safeString (splitId, 3);
+                    symbol = symbol + '-' + this.yymmdd (expiry) + ':' + strike + ':' + optionLetter;
+                    if (optionLetter === 'P') {
+                        optionType = 'put';
+                    } else if (optionLetter === 'C') {
+                        optionType = 'call';
+                    }
+                }
+            }
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -902,26 +933,33 @@ export default class bybit extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
-                'active': active,
-                'precision': precision,
-                'taker': this.safeNumber (market, 'taker_fee'),
-                'maker': this.safeNumber (market, 'maker_fee'),
                 'type': type,
-                'spot': spot,
+                'spot': (type === 'spot'),
                 'margin': undefined, // todo
-                'contract': contract,
-                'contractSize': undefined, // todo
                 'swap': swap,
                 'future': future,
                 'futures': future, // Deprecated, use future
                 'option': option,
+                'active': active,
+                'contract': contract,
                 'linear': linear,
-                'inverse': inverse,
-                'expiry': undefined, // todo
-                'expiryDatetime': undefined, // todo
-                'optionType': undefined,
-                'strike': undefined,
+                'inverse': !linear,
+                'taker': this.safeNumber (market, 'taker_fee'),
+                'maker': this.safeNumber (market, 'maker_fee'),
+                'contractSize': undefined, // todo
+                'expiry': expiry,
+                'expiryDatetime': expiryDatetime,
+                'strike': strike,
+                'optionType': optionType,
+                'precision': {
+                    'amount': this.safeNumber (lotSizeFilter, 'qty_step'),
+                    'price': this.safeNumber (priceFilter, 'tick_size'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': this.parseNumber ('1'),
+                        'max': this.safeNumber (leverage, 'max_leverage', 1),
+                    },
                     'amount': {
                         'min': this.safeNumber (lotSizeFilter, 'min_trading_qty'),
                         'max': this.safeNumber (lotSizeFilter, 'max_trading_qty'),
@@ -933,9 +971,6 @@ export default class bybit extends Exchange {
                     'cost': {
                         'min': undefined,
                         'max': undefined,
-                    },
-                    'leverage': {
-                        'max': this.safeNumber (leverage, 'max_leverage', 1),
                     },
                 },
                 'info': market,
@@ -1644,6 +1679,33 @@ export default class bybit extends Exchange {
         //         "order_id" : "dd2504b9-0157-406a-99e1-efa522373944"
         //     }
         //
+        // fetchOrders linear swaps
+        //
+        //     {
+        //         "order_id":"7917bd70-e7c3-4af5-8147-3285cd99c509",
+        //         "user_id":22919890,
+        //         "symbol":"GMTUSDT",
+        //         "side":"Buy",
+        //         "order_type":"Limit",
+        //         "price":2.9262,
+        //         "qty":50,
+        //         "time_in_force":"GoodTillCancel",
+        //         "order_status":"Filled",
+        //         "last_exec_price":2.9219,
+        //         "cum_exec_qty":50,
+        //         "cum_exec_value":146.095,
+        //         "cum_exec_fee":0.087657,
+        //         "reduce_only":false,
+        //         "close_on_trigger":false,
+        //         "order_link_id":"",
+        //         "created_time":"2022-04-18T17:09:54Z",
+        //         "updated_time":"2022-04-18T17:09:54Z",
+        //         "take_profit":0,
+        //         "stop_loss":0,
+        //         "tp_trigger_by":"UNKNOWN",
+        //         "sl_trigger_by":"UNKNOWN"
+        //     }
+        //
         // conditional order
         //
         //     {
@@ -1683,7 +1745,7 @@ export default class bybit extends Exchange {
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         let feeCurrency = undefined;
-        const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
+        const timestamp = this.parse8601 (this.safeString2 (order, 'created_at', 'created_time'));
         const id = this.safeString2 (order, 'order_id', 'stop_order_id');
         const type = this.safeStringLower (order, 'order_type');
         let price = undefined;
@@ -2292,6 +2354,48 @@ export default class bybit extends Exchange {
         //         "rate_limit_status": 98,
         //         "rate_limit_reset_ms": 1580885703683,
         //         "rate_limit": 100
+        //     }
+        //
+        // linear swaps
+        //
+        //     {
+        //         "ret_code":0,
+        //         "ret_msg":"OK",
+        //         "ext_code":"",
+        //         "ext_info":"",
+        //         "result":{
+        //             "current_page":1,
+        //             "data":[
+        //                 {
+        //                     "order_id":"7917bd70-e7c3-4af5-8147-3285cd99c509",
+        //                     "user_id":22919890,
+        //                     "symbol":"GMTUSDT",
+        //                     "side":"Buy",
+        //                     "order_type":"Limit",
+        //                     "price":2.9262,
+        //                     "qty":50,
+        //                     "time_in_force":"GoodTillCancel",
+        //                     "order_status":"Filled",
+        //                     "last_exec_price":2.9219,
+        //                     "cum_exec_qty":50,
+        //                     "cum_exec_value":146.095,
+        //                     "cum_exec_fee":0.087657,
+        //                     "reduce_only":false,
+        //                     "close_on_trigger":false,
+        //                     "order_link_id":"",
+        //                     "created_time":"2022-04-18T17:09:54Z",
+        //                     "updated_time":"2022-04-18T17:09:54Z",
+        //                     "take_profit":0,
+        //                     "stop_loss":0,
+        //                     "tp_trigger_by":"UNKNOWN",
+        //                     "sl_trigger_by":"UNKNOWN"
+        //                 }
+        //             ]
+        //         },
+        //         "time_now":"1650970113.283952",
+        //         "rate_limit_status":599,
+        //         "rate_limit_reset_ms":1650970113275,
+        //         "rate_limit":600
         //     }
         //
         // conditional orders
@@ -3233,21 +3337,21 @@ export default class bybit extends Exchange {
         //        ...
         //    ]
         //
-        let notionalFloor = 0;
+        let minNotional = 0;
         const tiers = [];
         for (let i = 0; i < info.length; i++) {
             const item = info[i];
-            const notionalCap = this.safeNumber (item, 'limit');
+            const maxNotional = this.safeNumber (item, 'limit');
             tiers.push ({
                 'tier': this.sum (i, 1),
                 'currency': market['base'],
-                'notionalFloor': notionalFloor,
-                'notionalCap': notionalCap,
+                'minNotional': minNotional,
+                'maxNotional': maxNotional,
                 'maintenanceMarginRate': this.safeNumber (item, 'maintain_margin'),
                 'maxLeverage': this.safeNumber (item, 'max_leverage'),
                 'info': item,
             });
-            notionalFloor = notionalCap;
+            minNotional = maxNotional;
         }
         return tiers;
     }

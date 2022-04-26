@@ -418,11 +418,43 @@ export default class oceanex extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.publicGetTrades (this.extend (request, params));
+        //
+        //      {
+        //          "code":0,
+        //          "message":"Operation successful",
+        //          "data": [
+        //              {
+        //                  "id":220247666,
+        //                  "price":"3098.62",
+        //                  "volume":"0.00196",
+        //                  "funds":"6.0732952",
+        //                  "market":"ethusdt",
+        //                  "created_at":"2022-04-19T19:03:15Z",
+        //                  "created_on":1650394995,
+        //                  "side":"bid"
+        //              },
+        //          ]
+        //      }
+        //
         const data = this.safeValue (response, 'data');
         return this.parseTrades (data, market, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades (public)
+        //
+        //      {
+        //          "id":220247666,
+        //          "price":"3098.62",
+        //          "volume":"0.00196",
+        //          "funds":"6.0732952",
+        //          "market":"ethusdt",
+        //          "created_at":"2022-04-19T19:03:15Z",
+        //          "created_on":1650394995,
+        //          "side":"bid"
+        //      }
+        //
         let side = this.safeValue (trade, 'side');
         if (side === 'bid') {
             side = 'buy';
@@ -435,7 +467,9 @@ export default class oceanex extends Exchange {
         if (timestamp === undefined) {
             timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
         }
-        return {
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'volume');
+        return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -445,11 +479,11 @@ export default class oceanex extends Exchange {
             'type': 'limit',
             'takerOrMaker': undefined,
             'side': side,
-            'price': this.safeNumber (trade, 'price'),
-            'amount': this.safeNumber (trade, 'volume'),
+            'price': priceString,
+            'amount': amountString,
             'cost': undefined,
             'fee': undefined,
-        };
+        }, market);
     }
 
     async fetchTime (params = {}) {

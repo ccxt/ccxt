@@ -526,9 +526,30 @@ class tidebit(Exchange):
         if tag is not None:
             request['memo'] = tag
         result = await self.privatePostWithdrawsApply(self.extend(request, params))
+        return self.parse_transaction(result, currency)
+
+    def parse_transaction(self, transaction, currency=None):
+        currency = self.safe_currency(None, currency)
         return {
-            'info': result,
             'id': None,
+            'txid': None,
+            'timestamp': None,
+            'datetime': None,
+            'network': None,
+            'addressFrom': None,
+            'address': None,
+            'addressTo': None,
+            'amount': None,
+            'type': None,
+            'currency': currency['code'],
+            'status': None,
+            'updated': None,
+            'tagFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'comment': None,
+            'fee': None,
+            'info': transaction,
         }
 
     def nonce(self):

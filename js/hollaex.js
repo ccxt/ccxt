@@ -17,6 +17,7 @@ export default class hollaex extends Exchange {
             // 4 requests per second => 1000ms / 4 = 250 ms between requests
             'rateLimit': 250,
             'version': 'v2',
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -33,6 +34,9 @@ export default class hollaex extends Exchange {
                 'createMarketSellOrder': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,

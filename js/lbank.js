@@ -613,9 +613,47 @@ export default class lbank extends Exchange {
             request['memo'] = tag;
         }
         const response = this.privatePostWithdraw (this.extend (request, params));
+        //
+        //     {
+        //         'result': 'true',
+        //         'withdrawId': 90082,
+        //         'fee':0.001
+        //     }
+        //
+        return this.parseTransaction (response, currency);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // withdraw
+        //
+        //     {
+        //         'result': 'true',
+        //         'withdrawId': 90082,
+        //         'fee':0.001
+        //     }
+        //
+        currency = this.safeCurrency (undefined, currency);
         return {
-            'id': this.safeString (response, 'id'),
-            'info': response,
+            'id': this.safeString2 (transaction, 'id', 'withdrawId'),
+            'txid': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'network': undefined,
+            'addressFrom': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'amount': undefined,
+            'type': undefined,
+            'currency': currency['code'],
+            'status': undefined,
+            'updated': undefined,
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'comment': undefined,
+            'fee': undefined,
+            'info': transaction,
         };
     }
 

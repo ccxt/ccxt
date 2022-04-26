@@ -37,6 +37,9 @@ class mexc extends Exchange {
                 'createMarketOrder' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => false,
+                'createStopOrder' => true,
                 'fetchBalance' => true,
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrders' => true,
@@ -259,11 +262,11 @@ class mexc extends Exchange {
                     'ERC20' => 'ERC-20',
                     'BEP20' => 'BEP20(BSC)',
                 ),
+                'accountsByType' => array(
+                    'spot' => 'MAIN',
+                    'swap' => 'CONTRACT',
+                ),
                 'transfer' => array(
-                    'accounts' => array(
-                        'spot' => 'MAIN',
-                        'swap' => 'CONTRACT',
-                    ),
                     'accountsById' => array(
                         'MAIN' => 'spot',
                         'CONTRACT' => 'swap',
@@ -364,18 +367,16 @@ class mexc extends Exchange {
     public function fetch_status($params = array ()) {
         $response = yield $this->spotPublicGetCommonPing ($params);
         //
-        // array( "code":200 )
+        //     array( "code":200 )
         //
         $code = $this->safe_integer($response, 'code');
-        if ($code !== null) {
-            $status = ($code === 200) ? 'ok' : 'maintenance';
-            $this->status = array_merge($this->status, array(
-                'status' => $status,
-                'updated' => $this->milliseconds(),
-                'info' => $response,
-            ));
-        }
-        return $this->status;
+        $status = ($code === 200) ? 'ok' : 'maintenance';
+        return array(
+            'status' => $status,
+            'updated' => $this->milliseconds(),
+            'eta' => null,
+            'info' => $response,
+        );
     }
 
     public function fetch_currencies($params = array ()) {
@@ -2584,14 +2585,14 @@ class mexc extends Exchange {
         return yield $this->contractPrivatePostPositionChangeLeverage (array_merge($request, $params));
     }
 
-    public function fetch_transfer($id, $since = null, $limit = null, $params = array ()) {
+    public function fetch_transfer($id, $code = null, $params = array ()) {
         $request = array(
             'transact_id' => $id,
         );
         $response = yield $this->spotPrivateGetAssetInternalTransferInfo (array_merge($request, $params));
         //
         //     {
-        //         code => '200',
+        //         $code => '200',
         //         $data => {
         //             currency => 'USDT',
         //             amount => '1',
@@ -2651,18 +2652,9 @@ class mexc extends Exchange {
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
         yield $this->load_markets();
         $currency = $this->currency($code);
-        $transferOptions = $this->safe_value($this->options, 'transfer', array());
-        $accounts = $this->safe_value($transferOptions, 'accounts', array());
-        $fromId = $this->safe_string($accounts, $fromAccount);
-        $toId = $this->safe_string($accounts, $toAccount);
-        if ($fromId === null) {
-            $keys = is_array($accounts) ? array_keys($accounts) : array();
-            throw new ExchangeError($this->id . ' $fromAccount must be one of ' . implode(', ', $keys));
-        }
-        if ($toId === null) {
-            $keys = is_array($accounts) ? array_keys($accounts) : array();
-            throw new ExchangeError($this->id . ' $toAccount must be one of ' . implode(', ', $keys));
-        }
+        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
+        $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
         $request = array(
             'currency' => $currency['id'],
             'amount' => $amount,
@@ -3127,8 +3119,8 @@ class mexc extends Exchange {
             $tiers[] = array(
                 'tier' => $this->parse_number(Precise::string_div($cap, $riskIncrVol)),
                 'currency' => $this->safe_currency_code($quoteId),
-                'notionalFloor' => $this->parse_number($floor),
-                'notionalCap' => $this->parse_number($cap),
+                'minNotional' => $this->parse_number($floor),
+                'maxNotional' => $this->parse_number($cap),
                 'maintenanceMarginRate' => $this->parse_number($maintenanceMarginRate),
                 'maxLeverage' => $this->parse_number(Precise::string_div('1', $initialMarginRate)),
                 'info' => $info,

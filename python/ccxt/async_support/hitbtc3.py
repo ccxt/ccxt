@@ -47,6 +47,9 @@ class hitbtc3(Exchange):
                 'cancelOrder': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': True,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': True,
+                'createStopOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowRate': None,
@@ -322,9 +325,7 @@ class hitbtc3(Exchange):
                 'accountsByType': {
                     'spot': 'spot',
                     'funding': 'wallet',
-                    'wallet': 'wallet',
                     'future': 'derivatives',
-                    'derivatives': 'derivatives',
                 },
             },
             'commonCurrencies': {
@@ -636,7 +637,7 @@ class hitbtc3(Exchange):
         type = self.safe_string_lower(params, 'type', 'spot')
         params = self.omit(params, ['type'])
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
-        account = self.safe_string(accountsByType, type)
+        account = self.safe_string(accountsByType, type, type)
         response = None
         if account == 'wallet':
             response = await self.privateGetWalletBalance(params)
@@ -939,12 +940,14 @@ class hitbtc3(Exchange):
 
     def parse_transaction(self, transaction, currency=None):
         #
+        # transaction
+        #
         #     {
         #       "id": "101609495",
         #       "created_at": "2018-03-06T22:05:06.507Z",
         #       "updated_at": "2018-03-06T22:11:45.03Z",
         #       "status": "SUCCESS",
-        #       "type": "DEPOSIT",
+        #       "type": "DEPOSIT",  # DEPOSIT, WITHDRAW, ..
         #       "subtype": "BLOCKCHAIN",
         #       "native": {
         #         "tx_id": "e20b0965-4024-44d0-b63f-7fb8996a6706",
@@ -956,27 +959,15 @@ class hitbtc3(Exchange):
         #         "confirmations": "20",
         #         "senders": [
         #           "0x243bec9256c9a3469da22103891465b47583d9f1"
-        #         ]
+        #         ],
+        #         "fee": "1.22"  # only for WITHDRAW
         #       }
         #     }
         #
+        # withdraw
+        #
         #     {
-        #       "id": "102703545",
-        #       "created_at": "2018-03-30T21:39:17.854Z",
-        #       "updated_at": "2018-03-31T00:23:19.067Z",
-        #       "status": "SUCCESS",
-        #       "type": "WITHDRAW",
-        #       "subtype": "BLOCKCHAIN",
-        #       "native": {
-        #         "tx_id": "5ecd7a85-ce5d-4d52-a916-b8b755e20926",
-        #         "index": "918286359",
-        #         "currency": "OMG",
-        #         "amount": "2.45",
-        #         "fee": "1.22",
-        #         "hash": "0x1c621d89e7a0841342d5fb3b3587f60b95351590161e078c4a1daee353da4ca9",
-        #         "address": "0x50227da7644cea0a43258a2e2d7444d01b43dcca",
-        #         "confirmations": "0"
-        #       }
+        #         "id":"084cfcd5-06b9-4826-882e-fdb75ec3625d"
         #     }
         #
         id = self.safe_string(transaction, 'id')
@@ -984,7 +975,7 @@ class hitbtc3(Exchange):
         updated = self.parse8601(self.safe_string(transaction, 'updated_at'))
         type = self.parse_transaction_type(self.safe_string(transaction, 'type'))
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
-        native = self.safe_value(transaction, 'native')
+        native = self.safe_value(transaction, 'native', {})
         currencyId = self.safe_string(native, 'currency')
         code = self.safe_currency_code(currencyId)
         txhash = self.safe_string(native, 'hash')
@@ -1628,13 +1619,8 @@ class hitbtc3(Exchange):
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
         fromAccount = fromAccount.lower()
         toAccount = toAccount.lower()
-        fromId = self.safe_string(accountsByType, fromAccount)
-        toId = self.safe_string(accountsByType, toAccount)
-        keys = list(accountsByType.keys())
-        if fromId is None:
-            raise ArgumentsRequired(self.id + ' transfer() fromAccount argument must be one of ' + ', '.join(keys))
-        if toId is None:
-            raise ArgumentsRequired(self.id + ' transfer() toAccount argument must be one of ' + ', '.join(keys))
+        fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
+        toId = self.safe_string(accountsByType, toAccount, toAccount)
         if fromId == toId:
             raise BadRequest(self.id + ' transfer() fromAccount and toAccount arguments cannot be the same account')
         request = {
@@ -1644,18 +1630,37 @@ class hitbtc3(Exchange):
             'destination': toId,
         }
         response = await self.privatePostWalletTransfer(self.extend(request, params))
-        # ['2db6ebab-fb26-4537-9ef8-1a689472d236']
-        id = self.safe_string(response, 0)
-        return {
-            'info': response,
-            'id': id,
-            'timestamp': None,
-            'datetime': None,
-            'amount': self.parse_number(requestAmount),
-            'currency': code,
+        #
+        #     [
+        #         '2db6ebab-fb26-4537-9ef8-1a689472d236'
+        #     ]
+        #
+        transfer = self.parse_transfer(response, currency)
+        return self.extend(transfer, {
             'fromAccount': fromAccount,
             'toAccount': toAccount,
+            'amount': self.parse_number(requestAmount),
+        })
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        # transfer
+        #
+        #     [
+        #         '2db6ebab-fb26-4537-9ef8-1a689472d236'
+        #     ]
+        #
+        timestamp = self.milliseconds()
+        return {
+            'id': self.safe_string(transfer, 0),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'currency': self.safe_currency_code(None, currency),
+            'amount': None,
+            'fromAccount': None,
+            'toAccount': None,
             'status': None,
+            'info': transfer,
         }
 
     async def convert_currency_network(self, code, amount, fromNetwork, toNetwork, params):
@@ -1703,12 +1708,12 @@ class hitbtc3(Exchange):
                 request['currency'] = parsedNetwork
             params = self.omit(params, 'network')
         response = await self.privatePostWalletCryptoWithdraw(self.extend(request, params))
-        # {"id":"084cfcd5-06b9-4826-882e-fdb75ec3625d"}
-        id = self.safe_string(response, 'id')
-        return {
-            'info': response,
-            'id': id,
-        }
+        #
+        #     {
+        #         "id":"084cfcd5-06b9-4826-882e-fdb75ec3625d"
+        #     }
+        #
+        return self.parse_transaction(response, currency)
 
     async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()

@@ -15,7 +15,7 @@ export default class huobi extends Exchange {
             'name': 'Huobi',
             'countries': [ 'CN' ],
             'rateLimit': 100,
-            'userAgent': this.userAgents['chrome39'],
+            'userAgent': this.userAgents['chrome100'],
             'certified': true,
             'version': 'v1',
             'accounts': undefined,
@@ -36,6 +36,9 @@ export default class huobi extends Exchange {
                 'createDepositAddress': undefined,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
@@ -800,7 +803,10 @@ export default class huobi extends Exchange {
                     // err-msg
                     'invalid symbol': BadSymbol, // {"ts":1568813334794,"status":"error","err-code":"invalid-parameter","err-msg":"invalid symbol"}
                     'symbol trade not open now': BadSymbol, // {"ts":1576210479343,"status":"error","err-code":"invalid-parameter","err-msg":"symbol trade not open now"}
-                    'require-symbol': BadSymbol, // {"status":"error","err-code":"require-symbol","err-msg":"Parameter `symbol` is required.","data":null}
+                    'require-symbol': BadSymbol, // {"status":"error","err-code":"require-symbol","err-msg":"Parameter `symbol` is required.","data":null},
+                    'invalid-address': BadRequest, // {"status":"error","err-code":"invalid-address","err-msg":"Invalid address.","data":null},
+                    'base-currency-chain-error': BadRequest, // {"status":"error","err-code":"base-currency-chain-error","err-msg":"The current currency chain does not exist","data":null},
+                    'dw-insufficient-balance': InsufficientFunds, // {"status":"error","err-code":"dw-insufficient-balance","err-msg":"Insufficient balance. You can only transfer `12.3456` at most.","data":null}
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -2577,14 +2583,21 @@ export default class huobi extends Exchange {
                     const balance = data[i];
                     const marketId = this.safeString2 (balance, 'contract_code', 'margin_account');
                     const market = this.safeMarket (marketId);
-                    const account = this.account ();
-                    account['free'] = this.safeString (balance, 'margin_balance');
-                    account['used'] = this.safeString (balance, 'margin_frozen');
-                    const code = market['settle'];
-                    const accountsByCode = {};
-                    accountsByCode[code] = account;
-                    const symbol = market['symbol'];
-                    result[symbol] = this.safeBalance (accountsByCode);
+                    const currencyId = this.safeString (balance, 'margin_asset');
+                    const currency = this.safeCurrency (currencyId);
+                    const code = this.safeString (market, 'settle', currency['code']);
+                    // the exchange outputs positions for delisted markets
+                    // https://www.huobi.com/support/en-us/detail/74882968522337
+                    // we skip it if the market was delisted
+                    if (code !== undefined) {
+                        const account = this.account ();
+                        account['free'] = this.safeString (balance, 'margin_balance');
+                        account['used'] = this.safeString (balance, 'margin_frozen');
+                        const accountsByCode = {};
+                        accountsByCode[code] = account;
+                        const symbol = market['symbol'];
+                        result[symbol] = this.safeBalance (accountsByCode);
+                    }
                 }
                 return result;
             }
@@ -3914,8 +3927,8 @@ export default class huobi extends Exchange {
         return response;
     }
 
-    currencyToPrecision (currency, fee) {
-        return this.decimalToPrecision (fee, 0, this.currencies[currency]['precision']);
+    currencyToPrecision (code, fee) {
+        return this.decimalToPrecision (fee, 0, this.currencies[code]['precision']);
     }
 
     safeNetwork (networkId) {
@@ -4163,6 +4176,13 @@ export default class huobi extends Exchange {
         //         'updated-at': 1552108032859
         //     }
         //
+        // withdraw
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": "99562054"
+        //     }
+        //
         const timestamp = this.safeInteger (transaction, 'created-at');
         const updated = this.safeInteger (transaction, 'updated-at');
         const code = this.safeCurrencyCode (this.safeString (transaction, 'currency'));
@@ -4180,7 +4200,7 @@ export default class huobi extends Exchange {
         const network = this.safeStringUpper (transaction, 'chain');
         return {
             'info': transaction,
-            'id': this.safeString (transaction, 'id'),
+            'id': this.safeString2 (transaction, 'id', 'data'),
             'txid': this.safeString (transaction, 'tx-hash'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -4254,11 +4274,13 @@ export default class huobi extends Exchange {
             params = this.omit (params, 'network');
         }
         const response = await this.spotPrivatePostV1DwWithdrawApiCreate (this.extend (request, params));
-        const id = this.safeString (response, 'data');
-        return {
-            'info': response,
-            'id': id,
-        };
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": "99562054"
+        //     }
+        //
+        return this.parseTransaction (response, currency);
     }
 
     parseTransfer (transfer, currency = undefined) {
@@ -4293,17 +4315,9 @@ export default class huobi extends Exchange {
             const accountsByType = this.safeValue (this.options, 'accountsByType', {});
             fromAccount = fromAccount.toLowerCase (); // pro, futures
             toAccount = toAccount.toLowerCase (); // pro, futures
-            const fromId = this.safeString (accountsByType, fromAccount);
-            const toId = this.safeString (accountsByType, toAccount);
-            if (fromId === undefined) {
-                const keys = Object.keys (accountsByType);
-                throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', '));
-            }
-            if (toId === undefined) {
-                const keys = Object.keys (accountsByType);
-                throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', '));
-            }
-            type = fromAccount + '-to-' + toAccount;
+            const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
+            const toId = this.safeString (accountsByType, toAccount, toAccount);
+            type = fromId + '-to-' + toId;
         }
         const request = {
             'currency': currency['id'],
@@ -5672,8 +5686,8 @@ export default class huobi extends Exchange {
                         tiers.push ({
                             'tier': this.safeInteger (bracket, 'ladder'),
                             'currency': this.safeCurrencyCode (currency),
-                            'notionalFloor': this.safeNumber (bracket, 'min_size'),
-                            'notionalCap': this.safeNumber (bracket, 'max_size'),
+                            'minNotional': this.safeNumber (bracket, 'min_size'),
+                            'maxNotional': this.safeNumber (bracket, 'max_size'),
                             'maintenanceMarginRate': this.parseNumber (Precise.stringDiv (adjustFactor, leverage)),
                             'maxLeverage': this.parseNumber (leverage),
                             'info': bracket,

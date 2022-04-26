@@ -63,6 +63,9 @@ class ftx(Exchange):
                 'cancelOrder': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': True,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': True,
+                'createStopOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowInterest': True,
@@ -2437,15 +2440,36 @@ class ftx(Exchange):
         return self.parse_borrow_rates(result, 'coin')
 
     async def fetch_borrow_rate_histories(self, codes=None, since=None, limit=None, params={}):
+        """
+        Gets the history of the borrow rate for mutiple currencies
+        :param str code: Unified currency code
+        :param int since: Timestamp in ms of the earliest time to fetch the borrow rate
+        :param int limit: Max number of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>` to return per currency, max=48 for multiple currencies, max=5000 for a single currency
+        :param dict params: Exchange specific parameters
+        :param dict params['till']: Timestamp in ms of the latest time to fetch the borrow rate
+        :returns: A dictionary of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>` with unified currency codes as keys
+        """
         await self.load_markets()
         request = {}
+        numCodes = 0
         endTime = self.safe_number_2(params, 'till', 'end_time')
-        if limit > 48:
-            raise BadRequest(self.id + ' fetchBorrowRateHistories() limit cannot exceed 48')
+        if codes is not None:
+            numCodes = len(codes)
+        if numCodes == 1:
+            millisecondsPer5000Hours = 18000000000
+            if (limit is not None) and (limit > 5000):
+                raise BadRequest(self.id + ' fetchBorrowRateHistories() limit cannot exceed 5000 for a single currency')
+            if (endTime is not None) and (since is not None) and ((endTime - since) > millisecondsPer5000Hours):
+                raise BadRequest(self.id + ' fetchBorrowRateHistories() requires the time range between the since time and the end time to be less than 5000 hours for a single currency')
+            currency = self.currency(codes[0])
+            request['coin'] = currency['id']
+        else:
+            millisecondsPer2Days = 172800000
+            if (limit is not None) and (limit > 48):
+                raise BadRequest(self.id + ' fetchBorrowRateHistories() limit cannot exceed 48 for multiple currencies')
+            if (endTime is not None) and (since is not None) and ((endTime - since) > millisecondsPer2Days):
+                raise BadRequest(self.id + ' fetchBorrowRateHistories() requires the time range between the since time and the end time to be less than 48 hours for multiple currencies')
         millisecondsPerHour = 3600000
-        millisecondsPer2Days = 172800000
-        if (endTime - since) > millisecondsPer2Days:
-            raise BadRequest(self.id + ' fetchBorrowRateHistories() requires the time range between the since time and the end time to be less than 48 hours')
         if since is not None:
             request['start_time'] = int(since / 1000)
             if endTime is None:
@@ -2480,7 +2504,16 @@ class ftx(Exchange):
         return self.parse_borrow_rate_histories(result, codes, since, limit)
 
     async def fetch_borrow_rate_history(self, code, since=None, limit=None, params={}):
-        histories = await self.fetch_borrow_rate_histories(since, limit, params)
+        """
+        Gets the history of the borrow rate for a currency
+        :param str code: Unified currency code
+        :param int since: Timestamp in ms of the earliest time to fetch the borrow rate
+        :param int limit: Max number of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>` to return, max=5000
+        :param dict params: Exchange specific parameters
+        :param dict params['till']: Timestamp in ms of the latest time to fetch the borrow rate
+        :returns: An array of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>`
+        """
+        histories = await self.fetch_borrow_rate_histories([code], since, limit, params)
         borrowRateHistory = self.safe_value(histories, code)
         if borrowRateHistory is None:
             raise BadRequest(self.id + ' fetchBorrowRateHistory() returned no data for ' + code)
@@ -2495,7 +2528,7 @@ class ftx(Exchange):
         for i in range(0, len(response)):
             item = response[i]
             code = self.safe_currency_code(self.safe_string(item, 'coin'))
-            if codes is None or codes.includes(code):
+            if codes is None or self.in_array(code, codes):
                 if not (code in borrowRateHistories):
                     borrowRateHistories[code] = []
                 lendingRate = self.safe_string(item, 'rate')
