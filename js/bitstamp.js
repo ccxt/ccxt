@@ -68,6 +68,7 @@ module.exports = class bitstamp extends Exchange {
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
+                'transfer': true,
                 'withdraw': true,
             },
             'urls': {
@@ -1621,6 +1622,67 @@ module.exports = class bitstamp extends Exchange {
             'network': undefined,
             'info': response,
         };
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        let method = undefined;
+        const request = {
+            'amount': amount,
+            'currency': currency['id'],
+            'subAccount': toAccount,
+        };
+        if (fromAccount === 'main') {
+            request['subAccount'] = toAccount;
+            method = 'privatePostTransferFromMain';
+        } else if (toAccount === 'main') {
+            method = 'privatePostTransferToMain';
+            if (fromAccount !== undefined) {
+                request['subAccount'] = fromAccount;
+            }
+        } else {
+            throw new ExchangeError (this.id + ' transfer() only supports from or to main');
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        //    { status: 'ok' }
+        //
+        const transfer = this.parseTransfer (response, currency);
+        const transferOptions = this.safeValue (this.options, 'transfer', {});
+        const fillResponseFromRequest = this.safeValue (transferOptions, 'fillResponseFromRequest', true);
+        if (fillResponseFromRequest) {
+            transfer['fromAccount'] = fromAccount;
+            transfer['toAccount'] = toAccount;
+            transfer['amount'] = amount;
+        }
+        return transfer;
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        //    { status: 'ok' }
+        //
+        const status = this.safeInteger (transfer, 'status');
+        return {
+            'info': transfer,
+            'id': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': this.safeCurrencyCode (undefined, currency),
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': this.parseTransferStatus (status),
+        };
+    }
+
+    parseTransferStatus (status) {
+        const statuses = {
+            'ok': 'ok',
+            'error': 'failed',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
