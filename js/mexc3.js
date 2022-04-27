@@ -296,6 +296,12 @@ module.exports = class mexc3 extends Exchange {
                 },
             },
             'options': {
+                'createMarketBuyOrderRequiresPrice': true,
+                'unavailableContracts': {
+                    'BTC/USDT:USDT': true,
+                    'LTC/USDT:USDT': true,
+                    'ETH/USDT:USDT': true,
+                },
                 'fetchMarkets': {
                     'types': {
                         'spot': true,
@@ -610,8 +616,8 @@ module.exports = class mexc3 extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const spotMarket = this.fetchSpotMarkets (params);
-        const swapMarket = this.fetchSwapMarkets (params);
+        const spotMarket = await this.fetchSpotMarkets (params);
+        const swapMarket = await this.fetchSwapMarkets (params);
         return this.arrayConcat (spotMarket, swapMarket);
     }
 
@@ -1525,13 +1531,26 @@ module.exports = class mexc3 extends Exchange {
     async createSpotOrder (market, type, side, amount, price = undefined, params = {}) {
         const symbol = market['symbol'];
         const orderSide = (side === 'buy') ? 'BUY' : 'SELL';
-        // TODO: needs postOnly handing here, possible with LIMIT_MAKER
         const request = {
             'symbol': market['id'],
-            'quantity': this.amountToPrecision (symbol, amount),
             'side': orderSide,
             'type': type.toUpperCase (),
         };
+        if (orderSide === 'BUY' && type === 'market') {
+            const quoteOrderQty = this.safeNumber (params, 'quoteOrderQty');
+            if (quoteOrderQty !== undefined) {
+                amount = quoteOrderQty;
+            } else if (this.options['createMarketBuyOrderRequiresPrice']) {
+                if (price === undefined) {
+                    throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
+                } else {
+                    amount = amount * price;
+                }
+            }
+            request['quoteOrderQty'] = amount;
+        } else {
+            request['quantity'] = this.amountToPrecision (symbol, amount);
+        }
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
@@ -1561,6 +1580,11 @@ module.exports = class mexc3 extends Exchange {
     async createSwapOrder (market, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const symbol = market['symbol'];
+        const unavailableContracts = this.safeValue (this.options, 'unavailableContracts', {});
+        const isContractUnavaiable = this.safeValue (unavailableContracts, symbol, false);
+        if (isContractUnavaiable) {
+            throw new NotSupported (this.id + ' createSwapOrder() does not support yet this symbol:' + symbol);
+        }
         let openType = undefined;
         const marginType = this.safeStringLower (params, 'margin');
         if (marginType !== undefined) {
