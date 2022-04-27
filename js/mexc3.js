@@ -2557,7 +2557,6 @@ module.exports = class mexc3 extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['symbol'] = market['id'];
         }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrderTrades', market, params);
         let trades = undefined;
@@ -2565,6 +2564,7 @@ module.exports = class mexc3 extends Exchange {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchOrderTrades() requires a symbol argument');
             }
+            request['symbol'] = market['id'];
             request['orderId'] = id;
             trades = await this.spotPrivateGetMyTrades (this.extend (request, query));
             //
