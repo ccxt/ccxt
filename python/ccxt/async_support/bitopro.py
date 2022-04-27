@@ -68,10 +68,13 @@ class bitopro(Exchange):
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchTransactions': False,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
                 'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
                 'setLeverage': False,
                 'setMarginMode': False,
+                'transfer': False,
                 'withdraw': True,
             },
             'timeframes': {

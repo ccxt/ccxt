@@ -14,6 +14,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import RequestTimeout
+from ccxt.base.precise import Precise
 
 
 class coinex(Exchange):
@@ -198,6 +199,7 @@ class coinex(Exchange):
                         'order/put_limit': 1,
                         'order/put_market': 1,
                         'order/put_stop_limit': 1,
+                        'order/put_stop_market': 1,
                         'order/cancel': 1,
                         'order/cancel_all': 1,
                         'order/cancel_stop': 1,
@@ -978,6 +980,75 @@ class coinex(Exchange):
         #         "type": "sell",
         #     }
         #
+        # Spot createOrder
+        #
+        #      {
+        #          "amount":"1.5",
+        #          "asset_fee":"0",
+        #          "avg_price":"0.14208538",
+        #          "client_id":"",
+        #          "create_time":1650993819,
+        #          "deal_amount":"10.55703267",
+        #          "deal_fee":"0.0029999999971787292",
+        #          "deal_money":"1.4999999985893646",
+        #          "fee_asset":null,
+        #          "fee_discount":"1",
+        #          "finished_time":null,
+        #          "id":74556296907,
+        #          "left":"0.0000000014106354",
+        #          "maker_fee_rate":"0",
+        #          "market":"DOGEUSDT",
+        #          "money_fee":"0.0029999999971787292",
+        #          "order_type":"market",
+        #          "price":"0",
+        #          "status":"done",
+        #          "stock_fee":"0",
+        #          "taker_fee_rate":"0.002",
+        #          "type":"buy"
+        #      }
+        #
+        # Swap createOrder
+        #
+        #     {
+        #         "amount": "0.0005",
+        #         "client_id": "",
+        #         "create_time": 1651004578.618224,
+        #         "deal_asset_fee": "0.00000000000000000000",
+        #         "deal_fee": "0.00000000000000000000",
+        #         "deal_profit": "0.00000000000000000000",
+        #         "deal_stock": "0.00000000000000000000",
+        #         "effect_type": 1,
+        #         "fee_asset": "",
+        #         "fee_discount": "0.00000000000000000000",
+        #         "last_deal_amount": "0.00000000000000000000",
+        #         "last_deal_id": 0,
+        #         "last_deal_price": "0.00000000000000000000",
+        #         "last_deal_role": 0,
+        #         "last_deal_time": 0,
+        #         "last_deal_type": 0,
+        #         "left": "0.0005",
+        #         "leverage": "3",
+        #         "maker_fee": "0.00030",
+        #         "market": "BTCUSDT",
+        #         "order_id": 18221659097,
+        #         "position_id": 0,
+        #         "position_type": 1,
+        #         "price": "30000.00",
+        #         "side": 2,
+        #         "source": "api.v1",
+        #         "stop_id": 0,
+        #         "taker_fee": "0.00050",
+        #         "target": 0,
+        #         "type": 1,
+        #         "update_time": 1651004578.618224,
+        #         "user_id": 3620173
+        #     }
+        #
+        # Stop order createOrder
+        #
+        #     {"status":"success"}
+        #
+        swap = market['swap']
         timestamp = self.safe_timestamp(order, 'create_time')
         priceString = self.safe_string(order, 'price')
         costString = self.safe_string(order, 'deal_money')
@@ -992,14 +1063,22 @@ class coinex(Exchange):
         if feeCurrency is None:
             feeCurrency = market['quote']
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        type = self.safe_string(order, 'order_type')
-        side = self.safe_string(order, 'type')
+        type = None
+        side = None
+        if swap:
+            type = self.safe_integer(order, 'type')
+            type = 'limit' if (type == 1) else 'market'
+            side = self.safe_integer(order, 'side')
+            side = 'sell' if (side == 1) else 'buy'
+        else:
+            side = self.safe_string(order, 'type')
+            type = self.safe_string(order, 'order_type')
         return self.safe_order({
-            'id': self.safe_string(order, 'id'),
+            'id': self.safe_string_2(order, 'id', 'order_id'),
             'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
-            'lastTradeTimestamp': None,
+            'lastTradeTimestamp': self.safe_timestamp(order, 'update_time'),
             'status': status,
             'symbol': market['symbol'],
             'type': type,
@@ -1023,26 +1102,165 @@ class coinex(Exchange):
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
-        method = 'privatePostOrder' + self.capitalize(type)
         market = self.market(symbol)
+        swap = market['swap']
+        stopPrice = self.safe_string_2(params, 'stopPrice', 'stop_price')
+        postOnly = self.safe_value(params, 'postOnly', False)
+        timeInForce = self.safe_string(params, 'timeInForce')  # Spot: IOC, FOK, PO, GTC, ... NORMAL(default), MAKER_ONLY
+        method = None
         request = {
             'market': market['id'],
-            'type': side,
         }
-        # for market buy it requires the amount of quote currency to spend
-        if (type == 'market') and (side == 'buy'):
-            if self.options['createMarketBuyOrderRequiresPrice']:
-                if price is None:
-                    raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False to supply the cost in the amount argument(the exchange-specific behaviour)")
-                else:
-                    request['amount'] = self.cost_to_precision(symbol, amount * price)
-            else:
-                request['amount'] = self.cost_to_precision(symbol, amount)
-        else:
+        if swap:
+            method = 'perpetualPrivatePostOrderPut' + self.capitalize(type)
+            if stopPrice is not None:
+                stopType = self.safe_integer(params, 'stop_type')  # 1: triggered by the latest transaction, 2: mark price, 3: index price
+                if stopType is None:
+                    raise ArgumentsRequired(self.id + ' createOrder() swap stop orders require a stop_type parameter')
+                request['stop_price'] = self.price_to_precision(symbol, stopPrice)
+                request['stop_type'] = self.price_to_precision(symbol, stopType)
+                if type == 'limit':
+                    method = 'perpetualPrivatePostOrderPutStopLimit'
+                elif type == 'market':
+                    method = 'perpetualPrivatePostOrderPutStopMarket'
+            if (type != 'market') or (stopPrice is not None):
+                if (timeInForce is not None) or (postOnly is not None):
+                    isMakerOrder = False
+                    if (timeInForce == 'PO') or (postOnly):
+                        isMakerOrder = True
+                    if isMakerOrder:
+                        request['option'] = 1
+                    else:
+                        if timeInForce == 'IOC':
+                            timeInForce = 2
+                        elif timeInForce == 'FOK':
+                            timeInForce = 3
+                        else:
+                            timeInForce = 1
+                        if timeInForce is not None:
+                            request['effect_type'] = timeInForce  # exchange takes 'IOC' and 'FOK'
+            side = 2 if (side == 'buy') else 1
+            request['side'] = side
             request['amount'] = self.amount_to_precision(symbol, amount)
-        if (type == 'limit') or (type == 'ioc'):
-            request['price'] = self.price_to_precision(symbol, price)
+            if type == 'limit':
+                request['price'] = self.price_to_precision(symbol, price)
+        else:
+            method = 'privatePostOrder' + self.capitalize(type)
+            request['type'] = side
+            if (type == 'market') and (side == 'buy'):
+                if self.options['createMarketBuyOrderRequiresPrice']:
+                    if price is None:
+                        raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False to supply the cost in the amount argument(the exchange-specific behaviour)")
+                    else:
+                        amountString = self.amount_to_precision(symbol, amount)
+                        priceString = self.price_to_precision(symbol, price)
+                        costString = Precise.string_mul(amountString, priceString)
+                        costNumber = self.parse_number(costString)
+                        request['amount'] = self.cost_to_precision(symbol, costNumber)
+                else:
+                    request['amount'] = self.cost_to_precision(symbol, amount)
+            else:
+                request['amount'] = self.amount_to_precision(symbol, amount)
+            if (type == 'limit') or (type == 'ioc'):
+                request['price'] = self.price_to_precision(symbol, price)
+            if stopPrice is not None:
+                request['stop_price'] = self.price_to_precision(symbol, stopPrice)
+                if type == 'limit':
+                    method = 'privatePostOrderStopLimit'
+                elif type == 'market':
+                    method = 'privatePostOrderStopMarket'
+            if (type != 'market') or (stopPrice is not None):
+                # following options cannot be applied to vanilla market orders(but can be applied to stop-market orders)
+                if (timeInForce is not None) or (postOnly is not None):
+                    isMakerOrder = False
+                    if (timeInForce == 'PO') or (postOnly):
+                        isMakerOrder = True
+                    if (isMakerOrder or (timeInForce != 'IOC')) and ((type == 'limit') and (stopPrice is not None)):
+                        raise InvalidOrder(self.id + ' createOrder() only supports the IOC option for stop-limit orders')
+                    if isMakerOrder:
+                        request['option'] = 'MAKER_ONLY'
+                    else:
+                        if timeInForce is not None:
+                            request['option'] = timeInForce  # exchange takes 'IOC' and 'FOK'
+        params = self.omit(params, ['timeInForce', 'postOnly', 'stopPrice', 'stop_price', 'stop_type'])
         response = getattr(self, method)(self.extend(request, params))
+        #
+        # Spot
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "amount": "0.0005",
+        #             "asset_fee": "0",
+        #             "avg_price": "0.00",
+        #             "client_id": "",
+        #             "create_time": 1650951627,
+        #             "deal_amount": "0",
+        #             "deal_fee": "0",
+        #             "deal_money": "0",
+        #             "fee_asset": null,
+        #             "fee_discount": "1",
+        #             "finished_time": null,
+        #             "id": 74510932594,
+        #             "left": "0.0005",
+        #             "maker_fee_rate": "0.002",
+        #             "market": "BTCUSDT",
+        #             "money_fee": "0",
+        #             "order_type": "limit",
+        #             "price": "30000",
+        #             "status": "not_deal",
+        #             "stock_fee": "0",
+        #             "taker_fee_rate": "0.002",
+        #             "type": "buy"
+        #         },
+        #         "message": "Success"
+        #     }
+        #
+        # Swap
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "amount": "0.0005",
+        #             "client_id": "",
+        #             "create_time": 1651004578.618224,
+        #             "deal_asset_fee": "0.00000000000000000000",
+        #             "deal_fee": "0.00000000000000000000",
+        #             "deal_profit": "0.00000000000000000000",
+        #             "deal_stock": "0.00000000000000000000",
+        #             "effect_type": 1,
+        #             "fee_asset": "",
+        #             "fee_discount": "0.00000000000000000000",
+        #             "last_deal_amount": "0.00000000000000000000",
+        #             "last_deal_id": 0,
+        #             "last_deal_price": "0.00000000000000000000",
+        #             "last_deal_role": 0,
+        #             "last_deal_time": 0,
+        #             "last_deal_type": 0,
+        #             "left": "0.0005",
+        #             "leverage": "3",
+        #             "maker_fee": "0.00030",
+        #             "market": "BTCUSDT",
+        #             "order_id": 18221659097,
+        #             "position_id": 0,
+        #             "position_type": 1,
+        #             "price": "30000.00",
+        #             "side": 2,
+        #             "source": "api.v1",
+        #             "stop_id": 0,
+        #             "taker_fee": "0.00050",
+        #             "target": 0,
+        #             "type": 1,
+        #             "update_time": 1651004578.618224,
+        #             "user_id": 3620173
+        #         },
+        #         "message": "OK"
+        #     }
+        #
+        # Stop Order
+        #
+        #     {"code":0,"data":{"status":"success"},"message":"OK"}
+        #
         data = self.safe_value(response, 'data')
         return self.parse_order(data, market)
 
@@ -1689,12 +1907,12 @@ class coinex(Exchange):
         path = self.implode_params(path, params)
         url = self.urls['api'][api] + '/' + self.version + '/' + path
         query = self.omit(params, self.extract_params(path))
+        self.check_required_credentials()
+        nonce = str(self.nonce())
         if api == 'perpetualPrivate' or url == 'https://api.coinex.com/perpetual/v1/market/user_deals':
-            self.check_required_credentials()
-            nonce = self.nonce()
             query = self.extend({
                 'access_id': self.apiKey,
-                'timestamp': str(nonce),
+                'timestamp': nonce,
             }, query)
             query = self.keysort(query)
             urlencoded = self.rawencode(query)
@@ -1703,19 +1921,18 @@ class coinex(Exchange):
                 'Authorization': signature.lower(),
                 'AccessId': self.apiKey,
             }
-            if (method == 'GET') or (method == 'DELETE'):
+            if (method == 'GET'):
                 url += '?' + urlencoded
             else:
-                body = self.json(query)
+                headers['Content-Type'] = 'application/x-www-form-urlencoded'
+                body = urlencoded
         elif api == 'public' or api == 'perpetualPublic':
             if query:
                 url += '?' + self.urlencode(query)
         else:
-            self.check_required_credentials()
-            nonce = self.nonce()
             query = self.extend({
                 'access_id': self.apiKey,
-                'tonce': str(nonce),
+                'tonce': nonce,
             }, query)
             query = self.keysort(query)
             urlencoded = self.rawencode(query)
