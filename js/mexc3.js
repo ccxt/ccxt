@@ -3085,7 +3085,7 @@ module.exports = class mexc3 extends Exchange {
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
-            // 'currency': currency['id'],
+            // 'currency': currency['id'] + network example: USDT-TRX,
             // 'state': 'state',
             // 'start_time': since, // default 1 day
             // 'end_time': this.milliseconds (),
@@ -3094,8 +3094,15 @@ module.exports = class mexc3 extends Exchange {
         };
         let currency = undefined;
         if (code !== undefined) {
+            const rawNetwork = this.safeString (params, 'network');
+            params = this.omit (params, 'network');
+            if (rawNetwork === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a network parameter when the currency is specified');
+            }
+            // currently mexc does not have network names unified so for certain things we might need TRX or TRC-20
+            // due to that I'm applying the network parameter directly so the user can control it on its side
             currency = this.currency (code);
-            request['currency'] = currency['id'];
+            request['currency'] = currency['id'] + '-' + rawNetwork;
         }
         if (since !== undefined) {
             request['start_time'] = since;
@@ -3362,7 +3369,7 @@ module.exports = class mexc3 extends Exchange {
         const side = (rawSide === '1') ? 'long' : 'short';
         const openType = this.safeString (position, 'margin_mode');
         const marginType = (openType === '1') ? 'isolated' : 'cross';
-        const leverage = this.safeString (position, 'leverage');
+        const leverage = this.safeNumber (position, 'leverage');
         const liquidationPrice = this.safeNumber (position, 'liquidatePrice');
         const timestamp = this.safeNumber (position, 'updateTime');
         return {
@@ -3727,7 +3734,6 @@ module.exports = class mexc3 extends Exchange {
         }
         const responseCode = this.safeString (response, 'code', undefined);
         if ((responseCode !== undefined) && (responseCode !== '200') && (responseCode !== '0')) {
-            // const msg = this.safeString2 (response, 'msg', 'message', '');
             const feedback = this.id + ' ' + body;
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], responseCode, feedback);
