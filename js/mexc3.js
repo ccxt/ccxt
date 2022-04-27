@@ -1572,7 +1572,7 @@ module.exports = class mexc3 extends Exchange {
         return this.extend (this.parseOrder (response, market), {
             'side': side,
             'type': type,
-            'price': price, // TODO: should we do this?
+            'price': price,
             'amount': amount,
         });
     }
@@ -1586,7 +1586,7 @@ module.exports = class mexc3 extends Exchange {
             throw new NotSupported (this.id + ' createSwapOrder() does not support yet this symbol:' + symbol);
         }
         let openType = undefined;
-        const marginType = this.safeStringLower (params, 'margin');
+        const marginType = this.safeStringLower (params, 'margin', 'cross');
         if (marginType !== undefined) {
             if (marginType === 'cross') {
                 openType = 2;
@@ -2651,15 +2651,25 @@ module.exports = class mexc3 extends Exchange {
     }
 
     async setLeverage (leverage, symbol = undefined, params = {}) {
-        const positionId = this.safeInteger (params, 'positionId');
-        if (positionId === undefined) {
-            throw new ArgumentsRequired (this.id + ' setLeverage() requires a positionId parameter');
-        }
         await this.loadMarkets ();
         const request = {
-            'positionId': positionId,
             'leverage': leverage,
         };
+        const positionId = this.safeInteger (params, 'positionId');
+        if (positionId === undefined) {
+            const openType = this.safeNumber (params, 'openType'); // 1 or 2
+            const positionType = this.safeNumber (params, 'positionType'); // 1 or 2
+            const market = (symbol !== undefined) ? this.market (symbol) : undefined;
+            if ((openType === undefined) || (positionType === undefined) || (market === undefined)) {
+                throw new ArgumentsRequired (this.id + ' setLeverage() requires a positionId parameter or openType+positionType+Market parameters');
+            } else {
+                request['openType'] = openType;
+                request['symbol'] = market['symbol'];
+                request['positionType'] = positionType;
+            }
+        } else {
+            request['positionId'] = positionId;
+        }
         return await this.contractPrivatePostPositionChangeLeverage (this.extend (request, params));
     }
 
