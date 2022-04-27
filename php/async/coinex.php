@@ -1013,7 +1013,7 @@ class coinex extends Exchange {
         //         "type" => "sell",
         //     }
         //
-        // Spot createOrder
+        // Spot createOrder, cancelOrder
         //
         //      {
         //          "amount":"1.5",
@@ -1040,7 +1040,7 @@ class coinex extends Exchange {
         //          "type":"buy"
         //      }
         //
-        // Swap createOrder
+        // Swap createOrder, cancelOrder
         //
         //     {
         //         "amount" => "0.0005",
@@ -1080,6 +1080,31 @@ class coinex extends Exchange {
         // Stop $order createOrder
         //
         //     array("status":"success")
+        //
+        // Swap Stop cancelOrder
+        //
+        //     {
+        //         "amount" => "0.0005",
+        //         "client_id" => "",
+        //         "create_time" => 1651034023.008771,
+        //         "effect_type" => 1,
+        //         "fee_asset" => "",
+        //         "fee_discount" => "0.00000000000000000000",
+        //         "maker_fee" => "0.00030",
+        //         "market" => "BTCUSDT",
+        //         "order_id" => 18256915101,
+        //         "price" => "31000.00",
+        //         "side" => 2,
+        //         "source" => "api.v1",
+        //         "state" => 1,
+        //         "stop_price" => "31500.00",
+        //         "stop_type" => 1,
+        //         "taker_fee" => "0.00050",
+        //         "target" => 0,
+        //         "type" => 1,
+        //         "update_time" => 1651034397.193624,
+        //         "user_id" => 3620173
+        //     }
         //
         $swap = $market['swap'];
         $timestamp = $this->safe_timestamp($order, 'create_time');
@@ -1121,7 +1146,7 @@ class coinex extends Exchange {
             'postOnly' => null,
             'side' => $side,
             'price' => $priceString,
-            'stopPrice' => null,
+            'stopPrice' => $this->safe_string($order, 'stop_price'),
             'cost' => $costString,
             'average' => $averageString,
             'amount' => $amountString,
@@ -1327,11 +1352,129 @@ class coinex extends Exchange {
     public function cancel_order($id, $symbol = null, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
+        $stop = $this->safe_value($params, 'stop');
+        $swap = $market['swap'];
         $request = array(
-            'id' => $id,
             'market' => $market['id'],
         );
-        $response = yield $this->privateDeleteOrderPending (array_merge($request, $params));
+        $idRequest = $swap ? 'order_id' : 'id';
+        $request[$idRequest] = $id;
+        $method = $swap ? 'perpetualPrivatePostOrderCancel' : 'privateDeleteOrderPending';
+        if ($stop) {
+            if ($swap) {
+                $method = 'perpetualPrivatePostOrderCancelStop';
+            } else {
+                $method = 'privateDeleteOrderStopPendingId';
+            }
+        }
+        $query = $this->omit($params, 'stop');
+        $response = yield $this->$method (array_merge($request, $query));
+        //
+        // Spot
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => array(
+        //             "amount" => "0.0005",
+        //             "asset_fee" => "0",
+        //             "avg_price" => "0.00",
+        //             "client_id" => "",
+        //             "create_time" => 1650951627,
+        //             "deal_amount" => "0",
+        //             "deal_fee" => "0",
+        //             "deal_money" => "0",
+        //             "fee_asset" => null,
+        //             "fee_discount" => "1",
+        //             "finished_time" => null,
+        //             "id" => 74510932594,
+        //             "left" => "0.0005",
+        //             "maker_fee_rate" => "0.002",
+        //             "market" => "BTCUSDT",
+        //             "money_fee" => "0",
+        //             "order_type" => "limit",
+        //             "price" => "30000",
+        //             "status" => "not_deal",
+        //             "stock_fee" => "0",
+        //             "taker_fee_rate" => "0.002",
+        //             "type" => "buy"
+        //         ),
+        //         "message" => "Success"
+        //     }
+        //
+        // Swap
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => array(
+        //             "amount" => "0.0005",
+        //             "client_id" => "",
+        //             "create_time" => 1651004578.618224,
+        //             "deal_asset_fee" => "0.00000000000000000000",
+        //             "deal_fee" => "0.00000000000000000000",
+        //             "deal_profit" => "0.00000000000000000000",
+        //             "deal_stock" => "0.00000000000000000000",
+        //             "effect_type" => 1,
+        //             "fee_asset" => "",
+        //             "fee_discount" => "0.00000000000000000000",
+        //             "last_deal_amount" => "0.00000000000000000000",
+        //             "last_deal_id" => 0,
+        //             "last_deal_price" => "0.00000000000000000000",
+        //             "last_deal_role" => 0,
+        //             "last_deal_time" => 0,
+        //             "last_deal_type" => 0,
+        //             "left" => "0.0005",
+        //             "leverage" => "3",
+        //             "maker_fee" => "0.00030",
+        //             "market" => "BTCUSDT",
+        //             "order_id" => 18221659097,
+        //             "position_id" => 0,
+        //             "position_type" => 1,
+        //             "price" => "30000.00",
+        //             "side" => 2,
+        //             "source" => "api.v1",
+        //             "stop_id" => 0,
+        //             "taker_fee" => "0.00050",
+        //             "target" => 0,
+        //             "type" => 1,
+        //             "update_time" => 1651004578.618224,
+        //             "user_id" => 3620173
+        //         ),
+        //         "message" => "OK"
+        //     }
+        //
+        // Swap Stop
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => array(
+        //             "amount" => "0.0005",
+        //             "client_id" => "",
+        //             "create_time" => 1651034023.008771,
+        //             "effect_type" => 1,
+        //             "fee_asset" => "",
+        //             "fee_discount" => "0.00000000000000000000",
+        //             "maker_fee" => "0.00030",
+        //             "market" => "BTCUSDT",
+        //             "order_id" => 18256915101,
+        //             "price" => "31000.00",
+        //             "side" => 2,
+        //             "source" => "api.v1",
+        //             "state" => 1,
+        //             "stop_price" => "31500.00",
+        //             "stop_type" => 1,
+        //             "taker_fee" => "0.00050",
+        //             "target" => 0,
+        //             "type" => 1,
+        //             "update_time" => 1651034397.193624,
+        //             "user_id" => 3620173
+        //         ),
+        //         "message":"OK"
+        //     }
+        //
+        // Spot Stop
+        //
+        //     array("code":0,"data":array(),"message":"Success")
+        //
         $data = $this->safe_value($response, 'data');
         return $this->parse_order($data, $market);
     }
