@@ -15,7 +15,6 @@ module.exports = class ascendex extends Exchange {
             'id': 'ascendex',
             'name': 'AscendEX',
             'countries': [ 'SG' ], // Singapore
-            // supposedly ratelimit is 8 / minute => 0.13333 per second
             'rateLimit': 500,
             'certified': true,
             'pro': true,
