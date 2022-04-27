@@ -177,7 +177,7 @@ module.exports = class latoken extends Exchange {
                     'request expired or bad': InvalidNonce, // {"result":false,"message":"request expired or bad <timeAlive>/<timestamp> format","error":"BAD_REQUEST","status":"FAILURE"}
                     'For input string': BadRequest, // {"result":false,"message":"Internal error","error":"For input string: \"NaN\"","status":"FAILURE"}
                     'Unable to resolve currency by tag': BadSymbol, // {"message":"Unable to resolve currency by tag (undefined)","error":"NOT_FOUND","status":"FAILURE"}
-                    'Unable to place order because pair is in inactive state (PAIR_STATUS_INACTIVE)': BadSymbol, // {"message":"Unable to place order because pair is in inactive state (PAIR_STATUS_INACTIVE)","error":"ORDER_VALIDATION","status":"FAILURE"}
+                    'Unable to place order because pair is in inactive state': BadSymbol, // {"message":"Unable to place order because pair is in inactive state (PAIR_STATUS_INACTIVE)","error":"ORDER_VALIDATION","status":"FAILURE"}
                 },
             },
             'options': {
