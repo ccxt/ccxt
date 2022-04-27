@@ -66,6 +66,7 @@ module.exports = class woo extends Exchange {
                 'fetchTransactions': true,
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
+                'transfer': true,
                 'withdraw': false, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#token-withdraw
             },
             'timeframes': {
@@ -133,6 +134,7 @@ module.exports = class woo extends Exchange {
                         },
                         'post': {
                             'order': 5, // 2 requests per 1 second per symbol
+                            'asset/main_sub_transfer': 30, // 20 requests per 60 seconds
                             'asset/withdraw': 120,  // implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
                         },
                         'delete': {
@@ -212,6 +214,9 @@ module.exports = class woo extends Exchange {
                 'defaultNetworkCodeForCurrencies': {
                     // 'USDT': 'TRC20',
                     // 'BTC': 'BTC',
+                },
+                'transfer': {
+                    'fillResponseFromRequest': true,
                 },
             },
             'commonCurrencies': {},
@@ -1375,6 +1380,33 @@ module.exports = class woo extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'token': currency['id'],
+            'amount': this.parseNumber (amount),
+            'from_application_id': fromAccount,
+            'to_application_id': toAccount,
+        };
+        const response = await this.v1PrivatePostAssetMainSubTransfer (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "id": 200
+        //     }
+        //
+        const transfer = this.parseTransfer (response, currency);
+        const transferOptions = this.safeValue (this.options, 'transfer', {});
+        const fillResponseFromRequest = this.safeValue (transferOptions, 'fillResponseFromRequest', true);
+        if (fillResponseFromRequest) {
+            transfer['amount'] = amount;
+            transfer['fromAccount'] = fromAccount;
+            transfer['toAccount'] = toAccount;
+        }
+        return transfer;
+    }
+
     async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
         const request = {
             'type': 'COLLATERAL',
@@ -1384,7 +1416,33 @@ module.exports = class woo extends Exchange {
     }
 
     parseTransfer (transfer, currency = undefined) {
-        // example is "fetchTransactions"
+        //
+        //    getAssetHistoryRows
+        //        {
+        //            "created_time": "1579399877.041",  // Unix epoch time in seconds
+        //            "updated_time": "1579399877.041",  // Unix epoch time in seconds
+        //            "id": "202029292829292",
+        //            "external_id": "202029292829292",
+        //            "application_id": null,
+        //            "token": "ETH",
+        //            "target_address": "0x31d64B3230f8baDD91dE1710A65DF536aF8f7cDa",
+        //            "source_address": "0x70fd25717f769c7f9a46b319f0f9103c0d887af0",
+        //            "extra": "",
+        //            "type": "BALANCE",
+        //            "token_side": "DEPOSIT",
+        //            "amount": 1000,
+        //            "tx_id": "0x8a74c517bc104c8ebad0c3c3f64b1f302ed5f8bca598ae4459c63419038106b6",
+        //            "fee_token": null,
+        //            "fee_amount": null,
+        //            "status": "CONFIRMING"
+        //        }
+        //
+        //    v1PrivatePostAssetMainSubTransfer
+        //        {
+        //            "success": true,
+        //            "id": 200
+        //        }
+        //
         const networkizedCode = this.safeString (transfer, 'token');
         const currencyDefined = this.getCurrencyFromChaincode (networkizedCode, currency);
         const code = currencyDefined['code'];
@@ -1397,11 +1455,16 @@ module.exports = class woo extends Exchange {
         if (movementDirection === 'withdraw') {
             fromAccount = undefined;
             toAccount = 'spot';
-        } else {
+        } else if (movementDirection === 'deposit') {
             fromAccount = 'spot';
             toAccount = undefined;
         }
         const timestamp = this.safeTimestamp (transfer, 'created_time');
+        const success = this.safeValue (transfer, 'success');
+        let status = undefined;
+        if (success !== undefined) {
+            status = success ? 'ok' : 'failed';
+        }
         return {
             'id': this.safeString (transfer, 'id'),
             'timestamp': timestamp,
@@ -1410,13 +1473,20 @@ module.exports = class woo extends Exchange {
             'amount': this.safeNumber (transfer, 'amount'),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'status': this.parseTransferStatus (this.safeString (transfer, 'status')),
+            'status': this.parseTransferStatus (this.safeString (transfer, 'status', status)),
             'info': transfer,
         };
     }
 
     parseTransferStatus (status) {
-        return this.parseTransactionStatus (status);
+        const statuses = {
+            'NEW': 'pending',
+            'CONFIRMING': 'pending',
+            'PROCESSING': 'pending',
+            'COMPLETED': 'ok',
+            'CANCELED': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     nonce () {
