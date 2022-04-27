@@ -1,5 +1,7 @@
 const ccxt = require ('../../ccxt');
 const keys = require ('../../keys.local.json');
+const asTable  = require ('as-table').configure ({ delimiter: ' | ' });
+
 
 async function main () {
     const binance = new ccxt.binance (keys.binance);
@@ -46,7 +48,7 @@ async function main () {
         const result = oneMonthHistory['data'];
         history = history.concat (result);
     }
-    console.log (JSON.stringify (history));
+    console.log (asTable (history));
 }
 
 main ()
