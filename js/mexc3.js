@@ -1046,6 +1046,7 @@ module.exports = class mexc3 extends Exchange {
             //
             const marketId = this.safeString (trade, 'symbol');
             market = this.safeMarket (marketId, market);
+            symbol = market['symbol'];
             id = this.safeString2 (trade, 'id', 'a');
             priceString = this.safeString2 (trade, 'price', 'p');
             orderId = this.safeString (trade, 'orderId');
@@ -1061,7 +1062,6 @@ module.exports = class mexc3 extends Exchange {
                 takerOrMaker = this.safeValue (trade, 'taker') ? 'taker' : 'maker';
             } else {
                 timestamp = this.safeInteger2 (trade, 'time', 'T');
-                symbol = market['symbol'];
                 amountString = this.safeString2 (trade, 'qty', 'q');
                 costString = this.safeString (trade, 'quoteQty');
                 const isBuyer = this.safeValue (trade, 'isBuyer');
