@@ -15,6 +15,7 @@ module.exports = class ascendex extends Exchange {
             'id': 'ascendex',
             'name': 'AscendEX',
             'countries': [ 'SG' ], // Singapore
+            // supposedly ratelimit is 8 / minute => 0.13333 per second
             'rateLimit': 500,
             'certified': true,
             'pro': true,
@@ -1238,7 +1239,8 @@ module.exports = class ascendex extends Exchange {
         await this.loadMarkets ();
         await this.loadAccounts ();
         const market = this.market (symbol);
-        const [ style, query ] = this.handleMarketTypeAndParams ('createOrder', market, params);
+        let style = undefined;
+        [ style, params ] = this.handleMarketTypeAndParams ('createOrder', market, params);
         const options = this.safeValue (this.options, 'createOrder', {});
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
         const accountCategory = this.safeString (accountsByType, style, 'cash');
@@ -1264,6 +1266,8 @@ module.exports = class ascendex extends Exchange {
             // 'postOnly': 'false', // 'false', 'true'
             // 'timeInForce': 'GTC', // GTC, IOC, FOK
             // 'respInst': 'ACK', // ACK, 'ACCEPT, DONE
+            // 'posStopLossPrice': position stop loss price ( v2 swap orders only)
+            // 'posTakeProfitPrice': position take profit price (v2 swap orders only)
         };
         if (clientOrderId !== undefined) {
             request['id'] = clientOrderId;
@@ -1281,6 +1285,12 @@ module.exports = class ascendex extends Exchange {
                 params = this.omit (params, 'stopPrice');
             }
         }
+        const timeInForce = this.safeString (params, 'timeInForce');
+        const postOnly = this.safeValue (params, 'postOnly', false);
+        if ((timeInForce === 'PO') || (postOnly)) {
+            request['postOnly'] = true;
+            params = this.omit (params, [ 'postOnly', 'timeInForce' ]);
+        }
         const defaultMethod = this.safeString (options, 'method', 'v1PrivateAccountCategoryPostOrder');
         const method = this.getSupportedMapping (style, {
             'spot': defaultMethod,
@@ -1294,7 +1304,7 @@ module.exports = class ascendex extends Exchange {
         } else {
             request['account-category'] = accountCategory;
         }
-        const response = await this[method] (this.extend (request, query));
+        const response = await this[method] (this.extend (request, params));
         //
         // AccountCategoryPostOrder
         //
