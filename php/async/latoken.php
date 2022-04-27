@@ -173,6 +173,7 @@ class latoken extends Exchange {
                     'UNKNOWN_LOCATION' => '\\ccxt\\AuthenticationError', // user logged from unusual location, email confirmation required.
                     'TOO_MANY_REQUESTS' => '\\ccxt\\RateLimitExceeded', // too many requests at the time. A response header X-Rate-Limit-Remaining indicates the number of allowed request per a period.
                     'INSUFFICIENT_FUNDS' => '\\ccxt\\InsufficientFunds', // array("message":"not enough balance on the spot account for currency (USDT), need (20.000)","error":"INSUFFICIENT_FUNDS","status":"FAILURE")
+                    'ORDER_VALIDATION' => '\\ccxt\\InvalidOrder', // array("message":"Quantity (0) is not positive","error":"ORDER_VALIDATION","status":"FAILURE")
                 ),
                 'broad' => array(
                     'invalid API key, signature or digest' => '\\ccxt\\AuthenticationError', // array("result":false,"message":"invalid API key, signature or digest","error":"BAD_REQUEST","status":"FAILURE")
