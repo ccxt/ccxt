@@ -184,6 +184,7 @@ class coinex extends Exchange {
                         'order/finished' => 1,
                         'order/stop_pending' => 1,
                         'order/status' => 1,
+                        'order/stop_status' => 1,
                         'position/pending' => 1,
                         'position/funding' => 1,
                     ),
@@ -1012,7 +1013,7 @@ class coinex extends Exchange {
         //         "type" => "sell",
         //     }
         //
-        // Spot createOrder, cancelOrder
+        // Spot createOrder, cancelOrder, fetchOrder
         //
         //      {
         //          "amount":"1.5",
@@ -1039,7 +1040,7 @@ class coinex extends Exchange {
         //          "type":"buy"
         //      }
         //
-        // Swap createOrder, cancelOrder
+        // Swap createOrder, cancelOrder, fetchOrder
         //
         //     {
         //         "amount" => "0.0005",
@@ -1080,7 +1081,7 @@ class coinex extends Exchange {
         //
         //     array("status":"success")
         //
-        // Swap Stop cancelOrder
+        // Swap Stop cancelOrder, fetchOrder
         //
         //     {
         //         "amount" => "0.0005",
@@ -1526,11 +1527,25 @@ class coinex extends Exchange {
         }
         $this->load_markets();
         $market = $this->market($symbol);
+        $swap = $market['swap'];
+        $stop = $this->safe_value($params, 'stop');
         $request = array(
-            'id' => $id,
             'market' => $market['id'],
+            // 'id' => $id, // SPOT
+            // 'order_id' => $id, // SWAP
         );
-        $response = $this->privateGetOrder (array_merge($request, $params));
+        $idRequest = $swap ? 'order_id' : 'id';
+        $request[$idRequest] = $id;
+        $method = null;
+        if ($swap) {
+            $method = $stop ? 'perpetualPrivateGetOrderStopStatus' : 'perpetualPrivateGetOrderStatus';
+        } else {
+            $method = 'privateGetOrder';
+        }
+        $params = $this->omit($params, 'stop');
+        $response = $this->$method (array_merge($request, $params));
+        //
+        // Spot
         //
         //     {
         //         "code" => 0,
@@ -1555,6 +1570,76 @@ class coinex extends Exchange {
         //             "type" => "sell",
         //         ),
         //         "message" => "Ok"
+        //     }
+        //
+        // Swap
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => array(
+        //             "amount" => "0.0005",
+        //             "client_id" => "",
+        //             "create_time" => 1651004578.618224,
+        //             "deal_asset_fee" => "0.00000000000000000000",
+        //             "deal_fee" => "0.00000000000000000000",
+        //             "deal_profit" => "0.00000000000000000000",
+        //             "deal_stock" => "0.00000000000000000000",
+        //             "effect_type" => 1,
+        //             "fee_asset" => "",
+        //             "fee_discount" => "0.00000000000000000000",
+        //             "last_deal_amount" => "0.00000000000000000000",
+        //             "last_deal_id" => 0,
+        //             "last_deal_price" => "0.00000000000000000000",
+        //             "last_deal_role" => 0,
+        //             "last_deal_time" => 0,
+        //             "last_deal_type" => 0,
+        //             "left" => "0.0005",
+        //             "leverage" => "3",
+        //             "maker_fee" => "0.00030",
+        //             "market" => "BTCUSDT",
+        //             "order_id" => 18221659097,
+        //             "position_id" => 0,
+        //             "position_type" => 1,
+        //             "price" => "30000.00",
+        //             "side" => 2,
+        //             "source" => "api.v1",
+        //             "stop_id" => 0,
+        //             "taker_fee" => "0.00050",
+        //             "target" => 0,
+        //             "type" => 1,
+        //             "update_time" => 1651004578.618224,
+        //             "user_id" => 3620173
+        //         ),
+        //         "message" => "OK"
+        //     }
+        //
+        // Swap Stop
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => array(
+        //             "amount" => "0.0005",
+        //             "client_id" => "",
+        //             "create_time" => 1651034023.008771,
+        //             "effect_type" => 1,
+        //             "fee_asset" => "",
+        //             "fee_discount" => "0.00000000000000000000",
+        //             "maker_fee" => "0.00030",
+        //             "market" => "BTCUSDT",
+        //             "order_id" => 18256915101,
+        //             "price" => "31000.00",
+        //             "side" => 2,
+        //             "source" => "api.v1",
+        //             "state" => 1,
+        //             "stop_price" => "31500.00",
+        //             "stop_type" => 1,
+        //             "taker_fee" => "0.00050",
+        //             "target" => 0,
+        //             "type" => 1,
+        //             "update_time" => 1651034397.193624,
+        //             "user_id" => 3620173
+        //         ),
+        //         "message":"OK"
         //     }
         //
         $data = $this->safe_value($response, 'data');
