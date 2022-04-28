@@ -1363,7 +1363,7 @@ module.exports = class latoken extends Exchange {
         //         "fee": 0
         //     }
         //
-        const timestamp = this.safeNumber (transfer, 'timestamp');
+        const timestamp = this.safeTimestamp (transfer, 'timestamp');
         const currencyId = this.safeString (transfer, 'currency');
         const status = this.safeString (transfer, 'status');
         return {
