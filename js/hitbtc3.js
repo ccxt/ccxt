@@ -2120,12 +2120,12 @@ module.exports = class hitbtc3 extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const leverage = this.safeString (params, 'leverage');
-        amount = this.amountToPrecision (symbol, amount);
         if (market['type'] === 'swap') {
             if (leverage === undefined) {
                 throw new ArgumentsRequired (this.id + ' modifyMarginHelper() requires a leverage parameter for swap markets');
             }
         }
+        amount = this.amountToPrecision (symbol, amount);
         const request = {
             'symbol': market['id'], // swap and margin
             'margin_balance': amount, // swap and margin
@@ -2159,13 +2159,20 @@ module.exports = class hitbtc3 extends Exchange {
         //         "positions": null
         //     }
         //
-        const currencies = this.safeValue (response, 'currencies', []);
-        const data = this.safeValue (currencies, 0);
-        return {
-            'info': response,
+        return this.extend (this.parseModifyMargin (response, market), {
+            'amount': this.safeNumber (amount),
             'type': type,
-            'amount': amount,
-            'code': this.safeString (data, 'code'),
+        });
+    }
+
+    parseModifyMargin (data, market = undefined) {
+        const currencies = this.safeValue (data, 'currencies', []);
+        const currencyInfo = this.safeValue (currencies, 0);
+        return {
+            'info': data,
+            'type': undefined,
+            'amount': undefined,
+            'code': this.safeString (currencyInfo, 'code'),
             'symbol': market['symbol'],
             'status': undefined,
         };

@@ -2261,11 +2261,11 @@ module.exports = class ascendex extends Exchange {
         const market = this.market (symbol);
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeString (account, 'id');
-        amount = this.numberToString (amount);
+        amount = this.amountToPrecision (symbol, amount);
         const request = {
             'account-group': accountGroup,
             'symbol': market['id'],
-            'amount': amount,
+            'amount': amount, // positive value for adding margin, negative for reducing
         };
         const response = await this.v2PrivateAccountGroupPostFuturesIsolatedPositionMargin (this.extend (request, params));
         //
@@ -2275,12 +2275,22 @@ module.exports = class ascendex extends Exchange {
         //          "code": 0
         //     }
         //
-        const errorCode = this.safeString (response, 'code');
+        if (type === 'reduce') {
+            amount = Precise.stringAbs (amount);
+        }
+        return this.extend (this.parseModifyMargin (response, market), {
+            'amount': this.parseNumber (amount),
+            'type': type,
+        });
+    }
+
+    parseModifyMargin (data, market = undefined) {
+        const errorCode = this.safeString (data, 'code');
         const status = (errorCode === '0') ? 'ok' : 'failed';
         return {
-            'info': response,
-            'type': type,
-            'amount': amount,
+            'info': data,
+            'type': undefined,
+            'amount': undefined,
             'code': market['quote'],
             'symbol': market['symbol'],
             'status': status,

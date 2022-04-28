@@ -3884,25 +3884,25 @@ module.exports = class zb extends Exchange {
         //         "desc":"操作成功"
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
-        const side = (type === 1) ? 'add' : 'reduce';
-        const errorCode = this.safeInteger (data, 'status');
-        const status = (errorCode === 1) ? 'ok' : 'failed';
+        return this.extend (this.parseModifyMargin (response, market), {
+            'amount': this.parseNumber (amount),
+        });
+    }
+
+    parseModifyMargin (data, market = undefined) {
+        const innerData = this.safeValue (data, 'data', {});
+        const sideRaw = this.safeInteger (innerData, 'side');
+        const side = (sideRaw === 1) ? 'add' : 'reduce';
+        const statusCode = this.safeInteger (innerData, 'status');
+        const status = (statusCode === 1) ? 'ok' : 'failed';
         return {
-            'info': response,
+            'info': data,
             'type': side,
-            'amount': amount,
+            'amount': undefined,
             'code': market['quote'],
             'symbol': market['symbol'],
             'status': status,
         };
-    }
-
-    async reduceMargin (symbol, amount, params = {}) {
-        if (params['positionsId'] === undefined) {
-            throw new ArgumentsRequired (this.id + ' reduceMargin() requires a positionsId argument in the params');
-        }
-        return await this.modifyMarginHelper (symbol, amount, 0, params);
     }
 
     async addMargin (symbol, amount, params = {}) {
@@ -3910,6 +3910,13 @@ module.exports = class zb extends Exchange {
             throw new ArgumentsRequired (this.id + ' addMargin() requires a positionsId argument in the params');
         }
         return await this.modifyMarginHelper (symbol, amount, 1, params);
+    }
+
+    async reduceMargin (symbol, amount, params = {}) {
+        if (params['positionsId'] === undefined) {
+            throw new ArgumentsRequired (this.id + ' reduceMargin() requires a positionsId argument in the params');
+        }
+        return await this.modifyMarginHelper (symbol, amount, 0, params);
     }
 
     async fetchBorrowRate (code, params = {}) {

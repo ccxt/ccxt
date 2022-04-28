@@ -2544,6 +2544,8 @@ module.exports = class mexc extends Exchange {
             throw new ArgumentsRequired (this.id + ' modifyMarginHelper() requires a positionId parameter');
         }
         await this.loadMarkets ();
+        const market = this.market (symbol);
+        amount = this.amountToPrecision (symbol, amount);
         const request = {
             'positionId': positionId,
             'amount': amount,
@@ -2555,7 +2557,25 @@ module.exports = class mexc extends Exchange {
         //         "success": true,
         //         "code": 0
         //     }
-        return response;
+        //
+        const type = (addOrReduce === 'ADD') ? 'add' : 'reduce';
+        return this.extend (this.parseModifyMargin (response, market), {
+            'amount': this.safeNumber (amount),
+            'type': type,
+        });
+    }
+
+    parseModifyMargin (data, market = undefined) {
+        const statusRaw = this.safeString (data, 'success');
+        const status = (statusRaw === true) ? 'ok' : 'failed';
+        return {
+            'info': data,
+            'type': undefined,
+            'amount': undefined,
+            'code': undefined,
+            'symbol': this.safeSymbol (undefined, market),
+            'status': status,
+        };
     }
 
     async reduceMargin (symbol, amount, params = {}) {

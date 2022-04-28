@@ -5363,6 +5363,7 @@ module.exports = class binance extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        amount = this.amountToPrecision (symbol, amount);
         const request = {
             'type': addOrReduce,
             'symbol': market['id'],
@@ -5386,16 +5387,22 @@ module.exports = class binance extends Exchange {
         //         "type": 1
         //     }
         //
-        const rawType = this.safeInteger (response, 'type');
+        return this.extend (this.parseModifyMargin (response, market), {
+            'code': code,
+        });
+    }
+
+    parseModifyMargin (data, market = undefined) {
+        const rawType = this.safeInteger (data, 'type');
         const resultType = (rawType === 1) ? 'add' : 'reduce';
-        const resultAmount = this.safeNumber (response, 'amount');
-        const errorCode = this.safeString (response, 'code');
+        const resultAmount = this.safeNumber (data, 'amount');
+        const errorCode = this.safeString (data, 'code');
         const status = (errorCode === '200') ? 'ok' : 'failed';
         return {
-            'info': response,
+            'info': data,
             'type': resultType,
             'amount': resultAmount,
-            'code': code,
+            'code': undefined,
             'symbol': market['symbol'],
             'status': status,
         };

@@ -4549,22 +4549,26 @@ module.exports = class okx extends Exchange {
         //       "msg": ""
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
-        const entry = this.safeValue (data, 0, {});
-        const errorCode = this.safeString (response, 'code');
+        return this.parseModifyMargin (response, market);
+    }
+
+    parseModifyMargin (data, market = undefined) {
+        const innerData = this.safeValue (data, 'data', []);
+        const entry = this.safeValue (innerData, 0, {});
+        const errorCode = this.safeString (data, 'code');
         const status = (errorCode === '0') ? 'ok' : 'failed';
-        const responseAmount = this.safeNumber (entry, 'amt');
-        const responseType = this.safeString (entry, 'type');
+        const amountRaw = this.safeNumber (entry, 'amt');
+        const typeRaw = this.safeString (entry, 'type');
+        const type = (typeRaw === 'reduce') ? 'reduce' : 'add';
         const marketId = this.safeString (entry, 'instId');
         const responseMarket = this.safeMarket (marketId, market);
         const code = responseMarket['inverse'] ? responseMarket['base'] : responseMarket['quote'];
-        symbol = responseMarket['symbol'];
         return {
-            'info': response,
-            'type': responseType,
-            'amount': responseAmount,
+            'info': data,
+            'type': type,
+            'amount': amountRaw,
             'code': code,
-            'symbol': symbol,
+            'symbol': responseMarket['symbol'],
             'status': status,
         };
     }
