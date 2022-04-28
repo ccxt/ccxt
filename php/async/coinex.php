@@ -1488,12 +1488,35 @@ class coinex extends Exchange {
         $marketId = $market['id'];
         $accountId = $this->safe_string($params, 'id', '0');
         $request = array(
-            'account_id' => $accountId, // main account ID => 0, margin account ID => See < Inquire Margin Account Market Info >, future account ID => See < Inquire Future Account Market Info >
             'market' => $marketId,
+            // 'account_id' => $accountId, // SPOT, main account ID => 0, margin account ID => See < Inquire Margin Account Market Info >, future account ID => See < Inquire Future Account Market Info >
+            // 'side' => 0, // SWAP, 0 => All, 1 => Sell, 2 => Buy
         );
-        $response = yield $this->privateDeleteOrderPending (array_merge($request, $params));
+        $swap = $market['swap'];
+        $stop = $this->safe_value($params, 'stop');
+        $method = null;
+        if ($swap) {
+            $method = 'perpetualPrivatePostOrderCancelAll';
+            if ($stop) {
+                $method = 'perpetualPrivatePostOrderCancelStopAll';
+            }
+        } else {
+            $method = 'privateDeleteOrderPending';
+            if ($stop) {
+                $method = 'privateDeleteOrderStopPending';
+            }
+            $request['account_id'] = $accountId;
+        }
+        $params = $this->omit($params, 'stop');
+        $response = yield $this->$method (array_merge($request, $params));
         //
-        // array("code" => 0, "data" => null, "message" => "Success")
+        // Spot
+        //
+        //     array("code" => 0, "data" => null, "message" => "Success")
+        //
+        // Swap
+        //
+        //     array("code" => 0, "data" => array("status":"success"), "message" => "OK")
         //
         return $response;
     }

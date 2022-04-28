@@ -1424,12 +1424,32 @@ class coinex(Exchange):
         marketId = market['id']
         accountId = self.safe_string(params, 'id', '0')
         request = {
-            'account_id': accountId,  # main account ID: 0, margin account ID: See < Inquire Margin Account Market Info >, future account ID: See < Inquire Future Account Market Info >
             'market': marketId,
+            # 'account_id': accountId,  # SPOT, main account ID: 0, margin account ID: See < Inquire Margin Account Market Info >, future account ID: See < Inquire Future Account Market Info >
+            # 'side': 0,  # SWAP, 0: All, 1: Sell, 2: Buy
         }
-        response = self.privateDeleteOrderPending(self.extend(request, params))
+        swap = market['swap']
+        stop = self.safe_value(params, 'stop')
+        method = None
+        if swap:
+            method = 'perpetualPrivatePostOrderCancelAll'
+            if stop:
+                method = 'perpetualPrivatePostOrderCancelStopAll'
+        else:
+            method = 'privateDeleteOrderPending'
+            if stop:
+                method = 'privateDeleteOrderStopPending'
+            request['account_id'] = accountId
+        params = self.omit(params, 'stop')
+        response = getattr(self, method)(self.extend(request, params))
         #
-        # {"code": 0, "data": null, "message": "Success"}
+        # Spot
+        #
+        #     {"code": 0, "data": null, "message": "Success"}
+        #
+        # Swap
+        #
+        #     {"code": 0, "data": {"status":"success"}, "message": "OK"}
         #
         return response
 
