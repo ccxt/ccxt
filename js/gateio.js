@@ -895,6 +895,7 @@ module.exports = class gateio extends Exchange {
         const takerPercent = this.safeString (market, 'taker_fee_rate');
         const makerPercent = this.safeString (market, 'maker_fee_rate', takerPercent);
         const isLinear = quote === settle;
+        const leverage = this.safeNumber (market, 'leverage_max');
         return {
             'id': id,
             'symbol': symbol,
@@ -910,6 +911,8 @@ module.exports = class gateio extends Exchange {
             'swap': marketType === 'swap',
             'future': marketType === 'future',
             'option': marketType === 'option',
+            'cross': true,
+            'isolated': true,
             'active': true,
             'contract': true,
             'linear': isLinear,
@@ -927,8 +930,10 @@ module.exports = class gateio extends Exchange {
             },
             'limits': {
                 'leverage': {
-                    'min': this.safeNumber (market, 'leverage_min'),
-                    'max': this.safeNumber (market, 'leverage_max'),
+                    'min': this.safeNumber (market, 'leverage_min'), // deprecated
+                    'max': this.safeNumber (market, 'leverage_max'), // deprecated
+                    'cross': leverage,
+                    'isolated': leverage,
                 },
                 'amount': {
                     'min': this.safeNumber (market, 'order_size_min'),
@@ -1050,6 +1055,8 @@ module.exports = class gateio extends Exchange {
                         'leverage': {
                             'min': undefined,
                             'max': undefined,
+                            'cross': undefined,
+                            'isolated': undefined,
                         },
                         'amount': {
                             'min': this.safeNumber (market, 'order_size_min'),
