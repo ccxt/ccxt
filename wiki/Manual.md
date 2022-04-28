@@ -4552,7 +4552,7 @@ Parameters
 
 You can retrieve all the account types by selecting the keys from `exchange.options['accountsByType']
 
-Some exchanges allow transfers to email addresses, phone numbers or user id.
+Some exchanges allow transfers to email addresses, phone numbers or to other users by user id.
 
 Returns
 
