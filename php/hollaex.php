@@ -29,6 +29,9 @@ class hollaex extends \ccxt\async\hollaex {
                 'api' => array(
                     'ws' => 'wss://api.hollaex.com/stream',
                 ),
+                'test' => array(
+                    'ws' => 'wss://api.sandbox.hollaex.com/stream',
+                ),
             ),
             'options' => array(
                 'watchBalance' => array(
