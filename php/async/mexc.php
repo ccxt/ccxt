@@ -2550,6 +2550,8 @@ class mexc extends Exchange {
             throw new ArgumentsRequired($this->id . ' modifyMarginHelper() requires a $positionId parameter');
         }
         yield $this->load_markets();
+        $market = $this->market($symbol);
+        $amount = $this->amount_to_precision($symbol, $amount);
         $request = array(
             'positionId' => $positionId,
             'amount' => $amount,
@@ -2561,7 +2563,25 @@ class mexc extends Exchange {
         //         "success" => true,
         //         "code" => 0
         //     }
-        return $response;
+        //
+        $type = ($addOrReduce === 'ADD') ? 'add' : 'reduce';
+        return array_merge($this->parse_modify_margin($response, $market), array(
+            'amount' => $this->safe_number($amount),
+            'type' => $type,
+        ));
+    }
+
+    public function parse_modify_margin($data, $market = null) {
+        $statusRaw = $this->safe_string($data, 'success');
+        $status = ($statusRaw === true) ? 'ok' : 'failed';
+        return array(
+            'info' => $data,
+            'type' => null,
+            'amount' => null,
+            'code' => null,
+            'symbol' => $this->safe_symbol(null, $market),
+            'status' => $status,
+        );
     }
 
     public function reduce_margin($symbol, $amount, $params = array ()) {

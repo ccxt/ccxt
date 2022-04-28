@@ -2014,10 +2014,10 @@ class hitbtc3(Exchange):
         await self.load_markets()
         market = self.market(symbol)
         leverage = self.safe_string(params, 'leverage')
-        amount = self.amount_to_precision(symbol, amount)
         if market['type'] == 'swap':
             if leverage is None:
                 raise ArgumentsRequired(self.id + ' modifyMarginHelper() requires a leverage parameter for swap markets')
+        amount = self.amount_to_precision(symbol, amount)
         request = {
             'symbol': market['id'],  # swap and margin
             'margin_balance': amount,  # swap and margin
@@ -2050,13 +2050,19 @@ class hitbtc3(Exchange):
         #         "positions": null
         #     }
         #
-        currencies = self.safe_value(response, 'currencies', [])
-        data = self.safe_value(currencies, 0)
-        return {
-            'info': response,
+        return self.extend(self.parse_modify_margin(response, market), {
+            'amount': self.safe_number(amount),
             'type': type,
-            'amount': amount,
-            'code': self.safe_string(data, 'code'),
+        })
+
+    def parse_modify_margin(self, data, market=None):
+        currencies = self.safe_value(data, 'currencies', [])
+        currencyInfo = self.safe_value(currencies, 0)
+        return {
+            'info': data,
+            'type': None,
+            'amount': None,
+            'code': self.safe_string(currencyInfo, 'code'),
             'symbol': market['symbol'],
             'status': None,
         }

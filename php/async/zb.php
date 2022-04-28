@@ -3893,25 +3893,25 @@ class zb extends Exchange {
         //         "desc":"操作成功"
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
-        $side = ($type === 1) ? 'add' : 'reduce';
-        $errorCode = $this->safe_integer($data, 'status');
-        $status = ($errorCode === 1) ? 'ok' : 'failed';
+        return array_merge($this->parse_modify_margin($response, $market), array(
+            'amount' => $this->parse_number($amount),
+        ));
+    }
+
+    public function parse_modify_margin($data, $market = null) {
+        $innerData = $this->safe_value($data, 'data', array());
+        $sideRaw = $this->safe_integer($innerData, 'side');
+        $side = ($sideRaw === 1) ? 'add' : 'reduce';
+        $statusCode = $this->safe_integer($innerData, 'status');
+        $status = ($statusCode === 1) ? 'ok' : 'failed';
         return array(
-            'info' => $response,
+            'info' => $data,
             'type' => $side,
-            'amount' => $amount,
+            'amount' => null,
             'code' => $market['quote'],
             'symbol' => $market['symbol'],
             'status' => $status,
         );
-    }
-
-    public function reduce_margin($symbol, $amount, $params = array ()) {
-        if ($params['positionsId'] === null) {
-            throw new ArgumentsRequired($this->id . ' reduceMargin() requires a positionsId argument in the params');
-        }
-        return yield $this->modify_margin_helper($symbol, $amount, 0, $params);
     }
 
     public function add_margin($symbol, $amount, $params = array ()) {
@@ -3919,6 +3919,13 @@ class zb extends Exchange {
             throw new ArgumentsRequired($this->id . ' addMargin() requires a positionsId argument in the params');
         }
         return yield $this->modify_margin_helper($symbol, $amount, 1, $params);
+    }
+
+    public function reduce_margin($symbol, $amount, $params = array ()) {
+        if ($params['positionsId'] === null) {
+            throw new ArgumentsRequired($this->id . ' reduceMargin() requires a positionsId argument in the params');
+        }
+        return yield $this->modify_margin_helper($symbol, $amount, 0, $params);
     }
 
     public function fetch_borrow_rate($code, $params = array ()) {

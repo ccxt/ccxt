@@ -4551,22 +4551,26 @@ class okx extends Exchange {
         //       "msg" => ""
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
-        $entry = $this->safe_value($data, 0, array());
-        $errorCode = $this->safe_string($response, 'code');
+        return $this->parse_modify_margin($response, $market);
+    }
+
+    public function parse_modify_margin($data, $market = null) {
+        $innerData = $this->safe_value($data, 'data', array());
+        $entry = $this->safe_value($innerData, 0, array());
+        $errorCode = $this->safe_string($data, 'code');
         $status = ($errorCode === '0') ? 'ok' : 'failed';
-        $responseAmount = $this->safe_number($entry, 'amt');
-        $responseType = $this->safe_string($entry, 'type');
+        $amountRaw = $this->safe_number($entry, 'amt');
+        $typeRaw = $this->safe_string($entry, 'type');
+        $type = ($typeRaw === 'reduce') ? 'reduce' : 'add';
         $marketId = $this->safe_string($entry, 'instId');
         $responseMarket = $this->safe_market($marketId, $market);
         $code = $responseMarket['inverse'] ? $responseMarket['base'] : $responseMarket['quote'];
-        $symbol = $responseMarket['symbol'];
         return array(
-            'info' => $response,
-            'type' => $responseType,
-            'amount' => $responseAmount,
+            'info' => $data,
+            'type' => $type,
+            'amount' => $amountRaw,
             'code' => $code,
-            'symbol' => $symbol,
+            'symbol' => $responseMarket['symbol'],
             'status' => $status,
         );
     }

@@ -3711,28 +3711,34 @@ class zb(Exchange):
         #         "desc":"操作成功"
         #     }
         #
-        data = self.safe_value(response, 'data', {})
-        side = 'add' if (type == 1) else 'reduce'
-        errorCode = self.safe_integer(data, 'status')
-        status = 'ok' if (errorCode == 1) else 'failed'
+        return self.extend(self.parse_modify_margin(response, market), {
+            'amount': self.parse_number(amount),
+        })
+
+    def parse_modify_margin(self, data, market=None):
+        innerData = self.safe_value(data, 'data', {})
+        sideRaw = self.safe_integer(innerData, 'side')
+        side = 'add' if (sideRaw == 1) else 'reduce'
+        statusCode = self.safe_integer(innerData, 'status')
+        status = 'ok' if (statusCode == 1) else 'failed'
         return {
-            'info': response,
+            'info': data,
             'type': side,
-            'amount': amount,
+            'amount': None,
             'code': market['quote'],
             'symbol': market['symbol'],
             'status': status,
         }
 
-    async def reduce_margin(self, symbol, amount, params={}):
-        if params['positionsId'] is None:
-            raise ArgumentsRequired(self.id + ' reduceMargin() requires a positionsId argument in the params')
-        return await self.modify_margin_helper(symbol, amount, 0, params)
-
     async def add_margin(self, symbol, amount, params={}):
         if params['positionsId'] is None:
             raise ArgumentsRequired(self.id + ' addMargin() requires a positionsId argument in the params')
         return await self.modify_margin_helper(symbol, amount, 1, params)
+
+    async def reduce_margin(self, symbol, amount, params={}):
+        if params['positionsId'] is None:
+            raise ArgumentsRequired(self.id + ' reduceMargin() requires a positionsId argument in the params')
+        return await self.modify_margin_helper(symbol, amount, 0, params)
 
     async def fetch_borrow_rate(self, code, params={}):
         await self.load_markets()

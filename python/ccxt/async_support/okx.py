@@ -4343,22 +4343,25 @@ class okx(Exchange):
         #       "msg": ""
         #     }
         #
-        data = self.safe_value(response, 'data', [])
-        entry = self.safe_value(data, 0, {})
-        errorCode = self.safe_string(response, 'code')
+        return self.parse_modify_margin(response, market)
+
+    def parse_modify_margin(self, data, market=None):
+        innerData = self.safe_value(data, 'data', [])
+        entry = self.safe_value(innerData, 0, {})
+        errorCode = self.safe_string(data, 'code')
         status = 'ok' if (errorCode == '0') else 'failed'
-        responseAmount = self.safe_number(entry, 'amt')
-        responseType = self.safe_string(entry, 'type')
+        amountRaw = self.safe_number(entry, 'amt')
+        typeRaw = self.safe_string(entry, 'type')
+        type = 'reduce' if (typeRaw == 'reduce') else 'add'
         marketId = self.safe_string(entry, 'instId')
         responseMarket = self.safe_market(marketId, market)
         code = responseMarket['base'] if responseMarket['inverse'] else responseMarket['quote']
-        symbol = responseMarket['symbol']
         return {
-            'info': response,
-            'type': responseType,
-            'amount': responseAmount,
+            'info': data,
+            'type': type,
+            'amount': amountRaw,
             'code': code,
-            'symbol': symbol,
+            'symbol': responseMarket['symbol'],
             'status': status,
         }
 

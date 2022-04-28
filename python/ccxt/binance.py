@@ -5053,6 +5053,7 @@ class binance(Exchange):
             raise NotSupported(self.id + ' add / reduce margin only supported with type future or delivery')
         self.load_markets()
         market = self.market(symbol)
+        amount = self.amount_to_precision(symbol, amount)
         request = {
             'type': addOrReduce,
             'symbol': market['id'],
@@ -5075,16 +5076,21 @@ class binance(Exchange):
         #         "type": 1
         #     }
         #
-        rawType = self.safe_integer(response, 'type')
+        return self.extend(self.parse_modify_margin(response, market), {
+            'code': code,
+        })
+
+    def parse_modify_margin(self, data, market=None):
+        rawType = self.safe_integer(data, 'type')
         resultType = 'add' if (rawType == 1) else 'reduce'
-        resultAmount = self.safe_number(response, 'amount')
-        errorCode = self.safe_string(response, 'code')
+        resultAmount = self.safe_number(data, 'amount')
+        errorCode = self.safe_string(data, 'code')
         status = 'ok' if (errorCode == '200') else 'failed'
         return {
-            'info': response,
+            'info': data,
             'type': resultType,
             'amount': resultAmount,
-            'code': code,
+            'code': None,
             'symbol': market['symbol'],
             'status': status,
         }

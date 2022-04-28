@@ -2130,12 +2130,12 @@ class hitbtc3 extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $leverage = $this->safe_string($params, 'leverage');
-        $amount = $this->amount_to_precision($symbol, $amount);
         if ($market['type'] === 'swap') {
             if ($leverage === null) {
                 throw new ArgumentsRequired($this->id . ' modifyMarginHelper() requires a $leverage parameter for swap markets');
             }
         }
+        $amount = $this->amount_to_precision($symbol, $amount);
         $request = array(
             'symbol' => $market['id'], // swap and margin
             'margin_balance' => $amount, // swap and margin
@@ -2169,13 +2169,20 @@ class hitbtc3 extends Exchange {
         //         "positions" => null
         //     }
         //
-        $currencies = $this->safe_value($response, 'currencies', array());
-        $data = $this->safe_value($currencies, 0);
-        return array(
-            'info' => $response,
+        return array_merge($this->parse_modify_margin($response, $market), array(
+            'amount' => $this->safe_number($amount),
             'type' => $type,
-            'amount' => $amount,
-            'code' => $this->safe_string($data, 'code'),
+        ));
+    }
+
+    public function parse_modify_margin($data, $market = null) {
+        $currencies = $this->safe_value($data, 'currencies', array());
+        $currencyInfo = $this->safe_value($currencies, 0);
+        return array(
+            'info' => $data,
+            'type' => null,
+            'amount' => null,
+            'code' => $this->safe_string($currencyInfo, 'code'),
             'symbol' => $market['symbol'],
             'status' => null,
         );

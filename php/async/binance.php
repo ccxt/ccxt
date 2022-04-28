@@ -5370,6 +5370,7 @@ class binance extends Exchange {
         }
         yield $this->load_markets();
         $market = $this->market($symbol);
+        $amount = $this->amount_to_precision($symbol, $amount);
         $request = array(
             'type' => $addOrReduce,
             'symbol' => $market['id'],
@@ -5393,16 +5394,22 @@ class binance extends Exchange {
         //         "type" => 1
         //     }
         //
-        $rawType = $this->safe_integer($response, 'type');
+        return array_merge($this->parse_modify_margin($response, $market), array(
+            'code' => $code,
+        ));
+    }
+
+    public function parse_modify_margin($data, $market = null) {
+        $rawType = $this->safe_integer($data, 'type');
         $resultType = ($rawType === 1) ? 'add' : 'reduce';
-        $resultAmount = $this->safe_number($response, 'amount');
-        $errorCode = $this->safe_string($response, 'code');
+        $resultAmount = $this->safe_number($data, 'amount');
+        $errorCode = $this->safe_string($data, 'code');
         $status = ($errorCode === '200') ? 'ok' : 'failed';
         return array(
-            'info' => $response,
+            'info' => $data,
             'type' => $resultType,
             'amount' => $resultAmount,
-            'code' => $code,
+            'code' => null,
             'symbol' => $market['symbol'],
             'status' => $status,
         );

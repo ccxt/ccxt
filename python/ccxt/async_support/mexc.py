@@ -2418,6 +2418,8 @@ class mexc(Exchange):
         if positionId is None:
             raise ArgumentsRequired(self.id + ' modifyMarginHelper() requires a positionId parameter')
         await self.load_markets()
+        market = self.market(symbol)
+        amount = self.amount_to_precision(symbol, amount)
         request = {
             'positionId': positionId,
             'amount': amount,
@@ -2429,7 +2431,24 @@ class mexc(Exchange):
         #         "success": True,
         #         "code": 0
         #     }
-        return response
+        #
+        type = 'add' if (addOrReduce == 'ADD') else 'reduce'
+        return self.extend(self.parse_modify_margin(response, market), {
+            'amount': self.safe_number(amount),
+            'type': type,
+        })
+
+    def parse_modify_margin(self, data, market=None):
+        statusRaw = self.safe_string(data, 'success')
+        status = 'ok' if (statusRaw is True) else 'failed'
+        return {
+            'info': data,
+            'type': None,
+            'amount': None,
+            'code': None,
+            'symbol': self.safe_symbol(None, market),
+            'status': status,
+        }
 
     async def reduce_margin(self, symbol, amount, params={}):
         return await self.modify_margin_helper(symbol, amount, 'SUB', params)

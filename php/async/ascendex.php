@@ -2266,11 +2266,11 @@ class ascendex extends Exchange {
         $market = $this->market($symbol);
         $account = $this->safe_value($this->accounts, 0, array());
         $accountGroup = $this->safe_string($account, 'id');
-        $amount = $this->number_to_string($amount);
+        $amount = $this->amount_to_precision($symbol, $amount);
         $request = array(
             'account-group' => $accountGroup,
             'symbol' => $market['id'],
-            'amount' => $amount,
+            'amount' => $amount, // positive value for adding margin, negative for reducing
         );
         $response = yield $this->v2PrivateAccountGroupPostFuturesIsolatedPositionMargin (array_merge($request, $params));
         //
@@ -2280,12 +2280,22 @@ class ascendex extends Exchange {
         //          "code" => 0
         //     }
         //
-        $errorCode = $this->safe_string($response, 'code');
+        if ($type === 'reduce') {
+            $amount = Precise::string_abs($amount);
+        }
+        return array_merge($this->parse_modify_margin($response, $market), array(
+            'amount' => $this->parse_number($amount),
+            'type' => $type,
+        ));
+    }
+
+    public function parse_modify_margin($data, $market = null) {
+        $errorCode = $this->safe_string($data, 'code');
         $status = ($errorCode === '0') ? 'ok' : 'failed';
         return array(
-            'info' => $response,
-            'type' => $type,
-            'amount' => $amount,
+            'info' => $data,
+            'type' => null,
+            'amount' => null,
             'code' => $market['quote'],
             'symbol' => $market['symbol'],
             'status' => $status,

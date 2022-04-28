@@ -2181,11 +2181,11 @@ class ascendex(Exchange):
         market = self.market(symbol)
         account = self.safe_value(self.accounts, 0, {})
         accountGroup = self.safe_string(account, 'id')
-        amount = self.number_to_string(amount)
+        amount = self.amount_to_precision(symbol, amount)
         request = {
             'account-group': accountGroup,
             'symbol': market['id'],
-            'amount': amount,
+            'amount': amount,  # positive value for adding margin, negative for reducing
         }
         response = await self.v2PrivateAccountGroupPostFuturesIsolatedPositionMargin(self.extend(request, params))
         #
@@ -2195,12 +2195,20 @@ class ascendex(Exchange):
         #          "code": 0
         #     }
         #
-        errorCode = self.safe_string(response, 'code')
+        if type == 'reduce':
+            amount = Precise.string_abs(amount)
+        return self.extend(self.parse_modify_margin(response, market), {
+            'amount': self.parse_number(amount),
+            'type': type,
+        })
+
+    def parse_modify_margin(self, data, market=None):
+        errorCode = self.safe_string(data, 'code')
         status = 'ok' if (errorCode == '0') else 'failed'
         return {
-            'info': response,
-            'type': type,
-            'amount': amount,
+            'info': data,
+            'type': None,
+            'amount': None,
             'code': market['quote'],
             'symbol': market['symbol'],
             'status': status,
