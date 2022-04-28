@@ -2306,7 +2306,7 @@ module.exports = class gateio extends Exchange {
             market = this.market (symbol);
         }
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
-        const [ request, urlParams ] = this.prepareRequest (market, type, false, false, query);
+        const [ request, urlParams ] = this.prepareRequest (market, type, true, false, query);
         //
         //     const request = {
         //         'currency_pair': market['id'],
