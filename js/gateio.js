@@ -695,7 +695,7 @@ module.exports = class gateio extends Exchange {
             const tradeStatus = this.safeString (market, 'trade_status');
             const leverage = this.safeNumber (market, 'leverage');
             const defaultMinAmountLimit = this.parseNumber (this.parsePrecision (amountPrecisionString));
-            const margin = leverage !== undefined;
+            const isolated = (leverage !== undefined);
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -707,10 +707,12 @@ module.exports = class gateio extends Exchange {
                 'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'margin': margin,
+                'margin': isolated,
                 'swap': false,
                 'future': false,
                 'option': false,
+                'cross': undefined,
+                'isolated': isolated,
                 'active': (tradeStatus === 'tradable'),
                 'contract': false,
                 'linear': undefined,
@@ -729,8 +731,10 @@ module.exports = class gateio extends Exchange {
                 },
                 'limits': {
                     'leverage': {
-                        'min': this.parseNumber ('1'),
-                        'max': this.safeNumber (market, 'leverage', 1),
+                        'min': this.parseNumber ('1'), // deprecated
+                        'max': this.safeNumber (market, 'leverage', 1), // deprecated
+                        'isolated': leverage,
+                        'cross': undefined,
                     },
                     'amount': {
                         'min': this.safeNumber (spotMarket, 'min_base_amount', defaultMinAmountLimit),
