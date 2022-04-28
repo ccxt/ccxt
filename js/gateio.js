@@ -695,9 +695,7 @@ module.exports = class gateio extends Exchange {
             const amountPrecisionString = this.safeString (market, 'amount_precision');
             const pricePrecisionString = this.safeString (market, 'precision');
             const tradeStatus = this.safeString (market, 'trade_status');
-            const leverage = this.safeNumber (market, 'leverage');
             const defaultMinAmountLimit = this.parseNumber (this.parsePrecision (amountPrecisionString));
-            const margin = leverage !== undefined;
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -731,8 +729,8 @@ module.exports = class gateio extends Exchange {
                 },
                 'limits': {
                     'leverage': {
-                        'min': this.parseNumber ('1'),
-                        'max': this.safeNumber (market, 'leverage', 1),
+                        'min': margin ? this.parseNumber ('1') : undefined,
+                        'max': this.safeNumber (market, 'leverage'),
                     },
                     'amount': {
                         'min': this.safeNumber (market, 'min_base_amount', defaultMinAmountLimit),
