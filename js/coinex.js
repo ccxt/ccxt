@@ -1648,16 +1648,20 @@ module.exports = class coinex extends Exchange {
             // 'offset': 0, // SWAP
             // 'side': 0, // SWAP, 0: All, 1: Sell, 2: Buy
         };
+        const stop = this.safeValue (params, 'stop');
+        const side = this.safeInteger (params, 'side');
+        params = this.omit (params, 'stop');
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
-        const swap = market['swap'];
-        const stop = this.safeValue (params, 'stop');
-        const side = this.safeInteger (params, 'side');
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
         let method = undefined;
-        if (swap) {
+        if (marketType === 'swap') {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchOrdersByStatus() requires a symbol argument for swap markets');
+            }
             method = 'perpetualPrivateGetOrder' + this.capitalize (status);
             if (stop) {
                 method = 'perpetualPrivateGetOrderStopPending';
@@ -1675,8 +1679,7 @@ module.exports = class coinex extends Exchange {
             }
             request['page'] = 1;
         }
-        params = this.omit (params, 'stop');
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
         //
         // Spot
         //
@@ -1827,10 +1830,10 @@ module.exports = class coinex extends Exchange {
         //         "message": "OK"
         //     }
         //
-        const tradeRequest = swap ? 'records' : 'data';
+        const tradeRequest = (marketType === 'swap') ? 'records' : 'data';
         const data = this.safeValue (response, 'data');
         const orders = this.safeValue (data, tradeRequest, []);
-        return this.parseOrders (orders, market, since, limit);
+        return this.parseOrders (orders, marketType, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
