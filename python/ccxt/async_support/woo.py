@@ -73,6 +73,7 @@ class woo(Exchange):
                 'fetchTransactions': True,
                 'fetchTransfers': True,
                 'fetchWithdrawals': True,
+                'transfer': True,
                 'withdraw': False,  # exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#token-withdraw
             },
             'timeframes': {
@@ -140,6 +141,7 @@ class woo(Exchange):
                         },
                         'post': {
                             'order': 5,  # 2 requests per 1 second per symbol
+                            'asset/main_sub_transfer': 30,  # 20 requests per 60 seconds
                             'asset/withdraw': 120,  # implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
                         },
                         'delete': {
@@ -219,6 +221,9 @@ class woo(Exchange):
                 'defaultNetworkCodeForCurrencies': {
                     # 'USDT': 'TRC20',
                     # 'BTC': 'BTC',
+                },
+                'transfer': {
+                    'fillResponseFromRequest': True,
                 },
             },
             'commonCurrencies': {},
@@ -1308,6 +1313,31 @@ class woo(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
+    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'token': currency['id'],
+            'amount': self.parse_number(amount),
+            'from_application_id': fromAccount,
+            'to_application_id': toAccount,
+        }
+        response = await self.v1PrivatePostAssetMainSubTransfer(self.extend(request, params))
+        #
+        #     {
+        #         "success": True,
+        #         "id": 200
+        #     }
+        #
+        transfer = self.parse_transfer(response, currency)
+        transferOptions = self.safe_value(self.options, 'transfer', {})
+        fillResponseFromRequest = self.safe_value(transferOptions, 'fillResponseFromRequest', True)
+        if fillResponseFromRequest:
+            transfer['amount'] = amount
+            transfer['fromAccount'] = fromAccount
+            transfer['toAccount'] = toAccount
+        return transfer
+
     async def fetch_transfers(self, code=None, since=None, limit=None, params={}):
         request = {
             'type': 'COLLATERAL',
@@ -1316,7 +1346,33 @@ class woo(Exchange):
         return self.parse_transfers(rows, currency, since, limit, params)
 
     def parse_transfer(self, transfer, currency=None):
-        # example is "fetchTransactions"
+        #
+        #    getAssetHistoryRows
+        #        {
+        #            "created_time": "1579399877.041",  # Unix epoch time in seconds
+        #            "updated_time": "1579399877.041",  # Unix epoch time in seconds
+        #            "id": "202029292829292",
+        #            "external_id": "202029292829292",
+        #            "application_id": null,
+        #            "token": "ETH",
+        #            "target_address": "0x31d64B3230f8baDD91dE1710A65DF536aF8f7cDa",
+        #            "source_address": "0x70fd25717f769c7f9a46b319f0f9103c0d887af0",
+        #            "extra": "",
+        #            "type": "BALANCE",
+        #            "token_side": "DEPOSIT",
+        #            "amount": 1000,
+        #            "tx_id": "0x8a74c517bc104c8ebad0c3c3f64b1f302ed5f8bca598ae4459c63419038106b6",
+        #            "fee_token": null,
+        #            "fee_amount": null,
+        #            "status": "CONFIRMING"
+        #        }
+        #
+        #    v1PrivatePostAssetMainSubTransfer
+        #        {
+        #            "success": True,
+        #            "id": 200
+        #        }
+        #
         networkizedCode = self.safe_string(transfer, 'token')
         currencyDefined = self.get_currency_from_chaincode(networkizedCode, currency)
         code = currencyDefined['code']
@@ -1328,10 +1384,14 @@ class woo(Exchange):
         if movementDirection == 'withdraw':
             fromAccount = None
             toAccount = 'spot'
-        else:
+        elif movementDirection == 'deposit':
             fromAccount = 'spot'
             toAccount = None
         timestamp = self.safe_timestamp(transfer, 'created_time')
+        success = self.safe_value(transfer, 'success')
+        status = None
+        if success is not None:
+            status = 'ok' if success else 'failed'
         return {
             'id': self.safe_string(transfer, 'id'),
             'timestamp': timestamp,
@@ -1340,12 +1400,19 @@ class woo(Exchange):
             'amount': self.safe_number(transfer, 'amount'),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'status': self.parse_transfer_status(self.safe_string(transfer, 'status')),
+            'status': self.parse_transfer_status(self.safe_string(transfer, 'status', status)),
             'info': transfer,
         }
 
     def parse_transfer_status(self, status):
-        return self.parse_transaction_status(status)
+        statuses = {
+            'NEW': 'pending',
+            'CONFIRMING': 'pending',
+            'PROCESSING': 'pending',
+            'COMPLETED': 'ok',
+            'CANCELED': 'canceled',
+        }
+        return self.safe_string(statuses, status, status)
 
     def nonce(self):
         return self.milliseconds()

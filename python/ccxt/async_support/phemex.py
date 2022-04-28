@@ -400,6 +400,9 @@ class phemex(Exchange):
                     'spot': 'spot',
                     'future': 'future',
                 },
+                'transfer': {
+                    'fillResponseFromRequest': True,
+                },
             },
         })
 
@@ -2686,36 +2689,65 @@ class phemex(Exchange):
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
         fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
         toId = self.safe_string(accountsByType, toAccount, toAccount)
+        scaledAmmount = self.to_ev(amount, currency)
         direction = None
+        transfer = None
         if fromId == 'spot' and toId == 'future':
             direction = 2
-        if fromId == 'future' and toId == 'spot':
+        elif fromId == 'future' and toId == 'spot':
             direction = 1
-        if direction is None:
-            raise ExchangeError(self.id + ' transfer() can only be from future to spot or from spot to future')
-        scaledAmmount = self.to_ev(amount, currency)
-        request = {
-            'currency': currency['id'],
-            'moveOp': direction,
-            'amountEv': scaledAmmount,
-        }
-        response = await self.privatePostAssetsTransfer(self.extend(request, params))
-        #
-        #     {
-        #         code: '0',
-        #         msg: 'OK',
-        #         data: {
-        #             linkKey: '8564eba4-c9ec-49d6-9b8c-2ec5001a0fb9',
-        #             userId: '4018340',
-        #             currency: 'USD',
-        #             amountEv: '10',
-        #             side: '2',
-        #             status: '10'
-        #         }
-        #     }
-        #
-        data = self.safe_value(response, 'data', {})
-        return self.parse_transfer(data, currency)
+        if direction is not None:
+            request = {
+                'currency': currency['id'],
+                'moveOp': direction,
+                'amountEv': scaledAmmount,
+            }
+            response = await self.privatePostAssetsTransfer(self.extend(request, params))
+            #
+            #     {
+            #         code: '0',
+            #         msg: 'OK',
+            #         data: {
+            #             linkKey: '8564eba4-c9ec-49d6-9b8c-2ec5001a0fb9',
+            #             userId: '4018340',
+            #             currency: 'USD',
+            #             amountEv: '10',
+            #             side: '2',
+            #             status: '10'
+            #         }
+            #     }
+            #
+            data = self.safe_value(response, 'data', {})
+            transfer = self.parse_transfer(data, currency)
+        else:  # sub account transfer
+            request = {
+                'fromUserId': fromId,
+                'toUserId': toId,
+                'amountEv': scaledAmmount,
+                'currency': currency['id'],
+                'bizType': self.safe_string(params, 'bizType', 'SPOT'),
+            }
+            response = await self.privatePostAssetsUniversalTransfer(self.extend(request, params))
+            #
+            #     {
+            #         code: '0',
+            #         msg: 'OK',
+            #         data: 'API-923db826-aaaa-aaaa-aaaa-4d98c3a7c9fd'
+            #     }
+            #
+            transfer = self.parse_transfer(response)
+        transferOptions = self.safe_value(self.options, 'transfer', {})
+        fillResponseFromRequest = self.safe_value(transferOptions, 'fillResponseFromRequest', True)
+        if fillResponseFromRequest:
+            if transfer['fromAccount'] is None:
+                transfer['fromAccount'] = fromAccount
+            if transfer['toAccount'] is None:
+                transfer['toAccount'] = toAccount
+            if transfer['amount'] is None:
+                transfer['amount'] = amount
+            if transfer['currency'] is None:
+                transfer['currency'] = code
+        return transfer
 
     def parse_transfer(self, transfer, currency=None):
         #
@@ -2762,7 +2794,7 @@ class phemex(Exchange):
             '10': 'ok',  # 'Success',
             '11': 'failed',  # 'Failed',
         }
-        return self.safe_string(statuses, status, 'pending')
+        return self.safe_string(statuses, status, status)
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:

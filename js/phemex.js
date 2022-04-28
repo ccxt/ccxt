@@ -385,6 +385,9 @@ export default class phemex extends Exchange {
                     'spot': 'spot',
                     'future': 'future',
                 },
+                'transfer': {
+                    'fillResponseFromRequest': true,
+                },
             },
         });
     }
@@ -2812,39 +2815,72 @@ export default class phemex extends Exchange {
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
         const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
         const toId = this.safeString (accountsByType, toAccount, toAccount);
+        const scaledAmmount = this.toEv (amount, currency);
         let direction = undefined;
+        let transfer = undefined;
         if (fromId === 'spot' && toId === 'future') {
             direction = 2;
-        }
-        if (fromId === 'future' && toId === 'spot') {
+        } else if (fromId === 'future' && toId === 'spot') {
             direction = 1;
         }
-        if (direction === undefined) {
-            throw new ExchangeError (this.id + ' transfer() can only be from future to spot or from spot to future');
+        if (direction !== undefined) {
+            const request = {
+                'currency': currency['id'],
+                'moveOp': direction,
+                'amountEv': scaledAmmount,
+            };
+            const response = await this.privatePostAssetsTransfer (this.extend (request, params));
+            //
+            //     {
+            //         code: '0',
+            //         msg: 'OK',
+            //         data: {
+            //             linkKey: '8564eba4-c9ec-49d6-9b8c-2ec5001a0fb9',
+            //             userId: '4018340',
+            //             currency: 'USD',
+            //             amountEv: '10',
+            //             side: '2',
+            //             status: '10'
+            //         }
+            //     }
+            //
+            const data = this.safeValue (response, 'data', {});
+            transfer = this.parseTransfer (data, currency);
+        } else { // sub account transfer
+            const request = {
+                'fromUserId': fromId,
+                'toUserId': toId,
+                'amountEv': scaledAmmount,
+                'currency': currency['id'],
+                'bizType': this.safeString (params, 'bizType', 'SPOT'),
+            };
+            const response = await this.privatePostAssetsUniversalTransfer (this.extend (request, params));
+            //
+            //     {
+            //         code: '0',
+            //         msg: 'OK',
+            //         data: 'API-923db826-aaaa-aaaa-aaaa-4d98c3a7c9fd'
+            //     }
+            //
+            transfer = this.parseTransfer (response);
         }
-        const scaledAmmount = this.toEv (amount, currency);
-        const request = {
-            'currency': currency['id'],
-            'moveOp': direction,
-            'amountEv': scaledAmmount,
-        };
-        const response = await this.privatePostAssetsTransfer (this.extend (request, params));
-        //
-        //     {
-        //         code: '0',
-        //         msg: 'OK',
-        //         data: {
-        //             linkKey: '8564eba4-c9ec-49d6-9b8c-2ec5001a0fb9',
-        //             userId: '4018340',
-        //             currency: 'USD',
-        //             amountEv: '10',
-        //             side: '2',
-        //             status: '10'
-        //         }
-        //     }
-        //
-        const data = this.safeValue (response, 'data', {});
-        return this.parseTransfer (data, currency);
+        const transferOptions = this.safeValue (this.options, 'transfer', {});
+        const fillResponseFromRequest = this.safeValue (transferOptions, 'fillResponseFromRequest', true);
+        if (fillResponseFromRequest) {
+            if (transfer['fromAccount'] === undefined) {
+                transfer['fromAccount'] = fromAccount;
+            }
+            if (transfer['toAccount'] === undefined) {
+                transfer['toAccount'] = toAccount;
+            }
+            if (transfer['amount'] === undefined) {
+                transfer['amount'] = amount;
+            }
+            if (transfer['currency'] === undefined) {
+                transfer['currency'] = code;
+            }
+        }
+        return transfer;
     }
 
     parseTransfer (transfer, currency = undefined) {
@@ -2894,7 +2930,7 @@ export default class phemex extends Exchange {
             '10': 'ok', // 'Success',
             '11': 'failed', // 'Failed',
         };
-        return this.safeString (statuses, status, 'pending');
+        return this.safeString (statuses, status, status);
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

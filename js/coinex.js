@@ -3,6 +3,7 @@
 
 import { Exchange } from './base/Exchange.js';
 import { ExchangeError, ArgumentsRequired, BadSymbol, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError, PermissionDenied, ExchangeNotAvailable, RequestTimeout } from './base/errors.js';
+import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -178,6 +179,7 @@ export default class coinex extends Exchange {
                         'order/finished': 1,
                         'order/stop_pending': 1,
                         'order/status': 1,
+                        'order/stop_status': 1,
                         'position/pending': 1,
                         'position/funding': 1,
                     },
@@ -187,6 +189,7 @@ export default class coinex extends Exchange {
                         'order/put_limit': 1,
                         'order/put_market': 1,
                         'order/put_stop_limit': 1,
+                        'order/put_stop_market': 1,
                         'order/cancel': 1,
                         'order/cancel_all': 1,
                         'order/cancel_stop': 1,
@@ -1005,6 +1008,100 @@ export default class coinex extends Exchange {
         //         "type": "sell",
         //     }
         //
+        // Spot createOrder, cancelOrder, fetchOrder
+        //
+        //      {
+        //          "amount":"1.5",
+        //          "asset_fee":"0",
+        //          "avg_price":"0.14208538",
+        //          "client_id":"",
+        //          "create_time":1650993819,
+        //          "deal_amount":"10.55703267",
+        //          "deal_fee":"0.0029999999971787292",
+        //          "deal_money":"1.4999999985893646",
+        //          "fee_asset":null,
+        //          "fee_discount":"1",
+        //          "finished_time":null,
+        //          "id":74556296907,
+        //          "left":"0.0000000014106354",
+        //          "maker_fee_rate":"0",
+        //          "market":"DOGEUSDT",
+        //          "money_fee":"0.0029999999971787292",
+        //          "order_type":"market",
+        //          "price":"0",
+        //          "status":"done",
+        //          "stock_fee":"0",
+        //          "taker_fee_rate":"0.002",
+        //          "type":"buy"
+        //      }
+        //
+        // Swap createOrder, cancelOrder, fetchOrder
+        //
+        //     {
+        //         "amount": "0.0005",
+        //         "client_id": "",
+        //         "create_time": 1651004578.618224,
+        //         "deal_asset_fee": "0.00000000000000000000",
+        //         "deal_fee": "0.00000000000000000000",
+        //         "deal_profit": "0.00000000000000000000",
+        //         "deal_stock": "0.00000000000000000000",
+        //         "effect_type": 1,
+        //         "fee_asset": "",
+        //         "fee_discount": "0.00000000000000000000",
+        //         "last_deal_amount": "0.00000000000000000000",
+        //         "last_deal_id": 0,
+        //         "last_deal_price": "0.00000000000000000000",
+        //         "last_deal_role": 0,
+        //         "last_deal_time": 0,
+        //         "last_deal_type": 0,
+        //         "left": "0.0005",
+        //         "leverage": "3",
+        //         "maker_fee": "0.00030",
+        //         "market": "BTCUSDT",
+        //         "order_id": 18221659097,
+        //         "position_id": 0,
+        //         "position_type": 1,
+        //         "price": "30000.00",
+        //         "side": 2,
+        //         "source": "api.v1",
+        //         "stop_id": 0,
+        //         "taker_fee": "0.00050",
+        //         "target": 0,
+        //         "type": 1,
+        //         "update_time": 1651004578.618224,
+        //         "user_id": 3620173
+        //     }
+        //
+        // Stop order createOrder
+        //
+        //     {"status":"success"}
+        //
+        // Swap Stop cancelOrder, fetchOrder
+        //
+        //     {
+        //         "amount": "0.0005",
+        //         "client_id": "",
+        //         "create_time": 1651034023.008771,
+        //         "effect_type": 1,
+        //         "fee_asset": "",
+        //         "fee_discount": "0.00000000000000000000",
+        //         "maker_fee": "0.00030",
+        //         "market": "BTCUSDT",
+        //         "order_id": 18256915101,
+        //         "price": "31000.00",
+        //         "side": 2,
+        //         "source": "api.v1",
+        //         "state": 1,
+        //         "stop_price": "31500.00",
+        //         "stop_type": 1,
+        //         "taker_fee": "0.00050",
+        //         "target": 0,
+        //         "type": 1,
+        //         "update_time": 1651034397.193624,
+        //         "user_id": 3620173
+        //     }
+        //
+        const swap = market['swap'];
         const timestamp = this.safeTimestamp (order, 'create_time');
         const priceString = this.safeString (order, 'price');
         const costString = this.safeString (order, 'deal_money');
@@ -1020,14 +1117,23 @@ export default class coinex extends Exchange {
             feeCurrency = market['quote'];
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const type = this.safeString (order, 'order_type');
-        const side = this.safeString (order, 'type');
+        let type = undefined;
+        let side = undefined;
+        if (swap) {
+            type = this.safeInteger (order, 'type');
+            type = (type === 1) ? 'limit' : 'market';
+            side = this.safeInteger (order, 'side');
+            side = (side === 1) ? 'sell' : 'buy';
+        } else {
+            side = this.safeString (order, 'type');
+            type = this.safeString (order, 'order_type');
+        }
         return this.safeOrder ({
-            'id': this.safeString (order, 'id'),
+            'id': this.safeString2 (order, 'id', 'order_id'),
             'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
-            'lastTradeTimestamp': undefined,
+            'lastTradeTimestamp': this.safeTimestamp (order, 'update_time'),
             'status': status,
             'symbol': market['symbol'],
             'type': type,
@@ -1035,7 +1141,7 @@ export default class coinex extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': priceString,
-            'stopPrice': undefined,
+            'stopPrice': this.safeString (order, 'stop_price'),
             'cost': costString,
             'average': averageString,
             'amount': amountString,
@@ -1052,30 +1158,188 @@ export default class coinex extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        const method = 'privatePostOrder' + this.capitalize (type);
         const market = this.market (symbol);
+        const swap = market['swap'];
+        const stopPrice = this.safeString2 (params, 'stopPrice', 'stop_price');
+        const postOnly = this.safeValue (params, 'postOnly', false);
+        let timeInForce = this.safeString (params, 'timeInForce'); // Spot: IOC, FOK, PO, GTC, ... NORMAL (default), MAKER_ONLY
+        let method = undefined;
         const request = {
             'market': market['id'],
-            'type': side,
         };
-        // for market buy it requires the amount of quote currency to spend
-        if ((type === 'market') && (side === 'buy')) {
-            if (this.options['createMarketBuyOrderRequiresPrice']) {
-                if (price === undefined) {
-                    throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
-                } else {
-                    request['amount'] = this.costToPrecision (symbol, amount * price);
+        if (swap) {
+            method = 'perpetualPrivatePostOrderPut' + this.capitalize (type);
+            if (stopPrice !== undefined) {
+                const stopType = this.safeInteger (params, 'stop_type'); // 1: triggered by the latest transaction, 2: mark price, 3: index price
+                if (stopType === undefined) {
+                    throw new ArgumentsRequired (this.id + ' createOrder() swap stop orders require a stop_type parameter');
                 }
-            } else {
-                request['amount'] = this.costToPrecision (symbol, amount);
+                request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
+                request['stop_type'] = this.priceToPrecision (symbol, stopType);
+                if (type === 'limit') {
+                    method = 'perpetualPrivatePostOrderPutStopLimit';
+                } else if (type === 'market') {
+                    method = 'perpetualPrivatePostOrderPutStopMarket';
+                }
+            }
+            if ((type !== 'market') || (stopPrice !== undefined)) {
+                if ((timeInForce !== undefined) || (postOnly !== undefined)) {
+                    let isMakerOrder = false;
+                    if ((timeInForce === 'PO') || (postOnly)) {
+                        isMakerOrder = true;
+                    }
+                    if (isMakerOrder) {
+                        request['option'] = 1;
+                    } else {
+                        if (timeInForce === 'IOC') {
+                            timeInForce = 2;
+                        } else if (timeInForce === 'FOK') {
+                            timeInForce = 3;
+                        } else {
+                            timeInForce = 1;
+                        }
+                        if (timeInForce !== undefined) {
+                            request['effect_type'] = timeInForce; // exchange takes 'IOC' and 'FOK'
+                        }
+                    }
+                }
+            }
+            side = (side === 'buy') ? 2 : 1;
+            request['side'] = side;
+            request['amount'] = this.amountToPrecision (symbol, amount);
+            if (type === 'limit') {
+                request['price'] = this.priceToPrecision (symbol, price);
             }
         } else {
-            request['amount'] = this.amountToPrecision (symbol, amount);
+            method = 'privatePostOrder' + this.capitalize (type);
+            request['type'] = side;
+            if ((type === 'market') && (side === 'buy')) {
+                if (this.options['createMarketBuyOrderRequiresPrice']) {
+                    if (price === undefined) {
+                        throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
+                    } else {
+                        const amountString = this.amountToPrecision (symbol, amount);
+                        const priceString = this.priceToPrecision (symbol, price);
+                        const costString = Precise.stringMul (amountString, priceString);
+                        const costNumber = this.parseNumber (costString);
+                        request['amount'] = this.costToPrecision (symbol, costNumber);
+                    }
+                } else {
+                    request['amount'] = this.costToPrecision (symbol, amount);
+                }
+            } else {
+                request['amount'] = this.amountToPrecision (symbol, amount);
+            }
+            if ((type === 'limit') || (type === 'ioc')) {
+                request['price'] = this.priceToPrecision (symbol, price);
+            }
+            if (stopPrice !== undefined) {
+                request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
+                if (type === 'limit') {
+                    method = 'privatePostOrderStopLimit';
+                } else if (type === 'market') {
+                    method = 'privatePostOrderStopMarket';
+                }
+            }
+            if ((type !== 'market') || (stopPrice !== undefined)) {
+                // following options cannot be applied to vanilla market orders (but can be applied to stop-market orders)
+                if ((timeInForce !== undefined) || (postOnly !== undefined)) {
+                    let isMakerOrder = false;
+                    if ((timeInForce === 'PO') || (postOnly)) {
+                        isMakerOrder = true;
+                    }
+                    if ((isMakerOrder || (timeInForce !== 'IOC')) && ((type === 'limit') && (stopPrice !== undefined))) {
+                        throw new InvalidOrder (this.id + ' createOrder() only supports the IOC option for stop-limit orders');
+                    }
+                    if (isMakerOrder) {
+                        request['option'] = 'MAKER_ONLY';
+                    } else {
+                        if (timeInForce !== undefined) {
+                            request['option'] = timeInForce; // exchange takes 'IOC' and 'FOK'
+                        }
+                    }
+                }
+            }
         }
-        if ((type === 'limit') || (type === 'ioc')) {
-            request['price'] = this.priceToPrecision (symbol, price);
-        }
+        params = this.omit (params, [ 'timeInForce', 'postOnly', 'stopPrice', 'stop_price', 'stop_type' ]);
         const response = await this[method] (this.extend (request, params));
+        //
+        // Spot
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "amount": "0.0005",
+        //             "asset_fee": "0",
+        //             "avg_price": "0.00",
+        //             "client_id": "",
+        //             "create_time": 1650951627,
+        //             "deal_amount": "0",
+        //             "deal_fee": "0",
+        //             "deal_money": "0",
+        //             "fee_asset": null,
+        //             "fee_discount": "1",
+        //             "finished_time": null,
+        //             "id": 74510932594,
+        //             "left": "0.0005",
+        //             "maker_fee_rate": "0.002",
+        //             "market": "BTCUSDT",
+        //             "money_fee": "0",
+        //             "order_type": "limit",
+        //             "price": "30000",
+        //             "status": "not_deal",
+        //             "stock_fee": "0",
+        //             "taker_fee_rate": "0.002",
+        //             "type": "buy"
+        //         },
+        //         "message": "Success"
+        //     }
+        //
+        // Swap
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "amount": "0.0005",
+        //             "client_id": "",
+        //             "create_time": 1651004578.618224,
+        //             "deal_asset_fee": "0.00000000000000000000",
+        //             "deal_fee": "0.00000000000000000000",
+        //             "deal_profit": "0.00000000000000000000",
+        //             "deal_stock": "0.00000000000000000000",
+        //             "effect_type": 1,
+        //             "fee_asset": "",
+        //             "fee_discount": "0.00000000000000000000",
+        //             "last_deal_amount": "0.00000000000000000000",
+        //             "last_deal_id": 0,
+        //             "last_deal_price": "0.00000000000000000000",
+        //             "last_deal_role": 0,
+        //             "last_deal_time": 0,
+        //             "last_deal_type": 0,
+        //             "left": "0.0005",
+        //             "leverage": "3",
+        //             "maker_fee": "0.00030",
+        //             "market": "BTCUSDT",
+        //             "order_id": 18221659097,
+        //             "position_id": 0,
+        //             "position_type": 1,
+        //             "price": "30000.00",
+        //             "side": 2,
+        //             "source": "api.v1",
+        //             "stop_id": 0,
+        //             "taker_fee": "0.00050",
+        //             "target": 0,
+        //             "type": 1,
+        //             "update_time": 1651004578.618224,
+        //             "user_id": 3620173
+        //         },
+        //         "message": "OK"
+        //     }
+        //
+        // Stop Order
+        //
+        //     {"code":0,"data":{"status":"success"},"message":"OK"}
+        //
         const data = this.safeValue (response, 'data');
         return this.parseOrder (data, market);
     }
@@ -1083,11 +1347,129 @@ export default class coinex extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const stop = this.safeValue (params, 'stop');
+        const swap = market['swap'];
         const request = {
-            'id': id,
             'market': market['id'],
         };
-        const response = await this.privateDeleteOrderPending (this.extend (request, params));
+        const idRequest = swap ? 'order_id' : 'id';
+        request[idRequest] = id;
+        let method = swap ? 'perpetualPrivatePostOrderCancel' : 'privateDeleteOrderPending';
+        if (stop) {
+            if (swap) {
+                method = 'perpetualPrivatePostOrderCancelStop';
+            } else {
+                method = 'privateDeleteOrderStopPendingId';
+            }
+        }
+        const query = this.omit (params, 'stop');
+        const response = await this[method] (this.extend (request, query));
+        //
+        // Spot
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "amount": "0.0005",
+        //             "asset_fee": "0",
+        //             "avg_price": "0.00",
+        //             "client_id": "",
+        //             "create_time": 1650951627,
+        //             "deal_amount": "0",
+        //             "deal_fee": "0",
+        //             "deal_money": "0",
+        //             "fee_asset": null,
+        //             "fee_discount": "1",
+        //             "finished_time": null,
+        //             "id": 74510932594,
+        //             "left": "0.0005",
+        //             "maker_fee_rate": "0.002",
+        //             "market": "BTCUSDT",
+        //             "money_fee": "0",
+        //             "order_type": "limit",
+        //             "price": "30000",
+        //             "status": "not_deal",
+        //             "stock_fee": "0",
+        //             "taker_fee_rate": "0.002",
+        //             "type": "buy"
+        //         },
+        //         "message": "Success"
+        //     }
+        //
+        // Swap
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "amount": "0.0005",
+        //             "client_id": "",
+        //             "create_time": 1651004578.618224,
+        //             "deal_asset_fee": "0.00000000000000000000",
+        //             "deal_fee": "0.00000000000000000000",
+        //             "deal_profit": "0.00000000000000000000",
+        //             "deal_stock": "0.00000000000000000000",
+        //             "effect_type": 1,
+        //             "fee_asset": "",
+        //             "fee_discount": "0.00000000000000000000",
+        //             "last_deal_amount": "0.00000000000000000000",
+        //             "last_deal_id": 0,
+        //             "last_deal_price": "0.00000000000000000000",
+        //             "last_deal_role": 0,
+        //             "last_deal_time": 0,
+        //             "last_deal_type": 0,
+        //             "left": "0.0005",
+        //             "leverage": "3",
+        //             "maker_fee": "0.00030",
+        //             "market": "BTCUSDT",
+        //             "order_id": 18221659097,
+        //             "position_id": 0,
+        //             "position_type": 1,
+        //             "price": "30000.00",
+        //             "side": 2,
+        //             "source": "api.v1",
+        //             "stop_id": 0,
+        //             "taker_fee": "0.00050",
+        //             "target": 0,
+        //             "type": 1,
+        //             "update_time": 1651004578.618224,
+        //             "user_id": 3620173
+        //         },
+        //         "message": "OK"
+        //     }
+        //
+        // Swap Stop
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "amount": "0.0005",
+        //             "client_id": "",
+        //             "create_time": 1651034023.008771,
+        //             "effect_type": 1,
+        //             "fee_asset": "",
+        //             "fee_discount": "0.00000000000000000000",
+        //             "maker_fee": "0.00030",
+        //             "market": "BTCUSDT",
+        //             "order_id": 18256915101,
+        //             "price": "31000.00",
+        //             "side": 2,
+        //             "source": "api.v1",
+        //             "state": 1,
+        //             "stop_price": "31500.00",
+        //             "stop_type": 1,
+        //             "taker_fee": "0.00050",
+        //             "target": 0,
+        //             "type": 1,
+        //             "update_time": 1651034397.193624,
+        //             "user_id": 3620173
+        //         },
+        //         "message":"OK"
+        //     }
+        //
+        // Spot Stop
+        //
+        //     {"code":0,"data":{},"message":"Success"}
+        //
         const data = this.safeValue (response, 'data');
         return this.parseOrder (data, market);
     }
@@ -1101,12 +1483,35 @@ export default class coinex extends Exchange {
         const marketId = market['id'];
         const accountId = this.safeString (params, 'id', '0');
         const request = {
-            'account_id': accountId, // main account ID: 0, margin account ID: See < Inquire Margin Account Market Info >, future account ID: See < Inquire Future Account Market Info >
             'market': marketId,
+            // 'account_id': accountId, // SPOT, main account ID: 0, margin account ID: See < Inquire Margin Account Market Info >, future account ID: See < Inquire Future Account Market Info >
+            // 'side': 0, // SWAP, 0: All, 1: Sell, 2: Buy
         };
-        const response = await this.privateDeleteOrderPending (this.extend (request, params));
+        const swap = market['swap'];
+        const stop = this.safeValue (params, 'stop');
+        let method = undefined;
+        if (swap) {
+            method = 'perpetualPrivatePostOrderCancelAll';
+            if (stop) {
+                method = 'perpetualPrivatePostOrderCancelStopAll';
+            }
+        } else {
+            method = 'privateDeleteOrderPending';
+            if (stop) {
+                method = 'privateDeleteOrderStopPending';
+            }
+            request['account_id'] = accountId;
+        }
+        params = this.omit (params, 'stop');
+        const response = await this[method] (this.extend (request, params));
         //
-        // {"code": 0, "data": null, "message": "Success"}
+        // Spot
+        //
+        //     {"code": 0, "data": null, "message": "Success"}
+        //
+        // Swap
+        //
+        //     {"code": 0, "data": {"status":"success"}, "message": "OK"}
         //
         return response;
     }
@@ -1117,11 +1522,25 @@ export default class coinex extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const swap = market['swap'];
+        const stop = this.safeValue (params, 'stop');
         const request = {
-            'id': id,
             'market': market['id'],
+            // 'id': id, // SPOT
+            // 'order_id': id, // SWAP
         };
-        const response = await this.privateGetOrder (this.extend (request, params));
+        const idRequest = swap ? 'order_id' : 'id';
+        request[idRequest] = id;
+        let method = undefined;
+        if (swap) {
+            method = stop ? 'perpetualPrivateGetOrderStopStatus' : 'perpetualPrivateGetOrderStatus';
+        } else {
+            method = 'privateGetOrder';
+        }
+        params = this.omit (params, 'stop');
+        const response = await this[method] (this.extend (request, params));
+        //
+        // Spot
         //
         //     {
         //         "code": 0,
@@ -1146,6 +1565,76 @@ export default class coinex extends Exchange {
         //             "type": "sell",
         //         },
         //         "message": "Ok"
+        //     }
+        //
+        // Swap
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "amount": "0.0005",
+        //             "client_id": "",
+        //             "create_time": 1651004578.618224,
+        //             "deal_asset_fee": "0.00000000000000000000",
+        //             "deal_fee": "0.00000000000000000000",
+        //             "deal_profit": "0.00000000000000000000",
+        //             "deal_stock": "0.00000000000000000000",
+        //             "effect_type": 1,
+        //             "fee_asset": "",
+        //             "fee_discount": "0.00000000000000000000",
+        //             "last_deal_amount": "0.00000000000000000000",
+        //             "last_deal_id": 0,
+        //             "last_deal_price": "0.00000000000000000000",
+        //             "last_deal_role": 0,
+        //             "last_deal_time": 0,
+        //             "last_deal_type": 0,
+        //             "left": "0.0005",
+        //             "leverage": "3",
+        //             "maker_fee": "0.00030",
+        //             "market": "BTCUSDT",
+        //             "order_id": 18221659097,
+        //             "position_id": 0,
+        //             "position_type": 1,
+        //             "price": "30000.00",
+        //             "side": 2,
+        //             "source": "api.v1",
+        //             "stop_id": 0,
+        //             "taker_fee": "0.00050",
+        //             "target": 0,
+        //             "type": 1,
+        //             "update_time": 1651004578.618224,
+        //             "user_id": 3620173
+        //         },
+        //         "message": "OK"
+        //     }
+        //
+        // Swap Stop
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "amount": "0.0005",
+        //             "client_id": "",
+        //             "create_time": 1651034023.008771,
+        //             "effect_type": 1,
+        //             "fee_asset": "",
+        //             "fee_discount": "0.00000000000000000000",
+        //             "maker_fee": "0.00030",
+        //             "market": "BTCUSDT",
+        //             "order_id": 18256915101,
+        //             "price": "31000.00",
+        //             "side": 2,
+        //             "source": "api.v1",
+        //             "state": 1,
+        //             "stop_price": "31500.00",
+        //             "stop_type": 1,
+        //             "taker_fee": "0.00050",
+        //             "target": 0,
+        //             "type": 1,
+        //             "update_time": 1651034397.193624,
+        //             "user_id": 3620173
+        //         },
+        //         "message":"OK"
         //     }
         //
         const data = this.safeValue (response, 'data');
@@ -1769,12 +2258,12 @@ export default class coinex extends Exchange {
         path = this.implodeParams (path, params);
         let url = this.urls['api'][api] + '/' + this.version + '/' + path;
         let query = this.omit (params, this.extractParams (path));
+        this.checkRequiredCredentials ();
+        const nonce = this.nonce ().toString ();
         if (api === 'perpetualPrivate' || url === 'https://api.coinex.com/perpetual/v1/market/user_deals') {
-            this.checkRequiredCredentials ();
-            const nonce = this.nonce ();
             query = this.extend ({
                 'access_id': this.apiKey,
-                'timestamp': nonce.toString (),
+                'timestamp': nonce,
             }, query);
             query = this.keysort (query);
             const urlencoded = this.rawencode (query);
@@ -1783,21 +2272,20 @@ export default class coinex extends Exchange {
                 'Authorization': signature.toLowerCase (),
                 'AccessId': this.apiKey,
             };
-            if ((method === 'GET') || (method === 'DELETE')) {
+            if ((method === 'GET')) {
                 url += '?' + urlencoded;
             } else {
-                body = this.json (query);
+                headers['Content-Type'] = 'application/x-www-form-urlencoded';
+                body = urlencoded;
             }
         } else if (api === 'public' || api === 'perpetualPublic') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
         } else {
-            this.checkRequiredCredentials ();
-            const nonce = this.nonce ();
             query = this.extend ({
                 'access_id': this.apiKey,
-                'tonce': nonce.toString (),
+                'tonce': nonce,
             }, query);
             query = this.keysort (query);
             const urlencoded = this.rawencode (query);

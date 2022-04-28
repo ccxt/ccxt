@@ -390,6 +390,9 @@ class phemex extends Exchange {
                     'spot' => 'spot',
                     'future' => 'future',
                 ),
+                'transfer' => array(
+                    'fillResponseFromRequest' => true,
+                ),
             ),
         ));
     }
@@ -2817,39 +2820,72 @@ class phemex extends Exchange {
         $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
         $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
         $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
+        $scaledAmmount = $this->to_ev($amount, $currency);
         $direction = null;
+        $transfer = null;
         if ($fromId === 'spot' && $toId === 'future') {
             $direction = 2;
-        }
-        if ($fromId === 'future' && $toId === 'spot') {
+        } else if ($fromId === 'future' && $toId === 'spot') {
             $direction = 1;
         }
-        if ($direction === null) {
-            throw new ExchangeError($this->id . ' transfer() can only be from future to spot or from spot to future');
+        if ($direction !== null) {
+            $request = array(
+                'currency' => $currency['id'],
+                'moveOp' => $direction,
+                'amountEv' => $scaledAmmount,
+            );
+            $response = yield $this->privatePostAssetsTransfer (array_merge($request, $params));
+            //
+            //     {
+            //         $code => '0',
+            //         msg => 'OK',
+            //         $data => {
+            //             linkKey => '8564eba4-c9ec-49d6-9b8c-2ec5001a0fb9',
+            //             userId => '4018340',
+            //             $currency => 'USD',
+            //             amountEv => '10',
+            //             side => '2',
+            //             status => '10'
+            //         }
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            $transfer = $this->parse_transfer($data, $currency);
+        } else { // sub account $transfer
+            $request = array(
+                'fromUserId' => $fromId,
+                'toUserId' => $toId,
+                'amountEv' => $scaledAmmount,
+                'currency' => $currency['id'],
+                'bizType' => $this->safe_string($params, 'bizType', 'SPOT'),
+            );
+            $response = yield $this->privatePostAssetsUniversalTransfer (array_merge($request, $params));
+            //
+            //     {
+            //         $code => '0',
+            //         msg => 'OK',
+            //         $data => 'API-923db826-aaaa-aaaa-aaaa-4d98c3a7c9fd'
+            //     }
+            //
+            $transfer = $this->parse_transfer($response);
         }
-        $scaledAmmount = $this->to_ev($amount, $currency);
-        $request = array(
-            'currency' => $currency['id'],
-            'moveOp' => $direction,
-            'amountEv' => $scaledAmmount,
-        );
-        $response = yield $this->privatePostAssetsTransfer (array_merge($request, $params));
-        //
-        //     {
-        //         $code => '0',
-        //         msg => 'OK',
-        //         $data => {
-        //             linkKey => '8564eba4-c9ec-49d6-9b8c-2ec5001a0fb9',
-        //             userId => '4018340',
-        //             $currency => 'USD',
-        //             amountEv => '10',
-        //             side => '2',
-        //             status => '10'
-        //         }
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        return $this->parse_transfer($data, $currency);
+        $transferOptions = $this->safe_value($this->options, 'transfer', array());
+        $fillResponseFromRequest = $this->safe_value($transferOptions, 'fillResponseFromRequest', true);
+        if ($fillResponseFromRequest) {
+            if ($transfer['fromAccount'] === null) {
+                $transfer['fromAccount'] = $fromAccount;
+            }
+            if ($transfer['toAccount'] === null) {
+                $transfer['toAccount'] = $toAccount;
+            }
+            if ($transfer['amount'] === null) {
+                $transfer['amount'] = $amount;
+            }
+            if ($transfer['currency'] === null) {
+                $transfer['currency'] = $code;
+            }
+        }
+        return $transfer;
     }
 
     public function parse_transfer($transfer, $currency = null) {
@@ -2899,7 +2935,7 @@ class phemex extends Exchange {
             '10' => 'ok', // 'Success',
             '11' => 'failed', // 'Failed',
         );
-        return $this->safe_string($statuses, $status, 'pending');
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
