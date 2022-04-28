@@ -747,7 +747,7 @@ class gateio extends Exchange {
                     ),
                     'cost' => array(
                         'min' => $this->safe_number($market, 'min_quote_amount'),
-                        'max' => null,
+                        'max' => $this->safe_number($market, 'max_quote_amount'),
                     ),
                 ),
                 'info' => $market,
