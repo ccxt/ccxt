@@ -180,6 +180,7 @@ module.exports = class coinex extends Exchange {
                         'order/finished': 1,
                         'order/stop_pending': 1,
                         'order/status': 1,
+                        'order/stop_status': 1,
                         'position/pending': 1,
                         'position/funding': 1,
                     },
@@ -1008,7 +1009,7 @@ module.exports = class coinex extends Exchange {
         //         "type": "sell",
         //     }
         //
-        // Spot createOrder, cancelOrder
+        // Spot createOrder, cancelOrder, fetchOrder
         //
         //      {
         //          "amount":"1.5",
@@ -1035,7 +1036,7 @@ module.exports = class coinex extends Exchange {
         //          "type":"buy"
         //      }
         //
-        // Swap createOrder, cancelOrder
+        // Swap createOrder, cancelOrder, fetchOrder
         //
         //     {
         //         "amount": "0.0005",
@@ -1076,7 +1077,7 @@ module.exports = class coinex extends Exchange {
         //
         //     {"status":"success"}
         //
-        // Swap Stop cancelOrder
+        // Swap Stop cancelOrder, fetchOrder
         //
         //     {
         //         "amount": "0.0005",
@@ -1522,11 +1523,25 @@ module.exports = class coinex extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const swap = market['swap'];
+        const stop = this.safeValue (params, 'stop');
         const request = {
-            'id': id,
             'market': market['id'],
+            // 'id': id, // SPOT
+            // 'order_id': id, // SWAP
         };
-        const response = await this.privateGetOrder (this.extend (request, params));
+        const idRequest = swap ? 'order_id' : 'id';
+        request[idRequest] = id;
+        let method = undefined;
+        if (swap) {
+            method = stop ? 'perpetualPrivateGetOrderStopStatus' : 'perpetualPrivateGetOrderStatus';
+        } else {
+            method = 'privateGetOrder';
+        }
+        params = this.omit (params, 'stop');
+        const response = await this[method] (this.extend (request, params));
+        //
+        // Spot
         //
         //     {
         //         "code": 0,
@@ -1551,6 +1566,76 @@ module.exports = class coinex extends Exchange {
         //             "type": "sell",
         //         },
         //         "message": "Ok"
+        //     }
+        //
+        // Swap
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "amount": "0.0005",
+        //             "client_id": "",
+        //             "create_time": 1651004578.618224,
+        //             "deal_asset_fee": "0.00000000000000000000",
+        //             "deal_fee": "0.00000000000000000000",
+        //             "deal_profit": "0.00000000000000000000",
+        //             "deal_stock": "0.00000000000000000000",
+        //             "effect_type": 1,
+        //             "fee_asset": "",
+        //             "fee_discount": "0.00000000000000000000",
+        //             "last_deal_amount": "0.00000000000000000000",
+        //             "last_deal_id": 0,
+        //             "last_deal_price": "0.00000000000000000000",
+        //             "last_deal_role": 0,
+        //             "last_deal_time": 0,
+        //             "last_deal_type": 0,
+        //             "left": "0.0005",
+        //             "leverage": "3",
+        //             "maker_fee": "0.00030",
+        //             "market": "BTCUSDT",
+        //             "order_id": 18221659097,
+        //             "position_id": 0,
+        //             "position_type": 1,
+        //             "price": "30000.00",
+        //             "side": 2,
+        //             "source": "api.v1",
+        //             "stop_id": 0,
+        //             "taker_fee": "0.00050",
+        //             "target": 0,
+        //             "type": 1,
+        //             "update_time": 1651004578.618224,
+        //             "user_id": 3620173
+        //         },
+        //         "message": "OK"
+        //     }
+        //
+        // Swap Stop
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "amount": "0.0005",
+        //             "client_id": "",
+        //             "create_time": 1651034023.008771,
+        //             "effect_type": 1,
+        //             "fee_asset": "",
+        //             "fee_discount": "0.00000000000000000000",
+        //             "maker_fee": "0.00030",
+        //             "market": "BTCUSDT",
+        //             "order_id": 18256915101,
+        //             "price": "31000.00",
+        //             "side": 2,
+        //             "source": "api.v1",
+        //             "state": 1,
+        //             "stop_price": "31500.00",
+        //             "stop_type": 1,
+        //             "taker_fee": "0.00050",
+        //             "target": 0,
+        //             "type": 1,
+        //             "update_time": 1651034397.193624,
+        //             "user_id": 3620173
+        //         },
+        //         "message":"OK"
         //     }
         //
         const data = this.safeValue (response, 'data');
