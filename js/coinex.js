@@ -1483,12 +1483,35 @@ module.exports = class coinex extends Exchange {
         const marketId = market['id'];
         const accountId = this.safeString (params, 'id', '0');
         const request = {
-            'account_id': accountId, // main account ID: 0, margin account ID: See < Inquire Margin Account Market Info >, future account ID: See < Inquire Future Account Market Info >
             'market': marketId,
+            // 'account_id': accountId, // SPOT, main account ID: 0, margin account ID: See < Inquire Margin Account Market Info >, future account ID: See < Inquire Future Account Market Info >
+            // 'side': 0, // SWAP, 0: All, 1: Sell, 2: Buy
         };
-        const response = await this.privateDeleteOrderPending (this.extend (request, params));
+        const swap = market['swap'];
+        const stop = this.safeValue (params, 'stop');
+        let method = undefined;
+        if (swap) {
+            method = 'perpetualPrivatePostOrderCancelAll';
+            if (stop) {
+                method = 'perpetualPrivatePostOrderCancelStopAll';
+            }
+        } else {
+            method = 'privateDeleteOrderPending';
+            if (stop) {
+                method = 'privateDeleteOrderStopPending';
+            }
+            request['account_id'] = accountId;
+        }
+        params = this.omit (params, 'stop');
+        const response = await this[method] (this.extend (request, params));
         //
-        // {"code": 0, "data": null, "message": "Success"}
+        // Spot
+        //
+        //     {"code": 0, "data": null, "message": "Success"}
+        //
+        // Swap
+        //
+        //     {"code": 0, "data": {"status":"success"}, "message": "OK"}
         //
         return response;
     }
