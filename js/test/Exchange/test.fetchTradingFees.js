@@ -1,5 +1,5 @@
 
-import testTradingFee from './test.tradingFee';
+import testTradingFee from './test.tradingFee.js';
 
 export default async (exchange) => {
     const skippedExchanges = []
