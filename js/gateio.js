@@ -1848,8 +1848,12 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchBalance (params = {}) {
-        // :param params.type: spot, margin, cross, swap or future
-        // :param params.settle: Settle currency (usdt or btc) for perpetual swap and future
+        /**
+         * @param params exchange specific parameters
+         * @param params.type spot, margin, swap or future, if not provided this.options['defaultType'] is used
+         * @param params.settle 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
+         * @param params.marginType 'cross' or 'isolated' - marginType for type='margin' default='isolated'
+         */
         await this.loadMarkets ();
         let type = undefined;
         let method = undefined;
@@ -2616,6 +2620,7 @@ module.exports = class gateio extends Exchange {
          * @param {dict} params  Extra parameters specific to the exchange API endpoint
          * @param {float} params.stopPrice The price at which a trigger order is triggered at
          * @param {str} params.timeInForce "GTC", "IOC", or "PO"
+         * @param {str} params.marginType 'cross' or 'isolated' - marginType for type='margin', if not provided this.options['defaultMarginType'] is used
          * @param {int} params.iceberg Amount to display for the iceberg order, Null or 0 for normal orders, Set to -1 to hide the order completely
          * @param {str} params.text User defined information
          * @param {str} params.account *spot and margin only* "spot", "margin" or "cross_margin"
@@ -3108,8 +3113,8 @@ module.exports = class gateio extends Exchange {
          * @description Retrieves information on an order
          * @param {str} id Order id
          * @param {str} symbol Unified market symbol
-         * @param {bool} params.stop True if the order being fetched is a trigger order
          * @param {dict} params Parameters specified by the exchange api
+         * @param {bool} params.stop True if the order being fetched is a trigger order
          * @returns Order structure
          */
         if (symbol === undefined) {
@@ -3157,6 +3162,16 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @description fetches all open orders
+         * @param {str} symbol Unified market symbol
+         * @param {int} since earliest time in ms for orders in the response
+         * @param {int} limit max number of order structures to return
+         * @param {dict} params exchange specific params
+         * @param {str} params.type spot, margin, swap or future, if not provided this.options['defaultType'] is used
+         * @param {str} params.marginType 'cross' or 'isolated' - marginType for type='margin', if not provided this.options['defaultMarginType'] is used
+         * @returns An array of order structures
+         */
         await this.loadMarkets ();
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', undefined, params);
@@ -3326,8 +3341,8 @@ module.exports = class gateio extends Exchange {
          * @description Cancels an open order
          * @param {str} id Order id
          * @param {str} symbol Unified market symbol
-         * @param {bool} params.stop True if the order to be cancelled is a trigger order
          * @param {dict} params Parameters specified by the exchange api
+         * @param {bool} params.stop True if the order to be cancelled is a trigger order
          * @returns Order structure
          */
         if (symbol === undefined) {
@@ -3703,11 +3718,16 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
-        // :param symbols: Not used by Gateio
-        // :param params:
-        //    settle: The currency that derivative contracts are settled in
-        //    Other exchange specific params
-        //
+        /**
+         * @method
+         * @name gateio#fetchPositions
+         * @description Fetch trades positions
+         * @param {[str]} symbols Not used by Gateio, but parsed internally by CCXT
+         * @param {dict} params exchange specific parameters
+         * @param {str} params.settle 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
+         * @param {str} params.type swap or future, if not provided this.options['defaultType'] is used
+         * @returns An array of [position structures]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'fetchPositions', 'defaultType', 'swap');
         const type = this.safeString (params, 'type', defaultType);
