@@ -1212,17 +1212,18 @@ class ascendex(Exchange):
         self.load_markets()
         self.load_accounts()
         market = self.market(symbol)
-        style, query = self.handle_market_type_and_params('createOrder', market, params)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('createOrder', market, params)
         options = self.safe_value(self.options, 'createOrder', {})
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
-        accountCategory = self.safe_string(accountsByType, style, 'cash')
+        accountCategory = self.safe_string(accountsByType, marketType, 'cash')
         account = self.safe_value(self.accounts, 0, {})
         accountGroup = self.safe_value(account, 'id')
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'id')
         reduceOnly = self.safe_value(params, 'execInst')
         if reduceOnly is not None:
-            if (style != 'swap'):
-                raise InvalidOrder(self.id + ' createOrder() does not support reduceOnly for ' + style + ' orders, reduceOnly orders are supported for perpetuals only')
+            if (marketType != 'swap'):
+                raise InvalidOrder(self.id + ' createOrder() does not support reduceOnly for ' + marketType + ' orders, reduceOnly orders are supported for perpetuals only')
         request = {
             'account-group': accountGroup,
             'account-category': accountCategory,
@@ -1236,6 +1237,8 @@ class ascendex(Exchange):
             # 'postOnly': 'false',  # 'false', 'true'
             # 'timeInForce': 'GTC',  # GTC, IOC, FOK
             # 'respInst': 'ACK',  # ACK, 'ACCEPT, DONE
+            # 'posStopLossPrice': position stop loss price( v2 swap orders only)
+            # 'posTakeProfitPrice': position take profit price(v2 swap orders only)
         }
         if clientOrderId is not None:
             request['id'] = clientOrderId
@@ -1249,8 +1252,13 @@ class ascendex(Exchange):
             else:
                 request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
                 params = self.omit(params, 'stopPrice')
+        timeInForce = self.safe_string(params, 'timeInForce')
+        postOnly = self.safe_value(params, 'postOnly', False)
+        if (timeInForce == 'PO') or (postOnly):
+            request['postOnly'] = True
+            params = self.omit(params, ['postOnly', 'timeInForce'])
         defaultMethod = self.safe_string(options, 'method', 'v1PrivateAccountCategoryPostOrder')
-        method = self.get_supported_mapping(style, {
+        method = self.get_supported_mapping(marketType, {
             'spot': defaultMethod,
             'margin': defaultMethod,
             'swap': 'v2PrivateAccountGroupPostFuturesOrder',
@@ -1260,7 +1268,7 @@ class ascendex(Exchange):
                 request['category'] = accountCategory
         else:
             request['account-category'] = accountCategory
-        response = getattr(self, method)(self.extend(request, query))
+        response = getattr(self, method)(self.extend(request, params))
         #
         # AccountCategoryPostOrder
         #

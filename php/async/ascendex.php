@@ -1243,17 +1243,18 @@ class ascendex extends Exchange {
         yield $this->load_markets();
         yield $this->load_accounts();
         $market = $this->market($symbol);
-        list($style, $query) = $this->handle_market_type_and_params('createOrder', $market, $params);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('createOrder', $market, $params);
         $options = $this->safe_value($this->options, 'createOrder', array());
         $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
-        $accountCategory = $this->safe_string($accountsByType, $style, 'cash');
+        $accountCategory = $this->safe_string($accountsByType, $marketType, 'cash');
         $account = $this->safe_value($this->accounts, 0, array());
         $accountGroup = $this->safe_value($account, 'id');
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'id');
         $reduceOnly = $this->safe_value($params, 'execInst');
         if ($reduceOnly !== null) {
-            if (($style !== 'swap')) {
-                throw new InvalidOrder($this->id . ' createOrder() does not support $reduceOnly for ' . $style . ' orders, $reduceOnly orders are supported for perpetuals only');
+            if (($marketType !== 'swap')) {
+                throw new InvalidOrder($this->id . ' createOrder() does not support $reduceOnly for ' . $marketType . ' orders, $reduceOnly orders are supported for perpetuals only');
             }
         }
         $request = array(
@@ -1269,6 +1270,8 @@ class ascendex extends Exchange {
             // 'postOnly' => 'false', // 'false', 'true'
             // 'timeInForce' => 'GTC', // GTC, IOC, FOK
             // 'respInst' => 'ACK', // ACK, 'ACCEPT, DONE
+            // 'posStopLossPrice' => position stop loss $price ( v2 swap orders only)
+            // 'posTakeProfitPrice' => position take profit $price (v2 swap orders only)
         );
         if ($clientOrderId !== null) {
             $request['id'] = $clientOrderId;
@@ -1286,8 +1289,14 @@ class ascendex extends Exchange {
                 $params = $this->omit($params, 'stopPrice');
             }
         }
+        $timeInForce = $this->safe_string($params, 'timeInForce');
+        $postOnly = $this->safe_value($params, 'postOnly', false);
+        if (($timeInForce === 'PO') || ($postOnly)) {
+            $request['postOnly'] = true;
+            $params = $this->omit($params, array( 'postOnly', 'timeInForce' ));
+        }
         $defaultMethod = $this->safe_string($options, 'method', 'v1PrivateAccountCategoryPostOrder');
-        $method = $this->get_supported_mapping($style, array(
+        $method = $this->get_supported_mapping($marketType, array(
             'spot' => $defaultMethod,
             'margin' => $defaultMethod,
             'swap' => 'v2PrivateAccountGroupPostFuturesOrder',
@@ -1299,7 +1308,7 @@ class ascendex extends Exchange {
         } else {
             $request['account-category'] = $accountCategory;
         }
-        $response = yield $this->$method (array_merge($request, $query));
+        $response = yield $this->$method (array_merge($request, $params));
         //
         // AccountCategoryPostOrder
         //
