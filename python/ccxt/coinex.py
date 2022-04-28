@@ -939,11 +939,46 @@ class coinex(Exchange):
             result[code] = account
         return self.safe_balance(result)
 
+    def fetch_swap_balance(self, params={}):
+        self.load_markets()
+        response = self.perpetualPrivateGetAssetQuery(params)
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "USDT": {
+        #                 "available": "37.24817690383456000000",
+        #                 "balance_total": "37.24817690383456000000",
+        #                 "frozen": "0.00000000000000000000",
+        #                 "margin": "0.00000000000000000000",
+        #                 "profit_unreal": "0.00000000000000000000",
+        #                 "transfer": "37.24817690383456000000"
+        #             }
+        #         },
+        #         "message": "OK"
+        #     }
+        #
+        result = {'info': response}
+        balances = self.safe_value(response, 'data', {})
+        currencyIds = list(balances.keys())
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
+            code = self.safe_currency_code(currencyId)
+            balance = self.safe_value(balances, currencyId, {})
+            account = self.account()
+            account['free'] = self.safe_string(balance, 'available')
+            account['used'] = self.safe_string(balance, 'frozen')
+            account['total'] = self.safe_string(balance, 'balance_total')
+            result[code] = account
+        return self.safe_balance(result)
+
     def fetch_balance(self, params={}):
         accountType = self.safe_string(params, 'type', 'main')
         params = self.omit(params, 'type')
         if accountType == 'margin':
             return self.fetch_margin_balance(params)
+        elif accountType == 'swap':
+            return self.fetch_swap_balance(params)
         else:
             return self.fetch_spot_balance(params)
 

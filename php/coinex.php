@@ -968,11 +968,48 @@ class coinex extends Exchange {
         return $this->safe_balance($result);
     }
 
+    public function fetch_swap_balance($params = array ()) {
+        $this->load_markets();
+        $response = $this->perpetualPrivateGetAssetQuery ($params);
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => {
+        //             "USDT" => array(
+        //                 "available" => "37.24817690383456000000",
+        //                 "balance_total" => "37.24817690383456000000",
+        //                 "frozen" => "0.00000000000000000000",
+        //                 "margin" => "0.00000000000000000000",
+        //                 "profit_unreal" => "0.00000000000000000000",
+        //                 "transfer" => "37.24817690383456000000"
+        //             }
+        //         ),
+        //         "message" => "OK"
+        //     }
+        //
+        $result = array( 'info' => $response );
+        $balances = $this->safe_value($response, 'data', array());
+        $currencyIds = is_array($balances) ? array_keys($balances) : array();
+        for ($i = 0; $i < count($currencyIds); $i++) {
+            $currencyId = $currencyIds[$i];
+            $code = $this->safe_currency_code($currencyId);
+            $balance = $this->safe_value($balances, $currencyId, array());
+            $account = $this->account();
+            $account['free'] = $this->safe_string($balance, 'available');
+            $account['used'] = $this->safe_string($balance, 'frozen');
+            $account['total'] = $this->safe_string($balance, 'balance_total');
+            $result[$code] = $account;
+        }
+        return $this->safe_balance($result);
+    }
+
     public function fetch_balance($params = array ()) {
         $accountType = $this->safe_string($params, 'type', 'main');
         $params = $this->omit($params, 'type');
         if ($accountType === 'margin') {
             return $this->fetch_margin_balance($params);
+        } else if ($accountType === 'swap') {
+            return $this->fetch_swap_balance($params);
         } else {
             return $this->fetch_spot_balance($params);
         }
