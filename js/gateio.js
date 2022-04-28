@@ -735,16 +735,10 @@ module.exports = class gateio extends Exchange {
                 },
                 'limits': {
                     'leverage': {
-                        'min': this.parseNumber ('1'),
-                        'max': leverage,
-                        'isolated': {
-                            'min': this.parseNumber ('1'),
-                            'max': leverage,
-                        },
-                        'cross': {
-                            'min': undefined, // Maybe 3?
-                            'max': undefined, // Maybe 3?
-                        },
+                        'min': this.parseNumber ('1'), // deprecated
+                        'max': this.safeNumber (market, 'leverage', 1), // deprecated
+                        'isolated': leverage,
+                        'cross': undefined,
                     },
                     'amount': {
                         'min': this.safeNumber (market, 'min_base_amount', defaultMinAmountLimit),
@@ -905,8 +899,7 @@ module.exports = class gateio extends Exchange {
         const takerPercent = this.safeString (market, 'taker_fee_rate');
         const makerPercent = this.safeString (market, 'maker_fee_rate', takerPercent);
         const isLinear = quote === settle;
-        const minLeverage = this.safeNumber (market, 'leverage_min');
-        const maxLeverage = this.safeNumber (market, 'leverage_max');
+        const leverage = this.safeNumber (market, 'leverage_max');
         return {
             'id': id,
             'symbol': symbol,
@@ -941,16 +934,10 @@ module.exports = class gateio extends Exchange {
             },
             'limits': {
                 'leverage': {
-                    'min': minLeverage,
-                    'max': maxLeverage,
-                    'cross': {
-                        'min': minLeverage,
-                        'max': maxLeverage,
-                    },
-                    'isolated': {
-                        'min': minLeverage,
-                        'max': maxLeverage,
-                    },
+                    'min': this.safeNumber (market, 'leverage_min'), // deprecated
+                    'max': this.safeNumber (market, 'leverage_max'), // deprecated
+                    'cross': leverage,
+                    'isolated': leverage,
                 },
                 'amount': {
                     'min': this.safeNumber (market, 'order_size_min'),
@@ -1053,8 +1040,6 @@ module.exports = class gateio extends Exchange {
                     'swap': false,
                     'future': false,
                     'option': true,
-                    'cross': undefined,
-                    'isolated': undefined,
                     'active': true,
                     'contract': true,
                     'linear': true,
@@ -1074,14 +1059,8 @@ module.exports = class gateio extends Exchange {
                         'leverage': {
                             'min': undefined,
                             'max': undefined,
-                            'cross': {
-                                'min': undefined,
-                                'max': undefined,
-                            },
-                            'isolated': {
-                                'min': undefined,
-                                'max': undefined,
-                            },
+                            'cross': undefined,
+                            'isolated': undefined,
                         },
                         'amount': {
                             'min': this.safeNumber (market, 'order_size_min'),
