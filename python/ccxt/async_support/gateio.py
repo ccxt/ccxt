@@ -78,7 +78,7 @@ class gateio(Exchange):
                 'margin': True,
                 'swap': True,
                 'future': True,
-                'option': True,
+                'option': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createMarketOrder': False,

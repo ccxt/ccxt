@@ -67,7 +67,7 @@ class gateio extends Exchange {
                 'margin' => true,
                 'swap' => true,
                 'future' => true,
-                'option' => true,
+                'option' => null,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createMarketOrder' => false,
