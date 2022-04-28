@@ -52,7 +52,7 @@ module.exports = class mexc extends ccxt.mexc {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const channel = 'sub.ticker';
-        const messageHash = channel + ':' + symbol;
+        const messageHash = 'ticker' + ':' + symbol;
         const requestParams = {
             'symbol': market['id'],
         };
@@ -61,6 +61,45 @@ module.exports = class mexc extends ccxt.mexc {
         } else {
             return await this.watchSwapPublic (messageHash, channel, requestParams, params);
         }
+    }
+
+    handleTicker (client, message) {
+        //
+        //     {
+        //         channel: 'push.ticker',
+        //         data: {
+        //           amount24: 491939387.90105,
+        //           ask1: 39530.5,
+        //           bid1: 39530,
+        //           contractId: 10,
+        //           fairPrice: 39533.4,
+        //           fundingRate: 0.00015,
+        //           high24Price: 40310.5,
+        //           holdVol: 187680157,
+        //           indexPrice: 39538.5,
+        //           lastPrice: 39530,
+        //           lower24Price: 38633,
+        //           maxBidPrice: 43492,
+        //           minAskPrice: 35584.5,
+        //           riseFallRate: 0.0138,
+        //           riseFallValue: 539.5,
+        //           symbol: 'BTC_USDT',
+        //           timestamp: 1651160401009,
+        //           volume24: 125171687
+        //         },
+        //         symbol: 'BTC_USDT',
+        //         ts: 1651160401009
+        //     }
+        //
+        const data = this.safeValue (message, 'data', {});
+        const marketId = this.safeString (message, 'symbol');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const ticker = this.parseTicker (data, market);
+        this.tickers[symbol] = ticker;
+        const messageHash = 'ticker:' + symbol;
+        client.resolve (ticker, messageHash);
+        return message;
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -424,31 +463,31 @@ module.exports = class mexc extends ccxt.mexc {
         //       }
         //
         // swap trades
-        // {
-        //     "channel":"push.deal",
-        //     "data":{
-        //         "M":1,
-        //         "O":1,
-        //         "T":1,
-        //         "p":6866.5,
-        //         "t":1587442049632,
-        //         "v":2096
-        //     },
-        //     "symbol":"BTC_USDT",
-        //     "ts":1587442022003
-        // }
+        //     {
+        //         "channel":"push.deal",
+        //         "data":{
+        //             "M":1,
+        //             "O":1,
+        //             "T":1,
+        //             "p":6866.5,
+        //             "t":1587442049632,
+        //             "v":2096
+        //         },
+        //         "symbol":"BTC_USDT",
+        //         "ts":1587442022003
+        //     }
         //
         if (!this.handleErrorMessage (client, message)) {
             return;
         }
+        const channel = this.safeString (message, 'channel');
         const methods = {
-            'trade': this.handleTrades,
+            'push.deal': this.handleTrades,
             'orderbook': this.handleOrderBook,
-            'order': this.handleOrder,
-            'wallet': this.handleBalance,
+            'push.kline': this.handleOHLCV,
+            'push.ticker': this.handleTicker,
         };
-        const topic = this.safeValue (message, 'topic');
-        const method = this.safeValue (methods, topic);
+        const method = this.safeValue (methods, channel);
         if (method !== undefined) {
             method.call (this, client, message);
         }
