@@ -1206,7 +1206,6 @@ module.exports = class coinex extends Exchange {
         //         "user_id": 3620173
         //     }
         //
-        const swap = market['swap'];
         const timestamp = this.safeTimestamp (order, 'create_time');
         const priceString = this.safeString (order, 'price');
         const costString = this.safeString (order, 'deal_money');
@@ -1216,6 +1215,7 @@ module.exports = class coinex extends Exchange {
         const remainingString = this.safeString (order, 'left');
         const marketId = this.safeString (order, 'market');
         market = this.safeMarket (marketId, market);
+        const swap = market['swap'];
         const feeCurrencyId = this.safeString (order, 'fee_asset');
         let feeCurrency = this.safeCurrencyCode (feeCurrencyId);
         if (feeCurrency === undefined) {
@@ -1833,7 +1833,7 @@ module.exports = class coinex extends Exchange {
         const tradeRequest = (marketType === 'swap') ? 'records' : 'data';
         const data = this.safeValue (response, 'data');
         const orders = this.safeValue (data, tradeRequest, []);
-        return this.parseOrders (orders, marketType, since, limit);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
