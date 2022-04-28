@@ -24,8 +24,11 @@ module.exports = class paymium extends Exchange {
                 'future': false,
                 'option': false,
                 'cancelOrder': true,
+                'createDepositAddress': true,
                 'createOrder': true,
                 'fetchBalance': true,
+                'fetchDepositAddress': true,
+                'fetchDepositAddresses': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -245,6 +248,73 @@ module.exports = class paymium extends Exchange {
         };
         const response = await this.publicGetDataCurrencyTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
+    }
+
+    async createDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privatePostUserAddresses (params);
+        //
+        //     {
+        //         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
+        //         "valid_until": 1620041926,
+        //         "currency": "BTC",
+        //         "label": "Savings"
+        //     }
+        //
+        return this.parseDepositAddress (response);
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'address': code,
+        };
+        const response = await this.privateGetUserAddressesAddress (this.extend (request, params));
+        //
+        //     {
+        //         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
+        //         "valid_until": 1620041926,
+        //         "currency": "BTC",
+        //         "label": "Savings"
+        //     }
+        //
+        return this.parseDepositAddress (response);
+    }
+
+    async fetchDepositAddresses (codes = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetUserAddresses (params);
+        //
+        //     [
+        //         {
+        //             "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
+        //             "valid_until": 1620041926,
+        //             "currency": "BTC",
+        //             "label": "Savings"
+        //         }
+        //     ]
+        //
+        return this.parseDepositAddresses (response, codes);
+    }
+
+    parseDepositAddress (depositAddress, currency = undefined) {
+        //
+        //     {
+        //         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
+        //         "valid_until": 1620041926,
+        //         "currency": "BTC",
+        //         "label": "Savings"
+        //     }
+        //
+        const address = this.safeString (depositAddress, 'address');
+        const currencyId = this.safeString (depositAddress, 'currency');
+        return {
+            'info': depositAddress,
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'address': address,
+            'tag': undefined,
+            'network': undefined,
+        };
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
