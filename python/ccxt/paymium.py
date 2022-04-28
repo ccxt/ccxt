@@ -39,6 +39,7 @@ class paymium(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
+                'transfer': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87153930-f0f02200-c2c0-11ea-9c0a-40337375ae89.jpg',
@@ -48,6 +49,7 @@ class paymium(Exchange):
                 'doc': [
                     'https://github.com/Paymium/api-documentation',
                     'https://www.paymium.com/page/developers',
+                    'https://paymium.github.io/api-documentation/',
                 ],
                 'referral': 'https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj',
             },
@@ -257,6 +259,112 @@ class paymium(Exchange):
             'uuid': id,
         }
         return self.privateDeleteUserOrdersUuidCancel(self.extend(request, params))
+
+    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        if toAccount.find('@') < 0:
+            raise ExchangeError(self.id + 'transfer() only allows transfers to an email address')
+        if code != 'BTC' and code != 'EUR':
+            raise ExchangeError(self.id + 'transfer() only allows BTC or EUR')
+        request = {
+            'currency': currency['id'],
+            'amount': self.currency_to_precision(code, amount),
+            'email': toAccount,
+            # 'comment': 'a small note explaining the transfer'
+        }
+        response = self.privatePostUserEmailTransfers(self.extend(request, params))
+        #
+        #     {
+        #         "uuid": "968f4580-e26c-4ad8-8bcd-874d23d55296",
+        #         "type": "Transfer",
+        #         "currency": "BTC",
+        #         "currency_amount": "string",
+        #         "created_at": "2013-10-24T10:34:37.000Z",
+        #         "updated_at": "2013-10-24T10:34:37.000Z",
+        #         "amount": "1.0",
+        #         "state": "executed",
+        #         "currency_fee": "0.0",
+        #         "btc_fee": "0.0",
+        #         "comment": "string",
+        #         "traded_btc": "string",
+        #         "traded_currency": "string",
+        #         "direction": "buy",
+        #         "price": "string",
+        #         "account_operations": [
+        #             {
+        #                 "uuid": "968f4580-e26c-4ad8-8bcd-874d23d55296",
+        #                 "amount": "1.0",
+        #                 "currency": "BTC",
+        #                 "created_at": "2013-10-24T10:34:37.000Z",
+        #                 "created_at_int": 1389094259,
+        #                 "name": "account_operation",
+        #                 "address": "1FPDBXNqSkZMsw1kSkkajcj8berxDQkUoc",
+        #                 "tx_hash": "string",
+        #                 "is_trading_account": True
+        #             }
+        #         ]
+        #     }
+        #
+        return self.parse_transfer(response, currency)
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        #     {
+        #         "uuid": "968f4580-e26c-4ad8-8bcd-874d23d55296",
+        #         "type": "Transfer",
+        #         "currency": "BTC",
+        #         "currency_amount": "string",
+        #         "created_at": "2013-10-24T10:34:37.000Z",
+        #         "updated_at": "2013-10-24T10:34:37.000Z",
+        #         "amount": "1.0",
+        #         "state": "executed",
+        #         "currency_fee": "0.0",
+        #         "btc_fee": "0.0",
+        #         "comment": "string",
+        #         "traded_btc": "string",
+        #         "traded_currency": "string",
+        #         "direction": "buy",
+        #         "price": "string",
+        #         "account_operations": [
+        #             {
+        #                 "uuid": "968f4580-e26c-4ad8-8bcd-874d23d55296",
+        #                 "amount": "1.0",
+        #                 "currency": "BTC",
+        #                 "created_at": "2013-10-24T10:34:37.000Z",
+        #                 "created_at_int": 1389094259,
+        #                 "name": "account_operation",
+        #                 "address": "1FPDBXNqSkZMsw1kSkkajcj8berxDQkUoc",
+        #                 "tx_hash": "string",
+        #                 "is_trading_account": True
+        #             }
+        #         ]
+        #     }
+        #
+        currencyId = self.safe_string(transfer, 'currency')
+        updatedAt = self.safe_string(transfer, 'updated_at')
+        timetstamp = self.parse_date(updatedAt)
+        accountOperations = self.safe_value(transfer, 'account_operations')
+        firstOperation = self.safe_value(accountOperations, 0, {})
+        status = self.safe_string(transfer, 'state')
+        return {
+            'info': transfer,
+            'id': self.safe_string(transfer, 'uuid'),
+            'timestamp': timetstamp,
+            'datetime': self.iso8601(timetstamp),
+            'currency': self.safe_currency_code(currencyId, currency),
+            'amount': self.safe_number(transfer, 'amount'),
+            'fromAccount': None,
+            'toAccount': self.safe_string(firstOperation, 'address'),
+            'status': self.parse_transfer_status(status),
+        }
+
+    def parse_transfer_status(self, status):
+        statuses = {
+            'executed': 'ok',
+            # what are the other statuses?
+        }
+        return self.safe_string(statuses, status, status)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)

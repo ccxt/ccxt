@@ -39,6 +39,7 @@ class paymium extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
+                'transfer' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/87153930-f0f02200-c2c0-11ea-9c0a-40337375ae89.jpg',
@@ -48,6 +49,7 @@ class paymium extends Exchange {
                 'doc' => array(
                     'https://github.com/Paymium/api-documentation',
                     'https://www.paymium.com/page/developers',
+                    'https://paymium.github.io/api-documentation/',
                 ),
                 'referral' => 'https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj',
             ),
@@ -269,6 +271,117 @@ class paymium extends Exchange {
             'uuid' => $id,
         );
         return $this->privateDeleteUserOrdersUuidCancel (array_merge($request, $params));
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency($code);
+        if (mb_strpos($toAccount, '@') === false) {
+            throw new ExchangeError($this->id . 'transfer() only allows transfers to an email address');
+        }
+        if ($code !== 'BTC' && $code !== 'EUR') {
+            throw new ExchangeError($this->id . 'transfer() only allows BTC or EUR');
+        }
+        $request = array(
+            'currency' => $currency['id'],
+            'amount' => $this->currency_to_precision($code, $amount),
+            'email' => $toAccount,
+            // 'comment' => 'a small note explaining the transfer'
+        );
+        $response = $this->privatePostUserEmailTransfers (array_merge($request, $params));
+        //
+        //     {
+        //         "uuid" => "968f4580-e26c-4ad8-8bcd-874d23d55296",
+        //         "type" => "Transfer",
+        //         "currency" => "BTC",
+        //         "currency_amount" => "string",
+        //         "created_at" => "2013-10-24T10:34:37.000Z",
+        //         "updated_at" => "2013-10-24T10:34:37.000Z",
+        //         "amount" => "1.0",
+        //         "state" => "executed",
+        //         "currency_fee" => "0.0",
+        //         "btc_fee" => "0.0",
+        //         "comment" => "string",
+        //         "traded_btc" => "string",
+        //         "traded_currency" => "string",
+        //         "direction" => "buy",
+        //         "price" => "string",
+        //         "account_operations" => array(
+        //             {
+        //                 "uuid" => "968f4580-e26c-4ad8-8bcd-874d23d55296",
+        //                 "amount" => "1.0",
+        //                 "currency" => "BTC",
+        //                 "created_at" => "2013-10-24T10:34:37.000Z",
+        //                 "created_at_int" => 1389094259,
+        //                 "name" => "account_operation",
+        //                 "address" => "1FPDBXNqSkZMsw1kSkkajcj8berxDQkUoc",
+        //                 "tx_hash" => "string",
+        //                 "is_trading_account" => true
+        //             }
+        //         )
+        //     }
+        //
+        return $this->parse_transfer($response, $currency);
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        //     {
+        //         "uuid" => "968f4580-e26c-4ad8-8bcd-874d23d55296",
+        //         "type" => "Transfer",
+        //         "currency" => "BTC",
+        //         "currency_amount" => "string",
+        //         "created_at" => "2013-10-24T10:34:37.000Z",
+        //         "updated_at" => "2013-10-24T10:34:37.000Z",
+        //         "amount" => "1.0",
+        //         "state" => "executed",
+        //         "currency_fee" => "0.0",
+        //         "btc_fee" => "0.0",
+        //         "comment" => "string",
+        //         "traded_btc" => "string",
+        //         "traded_currency" => "string",
+        //         "direction" => "buy",
+        //         "price" => "string",
+        //         "account_operations" => array(
+        //             {
+        //                 "uuid" => "968f4580-e26c-4ad8-8bcd-874d23d55296",
+        //                 "amount" => "1.0",
+        //                 "currency" => "BTC",
+        //                 "created_at" => "2013-10-24T10:34:37.000Z",
+        //                 "created_at_int" => 1389094259,
+        //                 "name" => "account_operation",
+        //                 "address" => "1FPDBXNqSkZMsw1kSkkajcj8berxDQkUoc",
+        //                 "tx_hash" => "string",
+        //                 "is_trading_account" => true
+        //             }
+        //         )
+        //     }
+        //
+        $currencyId = $this->safe_string($transfer, 'currency');
+        $updatedAt = $this->safe_string($transfer, 'updated_at');
+        $timetstamp = $this->parse_date($updatedAt);
+        $accountOperations = $this->safe_value($transfer, 'account_operations');
+        $firstOperation = $this->safe_value($accountOperations, 0, array());
+        $status = $this->safe_string($transfer, 'state');
+        return array(
+            'info' => $transfer,
+            'id' => $this->safe_string($transfer, 'uuid'),
+            'timestamp' => $timetstamp,
+            'datetime' => $this->iso8601($timetstamp),
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'amount' => $this->safe_number($transfer, 'amount'),
+            'fromAccount' => null,
+            'toAccount' => $this->safe_string($firstOperation, 'address'),
+            'status' => $this->parse_transfer_status($status),
+        );
+    }
+
+    public function parse_transfer_status($status) {
+        $statuses = array(
+            'executed' => 'ok',
+            // what are the other $statuses?
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
