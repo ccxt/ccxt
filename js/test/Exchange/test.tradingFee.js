@@ -1,8 +1,6 @@
-'use strict'
-
 // ----------------------------------------------------------------------------
 
-const assert = require ('assert')
+import assert from 'assert';
 
 //  ---------------------------------------------------------------------------
 
@@ -31,4 +29,4 @@ function testTradingFee (exchange = undefined, symbol, fee) {
     return fee
 }
 
-module.exports = testTradingFee
+export default testTradingFee;

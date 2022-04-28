@@ -1,8 +1,6 @@
-'use strict'
+import testTradingFee from './test.tradingFee.js';
 
-const testTradingFee = require ('./test.tradingFee.js')
-
-module.exports = async (exchange, symbol) => {
+export default async (exchange, symbol) => {
     const skippedExchanges = []
     if (skippedExchanges.includes (exchange.id)) {
         console.log (exchange.id, 'found in ignored exchanges, skipping fetchTradingFee...')
@@ -15,4 +13,4 @@ module.exports = async (exchange, symbol) => {
     } else {
         console.log ('fetching trading fees not supported')
     }
-}
+};
