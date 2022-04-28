@@ -60,7 +60,7 @@ class ndax(Exchange, ccxt.ndax):
             'o': self.json(payload),  # JSON-formatted string containing the data being sent with the message
         }
         message = self.extend(request, params)
-        return await self.watch(url, messageHash, message)
+        return await self.watch(url, messageHash, message, messageHash)
 
     def handle_ticker(self, client, message):
         payload = self.safe_value(message, 'o', {})
@@ -118,7 +118,7 @@ class ndax(Exchange, ccxt.ndax):
             'o': self.json(payload),  # JSON-formatted string containing the data being sent with the message
         }
         message = self.extend(request, params)
-        trades = await self.watch(url, messageHash, message)
+        trades = await self.watch(url, messageHash, message, messageHash)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
@@ -186,7 +186,7 @@ class ndax(Exchange, ccxt.ndax):
             'o': self.json(payload),  # JSON-formatted string containing the data being sent with the message
         }
         message = self.extend(request, params)
-        ohlcv = await self.watch(url, messageHash, message)
+        ohlcv = await self.watch(url, messageHash, message, messageHash)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
