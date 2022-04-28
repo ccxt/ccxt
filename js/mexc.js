@@ -3,12 +3,12 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { AuthenticationError, BadSymbol, BadRequest } = require ('ccxt/js/base/errors');
+const { AuthenticationError, BadSymbol, BadRequest, NotSupported } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class mexc3 extends ccxt.mexc3 {
+module.exports = class mexc extends ccxt.mexc {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -24,13 +24,17 @@ module.exports = class mexc3 extends ccxt.mexc3 {
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://wbs.mexc.com/raw/ws',
+                    'ws': {
+                        'spot': 'wss://wbs.mexc.com/raw/ws',
+                        'swap': 'wss://contract.mexc.com/ws',
+                    },
                 },
             },
             'options': {
             },
             'streaming': {
-                'ping': this.ping,
+                '!!ping': this.ping,
+                'keepAlive': 10000,
             },
             'exceptions': {
                 'ws': {
@@ -43,28 +47,57 @@ module.exports = class mexc3 extends ccxt.mexc3 {
         });
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const options = this.safeValue (this.options, 'timeframes', {});
-        const timeframes = this.safeValue (options, 'swap', {});
-        const timeframeValue = this.safeString (timeframes, timeframe);
-        const channel = 'get.kline';
-        const messageHash = channel + ':' + symbol + ':' + timeframeValue;
-        const request = {
-            'req': channel,
+        const channel = 'sub.ticker';
+        const messageHash = channel + ':' + symbol;
+        const requestParams = {
             'symbol': market['id'],
-            'interval': timeframeValue,
         };
-        if (since !== undefined) {
-            request['start'] = since;
+        if (market['type'] === 'spot') {
+            return await this.watchSpotPublic (messageHash, channel, requestParams, params);
+        } else {
+            return await this.watchSwapPublic (messageHash, channel, requestParams, params);
         }
-        const url = this.urls['api']['ws'];
-        const ohlcv = await this.watch (url, messageHash, this.extend (params, request), messageHash);
+    }
+
+    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const requestParams = {};
+        symbol = market['symbol'];
+        const type = market['type'];
+        const options = this.safeValue (this.options, 'timeframes', {});
+        const timeframes = this.safeValue (options, 'contract', {});
+        const timeframeValue = this.safeString (timeframes, timeframe);
+        const channel = 'sub.kline';
+        const messageHash = channel + ':' + symbol + ':' + timeframeValue;
+        // if (type === 'spot') {
+        requestParams['symbol'] = market['id'];
+        requestParams['interval'] = timeframeValue;
+        // }
+        if (since !== undefined) {
+            requestParams['start'] = since;
+        }
+        let ohlcv = undefined;
+        if (type === 'spot') {
+            ohlcv = await this.watchSpotPublic (messageHash, channel, requestParams, params);
+        } else {
+            ohlcv = await this.watchSwapPublic (messageHash, channel, requestParams, params);
+        }
+        // const ohlcv = await this.watch (url, messageHash, this.extend (params, request), messageHash);
+        // const url = this.urls['api']['ws']['spot'];
+        // const ohlcv = await this.watch (url, messageHash, requestParams, messageHash);
+        // const ohlcv = await this.watchSwapPublic (messageHash, channel, requestParams, params);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        // } else {
+        //     throw new NotSupported ('watchOHLCV does not support spot markets');
+        // }
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
@@ -121,8 +154,15 @@ module.exports = class mexc3 extends ccxt.mexc3 {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const messageHash = 'trade' + ':' + market['id'];
-        const trades = await this.watchPublic (messageHash, params);
+        const channel = 'sub.deal';
+        const messageHash = channel + ':' + market['id'];
+        if (market['type'] === 'spot') {
+            throw new NotSupported ('Not supported');
+        }
+        const requestParams = {
+            'symbol': market['id'],
+        };
+        const trades = await this.watchSwapPublic (messageHash, channel, requestParams, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -269,13 +309,23 @@ module.exports = class mexc3 extends ccxt.mexc3 {
         client.resolve (this.balance, messageHash);
     }
 
-    async watchPublic (messageHash, params = {}) {
-        const url = this.urls['api']['ws'];
+    async watchSwapPublic (messageHash, channel, requestParams, params = {}) {
+        const url = this.urls['api']['ws']['swap'];
         const request = {
-            'op': 'subscribe',
-            'args': [ messageHash ],
+            'method': channel,
+            'param': requestParams,
         };
         const message = this.extend (request, params);
+        return await this.watch (url, messageHash, message, messageHash);
+    }
+
+    async watchSpotPublic (messageHash, channel, requestParams, params = {}) {
+        const url = this.urls['api']['ws']['spot'];
+        const request = {
+            'op': channel,
+        };
+        const extendedRequest = this.extend (request, requestParams);
+        const message = this.extend (extendedRequest, params);
         return await this.watch (url, messageHash, message, messageHash);
     }
 
@@ -328,97 +378,67 @@ module.exports = class mexc3 extends ccxt.mexc3 {
     }
 
     handleMessage (client, message) {
-        //
-        // pong
-        //
-        //     { message: 'pong' }
-        //
-        // trade
-        //
+        // swap ohlcv
         //     {
-        //         topic: 'trade',
-        //         action: 'partial',
-        //         symbol: 'btc-usdt',
-        //         data: [
-        //             {
-        //                 size: 0.05145,
-        //                 price: 41977.9,
-        //                 side: 'buy',
-        //                 timestamp: '2022-04-11T09:40:10.881Z'
-        //             },
-        //         ]
-        //     }
-        //
-        // orderbook
-        //
-        //     {
-        //         topic: 'orderbook',
-        //         action: 'partial',
-        //         symbol: 'ltc-usdt',
-        //         data: {
-        //             bids: [
-        //                 [104.29, 5.2264],
-        //                 [103.86,1.3629],
-        //                 [101.82,0.5942]
-        //             ],
-        //             asks: [
-        //                 [104.81,9.5531],
-        //                 [105.54,0.6416],
-        //                 [106.18,1.4141],
-        //             ],
-        //             timestamp: '2022-04-11T10:37:01.227Z'
+        //         "channel":"push.kline",
+        //         "data":{
+        //             "a":233.740269343644737245,
+        //             "c":6885,
+        //             "h":6910.5,
+        //             "interval":"Min60",
+        //             "l":6885,
+        //             "o":6894.5,
+        //             "q":1611754,
+        //             "symbol":"BTC_USDT",
+        //             "t":1587448800
         //         },
-        //         time: 1649673421
+        //         "symbol":"BTC_USDT",
+        //         "ts":1587442022003
         //     }
         //
-        // order
-        //
+        //     swap ticker
         //     {
-        //         topic: 'order',
-        //         action: 'insert',
-        //         user_id: 155328,
-        //         symbol: 'ltc-usdt',
+        //         channel: 'push.ticker',
         //         data: {
-        //             symbol: 'ltc-usdt',
-        //             side: 'buy',
-        //             size: 0.05,
-        //             type: 'market',
-        //             price: 0,
-        //             fee_structure: { maker: 0.1, taker: 0.1 },
-        //             fee_coin: 'ltc',
-        //             id: 'ce38fd48-b336-400b-812b-60c636454231',
-        //             created_by: 155328,
-        //             filled: 0.05,
-        //             method: 'market',
-        //             created_at: '2022-04-11T14:09:00.760Z',
-        //             updated_at: '2022-04-11T14:09:00.760Z',
-        //             status: 'filled'
+        //           amount24: 491939387.90105,
+        //           ask1: 39530.5,
+        //           bid1: 39530,
+        //           contractId: 10,
+        //           fairPrice: 39533.4,
+        //           fundingRate: 0.00015,
+        //           high24Price: 40310.5,
+        //           holdVol: 187680157,
+        //           indexPrice: 39538.5,
+        //           lastPrice: 39530,
+        //           lower24Price: 38633,
+        //           maxBidPrice: 43492,
+        //           minAskPrice: 35584.5,
+        //           riseFallRate: 0.0138,
+        //           riseFallValue: 539.5,
+        //           symbol: 'BTC_USDT',
+        //           timestamp: 1651160401009,
+        //           volume24: 125171687
         //         },
-        //         time: 1649686140
-        //     }
+        //         symbol: 'BTC_USDT',
+        //         ts: 1651160401009
+        //       }
         //
-        // balance
-        //
-        //     {
-        //         topic: 'wallet',
-        //         action: 'partial',
-        //         user_id: 155328,
-        //         data: {
-        //             eth_balance: 0,
-        //             eth_available: 0,
-        //             usdt_balance: 18.94344188,
-        //             usdt_available: 18.94344188,
-        //             ltc_balance: 0.00005,
-        //             ltc_available: 0.00005,
-        //         }
-        //     }
+        // swap trades
+        // {
+        //     "channel":"push.deal",
+        //     "data":{
+        //         "M":1,
+        //         "O":1,
+        //         "T":1,
+        //         "p":6866.5,
+        //         "t":1587442049632,
+        //         "v":2096
+        //     },
+        //     "symbol":"BTC_USDT",
+        //     "ts":1587442022003
+        // }
         //
         if (!this.handleErrorMessage (client, message)) {
-            return;
-        }
-        const content = this.safeString (message, 'message');
-        if (content === 'pong') {
-            this.handlePong (client, message);
             return;
         }
         const methods = {
@@ -435,8 +455,7 @@ module.exports = class mexc3 extends ccxt.mexc3 {
     }
 
     ping (client) {
-        // hollaex does not support built-in ws protocol-level ping-pong
-        return { 'op': 'ping' };
+        return { 'method': 'ping' };
     }
 
     handlePong (client, message) {
