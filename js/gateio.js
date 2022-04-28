@@ -3444,6 +3444,9 @@ module.exports = class gateio extends Exchange {
         const stop = this.safeValue2 (params, 'is_stop_order', 'stop', false);
         params = this.omit (params, [ 'is_stop_order', 'stop' ]);
         const [ type, query ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
+        if ((type === 'spot' || type === 'margin') && (symbol === undefined)) {
+            throw new ArgumentsRequired (this.id + 'cancelOrder requires a symbol argument for spot and margin');
+        }
         const [ request, urlParams ] = this.prepareRequest (market, type, true, false, query);
         request['order_id'] = id;
         const pathMiddle = stop ? 'Price' : '';
