@@ -275,7 +275,7 @@ module.exports = class paymium extends Exchange {
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
-        if (!toAccount.includes ('@')) {
+        if (toAccount.indexOf ('@') < 0) {
             throw new ExchangeError (this.id + 'transfer() only allows transfers to an email address');
         }
         if (code !== 'BTC' && code !== 'EUR') {
