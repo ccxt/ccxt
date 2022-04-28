@@ -30,6 +30,9 @@ class hollaex(Exchange, ccxt.hollaex):
                 'api': {
                     'ws': 'wss://api.hollaex.com/stream',
                 },
+                'test': {
+                    'ws': 'wss://api.sandbox.hollaex.com/stream',
+                },
             },
             'options': {
                 'watchBalance': {
