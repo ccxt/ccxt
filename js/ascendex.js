@@ -1238,17 +1238,18 @@ module.exports = class ascendex extends Exchange {
         await this.loadMarkets ();
         await this.loadAccounts ();
         const market = this.market (symbol);
-        const [ style, query ] = this.handleMarketTypeAndParams ('createOrder', market, params);
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('createOrder', market, params);
         const options = this.safeValue (this.options, 'createOrder', {});
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-        const accountCategory = this.safeString (accountsByType, style, 'cash');
+        const accountCategory = this.safeString (accountsByType, marketType, 'cash');
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeValue (account, 'id');
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'id');
         const reduceOnly = this.safeValue (params, 'execInst');
         if (reduceOnly !== undefined) {
-            if ((style !== 'swap')) {
-                throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + style + ' orders, reduceOnly orders are supported for perpetuals only');
+            if ((marketType !== 'swap')) {
+                throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + marketType + ' orders, reduceOnly orders are supported for perpetuals only');
             }
         }
         const request = {
@@ -1264,6 +1265,8 @@ module.exports = class ascendex extends Exchange {
             // 'postOnly': 'false', // 'false', 'true'
             // 'timeInForce': 'GTC', // GTC, IOC, FOK
             // 'respInst': 'ACK', // ACK, 'ACCEPT, DONE
+            // 'posStopLossPrice': position stop loss price ( v2 swap orders only)
+            // 'posTakeProfitPrice': position take profit price (v2 swap orders only)
         };
         if (clientOrderId !== undefined) {
             request['id'] = clientOrderId;
@@ -1281,8 +1284,14 @@ module.exports = class ascendex extends Exchange {
                 params = this.omit (params, 'stopPrice');
             }
         }
+        const timeInForce = this.safeString (params, 'timeInForce');
+        const postOnly = this.safeValue (params, 'postOnly', false);
+        if ((timeInForce === 'PO') || (postOnly)) {
+            request['postOnly'] = true;
+            params = this.omit (params, [ 'postOnly', 'timeInForce' ]);
+        }
         const defaultMethod = this.safeString (options, 'method', 'v1PrivateAccountCategoryPostOrder');
-        const method = this.getSupportedMapping (style, {
+        const method = this.getSupportedMapping (marketType, {
             'spot': defaultMethod,
             'margin': defaultMethod,
             'swap': 'v2PrivateAccountGroupPostFuturesOrder',
@@ -1294,7 +1303,7 @@ module.exports = class ascendex extends Exchange {
         } else {
             request['account-category'] = accountCategory;
         }
-        const response = await this[method] (this.extend (request, query));
+        const response = await this[method] (this.extend (request, params));
         //
         // AccountCategoryPostOrder
         //
