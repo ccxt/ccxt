@@ -59,7 +59,7 @@ module.exports = class ndax extends ccxt.ndax {
             'o': this.json (payload), // JSON-formatted string containing the data being sent with the message
         };
         const message = this.extend (request, params);
-        return await this.watch (url, messageHash, message);
+        return await this.watch (url, messageHash, message, messageHash);
     }
 
     handleTicker (client, message) {
@@ -119,7 +119,7 @@ module.exports = class ndax extends ccxt.ndax {
             'o': this.json (payload), // JSON-formatted string containing the data being sent with the message
         };
         const message = this.extend (request, params);
-        const trades = await this.watch (url, messageHash, message);
+        const trades = await this.watch (url, messageHash, message, messageHash);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -193,7 +193,7 @@ module.exports = class ndax extends ccxt.ndax {
             'o': this.json (payload), // JSON-formatted string containing the data being sent with the message
         };
         const message = this.extend (request, params);
-        const ohlcv = await this.watch (url, messageHash, message);
+        const ohlcv = await this.watch (url, messageHash, message, messageHash);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
