@@ -964,13 +964,50 @@ module.exports = class coinex extends Exchange {
         return this.safeBalance (result);
     }
 
+    async fetchSwapBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.perpetualPrivateGetAssetQuery (params);
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "USDT": {
+        //                 "available": "37.24817690383456000000",
+        //                 "balance_total": "37.24817690383456000000",
+        //                 "frozen": "0.00000000000000000000",
+        //                 "margin": "0.00000000000000000000",
+        //                 "profit_unreal": "0.00000000000000000000",
+        //                 "transfer": "37.24817690383456000000"
+        //             }
+        //         },
+        //         "message": "OK"
+        //     }
+        //
+        const result = { 'info': response };
+        const balances = this.safeValue (response, 'data', {});
+        const currencyIds = Object.keys (balances);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const code = this.safeCurrencyCode (currencyId);
+            const balance = this.safeValue (balances, currencyId, {});
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'available');
+            account['used'] = this.safeString (balance, 'frozen');
+            account['total'] = this.safeString (balance, 'balance_total');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         const accountType = this.safeString (params, 'type', 'main');
         params = this.omit (params, 'type');
         if (accountType === 'margin') {
             return await this.fetchMarginBalance (params);
-        } else {
+        } else if (accountType === 'spot') {
             return await this.fetchSpotBalance (params);
+        } else {
+            return await this.fetchSwapBalance (params);
         }
     }
 
