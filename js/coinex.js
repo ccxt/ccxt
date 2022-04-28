@@ -1004,10 +1004,10 @@ module.exports = class coinex extends Exchange {
         params = this.omit (params, 'type');
         if (accountType === 'margin') {
             return await this.fetchMarginBalance (params);
-        } else if (accountType === 'spot') {
-            return await this.fetchSpotBalance (params);
-        } else {
+        } else if (accountType === 'swap') {
             return await this.fetchSwapBalance (params);
+        } else {
+            return await this.fetchSpotBalance (params);
         }
     }
 
