@@ -740,7 +740,7 @@ module.exports = class gateio extends Exchange {
                     },
                     'cost': {
                         'min': this.safeNumber (market, 'min_quote_amount'),
-                        'max': undefined,
+                        'max': this.safeNumber (market, 'max_quote_amount'),
                     },
                 },
                 'info': market,
