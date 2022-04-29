@@ -309,6 +309,7 @@ class kucoin extends Exchange {
                     '400007' => '\\ccxt\\AuthenticationError',
                     '400008' => '\\ccxt\\NotSupported',
                     '400100' => '\\ccxt\\BadRequest',
+                    '400200' => '\\ccxt\\InvalidOrder', // array("code":"400200","msg":"Forbidden to place an order")
                     '400350' => '\\ccxt\\InvalidOrder', // array("code":"400350","msg":"Upper limit for holding => 10,000USDT, you can still buy 10,000USDT worth of coin.")
                     '400370' => '\\ccxt\\InvalidOrder', // array("code":"400370","msg":"Max. price => 0.02500000000000000000")
                     '400500' => '\\ccxt\\InvalidOrder', // array("code":"400500","msg":"Your located country/region is currently not supported for the trading of this token")
