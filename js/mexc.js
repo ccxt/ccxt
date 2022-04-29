@@ -31,6 +31,18 @@ module.exports = class mexc extends ccxt.mexc {
                 },
             },
             'options': {
+                'timeframes': {
+                    '1m': 'Min1',
+                    '5m': 'Min5',
+                    '15m': 'Min15',
+                    '30m': 'Min30',
+                    '1h': 'Min60',
+                    '4h': 'Hour4',
+                    '8h': 'Hour8',
+                    '1d': 'Day1',
+                    '1w': 'Week1',
+                    '1M': 'Month1',
+                },
             },
             'streaming': {
                 '!!ping': this.ping,
@@ -109,11 +121,10 @@ module.exports = class mexc extends ccxt.mexc {
         const requestParams = {};
         symbol = market['symbol'];
         const type = market['type'];
-        const options = this.safeValue (this.options, 'timeframes', {});
-        const timeframes = this.safeValue (options, 'contract', {});
+        const timeframes = this.safeValue (this.options, 'timeframes', {});
         const timeframeValue = this.safeString (timeframes, timeframe);
         const channel = 'sub.kline';
-        const messageHash = 'kline' + ':' + symbol + ':' + timeframeValue;
+        const messageHash = 'kline' + ':' + timeframeValue + ':' + symbol;
         requestParams['symbol'] = market['id'];
         requestParams['interval'] = timeframeValue;
         if (since !== undefined) {
@@ -132,32 +143,58 @@ module.exports = class mexc extends ccxt.mexc {
     }
 
     handleOHLCV (client, message) {
+        // spot
+        // {
+        //     symbol: 'BTC_USDT',
+        //     data: {
+        //       symbol: 'BTC_USDT',
+        //       interval: 'Min1',
+        //       t: 1651230720,
+        //       o: 38870.18,
+        //       c: 38867.55,
+        //       h: 38873.19,
+        //       l: 38867.05,
+        //       v: 71031.87886502,
+        //       q: 1.827357,
+        //       e: 38867.05,
+        //       rh: 38873.19,
+        //       rl: 38867.05
+        //     },
+        //     channel: 'push.kline',
+        //     symbol_display: 'BTC_USDT'
+        // }
         //
-        //     {
-        //         "channel":"push.kline",
-        //         "data":{
-        //             "a":233.740269343644737245,
-        //             "c":6885,
-        //             "h":6910.5,
-        //             "interval":"Min60",
-        //             "l":6885,
-        //             "o":6894.5,
-        //             "q":1611754,
-        //             "symbol":"BTC_USDT",
-        //             "t":1587448800
-        //         },
-        //         "symbol":"BTC_USDT",
-        //         "ts":1587442022003
-        //     }
+        // swap
         //
+        //  {
+        //      channel: 'push.kline',
+        //      data: {
+        //        a: 325653.3287,
+        //        c: 38839,
+        //        h: 38909.5,
+        //        interval: 'Min1',
+        //        l: 38833,
+        //        o: 38901.5,
+        //        q: 83808,
+        //        rc: 38839,
+        //        rh: 38909.5,
+        //        rl: 38833,
+        //        ro: 38909.5,
+        //        symbol: 'BTC_USDT',
+        //        t: 1651230660
+        //      },
+        //      symbol: 'BTC_USDT',
+        //      ts: 1651230713067
+        //  }
         const marketId = this.safeString (message, 'symbol');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const data = this.safeValue (message, 'data', {});
         const interval = this.safeString (data, 'interval');
         const messageHash = 'kline' + ':' + interval + ':' + symbol;
-        const timeframe = this.findTimeframe (interval);
-        const parsed = this.parseOHLCV (message, market);
+        const timeframes = this.safeValue (this.options, 'timeframes', {});
+        const timeframe = this.findTimeframe (interval, timeframes);
+        const parsed = this.parseWsOHLCV (data, market);
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
@@ -168,6 +205,52 @@ module.exports = class mexc extends ccxt.mexc {
         stored.append (parsed);
         client.resolve (stored, messageHash);
         return message;
+    }
+
+    parseWsOHLCV (ohlcv, market = undefined) {
+        //
+        // spot
+        //    {
+        //       symbol: 'BTC_USDT',
+        //       interval: 'Min1',
+        //       t: 1651230720,
+        //       o: 38870.18,
+        //       c: 38867.55,
+        //       h: 38873.19,
+        //       l: 38867.05,
+        //       v: 71031.87886502,
+        //       q: 1.827357,
+        //       e: 38867.05,
+        //       rh: 38873.19,
+        //       rl: 38867.05
+        //     }
+        //
+        // swap
+        //
+        //   {
+        //        a: 325653.3287,
+        //        c: 38839,
+        //        h: 38909.5,
+        //        interval: 'Min1',
+        //        l: 38833,
+        //        o: 38901.5,
+        //        q: 83808,
+        //        rc: 38839,
+        //        rh: 38909.5,
+        //        rl: 38833,
+        //        ro: 38909.5,
+        //        symbol: 'BTC_USDT',
+        //        t: 1651230660
+        //      },
+        //
+        return [
+            this.safeIntegerProduct (ohlcv, 't', 1000),
+            this.safeNumber (ohlcv, 'o'),
+            this.safeNumber (ohlcv, 'h'),
+            this.safeNumber (ohlcv, 'l'),
+            this.safeNumber (ohlcv, 'c'),
+            this.safeNumber2 (ohlcv, 'v', 'q'),
+        ];
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
