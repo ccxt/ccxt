@@ -14,7 +14,7 @@ module.exports = class coinflex extends Exchange {
             'id': 'coinflex',
             'name': 'CoinFLEX',
             'countries': [ 'SC' ], // Seychelles
-            'rateLimit': 120, // 2500:5min; 100:1min;
+            'rateLimit': 120, // 2500 requests per 5 minutes, 100 requests per minute
             'version': 'v3',
             'certified': false,
             'has': {
