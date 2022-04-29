@@ -2989,7 +2989,7 @@ class gateio(Exchange):
         :param str symbol: Unified market symbol
         :param dict params: Parameters specified by the exchange api
         :param bool params['stop']: True if the order being fetched is a trigger order
-        :returns: Order structure
+        :returns: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
@@ -3142,6 +3142,7 @@ class gateio(Exchange):
         if market['type'] == 'margin' or market['type'] == 'cross_margin':
             request['account'] = market['type']
         response = await getattr(self, method)(self.extend(request, params))
+        #
         # SPOT
         #    {
         #        "id": "8834234273",
@@ -3199,7 +3200,7 @@ class gateio(Exchange):
         :param str symbol: Unified market symbol
         :param dict params: Parameters specified by the exchange api
         :param bool params['stop']: True if the order to be cancelled is a trigger order
-        :returns: Order structure
+        :returns: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
@@ -3761,6 +3762,7 @@ class gateio(Exchange):
         #        "trade_id": 10851092,
         #        "orderbook_id": 2129638396
         #    }
+        #
         #    Delivery Futures
         #    {
         #        "name": "BTC_USDT_20200814",
