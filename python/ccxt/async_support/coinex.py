@@ -8,6 +8,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -56,6 +57,7 @@ class coinex(Exchange):
                 'fetchTradingFees': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
+                'setLeverage': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -243,6 +245,7 @@ class coinex(Exchange):
                 'createMarketBuyOrderRequiresPrice': True,
                 'defaultType': 'spot',  # spot, swap, margin
                 'defaultSubType': 'linear',  # linear, inverse
+                'defaultMarginType': 'isolated',  # isolated, cross
             },
             'commonCurrencies': {
                 'ACM': 'Actinium',
@@ -1744,6 +1747,32 @@ class coinex(Exchange):
         data = self.safe_value(response, 'data')
         trades = self.safe_value(data, tradeRequest, [])
         return self.parse_trades(trades, market, since, limit)
+
+    async def set_leverage(self, leverage, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
+        await self.load_markets()
+        defaultMarginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType')
+        defaultPositionType = None
+        if defaultMarginType == 'isolated':
+            defaultPositionType = 1
+        elif defaultMarginType == 'cross':
+            defaultPositionType = 2
+        positionType = self.safe_integer(params, 'position_type', defaultPositionType)
+        if positionType is None:
+            raise ArgumentsRequired(self.id + ' setLeverage() requires a position_type parameter that will transfer margin to the specified trading pair')
+        market = self.market(symbol)
+        maxLeverage = self.safe_integer(market['limits']['leverage'], 'max', 100)
+        if market['type'] != 'swap':
+            raise BadSymbol(self.id + ' setLeverage() supports swap contracts only')
+        if (leverage < 3) or (leverage > maxLeverage):
+            raise BadRequest(self.id + ' setLeverage() leverage should be between 1 and ' + str(maxLeverage) + ' for ' + symbol)
+        request = {
+            'market': market['id'],
+            'leverage': str(leverage),
+            'position_type': positionType,  # 1: isolated, 2: cross
+        }
+        return await self.perpetualPrivatePostMarketAdjustLeverage(self.extend(request, params))
 
     async def modify_margin_helper(self, symbol, amount, addOrReduce, params={}):
         await self.load_markets()

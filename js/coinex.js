@@ -45,8 +45,8 @@ module.exports = class coinex extends Exchange {
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchWithdrawals': true,
-                'setLeverage': true,
                 'reduceMargin': true,
+                'setLeverage': true,
                 'withdraw': true,
             },
             'timeframes': {

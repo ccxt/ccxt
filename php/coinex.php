@@ -8,6 +8,7 @@ namespace ccxt;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\BadRequest;
 use \ccxt\BadSymbol;
 use \ccxt\InvalidOrder;
 
@@ -50,6 +51,7 @@ class coinex extends Exchange {
                 'fetchTradingFees' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
+                'setLeverage' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -237,6 +239,7 @@ class coinex extends Exchange {
                 'createMarketBuyOrderRequiresPrice' => true,
                 'defaultType' => 'spot', // spot, swap, margin
                 'defaultSubType' => 'linear', // linear, inverse
+                'defaultMarginType' => 'isolated', // isolated, cross
             ),
             'commonCurrencies' => array(
                 'ACM' => 'Actinium',
@@ -1826,6 +1829,38 @@ class coinex extends Exchange {
         $data = $this->safe_value($response, 'data');
         $trades = $this->safe_value($data, $tradeRequest, array());
         return $this->parse_trades($trades, $market, $since, $limit);
+    }
+
+    public function set_leverage($leverage, $symbol = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+        }
+        $this->load_markets();
+        $defaultMarginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType');
+        $defaultPositionType = null;
+        if ($defaultMarginType === 'isolated') {
+            $defaultPositionType = 1;
+        } else if ($defaultMarginType === 'cross') {
+            $defaultPositionType = 2;
+        }
+        $positionType = $this->safe_integer($params, 'position_type', $defaultPositionType);
+        if ($positionType === null) {
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a position_type parameter that will transfer margin to the specified trading pair');
+        }
+        $market = $this->market($symbol);
+        $maxLeverage = $this->safe_integer($market['limits']['leverage'], 'max', 100);
+        if ($market['type'] !== 'swap') {
+            throw new BadSymbol($this->id . ' setLeverage() supports swap contracts only');
+        }
+        if (($leverage < 3) || ($leverage > $maxLeverage)) {
+            throw new BadRequest($this->id . ' setLeverage() $leverage should be between 1 and ' . (string) $maxLeverage . ' for ' . $symbol);
+        }
+        $request = array(
+            'market' => $market['id'],
+            'leverage' => (string) $leverage,
+            'position_type' => $positionType, // 1 => isolated, 2 => cross
+        );
+        return $this->perpetualPrivatePostMarketAdjustLeverage (array_merge($request, $params));
     }
 
     public function modify_margin_helper($symbol, $amount, $addOrReduce, $params = array ()) {
