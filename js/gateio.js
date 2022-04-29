@@ -1102,6 +1102,38 @@ module.exports = class gateio extends Exchange {
         }
     }
 
+    getMarginType (stop, params) {
+        /**
+         * @ignore
+         * @method
+         * @name gateio#getMarginType
+         * @description Gets the margin type for this api call
+         * @param {dict} params Request params
+         * @param {bool} stop True if for a stop order
+         * @returns The marginType and the updated request params with marginType removed, marginType value is the value that can be read by the "account" property specified in gateios api docs
+         */
+        const defaultMarginType = this.safeStringLower2 (this.options, 'defaultMarginType', 'marginType', 'spot'); // 'margin' is isolated margin on gateio's api
+        let marginType = this.safeStringLower2 (params, 'marginType', 'account', defaultMarginType);
+        params = this.omit (params, [ 'marginType' ]);
+        if (marginType === 'cross') {
+            marginType = 'cross_margin';
+        } else if (marginType === 'isolated') {
+            marginType = 'margin';
+        } else if (marginType === '') {
+            marginType = 'spot';
+        }
+        if (stop) {
+            if (marginType === 'spot') {
+                marginType = 'normal';
+                // gateio spot and margin stop orders use the term normal instead of spot
+            }
+            if (marginType === 'cross_margin') {
+                throw new BadRequest (this.id + ' createOrder does not support stop orders for cross margin');
+            }
+        }
+        return [ marginType, params ];
+    }
+
     getSettlementCurrencies (type, method) {
         const options = this.safeValue (this.options, type, {}); // [ 'BTC', 'USDT' ] unified codes
         const fetchMarketsContractOptions = this.safeValue (options, method, {});
