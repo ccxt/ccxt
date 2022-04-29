@@ -20,7 +20,7 @@ class hollaex(Exchange):
         return self.deep_extend(super(hollaex, self).describe(), {
             'id': 'zarclays',
             'name': 'Zarclays',
-            'countries': ['KR'],
+            'countries': ['KR', 'GB', 'NG'],
             # 4 requests per second => 1000ms / 4 = 250 ms between requests
             'rateLimit': 250,
             'version': 'v2',

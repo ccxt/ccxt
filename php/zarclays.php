@@ -15,7 +15,7 @@ class hollaex extends Exchange {
         return $this->deep_extend(parent::describe (), array(
             'id' => 'zarclays',
             'name' => 'Zarclays',
-            'countries' => array( 'KR' ),
+            'countries' => array( 'KR', 'GB', 'NG' ),
             // 4 requests per second => 1000ms / 4 = 250 ms between requests
             'rateLimit' => 250,
             'version' => 'v2',
