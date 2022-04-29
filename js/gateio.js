@@ -627,7 +627,7 @@ module.exports = class gateio extends Exchange {
         let result = [];
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
         if (type === 'spot' || type === 'margin') {
-            result = await this.fetchSpotMarkets (type, query);
+            result = await this.fetchSpotMarkets (query);
         }
         if (type === 'swap' || type === 'future') {
             result = await this.fetchContractMarkets (query); // futures and swaps
@@ -642,10 +642,10 @@ module.exports = class gateio extends Exchange {
         return result;
     }
 
-    async fetchSpotMarkets (type, params) {
-        const marginMarkets = await this.publicMarginGetCurrencyPairs (params);
+    async fetchSpotMarkets (params) {
+        const marginResponse = await this.publicMarginGetCurrencyPairs (params);
         const spotMarketsResponse = await this.publicSpotGetCurrencyPairs (params);
-        const spotMarketsById = this.indexBy (spotMarketsResponse, 'id');
+        const marginMarkets = this.indexBy (marginResponse, 'id');
         //
         //  Spot
         //
@@ -680,15 +680,11 @@ module.exports = class gateio extends Exchange {
         //     ]
         //
         const result = [];
-        const margin = type === 'margin';
-        const markets = margin ? marginMarkets : spotMarketsResponse;
-        for (let i = 0; i < markets.length; i++) {
-            let market = markets[i];
-            const id = this.safeString (market, 'id');
-            if (margin) {
-                const spotMarket = this.safeValue (spotMarketsById, id);
-                market = this.deepExtend (market, spotMarket);
-            }
+        for (let i = 0; i < spotMarketsResponse.length; i++) {
+            const spotMarket = spotMarketsResponse[i];
+            const id = this.safeString (spotMarket, 'id');
+            const marginMarket = this.safeValue (marginMarkets, id);
+            const market = this.deepExtend (marginMarket, spotMarket);
             const [ baseId, quoteId ] = id.split ('_');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
@@ -709,7 +705,7 @@ module.exports = class gateio extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': undefined,
-                'type': type,
+                'type': 'spot',
                 'spot': true,
                 'margin': isolated,
                 'swap': false,
@@ -741,7 +737,7 @@ module.exports = class gateio extends Exchange {
                         'cross': undefined,
                     },
                     'amount': {
-                        'min': this.safeNumber (market, 'min_base_amount', defaultMinAmountLimit),
+                        'min': this.safeNumber (spotMarket, 'min_base_amount', defaultMinAmountLimit),
                         'max': undefined,
                     },
                     'price': {
