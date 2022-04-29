@@ -104,6 +104,7 @@ function test_exchange($exchange) {
     }
 
     $symbol = get_test_symbol($exchange, array(
+        'USDT/TWD',
         'BTC/USD',
         'BTC/USDT',
         'BTC/CNY',

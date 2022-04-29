@@ -187,7 +187,7 @@ module.exports = class bitopro extends ccxt.bitopro {
         const apis = this.safeValue (this.apis, 'ws');
         const path = this.safeString (apis, 'watchTicker');
         const url = this.urls['ws'] + path + '/' + market['id'];
-        return await this.watch (url, messageHash, '', messageHash);
+        return await this.watch (url, messageHash, this.extend ({}, params), messageHash);
     }
 
     handleTicker (client, message) {
@@ -215,6 +215,10 @@ module.exports = class bitopro extends ccxt.bitopro {
         const event = this.safeString (message, 'event');
         const messageHash = market['id'].toUpperCase () + '@' + event;
         const result = this.parseTicker (message);
+        const timestamp = this.safeInteger (message, 'timestamp');
+        const datetime = this.safeString (message, 'datetime');
+        result.timestamp = timestamp;
+        result.datetime = datetime;
         this.tickers[symbol] = result;
         client.resolve (result, messageHash);
     }

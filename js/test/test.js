@@ -180,6 +180,7 @@ async function testExchange (exchange) {
     }
 
     let symbol = getTestSymbol (exchange, [
+        'USDT/TWD',
         'BTC/USD',
         'BTC/USDT',
         'BTC/CNY',
@@ -233,9 +234,14 @@ async function testExchange (exchange) {
 
 async function test () {
 
+    try {
     await exchange.loadMarkets ()
+    console.log('Market loaded')
     exchange.verbose = verbose
     await testExchange (exchange, exchangeSymbol)
+    } catch (err) {
+        console.log(err.message, 'GGQQ')
+    }
     console.log (new Date (), 'Done.')
     process.exit ()
 }
