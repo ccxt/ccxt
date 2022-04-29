@@ -123,14 +123,10 @@ if argv.exchange_id in keys:
 
 exchange = getattr(ccxt, argv.exchange_id)(config)
 
-options = getattr(exchange, 'options', None)
 if argv.swap:
-    options['defaultType'] = 'swap' 
-    setattr(exchange, 'options', options)
-    print(options)
+    exchange.options['defaultType'] = 'swap' 
 elif argv.future:
-    options['defaultType'] = 'future' 
-    setattr(exchange, 'options', options)
+    exchange.options['defaultType'] = 'future' 
 
 # check auth keys in env var
 requiredCredentials = exchange.requiredCredentials
