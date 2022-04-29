@@ -27,6 +27,7 @@ class coinex extends Exchange {
                 'swap' => null, // has but unimplemented
                 'future' => false,
                 'option' => false,
+                'addMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
@@ -48,6 +49,7 @@ class coinex extends Exchange {
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
                 'fetchWithdrawals' => true,
+                'reduceMargin' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -1824,6 +1826,100 @@ class coinex extends Exchange {
         $data = $this->safe_value($response, 'data');
         $trades = $this->safe_value($data, $tradeRequest, array());
         return $this->parse_trades($trades, $market, $since, $limit);
+    }
+
+    public function modify_margin_helper($symbol, $amount, $addOrReduce, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'market' => $market['id'],
+            'amount' => $this->amount_to_precision($symbol, $amount),
+            'type' => $addOrReduce,
+        );
+        $response = $this->perpetualPrivatePostPositionAdjustMargin (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => array(
+        //             "adl_sort" => 1,
+        //             "adl_sort_val" => "0.00004320",
+        //             "amount" => "0.0005",
+        //             "amount_max" => "0.0005",
+        //             "amount_max_margin" => "6.57352000000000000000",
+        //             "bkr_price" => "16294.08000000000000011090",
+        //             "bkr_price_imply" => "0.00000000000000000000",
+        //             "close_left" => "0.0005",
+        //             "create_time" => 1651202571.320778,
+        //             "deal_all" => "19.72000000000000000000",
+        //             "deal_asset_fee" => "0.00000000000000000000",
+        //             "fee_asset" => "",
+        //             "finish_type" => 1,
+        //             "first_price" => "39441.12",
+        //             "insurance" => "0.00000000000000000000",
+        //             "latest_price" => "39441.12",
+        //             "leverage" => "3",
+        //             "liq_amount" => "0.00000000000000000000",
+        //             "liq_order_price" => "0",
+        //             "liq_order_time" => 0,
+        //             "liq_price" => "16491.28560000000000011090",
+        //             "liq_price_imply" => "0.00000000000000000000",
+        //             "liq_profit" => "0.00000000000000000000",
+        //             "liq_time" => 0,
+        //             "mainten_margin" => "0.005",
+        //             "mainten_margin_amount" => "0.09860280000000000000",
+        //             "maker_fee" => "0.00000000000000000000",
+        //             "margin_amount" => "11.57352000000000000000",
+        //             "market" => "BTCUSDT",
+        //             "open_margin" => "0.58687582908396110455",
+        //             "open_margin_imply" => "0.00000000000000000000",
+        //             "open_price" => "39441.12000000000000000000",
+        //             "open_val" => "19.72056000000000000000",
+        //             "open_val_max" => "19.72056000000000000000",
+        //             "position_id" => 65171206,
+        //             "profit_clearing" => "-0.00986028000000000000",
+        //             "profit_real" => "-0.00986028000000000000",
+        //             "profit_unreal" => "0.00",
+        //             "side" => 2,
+        //             "stop_loss_price" => "0.00000000000000000000",
+        //             "stop_loss_type" => 0,
+        //             "sys" => 0,
+        //             "take_profit_price" => "0.00000000000000000000",
+        //             "take_profit_type" => 0,
+        //             "taker_fee" => "0.00000000000000000000",
+        //             "total" => 3464,
+        //             "type" => 1,
+        //             "update_time" => 1651202638.911212,
+        //             "user_id" => 3620173
+        //         ),
+        //         "message":"OK"
+        //     }
+        //
+        $status = $this->safe_string($response, 'message');
+        $type = ($addOrReduce === 1) ? 'add' : 'reduce';
+        return array_merge($this->parse_modify_margin($response, $market), array(
+            'amount' => $this->parse_number($amount),
+            'type' => $type,
+            'status' => $status,
+        ));
+    }
+
+    public function parse_modify_margin($data, $market = null) {
+        return array(
+            'info' => $data,
+            'type' => null,
+            'amount' => null,
+            'code' => $market['quote'],
+            'symbol' => $this->safe_symbol(null, $market),
+            'status' => null,
+        );
+    }
+
+    public function add_margin($symbol, $amount, $params = array ()) {
+        return $this->modify_margin_helper($symbol, $amount, 1, $params);
+    }
+
+    public function reduce_margin($symbol, $amount, $params = array ()) {
+        return $this->modify_margin_helper($symbol, $amount, 2, $params);
     }
 
     public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {

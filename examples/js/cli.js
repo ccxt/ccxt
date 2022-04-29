@@ -19,6 +19,8 @@ let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x
         process.argv.includes ('--testnet') ||
         process.argv.includes ('--sandbox')
     , signIn = process.argv.includes ('--sign-in') || process.argv.includes ('--signIn')
+    , swap = process.argv.includes ('--swap')
+    , future = process.argv.includes ('--future')
 
 //-----------------------------------------------------------------------------
 
@@ -88,6 +90,12 @@ try {
         httpsAgent,
         ... settings,
     })
+
+    if (swap) {
+        exchange.options['defaultType'] = 'swap'
+    } else if (future) {
+        exchange.options['defaultType'] = 'future'
+    }
 
     // check auth keys in env var
     const requiredCredentials = exchange.requiredCredentials;

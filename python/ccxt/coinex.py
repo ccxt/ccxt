@@ -33,6 +33,7 @@ class coinex(Exchange):
                 'swap': None,  # has but unimplemented
                 'future': False,
                 'option': False,
+                'addMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
@@ -54,6 +55,7 @@ class coinex(Exchange):
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
                 'fetchWithdrawals': True,
+                'reduceMargin': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -1742,6 +1744,96 @@ class coinex(Exchange):
         data = self.safe_value(response, 'data')
         trades = self.safe_value(data, tradeRequest, [])
         return self.parse_trades(trades, market, since, limit)
+
+    def modify_margin_helper(self, symbol, amount, addOrReduce, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'market': market['id'],
+            'amount': self.amount_to_precision(symbol, amount),
+            'type': addOrReduce,
+        }
+        response = self.perpetualPrivatePostPositionAdjustMargin(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "adl_sort": 1,
+        #             "adl_sort_val": "0.00004320",
+        #             "amount": "0.0005",
+        #             "amount_max": "0.0005",
+        #             "amount_max_margin": "6.57352000000000000000",
+        #             "bkr_price": "16294.08000000000000011090",
+        #             "bkr_price_imply": "0.00000000000000000000",
+        #             "close_left": "0.0005",
+        #             "create_time": 1651202571.320778,
+        #             "deal_all": "19.72000000000000000000",
+        #             "deal_asset_fee": "0.00000000000000000000",
+        #             "fee_asset": "",
+        #             "finish_type": 1,
+        #             "first_price": "39441.12",
+        #             "insurance": "0.00000000000000000000",
+        #             "latest_price": "39441.12",
+        #             "leverage": "3",
+        #             "liq_amount": "0.00000000000000000000",
+        #             "liq_order_price": "0",
+        #             "liq_order_time": 0,
+        #             "liq_price": "16491.28560000000000011090",
+        #             "liq_price_imply": "0.00000000000000000000",
+        #             "liq_profit": "0.00000000000000000000",
+        #             "liq_time": 0,
+        #             "mainten_margin": "0.005",
+        #             "mainten_margin_amount": "0.09860280000000000000",
+        #             "maker_fee": "0.00000000000000000000",
+        #             "margin_amount": "11.57352000000000000000",
+        #             "market": "BTCUSDT",
+        #             "open_margin": "0.58687582908396110455",
+        #             "open_margin_imply": "0.00000000000000000000",
+        #             "open_price": "39441.12000000000000000000",
+        #             "open_val": "19.72056000000000000000",
+        #             "open_val_max": "19.72056000000000000000",
+        #             "position_id": 65171206,
+        #             "profit_clearing": "-0.00986028000000000000",
+        #             "profit_real": "-0.00986028000000000000",
+        #             "profit_unreal": "0.00",
+        #             "side": 2,
+        #             "stop_loss_price": "0.00000000000000000000",
+        #             "stop_loss_type": 0,
+        #             "sys": 0,
+        #             "take_profit_price": "0.00000000000000000000",
+        #             "take_profit_type": 0,
+        #             "taker_fee": "0.00000000000000000000",
+        #             "total": 3464,
+        #             "type": 1,
+        #             "update_time": 1651202638.911212,
+        #             "user_id": 3620173
+        #         },
+        #         "message":"OK"
+        #     }
+        #
+        status = self.safe_string(response, 'message')
+        type = 'add' if (addOrReduce == 1) else 'reduce'
+        return self.extend(self.parse_modify_margin(response, market), {
+            'amount': self.parse_number(amount),
+            'type': type,
+            'status': status,
+        })
+
+    def parse_modify_margin(self, data, market=None):
+        return {
+            'info': data,
+            'type': None,
+            'amount': None,
+            'code': market['quote'],
+            'symbol': self.safe_symbol(None, market),
+            'status': None,
+        }
+
+    def add_margin(self, symbol, amount, params={}):
+        return self.modify_margin_helper(symbol, amount, 1, params)
+
+    def reduce_margin(self, symbol, amount, params={}):
+        return self.modify_margin_helper(symbol, amount, 2, params)
 
     def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:

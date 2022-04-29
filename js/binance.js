@@ -640,6 +640,7 @@ module.exports = class binance extends Exchange {
                         'order',
                         'batchOrders',
                         'userDataStream',
+                        'openAccount',
                     ],
                     'put': [
                         'userDataStream',

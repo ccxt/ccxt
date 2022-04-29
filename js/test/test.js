@@ -398,8 +398,6 @@ async function tryAllProxies (exchange, proxies) {
                 continue
             } else if (e instanceof ccxt.AuthenticationError) {
                 return
-            } else if (e instanceof ccxt.AuthenticationError) {
-                return
             } else if (e instanceof ccxt.InvalidNonce) {
                 return
             } else {
