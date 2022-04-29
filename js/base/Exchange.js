@@ -2248,7 +2248,8 @@ module.exports = class Exchange {
                 methodType = this.safeString2 (methodOptions, 'defaultType', 'type', methodType);
             }
         }
-        const marketType = (market === undefined) ? methodType : market['type'];
+        // market type takes priority over methodType except when methodType is "margin" and market type is spot
+        const marketType = (market === undefined || (methodType === 'margin' && market['type'] === 'spot')) ? methodType : market['type'];
         const type = this.safeString2 (params, 'defaultType', 'type', marketType);
         params = this.omit (params, [ 'defaultType', 'type' ]);
         return [ type, params ];

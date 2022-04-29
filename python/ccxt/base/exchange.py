@@ -2853,7 +2853,8 @@ class Exchange(object):
                 method_type = method_options
             else:
                 method_type = self.safe_string_2(method_options, 'defaultType', 'type', method_type)
-        market_type = method_type if market is None else market['type']
+        # market type takes priority over method_type except when method_type is "margin" and market type is spot
+        market_type = method_type if market is None or (method_type == 'margin' and market['type'] == 'spot') else market['type']
         type = self.safe_string_2(params, 'defaultType', 'type', market_type)
         params = self.omit(params, ['defaultType', 'type'])
         return [type, params]

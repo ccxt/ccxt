@@ -3771,7 +3771,8 @@ class Exchange {
                 $method_type = $this->safe_string_2($method_options, 'defaultType', 'type', $method_type);
             }
         }
-        $market_type = isset($market) ? $market['type'] : $method_type;
+        // market type takes priority over method_type except when method_type is "margin" and market type is spot
+        $market_type = !isset($market) || ($method_type === 'margin' && $market['type'] === 'spot') ? $method_type : $market['type'];
         $type = $this->safe_string_2($params, 'defaultType', 'type', $market_type);
         $params = $this->omit($params, [ 'defaultType', 'type' ]);
         return array($type, $params);
