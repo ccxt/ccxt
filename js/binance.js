@@ -25,7 +25,7 @@ module.exports = class binance extends Exchange {
                 'margin': true,
                 'swap': true,
                 'future': true,
-                'option': true,
+                'option': undefined,
                 'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
