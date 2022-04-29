@@ -33,11 +33,14 @@ class Argv(object):
     testnet = False
     test = False
     nonce = None
-    exchange_id = None
+    exchange_id = ''
+    debug = False
+    cors = False
     method = None
     symbol = None
-    swap = False,
+    swap = False
     future = False
+    args = []
 
 
 argv = Argv()
@@ -124,22 +127,22 @@ if argv.exchange_id in keys:
 exchange = getattr(ccxt, argv.exchange_id)(config)
 
 if argv.swap:
-    exchange.options['defaultType'] = 'swap' 
+    exchange.options['defaultType'] = 'swap'
 elif argv.future:
-    exchange.options['defaultType'] = 'future' 
+    exchange.options['defaultType'] = 'future'
 
 # check auth keys in env var
 requiredCredentials = exchange.requiredCredentials
 for credential, isRequired in requiredCredentials.items():
     if isRequired and credential and not getattr(exchange, credential, None):
-        credentialEnvName = (argv.exchange_id + '_' + credential).upper() # example: KRAKEN_APIKEY
+        credentialEnvName = (argv.exchange_id + '_' + credential).upper()  # example: KRAKEN_APIKEY
         if credentialEnvName in os.environ:
             credentialValue = os.environ[credentialEnvName]
             setattr(exchange, credential, credentialValue)
 
 if argv.cors:
-    exchange.proxy = 'https://cors-anywhere.herokuapp.com/';
-    exchange.origin = exchange.uuid ()
+    exchange.proxy = 'https://cors-anywhere.herokuapp.com/'
+    exchange.origin = exchange.uuid()
 
 # pprint(dir(exchange))
 
@@ -193,4 +196,3 @@ if argv.method:
         pprint(result)
 else:
     pprint(dir(exchange))
-
