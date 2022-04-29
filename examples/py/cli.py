@@ -36,6 +36,8 @@ class Argv(object):
     exchange_id = None
     method = None
     symbol = None
+    swap = False,
+    future = False
 
 
 argv = Argv()
@@ -49,6 +51,8 @@ parser.add_argument('--debug', action='store_true', help='enable debug output')
 parser.add_argument('--sandbox', action='store_true', help='enable sandbox/testnet')
 parser.add_argument('--testnet', action='store_true', help='enable sandbox/testnet')
 parser.add_argument('--test', action='store_true', help='enable sandbox/testnet')
+parser.add_argument('--swap', action='store_true', help='enable swap markets')
+parser.add_argument('--future', action='store_true', help='enable future markets')
 parser.add_argument('exchange_id', type=str, help='exchange id in lowercase', nargs='?')
 parser.add_argument('method', type=str, help='method or property', nargs='?')
 parser.add_argument('args', type=str, help='arguments', nargs='*')
@@ -118,6 +122,11 @@ if argv.exchange_id in keys:
     config.update(keys[argv.exchange_id])
 
 exchange = getattr(ccxt, argv.exchange_id)(config)
+
+if argv.swap:
+    exchange.options['defaultType'] = 'swap' 
+elif argv.future:
+    exchange.options['defaultType'] = 'future' 
 
 # check auth keys in env var
 requiredCredentials = exchange.requiredCredentials
