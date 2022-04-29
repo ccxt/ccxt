@@ -18,7 +18,7 @@ module.exports = class mexc extends ccxt.mexc {
                 'watchOHLCV': true,
                 'watchOrderBook': true,
                 'watchOrders': true,
-                'watchTicker': false,
+                'watchTicker': true,
                 'watchTickers': false, // for now
                 'watchTrades': true,
             },
@@ -69,8 +69,7 @@ module.exports = class mexc extends ccxt.mexc {
             'symbol': market['id'],
         };
         if (market['type'] === 'spot') {
-            throw new NotSupported ();
-            // return await this.watchSpotPublic (messageHash, channel, requestParams, params) ;
+            throw new NotSupported (this.id + ' watchTicker does not support spot markets');
         } else {
             return await this.watchSwapPublic (messageHash, channel, requestParams, params);
         }
@@ -258,7 +257,7 @@ module.exports = class mexc extends ccxt.mexc {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const channel = 'sub.depth';
-        const messageHash = 'orderbook' + ':' + market['id'];
+        const messageHash = 'orderbook' + ':' + symbol;
         const requestParams = {
             'symbol': market['id'],
             'compress': true,
@@ -281,44 +280,106 @@ module.exports = class mexc extends ccxt.mexc {
 
     handleOrderBook (client, message) {
         //
-        //     {
-        //         "topic":"orderbook",
-        //         "action":"partial",
-        //         "symbol":"ltc-usdt",
-        //         "data":{
-        //             "bids":[
-        //                 [104.29, 5.2264],
-        //                 [103.86,1.3629],
-        //                 [101.82,0.5942]
-        //             ],
-        //             "asks":[
-        //                 [104.81,9.5531],
-        //                 [105.54,0.6416],
-        //                 [106.18,1.4141],
-        //             ],
-        //             "timestamp":"2022-04-12T08:17:05.932Z"
-        //         },
-        //         "time":1649751425
-        //     }
+        //  {
+        //      "channel":"push.depth",
+        //      "data":{
+        //         "asks":[
+        //            [
+        //               39146.5,
+        //               11264,
+        //               1
+        //            ]
+        //         ],
+        //         "bids":[
+        //            [
+        //               39144,
+        //               35460,
+        //               1
+        //            ]
+        //         ],
+        //         "end":4895965272,
+        //         "begin":4895965271
+        //      },
+        //      "symbol":"BTC_USDT",
+        //      "ts":1651239652372
+        //  }
         //
         const marketId = this.safeString (message, 'symbol');
-        const channel = this.safeString (message, 'topic');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const data = this.safeValue (message, 'data');
-        let timestamp = this.safeString (data, 'timestamp');
-        timestamp = this.parse8601 (timestamp);
+        const timestamp = this.safeInteger (message, 'ts');
         const snapshot = this.parseOrderBook (data, symbol, timestamp);
-        let orderbook = undefined;
-        if (!(symbol in this.orderbooks)) {
+        let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            const nonce = this.safeNumber (data, 'end');
+            snapshot['nonce'] = nonce;
             orderbook = this.orderBook (snapshot);
             this.orderbooks[symbol] = orderbook;
         } else {
-            orderbook = this.orderbooks[symbol];
-            orderbook.reset (snapshot);
+            this.handleOrderBookMessage (client, message, orderbook);
         }
-        const messageHash = channel + ':' + marketId;
+        const messageHash = 'orderbook' + ':' + symbol;
         client.resolve (orderbook, messageHash);
+    }
+
+    handleOrderBookMessage (client, message, orderbook) {
+        //
+        //  {
+        //      "channel":"push.depth",
+        //      "data":{
+        //         "asks":[
+        //            [
+        //               39146.5,
+        //               11264,
+        //               1
+        //            ]
+        //         ],
+        //         "bids":[
+        //            [
+        //               39144,
+        //               35460,
+        //               1
+        //            ]
+        //         ],
+        //         "end":4895965272,
+        //         "begin":4895965271
+        //      },
+        //      "symbol":"BTC_USDT",
+        //      "ts":1651239652372
+        //
+        const data = this.safeValue (message, 'data', {});
+        // this is only needed for spot markets
+        // const nonce = this.safeNumber (data, 'end');
+        // if (nonce > orderbook['nonce'])
+        const asks = this.safeValue (data, 'asks', []);
+        const bids = this.safeValue (data, 'bids', []);
+        this.handleDeltas (orderbook['asks'], asks);
+        this.handleDeltas (orderbook['bids'], bids);
+        const timestamp = this.safeInteger (message, 'ts');
+        const marketId = this.safeString (message, 'symbol');
+        const symbol = this.safeSymbol (marketId);
+        orderbook['symbol'] = symbol;
+        orderbook['timestamp'] = timestamp;
+        orderbook['datetime'] = this.iso8601 (timestamp);
+        return orderbook;
+    }
+
+    handleDelta (bookside, delta) {
+        //   [
+        //     39146.5,
+        //     11264,
+        //     1
+        //    ]
+        const price = this.safeFloat (delta, 0);
+        const amount = this.safeFloat (delta, 1);
+        bookside.store (price, amount);
+    }
+
+    handleDeltas (bookside, deltas) {
+        for (let i = 0; i < deltas.length; i++) {
+            this.handleDelta (bookside, deltas[i]);
+        }
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -573,6 +634,9 @@ module.exports = class mexc extends ccxt.mexc {
     }
 
     handleMessage (client, message) {
+        //
+        // subscription
+        //  { channel: 'rs.sub.depth', data: 'success', ts: 1651239594401 }
         // swap ohlcv
         //     {
         //         "channel":"push.kline",
@@ -659,6 +723,7 @@ module.exports = class mexc extends ccxt.mexc {
             'orderbook': this.handleOrderBook,
             'push.kline': this.handleOHLCV,
             'push.ticker': this.handleTicker,
+            'push.depth': this.handleOrderBook,
         };
         const method = this.safeValue (methods, channel);
         if (method !== undefined) {
