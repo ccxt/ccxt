@@ -662,6 +662,7 @@ class binance(Exchange):
                         'order',
                         'batchOrders',
                         'userDataStream',
+                        'openAccount',
                     ],
                     'put': [
                         'userDataStream',

@@ -648,6 +648,7 @@ class binance extends Exchange {
                         'order',
                         'batchOrders',
                         'userDataStream',
+                        'openAccount',
                     ),
                     'put' => array(
                         'userDataStream',
