@@ -637,7 +637,7 @@ module.exports = class gateio extends Exchange {
         }
         const resultLength = result.length;
         if (resultLength === 0) {
-            throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to " + "'spot', 'margin', 'swap', 'future' or 'option'"); // eslint-disable-line quotes
+            throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to " + "'spot', 'swap', 'future' or 'option'"); // eslint-disable-line quotes
         }
         return result;
     }
@@ -1107,8 +1107,8 @@ module.exports = class gateio extends Exchange {
          * @name gateio#prepareRequest
          * @description Fills the request object with basic parameters that are needed in most api calls
          * @param {dict} market CCXT market, required when type is undefined
-         * @param {str} type 'spot', 'margin', 'swap', or 'future', required when market is undefined
-         * @param {bool} setMarginType true if setting 'account' param for margin markets
+         * @param {str} type 'spot', 'swap', or 'future', required when market is undefined
+         * @param {bool} setMarginType true if setting 'account' param for margin trading
          * @param {bool} someStopOrders true for some stop order api calls, but not all, it depends on if market is a param to set
          * @param {dict} params request parameters
          * @returns the api request object, and the new params object with uneeded parameters removed
@@ -1139,7 +1139,7 @@ module.exports = class gateio extends Exchange {
                 request = {};
             }
         }
-        if (setMarginType && (type === 'margin' || (market !== undefined && market['type'] === 'margin'))) {
+        if (setMarginType && ((type === 'spot' || type === 'margin') || (market !== undefined && market['type'] === 'spot'))) {
             const stop = this.safeValue (params, 'stop');
             let marginType = undefined;
             [ marginType, params ] = this.getMarginType (params);
@@ -1719,7 +1719,6 @@ module.exports = class gateio extends Exchange {
         //     };
         //
         const [ request, query ] = this.prepareRequest (market, undefined, false, false, params);
-        const spotOrMargin = market['spot'] || market['margin'];
         const method = this.getSupportedMapping (market['type'], {
             'spot': 'publicSpotGetOrderBook',
             'margin': 'publicSpotGetOrderBook',
@@ -1796,11 +1795,11 @@ module.exports = class gateio extends Exchange {
         //     }
         //
         let timestamp = this.safeInteger (response, 'current');
-        if (!spotOrMargin) {
+        if (!market['spot']) {
             timestamp = timestamp * 1000;
         }
-        const priceKey = spotOrMargin ? 0 : 'p';
-        const amountKey = spotOrMargin ? 1 : 's';
+        const priceKey = market['spot'] ? 0 : 'p';
+        const amountKey = market['spot'] ? 1 : 's';
         const nonce = this.safeInteger (response, 'id');
         const result = this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', priceKey, amountKey);
         result['nonce'] = nonce;
@@ -1927,7 +1926,6 @@ module.exports = class gateio extends Exchange {
         let type = undefined;
         let marginType = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        const spot = type === 'spot';
         const swap = type === 'swap';
         const future = type === 'future';
         const contract = swap || future;
@@ -1944,16 +1942,12 @@ module.exports = class gateio extends Exchange {
         }
         const crossMargin = marginType === 'cross_margin';
         const margin = marginType === 'margin';
-        let spotMethod = 'privateSpotGetAccounts';
-        if (spot) {
-            spotMethod = this.getSupportedMapping (marginType, {
+        const method = this.getSupportedMapping (type, {
+            'spot': this.getSupportedMapping (marginType, {
                 'spot': 'privateSpotGetAccounts',
                 'margin': 'privateMarginGetAccounts',
                 'cross_margin': 'privateMarginGetCrossAccounts',
-            });
-        }
-        const method = this.getSupportedMapping (type, {
-            'spot': spotMethod,
+            }),
             'funding': 'privateMarginGetFundingAccounts',
             'swap': 'privateFuturesGetSettleAccounts',
             'future': 'privateDeliveryGetSettleAccounts',
@@ -2846,7 +2840,6 @@ module.exports = class gateio extends Exchange {
         }
         const method = this.getSupportedMapping (market['type'], {
             'spot': 'privateSpotPost' + methodTail,
-            'margin': 'privateSpotPost' + methodTail,
             'swap': 'privateFuturesPostSettle' + methodTail,
             'future': 'privateDeliveryPostSettle' + methodTail,
         });
@@ -3173,10 +3166,7 @@ module.exports = class gateio extends Exchange {
          * @param {str} symbol Unified market symbol, *required for spot and margin*
          * @param {dict} params Parameters specified by the exchange api
          * @param {bool} params.stop True if the order being fetched is a trigger order
-<<<<<<< HEAD
-=======
-         * @param {str} params.marginType 'cross' or 'isolated' - marginType for type='margin', if not provided this.options['defaultMarginType'] is used
->>>>>>> 1b9c92cf61 (gateio.fetchOrder cross_margin)
+         * @param {str} params.marginType 'cross' or 'isolated' - marginType for margin trading if not provided this.options['defaultMarginType'] is used
          * @returns An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -3258,7 +3248,7 @@ module.exports = class gateio extends Exchange {
          * @param {dict} params exchange specific params
          * @param {bool} params.stop true for fetching stop orders
          * @param {str} params.type spot, margin, swap or future, if not provided this.options['defaultType'] is used
-         * @param {str} params.marginType 'cross' or 'isolated' - marginType for type='margin', if not provided this.options['defaultMarginType'] is used
+         * @param {str} params.marginType 'cross' or 'isolated' - marginType for margin trading if not provided this.options['defaultMarginType'] is used
          * @returns An array of order structures
          */
         await this.loadMarkets ();
@@ -3373,7 +3363,7 @@ module.exports = class gateio extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        if (since !== undefined && (market['spot'] || market['margin'])) {
+        if (since !== undefined && (market['spot'])) {
             request['from'] = parseInt (since / 1000);
         }
         const methodTail = stop ? 'PriceOrders' : 'Orders';
