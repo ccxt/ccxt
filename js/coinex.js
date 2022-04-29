@@ -1234,7 +1234,7 @@ module.exports = class coinex extends Exchange {
             type = this.safeInteger (order, 'type');
             if (type === 1) {
                 type = 'limit';
-            } else if (type === 2)
+            } else if (type === 2) {
                 type = 'market';
             }
         }
