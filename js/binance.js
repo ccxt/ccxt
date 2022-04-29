@@ -25,7 +25,7 @@ module.exports = class binance extends Exchange {
                 'margin': true,
                 'swap': true,
                 'future': true,
-                'option': undefined,
+                'option': true,
                 'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
@@ -640,6 +640,7 @@ module.exports = class binance extends Exchange {
                         'order',
                         'batchOrders',
                         'userDataStream',
+                        'openAccount',
                     ],
                     'put': [
                         'userDataStream',
