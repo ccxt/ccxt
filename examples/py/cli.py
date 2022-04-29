@@ -36,8 +36,8 @@ class Argv(object):
     exchange_id = None
     method = None
     symbol = None
-    spot = False,
-    swap = False,
+    spot = False
+    swap = False
     future = False
 
 
