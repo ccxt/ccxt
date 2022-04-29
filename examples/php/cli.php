@@ -21,6 +21,9 @@ if (count($argv) > 2) {
     $debug = count(array_filter($args, function ($option) { return strstr($option, '--debug') !== false; })) > 0;
     $args = array_values(array_filter($args, function ($option) { return strstr($option, '--debug') === false; }));
 
+    $spot = count(array_filter($args, function ($option) { return strstr($option, '--spot') !== false; })) > 0;
+    $args = array_values(array_filter($args, function ($option) { return strstr($option, '--spot') === false; }));
+
     $swap = count(array_filter($args, function ($option) { return strstr($option, '--swap') !== false; })) > 0;
     $args = array_values(array_filter($args, function ($option) { return strstr($option, '--swap') === false; }));
 
@@ -48,7 +51,9 @@ if (count($argv) > 2) {
         $exchange = '\\ccxt\\' . $id;
         $exchange = new $exchange($config);
 
-        if ($swap) {
+        if ($spot) {
+            $exchange->options['defaultType'] = 'spot';
+        } else if ($swap) {
             $exchange->options['defaultType'] = 'swap';
         } else if ($future) {
             $exchange->options['defaultType'] = 'future';

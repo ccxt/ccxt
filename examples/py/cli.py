@@ -38,6 +38,7 @@ class Argv(object):
     cors = False
     method = None
     symbol = None
+    spot = False
     swap = False
     future = False
     args = []
@@ -54,6 +55,7 @@ parser.add_argument('--debug', action='store_true', help='enable debug output')
 parser.add_argument('--sandbox', action='store_true', help='enable sandbox/testnet')
 parser.add_argument('--testnet', action='store_true', help='enable sandbox/testnet')
 parser.add_argument('--test', action='store_true', help='enable sandbox/testnet')
+parser.add_argument('--spot', action='store_true', help='enable spot markets')
 parser.add_argument('--swap', action='store_true', help='enable swap markets')
 parser.add_argument('--future', action='store_true', help='enable future markets')
 parser.add_argument('exchange_id', type=str, help='exchange id in lowercase', nargs='?')
@@ -126,7 +128,9 @@ if argv.exchange_id in keys:
 
 exchange = getattr(ccxt, argv.exchange_id)(config)
 
-if argv.swap:
+if argv.spot:
+    exchange.options['defaultType'] = 'spot'
+elif argv.swap:
     exchange.options['defaultType'] = 'swap'
 elif argv.future:
     exchange.options['defaultType'] = 'future'

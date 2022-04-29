@@ -19,6 +19,7 @@ let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x
         process.argv.includes ('--testnet') ||
         process.argv.includes ('--sandbox')
     , signIn = process.argv.includes ('--sign-in') || process.argv.includes ('--signIn')
+    , spot = process.argv.includes ('--spot')
     , swap = process.argv.includes ('--swap')
     , future = process.argv.includes ('--future')
 
@@ -91,10 +92,12 @@ try {
         ... settings,
     })
 
-    if (swap) {
-        exchange.options['defaultType'] = 'swap'
+    if (spot) {
+        exchange.options['defaultType'] = 'spot';
+    } else if (swap) {
+        exchange.options['defaultType'] = 'swap';
     } else if (future) {
-        exchange.options['defaultType'] = 'future'
+        exchange.options['defaultType'] = 'future';
     }
 
     // check auth keys in env var
