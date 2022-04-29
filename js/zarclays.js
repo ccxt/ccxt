@@ -15,8 +15,8 @@ module.exports = class hollaex extends Exchange {
             'id': 'zarclays',
             'name': 'Zarclays',
             'countries': [ 'KR' ],
-            // 1 requests per second => 1000ms / 1 = 1000 ms between requests
-            'rateLimit': 1000,
+            // 4 requests per second => 1000ms / 4 = 250 ms between requests
+            'rateLimit': 250,
             'version': 'v2',
             'pro': true,
             'has': {
