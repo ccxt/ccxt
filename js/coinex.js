@@ -24,7 +24,6 @@ module.exports = class coinex extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': true,
-                'reduceMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
@@ -46,6 +45,7 @@ module.exports = class coinex extends Exchange {
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchWithdrawals': true,
+                'reduceMargin': true,
                 'withdraw': true,
             },
             'timeframes': {
