@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadRequest, ArgumentsRequired, InsufficientFunds, InvalidOrder } = require ('./base/errors');
+const { ExchangeError } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 
 // ---------------------------------------------------------------------------
@@ -68,7 +68,7 @@ module.exports = class coinflex extends Exchange {
                 'fetchLedgerEntry': undefined,
                 'fetchLeverageTiers': undefined,
                 'fetchMarketLeverageTiers': undefined,
-                'fetchMarkets': undefined,
+                'fetchMarkets': true,
                 'fetchMarkOHLCV': undefined,
                 'fetchMyTrades': undefined,
                 'fetchOHLCV': undefined,
@@ -96,7 +96,7 @@ module.exports = class coinflex extends Exchange {
                 'fetchTransfers': undefined,
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': undefined,
-                'loadMarkets': undefined,
+                'loadMarkets': true,
                 'reduceMargin': undefined,
                 'setLeverage': undefined,
                 'setMarginMode': undefined,
@@ -106,7 +106,6 @@ module.exports = class coinflex extends Exchange {
                 'withdraw': undefined,
             },
             'timeframes': {
-                
             },
             'urls': {
                 'logo': '',
@@ -121,6 +120,10 @@ module.exports = class coinflex extends Exchange {
                 'fees': [
                     'https://coinflex.com/fees/',
                 ],
+                'test': {
+                    'public': 'https://v2stgapi.coinflex.com',
+                    'private': 'https://v2stgapi.coinflex.com',
+                },
             },
             'api': {
                 'public': {
@@ -258,83 +261,67 @@ module.exports = class coinflex extends Exchange {
         // v3 markets has a few less fields available for market-objects, but still enough to precede.
         const response = await this.publicGetV3Markets (params);
         //
-        // {
-        //     "success": true,
-        //     "data": [
-        //         {
-        //             "marketCode": "BTC-USD",
-        //             "name": "BTC/USD",
-        //             "referencePair": "BTC/USD",
-        //             "base": "BTC",
-        //             "counter": "USD",
-        //             "type": "SPOT", // SPOT, FUTURE, REPO, SPREAD
-        //             "tickSize": "1",
-        //             "minSize": "0.001",
-        //             "listedAt": "1593316800000",
-        //             "upperPriceBound": "40632",
-        //             "lowerPriceBound": "37506",
-        //             "markPrice": "39069",
-        //             "lastUpdatedAt": "1651240365178"
-        //         },
-        //         {
-        //             "marketCode": "BTC-USD-SWAP-LIN",
-        //             "name": "BTC/USD Perp",
-        //             "referencePair": "BTC/USD",
-        //             "base": "BTC",
-        //             "counter": "USD",
-        //             "type": "FUTURE",
-        //         },
-        //         {
-        //             "marketCode": "BTC-USD-220624-LIN",
-        //             "name": "BTC/USD Q220624",
-        //             "referencePair": "BTC/USD",
-        //             "base": "BTC",
-        //             "counter": "USD",
-        //             "type": "FUTURE",
-        //             "settlementAt": "1656072000000",
-        //             ...
-        //         },
-        //         {
-        //             "marketCode": "BTC-USD-220930-LIN",
-        //             "name": "BTC/USD Q220930",
-        //             "referencePair": "BTC/USD",
-        //             "base": "BTC",
-        //             "counter": "USD",
-        //             "type": "FUTURE",
-        //             "settlementAt": "1664539200000",
-        //             ...
-        //         },
-        //         {
-        //             "marketCode": "BTC-USD-REPO-LIN",
-        //             "name": "BTC/USD Repo",
-        //             "referencePair": "BTC/USD",
-        //             "base": "BTC-USD",
-        //             "counter": "BTC-USD-SWAP-LIN",
-        //             "type": "REPO",
-        //             ...
-        //         },
-        //         {
-        //             "marketCode": "BTC-USD-SPR-220624P-LIN",
-        //             "name": "BTC/USD SPR Q220624",
-        //             "referencePair": "BTC/USD",
-        //             "base": "BTC-USD-220624-LIN",
-        //             "counter": "BTC-USD-SWAP-LIN",
-        //             "type": "SPREAD",
-        //             "settlementAt": "1656072000000",
-        //             ...
-        //         },
-        //         {
-        //             "marketCode": "BTC-USD-SPR-220930P-LIN",
-        //             "name": "BTC/USD SPR Q220930",
-        //             "referencePair": "BTC/USD",
-        //             "base": "BTC-USD-220930-LIN",
-        //             "counter": "BTC-USD-SWAP-LIN",
-        //             "type": "SPREAD",
-        //             "settlementAt": "1664539200000",
-        //             ...
-        //         },
-        //     ],
-        // }
+        //     {
+        //         "success": true,
+        //         "data": [
+        //             {
+        //                 "marketCode": "BTC-USD",
+        //                 "name": "BTC/USD",
+        //                 "referencePair": "BTC/USD",
+        //                 "base": "BTC",
+        //                 "counter": "USD",
+        //                 "type": "SPOT", // SPOT, FUTURE, REPO, SPREAD
+        //                 "tickSize": "1",
+        //                 "minSize": "0.001",
+        //                 "listedAt": "1593316800000",
+        //                 "upperPriceBound": "40632",
+        //                 "lowerPriceBound": "37506",
+        //                 "markPrice": "39069",
+        //                 "lastUpdatedAt": "1651240365178"
+        //             },
+        //
+        //         futures/spreads/repo markets just have the same structure, but different namings
+        //
+        //             {
+        //                 "marketCode": "BTC-USD-SWAP-LIN",
+        //                 "name": "BTC/USD Perp",
+        //                 "referencePair": "BTC/USD",
+        //                 "base": "BTC",
+        //                 "counter": "USD",
+        //                 "type": "FUTURE",
+        //                 ...
+        //             },
+        //             {
+        //                 "marketCode": "BTC-USD-220624-LIN",
+        //                 "name": "BTC/USD Q220624",
+        //                 "referencePair": "BTC/USD",
+        //                 "base": "BTC",
+        //                 "counter": "USD",
+        //                 "type": "FUTURE",
+        //                 "settlementAt": "1656072000000",
+        //                 ...
+        //             },
+        //             {
+        //                 "marketCode": "BTC-USD-REPO-LIN",
+        //                 "name": "BTC/USD Repo",
+        //                 "referencePair": "BTC/USD",
+        //                 "base": "BTC-USD",
+        //                 "counter": "BTC-USD-SWAP-LIN",
+        //                 "type": "REPO",
+        //                 ...
+        //             },
+        //             {
+        //                 "marketCode": "BTC-USD-SPR-220624P-LIN",
+        //                 "name": "BTC/USD SPR Q220624",
+        //                 "referencePair": "BTC/USD",
+        //                 "base": "BTC-USD-220624-LIN",
+        //                 "counter": "BTC-USD-SWAP-LIN",
+        //                 "type": "SPREAD",
+        //                 "settlementAt": "1656072000000",
+        //                 ...
+        //             },
+        //         ],
+        //     }
         //
         const data = this.safeValue (response, 'data');
         const result = [];
@@ -343,30 +330,51 @@ module.exports = class coinflex extends Exchange {
             const id = this.safeString (market, 'marketCode');
             const baseId = this.safeString (market, 'base');
             const quoteId = this.safeString (market, 'counter');
+            const settleId = this.safeString (market, 'counter');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            const settle = this.safeCurrencyCode (settleId);
+            const type = this.safeString (market, 'type');
+            const settlementTime = this.safeInteger (market, 'settlementAt');
+            let symbol = base + '/' + quote;
+            let marketType = undefined;
+            let linear = false;
+            if (type === 'SPOT') {
+                marketType = 'spot';
+            } else if (type === 'FUTURE') {
+                linear = true;
+                if (settlementTime === undefined) {
+                    marketType = 'swap';
+                    symbol += ':' + settle;
+                } else {
+                    marketType = 'future';
+                    symbol += ':' + settle + '-' + this.yymmdd (settlementTime);
+                }
+            } else if (type === 'SPREAD' || type === 'REPO') {
+                continue;
+            }
             result.push ({
                 'id': id,
-                'symbol': base + '/' + quote,
+                'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'settle': undefined,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': undefined,
-                'type': undefined,
-                'spot': undefined,
-                'margin': undefined,
-                'future': undefined,
-                'swap': undefined,
-                'option': undefined,
-                'active': undefined,
-                'contract': undefined,
-                'linear': undefined,
-                'inverse': undefined,
+                'settleId': settleId,
+                'type': marketType,
+                'spot': marketType === 'spot',
+                'margin': false,
+                'future': marketType === 'future',
+                'swap': marketType === 'swap',
+                'option': false,
+                'active': true,
+                'contract': (marketType === 'future' || marketType === 'swap'),
+                'linear': linear,
+                'inverse': false,
                 'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
+                'expiry': settlementTime,
+                'expiryDatetime': this.iso8601 (settlementTime),
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
@@ -400,11 +408,11 @@ module.exports = class coinflex extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         [ path, params ] = this.resolvePath (path, params);
         let url = this.urls['api'][api] + '/' + path;
-        let paramsSortedEncoded = '';
+        let paramsEncoded = '';
         if (Object.keys (params).length) {
-            paramsSortedEncoded = this.rawencode (this.keysort (params));
             if (method === 'GET') {
-                url += '?' + paramsSortedEncoded;
+                paramsEncoded = this.urlencode (params);
+                url += '?' + paramsEncoded;
             }
         }
         headers = {};
