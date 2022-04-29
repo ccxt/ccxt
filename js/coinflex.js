@@ -408,11 +408,9 @@ module.exports = class coinflex extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         [ path, params ] = this.resolvePath (path, params);
         let url = this.urls['api'][api] + '/' + path;
-        let paramsEncoded = '';
         if (Object.keys (params).length) {
             if (method === 'GET') {
-                paramsEncoded = this.urlencode (params);
-                url += '?' + paramsEncoded;
+                url += '?' + this.urlencode (params);
             }
         }
         headers = {};
