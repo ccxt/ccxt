@@ -4,7 +4,7 @@
 
 const ccxt = require ('ccxt');
 const { AuthenticationError, BadSymbol, BadRequest, NotSupported } = require ('ccxt/js/base/errors');
-const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
+const { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -57,7 +57,8 @@ module.exports = class mexc extends ccxt.mexc {
             'symbol': market['id'],
         };
         if (market['type'] === 'spot') {
-            return await this.watchSpotPublic (messageHash, channel, requestParams, params);
+            throw new NotSupported ();
+            // return await this.watchSpotPublic (messageHash, channel, requestParams, params) ;
         } else {
             return await this.watchSwapPublic (messageHash, channel, requestParams, params);
         }
@@ -112,11 +113,9 @@ module.exports = class mexc extends ccxt.mexc {
         const timeframes = this.safeValue (options, 'contract', {});
         const timeframeValue = this.safeString (timeframes, timeframe);
         const channel = 'sub.kline';
-        const messageHash = channel + ':' + symbol + ':' + timeframeValue;
-        // if (type === 'spot') {
+        const messageHash = 'kline' + ':' + symbol + ':' + timeframeValue;
         requestParams['symbol'] = market['id'];
         requestParams['interval'] = timeframeValue;
-        // }
         if (since !== undefined) {
             requestParams['start'] = since;
         }
@@ -126,24 +125,74 @@ module.exports = class mexc extends ccxt.mexc {
         } else {
             ohlcv = await this.watchSwapPublic (messageHash, channel, requestParams, params);
         }
-        // const ohlcv = await this.watch (url, messageHash, this.extend (params, request), messageHash);
-        // const url = this.urls['api']['ws']['spot'];
-        // const ohlcv = await this.watch (url, messageHash, requestParams, messageHash);
-        // const ohlcv = await this.watchSwapPublic (messageHash, channel, requestParams, params);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
-        // } else {
-        //     throw new NotSupported ('watchOHLCV does not support spot markets');
-        // }
+    }
+
+    handleOHLCV (client, message) {
+        //
+        //     {
+        //         "channel":"push.kline",
+        //         "data":{
+        //             "a":233.740269343644737245,
+        //             "c":6885,
+        //             "h":6910.5,
+        //             "interval":"Min60",
+        //             "l":6885,
+        //             "o":6894.5,
+        //             "q":1611754,
+        //             "symbol":"BTC_USDT",
+        //             "t":1587448800
+        //         },
+        //         "symbol":"BTC_USDT",
+        //         "ts":1587442022003
+        //     }
+        //
+        const marketId = this.safeString (message, 'symbol');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const data = this.safeValue (message, 'data', {});
+        const interval = this.safeString (data, 'interval');
+        const messageHash = 'kline' + ':' + interval + ':' + symbol;
+        const timeframe = this.findTimeframe (interval);
+        const parsed = this.parseOHLCV (message, market);
+        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        if (stored === undefined) {
+            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+            stored = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][timeframe] = stored;
+        }
+        stored.append (parsed);
+        client.resolve (stored, messageHash);
+        return message;
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
+        const channel = 'sub.depth';
         const messageHash = 'orderbook' + ':' + market['id'];
-        const orderbook = await this.watchPublic (messageHash, params);
+        const requestParams = {
+            'symbol': market['id'],
+            'compress': true,
+        };
+        if (limit !== undefined) {
+            if (limit !== 5 && limit !== 10 && limit !== 20) {
+                throw new BadRequest (this.id + ' watchOrderBook limit parameter cannot be different from 5, 10 or 20');
+            } else {
+                requestParams['limit'] = limit;
+            }
+        }
+        let orderbook = undefined;
+        if (market['type'] === 'swap') {
+            orderbook = await this.watchSwapPublic (messageHash, channel, requestParams, params);
+        } else {
+            orderbook = await this.watchSpotPublic (messageHash, channel, requestParams, params);
+        }
         return orderbook.limit (limit);
     }
 
@@ -194,14 +243,16 @@ module.exports = class mexc extends ccxt.mexc {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const channel = 'sub.deal';
-        const messageHash = channel + ':' + market['id'];
-        if (market['type'] === 'spot') {
-            throw new NotSupported ('Not supported');
-        }
+        const messageHash = 'trades' + ':' + symbol;
         const requestParams = {
             'symbol': market['id'],
         };
-        const trades = await this.watchSwapPublic (messageHash, channel, requestParams, params);
+        let trades = undefined;
+        if (market['type'] === 'spot') {
+            trades = await this.watchSpotPublic (messageHash, channel, requestParams, params);
+        } else {
+            trades = await this.watchSwapPublic (messageHash, channel, requestParams, params);
+        }
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -210,21 +261,38 @@ module.exports = class mexc extends ccxt.mexc {
 
     handleTrades (client, message) {
         //
+        // swap trades
         //     {
-        //         topic: 'trade',
-        //         action: 'partial',
-        //         symbol: 'btc-usdt',
-        //         data: [
-        //             {
-        //                 size: 0.05145,
-        //                 price: 41977.9,
-        //                 side: 'buy',
-        //                 timestamp: '2022-04-11T09:40:10.881Z'
-        //             },
-        //         ]
+        //         "channel":"push.deal",
+        //         "data":{
+        //             "M":1,
+        //             "O":1,
+        //             "T":1,
+        //             "p":6866.5,
+        //             "t":1587442049632,
+        //             "v":2096
+        //         },
+        //         "symbol":"BTC_USDT",
+        //         "ts":1587442022003
         //     }
         //
-        const channel = this.safeString (message, 'topic');
+        // spot trades
+        //
+        //    {
+        //        "symbol":"BTC_USDT",
+        //        "data":{
+        //           "deals":[
+        //              {
+        //                 "t":1651227552839,
+        //                 "p":"39190.01",
+        //                 "q":"0.001357",
+        //                 "T":2
+        //              }
+        //           ]
+        //        },
+        //        "channel":"push.deal"
+        //     }
+        //
         const marketId = this.safeString (message, 'symbol');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
@@ -234,14 +302,19 @@ module.exports = class mexc extends ccxt.mexc {
             stored = new ArrayCache (limit);
             this.trades[symbol] = stored;
         }
-        const data = this.safeValue (message, 'data', []);
-        const parsedTrades = this.parseTrades (data, market);
+        const data = this.safeValue (message, 'data', {});
+        let trades = undefined;
+        if ('deals' in data) {
+            trades = this.safeValue (data, 'deals', []);
+        } else {
+            trades = [ data ];
+        }
+        const parsedTrades = this.parseTrades (trades, market);
         for (let j = 0; j < parsedTrades.length; j++) {
             stored.append (parsedTrades[j]);
         }
-        const messageHash = channel + ':' + marketId;
+        const messageHash = 'trades' + ':' + symbol;
         client.resolve (stored, messageHash);
-        client.resolve (stored, channel);
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -475,6 +548,23 @@ module.exports = class mexc extends ccxt.mexc {
         //         },
         //         "symbol":"BTC_USDT",
         //         "ts":1587442022003
+        //     }
+        //
+        // spot trades
+        //
+        //    {
+        //        "symbol":"BTC_USDT",
+        //        "data":{
+        //           "deals":[
+        //              {
+        //                 "t":1651227552839,
+        //                 "p":"39190.01",
+        //                 "q":"0.001357",
+        //                 "T":2
+        //              }
+        //           ]
+        //        },
+        //        "channel":"push.deal"
         //     }
         //
         if (!this.handleErrorMessage (client, message)) {
