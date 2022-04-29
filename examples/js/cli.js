@@ -92,9 +92,9 @@ try {
     })
 
     if (swap) {
-        exchange['options']['defaultType'] = 'swap'
+        exchange.options['defaultType'] = 'swap'
     } else if (future) {
-        exchange['options']['defaultType'] = 'future'
+        exchange.options['defaultType'] = 'future'
     }
 
     // check auth keys in env var
