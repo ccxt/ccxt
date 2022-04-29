@@ -1215,23 +1215,28 @@ module.exports = class coinex extends Exchange {
         const remainingString = this.safeString (order, 'left');
         const marketId = this.safeString (order, 'market');
         market = this.safeMarket (marketId, market);
-        const swap = market['swap'];
         const feeCurrencyId = this.safeString (order, 'fee_asset');
         let feeCurrency = this.safeCurrencyCode (feeCurrencyId);
         if (feeCurrency === undefined) {
             feeCurrency = market['quote'];
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        let type = undefined;
-        let side = undefined;
-        if (swap) {
-            type = this.safeInteger (order, 'type');
-            type = (type === 1) ? 'limit' : 'market';
-            side = this.safeInteger (order, 'side');
-            side = (side === 1) ? 'sell' : 'buy';
+        let side = this.safeInteger (order, 'side');
+        if (side === 1) {
+            side = 'sell';
+        } else if (side === 2) {
+            side = 'buy';
         } else {
             side = this.safeString (order, 'type');
-            type = this.safeString (order, 'order_type');
+        }
+        let type = this.safeString (order, 'order_type');
+        if (type === undefined) {
+            type = this.safeInteger (order, 'type');
+            if (type === 1) {
+                type = 'limit';
+            } else if (type === 2)
+                type = 'market';
+            }
         }
         return this.safeOrder ({
             'id': this.safeString2 (order, 'id', 'order_id'),
