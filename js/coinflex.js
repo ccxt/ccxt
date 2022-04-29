@@ -413,8 +413,7 @@ module.exports = class coinflex extends Exchange {
                 url += '?' + this.urlencode (params);
             }
         }
-        headers = {};
-        headers['User-Agent'] = 'CCXT:)';
+        headers = { 'User-Agent': 'CCXT:)' };
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
