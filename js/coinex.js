@@ -232,6 +232,7 @@ module.exports = class coinex extends Exchange {
                 'createMarketBuyOrderRequiresPrice': true,
                 'defaultType': 'spot', // spot, swap, margin
                 'defaultSubType': 'linear', // linear, inverse
+                'defaultMarginType': 'isolated', // isolated, cross
             },
             'commonCurrencies': {
                 'ACM': 'Actinium',
@@ -1824,16 +1825,23 @@ module.exports = class coinex extends Exchange {
     }
 
     async setLeverage (leverage, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
-        if (params['position_type'] === undefined) {
+        await this.loadMarkets ();
+        const defaultMarginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType');
+        let defaultPositionType = undefined;
+        if (defaultMarginType === 'isolated') {
+            defaultPositionType = 1;
+        } else if (defaultMarginType === 'cross') {
+            defaultPositionType = 2;
+        }
+        const positionType = this.safeInteger (params, 'position_type', defaultPositionType);
+        if (positionType === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a position_type parameter that will transfer margin to the specified trading pair');
         }
         const market = this.market (symbol);
-        const positionType = this.safeInteger (params, 'position_type');
-        const maxLeverage = this.safeInteger (market['limits']['leverage'], 'max', 50);
+        const maxLeverage = this.safeInteger (market['limits']['leverage'], 'max', 100);
         if (market['type'] !== 'swap') {
             throw new BadSymbol (this.id + ' setLeverage() supports swap contracts only');
         }
