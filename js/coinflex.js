@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, BadRequest, ArgumentsRequired, InsufficientFunds, InvalidOrder } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 
 // ---------------------------------------------------------------------------
 
@@ -13,7 +14,7 @@ module.exports = class coinflex extends Exchange {
             'id': 'coinflex',
             'name': 'CoinFLEX',
             'countries': [ 'SC' ], // Seychelles
-            'rateLimit': 121, // 2500:5min; 100:1min;
+            'rateLimit': 120, // 2500:5min; 100:1min;
             'version': 'v3',
             'certified': false,
             'has': {
@@ -225,6 +226,7 @@ module.exports = class coinflex extends Exchange {
                     'taker': this.parseNumber ('0.008'),
                 },
             },
+            'precisionMode': TICK_SIZE,
             'options': {
                 'timeframes': {
                     'spot': {
@@ -253,8 +255,146 @@ module.exports = class coinflex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        // v3 markets has a few less fields available for market-objects, but still enough to precede.
         const response = await this.publicGetV3Markets (params);
-        
+        //
+        // {
+        //     "success": true,
+        //     "data": [
+        //         {
+        //             "marketCode": "BTC-USD",
+        //             "name": "BTC/USD",
+        //             "referencePair": "BTC/USD",
+        //             "base": "BTC",
+        //             "counter": "USD",
+        //             "type": "SPOT", // SPOT, FUTURE, REPO, SPREAD
+        //             "tickSize": "1",
+        //             "minSize": "0.001",
+        //             "listedAt": "1593316800000",
+        //             "upperPriceBound": "40632",
+        //             "lowerPriceBound": "37506",
+        //             "markPrice": "39069",
+        //             "lastUpdatedAt": "1651240365178"
+        //         },
+        //         {
+        //             "marketCode": "BTC-USD-SWAP-LIN",
+        //             "name": "BTC/USD Perp",
+        //             "referencePair": "BTC/USD",
+        //             "base": "BTC",
+        //             "counter": "USD",
+        //             "type": "FUTURE",
+        //         },
+        //         {
+        //             "marketCode": "BTC-USD-220624-LIN",
+        //             "name": "BTC/USD Q220624",
+        //             "referencePair": "BTC/USD",
+        //             "base": "BTC",
+        //             "counter": "USD",
+        //             "type": "FUTURE",
+        //             "settlementAt": "1656072000000",
+        //             ...
+        //         },
+        //         {
+        //             "marketCode": "BTC-USD-220930-LIN",
+        //             "name": "BTC/USD Q220930",
+        //             "referencePair": "BTC/USD",
+        //             "base": "BTC",
+        //             "counter": "USD",
+        //             "type": "FUTURE",
+        //             "settlementAt": "1664539200000",
+        //             ...
+        //         },
+        //         {
+        //             "marketCode": "BTC-USD-REPO-LIN",
+        //             "name": "BTC/USD Repo",
+        //             "referencePair": "BTC/USD",
+        //             "base": "BTC-USD",
+        //             "counter": "BTC-USD-SWAP-LIN",
+        //             "type": "REPO",
+        //             ...
+        //         },
+        //         {
+        //             "marketCode": "BTC-USD-SPR-220624P-LIN",
+        //             "name": "BTC/USD SPR Q220624",
+        //             "referencePair": "BTC/USD",
+        //             "base": "BTC-USD-220624-LIN",
+        //             "counter": "BTC-USD-SWAP-LIN",
+        //             "type": "SPREAD",
+        //             "settlementAt": "1656072000000",
+        //             ...
+        //         },
+        //         {
+        //             "marketCode": "BTC-USD-SPR-220930P-LIN",
+        //             "name": "BTC/USD SPR Q220930",
+        //             "referencePair": "BTC/USD",
+        //             "base": "BTC-USD-220930-LIN",
+        //             "counter": "BTC-USD-SWAP-LIN",
+        //             "type": "SPREAD",
+        //             "settlementAt": "1664539200000",
+        //             ...
+        //         },
+        //     ],
+        // }
+        //
+        const data = this.safeValue (response, 'data');
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            const market = data[i];
+            const id = this.safeString (market, 'marketCode');
+            const baseId = this.safeString (market, 'base');
+            const quoteId = this.safeString (market, 'counter');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            result.push ({
+                'id': id,
+                'symbol': base + '/' + quote,
+                'base': base,
+                'quote': quote,
+                'settle': undefined,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': undefined,
+                'type': undefined,
+                'spot': undefined,
+                'margin': undefined,
+                'future': undefined,
+                'swap': undefined,
+                'option': undefined,
+                'active': undefined,
+                'contract': undefined,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': undefined,
+                    'price': this.safeNumber (market, 'tickSize'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': this.safeNumber (market, 'minSize'),
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': this.safeNumber (market, 'upperPriceBound'),
+                        'max': this.safeNumber (market, 'lowerPriceBound'),
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'info': market,
+            });
+        }
+        return result;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -268,7 +408,7 @@ module.exports = class coinflex extends Exchange {
             }
         }
         headers = {};
-        headers['content-type'] = 'application/json';
+        headers['User-Agent'] = 'CCXT:)';
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
@@ -282,8 +422,8 @@ module.exports = class coinflex extends Exchange {
         //         "data":[...]
         //     }
         //
-        const message = this.safeValue (response, 'msg');
-        if (message === 'success') {
+        const message = this.safeValue (response, 'success');
+        if (message === true) {
             return;
         }
         const responseCode = this.safeString (response, 'code');
