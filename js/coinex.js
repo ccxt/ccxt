@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, BadSymbol, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError, PermissionDenied, ExchangeNotAvailable, RequestTimeout } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, BadRequest, BadSymbol, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError, PermissionDenied, ExchangeNotAvailable, RequestTimeout } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -45,6 +45,7 @@ module.exports = class coinex extends Exchange {
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchWithdrawals': true,
+                'setLeverage': true,
                 'reduceMargin': true,
                 'withdraw': true,
             },
@@ -233,6 +234,7 @@ module.exports = class coinex extends Exchange {
                 'createMarketBuyOrderRequiresPrice': true,
                 'defaultType': 'spot', // spot, swap, margin
                 'defaultSubType': 'linear', // linear, inverse
+                'defaultMarginType': 'isolated', // isolated, cross
             },
             'commonCurrencies': {
                 'ACM': 'Actinium',
@@ -1822,6 +1824,38 @@ module.exports = class coinex extends Exchange {
         const data = this.safeValue (response, 'data');
         const trades = this.safeValue (data, tradeRequest, []);
         return this.parseTrades (trades, market, since, limit);
+    }
+
+    async setLeverage (leverage, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const defaultMarginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType');
+        let defaultPositionType = undefined;
+        if (defaultMarginType === 'isolated') {
+            defaultPositionType = 1;
+        } else if (defaultMarginType === 'cross') {
+            defaultPositionType = 2;
+        }
+        const positionType = this.safeInteger (params, 'position_type', defaultPositionType);
+        if (positionType === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a position_type parameter that will transfer margin to the specified trading pair');
+        }
+        const market = this.market (symbol);
+        const maxLeverage = this.safeInteger (market['limits']['leverage'], 'max', 100);
+        if (market['type'] !== 'swap') {
+            throw new BadSymbol (this.id + ' setLeverage() supports swap contracts only');
+        }
+        if ((leverage < 3) || (leverage > maxLeverage)) {
+            throw new BadRequest (this.id + ' setLeverage() leverage should be between 1 and ' + maxLeverage.toString () + ' for ' + symbol);
+        }
+        const request = {
+            'market': market['id'],
+            'leverage': leverage.toString (),
+            'position_type': positionType, // 1: isolated, 2: cross
+        };
+        return await this.perpetualPrivatePostMarketAdjustLeverage (this.extend (request, params));
     }
 
     async modifyMarginHelper (symbol, amount, addOrReduce, params = {}) {
