@@ -11,7 +11,7 @@ const ccxt = require ('ccxt')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.0.66'
+const version = '1.1.8'
 
 // Exchange.ccxtVersion = version
 
@@ -40,6 +40,7 @@ const exchanges = {
     'ftxus':                   require ('./js/ftxus.js'),
     'gateio':                  require ('./js/gateio.js'),
     'hitbtc':                  require ('./js/hitbtc.js'),
+    'hollaex':                 require ('./js/hollaex.js'),
     'huobi':                   require ('./js/huobi.js'),
     'huobijp':                 require ('./js/huobijp.js'),
     'huobipro':                require ('./js/huobipro.js'),

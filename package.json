@@ -1,6 +1,6 @@
 {
   "name": "ccxt.pro",
-  "version": "1.0.66",
+  "version": "1.1.8",
   "description": "A professional tool for algorithmic cryptocurrency trading",
   "main": "./ccxt.pro.js",
   "unpkg": "dist/ccxt.pro.browser.js",
@@ -50,7 +50,7 @@
   },
   "types": "./ccxt.pro.d.ts",
   "dependencies": {
-    "ccxt": "^1.78.77",
+    "ccxt": "^1.81.1",
     "ws": "^7.4.6"
   },
   "devDependencies": {
@@ -504,6 +504,8 @@
     "OKX",
     "ascendex.com",
     "AscendEX",
-    "Crypto.com"
+    "Crypto.com",
+    "hollaex.com",
+    "HollaEx"
   ]
 }

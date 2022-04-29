@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { ExchangeError, AuthenticationError, BadRequest, ArgumentsRequired, NotSupported } = require ('ccxt/js/base/errors');
+const { AuthenticationError, BadRequest, ArgumentsRequired, NotSupported, InvalidNonce } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -54,6 +54,9 @@ module.exports = class gateio extends ccxt.gateio {
                 'watchTradesSubscriptions': {},
                 'watchTickerSubscriptions': {},
                 'watchOrderBookSubscriptions': {},
+                'watchOrderBook': {
+                    'interval': '100ms',
+                },
             },
             'exceptions': {
                 'ws': {
@@ -71,40 +74,254 @@ module.exports = class gateio extends ccxt.gateio {
     async watchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const marketId = market['id'];
-        const uppercaseId = marketId.toUpperCase ();
-        const requestId = this.nonce ();
-        const url = this.urls['api']['ws'];
         const options = this.safeValue (this.options, 'watchOrderBook', {});
-        const defaultLimit = this.safeInteger (options, 'limit', 30);
+        const defaultLimit = this.safeInteger (options, 'limit', 20);
         if (!limit) {
             limit = defaultLimit;
-        } else if (limit !== 1 && limit !== 5 && limit !== 10 && limit !== 20 && limit !== 30) {
-            throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 1, 5, 10, 20, or 30');
         }
-        const interval = this.safeString (params, 'interval', '100ms');
-        const parameters = [ uppercaseId, limit, interval ];
-        const subscriptions = this.safeValue (options, 'subscriptions', {});
-        subscriptions[symbol] = parameters;
-        options['subscriptions'] = subscriptions;
-        this.options['watchOrderBook'] = options;
-        const toSend = Object.values (subscriptions);
-        const messageHash = 'depth.update' + ':' + marketId;
-        const subscribeMessage = {
-            'id': requestId,
-            'method': 'depth.subscribe',
-            'params': toSend,
+        const defaultInterval = this.safeString (options, 'interval', '100ms');
+        const interval = this.safeString (params, 'interval', defaultInterval);
+        const type = market['type'];
+        const messageType = this.getUniformType (type);
+        const method = messageType + '.' + 'order_book_update';
+        const messageHash = method + ':' + market['symbol'];
+        const url = this.getUrlByMarketType (type, market['inverse']);
+        const payload = [ marketId, interval ];
+        if (type !== 'spot') {
+            // contract pairs require limit in the payload
+            const stringLimit = limit.toString ();
+            payload.push (stringLimit);
+        }
+        const subscriptionParams = {
+            'method': this.handleOrderBookSubscription,
+            'symbol': symbol,
+            'limit': limit,
         };
-        const subscription = {
-            'id': requestId,
-        };
-        const orderbook = await this.watch (url, messageHash, subscribeMessage, messageHash, subscription);
+        const orderbook = await this.subscribePublic (url, method, messageHash, payload, subscriptionParams);
         return orderbook.limit (limit);
     }
 
+    handleOrderBookSubscription (client, message, subscription) {
+        const symbol = this.safeString (subscription, 'symbol');
+        const limit = this.safeInteger (subscription, 'limit');
+        if (symbol in this.orderbooks) {
+            delete this.orderbooks[symbol];
+        }
+        this.orderbooks[symbol] = this.orderBook ({}, limit);
+        const options = this.safeValue (this.options, 'handleOrderBookSubscription', {});
+        const fetchOrderBookSnapshot = this.safeValue (options, 'fetchOrderBookSnapshot', false);
+        if (fetchOrderBookSnapshot) {
+            const fetchingOrderBookSnapshot = 'fetchingOrderBookSnapshot';
+            subscription[fetchingOrderBookSnapshot] = true;
+            const messageHash = subscription['messageHash'];
+            client.subscriptions[messageHash] = subscription;
+            this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+        }
+    }
+
+    async fetchOrderBookSnapshot (client, message, subscription) {
+        const symbol = this.safeString (subscription, 'symbol');
+        const limit = this.safeInteger (subscription, 'limit');
+        const messageHash = this.safeString (subscription, 'messageHash');
+        try {
+            const snapshot = await this.fetchOrderBook (symbol, limit);
+            const orderbook = this.orderbooks[symbol];
+            const messages = orderbook.cache;
+            const firstMessage = this.safeValue (messages, 0, {});
+            const result = this.safeValue (firstMessage, 'result');
+            const seqNum = this.safeInteger (result, 'U');
+            const nonce = this.safeInteger (snapshot, 'nonce');
+            // if the received snapshot is earlier than the first cached delta
+            // then we cannot align it with the cached deltas and we need to
+            // retry synchronizing in maxAttempts
+            if ((seqNum === undefined) || (nonce < seqNum)) {
+                const maxAttempts = this.safeInteger (this.options, 'maxOrderBookSyncAttempts', 3);
+                let numAttempts = this.safeInteger (subscription, 'numAttempts', 0);
+                // retry to synchronize if we haven't reached maxAttempts yet
+                if (numAttempts < maxAttempts) {
+                    // safety guard
+                    if (messageHash in client.subscriptions) {
+                        numAttempts = this.sum (numAttempts, 1);
+                        subscription['numAttempts'] = numAttempts;
+                        client.subscriptions[messageHash] = subscription;
+                        this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+                    }
+                } else {
+                    // throw upon failing to synchronize in maxAttempts
+                    throw new InvalidNonce (this.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + ' in ' + maxAttempts.toString () + ' attempts');
+                }
+            } else {
+                orderbook.reset (snapshot);
+                // unroll the accumulated deltas
+                for (let i = 0; i < messages.length; i++) {
+                    const message = messages[i];
+                    this.handleOrderBookMessage (client, message, orderbook);
+                }
+                this.orderbooks[symbol] = orderbook;
+                client.resolve (orderbook, messageHash);
+            }
+        } catch (e) {
+            client.reject (e, messageHash);
+        }
+    }
+
+    handleOrderBook (client, message) {
+        //
+        //     {
+        //         "time":1649770575,
+        //         "channel":"spot.order_book_update",
+        //         "event":"update",
+        //         "result":{
+        //             "t":1649770575537,
+        //             "e":"depthUpdate",
+        //             "E":1649770575,
+        //             "s":"LTC_USDT",
+        //             "U":2622528153,
+        //             "u":2622528265,
+        //             "b":[
+        //                 ["104.18","3.9398"],
+        //                 ["104.56","19.0603"],
+        //                 ["104.94","0"],
+        //                 ["103.72","0"],
+        //                 ["105.01","52.6186"],
+        //                 ["104.76","0"],
+        //                 ["104.97","0"],
+        //                 ["104.71","0"],
+        //                 ["104.84","25.8604"],
+        //                 ["104.51","47.6508"],
+        //             ],
+        //             "a":[
+        //                 ["105.26","40.5519"],
+        //                 ["106.08","35.4396"],
+        //                 ["105.2","0"],
+        //                 ["105.45","8.5834"],
+        //                 ["105.5","20.17"],
+        //                 ["105.11","54.8359"],
+        //                 ["105.52","28.5605"],
+        //                 ["105.27","6.6325"],
+        //                 ["105.3","4.291446"],
+        //                 ["106.03","9.712"],
+        //             ]
+        //         }
+        //     }
+        //
+        const channel = this.safeString (message, 'channel');
+        const result = this.safeValue (message, 'result');
+        const marketId = this.safeString (result, 's');
+        const symbol = this.safeSymbol (marketId);
+        let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            orderbook = this.orderBook ({});
+            this.orderbooks[symbol] = orderbook;
+        }
+        const messageHash = channel + ':' + symbol;
+        const subscription = this.safeValue (client.subscriptions, messageHash, {});
+        const fetchingOrderBookSnapshot = 'fetchingOrderBookSnapshot';
+        const isFetchingOrderBookSnapshot = this.safeValue (subscription, fetchingOrderBookSnapshot, false);
+        if (!isFetchingOrderBookSnapshot) {
+            subscription[fetchingOrderBookSnapshot] = true;
+            client.subscriptions[messageHash] = subscription;
+            this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+        }
+        if (orderbook['nonce'] === undefined) {
+            orderbook.cache.push (message);
+        } else {
+            const messageHash = channel + ':' + symbol;
+            this.handleOrderBookMessage (client, message, orderbook, messageHash);
+        }
+    }
+
+    handleOrderBookMessage (client, message, orderbook, messageHash = undefined) {
+        //
+        // spot
+        //
+        //     {
+        //         time: 1650189272,
+        //         channel: 'spot.order_book_update',
+        //         event: 'update',
+        //         result: {
+        //             t: 1650189272515,
+        //             e: 'depthUpdate',
+        //             E: 1650189272,
+        //             s: 'GMT_USDT',
+        //             U: 140595902,
+        //             u: 140595902,
+        //             b: [
+        //                 [ '2.51518', '228.119' ],
+        //                 [ '2.50587', '1510.11' ],
+        //                 [ '2.49944', '67.6' ],
+        //             ],
+        //             a: [
+        //                 [ '2.5182', '4.199' ],
+        //                 [ '2.51926', '1874' ],
+        //                 [ '2.53528', '96.529' ],
+        //             ]
+        //         }
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         id: null,
+        //         time: 1650188898,
+        //         channel: 'futures.order_book_update',
+        //         event: 'update',
+        //         error: null,
+        //         result: {
+        //             t: 1650188898938,
+        //             s: 'GMT_USDT',
+        //             U: 1577718307,
+        //             u: 1577719254,
+        //             b: [
+        //                 { p: '2.5178', s: 0 },
+        //                 { p: '2.5179', s: 0 },
+        //                 { p: '2.518', s: 0 },
+        //             ],
+        //             a: [
+        //                 { p: '2.52', s: 0 },
+        //                 { p: '2.5201', s: 0 },
+        //                 { p: '2.5203', s: 0 },
+        //             ]
+        //         }
+        //     }
+        //
+        const result = this.safeValue (message, 'result');
+        const prevSeqNum = this.safeInteger (result, 'U');
+        const seqNum = this.safeInteger (result, 'u');
+        const nonce = orderbook['nonce'];
+        // we have to add +1 because if the current seqNumber on iteration X is 5
+        // on the iteration X+1, prevSeqNum will be (5+1)
+        const nextNonce = this.sum (nonce, 1);
+        if ((prevSeqNum <= nextNonce) && (seqNum >= nextNonce)) {
+            const asks = this.safeValue (result, 'a', []);
+            const bids = this.safeValue (result, 'b', []);
+            this.handleDeltas (orderbook['asks'], asks);
+            this.handleDeltas (orderbook['bids'], bids);
+            orderbook['nonce'] = seqNum;
+            const timestamp = this.safeInteger (result, 't');
+            orderbook['timestamp'] = timestamp;
+            orderbook['datetime'] = this.iso8601 (timestamp);
+            if (messageHash !== undefined) {
+                client.resolve (orderbook, messageHash);
+            }
+        }
+        return orderbook;
+    }
+
     handleDelta (bookside, delta) {
-        const price = this.safeFloat (delta, 0);
-        const amount = this.safeFloat (delta, 1);
+        let price = undefined;
+        let amount = undefined;
+        if (Array.isArray (delta)) {
+            // spot
+            price = this.safeFloat (delta, 0);
+            amount = this.safeFloat (delta, 1);
+        } else {
+            // swap
+            price = this.safeFloat (delta, 'p');
+            amount = this.safeFloat (delta, 's');
+        }
         bookside.store (price, amount);
     }
 
@@ -112,52 +329,6 @@ module.exports = class gateio extends ccxt.gateio {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
-    }
-
-    handleOrderBook (client, message) {
-        //
-        //     {
-        //         "method":"depth.update",
-        //         "params":[
-        //             true, // snapshot or not
-        //             {
-        //                 "asks":[
-        //                     ["7449.62","0.3933"],
-        //                     ["7450","3.58662932"],
-        //                     ["7450.44","0.15"],
-        //                 "bids":[
-        //                     ["7448.31","0.69984534"],
-        //                     ["7447.08","0.7506"],
-        //                     ["7445.74","0.4433"],
-        //                 ]
-        //             },
-        //             "BTC_USDT"
-        //         ],
-        //         "id":null
-        //     }
-        //
-        const params = this.safeValue (message, 'params', []);
-        const clean = this.safeValue (params, 0);
-        const book = this.safeValue (params, 1);
-        const marketId = this.safeString (params, 2);
-        const symbol = this.safeSymbol (marketId);
-        const method = this.safeString (message, 'method');
-        const messageHash = method + ':' + marketId;
-        let orderBook = undefined;
-        const options = this.safeValue (this.options, 'watchOrderBook', {});
-        const subscriptions = this.safeValue (options, 'subscriptions', {});
-        const subscription = this.safeValue (subscriptions, symbol, []);
-        const defaultLimit = this.safeInteger (options, 'limit', 30);
-        const limit = this.safeValue (subscription, 1, defaultLimit);
-        if (clean) {
-            orderBook = this.orderBook ({}, limit);
-            this.orderbooks[symbol] = orderBook;
-        } else {
-            orderBook = this.orderbooks[symbol];
-        }
-        this.handleDeltas (orderBook['asks'], this.safeValue (book, 'asks', []));
-        this.handleDeltas (orderBook['bids'], this.safeValue (book, 'bids', []));
-        client.resolve (orderBook, messageHash);
     }
 
     async watchTicker (symbol, params = {}) {
@@ -210,25 +381,18 @@ module.exports = class gateio extends ccxt.gateio {
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const marketId = market['id'];
-        const uppercaseId = marketId.toUpperCase ();
-        const requestId = this.nonce ();
-        const url = this.urls['api']['ws'];
-        const options = this.safeValue (this.options, 'watchTrades', {});
-        const subscriptions = this.safeValue (options, 'subscriptions', {});
-        subscriptions[uppercaseId] = true;
-        options['subscriptions'] = subscriptions;
-        this.options['watchTrades'] = options;
-        const subscribeMessage = {
-            'id': requestId,
-            'method': 'trades.subscribe',
-            'params': Object.keys (subscriptions),
-        };
-        const subscription = {
-            'id': requestId,
-        };
-        const messageHash = 'trades.update' + ':' + marketId;
-        const trades = await this.watch (url, messageHash, subscribeMessage, messageHash, subscription);
+        const type = market['type'];
+        const messageType = this.getUniformType (type);
+        const method = messageType + '.trades';
+        let messageHash = method;
+        if (symbol !== undefined) {
+            messageHash += ':' + market['symbol'];
+        }
+        const url = this.getUrlByMarketType (type, market['inverse']);
+        const payload = [marketId];
+        const trades = await this.subscribePublic (url, method, messageHash, payload);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -237,49 +401,54 @@ module.exports = class gateio extends ccxt.gateio {
 
     handleTrades (client, message) {
         //
-        //     [
-        //         'BTC_USDT',
-        //         [
-        //             {
-        //                 id: 221994511,
-        //                 time: 1580311438.618647,
-        //                 price: '9309',
-        //                 amount: '0.0019',
-        //                 type: 'sell'
-        //             },
-        //             {
-        //                 id: 221994501,
-        //                 time: 1580311433.842509,
-        //                 price: '9311.31',
-        //                 amount: '0.01',
-        //                 type: 'buy'
-        //             },
-        //         ]
-        //     ]
+        // {
+        //     time: 1648725035,
+        //     channel: 'spot.trades',
+        //     event: 'update',
+        //     result: [{
+        //       id: 3130257995,
+        //       create_time: 1648725035,
+        //       create_time_ms: '1648725035923.0',
+        //       side: 'sell',
+        //       currency_pair: 'LTC_USDT',
+        //       amount: '0.0116',
+        //       price: '130.11'
+        //     }]
+        // }
         //
-        const params = this.safeValue (message, 'params', []);
-        const marketId = this.safeString (params, 0);
-        const market = this.safeMarket (marketId, undefined, '_');
-        const symbol = market['symbol'];
-        let stored = this.safeValue (this.trades, symbol);
-        if (stored === undefined) {
-            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            stored = new ArrayCache (limit);
-            this.trades[symbol] = stored;
+        const channel = this.safeString (message, 'channel');
+        let result = this.safeValue (message, 'result');
+        if (!Array.isArray (result)) {
+            result = [ result ];
         }
-        const trades = this.safeValue (params, 1, []);
-        const parsed = this.parseTrades (trades, market);
-        for (let i = 0; i < parsed.length; i++) {
-            stored.append (parsed[i]);
+        const parsedTrades = this.parseTrades (result);
+        const marketIds = {};
+        for (let i = 0; i < parsedTrades.length; i++) {
+            const trade = parsedTrades[i];
+            const symbol = trade['symbol'];
+            let cachedTrades = this.safeValue (this.trades, symbol);
+            if (cachedTrades === undefined) {
+                const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+                cachedTrades = new ArrayCache (limit);
+                this.trades[symbol] = cachedTrades;
+            }
+            cachedTrades.append (trade);
+            marketIds[symbol] = true;
         }
-        const methodType = message['method'];
-        const messageHash = methodType + ':' + marketId;
-        client.resolve (stored, messageHash);
+        const keys = Object.keys (marketIds);
+        for (let i = 0; i < keys.length; i++) {
+            const symbol = keys[i];
+            const hash = channel + ':' + symbol;
+            const stored = this.safeValue (this.trades, symbol);
+            client.resolve (stored, hash);
+        }
+        client.resolve (this.trades, channel);
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const marketId = market['id'];
         const type = market['type'];
         const interval = this.timeframes[timeframe];
@@ -533,6 +702,7 @@ module.exports = class gateio extends ccxt.gateio {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         let type = 'spot';
         if (market['future'] || market['swap']) {
             type = 'futures';
@@ -701,6 +871,7 @@ module.exports = class gateio extends ccxt.gateio {
     }
 
     handleMessage (client, message) {
+        //
         // subscribe
         // {
         //     time: 1649062304,
@@ -737,12 +908,39 @@ module.exports = class gateio extends ccxt.gateio {
         //             (...)
         //     ]
         // }
+        // orderbook
+        // {
+        //     time: 1649770525,
+        //     channel: 'spot.order_book_update',
+        //     event: 'update',
+        //     result: {
+        //       t: 1649770525653,
+        //       e: 'depthUpdate',
+        //       E: 1649770525,
+        //       s: 'LTC_USDT',
+        //       U: 2622525645,
+        //       u: 2622525665,
+        //       b: [
+        //         [Array], [Array],
+        //         [Array], [Array],
+        //         [Array], [Array],
+        //         [Array], [Array],
+        //         [Array], [Array],
+        //         [Array]
+        //       ],
+        //       a: [
+        //         [Array], [Array],
+        //         [Array], [Array],
+        //         [Array], [Array],
+        //         [Array], [Array],
+        //         [Array], [Array],
+        //         [Array]
+        //       ]
+        //     }
+        //   }
         this.handleErrorMessage (client, message);
         const methods = {
-            'depth.update': this.handleOrderBook,
-            'ticker.update': this.handleTicker,
-            'trades.update': this.handleTrades,
-            'kline.update': this.handleOHLCV,
+            // missing migration to v4
             'balance.update': this.handleBalance,
         };
         const methodType = this.safeString (message, 'method');
@@ -761,6 +959,8 @@ module.exports = class gateio extends ccxt.gateio {
                 'candlesticks': this.handleOHLCV,
                 'orders': this.handleOrder,
                 'tickers': this.handleTicker,
+                'trades': this.handleTrades,
+                'order_book_update': this.handleOrderBook,
             };
             method = this.safeValue (v4Methods, channelType);
         }
@@ -800,19 +1000,28 @@ module.exports = class gateio extends ccxt.gateio {
         }
     }
 
-    async subscribePublic (url, channel, messageHash, payload) {
+    requestId () {
+        // their support said that reqid must be an int32, not documented
+        const reqid = this.sum (this.safeInteger (this.options, 'reqid', 0), 1);
+        this.options['reqid'] = reqid;
+        return reqid;
+    }
+
+    async subscribePublic (url, channel, messageHash, payload, subscriptionParams = {}) {
+        const requestId = this.requestId ();
         const time = this.seconds ();
         const request = {
-            'id': time,
+            'id': requestId,
             'time': time,
             'channel': channel,
             'event': 'subscribe',
             'payload': payload,
         };
-        const subscription = {
-            'id': time,
+        let subscription = {
+            'id': requestId,
             'messageHash': messageHash,
         };
+        subscription = this.extend (subscription, subscriptionParams);
         return await this.watch (url, messageHash, request, messageHash, subscription);
     }
 
@@ -828,14 +1037,14 @@ module.exports = class gateio extends ccxt.gateio {
         }
         const time = this.seconds ();
         const event = 'subscribe';
-        const signaturePayload = 'channel=' + channel + '&event=' + event + '&time=' + time.toString ();
+        const signaturePayload = 'channel=' + channel + '&' + 'event=' + event + '&' + 'time=' + time.toString ();
         const signature = this.hmac (this.encode (signaturePayload), this.encode (this.secret), 'sha512', 'hex');
         const auth = {
             'method': 'api_key',
             'KEY': this.apiKey,
             'SIGN': signature,
         };
-        const requestId = this.nonce ();
+        const requestId = this.requestId ();
         const request = {
             'id': requestId,
             'time': time,

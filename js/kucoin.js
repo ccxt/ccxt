@@ -838,7 +838,7 @@ module.exports = class kucoin extends ccxt.kucoin {
         await this.loadMarkets ();
         this.checkRequiredCredentials ();
         const messageHash = '/account/balance';
-        const selectedType = this.safeString2 (this.options, 'watchBalance', 'defaultType', 'trade'); // trade, main, margin or other
+        const selectedType = this.safeString2 (this.options, 'watchBalance', 'defaultType', 'spot'); // spot, margin, main, funding, future, mining, trade, contract, pool
         const params = {
             'type': selectedType,
         };

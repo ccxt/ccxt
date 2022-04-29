@@ -8,7 +8,7 @@ import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.0.66'
+__version__ = '1.1.8'
 
 # -----------------------------------------------------------------------------
 
@@ -105,7 +105,6 @@ from ccxt.async_support.flowbtc import flowbtc                            # noqa
 from ccxt.async_support.fmfwio import fmfwio                              # noqa: F401
 from ccxt.async_support.gemini import gemini                              # noqa: F401
 from ccxt.async_support.hitbtc3 import hitbtc3                            # noqa: F401
-from ccxt.async_support.hollaex import hollaex                            # noqa: F401
 from ccxt.async_support.independentreserve import independentreserve      # noqa: F401
 from ccxt.async_support.indodax import indodax                            # noqa: F401
 from ccxt.async_support.itbit import itbit                                # noqa: F401
@@ -163,6 +162,7 @@ from ccxtpro.ftx import ftx                                               # noqa
 from ccxtpro.ftxus import ftxus                                           # noqa: F401
 from ccxtpro.gateio import gateio                                         # noqa: F401
 from ccxtpro.hitbtc import hitbtc                                         # noqa: F401
+from ccxtpro.hollaex import hollaex                                       # noqa: F401
 from ccxtpro.huobi import huobi                                           # noqa: F401
 from ccxtpro.huobijp import huobijp                                       # noqa: F401
 from ccxtpro.huobipro import huobipro                                     # noqa: F401

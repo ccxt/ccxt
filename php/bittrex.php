@@ -759,7 +759,6 @@ class bittrex extends \ccxt\async\bittrex {
     }
 
     public function handle_message($client, $message) {
-        // console.dir ($message, array( depth => null ));
         //
         // subscription confirmation
         //

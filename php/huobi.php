@@ -120,6 +120,7 @@ class huobi extends \ccxt\async\huobi {
     public function watch_ticker($symbol, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
+        $symbol = $market['symbol'];
         $messageHash = 'market.' . $market['id'] . '.detail';
         $url = $this->get_url_by_market_type($market['type'], $market['linear']);
         return yield $this->subscribe_public($url, $symbol, $messageHash, null, $params);
@@ -161,6 +162,7 @@ class huobi extends \ccxt\async\huobi {
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
+        $symbol = $market['symbol'];
         $messageHash = 'market.' . $market['id'] . '.trade.detail';
         $url = $this->get_url_by_market_type($market['type'], $market['linear']);
         $trades = yield $this->subscribe_public($url, $symbol, $messageHash, null, $params);
@@ -215,6 +217,7 @@ class huobi extends \ccxt\async\huobi {
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
+        $symbol = $market['symbol'];
         $interval = $this->timeframes[$timeframe];
         $messageHash = 'market.' . $market['id'] . '.kline.' . $interval;
         $url = $this->get_url_by_market_type($market['type'], $market['linear']);
@@ -268,6 +271,7 @@ class huobi extends \ccxt\async\huobi {
         }
         yield $this->load_markets();
         $market = $this->market($symbol);
+        $symbol = $market['symbol'];
         // only supports a $limit of 150 at this time
         $limit = ($limit === null) ? 150 : $limit;
         $messageHash = null;
@@ -577,49 +581,108 @@ class huobi extends \ccxt\async\huobi {
         $this->check_required_credentials();
         $type = null;
         $marketId = '*'; // wildcard
+        $market = null;
+        $messageHash = null;
+        $channel = null;
+        $trades = null;
+        $subType = null;
         if ($symbol !== null) {
             yield $this->load_markets();
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $type = $market['type'];
+            $subType = $market['linear'] ? 'linear' : 'inverse';
             $marketId = $market['lowercaseId'];
         } else {
-            list($type, $params) = $this->handle_market_type_and_params('watchMyTrades', null, $params);
+            $type = $this->safe_string($this->options, 'defaultType', 'spot');
+            $type = $this->safe_string($params, 'type', $type);
+            $subType = $this->safe_string_2($this->options, 'subType', 'defaultSubType', 'linear');
+            $subType = $this->safe_string($params, 'subType', $subType);
+            $params = $this->omit($params, ['type', 'subType']);
         }
-        if ($type !== 'spot') {
-            throw new ArgumentsRequired($this->id . ' watchMyTrades supports spot markets only');
+        if ($type === 'spot') {
+            $mode = null;
+            if ($mode === null) {
+                $mode = $this->safe_string_2($this->options, 'watchMyTrades', 'mode', 0);
+                $mode = $this->safe_string($params, 'mode', $mode);
+                $params = $this->omit($params, 'mode');
+            }
+            $messageHash = 'trade.clearing' . '#' . $marketId . '#' . $mode;
+            $channel = $messageHash;
+        } else {
+            $channelAndMessageHash = $this->get_order_channel_and_message_hash($type, $subType, $market, $params);
+            $channel = $this->safe_string($channelAndMessageHash, 0);
+            $orderMessageHash = $this->safe_string($channelAndMessageHash, 1);
+            // we will take advantage of the order $messageHash because already handles stuff
+            // like symbol/margin/subtype/type variations
+            $messageHash = $orderMessageHash . ':' . 'trade';
         }
-        $mode = null;
-        if ($mode === null) {
-            $mode = $this->safe_string_2($this->options, 'watchMyTrades', 'mode', 0);
-            $mode = $this->safe_string($params, 'mode', $mode);
-        }
-        $messageHash = 'trade.clearing' . '#' . $marketId . '#' . $mode;
-        $trades = yield $this->subscribe_private($messageHash, $messageHash, $type, 'linear', $params);
+        $trades = yield $this->subscribe_private($channel, $messageHash, $type, $subType, $params);
         if ($this->newUpdates) {
             $limit = $trades->getLimit ($symbol, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limit);
+        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+    }
+
+    public function get_order_channel_and_message_hash($type, $subType, $market = null, $params = array ()) {
+        $messageHash = null;
+        $channel = null;
+        $orderType = $this->safe_string($this->options, 'orderType', 'orders'); // orders or matchOrders
+        $orderType = $this->safe_string($params, 'orderType', $orderType);
+        $params = $this->omit($params, 'orderType');
+        $marketCode = ($market !== null) ? $market['lowercaseId'] : null;
+        $baseId = ($market !== null) ? $market['lowercaseBaseId'] : null;
+        $prefix = $orderType;
+        $messageHash = $prefix;
+        if ($subType === 'linear') {
+            // USDT Margined Contracts Example => LTC/USDT:USDT
+            $marginMode = $this->safe_string($params, 'margin', 'cross');
+            $marginPrefix = ($marginMode === 'cross') ? $prefix . '_cross' : $prefix;
+            $messageHash = $marginPrefix;
+            if ($marketCode !== null) {
+                $messageHash .= '.' . $marketCode;
+                $channel = $messageHash;
+            } else {
+                $channel = $marginPrefix . '.' . '*';
+            }
+        } else if ($type === 'future') {
+            // inverse futures Example => BCH/USD:BCH-220408
+            if ($baseId !== null) {
+                $channel = $prefix . '.' . $baseId;
+                $messageHash = $channel;
+            } else {
+                $channel = $prefix . '.' . '*';
+            }
+        } else {
+            // inverse swaps => Example => BTC/USD:BTC
+            if ($marketCode !== null) {
+                $channel = $prefix . '.' . $marketCode;
+                $messageHash = $channel;
+            } else {
+                $channel = $prefix . '.' . '*';
+            }
+        }
+        return array( $channel, $messageHash );
     }
 
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
-        $query = $params;
         $type = null;
         $subType = null;
         $market = null;
         $suffix = '*'; // wildcard
         if ($symbol !== null) {
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $type = $market['type'];
             $suffix = $market['lowercaseId'];
             $subType = $market['linear'] ? 'linear' : 'inverse';
-        }
-        if ($type === null) {
-            $type = $this->safe_string_2($this->options, 'watchOrders', 'defaultType', 'spot');
+        } else {
+            $type = $this->safe_string($this->options, 'defaultType', 'spot');
             $type = $this->safe_string($params, 'type', $type);
-            $subType = $this->safe_string_2($this->options, 'watchOrders', 'subType', 'linear');
-            $subType = $this->safe_string($params, 'subType', $type);
-            $query = $this->omit($params, ['type', 'subtype']);
+            $subType = $this->safe_string_2($this->options, 'subType', 'defaultSubType', 'linear');
+            $subType = $this->safe_string($params, 'subType', $subType);
+            $params = $this->omit($params, ['type', 'subType']);
         }
         $messageHash = null;
         $channel = null;
@@ -627,43 +690,11 @@ class huobi extends \ccxt\async\huobi {
             $messageHash = 'orders' . '#' . $suffix;
             $channel = $messageHash;
         } else {
-            $orderType = $this->safe_string_2($this->options, 'watchOrders', 'orderType', 'orders'); // $orders or matchOrders
-            $orderType = $this->safe_string($params, 'orderType', $orderType);
-            $query = $this->omit($params, 'orderType');
-            $marketCode = ($market !== null) ? $market['lowercaseId'] : null;
-            $baseId = ($market !== null) ? $market['lowercaseBaseId'] : null;
-            $prefix = $orderType;
-            $messageHash = $prefix;
-            if ($subType === 'linear') {
-                // USDT Margined Contracts Example => LTC/USDT:USDT
-                $marginMode = $this->safe_string($params, 'margin', 'cross');
-                $marginPrefix = ($marginMode === 'cross') ? $prefix . '_cross' : $prefix;
-                $messageHash = $marginPrefix;
-                if ($marketCode !== null) {
-                    $messageHash .= '.' . $marketCode;
-                    $channel = $messageHash;
-                } else {
-                    $channel = $marginPrefix . '.' . '*';
-                }
-            } else if ($type === 'future') {
-                // inverse futures Example => BCH/USD:BCH-220408
-                if ($baseId !== null) {
-                    $channel = $prefix . '.' . $baseId;
-                    $messageHash = $channel;
-                } else {
-                    $channel = $prefix . '.' . '*';
-                }
-            } else {
-                // inverse swaps => Example => BTC/USD:BTC
-                if ($marketCode !== null) {
-                    $channel = $prefix . '.' . $marketCode;
-                    $messageHash = $channel;
-                } else {
-                    $channel = $prefix . '.' . '*';
-                }
-            }
+            $channelAndMessageHash = $this->get_order_channel_and_message_hash($type, $subType, $market, $params);
+            $channel = $this->safe_string($channelAndMessageHash, 0);
+            $messageHash = $this->safe_string($channelAndMessageHash, 1);
         }
-        $orders = yield $this->subscribe_private($channel, $messageHash, $type, $subType, $query);
+        $orders = yield $this->subscribe_private($channel, $messageHash, $type, $subType, $params);
         if ($this->newUpdates) {
             $limit = $orders->getLimit ($symbol, $limit);
         }
@@ -683,7 +714,7 @@ class huobi extends \ccxt\async\huobi {
         //             accountId => 44234548,
         //             orderPrice => '100',
         //             orderSize => '0.05',
-        //             $symbol => 'ethusdt',
+        //             symbol => 'ethusdt',
         //             type => 'buy-limit',
         //             $orderId => '478861479986886',
         //             $eventType => 'creation',
@@ -707,7 +738,7 @@ class huobi extends \ccxt\async\huobi {
         //             orderSize => '0.0385',
         //             remainAmt => '0',
         //             tradeId => 101541578884,
-        //             $symbol => 'ltcusdt',
+        //             symbol => 'ltcusdt',
         //             type => 'sell-market',
         //             $eventType => 'trade',
         //             clientOrderId => '',
@@ -718,68 +749,126 @@ class huobi extends \ccxt\async\huobi {
         //
         // non spot $order
         //
-        //     {
-        //         "contract_type":"swap",
-        //         "pair":"BTC-USDT",
-        //         "business_type":"swap",
-        //         "op":"notify",
-        //         "topic":"orders_cross.btc-usdt",
-        //         "ts":1645205382242,
-        //         "symbol":"BTC",
-        //         "contract_code":"BTC-USDT",
-        //     }
+        // {
+        //     contract_type => 'swap',
+        //     pair => 'LTC-USDT',
+        //     business_type => 'swap',
+        //     op => 'notify',
+        //     topic => 'orders_cross.ltc-usdt',
+        //     ts => 1650354508696,
+        //     symbol => 'LTC',
+        //     contract_code => 'LTC-USDT',
+        //     volume => 1,
+        //     price => 110.34,
+        //     order_price_type => 'lightning',
+        //     direction => 'sell',
+        //     offset => 'close',
+        //     status => 6,
+        //     lever_rate => 1,
+        //     order_id => '966002354015051776',
+        //     order_id_str => '966002354015051776',
+        //     client_order_id => null,
+        //     order_source => 'web',
+        //     order_type => 1,
+        //     created_at => 1650354508649,
+        //     trade_volume => 1,
+        //     trade_turnover => 11.072,
+        //     fee => -0.005536,
+        //     trade_avg_price => 110.72,
+        //     margin_frozen => 0,
+        //     profit => -0.045,
+        //     trade => array(
+        //       {
+        //         trade_fee => -0.005536,
+        //         fee_asset => 'USDT',
+        //         real_profit => 0.473,
+        //         profit => -0.045,
+        //         trade_id => 86678766507,
+        //         id => '86678766507-966002354015051776-1',
+        //         trade_volume => 1,
+        //         trade_price => 110.72,
+        //         trade_turnover => 11.072,
+        //         created_at => 1650354508656,
+        //         role => 'taker'
+        //       }
+        //     ),
+        //     canceled_at => 0,
+        //     fee_asset => 'USDT',
+        //     margin_asset => 'USDT',
+        //     uid => '359305390',
+        //     liquidation_type => '0',
+        //     margin_mode => 'cross',
+        //     margin_account => 'USDT',
+        //     is_tpsl => 0,
+        //     real_profit => 0.473,
+        //     trade_partition => 'USDT',
+        //     reduce_only => 1
+        //   }
         //
-        $messageHash = $this->safe_string_2($message, 'ch', 'topic', '');
+        //
+        $messageHash = $this->safe_string_2($message, 'ch', 'topic');
+        $data = $this->safe_value($message, 'data');
         $marketId = $this->safe_string($message, 'contract_code');
-        $market = null;
         if ($marketId === null) {
-            $messageParts = explode('#', $messageHash);
-            $marketId = $this->safe_string($messageParts, 1);
-            if (($marketId !== null) && ($marketId !== '*')) {
-                $market = $this->market($marketId);
-            }
+            $marketId = $this->safe_string($data, 'symbol');
         }
-        $data = $this->safe_value($message, 'data', $message);
-        $eventType = $this->safe_string($data, 'eventType');
+        $market = $this->safe_market($marketId);
         $parsedOrder = null;
-        $parsedTrade = null;
-        $symbol = null;
-        if ($eventType === 'trade') {
-            $parsedTrade = $this->parse_order_trade($data, $market);
-            $symbol = $parsedTrade['symbol'];
-        } else {
-            $parsedOrder = $this->parse_ws_order($data, $market);
-            $symbol = $parsedOrder['symbol'];
-        }
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            if ($this->orders === null) {
-                $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
-                $this->orders = new ArrayCacheBySymbolById ($limit);
-            }
-            $cachedOrders = $this->orders;
-            $parsed = null;
-            if ($parsedTrade !== null) {
+        if ($data !== null) {
+            // spot updates
+            $eventType = $this->safe_string($data, 'eventType');
+            if ($eventType === 'trade') {
+                // when a spot $order is filled we get an update $message
+                // with the trade info
+                $parsedTrade = $this->parse_order_trade($data, $market);
                 // inject trade in existing $order by faking an $order object
                 $orderId = $this->safe_string($parsedTrade, 'order');
-                $trades = array();
-                $trades[] = $parsedTrade;
+                $trades = array( $parsedTrade );
                 $order = array(
                     'id' => $orderId,
                     'trades' => $trades,
+                    'status' => 'closed',
+                    'symbol' => $market['symbol'],
                 );
-                $parsed = $order;
+                $parsedOrder = $order;
             } else {
-                $parsed = $parsedOrder;
+                $parsedOrder = $this->parse_ws_order($data, $market);
             }
-            $cachedOrders->append ($parsed);
-            $client->resolve ($this->orders, $messageHash);
-            // when we make a global subscription our $message hash can't have a symbol/currency attached
-            // so we're removing it here
-            $genericMessageHash = str_replace('.' . $market['lowercaseId'], '', $messageHash);
-            $genericMessageHash = str_replace('.' . $market['lowercaseBaseId'], '', $genericMessageHash);
-            $client->resolve ($this->orders, $genericMessageHash);
+        } else {
+            // contract branch
+            $parsedOrder = $this->parse_ws_order($message, $market);
+            $rawTrades = $this->safe_value($message, 'trade', array());
+            $tradesLength = is_array($rawTrades) ? count($rawTrades) : 0;
+            if ($tradesLength > 0) {
+                $tradesObject = array(
+                    'trades' => $rawTrades,
+                    'ch' => $messageHash,
+                    'symbol' => $marketId,
+                );
+                // inject $order params in every trade
+                $extendTradeParams = array(
+                    'order' => $this->safe_string($parsedOrder, 'id'),
+                    'type' => $this->safe_string($parsedOrder, 'type'),
+                    'side' => $this->safe_string($parsedOrder, 'side'),
+                );
+                // $trades arrive inside an $order update
+                // we're forwarding them to handleMyTrade
+                // so they can be properly resolved
+                $this->handle_my_trade($client, $tradesObject, $extendTradeParams);
+            }
         }
+        if ($this->orders === null) {
+            $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
+            $this->orders = new ArrayCacheBySymbolById ($limit);
+        }
+        $cachedOrders = $this->orders;
+        $cachedOrders->append ($parsedOrder);
+        $client->resolve ($this->orders, $messageHash);
+        // when we make a global subscription (for contracts only) our $message hash can't have a symbol/currency attached
+        // so we're removing it here
+        $genericMessageHash = str_replace('.' . $market['lowercaseId'], '', $messageHash);
+        $genericMessageHash = str_replace('.' . $market['lowercaseBaseId'], '', $genericMessageHash);
+        $client->resolve ($this->orders, $genericMessageHash);
     }
 
     public function parse_ws_order($order, $market = null) {
@@ -898,6 +987,7 @@ class huobi extends \ccxt\async\huobi {
         $lastTradeTimestamp = $this->safe_integer_2($order, 'lastActTime', 'ts');
         $created = $this->safe_integer($order, 'orderCreateTime');
         $marketId = $this->safe_string_2($order, 'contract_code', 'symbol');
+        $market = $this->safe_market($marketId, $market);
         $symbol = $this->safe_symbol($marketId, $market);
         $amount = $this->safe_string_2($order, 'orderSize', 'volume');
         $status = $this->parse_order_status($this->safe_string_2($order, 'orderStatus', 'status'));
@@ -917,10 +1007,6 @@ class huobi extends \ccxt\async\huobi {
         }
         $avgPrice = $this->safe_string($order, 'trade_avg_price');
         $rawTrades = $this->safe_value($order, 'trade');
-        $trades = array();
-        if ($rawTrades !== null) {
-            $trades = $this->parse_trades($rawTrades, $market);
-        }
         if ($typeSide !== null) {
             $typeSide = explode('-', $typeSide);
         }
@@ -952,7 +1038,7 @@ class huobi extends \ccxt\async\huobi {
             'cost' => null,
             'fee' => $fee,
             'average' => $avgPrice,
-            'trades' => $trades,
+            'trades' => $rawTrades,
         ), $market);
     }
 
@@ -1253,14 +1339,21 @@ class huobi extends \ccxt\async\huobi {
                             $balance = $balances[$i];
                             $marketId = $this->safe_string_2($balance, 'contract_code', 'margin_account');
                             $market = $this->safe_market($marketId);
-                            $account = $this->account();
-                            $account['free'] = $this->safe_string($balance, 'margin_balance');
-                            $account['used'] = $this->safe_string($balance, 'margin_frozen');
-                            $code = $market['settle'];
-                            $accountsByCode = array();
-                            $accountsByCode[$code] = $account;
-                            $symbol = $market['symbol'];
-                            $this->balance[$symbol] = $this->safe_balance($accountsByCode);
+                            $currencyId = $this->safe_string($balance, 'margin_asset');
+                            $currency = $this->safe_currency($currencyId);
+                            $code = $this->safe_string($market, 'settle', $currency['code']);
+                            // the exchange outputs positions for delisted markets
+                            // https://www.huobi.com/support/en-us/detail/74882968522337
+                            // we skip it if the $market was delisted
+                            if ($code !== null) {
+                                $account = $this->account();
+                                $account['free'] = $this->safe_string($balance, 'margin_balance');
+                                $account['used'] = $this->safe_string($balance, 'margin_frozen');
+                                $accountsByCode = array();
+                                $accountsByCode[$code] = $account;
+                                $symbol = $market['symbol'];
+                                $this->balance[$symbol] = $this->safe_balance($accountsByCode);
+                            }
                         }
                     }
                 } else {
@@ -1666,7 +1759,7 @@ class huobi extends \ccxt\async\huobi {
         }
     }
 
-    public function handle_my_trade($client, $message) {
+    public function handle_my_trade($client, $message, $extendParams = array ()) {
         //
         // spot
         //
@@ -1678,7 +1771,7 @@ class huobi extends \ccxt\async\huobi {
         //             "symbol":"ltcusdt",
         //             "orderId":"478862728954426",
         //             "orderSide":"buy",
-        //             "orderType":"buy-market",
+        //             "orderType":"buy-$market",
         //             "accountId":44234548,
         //             "source":"spot-web",
         //             "orderValue":"5.01724137",
@@ -1696,6 +1789,28 @@ class huobi extends \ccxt\async\huobi {
         //         }
         //     }
         //
+        // contract
+        //
+        //     {
+        //         "symbol" => "ADA/USDT:USDT"
+        //         "ch" => "orders_cross.ada-usdt"
+        //         "trades" => array(
+        //             {
+        //                 "trade_fee":-0.022099447513812154,
+        //                 "fee_asset":"ADA",
+        //                 "trade_id":113913755890,
+        //                 "id":"113913755890-773207641127878656-1",
+        //                 "trade_volume":1,
+        //                 "trade_price":0.0905,
+        //                 "trade_turnover":10,
+        //                 "created_at":1604388667194,
+        //                 "profit":0,
+        //                 "real_profit" => 0,
+        //                 "role":"maker"
+        //             }
+        //         ),
+        //     }
+        //
         if ($this->myTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $this->myTrades = new ArrayCacheBySymbolById ($limit);
@@ -1704,12 +1819,40 @@ class huobi extends \ccxt\async\huobi {
         $messageHash = $this->safe_string($message, 'ch');
         if ($messageHash !== null) {
             $data = $this->safe_value($message, 'data');
-            $parsed = $this->parse_ws_trade($data);
-            $symbol = $this->safe_string($parsed, 'symbol');
-            if ($symbol !== null) {
-                $cachedTrades->append ($parsed);
+            if ($data !== null) {
+                $parsed = $this->parse_ws_trade($data);
+                $symbol = $this->safe_string($parsed, 'symbol');
+                if ($symbol !== null) {
+                    $cachedTrades->append ($parsed);
+                    $client->resolve ($this->myTrades, $messageHash);
+                }
+            } else {
+                // this trades object is artificially created
+                // in handleOrder
+                $rawTrades = $this->safe_value($message, 'trades', array());
+                $marketId = $this->safe_value($message, 'symbol');
+                $market = $this->market($marketId);
+                for ($i = 0; $i < count($rawTrades); $i++) {
+                    $trade = $rawTrades[$i];
+                    $parsedTrade = $this->parse_trade($trade, $market);
+                    // add extra params (side, type, ...) coming from the order
+                    $parsedTrade = array_merge($parsedTrade, $extendParams);
+                    $cachedTrades->append ($parsedTrade);
+                }
+                // $messageHash here is the orders one, so
+                // we have to recreate the trades $messageHash = orderMessageHash . ':' . 'trade'
+                $tradesHash = $messageHash . ':' . 'trade';
+                $client->resolve ($this->myTrades, $tradesHash);
+                // when we make an global order sub we have to send the channel like this
+                // ch = orders_cross.* and we store $messageHash = 'orders_cross'
+                // however it is returned with the specific order update $symbol => ch = orders_cross.btc-usd
+                // since this is a global sub, our $messageHash does not specify any $symbol (ex => orders_cross:$trade)
+                // so we must remove it
+                $genericOrderHash = str_replace('.' . $market['lowercaseId'], '', $messageHash);
+                $genericOrderHash = str_replace('.' . $market['lowercaseBaseId'], '', $genericOrderHash);
+                $genericTradesHash = $genericOrderHash . ':' . 'trade';
+                $client->resolve ($this->myTrades, $genericTradesHash);
             }
-            $client->resolve ($this->myTrades, $messageHash);
         }
     }
 
@@ -1853,7 +1996,7 @@ class huobi extends \ccxt\async\huobi {
             $this->options['ws']['gunzip'] = false;
         }
         yield $this->authenticate($authParams);
-        return yield $this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $extendedSubsription);
+        return yield $this->watch($url, $messageHash, array_merge($request, $params), $channel, $extendedSubsription);
     }
 
     public function authenticate($params = array ()) {

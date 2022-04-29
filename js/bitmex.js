@@ -752,7 +752,6 @@ module.exports = class bitmex extends ccxt.bitmex {
         //         ]
         //     }
         //
-        // console.dir (message, { depth: null });
         const data = this.safeValue (message, 'data', []);
         const messageHash = 'order';
         // initial subscription response with multiple orders

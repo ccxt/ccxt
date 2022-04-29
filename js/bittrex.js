@@ -755,7 +755,6 @@ module.exports = class bittrex extends ccxt.bittrex {
     }
 
     handleMessage (client, message) {
-        // console.dir (message, { depth: null });
         //
         // subscription confirmation
         //
