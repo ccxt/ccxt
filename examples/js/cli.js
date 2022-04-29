@@ -19,9 +19,9 @@ let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x
         process.argv.includes ('--testnet') ||
         process.argv.includes ('--sandbox')
     , signIn = process.argv.includes ('--sign-in') || process.argv.includes ('--signIn')
-    , spot = process.argv.includes ('--spot')
-    , swap = process.argv.includes ('--swap')
-    , future = process.argv.includes ('--future')
+    , isSpot = process.argv.includes ('--spot')
+    , isSwap = process.argv.includes ('--swap')
+    , isFuture = process.argv.includes ('--future')
 
 //-----------------------------------------------------------------------------
 
@@ -92,11 +92,11 @@ try {
         ... settings,
     })
 
-    if (spot) {
+    if (isSpot) {
         exchange.options['defaultType'] = 'spot';
-    } else if (swap) {
+    } else if (isSwap) {
         exchange.options['defaultType'] = 'swap';
-    } else if (future) {
+    } else if (isFuture) {
         exchange.options['defaultType'] = 'future';
     }
 
