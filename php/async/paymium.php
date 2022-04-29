@@ -26,8 +26,11 @@ class paymium extends Exchange {
                 'future' => false,
                 'option' => false,
                 'cancelOrder' => true,
+                'createDepositAddress' => true,
                 'createOrder' => true,
                 'fetchBalance' => true,
+                'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -247,6 +250,73 @@ class paymium extends Exchange {
         );
         $response = yield $this->publicGetDataCurrencyTrades (array_merge($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
+    }
+
+    public function create_deposit_address($code, $params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->privatePostUserAddresses ($params);
+        //
+        //     {
+        //         "address" => "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
+        //         "valid_until" => 1620041926,
+        //         "currency" => "BTC",
+        //         "label" => "Savings"
+        //     }
+        //
+        return $this->parse_deposit_address($response);
+    }
+
+    public function fetch_deposit_address($code, $params = array ()) {
+        yield $this->load_markets();
+        $request = array(
+            'address' => $code,
+        );
+        $response = yield $this->privateGetUserAddressesAddress (array_merge($request, $params));
+        //
+        //     {
+        //         "address" => "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
+        //         "valid_until" => 1620041926,
+        //         "currency" => "BTC",
+        //         "label" => "Savings"
+        //     }
+        //
+        return $this->parse_deposit_address($response);
+    }
+
+    public function fetch_deposit_addresses($codes = null, $params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->privateGetUserAddresses ($params);
+        //
+        //     array(
+        //         {
+        //             "address" => "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
+        //             "valid_until" => 1620041926,
+        //             "currency" => "BTC",
+        //             "label" => "Savings"
+        //         }
+        //     )
+        //
+        return $this->parse_deposit_addresses($response, $codes);
+    }
+
+    public function parse_deposit_address($depositAddress, $currency = null) {
+        //
+        //     {
+        //         "address" => "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
+        //         "valid_until" => 1620041926,
+        //         "currency" => "BTC",
+        //         "label" => "Savings"
+        //     }
+        //
+        $address = $this->safe_string($depositAddress, 'address');
+        $currencyId = $this->safe_string($depositAddress, 'currency');
+        return array(
+            'info' => $depositAddress,
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'address' => $address,
+            'tag' => null,
+            'network' => null,
+        );
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

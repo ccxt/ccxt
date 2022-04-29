@@ -25,8 +25,11 @@ class paymium(Exchange):
                 'future': False,
                 'option': False,
                 'cancelOrder': True,
+                'createDepositAddress': True,
                 'createOrder': True,
                 'fetchBalance': True,
+                'fetchDepositAddress': True,
+                'fetchDepositAddresses': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -237,6 +240,69 @@ class paymium(Exchange):
         }
         response = await self.publicGetDataCurrencyTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
+
+    async def create_deposit_address(self, code, params={}):
+        await self.load_markets()
+        response = await self.privatePostUserAddresses(params)
+        #
+        #     {
+        #         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
+        #         "valid_until": 1620041926,
+        #         "currency": "BTC",
+        #         "label": "Savings"
+        #     }
+        #
+        return self.parse_deposit_address(response)
+
+    async def fetch_deposit_address(self, code, params={}):
+        await self.load_markets()
+        request = {
+            'address': code,
+        }
+        response = await self.privateGetUserAddressesAddress(self.extend(request, params))
+        #
+        #     {
+        #         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
+        #         "valid_until": 1620041926,
+        #         "currency": "BTC",
+        #         "label": "Savings"
+        #     }
+        #
+        return self.parse_deposit_address(response)
+
+    async def fetch_deposit_addresses(self, codes=None, params={}):
+        await self.load_markets()
+        response = await self.privateGetUserAddresses(params)
+        #
+        #     [
+        #         {
+        #             "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
+        #             "valid_until": 1620041926,
+        #             "currency": "BTC",
+        #             "label": "Savings"
+        #         }
+        #     ]
+        #
+        return self.parse_deposit_addresses(response, codes)
+
+    def parse_deposit_address(self, depositAddress, currency=None):
+        #
+        #     {
+        #         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
+        #         "valid_until": 1620041926,
+        #         "currency": "BTC",
+        #         "label": "Savings"
+        #     }
+        #
+        address = self.safe_string(depositAddress, 'address')
+        currencyId = self.safe_string(depositAddress, 'currency')
+        return {
+            'info': depositAddress,
+            'currency': self.safe_currency_code(currencyId, currency),
+            'address': address,
+            'tag': None,
+            'network': None,
+        }
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
