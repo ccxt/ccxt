@@ -258,6 +258,9 @@ module.exports = class bitmart extends Exchange {
                     '50023': BadSymbol, // 400, This Symbol can't place order by api
                     '50029': InvalidOrder, // {"message":"param not match : size * price >=1000","code":50029,"trace":"f931f030-b692-401b-a0c5-65edbeadc598","data":{}}
                     '50030': InvalidOrder, // {"message":"Order is already canceled","code":50030,"trace":"8d6f64ee-ad26-45a4-9efd-1080f9fca1fa","data":{}}
+                    // below Error codes used interchangeably for both failed postOnly and IOC orders depending on market price and order side
+                    '50035': InvalidOrder, // {"message":"The price is low and there is no matching depth","code":50035,"trace":"677f01c7-8b88-4346-b097-b4226c75c90e","data":{}}
+                    '50034': InvalidOrder, // {"message":"The price is high and there is no matching depth","code":50034,"trace":"ebfae59a-ba69-4735-86b2-0ed7b9ca14ea","data":{}}
                     '53000': AccountSuspended, // 403, Your account is frozen due to security policies. Please contact customer service
                     '53001': AccountSuspended, // {"message":"Your kyc country is restricted. Please contact customer service.","code":53001,"trace":"8b445940-c123-4de9-86d7-73c5be2e7a24","data":{}}
                     '57001': BadRequest, // 405, Method Not Allowed
@@ -1693,6 +1696,31 @@ module.exports = class bitmart extends Exchange {
             request['leverage'] = 1; // must meet the effective range of leverage configured in the contract
             request['price'] = this.priceToPrecision (symbol, price);
             request['vol'] = this.amountToPrecision (symbol, amount);
+        }
+        const timeInForce = this.safeString (params, 'timeInForce');
+        const postOnly = this.safeValue (params, 'postOnly', false);
+        if ((timeInForce !== undefined) || (postOnly) || (type === 'limit_maker') || (type === 'ioc')) {
+            if (timeInForce !== undefined) {
+                if (timeInForce === 'FOK') {
+                    throw new InvalidOrder (this.id + ' createOrder () only accepts timeInForce parameters of IOC and PO');
+                }
+            }
+            const isMaker = ((timeInForce === 'PO') || (postOnly) || (type === 'limit_maker'));
+            const isIOC = ((timeInForce === 'IOC') || (type === 'ioc'));
+            if ((isMaker) && (isIOC)) {
+                throw new InvalidOrder (this.id + ' createOrder () does not support making IOC and postOnly orders together');
+            }
+            if ((type === 'market') && ((type === 'ioc') || (timeInForce === 'IOC'))) {
+                throw new InvalidOrder (this.id + ' createOrder () does not support making IOC market orders');
+            }
+            if (isMaker) {
+                if (type === 'market') {
+                    throw new InvalidOrder (this.id + ' createOrder () does not support market postOnly orders ');
+                }
+                request['type'] = 'limit_maker';
+            } else if (isIOC) {
+                request['type'] = 'ioc';
+            }
         }
         const response = await this[method] (this.extend (request, params));
         //
