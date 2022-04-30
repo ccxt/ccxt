@@ -1700,10 +1700,8 @@ module.exports = class bitmart extends Exchange {
         const timeInForce = this.safeString (params, 'timeInForce');
         const postOnly = this.safeValue (params, 'postOnly', false);
         if ((timeInForce !== undefined) || (postOnly) || (type === 'limit_maker') || (type === 'ioc')) {
-            if (timeInForce !== undefined) {
-                if (timeInForce === 'FOK') {
-                    throw new InvalidOrder (this.id + ' createOrder () only accepts timeInForce parameters of IOC and PO');
-                }
+            if (timeInForce === 'FOK') {
+                throw new InvalidOrder (this.id + ' createOrder () only accepts timeInForce parameters of IOC and PO');
             }
             const isMaker = ((timeInForce === 'PO') || (postOnly) || (type === 'limit_maker'));
             const isIOC = ((timeInForce === 'IOC') || (type === 'ioc'));
