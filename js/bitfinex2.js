@@ -386,6 +386,7 @@ module.exports = class bitfinex2 extends bitfinex {
             'status': this.safeString ({ '0': 'maintenance', '1': 'ok' }, statusRaw, statusRaw),
             'updated': this.milliseconds (),
             'eta': undefined,
+            'url': undefined,
             'info': response,
         };
     }

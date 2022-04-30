@@ -389,6 +389,7 @@ module.exports = class wazirx extends Exchange {
             'status': (status === 'normal') ? 'ok' : 'maintenance',
             'updated': this.milliseconds (),
             'eta': undefined,
+            'url': undefined,
             'info': response,
         };
     }

@@ -756,6 +756,7 @@ module.exports = class whitebit extends Exchange {
             'status': (status === 'pong') ? 'ok' : status,
             'updated': this.milliseconds (),
             'eta': undefined,
+            'url': undefined,
             'info': response,
         };
     }

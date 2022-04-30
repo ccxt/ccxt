@@ -388,6 +388,7 @@ module.exports = class aax extends Exchange {
             'status': status,
             'updated': updated,
             'eta': eta,
+            'url': undefined,
             'info': response,
         };
     }

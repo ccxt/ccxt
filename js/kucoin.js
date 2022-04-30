@@ -472,6 +472,7 @@ module.exports = class kucoin extends Exchange {
             'status': (status === 'open') ? 'ok' : 'maintenance',
             'updated': this.milliseconds (),
             'eta': undefined,
+            'url': undefined,
             'info': response,
         };
     }
