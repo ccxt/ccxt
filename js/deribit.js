@@ -411,6 +411,7 @@ module.exports = class deribit extends Exchange {
             'status': (locked === 'false') ? 'ok' : 'maintenance',
             'updated': updateTime,
             'eta': undefined,
+            'url': undefined,
             'info': response,
         };
     }

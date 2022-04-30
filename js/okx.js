@@ -731,6 +731,7 @@ module.exports = class okx extends Exchange {
             'updated': timestamp,
             'status': (dataLength === 0) ? 'ok' : 'maintenance',
             'eta': undefined,
+            'url': undefined,
             'info': response,
         };
         for (let i = 0; i < data.length; i++) {

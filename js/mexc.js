@@ -369,6 +369,7 @@ module.exports = class mexc extends Exchange {
             'status': status,
             'updated': this.milliseconds (),
             'eta': undefined,
+            'url': undefined,
             'info': response,
         };
     }

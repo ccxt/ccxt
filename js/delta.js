@@ -253,6 +253,7 @@ module.exports = class delta extends Exchange {
             'status': status,
             'updated': updated,
             'eta': undefined,
+            'url': undefined,
             'info': response,
         };
     }

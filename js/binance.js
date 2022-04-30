@@ -2078,6 +2078,7 @@ module.exports = class binance extends Exchange {
             'status': this.safeString ({ '0': 'ok', '1': 'maintenance' }, statusRaw, statusRaw),
             'updated': this.milliseconds (),
             'eta': undefined,
+            'url': undefined,
             'info': response,
         };
     }

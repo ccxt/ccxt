@@ -410,6 +410,7 @@ module.exports = class bitmart extends Exchange {
             'status': status,
             'updated': this.milliseconds (),
             'eta': eta,
+            'url': undefined,
             'info': response,
         };
     }

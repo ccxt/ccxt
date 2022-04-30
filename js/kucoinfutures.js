@@ -320,6 +320,7 @@ module.exports = class kucoinfutures extends kucoin {
             'status': (status === 'open') ? 'ok' : 'maintenance',
             'updated': this.milliseconds (),
             'eta': undefined,
+            'url': undefined,
             'info': response,
         };
     }
