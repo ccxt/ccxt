@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, BadRequest } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
 
@@ -80,8 +81,8 @@ module.exports = class coinflex extends Exchange {
                 'fetchOrders': undefined,
                 'fetchOrderTrades': undefined,
                 'fetchPermissions': undefined,
-                'fetchPosition': undefined,
-                'fetchPositions': undefined,
+                'fetchPosition': true,
+                'fetchPositions': true,
                 'fetchPositionsRisk': undefined,
                 'fetchPremiumIndexOHLCV': undefined,
                 'fetchStatus': true,
@@ -842,8 +843,7 @@ module.exports = class coinflex extends Exchange {
         return this.parseOrderBook (orderbook, symbol, timestamp);
     }
 
-    async fetchAccounts (params = {}) {
-        await this.loadMarkets ();
+    async getAccountData (params = {}) {
         const response = await this.privateGetV3Account (params);
         //
         //     {
@@ -862,11 +862,25 @@ module.exports = class coinflex extends Exchange {
         //                         "lastUpdatedAt": "1651233586761"
         //                     },
         //                 ],
+        //                 "positions": [
+        //                     {
+        //                         "marketCode": "SHIB-USD-SWAP-LIN",
+        //                         "baseAsset": "SHIB",
+        //                         "counterAsset": "USD",
+        //                         "position": "313546.0",
+        //                         "entryPrice": "0.00002161",
+        //                         "markPrice": "0.00002158",
+        //                         "positionPnl": "-0.009406380",
+        //                         "estLiquidationPrice": "0",
+        //                         "lastUpdatedAt": "1651342025876"
+        //                     },
+        //                 ],
         //                 "collateral": "28.297558",
-        //                 "notionalPositionSize": "0",
-        //                 "portfolioVarMargin": "0.000000",
-        //                 "maintenanceMargin": "0.00000000",
-        //                 "marginRatio": "0.00",
+        //                 "notionalPositionSize": "6.82903188",
+        //                 "portfolioVarMargin": "0.682589",
+        //                 "riskRatio": "41.5216",
+        //                 "maintenanceMargin": "0.34129450",
+        //                 "marginRatio": "1.20",
         //                 "liquidating": false,
         //                 "feeTier": "0",
         //                 "createdAt": "1651232948406"
@@ -874,7 +888,12 @@ module.exports = class coinflex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        return this.safeValue (response, 'data', []);
+    }
+
+    async fetchAccounts (params = {}) {
+        await this.loadMarkets ();
+        const data = await this.getAccountData (params);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const account = data[i];
@@ -890,9 +909,7 @@ module.exports = class coinflex extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetV3Account (params);
-        // same response as in fetchAccounts
-        const data = this.safeValue (response, 'data', []);
+        const data = await this.getAccountData (params);
         const targetAccount = this.safeValue (data, 0);
         return this.parseBalance (targetAccount);
     }
@@ -924,6 +941,90 @@ module.exports = class coinflex extends Exchange {
         return this.safeBalance (result);
     }
 
+    async fetchPosition (symbol, params = {}) {
+        await this.loadMarkets ();
+        const positions = await this.fetchPositions ([ symbol ], params);
+        return this.safeValue (positions, 0);
+    }
+
+    async fetchPositions (symbols = undefined, params = {}) {
+        const data = await this.getAccountData (params);
+        // response sample inside `getAccountData` method
+        this.targetAccount = this.safeValue (data, 0);
+        const positions = this.safeValue (this.targetAccount, 'positions', []);
+        return this.parsePositions (positions);
+    }
+
+    parsePositions (positions) {
+        const result = [];
+        for (let i = 0; i < positions.length; i++) {
+            result.push (this.parsePosition (positions[i]));
+        }
+        return result;
+    }
+
+    parsePosition (position, market = undefined) {
+        //
+        //     {
+        //         "marketCode": "SHIB-USD-SWAP-LIN",
+        //         "baseAsset": "SHIB",
+        //         "counterAsset": "USD",
+        //         "position": "313546.0",
+        //         "entryPrice": "0.00002161",
+        //         "markPrice": "0.00002158",
+        //         "positionPnl": "-0.009406380",
+        //         "estLiquidationPrice": "0",
+        //         "lastUpdatedAt": "1651342025876"
+        //     }
+        //
+        //    but this.targetAccount has also like:
+        //
+        //     {
+        //         "collateral": "28.297558",
+        //         "notionalPositionSize": "6.82903188",
+        //         "portfolioVarMargin": "0.682589",
+        //         "riskRatio": "41.5216",
+        //         "maintenanceMargin": "0.34129450",
+        //         "marginRatio": "1.20",
+        //         "liquidating": false,
+        //         "feeTier": "0",
+        //         "createdAt": "1651232948406"
+        //     }
+        //
+        const marketId = this.safeString (position, 'marketCode');
+        market = this.safeMarket (marketId, market);
+        const contractsString = this.safeString (position, 'position');
+        const timestamp = undefined; // this.safeInteger (position, 'lastUpdatedAt');
+        const side = Precise.stringGt (contractsString, '0') ? 'long' : 'short';
+        const liquidationPriceString = this.safeString (position, 'estLiquidationPrice');
+        const entryPriceString = this.safeString (position, 'entryPrice');
+        const unrealizedPnlString = this.safeString (position, 'positionPnl');
+        const markPriceString = this.safeString (position, 'markPrice');
+        return {
+            'info': position,
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'entryPrice': this.parseNumber (entryPriceString),
+            'notional': undefined,
+            'leverage': undefined,
+            'unrealizedPnl': this.parseNumber (unrealizedPnlString),
+            'contracts': this.parseNumber (contractsString),
+            'contractSize': undefined,
+            'marginRatio': undefined,
+            'liquidationPrice': this.parseNumber (liquidationPriceString),
+            'markPrice': this.parseNumber (markPriceString),
+            'collateral': undefined,
+            'marginType': 'cross', // each account is cross : https://coinflex.com/support/3-4-margin-and-risk-management/
+            'side': side,
+            'percentage': undefined,
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         headers = { 'User-Agent': 'CCXT:)' };
         const [ finalPath, query ] = this.resolvePath (path, params);
@@ -940,7 +1041,7 @@ module.exports = class coinflex extends Exchange {
             const timestamp = this.milliseconds ();
             const datetime = this.ymdhms (timestamp, 'T');
             const nonce = this.nonce ();
-            let auth = datetime + '\n' + nonce + '\n' + method + '\n' + (this.urls['api']['private']).replace ('https://', '') + '\n' + '/' + path + '\n';
+            let auth = datetime + '\n' + nonce + '\n' + method + '\n' + (this.urls['api']['private']).replace ('https://', '') + '\n' + '/' + finalPath + '\n';
             if (method === 'POST') {
                 body = this.json (query);
                 auth += body;
@@ -996,8 +1097,10 @@ module.exports = class coinflex extends Exchange {
         }
         const event = this.safeValue (response, 'event');
         const data = this.safeValue (response, 'data');
-        if (event !== undefined && Array.isArray (data)) {
-            return;
+        if (event !== undefined && data !== undefined) {
+            if (Array.isArray (data) || this.isObject (data)) {
+                return;
+            }
         }
         const responseCode = this.safeString (response, 'code');
         if (responseCode !== '0') {
