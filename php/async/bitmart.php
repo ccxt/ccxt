@@ -263,6 +263,9 @@ class bitmart extends Exchange {
                     '50023' => '\\ccxt\\BadSymbol', // 400, This Symbol can't place order by api
                     '50029' => '\\ccxt\\InvalidOrder', // array("message":"param not match : size * price >=1000","code":50029,"trace":"f931f030-b692-401b-a0c5-65edbeadc598","data":array())
                     '50030' => '\\ccxt\\InvalidOrder', // array("message":"Order is already canceled","code":50030,"trace":"8d6f64ee-ad26-45a4-9efd-1080f9fca1fa","data":array())
+                    // below Error codes used interchangeably for both failed postOnly and IOC orders depending on market price and order side
+                    '50035' => '\\ccxt\\InvalidOrder', // array("message":"The price is low and there is no matching depth","code":50035,"trace":"677f01c7-8b88-4346-b097-b4226c75c90e","data":array())
+                    '50034' => '\\ccxt\\InvalidOrder', // array("message":"The price is high and there is no matching depth","code":50034,"trace":"ebfae59a-ba69-4735-86b2-0ed7b9ca14ea","data":array())
                     '53000' => '\\ccxt\\AccountSuspended', // 403, Your account is frozen due to security policies. Please contact customer service
                     '53001' => '\\ccxt\\AccountSuspended', // array("message":"Your kyc country is restricted. Please contact customer service.","code":53001,"trace":"8b445940-c123-4de9-86d7-73c5be2e7a24","data":array())
                     '57001' => '\\ccxt\\BadRequest', // 405, Method Not Allowed
@@ -1698,6 +1701,27 @@ class bitmart extends Exchange {
             $request['leverage'] = 1; // must meet the effective range of leverage configured in the contract
             $request['price'] = $this->price_to_precision($symbol, $price);
             $request['vol'] = $this->amount_to_precision($symbol, $amount);
+        }
+        $timeInForce = $this->safe_string($params, 'timeInForce');
+        $postOnly = $this->safe_value($params, 'postOnly', false);
+        if (($timeInForce !== null) || $postOnly || ($type === 'limit_maker') || ($type === 'ioc')) {
+            if ($timeInForce === 'FOK') {
+                throw new InvalidOrder($this->id . ' createOrder () only accepts $timeInForce parameter values of IOC or PO');
+            }
+            $maker = (($timeInForce === 'PO') || $postOnly || ($type === 'limit_maker'));
+            $ioc = (($timeInForce === 'IOC') || ($type === 'ioc'));
+            if ($maker && $ioc) {
+                throw new InvalidOrder($this->id . ' createOrder () does not accept IOC $postOnly orders, the order cannot be both $postOnly and IOC');
+            }
+            if ($type === 'market') {
+                throw new InvalidOrder($this->id . ' createOrder () does not accept $market $postOnly orders or $market IOC orders, only limit $postOnly order or limit IOC orders are allowed');
+            }
+            if ($maker) {
+                $request['type'] = 'limit_maker';
+            } else if ($ioc) {
+                $request['type'] = 'ioc';
+            }
+            $params = $this->omit($params, array( 'timeInForce', 'postOnly' ));
         }
         $response = yield $this->$method (array_merge($request, $params));
         //
