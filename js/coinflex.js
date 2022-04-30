@@ -75,7 +75,7 @@ module.exports = class coinflex extends Exchange {
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': undefined,
                 'fetchOrder': undefined,
-                'fetchOrderBook': undefined,
+                'fetchOrderBook': true,
                 'fetchOrderBooks': undefined,
                 'fetchOrders': undefined,
                 'fetchOrderTrades': undefined,
@@ -140,10 +140,10 @@ module.exports = class coinflex extends Exchange {
                         'v2/all/assets': 1,
                         'v2/publictrades/{marketCode}': 1,
                         'v2/ticker': 1,
-                        'v2/delivery/public/funding': 1,
+                        'v2/delivery/public/funding': 1, // superceded by v3/funding-rates
                         'v2.1/deliver-auction/{instrumentId}': 1, //
                         'v2/candles/{marketCode}': 1,
-                        'v2/funding-rates/{marketCode}': 1,
+                        'v2/funding-rates/{marketCode}': 1, // meant for only: BTC-USD-REPO-LIN, ETH-USD-REPO-LIN
                         'v2/depth/{marketCode}/{level}': 1,
                         'v2/ping': 1,
                         'v2/flex-protocol/balances/{flexProtocol}': 1,
@@ -519,6 +519,7 @@ module.exports = class coinflex extends Exchange {
         if (since + distance < currentTs) {
             request['endTime'] = since + distance;
         }
+        return request;
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -803,6 +804,44 @@ module.exports = class coinflex extends Exchange {
             this.safeNumber (ohlcv, 'close'),
             this.safeNumber (ohlcv, 'currencyVolume'),
         ];
+    }
+
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'marketCode': market['id'],
+        };
+        const response = await this.v1PublicGetDepth (this.extend (request, params));
+        //
+        //     {
+        //         "code":0,
+        //         "data":{
+        //             "m":"depth-snapshot",
+        //             "symbol":"BTC-PERP",
+        //             "data":{
+        //                 "ts":1590223998202,
+        //                 "seqnum":115444921,
+        //                 "asks":[
+        //                     ["9207.5","18.2383"],
+        //                     ["9207.75","18.8235"],
+        //                     ["9208","10.7873"],
+        //                 ],
+        //                 "bids":[
+        //                     ["9207.25","0.4009"],
+        //                     ["9207","0.003"],
+        //                     ["9206.5","0.003"],
+        //                 ]
+        //             }
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const orderbook = this.safeValue (data, 'data', {});
+        const timestamp = this.safeInteger (orderbook, 'ts');
+        const result = this.parseOrderBook (orderbook, symbol, timestamp);
+        result['nonce'] = this.safeInteger (orderbook, 'seqnum');
+        return result;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
