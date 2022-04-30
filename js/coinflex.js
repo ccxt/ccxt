@@ -50,7 +50,7 @@ module.exports = class coinflex extends Exchange {
                 'fetchCanceledOrders': undefined,
                 'fetchClosedOrder': undefined,
                 'fetchClosedOrders': undefined,
-                'fetchCurrencies': undefined,
+                'fetchCurrencies': true,
                 'fetchDeposit': undefined,
                 'fetchDepositAddress': undefined,
                 'fetchDepositAddresses': undefined,
@@ -407,6 +407,96 @@ module.exports = class coinflex extends Exchange {
                 },
                 'info': market,
             });
+        }
+        return result;
+    }
+
+    async fetchCurrencies (params = {}) {
+        const response = await this.publicGetV3Assets (params);
+        //
+        //     {
+        //         "success": true,
+        //         "data": [
+        //           {
+        //             "asset": "BTC",
+        //             "isCollateral": true,
+        //             "loanToValue": "0.950000000",
+        //             "networkList": [
+        //               {
+        //                 "network": "BTC",
+        //                 "transactionPrecision": "8",
+        //                 "isWithdrawalFeeChargedToUser": true,
+        //                 "canDeposit": true,
+        //                 "canWithdraw": true,
+        //                 "minDeposit": "0.00010",
+        //                 "minWithdrawal": "0.00010",
+        //                 // "tokenId": "730136783b0cb167727361cd3cbe47bfe3a327e2e91850948d1cb5e2ca8ce7de", // some coins have this prop
+        //               }
+        //             ]
+        //           },
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        const result = {};
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const id = this.safeString (entry, 'asset');
+            const code = this.safeCurrencyCode (id);
+            let isWithdrawEnabled = true;
+            let isDepositEnabled = true;
+            const fees = {};
+            const networks = {};
+            const networkList = this.safeValue (entry, 'networkList', []);
+            for (let j = 0; j < networkList.length; j++) {
+                const networkItem = networkList[j];
+                const networkId = this.safeString (networkItem, 'network');
+                // const name = this.safeString (networkItem, 'name');
+                const depositEnable = this.safeValue (networkItem, 'canDeposit');
+                const withdrawEnable = this.safeValue (networkItem, 'canWithdraw');
+                isDepositEnabled = isDepositEnabled || depositEnable;
+                isWithdrawEnabled = isWithdrawEnabled || withdrawEnable;
+                fees[networkId] = undefined;
+                networks[networkId] = {
+                    'id': networkId,
+                    'network': networkId,
+                    'active': isDepositEnabled && isWithdrawEnabled,
+                    'deposit': isDepositEnabled,
+                    'withdraw': isWithdrawEnabled,
+                    'fee': undefined,
+                    'precision': this.safeInteger (networkItem, 'transactionPrecision'),
+                    'limits': {
+                        'deposit': {
+                            'min': this.safeNumber (networkItem, 'minDeposit'),
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': this.safeNumber (networkItem, 'minWithdrawal'),
+                            'max': undefined,
+                        },
+                    },
+                    'info': networkItem,
+                };
+            }
+            result[code] = {
+                'id': id,
+                'name': code,
+                'code': code,
+                'precision': undefined,
+                'info': entry,
+                'active': isWithdrawEnabled && isDepositEnabled,
+                'deposit': isDepositEnabled,
+                'withdraw': isWithdrawEnabled,
+                'fee': undefined,
+                'fees': undefined,
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'networks': networks,
+            };
         }
         return result;
     }
