@@ -1699,21 +1699,21 @@ module.exports = class bitmart extends Exchange {
         }
         const timeInForce = this.safeString (params, 'timeInForce');
         const postOnly = this.safeValue (params, 'postOnly', false);
-        if ((timeInForce !== undefined) || (postOnly) || (type === 'limit_maker') || (type === 'ioc')) {
+        if ((timeInForce !== undefined) || postOnly || (type === 'limit_maker') || (type === 'ioc')) {
             if (timeInForce === 'FOK') {
-                throw new InvalidOrder (this.id + ' createOrder () only accepts timeInForce parameters of IOC or PO');
+                throw new InvalidOrder (this.id + ' createOrder () only accepts timeInForce parameter values of IOC or PO');
             }
-            const isMaker = ((timeInForce === 'PO') || (postOnly) || (type === 'limit_maker'));
-            const isIOC = ((timeInForce === 'IOC') || (type === 'ioc'));
-            if ((isMaker) && (isIOC)) {
-                throw new InvalidOrder (this.id + ' createOrder () does not support making IOC and postOnly orders together');
+            const maker = ((timeInForce === 'PO') || postOnly || (type === 'limit_maker'));
+            const ioc = ((timeInForce === 'IOC') || (type === 'ioc'));
+            if (maker && ioc) {
+                throw new InvalidOrder (this.id + ' createOrder () does not accept IOC postOnly orders, the order cannot be both postOnly and IOC');
             }
             if (type === 'market') {
-                throw new InvalidOrder (this.id + ' createOrder () only supports making limit postOnly or IOC orders');
+                throw new InvalidOrder (this.id + ' createOrder () does not accept market postOnly orders or market IOC orders, only limit postOnly order or limit IOC orders are allowed');
             }
-            if (isMaker) {
+            if (maker) {
                 request['type'] = 'limit_maker';
-            } else if (isIOC) {
+            } else if (ioc) {
                 request['type'] = 'ioc';
             }
             params = this.omit (params, [ 'timeInForce', 'postOnly' ]);
