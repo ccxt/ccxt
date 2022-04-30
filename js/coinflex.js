@@ -39,7 +39,7 @@ module.exports = class coinflex extends Exchange {
                 'createStopLimitOrder': undefined,
                 'createStopMarketOrder': undefined,
                 'editOrder': 'emulated',
-                'fetchAccounts': undefined,
+                'fetchAccounts': true,
                 'fetchBalance': undefined,
                 'fetchBidsAsks': undefined,
                 'fetchBorrowInterest': undefined,
@@ -844,49 +844,64 @@ module.exports = class coinflex extends Exchange {
 
     async fetchAccounts (params = {}) {
         await this.loadMarkets ();
-        const responseAccountinfo = await this.privateGetV2Accountinfo (params);
+        // const responseAccountinfo = await this.privateGetV2Accountinfo (params);
         //
         //     {
-        //         "id": "XLM",
-        //         "name": "XLM Wallet",
-        //         "primary": false,
-        //         "type": "wallet",
-        //         "currency": {
-        //             "code": "XLM",
-        //             "name": "Stellar Lumens",
-        //             "color": "#000000",
-        //             "sort_index": 127,
-        //             "exponent": 7,
-        //             "type": "crypto",
-        //             "address_regex": "^G[A-Z2-7]{55}$",
-        //             "asset_id": "13b83335-5ede-595b-821e-5bcdfa80560f",
-        //             "destination_tag_name": "XLM Memo ID",
-        //             "destination_tag_regex": "^[ -~]{1,28}$"
-        //         },
-        //         "balance": {
-        //             "amount": "0.0000000",
-        //             "currency": "XLM"
-        //         },
-        //         "created_at": null,
-        //         "updated_at": null,
-        //         "resource": "account",
-        //         "resource_path": "/v2/accounts/XLM",
-        //         "allow_deposits": true,
-        //         "allow_withdrawals": true
+        //         "event": "accountinfo",
+        //         "timestamp": "1651336691736",
+        //         "accountId": "38420",
+        //         "data": [
+        //             {
+        //                 "accountId": "38420",
+        //                 "tradeType": "LINEAR",
+        //                 "marginCurrency": "USD",
+        //                 "totalBalance": "28.299208",
+        //                 "availableBalance": "28.299208",
+        //                 "collateralBalance": "28.297558",
+        //                 "portfolioVarMargin": "0.000000",
+        //                 "riskRatio": "N/A",
+        //                 "timestamp": "1651336691732"
+        //             }
+        //         ]
         //     }
         //
-        const responseAccounts = await this.privateGetV2Accountinfo (this.extend (request, params));
-        const data = this.safeValue (response, 'data', []);
+        const responseAccounts = await this.privateGetV3Account (params);
+        //
+        //     {
+        //         "success": true,
+        //         "data": [
+        //             {
+        //                 "accountId": "38420",
+        //                 "name": "main",
+        //                 "accountType": "LINEAR",
+        //                 "balances": [
+        //                     {
+        //                         "asset": "USDT",
+        //                         "total": "0.33",
+        //                         "available": "0.33",
+        //                         "reserved": "0",
+        //                         "lastUpdatedAt": "1651233586761"
+        //                     },
+        //                 ],
+        //                 "collateral": "28.297558",
+        //                 "notionalPositionSize": "0",
+        //                 "portfolioVarMargin": "0.000000",
+        //                 "maintenanceMargin": "0.00000000",
+        //                 "marginRatio": "0.00",
+        //                 "liquidating": false,
+        //                 "feeTier": "0",
+        //                 "createdAt": "1651232948406"
+        //             }
+        //         ]
+        //     }
+        const data = this.safeValue (responseAccounts, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const account = data[i];
-            const currency = this.safeValue (account, 'currency', {});
-            const currencyId = this.safeString (currency, 'code');
-            const code = this.safeCurrencyCode (currencyId);
             result.push ({
-                'id': this.safeString (account, 'id'),
-                'type': this.safeString (account, 'type'),
-                'code': code,
+                'id': this.safeString (account, 'accountId'),
+                'type': undefined,
+                'code': undefined,
                 'info': account,
             });
         }
@@ -906,21 +921,20 @@ module.exports = class coinflex extends Exchange {
         }
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            if (path.indexOf ('v2/') !== false) {
-                const timestamp = this.milliseconds ();
-                const datetime = this.ymdhms (timestamp, 'T');
-                const nonce = this.seconds ();
-                if (method === 'POST') {
-                    body = this.json (query);
-                }
-                const auth = datetime + '\n' + nonce + '\n' + method + '\n' + this.implodeHostname (this.urls['private']) + '\n' + '/' + path + '\n' + (body ? body : '');
-                const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
-                headers['Content-Type'] = 'application/json';
-                headers['AccessKey'] = this.apiKey;
-                headers['Timestamp'] = datetime;
-                headers['Signature'] = signature;
-                headers['Nonce'] = nonce;
+            const timestamp = this.milliseconds ();
+            const datetime = this.ymdhms (timestamp, 'T');
+            const nonce = this.nonce ();
+            let auth = datetime + '\n' + nonce + '\n' + method + '\n' + (this.urls['api']['private']).replace ('https://', '') + '\n' + '/' + path + '\n';
+            if (method === 'POST') {
+                body = this.json (query);
+                auth += body;
             }
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
+            headers['Content-Type'] = 'application/json';
+            headers['AccessKey'] = this.apiKey;
+            headers['Timestamp'] = datetime;
+            headers['Signature'] = signature;
+            headers['Nonce'] = nonce;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
