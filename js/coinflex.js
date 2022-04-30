@@ -84,7 +84,7 @@ module.exports = class coinflex extends Exchange {
                 'fetchPositions': undefined,
                 'fetchPositionsRisk': undefined,
                 'fetchPremiumIndexOHLCV': undefined,
-                'fetchStatus': undefined,
+                'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': undefined,
@@ -270,6 +270,24 @@ module.exports = class coinflex extends Exchange {
                 },
             },
         });
+    }
+
+    async fetchStatus (params = {}) {
+        const response = await this.publicGetV2Ping (params);
+        //
+        //     {
+        //         "success": "true"
+        //     }
+        //
+        const statusRaw = this.safeString (response, 'success');
+        const status = this.safeString ({ 'true': 'ok', 'false': 'maintenance' }, statusRaw, statusRaw);
+        const timestamp = this.milliseconds ();
+        return {
+            'status': status,
+            'updated': timestamp,
+            'eta': undefined,
+            'info': response,
+        };
     }
 
     async fetchMarkets (params = {}) {
