@@ -4710,7 +4710,8 @@ module.exports = class binance extends Exchange {
                 }
                 const inner = Precise.stringMul (liquidationPriceString, onePlusMaintenanceMarginPercentageString);
                 const leftSide = Precise.stringAdd (inner, entryPriceSignString);
-                const quotePrecision = this.safeInteger (precision, 'quote');
+                const pricePrecision = this.safeInteger (precision, 'price');
+                const quotePrecision = this.safeInteger (precision, 'quote', pricePrecision);
                 collateralString = Precise.stringDiv (Precise.stringMul (leftSide, contractsAbs), '1', quotePrecision);
             } else {
                 // walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
