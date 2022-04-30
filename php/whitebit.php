@@ -760,6 +760,7 @@ class whitebit extends Exchange {
             'status' => ($status === 'pong') ? 'ok' : $status,
             'updated' => $this->milliseconds(),
             'eta' => null,
+            'url' => null,
             'info' => $response,
         );
     }

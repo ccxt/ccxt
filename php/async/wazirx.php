@@ -396,6 +396,7 @@ class wazirx extends Exchange {
             'status' => ($status === 'normal') ? 'ok' : 'maintenance',
             'updated' => $this->milliseconds(),
             'eta' => null,
+            'url' => null,
             'info' => $response,
         );
     }

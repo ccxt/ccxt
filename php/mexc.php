@@ -374,6 +374,7 @@ class mexc extends Exchange {
             'status' => $status,
             'updated' => $this->milliseconds(),
             'eta' => null,
+            'url' => null,
             'info' => $response,
         );
     }

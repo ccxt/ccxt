@@ -255,6 +255,7 @@ class delta extends Exchange {
             'status' => $status,
             'updated' => $updated,
             'eta' => null,
+            'url' => null,
             'info' => $response,
         );
     }

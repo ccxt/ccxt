@@ -475,6 +475,7 @@ class kucoin extends Exchange {
             'status' => ($status === 'open') ? 'ok' : 'maintenance',
             'updated' => $this->milliseconds(),
             'eta' => null,
+            'url' => null,
             'info' => $response,
         );
     }

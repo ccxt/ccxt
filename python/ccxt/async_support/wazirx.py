@@ -389,6 +389,7 @@ class wazirx(Exchange):
             'status': 'ok' if (status == 'normal') else 'maintenance',
             'updated': self.milliseconds(),
             'eta': None,
+            'url': None,
             'info': response,
         }
 

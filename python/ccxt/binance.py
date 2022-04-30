@@ -2058,6 +2058,7 @@ class binance(Exchange):
             'status': self.safe_string({'0': 'ok', '1': 'maintenance'}, statusRaw, statusRaw),
             'updated': self.milliseconds(),
             'eta': None,
+            'url': None,
             'info': response,
         }
 

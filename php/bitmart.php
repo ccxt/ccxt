@@ -417,6 +417,7 @@ class bitmart extends Exchange {
             'status' => $status,
             'updated' => $this->milliseconds(),
             'eta' => $eta,
+            'url' => null,
             'info' => $response,
         );
     }

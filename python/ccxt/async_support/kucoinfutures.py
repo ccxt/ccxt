@@ -329,6 +329,7 @@ class kucoinfutures(kucoin):
             'status': 'ok' if (status == 'open') else 'maintenance',
             'updated': self.milliseconds(),
             'eta': None,
+            'url': None,
             'info': response,
         }
 

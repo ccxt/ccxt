@@ -423,6 +423,7 @@ class deribit(Exchange):
             'status': 'ok' if (locked == 'false') else 'maintenance',
             'updated': updateTime,
             'eta': None,
+            'url': None,
             'info': response,
         }
 

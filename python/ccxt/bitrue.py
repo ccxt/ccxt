@@ -360,6 +360,7 @@ class bitrue(Exchange):
             'status': formattedStatus,
             'updated': self.milliseconds(),
             'eta': None,
+            'url': None,
             'info': response,
         }
 

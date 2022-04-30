@@ -424,6 +424,7 @@ class bitmart(Exchange):
             'status': status,
             'updated': self.milliseconds(),
             'eta': eta,
+            'url': None,
             'info': response,
         }
 

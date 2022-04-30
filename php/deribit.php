@@ -414,6 +414,7 @@ class deribit extends Exchange {
             'status' => ($locked === 'false') ? 'ok' : 'maintenance',
             'updated' => $updateTime,
             'eta' => null,
+            'url' => null,
             'info' => $response,
         );
     }

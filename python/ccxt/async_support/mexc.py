@@ -382,6 +382,7 @@ class mexc(Exchange):
             'status': status,
             'updated': self.milliseconds(),
             'eta': None,
+            'url': None,
             'info': response,
         }
 

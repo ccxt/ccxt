@@ -396,6 +396,7 @@ class aax(Exchange):
             'status': status,
             'updated': updated,
             'eta': eta,
+            'url': None,
             'info': response,
         }
 

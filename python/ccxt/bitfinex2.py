@@ -397,6 +397,7 @@ class bitfinex2(bitfinex):
             'status': self.safe_string({'0': 'maintenance', '1': 'ok'}, statusRaw, statusRaw),
             'updated': self.milliseconds(),
             'eta': None,
+            'url': None,
             'info': response,
         }
 

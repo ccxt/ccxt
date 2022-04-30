@@ -391,6 +391,7 @@ class aax extends Exchange {
             'status' => $status,
             'updated' => $updated,
             'eta' => $eta,
+            'url' => null,
             'info' => $response,
         );
     }

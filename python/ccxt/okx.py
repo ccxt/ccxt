@@ -749,6 +749,7 @@ class okx(Exchange):
             'updated': timestamp,
             'status': 'ok' if (dataLength == 0) else 'maintenance',
             'eta': None,
+            'url': None,
             'info': response,
         }
         for i in range(0, len(data)):

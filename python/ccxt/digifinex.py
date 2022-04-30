@@ -730,6 +730,8 @@ class digifinex(Exchange):
         return {
             'status': status,
             'updated': self.milliseconds(),
+            'eta': None,
+            'url': None,
             'info': response,
         }
 

@@ -323,6 +323,7 @@ class kucoinfutures extends kucoin {
             'status' => ($status === 'open') ? 'ok' : 'maintenance',
             'updated' => $this->milliseconds(),
             'eta' => null,
+            'url' => null,
             'info' => $response,
         );
     }

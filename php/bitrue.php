@@ -351,6 +351,7 @@ class bitrue extends Exchange {
             'status' => $formattedStatus,
             'updated' => $this->milliseconds(),
             'eta' => null,
+            'url' => null,
             'info' => $response,
         );
     }

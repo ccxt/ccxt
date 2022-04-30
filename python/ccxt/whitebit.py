@@ -744,6 +744,7 @@ class whitebit(Exchange):
             'status': 'ok' if (status == 'pong') else status,
             'updated': self.milliseconds(),
             'eta': None,
+            'url': None,
             'info': response,
         }
 

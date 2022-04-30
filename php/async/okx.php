@@ -737,6 +737,7 @@ class okx extends Exchange {
             'updated' => $timestamp,
             'status' => ($dataLength === 0) ? 'ok' : 'maintenance',
             'eta' => null,
+            'url' => null,
             'info' => $response,
         );
         for ($i = 0; $i < count($data); $i++) {

@@ -741,6 +741,8 @@ class digifinex extends Exchange {
         return array(
             'status' => $status,
             'updated' => $this->milliseconds(),
+            'eta' => null,
+            'url' => null,
             'info' => $response,
         );
     }
