@@ -60,7 +60,7 @@ module.exports = class coinflex extends Exchange {
                 'fetchFundingFees': undefined,
                 'fetchFundingHistory': undefined,
                 'fetchFundingRate': undefined,
-                'fetchFundingRateHistory': undefined,
+                'fetchFundingRateHistory': true,
                 'fetchFundingRates': undefined,
                 'fetchIndexOHLCV': undefined,
                 'fetchL2OrderBook': undefined,
@@ -133,7 +133,7 @@ module.exports = class coinflex extends Exchange {
                         'v2/publictrades/{marketCode}': 1,
                         'v2/ticker': 1,
                         'v2/delivery/public/funding': 1,
-                        'v2.1/deliver-auction/{instrumentId}': 1,
+                        'v2.1/deliver-auction/{instrumentId}': 1, //
                         'v2/candles/{marketCode}': 1,
                         'v2/funding-rates/{marketCode}': 1,
                         'v2/depth/{marketCode}/{level}': 1,
@@ -504,22 +504,26 @@ module.exports = class coinflex extends Exchange {
         return result;
     }
 
+    setStartEndTimes (request, since) {
+        request['startTime'] = since;
+        const currentTs = this.milliseconds ();
+        const distance = 7 * 24 * 60 * 60 * 1000; // 7 days
+        if (since + distance < currentTs) {
+            request['endTime'] = since + distance;
+        }
+    }
+
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        let request = {
             'marketCode': market['id'],
         };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
         if (since !== undefined) {
-            request['startTime'] = since;
-            const currentTs = this.milliseconds ();
-            const distance = 7 * 24 * 60 * 60 * 1000; // 7 days
-            if (since + distance < currentTs) {
-                request['endTime'] = since + distance;
-            }
+            request = this.setStartEndTimes (request, since);
         }
         const response = await this.publicGetV2PublictradesMarketCode (this.extend (request, params));
         //
@@ -688,6 +692,52 @@ module.exports = class coinflex extends Exchange {
             'quoteVolume': undefined,
             'info': ticker,
         }, market, false);
+    }
+
+    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['marketCode'] = market['id'];
+        }
+        if (since !== undefined) {
+            request = this.setStartEndTimes (request, since);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetV3FundingRates (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": [
+        //             {
+        //                 "marketCode": "BTC-USD-SWAP-LIN",
+        //                 "fundingRate": "0.000005000",
+        //                 "netDelivered": "-18.676",
+        //                 "createdAt": "1651312802926"
+        //             },
+        //          ]
+        //      }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const rates = [];
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const timestamp = this.safeInteger (entry, 'createdAt');
+            const marketId = this.safeString (entry, 'marketCode');
+            rates.push ({
+                'symbol': this.safeSymbol (marketId, market),
+                'fundingRate': this.safeNumber (entry, 'fundingRate'),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'info': entry,
+            });
+        }
+        const sorted = this.sortBy (rates, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
