@@ -4,9 +4,15 @@ const zero = BigInt (0)
 const minusOne = BigInt (-1)
 const base = BigInt (10)
 
+var _oneP
+var _halfP
+
 class Precise {
     constructor (number, decimals = undefined) {
         if (decimals === undefined) {
+            if (typeof number !== 'string') {
+                throw new Error ('number must be a string')
+            }
             let modifier = 0
             number = number.toLowerCase ()
             if (number.indexOf ('e') > -1) {
@@ -19,6 +25,12 @@ class Precise {
             this.integer = BigInt (integerString)
             this.decimals = this.decimals - modifier
         } else {
+            if (typeof number !== 'bigint') {
+                throw new Error ('number must be a BigInt')
+            }
+            if (!(Number.isInteger (decimals))) {
+                throw new Error ('decimals must be an integer')
+            }
             this.integer = number
             this.decimals = decimals
         }
@@ -65,8 +77,26 @@ class Precise {
         const numerator = this.integer * (base ** BigInt (rationizerNumerator))
         const rationizerDenominator = Math.max (-other.decimals + this.decimals, 0)
         const denominator = other.integer * (base ** BigInt (rationizerDenominator))
-        const result = numerator % denominator
+        let result = numerator % denominator
+        if ( result < 0 ) {
+            result += denominator
+        }
         return new Precise (result, rationizerDenominator + other.decimals)
+    }
+
+    pow10 () {
+        // this must represent a positive or negative integer
+        if (this.decimals === undefined || this.decimals === 0) {
+            if (this.integer >= 0) {
+	            const result = base ** this.integer
+	            return new Precise (result, 0)
+            } else {
+                return new Precise (BigInt(1), Number(-this.integer))
+            }
+        } else {
+            // non-integer argument is NOT handled.
+            throw new Error ('this must be a positive or negative integer for pow10')
+        }
     }
 
     sub (other) {
@@ -88,6 +118,40 @@ class Precise {
 
     max (other) {
         return this.gt (other) ? this : other
+    }
+
+    round () {
+        let fractional = this.mod (_oneP)
+        let whole = this.sub (fractional)
+        if (this.integer > zero) {
+            if (fractional.ge (_halfP)) {
+                return whole.add (_oneP)
+            } else {
+                return whole
+            }
+        } else {
+            if (fractional.gt (_halfP)) {
+                return whole.add (_oneP)
+            } else {
+                return whole
+            }
+        }
+    }
+
+    floor () {
+        const fractional = this.mod (_oneP)
+        const whole = this.sub (fractional)
+        return whole
+    }
+
+    ceil () {
+        const fractional = this.mod (_oneP)
+        const whole = this.sub (fractional)
+        if ( fractional.integer > 0 ) {
+            return whole.add (_oneP)
+        } else {
+            return whole
+        }
     }
 
     gt (other) {
@@ -223,6 +287,13 @@ class Precise {
         return (new Precise (string1)).mod (new Precise (string2)).toString ()
     }
 
+    static stringPow10 (string) {
+	    if (string === undefined) {
+		    return undefined
+	    }
+        return (new Precise (string)).pow10 ().toString ()
+    }
+
     static stringEquals (string1, string2) {
         if ((string1 === undefined) || (string2 === undefined)) {
             return undefined
@@ -249,6 +320,27 @@ class Precise {
             return undefined
         }
         return (new Precise (string1)).max (new Precise (string2)).toString ()
+    }
+
+    static stringRound (string) {
+	    if (string === undefined) {
+		    return undefined
+	    }
+        return (new Precise (string)).round ().toString ()
+    }
+
+    static stringFloor (string) {
+	    if (string === undefined) {
+		    return undefined
+	    }
+        return (new Precise (string)).floor ().toString ()
+    }
+
+    static stringCeil (string) {
+	    if (string === undefined) {
+		    return undefined
+	    }
+        return (new Precise (string)).ceil ().toString ()
     }
 
     static stringGt (string1, string2) {
@@ -279,5 +371,8 @@ class Precise {
         return (new Precise (string1)).le (new Precise (string2))
     }
 }
+
+_oneP = new Precise(BigInt(1), 0)
+_halfP = new Precise(BigInt(5), 1)
 
 module.exports = Precise;

@@ -180,8 +180,7 @@ assert (decimal_to_precision ('0.000123456789', TRUNCATE, 0.00000012, TICK_SIZE)
 assert (decimal_to_precision ('0.000273398', ROUND, 1e-7, TICK_SIZE) === '0.0002734');
 
 assert (decimal_to_precision ('0.00005714', TRUNCATE, 0.00000001, TICK_SIZE) === '0.00005714');
-// this line causes problems in JS, fix with Precise
-// assert (decimal_to_precision ('0.0000571495257361', TRUNCATE, 0.00000001, TICK_SIZE) === '0.00005714');
+assert (decimal_to_precision ('0.0000571495257361', TRUNCATE, 0.00000001, TICK_SIZE) === '0.00005714');
 
 assert (decimal_to_precision ('0.01', ROUND, 0.0001, TICK_SIZE, PAD_WITH_ZERO) === '0.0100');
 assert (decimal_to_precision ('0.01', TRUNCATE, 0.0001, TICK_SIZE, PAD_WITH_ZERO) === '0.0100');

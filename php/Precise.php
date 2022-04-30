@@ -6,21 +6,31 @@ class Precise {
     public $integer;
     public $decimals;
     public static $base;
+    public static $one;
+    public static $half;
 
     public function __construct($number, $decimals = null) {
         if ($decimals === null) {
+            // assert(gettype($number) === 'string');
             $modifier = 0;
             $number = strtolower($number);
-            if (strpos($number, 'e') > -1) {
-                list($number, $modifier) = explode('e', $number);
-                $modifier = intval($modifier);
+            $epos = strpos($number, 'e');
+            if ($epos > -1) {
+                $modifier = intval(substr($number, $epos+1));
+                $number = substr($number, 0, $epos);
             }
             $decimalIndex = strpos($number, '.');
-            $this->decimals = ($decimalIndex > -1) ? strlen($number) - $decimalIndex - 1 : 0;
-            $integerString = str_replace('.', '', $number);
+            if ($decimalIndex > -1) {
+                $this->decimals = strlen($number) - $decimalIndex - 1;
+                $integerString = str_replace('.', '', $number);
+            } else {
+                $this->decimals = 0;
+                $integerString = $number;
+            }
             $this->integer = gmp_init($integerString, 10);
             $this->decimals = $this->decimals - $modifier;
         } else {
+            // assert(is_int($decimals));
             $this->integer = $number;
             $this->decimals = $decimals;
         }
@@ -75,13 +85,41 @@ class Precise {
 
     public function mod($other) {
         $rationizerNumerator = max(-$this->decimals + $other->decimals, 0);
-        $numerator = gmp_mul($this->integer, gmp_pow(static::$base, $rationizerNumerator));
-        $denominatorRationizer = max(-$other->decimals + $this->decimals, 0);
-        $denominator = gmp_mul($other->integer, gmp_pow(static::$base, $denominatorRationizer));
+        if ($rationizerNumerator > 0) {
+            $exponent = gmp_pow(static::$base, $rationizerNumerator);
+            $numerator = gmp_mul($this->integer, $exponent);
+        } else {
+            $numerator = $this->integer;
+        }
+        $rationizerDenominator = max(-$other->decimals + $this->decimals, 0);
+        if ($rationizerDenominator > 0) {
+            $exponent = gmp_pow(static::$base, $rationizerDenominator);
+            $denominator = gmp_mul($other->integer, $exponent);
+        } else {
+            $denominator = $other->integer;
+        }
         $result = gmp_mod($numerator, $denominator);
-        return new Precise($result, $denominatorRationizer + $other->decimals);
+        if (gmp_cmp($result, 0) < 0) {
+            $result = gmp_add($result, $denominator);
+        }
+        return new Precise($result, $rationizerDenominator + $other->decimals);
     }
 
+    public function pow10() {
+        // this must represent a positive or negative integer
+        if ($this->decimals === null or $this->decimals === 0) {
+            assert( gmp_cmp(gmp_intval($this->integer), $this->integer) == 0 );
+            if ($this->integer >= 0) {
+                $result = gmp_pow(10, gmp_intval($this->integer));
+                return new Precise($result, 0);
+            } else {
+                return new Precise(1, gmp_intval(gmp_neg($this->integer)));
+            }
+        } else {
+            assert(false);
+        }
+    }
+    
     public function min($other) {
         return $this->lt($other) ? $this : $other;
     }
@@ -89,6 +127,41 @@ class Precise {
     public function max($other) {
         return $this->gt($other) ? $this : $other;
 
+    }
+
+    public function round() {
+        $fractional = $this->mod(static::$one);
+        $whole = $this->sub($fractional);
+        if (gmp_cmp($this->integer, 0) > 0) {
+            if ($fractional->ge(static::$half)) {
+                return $whole->add(static::$one);
+            } else {
+                return $whole;
+            }
+        } else {
+            if ($fractional->gt(static::$half)) {
+                return $whole->add(static::$one);
+            } else {
+                return $whole;
+            }
+        }
+    }
+
+    public function floor() {
+        $fractional = $this->mod(static::$one);
+        $whole = $this->sub($fractional);
+        return $whole;
+    }
+
+    public function ceil() {
+        $fractional = $this->mod(static::$one);
+        $whole = $this->sub($fractional);
+        if ($fractional->integer > 0) {
+            return $whole->add(static::$one);
+        } else {
+            return $whole;
+        }
+        return $whole;
     }
 
     public function gt($other) {
@@ -129,7 +202,7 @@ class Precise {
             return $this;
         }
         $this->decimals -= $difference;
-        $this->integer = gmp_init(mb_substr($string, 0, $i + 1), 10);
+        $this->integer = gmp_init(substr($string, 0, $i + 1), 10);
     }
 
     public function equals ($other) {
@@ -139,22 +212,45 @@ class Precise {
     }
 
     public function __toString() {
-        $this->reduce();
-        $sign = gmp_sign($this->integer) === -1 ? '-' : '';
-        $integerArray = str_split(str_pad(gmp_abs($this->integer), $this->decimals, '0', STR_PAD_LEFT));
-        $index = count($integerArray) - $this->decimals;
+        $integerStr = strval($this->integer);
+        $start = strlen($integerStr) - 1;
+        $decimals = $this->decimals;
+        if ($start === 0) {
+            if ($integerStr === '0') {
+                $decimals = 0;
+            }
+        } else {
+            for ($i = $start; $i >= 0; $i--) {
+                if ($integerStr[$i] !== '0') {
+                    break;
+                }
+            }
+            $difference = $start - $i;
+            if ($difference !== 0) {
+                $decimals -= $difference;
+                $integerStr = substr($integerStr, 0, $i + 1);
+            }
+        }
+        if ($integerStr[0] === '-') {
+            $sign = '-';
+            $integerStr = substr($integerStr,1);
+        } else {
+            $sign = '';
+        }
+        $integerStr = str_pad($integerStr, $decimals, '0', STR_PAD_LEFT);
+        $index = strlen($integerStr) - $decimals;
         if ($index === 0) {
             // if we are adding to the front
             $item = '0.';
-        } else if ($this->decimals < 0) {
-            $item = str_repeat('0', -$this->decimals);
-        } else if ($this->decimals === 0) {
+        } else if ($decimals < 0) {
+            $item = str_repeat('0', -$decimals);
+        } else if ($decimals === 0) {
             $item = '';
         } else {
             $item = '.';
         }
-        array_splice($integerArray, $index, 0, $item);
-        return $sign . implode('', $integerArray);
+        $integerStr = $sign . substr($integerStr,0,$index) . $item . substr($integerStr,$index); 
+        return $integerStr;
     }
 
     public static function string_mul($string1, $string2) {
@@ -169,7 +265,7 @@ class Precise {
             return null;
         }
         $string2_precise = new Precise($string2);
-        if (gmp_cmp($string2_precise->integer, '0') === 0) {
+        if (gmp_cmp($string2_precise->integer, 0) === 0) {
             return null;
         }
         return strval((new Precise($string1))->div($string2_precise, $precision));
@@ -215,6 +311,13 @@ class Precise {
         return strval((new Precise($string1))->mod(new Precise($string2)));
     }
 
+    public static function string_pow10($string) {
+        if ($string === null) {
+            return null;
+        }
+        return strval((new Precise($string))->pow10());
+    }
+    
     public static function string_equals($string1, $string2) {
         if (($string1 === null) || ($string2 === null)) {
             return null;
@@ -243,6 +346,27 @@ class Precise {
         return strval((new Precise($string1))->max(new Precise($string2)));
     }
 
+    public static function string_round($string) {
+        if ($string === null) {
+            return null;
+        }
+        return strval((new Precise($string))->round());
+    }
+
+    public static function string_floor($string) {
+        if ($string === null) {
+            return null;
+        }
+        return strval((new Precise($string))->floor());
+    }
+
+    public static function string_ceil($string) {
+        if ($string === null) {
+            return null;
+        }
+        return strval((new Precise($string))->ceil());
+    }
+    
     public static function string_gt($string1, $string2) {
         if (($string1 === null) || ($string2 === null)) {
             return null;
@@ -273,3 +397,6 @@ class Precise {
 }
 
 Precise::$base = \gmp_init(10);
+
+Precise::$one = new Precise(1, 0);
+Precise::$half = new Precise(5, 1);

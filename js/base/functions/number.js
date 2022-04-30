@@ -1,4 +1,5 @@
 'use strict'
+var assert = require('assert');
 
 /*  ------------------------------------------------------------------------
 
@@ -13,17 +14,17 @@
 
             decimalToPrecision ('123.456', ROUND, 2, DECIMAL_PLACES)                     */
 
-const ROUND      = 0                // rounding mode
-    , TRUNCATE   = 1
-    , ROUND_UP   = 2
-    , ROUND_DOWN = 3
+const ROUND      = 1                // rounding mode
+    , TRUNCATE   = 2
+    , ROUND_UP   = 4
+    , ROUND_DOWN = 8
 
-const DECIMAL_PLACES     = 0        // digits counting mode
-    , SIGNIFICANT_DIGITS = 1
-    , TICK_SIZE = 2
+const DECIMAL_PLACES     = 16        // digits counting mode
+    , SIGNIFICANT_DIGITS = 32        // positive counts right from first digit, negative counts left from decimal point
+    , TICK_SIZE = 64
 
-const NO_PADDING    = 0             // zero-padding mode
-    , PAD_WITH_ZERO = 1
+const NO_PADDING    = 128             // zero-padding mode
+    , PAD_WITH_ZERO = 256
 
 const precisionConstants = {
     ROUND,
@@ -36,6 +37,8 @@ const precisionConstants = {
     NO_PADDING,
     PAD_WITH_ZERO,
 }
+const Precise = require ('../Precise')
+const Bzero = BigInt(0)
 
 /*  ------------------------------------------------------------------------ */
 
@@ -99,200 +102,246 @@ const decimalToPrecision = (x, roundingMode
                              , countingMode       = DECIMAL_PLACES
                              , paddingMode        = NO_PADDING) => {
 
-    if (countingMode === TICK_SIZE) {
-        if (numPrecisionDigits <= 0) {
-            throw new Error ('TICK_SIZE cant be used with negative or zero numPrecisionDigits')
-        }
-    }
+	var result = ''
+	var hasDot = null
+	var numPrecisionDigitsNum = null
 
-    if (numPrecisionDigits < 0) {
-        const toNearest = Math.pow (10, -numPrecisionDigits)
-        if (roundingMode === ROUND) {
-            return (toNearest * decimalToPrecision (x / toNearest, roundingMode, 0, countingMode, paddingMode)).toString ()
-        }
-        if (roundingMode === TRUNCATE) {
-            return (x - (x % toNearest)).toString ()
-        }
-    }
+	if (x === null) {
+		throw new Error('x is null, but it must be a string number or a number')
+	}
 
-/*  handle tick size */
+	/*  handle tick size */
     if (countingMode === TICK_SIZE) {
-        const precisionDigitsString = decimalToPrecision (numPrecisionDigits, ROUND, 22, DECIMAL_PLACES, NO_PADDING)
-        const newNumPrecisionDigits = precisionFromString (precisionDigitsString)
-        let missing = x % numPrecisionDigits
-        // See: https://github.com/ccxt/ccxt/pull/6486
-        missing = Number (decimalToPrecision (missing, ROUND, 8, DECIMAL_PLACES, NO_PADDING));
-        const fpError = decimalToPrecision (missing / numPrecisionDigits, ROUND, Math.max (newNumPrecisionDigits, 8), DECIMAL_PLACES, NO_PADDING)
-        if (precisionFromString (fpError) !== 0) {
+		var numPrecisionDigitsP = null
+	    if (typeof numPrecisionDigits === 'string') {
+	        numPrecisionDigitsP = new Precise (numPrecisionDigits)
+	    } else if (Number.isInteger (numPrecisionDigits)) {
+		    numPrecisionDigitsP = new Precise (BigInt (numPrecisionDigits), 0)
+	    } else if (Number.isFinite (numPrecisionDigits)) {
+		    // Occurrences of this should be eliminated and replaced by strings instead.
+	        let exponent = Math.floor (Math.log10 (numPrecisionDigits))-15+1
+		    const mantissa = Math.round (numPrecisionDigits / Math.pow (10, exponent))
+	        numPrecisionDigitsP = new Precise (BigInt (mantissa), -exponent)
+	        numPrecisionDigitsP.reduce ()
+	    } else {
+	        throw new Error ('numPrecisionDigits must be a string number or a Number')
+	    }
+		if (numPrecisionDigitsP.integer <= Bzero) {
+			throw new Error ('TICK_SIZE cant be used with negative or zero numPrecisionDigits')
+		}
+	
+		var xP = null
+	    if (typeof x === 'string') {
+	        xP = new Precise (x)
+	    } else if (Number.isInteger (x)) {
+		    xP = new Precise (BigInt (x), 0)
+	    } else if (Number.isFinite (x)) {
+		    // Occurrences of this should be eliminated and replaced by strings instead.
+	        let exponent = Math.floor (Math.log10 (Math.abs (x)))-15+1
+		    const mantissa = Math.round (x / Math.pow (10, exponent))
+	        xP = new Precise (BigInt (mantissa), -exponent)
+	        xP.reduce ()
+	    } else {
+	        throw new Error ('x must be a string number or a Number')
+	    }
+        const newNumPrecisionDigits = numPrecisionDigitsP.decimals > 0 ? numPrecisionDigitsP.decimals : 0
+        const remainder = xP.mod (numPrecisionDigitsP)
+        if (remainder.integer != Bzero) {
             if (roundingMode === ROUND) {
-                if (x > 0) {
-                    if (missing >= numPrecisionDigits / 2) {
-                        x = x - missing + numPrecisionDigits
-                    } else {
-                        x = x - missing
-                    }
+				const doubleRemainder = remainder.add(remainder);
+                if (xP.integer >= Bzero) {
+					if (doubleRemainder.ge (numPrecisionDigitsP)) {
+	                    xP = xP.add (numPrecisionDigitsP.sub (remainder))
+					} else {
+	                    xP = xP.sub (remainder)
+					}
                 } else {
-                    if (missing >= numPrecisionDigits / 2) {
-                        x = Number (x) - missing
-                    } else {
-                        x = Number (x) - missing - numPrecisionDigits
-                    }
+					if (doubleRemainder.gt (numPrecisionDigitsP)) {
+	                    xP = xP.add (numPrecisionDigitsP.sub (remainder))
+					} else {
+	                    xP = xP.sub (remainder)
+					}
                 }
             } else if (roundingMode === TRUNCATE) {
-                x = x - missing
+                if (xP.integer >= Bzero) {
+                    xP = xP.sub (remainder)
+                } else {
+                    xP = xP.add (numPrecisionDigitsP.sub(remainder))
+                }
             }
         }
-        return decimalToPrecision (x, ROUND, newNumPrecisionDigits, DECIMAL_PLACES, paddingMode);
-    }
+		x = xP.toString ()
+		roundingMode = ROUND
+		numPrecisionDigitsNum = newNumPrecisionDigits
+		countingMode = DECIMAL_PLACES
+        // return decimalToPrecision (x, ROUND, newNumPrecisionDigits, DECIMAL_PLACES, paddingMode)
+    } else {
+		if (Number.isFinite(x)) {
+			x = numberToString(x)
+		} else if (typeof x !== 'string') {
+	        throw new Error ('x must be a string or a Number')
+		}
+		//if (x.match(/^-?[0-9]+(\.[0-9]*)?$/) === null) {
+	    //    throw new Error ('x must be a string representing a number in non-scientific notation')
+		//}
+		
+		if (typeof numPrecisionDigits === 'string') {
+			numPrecisionDigitsNum = Number(numPrecisionDigits)
+	    } else if (Number.isInteger (numPrecisionDigits)) {
+			numPrecisionDigitsNum = numPrecisionDigits
+	    } else {
+	        throw new Error ('numPrecisionDigits must be a string or an integer Number')
+	    }
+	}
 
-/*  Convert to a string (if needed), skip leading minus sign (if any)   */
-
-    const str          = numberToString (x)
-        , isNegative   = str[0] === '-'
-        , strStart     = isNegative ? 1 : 0
-        , strEnd       = str.length
-
-/*  Find the dot position in the source buffer   */
-
-    for (var strDot = 0; strDot < strEnd; strDot++)
-        if (str[strDot] === '.')
-            break
-
-    const hasDot = strDot < str.length
-
-/*  Char code constants         */
-
-    const MINUS =  45
-        , DOT   =  46
-        , ZERO  =  48
-        , ONE   = (ZERO + 1)
-        , FIVE  = (ZERO + 5)
-        , NINE  = (ZERO + 9)
-
-/*  For -123.4567 the `chars` array will hold 01234567 (leading zero is reserved for rounding cases when 099 → 100)    */
-
-    const chars    = new Uint8Array ((strEnd - strStart) + (hasDot ? 0 : 1))
-          chars[0] = ZERO
-
-/*  Validate & copy digits, determine certain locations in the resulting buffer  */
-
-    let afterDot    = chars.length
-      , digitsStart = -1                // significant digits
-      , digitsEnd   = -1
-
-    for (var i = 1, j = strStart; j < strEnd; j++, i++) {
-
-        const c = str.charCodeAt (j)
-
-        if (c === DOT) {
-            afterDot = i--
-
-        } else if ((c < ZERO) || (c > NINE)) {
-            throw new Error (`${str}: invalid number (contains an illegal character '${str[i - 1]}')`)
-
-        } else {
-            chars[i] = c
-            if ((c !== ZERO) && (digitsStart < 0)) digitsStart = i
-        }
-    }
-
-    if (digitsStart < 0) digitsStart = 1
-
-/*  Determine the range to cut  */
-
-    let precisionStart = (countingMode === DECIMAL_PLACES) ? afterDot      // 0.(0)001234567
-                                                           : digitsStart   // 0.00(1)234567
-      , precisionEnd = precisionStart +
-                       numPrecisionDigits
-
-/*  Reset the last significant digit index, as it will change during the rounding/truncation.   */
-
-    digitsEnd = -1
-
-/*  Perform rounding/truncation per digit, from digitsEnd to digitsStart, by using the following
-    algorithm (rounding 999 → 1000, as an example):
-
-        step  =          i=3      i=2      i=1      i=0
-
-        chars =         0999     0999     0900     1000
-        memo  =         ---0     --1-     -1--     0---                     */
-
-    let allZeros = true;
-    let signNeeded = isNegative;
-
-    for (let i = chars.length - 1, memo = 0; i >= 0; i--) {
-
-        let c = chars[i]
-
-        if (i !== 0) {
-            c += memo
-
-            if (i >= (precisionStart + numPrecisionDigits)) {
-
-                const ceil = (roundingMode === ROUND) &&
-                             (c >= FIVE) &&
-                            !((c === FIVE) && memo) // prevents rounding of 1.45 to 2
-
-                c = ceil ? (NINE + 1) : ZERO
-            }
-            if (c > NINE) { c = ZERO; memo = 1; }
-            else memo = 0
-
-        } else if (memo) c = ONE // leading extra digit (0900 → 1000)
-
-        chars[i] = c
-
-        if (c !== ZERO) {
-            allZeros    = false
-            digitsStart = i
-            digitsEnd   = (digitsEnd < 0) ? (i + 1) : digitsEnd
-        }
-    }
-
-/*  Update the precision range, as `digitsStart` may have changed... & the need for a negative sign if it is only 0    */
-
+	if ( numPrecisionDigitsNum % 1 !== 0 ) {
+        throw new Error ('numPrecisionDigits must be an integer for DECIMAL_PLACES and SIGNIFICANT_DIGITS')
+	}
     if (countingMode === SIGNIFICANT_DIGITS) {
-        precisionStart = digitsStart
-        precisionEnd   = precisionStart + numPrecisionDigits
+		// positive counts right from first digit, negative counts left from decimal point
+		if (numPrecisionDigitsNum === 0) {
+			return '0'
+		}
     }
-
-    if (allZeros) {
-        signNeeded = false
-    }
-
-/*  Determine the input character range     */
-
-    const readStart     = ((digitsStart >= afterDot) || allZeros) ? (afterDot - 1) : digitsStart // 0.000(1)234  ----> (0).0001234
-        , readEnd       = (digitsEnd    < afterDot) ? (afterDot    ) : digitsEnd   // 12(3)000     ----> 123000( )
-
-/*  Compute various sub-ranges       */
-
-    const nSign         =          (signNeeded ? 1 : 0)                // (-)123.456
-        , nBeforeDot    =          (nSign + (afterDot - readStart))    // (-123).456
-        , nAfterDot     = Math.max (readEnd - afterDot, 0)             // -123.(456)
-        , actualLength  =          (readEnd - readStart)               // -(123.456)
-        , desiredLength =          (paddingMode === NO_PADDING)
-                                       ? (actualLength)                // -(123.456)
-                                       : (precisionEnd - readStart)    // -(123.456    )
-
-        , pad           = Math.max (desiredLength - actualLength, 0)   //  -123.456(    )
-        , padStart      =          (nBeforeDot + 1 + nAfterDot)        //  -123.456( )
-        , padEnd        =          (padStart + pad)                    //  -123.456     ( )
-        , isInteger     =          (nAfterDot + pad) === 0             //  -123
-
-/*  Fill the output buffer with characters    */
-
-    const out = new Uint8Array (nBeforeDot + (isInteger ? 0 : 1) + nAfterDot + pad)
-    // ------------------------------------------------------------------------------------------ // ---------------------
-    if  (signNeeded)                                                  out[0]          = MINUS     // -     minus sign
-    for (i = nSign, j = readStart;          i < nBeforeDot; i++, j++) out[i]          = chars[j]  // 123   before dot
-    if  (!isInteger)                                                  out[nBeforeDot] = DOT       // .     dot
-    for (i = nBeforeDot + 1, j = afterDot;  i < padStart;   i++, j++) out[i]          = chars[j]  // 456   after dot
-    for (i = padStart;                      i < padEnd;     i++)      out[i]          = ZERO      // 000   padding
-
-/*  Build a string from the output buffer     */
-
-    return String.fromCharCode (...out)
+	
+	var pointIndex = x.indexOf('.')
+	if (pointIndex === -1) {
+		pointIndex = x.length
+	}
+	var firstDigitPos = 0
+	while ((firstDigitPos < x.length) && ((x[firstDigitPos] < '1') || (x[firstDigitPos] > '9'))) {
+		firstDigitPos++
+	}
+	var lastDigitPos = null
+	if (countingMode === DECIMAL_PLACES) {
+		lastDigitPos = pointIndex + numPrecisionDigitsNum
+		if (lastDigitPos < pointIndex) {
+			lastDigitPos--
+		}
+	} else if (countingMode === SIGNIFICANT_DIGITS) {
+		if (numPrecisionDigits > 0) {
+			lastDigitPos = firstDigitPos + numPrecisionDigitsNum
+			if (((firstDigitPos < pointIndex) && (lastDigitPos < pointIndex)) || (firstDigitPos > pointIndex)) {
+				lastDigitPos--
+			}
+		} else {
+			lastDigitPos = pointIndex + numPrecisionDigitsNum - 1;
+		}
+	} else {
+		assert(false)
+	}
+    let charArray = Array.from (x)
+	if (roundingMode === ROUND) {
+		var p = lastDigitPos
+		var p2 = p+1
+		if ((pointIndex == p2) && (pointIndex !== charArray.length)) {
+			p2++
+		}
+		var carry = 0
+		while (((p >= 0) && (p < charArray.length) && (charArray[p] != '-')) || (p2 >= 0)) {
+			if (p >= charArray.length) {
+				break
+			}
+			if ((p2 >= charArray.length) || (charArray[p2].charCodeAt() - '0'.charCodeAt() + 10*carry < 5)) {
+				break
+			}
+			carry = 1
+			if (p === -1) {
+				charArray.splice (p+1, 0, String.fromCharCode ('0'.charCodeAt() + carry))
+				p++
+				pointIndex++
+				if (countingMode === DECIMAL_PLACES) {
+					lastDigitPos++
+				}
+				break
+			} else if (charArray[p].charCodeAt() - '0'.charCodeAt() + carry <= 9) {
+				charArray[p] = String.fromCharCode (charArray[p].charCodeAt() + carry)
+				if (p < firstDigitPos) {
+					const delta = p - firstDigitPos
+					firstDigitPos += delta
+					if (countingMode === SIGNIFICANT_DIGITS) {
+						lastDigitPos += delta
+					}
+				}
+				break
+			}
+			charArray[p] = '0'
+			p2 = p
+			p--
+			if ((p !== -1) && (charArray[p] === '.')) {
+				p--
+			}
+			if ((p === -1) || (charArray[p] === '-')) {
+				charArray.splice (p+1, 0, String.fromCharCode ('0'.charCodeAt() + carry))
+				p++
+				pointIndex++
+				if (countingMode === DECIMAL_PLACES) {
+					lastDigitPos++
+				}
+				break
+			}
+		}
+		if ((lastDigitPos < 0) || ((lastDigitPos < charArray.length) && (charArray[lastDigitPos] === '-'))) {
+			return '0'
+		}
+		for (p=lastDigitPos+1; p<charArray.length; ++p) {
+			if (p != pointIndex) {
+				charArray[p] = '0'
+			}
+		}
+	} else if (roundingMode === TRUNCATE) {
+	} else {
+		assert(false)
+	}
+	if ((lastDigitPos < 0) || ((lastDigitPos < charArray.length) && (charArray[lastDigitPos] === '-'))) {
+		return '0'
+	}
+	if (lastDigitPos > pointIndex) {
+		for (var p=lastDigitPos+1; p<charArray.length; ++p) {
+			charArray[p] = '0'
+		}
+	} else {
+		for (var p=lastDigitPos+1; p<pointIndex; ++p) {
+			charArray[p] = '0'
+		}
+		for (var p=pointIndex+1; p<charArray.length; ++p) {
+			charArray[p] = '0'
+		}
+	}
+	result = charArray.splice (0, Math.max (pointIndex, lastDigitPos+1)).join ('')
+	hasDot = result.includes('.')
+	if (paddingMode === NO_PADDING) {
+		if ((result.length === 0) && (numPrecisionDigitsNum === 0)) {
+			return '0'
+		}
+		if (hasDot) {
+			var trailingZeroInd = result.length
+			while ((trailingZeroInd > 0) && (result[trailingZeroInd-1] === '0')) {
+				trailingZeroInd--
+			}
+			if (trailingZeroInd < result.length) {
+				result = result.slice (0, trailingZeroInd)
+			}
+		}
+	} else if (paddingMode === PAD_WITH_ZERO) {
+		if (result.length < lastDigitPos) {
+			if (pointIndex === result.length) {
+				result += '.'
+			}
+			result += '0'.repeat (lastDigitPos - result.length + 1)
+		}
+	} else {
+		assert(false)
+	}
+	if (hasDot) {
+		if ((result.length > 0) && (result[result.length-1] === '.')) {
+			result = result.slice (0, result.length - 1)
+		}
+	}
+	if ((result === "-0") || (result === '-0.' + '0'.repeat (Math.max(result.length-3,0)))) {
+		result = result.slice (1)
+	}
+	return result
 }
 
 function omitZero (stringNumber) {
