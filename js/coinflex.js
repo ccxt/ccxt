@@ -842,15 +842,86 @@ module.exports = class coinflex extends Exchange {
         return this.parseOrderBook (orderbook, symbol, timestamp);
     }
 
+    async fetchAccounts (params = {}) {
+        await this.loadMarkets ();
+        const responseAccountinfo = await this.privateGetV2Accountinfo (params);
+        //
+        //     {
+        //         "id": "XLM",
+        //         "name": "XLM Wallet",
+        //         "primary": false,
+        //         "type": "wallet",
+        //         "currency": {
+        //             "code": "XLM",
+        //             "name": "Stellar Lumens",
+        //             "color": "#000000",
+        //             "sort_index": 127,
+        //             "exponent": 7,
+        //             "type": "crypto",
+        //             "address_regex": "^G[A-Z2-7]{55}$",
+        //             "asset_id": "13b83335-5ede-595b-821e-5bcdfa80560f",
+        //             "destination_tag_name": "XLM Memo ID",
+        //             "destination_tag_regex": "^[ -~]{1,28}$"
+        //         },
+        //         "balance": {
+        //             "amount": "0.0000000",
+        //             "currency": "XLM"
+        //         },
+        //         "created_at": null,
+        //         "updated_at": null,
+        //         "resource": "account",
+        //         "resource_path": "/v2/accounts/XLM",
+        //         "allow_deposits": true,
+        //         "allow_withdrawals": true
+        //     }
+        //
+        const responseAccounts = await this.privateGetV2Accountinfo (this.extend (request, params));
+        const data = this.safeValue (response, 'data', []);
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            const account = data[i];
+            const currency = this.safeValue (account, 'currency', {});
+            const currencyId = this.safeString (currency, 'code');
+            const code = this.safeCurrencyCode (currencyId);
+            result.push ({
+                'id': this.safeString (account, 'id'),
+                'type': this.safeString (account, 'type'),
+                'code': code,
+                'info': account,
+            });
+        }
+        return result;
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        [ path, params ] = this.resolvePath (path, params);
-        let url = this.urls['api'][api] + '/' + path;
-        if (Object.keys (params).length) {
+        headers = { 'User-Agent': 'CCXT:)' };
+        const [ finalPath, query ] = this.resolvePath (path, params);
+        let url = this.urls['api'][api] + '/' + finalPath;
+        let encoded = '';
+        if (Object.keys (query).length) {
+            encoded = this.urlencode (query);
             if (method === 'GET') {
-                url += '?' + this.urlencode (params);
+                url += '?' + encoded;
             }
         }
-        headers = { 'User-Agent': 'CCXT:)' };
+        if (api === 'private') {
+            this.checkRequiredCredentials ();
+            if (path.indexOf ('v2/') !== false) {
+                const timestamp = this.milliseconds ();
+                const datetime = this.ymdhms (timestamp, 'T');
+                const nonce = this.seconds ();
+                if (method === 'POST') {
+                    body = this.json (query);
+                }
+                const auth = datetime + '\n' + nonce + '\n' + method + '\n' + this.implodeHostname (this.urls['private']) + '\n' + '/' + path + '\n' + (body ? body : '');
+                const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
+                headers['Content-Type'] = 'application/json';
+                headers['AccessKey'] = this.apiKey;
+                headers['Timestamp'] = datetime;
+                headers['Signature'] = signature;
+                headers['Nonce'] = nonce;
+            }
+        }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
