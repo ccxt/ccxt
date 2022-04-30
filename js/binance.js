@@ -213,6 +213,7 @@ module.exports = class binance extends Exchange {
                         'margin/crossMarginData': { 'cost': 0.1, 'noCoin': 0.5 },
                         'margin/isolatedMarginData': { 'cost': 0.1, 'noCoin': 1 },
                         'margin/isolatedMarginTier': 0.1,
+                        'margin/rateLimit/order': 0.1334,
                         'loan/income': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
                         'fiat/orders': 0.1,
                         'fiat/payments': 0.1,
@@ -252,6 +253,7 @@ module.exports = class binance extends Exchange {
                         'sub-account/transfer/subUserHistory': 0.1,
                         'sub-account/universalTransfer': 0.1,
                         'managed-subaccount/asset': 0.1,
+                        'managed-subaccount/accountSnapshot': 16.0008,
                         // lending endpoints
                         'lending/daily/product/list': 0.1,
                         'lending/daily/userLeftQuota': 0.1,
@@ -326,9 +328,14 @@ module.exports = class binance extends Exchange {
                         'nft/user/getAsset': 20.001,
                         'pay/transactions': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'giftcard/verify': 0.1,
+                        'algo/futures/openOrders': 0.006667,
+                        'algo/futures/historicalOrders': 0.006667,
+                        'algo/futures/subOrders': 0.006667,
+                        'portfolio/account': 0.006667,
                     },
                     'post': {
                         'asset/dust': 0.06667, // Weight(UID): 10 => cost = 0.006667 * 10 = 0.06667
+                        'asset/dust-btc': 0.006667,
                         'asset/transfer': 0.1,
                         'asset/get-funding-asset': 0.1,
                         'account/disableFastWithdrawSwitch': 0.1,
@@ -400,6 +407,8 @@ module.exports = class binance extends Exchange {
                         //
                         'giftcard/createCode': 0.1,
                         'giftcard/redeemCode': 0.1,
+                        'algo/futures/newOrderVp': 20.01,
+                        'algo/futures/newOrderTwap': 20.01,
                     },
                     'put': {
                         'userDataStream': 0.1,
@@ -416,6 +425,7 @@ module.exports = class binance extends Exchange {
                         // brokerage API TODO NO MENTION OF RATELIMIT IN BROKERAGE DOCS
                         'broker/subAccountApi': 1,
                         'broker/subAccountApi/ipRestriction/ipList': 1,
+                        'algo/futures/order': 0.0066667,
                     },
                 },
                 'sapiV3': {
