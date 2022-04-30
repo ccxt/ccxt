@@ -812,36 +812,25 @@ module.exports = class coinflex extends Exchange {
         const request = {
             'marketCode': market['id'],
         };
-        const response = await this.v1PublicGetDepth (this.extend (request, params));
+        if (limit !== undefined) {
+            request['level'] = limit;
+        }
+        const response = await this.publicGetV3Depth (this.extend (request, params));
         //
         //     {
-        //         "code":0,
-        //         "data":{
-        //             "m":"depth-snapshot",
-        //             "symbol":"BTC-PERP",
-        //             "data":{
-        //                 "ts":1590223998202,
-        //                 "seqnum":115444921,
-        //                 "asks":[
-        //                     ["9207.5","18.2383"],
-        //                     ["9207.75","18.8235"],
-        //                     ["9208","10.7873"],
-        //                 ],
-        //                 "bids":[
-        //                     ["9207.25","0.4009"],
-        //                     ["9207","0.003"],
-        //                     ["9206.5","0.003"],
-        //                 ]
-        //             }
+        //         "success": true,
+        //         "level": "5",
+        //         "data": {
+        //             "marketCode": "BTC-USD-SWAP-LIN",
+        //             "lastUpdatedAt": "1651322410296",
+        //             "asks": [[38563, 0.312], [38568, 0.001], [38570, 0.001], [38572, 0.002], [38574, 0.001]],
+        //             "bids": [[38562, 0.001], [38558, 0.001], [38556, 0.1], [38555, 0.003], [38554, 0.445]]
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
-        const orderbook = this.safeValue (data, 'data', {});
-        const timestamp = this.safeInteger (orderbook, 'ts');
-        const result = this.parseOrderBook (orderbook, symbol, timestamp);
-        result['nonce'] = this.safeInteger (orderbook, 'seqnum');
-        return result;
+        const orderbook = this.safeValue (response, 'data', {});
+        const timestamp = this.safeInteger (orderbook, 'lastUpdatedAt');
+        return this.parseOrderBook (orderbook, symbol, timestamp);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
