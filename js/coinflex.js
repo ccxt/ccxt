@@ -88,7 +88,7 @@ module.exports = class coinflex extends Exchange {
                 'fetchTicker': undefined,
                 'fetchTickers': undefined,
                 'fetchTime': undefined,
-                'fetchTrades': undefined,
+                'fetchTrades': true,
                 'fetchTradingFee': undefined,
                 'fetchTradingFees': undefined,
                 'fetchTradingLimits': undefined,
@@ -501,6 +501,83 @@ module.exports = class coinflex extends Exchange {
         return result;
     }
 
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'marketCode': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const response = await this.publicGetV2PublictradesMarketCode (this.extend (request, params));
+        //
+        //     {
+        //         "event": "publicTrades",
+        //         "timestamp": "1651312416050",
+        //         "marketCode": "BTC-USD",
+        //         "data": [
+        //             {
+        //                 "matchId": "304734619669458401",
+        //                 "matchQuantity": "0.012",
+        //                 "matchPrice": "38673",
+        //                 "side": "BUY",
+        //                 "matchTimestamp": "1651281046230"
+        //             },
+        //         ]
+        //     }
+        //
+        const trades = this.safeValue (response, 'data', []);
+        return this.parseTrades (trades, market, since, limit, params);
+    }
+
+    parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades
+        //
+        //     {
+        //         "matchId": "304734619669458401",
+        //         "matchQuantity": "0.012",
+        //         "matchPrice": "38673",
+        //         "side": "BUY",
+        //         "matchTimestamp": "1651281046230"
+        //     }
+        //
+        const id = this.safeInteger (trade, 'matchId');
+        const timestamp = this.safeInteger (trade, 'matchTimestamp');
+        const priceString = this.safeString (trade, 'matchPrice');
+        const amountString = this.safeString (trade, 'matchQuantity');
+        const sideRaw = this.safeString (trade, 'side');
+        const takerOrMaker = 'taker';
+        market = this.safeMarket (undefined, market);
+        return this.safeTrade ({
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'order': undefined,
+            'type': undefined,
+            'takerOrMaker': takerOrMaker,
+            'side': this.parseOrderSide (sideRaw),
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
+            'fee': undefined,
+            'info': trade,
+        }, market);
+    }
+
+    parseOrderSide (side) {
+        const sides = {
+            'BUY': 'buy',
+            'SELL': 'sell',
+        };
+        return this.safeString (sides, side, side);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         [ path, params ] = this.resolvePath (path, params);
         let url = this.urls['api'][api] + '/' + path;
@@ -523,8 +600,30 @@ module.exports = class coinflex extends Exchange {
         //         "data":[...]
         //     }
         //
-        const message = this.safeValue (response, 'success');
-        if (message === true) {
+        // or
+        //
+        //     {
+        //         "event": "publicTrades",
+        //         "timestamp": "1651312416050",
+        //         "marketCode": "BTC-USD",
+        //         "data": [
+        //             {
+        //                 "matchId": "304734619669458401",
+        //                 "matchQuantity": "0.012",
+        //                 "matchPrice": "38673",
+        //                 "side": "BUY",
+        //                 "matchTimestamp": "1651281046230"
+        //             },
+        //         ]
+        //     }
+        //
+        const success = this.safeValue (response, 'success');
+        if (success === true) {
+            return;
+        }
+        const event = this.safeValue (response, 'event');
+        const data = this.safeValue (response, 'data');
+        if (event !== undefined && Array.isArray (data)) {
             return;
         }
         const responseCode = this.safeString (response, 'code');
