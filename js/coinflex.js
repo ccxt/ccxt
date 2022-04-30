@@ -161,13 +161,6 @@ module.exports = class coinflex extends Exchange {
                         'v3/flexasset/balances': 1,
                         'v3/flexasset/positions': 1,
                         'v3/flexasset/yields': 1,
-                        'v2/candles': 1,
-                        'auth/self/verify': 1,
-                        'borrow/': 1,
-                        'repay/': 1,
-                        'borrowingSummary': 1,
-                        'funding-payments': 1,
-                        'AMM': 1,
                     },
                     'post': {
                         'v3/flexasset/redeem': 1,
