@@ -2119,7 +2119,17 @@ module.exports = class coinex extends Exchange {
         const request = {};
         let market = undefined;
         if (symbols !== undefined) {
-            market = this.market (symbols);
+            let symbol = undefined;
+            if (Array.isArray (symbols)) {
+                const symbolsLength = symbols.length;
+                if (symbolsLength > 1) {
+                    throw new BadRequest (this.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol');
+                }
+                symbol = symbols[0];
+            } else {
+                symbol = symbols;
+            }
+            market = this.market (symbol);
             request['market'] = market['id'];
         }
         const response = await this.perpetualPrivateGetPositionPending (this.extend (request, params));
@@ -2182,12 +2192,12 @@ module.exports = class coinex extends Exchange {
         //         "message": "OK"
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const position = this.safeValue (response, 'data', []);
         const result = [];
-        for (let i = 0; i < data.length; i++) {
-            result.push (this.parsePosition (data[i], market));
+        for (let i = 0; i < position.length; i++) {
+            result.push (this.parsePosition (position[i], market));
         }
-        return result;
+        return this.filterByArray (result, 'market', symbols, false);
     }
 
     async fetchPosition (symbol, params = {}) {
