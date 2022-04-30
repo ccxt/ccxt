@@ -444,6 +444,46 @@ class coinex(Exchange):
         return result
 
     def parse_ticker(self, ticker, market=None):
+        #
+        # Spot fetchTicker
+        #
+        #     {
+        #         "vol": "293.19415130",
+        #         "low": "38200.00",
+        #         "open": "39514.99",
+        #         "high": "39530.00",
+        #         "last": "38649.57",
+        #         "buy": "38640.20",
+        #         "buy_amount": "0.22800000",
+        #         "sell": "38640.21",
+        #         "sell_amount": "0.02828439"
+        #     }
+        #
+        # Swap fetchTicker
+        #
+        #     {
+        #         "vol": "7714.2175",
+        #         "low": "38200.00",
+        #         "open": "39569.23",
+        #         "high": "39569.23",
+        #         "last": "38681.37",
+        #         "buy": "38681.36",
+        #         "period": 86400,
+        #         "funding_time": 462,
+        #         "position_amount": "296.7552",
+        #         "funding_rate_last": "0.00009395",
+        #         "funding_rate_next": "0.00000649",
+        #         "funding_rate_predict": "-0.00007176",
+        #         "insurance": "16464465.09431942163278132918",
+        #         "sign_price": "38681.93",
+        #         "index_price": "38681.69500000",
+        #         "sell_total": "16.6039",
+        #         "buy_total": "19.8481",
+        #         "buy_amount": "4.6315",
+        #         "sell": "38681.37",
+        #         "sell_amount": "11.4044"
+        #     }
+        #
         timestamp = self.safe_integer(ticker, 'date')
         symbol = self.safe_symbol(None, market)
         ticker = self.safe_value(ticker, 'ticker', {})
@@ -459,7 +499,7 @@ class coinex(Exchange):
             'ask': self.safe_string(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
-            'open': None,
+            'open': self.safe_string(ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': None,
@@ -477,7 +517,62 @@ class coinex(Exchange):
         request = {
             'market': market['id'],
         }
-        response = self.publicGetMarketTicker(self.extend(request, params))
+        method = 'perpetualPublicGetMarketTicker' if market['swap'] else 'publicGetMarketTicker'
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        # Spot
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "date": 1651306913414,
+        #             "ticker": {
+        #                 "vol": "293.19415130",
+        #                 "low": "38200.00",
+        #                 "open": "39514.99",
+        #                 "high": "39530.00",
+        #                 "last": "38649.57",
+        #                 "buy": "38640.20",
+        #                 "buy_amount": "0.22800000",
+        #                 "sell": "38640.21",
+        #                 "sell_amount": "0.02828439"
+        #             }
+        #         },
+        #         "message": "OK"
+        #     }
+        #
+        # Swap
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "date": 1651306641500,
+        #             "ticker": {
+        #                 "vol": "7714.2175",
+        #                 "low": "38200.00",
+        #                 "open": "39569.23",
+        #                 "high": "39569.23",
+        #                 "last": "38681.37",
+        #                 "buy": "38681.36",
+        #                 "period": 86400,
+        #                 "funding_time": 462,
+        #                 "position_amount": "296.7552",
+        #                 "funding_rate_last": "0.00009395",
+        #                 "funding_rate_next": "0.00000649",
+        #                 "funding_rate_predict": "-0.00007176",
+        #                 "insurance": "16464465.09431942163278132918",
+        #                 "sign_price": "38681.93",
+        #                 "index_price": "38681.69500000",
+        #                 "sell_total": "16.6039",
+        #                 "buy_total": "19.8481",
+        #                 "buy_amount": "4.6315",
+        #                 "sell": "38681.37",
+        #                 "sell_amount": "11.4044"
+        #             }
+        #         },
+        #         "message": "OK"
+        #     }
+        #
         return self.parse_ticker(response['data'], market)
 
     def fetch_tickers(self, symbols=None, params={}):
