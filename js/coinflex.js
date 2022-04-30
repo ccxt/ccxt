@@ -166,9 +166,6 @@ module.exports = class coinflex extends Exchange {
                         'v3/flexasset/redeem': 1,
                         'v3/AMM/redeem': 1,
                     },
-                    'delete': {
-                        'v2/cancel/orders': 1,
-                    },
                 },
                 'private': {
                     'get': {
@@ -225,6 +222,7 @@ module.exports = class coinflex extends Exchange {
                         'v2/cancel/orders/{marketCode}': 1,
                         'v2.1/delivery/orders/{deliveryOrderId}': 1,
                         'v2/orders/cancel': 1,
+                        'v2/cancel/orders': 1,
                     },
                 },
             },
