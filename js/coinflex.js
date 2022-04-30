@@ -19,8 +19,6 @@ module.exports = class coinflex extends Exchange {
             'version': 'v3',
             'certified': false,
             'has': {
-                'publicAPI': true,
-                'privateAPI': true,
                 'CORS': undefined,
                 'spot': true,
                 'margin': undefined,
@@ -36,9 +34,9 @@ module.exports = class coinflex extends Exchange {
                 'createMarketOrder': undefined,
                 'createOrder': undefined,
                 'createPostOnlyOrder': undefined,
-                'createStopOrder': undefined,
                 'createStopLimitOrder': undefined,
                 'createStopMarketOrder': undefined,
+                'createStopOrder': undefined,
                 'editOrder': 'emulated',
                 'fetchAccounts': true,
                 'fetchBalance': true,
@@ -46,8 +44,8 @@ module.exports = class coinflex extends Exchange {
                 'fetchBorrowInterest': undefined,
                 'fetchBorrowRate': undefined,
                 'fetchBorrowRateHistory': undefined,
-                'fetchBorrowRatesPerSymbol': undefined,
                 'fetchBorrowRates': undefined,
+                'fetchBorrowRatesPerSymbol': undefined,
                 'fetchCanceledOrders': undefined,
                 'fetchClosedOrder': undefined,
                 'fetchClosedOrders': undefined,
@@ -98,6 +96,8 @@ module.exports = class coinflex extends Exchange {
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': undefined,
                 'loadMarkets': true,
+                'privateAPI': true,
+                'publicAPI': true,
                 'reduceMargin': undefined,
                 'setLeverage': undefined,
                 'setMarginMode': undefined,
@@ -237,12 +237,7 @@ module.exports = class coinflex extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
-                'timeframes': {
-                    'spot': {
-                    },
-                    'contract': {
-                    },
-                },
+                'baseApiDomain': 'v2api.coinflex.com',
                 'defaultType': 'spot', // spot, swap
                 'networks': {
                     'TRX': 'TRC-20',
@@ -273,11 +268,11 @@ module.exports = class coinflex extends Exchange {
         //
         const statusRaw = this.safeString (response, 'success');
         const status = this.safeString ({ 'true': 'ok', 'false': 'maintenance' }, statusRaw, statusRaw);
-        const timestamp = this.milliseconds ();
         return {
             'status': status,
-            'updated': timestamp,
+            'updated': this.milliseconds (),
             'eta': undefined,
+            'url': undefined,
             'info': response,
         };
     }
@@ -1001,7 +996,7 @@ module.exports = class coinflex extends Exchange {
         const unrealizedPnlString = this.safeString (position, 'positionPnl');
         const markPriceString = this.safeString (position, 'markPrice');
         return {
-            'info': position,
+            'id': undefined,
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1022,6 +1017,7 @@ module.exports = class coinflex extends Exchange {
             'marginType': 'cross', // each account is cross : https://coinflex.com/support/3-4-margin-and-risk-management/
             'side': side,
             'percentage': undefined,
+            'info': position,
         };
     }
 
@@ -1041,7 +1037,7 @@ module.exports = class coinflex extends Exchange {
             const timestamp = this.milliseconds ();
             const datetime = this.ymdhms (timestamp, 'T');
             const nonce = this.nonce ();
-            let auth = datetime + '\n' + nonce + '\n' + method + '\n' + (this.urls['api']['private']).replace ('https://', '') + '\n' + '/' + finalPath + '\n';
+            let auth = datetime + '\n' + nonce + '\n' + method + '\n' + this.options['baseApiDomain'] + '\n' + '/' + finalPath + '\n';
             if (method === 'POST') {
                 body = this.json (query);
                 auth += body;
@@ -1061,12 +1057,20 @@ module.exports = class coinflex extends Exchange {
             return;
         }
         //
+        // Success
+        //
+        //     {
+        //         "success": "true"
+        //     }
+        //
+        //   or
+        //
         //     {
         //         "success":true,
         //         "data":[...]
         //     }
         //
-        // or
+        //   or
         //
         //     {
         //         "event": "publicTrades",
@@ -1083,7 +1087,7 @@ module.exports = class coinflex extends Exchange {
         //         ]
         //     }
         //
-        // or
+        // Error
         //
         //     {
         //         "success":false,
@@ -1092,7 +1096,7 @@ module.exports = class coinflex extends Exchange {
         //     }
         //
         const success = this.safeValue (response, 'success');
-        if (success === true) {
+        if (success === true || success === 'true') {
             return;
         }
         const event = this.safeValue (response, 'event');
