@@ -1721,6 +1721,7 @@ module.exports = class bitmart extends Exchange {
             } else if (isIOC) {
                 request['type'] = 'ioc';
             }
+            params = this.omit (params, [ 'timeInForce', 'postOnly' ]);
         }
         const response = await this[method] (this.extend (request, params));
         //
