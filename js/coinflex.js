@@ -554,7 +554,7 @@ module.exports = class coinflex extends Exchange {
         //         "matchTimestamp": "1651281046230"
         //     }
         //
-        const id = this.safeInteger (trade, 'matchId');
+        const id = this.safeString (trade, 'matchId');
         const timestamp = this.safeInteger (trade, 'matchTimestamp');
         const priceString = this.safeString (trade, 'matchPrice');
         const amountString = this.safeString (trade, 'matchQuantity');
