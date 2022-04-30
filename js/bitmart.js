@@ -1701,20 +1701,17 @@ module.exports = class bitmart extends Exchange {
         const postOnly = this.safeValue (params, 'postOnly', false);
         if ((timeInForce !== undefined) || (postOnly) || (type === 'limit_maker') || (type === 'ioc')) {
             if (timeInForce === 'FOK') {
-                throw new InvalidOrder (this.id + ' createOrder () only accepts timeInForce parameters of IOC and PO');
+                throw new InvalidOrder (this.id + ' createOrder () only accepts timeInForce parameters of IOC or PO');
             }
             const isMaker = ((timeInForce === 'PO') || (postOnly) || (type === 'limit_maker'));
             const isIOC = ((timeInForce === 'IOC') || (type === 'ioc'));
             if ((isMaker) && (isIOC)) {
                 throw new InvalidOrder (this.id + ' createOrder () does not support making IOC and postOnly orders together');
             }
-            if ((type === 'market') && ((type === 'ioc') || (timeInForce === 'IOC'))) {
-                throw new InvalidOrder (this.id + ' createOrder () does not support making IOC market orders');
+            if (type === 'market') {
+                throw new InvalidOrder (this.id + ' createOrder () only supports making limit postOnly or IOC orders');
             }
             if (isMaker) {
-                if (type === 'market') {
-                    throw new InvalidOrder (this.id + ' createOrder () does not support market postOnly orders ');
-                }
                 request['type'] = 'limit_maker';
             } else if (isIOC) {
                 request['type'] = 'ioc';
