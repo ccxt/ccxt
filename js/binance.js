@@ -332,6 +332,11 @@ module.exports = class binance extends Exchange {
                         'algo/futures/historicalOrders': 0.006667,
                         'algo/futures/subOrders': 0.006667,
                         'portfolio/account': 0.006667,
+                        // staking
+                        'staking/productList': 0.006667,
+                        'staking/position': 0.006667,
+                        'staking/stakingRecord': 0.006667,
+                        'staking/personalLeftQuota': 0.006667,
                     },
                     'post': {
                         'asset/dust': 0.06667, // Weight(UID): 10 => cost = 0.006667 * 10 = 0.06667
@@ -409,6 +414,10 @@ module.exports = class binance extends Exchange {
                         'giftcard/redeemCode': 0.1,
                         'algo/futures/newOrderVp': 20.01,
                         'algo/futures/newOrderTwap': 20.01,
+                        // staking
+                        'staking/purchase': 0.006667,
+                        'staking/redeem': 0.006667,
+                        'staking/setAutoStaking': 0.006667,
                     },
                     'put': {
                         'userDataStream': 0.1,
