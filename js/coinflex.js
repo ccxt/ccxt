@@ -40,7 +40,7 @@ module.exports = class coinflex extends Exchange {
                 'createStopMarketOrder': undefined,
                 'editOrder': 'emulated',
                 'fetchAccounts': true,
-                'fetchBalance': undefined,
+                'fetchBalance': true,
                 'fetchBidsAsks': undefined,
                 'fetchBorrowInterest': undefined,
                 'fetchBorrowRate': undefined,
@@ -136,15 +136,15 @@ module.exports = class coinflex extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'v2/all/markets': 1,
-                        'v2/all/assets': 1,
+                        'v2/all/markets': 1, // superceded by v3
+                        'v2/all/assets': 1, // superceded by v3
                         'v2/publictrades/{marketCode}': 1,
-                        'v2/ticker': 1,
-                        'v2/delivery/public/funding': 1, // superceded by v3/funding-rates
-                        'v2.1/deliver-auction/{instrumentId}': 1, //
-                        'v2/candles/{marketCode}': 1,
+                        'v2/ticker': 1, // superceded by v3
+                        'v2/delivery/public/funding': 1, // superceded by v3
+                        'v2.1/deliver-auction/{instrumentId}': 1, // superceded by v3
+                        'v2/candles/{marketCode}': 1, // superceded by v3
                         'v2/funding-rates/{marketCode}': 1, // meant for only: BTC-USD-REPO-LIN, ETH-USD-REPO-LIN
-                        'v2/depth/{marketCode}/{level}': 1,
+                        'v2/depth/{marketCode}/{level}': 1, // superceded by v3
                         'v2/ping': 1,
                         'v2/flex-protocol/balances/{flexProtocol}': 1,
                         'v2/flex-protocol/positions/{flexProtocol}': 1,
@@ -169,9 +169,9 @@ module.exports = class coinflex extends Exchange {
                 },
                 'private': {
                     'get': {
-                        'v2/accountinfo': 1,
-                        'v2/balances': 1,
-                        'v2/balances/{instrumentId}': 1,
+                        'v2/accountinfo': 1, // superceded by v3
+                        'v2/balances': 1, // superceded by v3
+                        'v2/balances/{instrumentId}': 1, // superceded by v3
                         'v2/positions': 1,
                         'v2/positions/{instrumentId}': 1,
                         'v2/trades/{marketCode}': 1,
@@ -844,28 +844,7 @@ module.exports = class coinflex extends Exchange {
 
     async fetchAccounts (params = {}) {
         await this.loadMarkets ();
-        // const responseAccountinfo = await this.privateGetV2Accountinfo (params);
-        //
-        //     {
-        //         "event": "accountinfo",
-        //         "timestamp": "1651336691736",
-        //         "accountId": "38420",
-        //         "data": [
-        //             {
-        //                 "accountId": "38420",
-        //                 "tradeType": "LINEAR",
-        //                 "marginCurrency": "USD",
-        //                 "totalBalance": "28.299208",
-        //                 "availableBalance": "28.299208",
-        //                 "collateralBalance": "28.297558",
-        //                 "portfolioVarMargin": "0.000000",
-        //                 "riskRatio": "N/A",
-        //                 "timestamp": "1651336691732"
-        //             }
-        //         ]
-        //     }
-        //
-        const responseAccounts = await this.privateGetV3Account (params);
+        const response = await this.privateGetV3Account (params);
         //
         //     {
         //         "success": true,
@@ -894,7 +873,8 @@ module.exports = class coinflex extends Exchange {
         //             }
         //         ]
         //     }
-        const data = this.safeValue (responseAccounts, 'data', []);
+        //
+        const data = this.safeValue (response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const account = data[i];
@@ -906,6 +886,42 @@ module.exports = class coinflex extends Exchange {
             });
         }
         return result;
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetV3Account (params);
+        // same response as in fetchAccounts
+        const data = this.safeValue (response, 'data', []);
+        const targetAccount = this.safeValue (data, 0);
+        return this.parseBalance (targetAccount);
+    }
+
+    parseBalance (data) {
+        const balances = this.safeValue (data, 'balances');
+        const result = {};
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            //
+            //     {
+            //         "asset": "USDT",
+            //         "total": "0.33",
+            //         "available": "0.33",
+            //         "reserved": "0",
+            //         "lastUpdatedAt": "1651233586761"
+            //     }
+            //
+            const currencyId = this.safeString (balance, 'asset');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'available');
+            account['total'] = this.safeString (balance, 'total');
+            result[code] = account;
+        }
+        const timestamp = this.safeInteger (data, 'createdAt');
+        result['timestamp'] = timestamp;
+        result['datetime'] = this.iso8601 (timestamp);
+        return this.safeBalance (result);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
