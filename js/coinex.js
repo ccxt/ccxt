@@ -1203,7 +1203,7 @@ module.exports = class coinex extends Exchange {
         const stopPrice = this.safeString2 (params, 'stopPrice', 'stop_price');
         const postOnly = this.safeValue (params, 'postOnly', false);
         const reduceOnly = this.safeValue (params, 'reduceOnly');
-        const positionId = this.safeInteger (params, 'position_id'); // Required for closing swap positions
+        const positionId = this.safeInteger2 (params, 'position_id', 'positionId'); // Required for closing swap positions
         let timeInForce = this.safeString (params, 'timeInForce'); // Spot: IOC, FOK, PO, GTC, ... NORMAL (default), MAKER_ONLY
         let method = undefined;
         const request = {
@@ -1320,7 +1320,7 @@ module.exports = class coinex extends Exchange {
                 }
             }
         }
-        params = this.omit (params, [ 'reduceOnly', 'position_id', 'timeInForce', 'postOnly', 'stopPrice', 'stop_price', 'stop_type' ]);
+        params = this.omit (params, [ 'reduceOnly', 'position_id', 'positionId', 'timeInForce', 'postOnly', 'stopPrice', 'stop_price', 'stop_type' ]);
         const response = await this[method] (this.extend (request, params));
         //
         // Spot
