@@ -1096,17 +1096,6 @@ module.exports = class coinflex extends Exchange {
         //         "message":"no result, please check your parameters"
         //     }
         //
-        const success = this.safeValue (response, 'success');
-        if (success === true || success === 'true') {
-            return;
-        }
-        const event = this.safeValue (response, 'event');
-        const data = this.safeValue (response, 'data');
-        if (event !== undefined && data !== undefined) {
-            if (Array.isArray (data) || this.isObject (data)) {
-                return;
-            }
-        }
         const responseCode = this.safeString (response, 'code');
         if (responseCode !== '0') {
             const feedback = this.id + ' ' + body;
