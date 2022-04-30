@@ -344,10 +344,12 @@ module.exports = class coinflex extends Exchange {
             const settlementTime = this.safeInteger (market, 'settlementAt');
             let symbol = base + '/' + quote;
             let marketType = undefined;
-            let linear = false;
+            let linear = undefined;
+            let inverse = undefined;
             if (type === 'SPOT') {
                 marketType = 'spot';
             } else if (type === 'FUTURE') {
+                inverse = false;
                 linear = true;
                 if (settlementTime === undefined) {
                     marketType = 'swap';
@@ -377,7 +379,7 @@ module.exports = class coinflex extends Exchange {
                 'active': true,
                 'contract': (marketType === 'future' || marketType === 'swap'),
                 'linear': linear,
-                'inverse': false,
+                'inverse': inverse,
                 'contractSize': undefined,
                 'expiry': settlementTime,
                 'expiryDatetime': this.iso8601 (settlementTime),
