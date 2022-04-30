@@ -514,6 +514,11 @@ module.exports = class coinflex extends Exchange {
         }
         if (since !== undefined) {
             request['startTime'] = since;
+            const currentTs = this.milliseconds ();
+            const distance = 7 * 24 * 60 * 60 * 1000; // 7 days
+            if (since + distance < currentTs) {
+                request['endTime'] = since + distance;
+            }
         }
         const response = await this.publicGetV2PublictradesMarketCode (this.extend (request, params));
         //
