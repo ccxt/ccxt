@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, BadRequest } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 
 // ---------------------------------------------------------------------------
@@ -21,10 +21,10 @@ module.exports = class coinflex extends Exchange {
                 'publicAPI': true,
                 'privateAPI': true,
                 'CORS': undefined,
-                'spot': undefined,
+                'spot': true,
                 'margin': undefined,
-                'swap': undefined,
-                'future': undefined,
+                'swap': true,
+                'future': true,
                 'option': undefined,
                 'addMargin': undefined,
                 'cancelAllOrders': undefined,
@@ -85,8 +85,8 @@ module.exports = class coinflex extends Exchange {
                 'fetchPositionsRisk': undefined,
                 'fetchPremiumIndexOHLCV': undefined,
                 'fetchStatus': undefined,
-                'fetchTicker': undefined,
-                'fetchTickers': undefined,
+                'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTime': undefined,
                 'fetchTrades': true,
                 'fetchTradingFee': undefined,
@@ -256,6 +256,7 @@ module.exports = class coinflex extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    '40001': BadRequest,
                 },
                 'broad': {
                 },
@@ -585,6 +586,110 @@ module.exports = class coinflex extends Exchange {
         return this.safeString (sides, side, side);
     }
 
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetV3Tickers (params);
+        //
+        //     {
+        //         "success": true,
+        //         "data": [
+        //             {
+        //                 "marketCode": "BTC-USD",
+        //                 "markPrice": "38649",
+        //                 "open24h": "38799",
+        //                 "high24h": "39418.0",
+        //                 "low24h": "38176.0",
+        //                 "volume24h": "18650098.7500",
+        //                 "currencyVolume24h": "481.898",
+        //                 "openInterest": "0",
+        //                 "lastTradedPrice": "38632.0",
+        //                 "lastTradedQuantity": "0.001",
+        //                 "lastUpdatedAt": "1651314699020"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTickers (data, symbols, params);
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'marketCode': market['id'],
+        };
+        const response = await this.publicGetV3Tickers (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": [
+        //             {
+        //                 "marketCode": "BTC-USD",
+        //                 "markPrice": "38649",
+        //                 "open24h": "38799",
+        //                 "high24h": "39418.0",
+        //                 "low24h": "38176.0",
+        //                 "volume24h": "18650098.7500",
+        //                 "currencyVolume24h": "481.898",
+        //                 "openInterest": "0",
+        //                 "lastTradedPrice": "38632.0",
+        //                 "lastTradedQuantity": "0.001",
+        //                 "lastUpdatedAt": "1651314699020"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const ticker = this.safeValue (data, 0, {});
+        return this.parseTicker (ticker, market);
+    }
+
+    parseTicker (ticker, market = undefined) {
+        //
+        //     {
+        //         "marketCode": "BTC-USD",
+        //         "markPrice": "38649",
+        //         "open24h": "38799",
+        //         "high24h": "39418.0",
+        //         "low24h": "38176.0",
+        //         "volume24h": "18650098.7500",
+        //         "currencyVolume24h": "481.898",
+        //         "openInterest": "0",
+        //         "lastTradedPrice": "38632.0",
+        //         "lastTradedQuantity": "0.001",
+        //         "lastUpdatedAt": "1651314699020"
+        //     }
+        //
+        const timestamp = this.safeInteger (ticker, 'lastUpdatedAt');
+        const marketId = this.safeString (ticker, 'marketCode');
+        market = this.safeMarket (marketId, market);
+        const close = this.safeString (ticker, 'lastTradedPrice');
+        const open = this.safeString (ticker, 'open24h');
+        return this.safeTicker ({
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeString (ticker, 'high24h'),
+            'low': this.safeString (ticker, 'low24h'),
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': open,
+            'close': close,
+            'last': close,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': this.safeString (ticker, 'currencyVolume24h'),
+            'quoteVolume': undefined,
+            'info': ticker,
+        }, market, false);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         [ path, params ] = this.resolvePath (path, params);
         let url = this.urls['api'][api] + '/' + path;
@@ -622,6 +727,14 @@ module.exports = class coinflex extends Exchange {
         //                 "matchTimestamp": "1651281046230"
         //             },
         //         ]
+        //     }
+        //
+        // or
+        //
+        //     {
+        //         "success":false,
+        //         "code":"40001",
+        //         "message":"no result, please check your parameters"
         //     }
         //
         const success = this.safeValue (response, 'success');
