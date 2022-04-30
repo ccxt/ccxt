@@ -1097,7 +1097,7 @@ module.exports = class coinflex extends Exchange {
         //     }
         //
         const responseCode = this.safeString (response, 'code');
-        if (responseCode !== '0') {
+        if (responseCode !== undefined && responseCode !== '0') {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], responseCode, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
