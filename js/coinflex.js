@@ -938,7 +938,7 @@ module.exports = class coinflex extends Exchange {
 
     async fetchPosition (symbol, params = {}) {
         await this.loadMarkets ();
-        const positions = await this.fetchPositions ([ symbol ], params);
+        const positions = await this.fetchPositions (undefined, params);
         const array = this.filterBySymbol (positions, symbol);
         return this.safeValue (array, 0); // exchange doesn't seem to have hedge mode, so the array will contain only one position per symbol
     }
