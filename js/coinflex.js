@@ -71,7 +71,7 @@ module.exports = class coinflex extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': undefined,
                 'fetchMyTrades': undefined,
-                'fetchOHLCV': undefined,
+                'fetchOHLCV': true,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': undefined,
                 'fetchOrder': undefined,
@@ -106,6 +106,14 @@ module.exports = class coinflex extends Exchange {
                 'withdraw': undefined,
             },
             'timeframes': {
+                '1m': '60s',
+                '5m': '300s',
+                '15m': '900s',
+                '30m': '1800s',
+                '1h': '3600s',
+                '2h': '7200s',
+                '4h': '14400s',
+                '1d': '86400s',
             },
             'urls': {
                 'logo': '',
@@ -738,6 +746,63 @@ module.exports = class coinflex extends Exchange {
         }
         const sorted = this.sortBy (rates, 'timestamp');
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let request = {
+            'marketCode': market['id'],
+            'timeframe': this.timeframes[timeframe],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request = this.setStartEndTimes (request, since);
+        }
+        const response = await this.publicGetV3Candles (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "timeframe": "3600s",
+        //         "data": [
+        //             {
+        //                 "open": "38571.00000000",
+        //                 "high": "38604.00000000",
+        //                 "low": "38570.00000000",
+        //                 "close": "38602.00000000",
+        //                 "volume": "722820.88000000",
+        //                 "currencyVolume": "18.74000000",
+        //                 "openedAt": "1651316400000"
+        //             },
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     {
+        //         "open": "38571.00000000",
+        //         "high": "38604.00000000",
+        //         "low": "38570.00000000",
+        //         "close": "38602.00000000",
+        //         "volume": "722820.88000000",
+        //         "currencyVolume": "18.74000000",
+        //         "openedAt": "1651316400000"
+        //     }
+        //
+        return [
+            this.safeInteger (ohlcv, 'openedAt'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'currencyVolume'),
+        ];
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
