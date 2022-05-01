@@ -242,7 +242,12 @@ module.exports = class coinflex extends Exchange {
                 'networks': {
                     'ERC20': 'ERC20',
                     'BEP20': 'BEP20',
-                    'SOLANA': 'SPL',
+                    // 'SOLANA': 'SPL',
+                },
+                'networksByIds': {
+                    'ERC20': 'ERC20',
+                    'BEP20': 'BEP20',
+                    // 'SPL': 'SOLANA',
                 },
             },
             'commonCurrencies': {
@@ -516,10 +521,13 @@ module.exports = class coinflex extends Exchange {
     }
 
     setStartEndTimes (request, since) {
-        // exchange has 7 days allowed distance between start/end times across it's api endpoints
+        // exchange has 7 days maximum allowed distance between start/end times across its api endpoints
+        const distance = 7 * 24 * 60 * 60 * 1000; // 7 days
+        if (since === undefined) {
+            since = this.milliseconds () - distance + this.timeout; // don't directly set 7 days ago from this moment, as when request arrives at exchange, it will be more than 7 days from 'current time'. so, add timeout seconds to make sure we have enough time to reach exchange.
+        }
         request['startTime'] = since;
         const currentTs = this.milliseconds ();
-        const distance = 7 * 24 * 60 * 60 * 1000; // 7 days
         if (since + distance < currentTs) {
             request['endTime'] = since + distance;
         }
@@ -535,9 +543,7 @@ module.exports = class coinflex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        if (since !== undefined) {
-            request = this.setStartEndTimes (request, since);
-        }
+        request = this.setStartEndTimes (request, since);
         const response = await this.publicGetV2PublictradesMarketCode (this.extend (request, params));
         //
         //     {
@@ -571,9 +577,7 @@ module.exports = class coinflex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        if (since !== undefined) {
-            request = this.setStartEndTimes (request, since);
-        }
+        request = this.setStartEndTimes (request, since);
         const response = await this.privateGetV2TradesMarketCode (this.extend (request, params));
         //
         //     {
@@ -847,9 +851,7 @@ module.exports = class coinflex extends Exchange {
             market = this.market (symbol);
             request['marketCode'] = market['id'];
         }
-        if (since !== undefined) {
-            request = this.setStartEndTimes (request, since);
-        }
+        request = this.setStartEndTimes (request, since);
         if (limit !== undefined) {
             request['limit'] = limit;
         }
@@ -895,9 +897,7 @@ module.exports = class coinflex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        if (since !== undefined) {
-            request = this.setStartEndTimes (request, since);
-        }
+        request = this.setStartEndTimes (request, since);
         const response = await this.publicGetV3Candles (this.extend (request, params));
         //
         //     {
@@ -1078,9 +1078,7 @@ module.exports = class coinflex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        if (since !== undefined) {
-            request = this.setStartEndTimes (request, since);
-        }
+        request = this.setStartEndTimes (request, since);
         const response = await this.privateGetV21Orders (this.extend (request, params));
         //
         //     {
@@ -1393,6 +1391,100 @@ module.exports = class coinflex extends Exchange {
             'network': network,
             'info': response,
         };
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let currency = undefined;
+        let request = {};
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['asset'] = currency['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        request = this.setStartEndTimes (request, since);
+        const response = await this.privateGetV3Deposit (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": [
+        //             {
+        //                 "asset": "USDT",
+        //                 "network": "ERC20",
+        //                 "address": "0x5D561479d9665E490894822896c9c45Ea63007Eb",
+        //                 "quantity": "28.33",
+        //                 "id": "757475245433389059",
+        //                 "status": "COMPLETED",
+        //                 "txId": "0x6a92c8190b4b56a56fed2f9a8d0d7afd01843c28d0c0a8a5607b974b2fab8b4a",
+        //                 "creditedAt": "1651233499800"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTransactions (data, currency, since, limit, params);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // fetchDeposits
+        //
+        //     {
+        //         "id": "757475245433389059",
+        //         "txId": "0x6a92c8190b4b56a56fed2f9a8d0d7afd01843c28d0c0a8a5607b974b2fab8b4a",
+        //         "asset": "USDT",
+        //         "network": "ERC20",
+        //         "address": "0x5D561479d9665E490894822896c9c45Ea63007Eb",
+        //         "quantity": "28.33",
+        //         "status": "COMPLETED",
+        //         "creditedAt": "1651233499800"
+        //    }
+        //
+        const id = this.safeString (transaction, 'id');
+        const txId = this.safeString (transaction, 'txId');
+        const currencyId = this.safeString (transaction, 'asset');
+        currency = this.safeCurrency (currencyId, currency);
+        const networkId = this.safeString (transaction, 'network');
+        const networkCode = this.safeString (this.options['networksByIds'], networkId, networkId);
+        const addressTo = this.safeString (transaction, 'address');
+        const statusRaw = this.safeString (transaction, 'status');
+        const status = this.parseTransactionStatus (statusRaw);
+        const timestamp = this.safeInteger (transaction, 'creditedAt');
+        return {
+            'id': id,
+            'txid': txId,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'network': networkCode,
+            'address': undefined,
+            'addressTo': addressTo,
+            'addressFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
+            'type': undefined,
+            'amount': undefined,
+            'currency': currency['code'],
+            'status': status,
+            'updated': undefined,
+            'internal': undefined,
+            'fee': undefined,
+            'info': transaction,
+        };
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            'PROCESSING': 'pending',
+            'PENDING': 'pending',
+            'COMPLETED': 'ok',
+            'FAILED': 'failed',
+            'CANCELED': 'canceled',
+            // 'ON HOLD': 'pending',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
