@@ -48,7 +48,7 @@ module.exports = class coinflex extends Exchange {
                 'fetchBorrowRatesPerSymbol': undefined,
                 'fetchCanceledOrders': undefined,
                 'fetchClosedOrder': undefined,
-                'fetchClosedOrders': undefined,
+                'fetchClosedOrders': false,
                 'fetchCurrencies': true,
                 'fetchDeposit': undefined,
                 'fetchDepositAddress': undefined,
@@ -1127,23 +1127,57 @@ module.exports = class coinflex extends Exchange {
         return this.parseOrders (data, market, since, limit, params);
     }
 
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        const response = await this.privateGetV2Orders (params);
+        //
+        //     {
+        //         "event": "orders",
+        //         "timestamp": "1651423023567",
+        //         "accountId": "38420",
+        //         "data": [
+        //             {
+        //                 "orderId": "1002114041607",
+        //                 "marketCode": "SHIB-USD-SWAP-LIN",
+        //                 "clientOrderId": "1651422991501",
+        //                 "side": "BUY",
+        //                 "orderType": "LIMIT",
+        //                 "quantity": "400575.0",
+        //                 "remainingQuantity": "400575.0",
+        //                 "price": "0.000019",
+        //                 "stopPrice": null,
+        //                 "limitPrice": "0.000019",
+        //                 "orderCreated": "1651422991179",
+        //                 "lastModified": "1651422991186",
+        //                 "lastTradeTimestamp": "1651422991181",
+        //                 "timeInForce": "MAKER_ONLY"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOrders (data, market, since, limit, params);
+    }
+
     parseOrder (order, market = undefined) {
         //
         // fetchOrders
         //
         //     {
-        //         "status": "OrderMatched", // OrderOpened, OrderMatched, OrderClosed
         //         "orderId": "1002113333774",
         //         "clientOrderId": "1651410682769",
         //         "marketCode": "SHIB-USD-SWAP-LIN",
         //         "side": "BUY",
         //         "orderType": "STOP_LIMIT", // MARKET, STOP_LIMIT, LIMIT
+        //         "quantity": "334016",
         //         "price": "0.00002100",
+        //         "limitPrice": "0.00002100", // only available for limit types
+        //         "stopPrice": "0.00002055", // only available for stop types
+        //         "timeInForce": "GTC",
         //         "lastTradedPrice": "0.00002089",
         //         "avgFillPrice": "0.00002089",
-        //         "stopPrice": "0.00002055", // only available for stop types
-        //         "limitPrice": "0.00002100", // only available for limit types
-        //         "quantity": "334016",
+        //         "status": "OrderMatched", // OrderOpened, OrderMatched, OrderClosed
         //         "filledQuantity": "334016",
         //         "remainQuantity": "0",
         //         "matchIds": [ // only available for filled order
@@ -1159,14 +1193,32 @@ module.exports = class coinflex extends Exchange {
         //         "fees": {
         //             "USD": "-0.00558207"
         //         },
-        //         "timeInForce": "GTC",
         //         "isTriggered": "false"
         //     }
+        //
+        // fetchOpenOrders (last few props are different)
+        //
+        //     {
+        //         "orderId": "1002114041607",
+        //         "clientOrderId": "1651422991501",
+        //         "marketCode": "SHIB-USD-SWAP-LIN",
+        //         "side": "BUY",
+        //         "orderType": "LIMIT",
+        //         "quantity": "400575.0",
+        //         "price": "0.000019",
+        //         "limitPrice": "0.000019",
+        //         "stopPrice": null,
+        //         "timeInForce": "MAKER_ONLY"
+        //         "lastTradeTimestamp": "1651422991181",
+        //         "lastModified": "1651422991186",
+        //         "orderCreated": "1651422991179",
+        //         "remainingQuantity": "400575.0",
+        //      }
         //
         const marketId = this.safeString (order, 'marketCode');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const timestamp = undefined;
+        const timestamp = this.safeInteger (order, 'orderCreated');
         const orderId = this.safeString (order, 'orderId');
         const clientOrderId = this.safeString (order, 'clientOrderId');
         const statusRaw = this.safeString (order, 'status');
@@ -1205,7 +1257,7 @@ module.exports = class coinflex extends Exchange {
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
+            'lastTradeTimestamp': this.safeInteger (order, 'lastTradeTimestamp'),
             'timeInForce': timeInForce,
             'postOnly': timeInForce === 'PO',
             'status': status,
@@ -1215,7 +1267,7 @@ module.exports = class coinflex extends Exchange {
             'stopPrice': this.safeNumber (order, 'stopPrice'),
             'amount': this.safeNumber (order, 'quantity'),
             'filled': this.parseNumber (filledQuantityRaw),
-            'remaining': this.safeNumber (order, 'remainQuantity'),
+            'remaining': this.safeNumber2 (order, 'remainQuantity', 'remainingQuantity'),
             'average': this.parseNumber (avgPriceRaw),
             'cost': this.parseNumber (cost),
             'fee': fees,
@@ -1326,10 +1378,10 @@ module.exports = class coinflex extends Exchange {
             const timestamp = this.milliseconds ();
             const datetime = this.ymdhms (timestamp, 'T');
             const nonce = this.nonce ();
-            let auth = datetime + '\n' + nonce + '\n' + method + '\n' + this.options['baseApiDomain'] + '\n' + '/' + finalPath + '\n';
+            let auth = datetime + '\n' + nonce + '\n' + method + '\n' + this.options['baseApiDomain'] + '\n' + '/' + finalPath + '\n' + encoded;
             if (method === 'POST') {
-                body = this.json (query);
                 auth += body;
+                body = this.json (query);
             }
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
             headers['Content-Type'] = 'application/json';
