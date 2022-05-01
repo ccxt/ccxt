@@ -199,9 +199,9 @@ module.exports = class coinflex extends Exchange {
                         'v3/AMM/orders': 1,
                         'v3/AMM/trades': 1,
                         'v3/AMM/hash-token': 1,
-                        'v2/borrow/{asset}': 1,
-                        'v2/repay/{asset}': 1,
-                        'v2/borrowingSummary': 1,
+                        'v2/borrow/{asset}': 1, // TO_DO : Get borrow history by asset (but doesn't match directly to any unified method)
+                        'v2/repay/{asset}': 1, // TO_DO: Get repay history by asset (but doesn't match directly to any unified method)
+                        'v2/borrowingSummary': 1, // TO_DO : Get borrowing summary
                     },
                     'post': {
                         'v2.1/delivery/orders': 1,
