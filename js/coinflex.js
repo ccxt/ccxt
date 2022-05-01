@@ -92,7 +92,7 @@ module.exports = class coinflex extends Exchange {
                 'fetchTradingFees': undefined,
                 'fetchTradingLimits': undefined,
                 'fetchTransactions': undefined,
-                'fetchTransfers': undefined,
+                'fetchTransfers': true,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'loadMarkets': true,
@@ -583,7 +583,7 @@ module.exports = class coinflex extends Exchange {
         //     {
         //         "event": "trades",
         //         "timestamp": "1651402298537",
-        //         "accountId": "38420",
+        //         "accountId": "38432",
         //         "data": [
         //             {
         //                 "matchId": "8375163007067643787",
@@ -976,7 +976,7 @@ module.exports = class coinflex extends Exchange {
         //         "success": true,
         //         "data": [
         //             {
-        //                 "accountId": "38420",
+        //                 "accountId": "38432",
         //                 "name": "main",
         //                 "accountType": "LINEAR",
         //                 "balances": [
@@ -1084,7 +1084,7 @@ module.exports = class coinflex extends Exchange {
         //     {
         //         "event": "orders",
         //         "timestamp": "1651410725892",
-        //         "accountId": "38420",
+        //         "accountId": "38432",
         //         "data": [
         //             {
         //                 "status": "OrderMatched",
@@ -1131,7 +1131,7 @@ module.exports = class coinflex extends Exchange {
         //     {
         //         "event": "orders",
         //         "timestamp": "1651423023567",
-        //         "accountId": "38420",
+        //         "accountId": "38432",
         //         "data": [
         //             {
         //                 "orderId": "1002114041607",
@@ -1546,6 +1546,71 @@ module.exports = class coinflex extends Exchange {
             // 'ON HOLD': 'pending',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let currency = undefined;
+        let request = {};
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['asset'] = currency['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        request = this.setStartEndTimes (request, since);
+        const response = await this.privateGetV3Transfer (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": [
+        //             {
+        //                 "asset": "USDT",
+        //                 "quantity": "5",
+        //                 "fromAccount": "38432",
+        //                 "toAccount": "38774",
+        //                 "id": "758113170128764931",
+        //                 "status": "COMPLETED",
+        //                 "transferredAt": "1651428178967"
+        //              }
+        //          ]
+        //     }
+        //
+        const transfers = this.safeValue (response, 'data', []);
+        return this.parseTransfers (transfers, currency, since, limit);
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        // fetchTransfers
+        //
+        //     {
+        //         "asset": "USDT",
+        //         "quantity": "5",
+        //         "fromAccount": "38432",
+        //         "toAccount": "38774",
+        //         "id": "758113170128764931",
+        //         "status": "COMPLETED",
+        //         "transferredAt": "1651428178967"
+        //      }
+        //
+        const currencyId = this.safeString (transfer, 'asset');
+        const timestamp = this.safeString (transfer, 'transferredAt');
+        const fromAccount = this.safeString (transfer, 'fromAccount');
+        const toAccount = this.safeString (transfer, 'toAccount');
+        const status = this.parseTransactionStatus (this.safeString (transfer, 'status'));
+        return {
+            'id': this.safeString (transfer, 'id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': this.safeNumber (transfer, 'quantity'),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': status,
+            'info': transfer,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
