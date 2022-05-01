@@ -51,9 +51,9 @@ module.exports = class coinflex extends Exchange {
                 'fetchClosedOrders': false,
                 'fetchCurrencies': true,
                 'fetchDeposit': undefined,
-                'fetchDepositAddress': undefined,
-                'fetchDepositAddresses': undefined,
-                'fetchDepositAddressesByNetwork': undefined,
+                'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': undefined,
                 'fetchFundingFee': undefined,
                 'fetchFundingFees': undefined,
@@ -181,7 +181,7 @@ module.exports = class coinflex extends Exchange {
                         'v2.1/delivery/orders': 1,
                         'v2/mint/{asset}': 1,
                         'v2/redeem/{asset}': 1,
-                        'v2/funding-payments': 1,
+                        'v2/funding-payments': 1, // TO_DO ?
                         'v2/AMM': 1,
                         'v3/account': 1,
                         'v3/deposit-addresses': 1,
@@ -240,11 +240,9 @@ module.exports = class coinflex extends Exchange {
                 'baseApiDomain': 'v2api.coinflex.com',
                 'defaultType': 'spot', // spot, swap
                 'networks': {
-                    'TRX': 'TRC-20',
-                    'TRC20': 'TRC-20',
-                    'ETH': 'ERC-20',
-                    'ERC20': 'ERC-20',
-                    'BEP20': 'BEP-20(BSC)',
+                    'ERC20': 'ERC20',
+                    'BEP20': 'BEP20',
+                    'SOLANA': 'SPL',
                 },
             },
             'commonCurrencies': {
@@ -1359,6 +1357,41 @@ module.exports = class coinflex extends Exchange {
             'side': side,
             'percentage': undefined,
             'info': position,
+        };
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'asset': currency['id'],
+        };
+        const networks = this.safeValue (this.options, 'networks', {});
+        const network = this.safeStringUpper (params, 'network');
+        params = this.omit (params, 'network');
+        const networkId = this.safeString (networks, network, network);
+        if (networkId === undefined) {
+            throw new ExchangeError (this.id + ' fetchDepositAddress() requires a `network` parameter');
+        }
+        request['network'] = networkId;
+        const response = await this.privateGetV3DepositAddresses (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "address": "0x5D561479d9665E490894822896c9c45Ea63007Eb"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        const address = this.safeValue (data, 'address');
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': undefined,
+            'network': network,
+            'info': response,
         };
     }
 
