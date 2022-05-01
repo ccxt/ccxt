@@ -69,14 +69,14 @@ module.exports = class coinflex extends Exchange {
                 'fetchMarketLeverageTiers': undefined,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': undefined,
-                'fetchMyTrades': undefined,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrder': undefined,
-                'fetchOpenOrders': undefined,
+                'fetchOpenOrders': true,
                 'fetchOrder': undefined,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': undefined,
-                'fetchOrders': undefined,
+                'fetchOrders': true,
                 'fetchOrderTrades': undefined,
                 'fetchPermissions': undefined,
                 'fetchPosition': true,
@@ -518,6 +518,7 @@ module.exports = class coinflex extends Exchange {
     }
 
     setStartEndTimes (request, since) {
+        // exchange has 7 days allowed distance between start/end times across it's api endpoints
         request['startTime'] = since;
         const currentTs = this.milliseconds ();
         const distance = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -632,25 +633,56 @@ module.exports = class coinflex extends Exchange {
         //         "clientOrderId": "1651342025382"
         //     }
         //
-        const id = this.safeString (trade, 'matchId');
-        const timestamp = this.safeInteger (trade, 'matchTimestamp');
-        const priceString = this.safeString (trade, 'matchPrice');
-        const amountString = this.safeString (trade, 'matchQuantity');
-        const sideRaw = this.safeString (trade, 'side');
-        const takerMakerRaw = this.safeString (trade, 'orderMatchType');
-        const takerOrMaker = this.safeString ({ 'TAKER': 'taker', 'MAKER': 'maker' }, takerMakerRaw, 'taker');
-        const cost = this.safeNumber (trade, 'total');
-        let fee = undefined;
-        const feeAmount = this.safeString (trade, 'fees');
-        if (feeAmount !== undefined) {
-            const feeCurrency = this.safeString (trade, 'feeInstrumentId');
-            fee = {
-                'currency': this.safeCurrencyCode (feeCurrency, undefined),
-                'cost': feeAmount,
-            };
-        }
+        // trades from order-object
+        //
+        //     {
+        //         "8375163007067827477": {
+        //             "matchQuantity": "334016",
+        //             "matchPrice": "0.00002089",
+        //             "timestamp": "1651410712318",
+        //             "orderMatchType": "TAKER"
+        //         }
+        //     }
+        //
         const marketId = this.safeString (trade, 'marketCode');
         market = this.safeMarket (marketId, market);
+        let id = undefined;
+        let timestamp = undefined;
+        let priceString = undefined;
+        let amountString = undefined;
+        let side = undefined;
+        let cost = undefined;
+        let fee = undefined;
+        let takerOrMakerRaw = undefined;
+        const keys = Object.keys (trade);
+        const length = keys.length;
+        if (length === 1) {
+            id = keys[0];
+            const tradeData = trade[id];
+            amountString = this.safeString (tradeData, 'matchQuantity');
+            priceString = this.safeString (tradeData, 'matchPrice');
+            cost = Precise.stringMul (amountString, priceString);
+            timestamp = this.safeInteger (tradeData, 'timestamp');
+            takerOrMakerRaw = this.safeString (trade, 'orderMatchType');
+        } else {
+            id = this.safeString (trade, 'matchId');
+            timestamp = this.safeInteger (trade, 'matchTimestamp');
+            priceString = this.safeString (trade, 'matchPrice');
+            amountString = this.safeString (trade, 'matchQuantity');
+            const sideRaw = this.safeString (trade, 'side');
+            side = this.parseOrderSide (sideRaw);
+            takerOrMakerRaw = this.safeString (trade, 'orderMatchType');
+            cost = this.safeNumber (trade, 'total');
+            const feeAmount = this.safeString (trade, 'fees');
+            if (feeAmount !== undefined) {
+                const feeCurrency = this.safeString (trade, 'feeInstrumentId');
+                fee = {
+                    'currency': this.safeCurrencyCode (feeCurrency, undefined),
+                    'cost': feeAmount,
+                };
+            }
+        }
+        const takerOrMaker = this.safeString ({ 'TAKER': 'taker', 'MAKER': 'maker' }, takerOrMakerRaw, 'taker');
         return this.safeTrade ({
             'id': id,
             'timestamp': timestamp,
@@ -659,9 +691,9 @@ module.exports = class coinflex extends Exchange {
             'order': this.safeString (trade, 'orderId'),
             'type': undefined,
             'takerOrMaker': takerOrMaker,
-            'side': this.parseOrderSide (sideRaw),
-            'price': priceString,
-            'amount': amountString,
+            'side': side,
+            'price': this.parseNumber (priceString),
+            'amount': this.parseNumber (amountString),
             'cost': cost,
             'fee': fee,
             'info': trade,
@@ -674,6 +706,35 @@ module.exports = class coinflex extends Exchange {
             'SELL': 'sell',
         };
         return this.safeString (sides, side, side);
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'OrderOpened': 'open',
+            'OrderMatched': 'closed',
+            'OrderClosed': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrderType (type) {
+        const types = {
+            'MARKET': 'market',
+            'LIMIT': 'limit',
+            // 'STOP_LIMIT': 'stop_limit',
+        };
+        return this.safeString (types, type, type);
+    }
+
+    parseTimeInForce (status) {
+        const statuses = {
+            'FOK': 'FOK',
+            'IOC': 'IOC',
+            'GTC': 'GTC',
+            'MAKER_ONLY': 'PO',
+            'MAKER_ONLY_REPRICE': 'PO',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -1006,6 +1067,161 @@ module.exports = class coinflex extends Exchange {
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601 (timestamp);
         return this.safeBalance (result);
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['marketCode'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request = this.setStartEndTimes (request, since);
+        }
+        const response = await this.privateGetV21Orders (this.extend (request, params));
+        //
+        //     {
+        //         "event": "orders",
+        //         "timestamp": "1651410725892",
+        //         "accountId": "38420",
+        //         "data": [
+        //             {
+        //                 "status": "OrderMatched",
+        //                 "orderId": "1002113333774",
+        //                 "clientOrderId": "1651410682769",
+        //                 "marketCode": "SHIB-USD-SWAP-LIN",
+        //                 "side": "BUY",
+        //                 "orderType": "STOP_LIMIT",
+        //                 "price": "0.00002100",
+        //                 "lastTradedPrice": "0.00002089",
+        //                 "avgFillPrice": "0.00002089",
+        //                 "stopPrice": "0.00002055",
+        //                 "limitPrice": "0.00002100",
+        //                 "quantity": "334016",
+        //                 "filledQuantity": "334016",
+        //                 "remainQuantity": "0",
+        //                 "matchIds": [
+        //                     {
+        //                         "8375163007067827477": {
+        //                             "matchQuantity": "334016",
+        //                             "matchPrice": "0.00002089",
+        //                             "timestamp": "1651410712318",
+        //                             "orderMatchType": "TAKER"
+        //                         }
+        //                     }
+        //                 ],
+        //                 "fees": {
+        //                     "USD": "-0.00558207"
+        //                 },
+        //                 "timeInForce": "GTC",
+        //                 "isTriggered": "false"
+        //             },
+        //         ]
+        //     }
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOrders (data, market, since, limit, params);
+    }
+
+    parseOrder (order, market = undefined) {
+        //
+        // fetchOrders
+        //
+        //     {
+        //         "status": "OrderMatched", // OrderOpened, OrderMatched, OrderClosed
+        //         "orderId": "1002113333774",
+        //         "clientOrderId": "1651410682769",
+        //         "marketCode": "SHIB-USD-SWAP-LIN",
+        //         "side": "BUY",
+        //         "orderType": "STOP_LIMIT", // MARKET, STOP_LIMIT, LIMIT
+        //         "price": "0.00002100",
+        //         "lastTradedPrice": "0.00002089",
+        //         "avgFillPrice": "0.00002089",
+        //         "stopPrice": "0.00002055", // only available for stop types
+        //         "limitPrice": "0.00002100", // only available for limit types
+        //         "quantity": "334016",
+        //         "filledQuantity": "334016",
+        //         "remainQuantity": "0",
+        //         "matchIds": [ // only available for filled order
+        //             {
+        //                 "8375163007067827477": {
+        //                     "matchQuantity": "334016",
+        //                     "matchPrice": "0.00002089",
+        //                     "timestamp": "1651410712318",
+        //                     "orderMatchType": "TAKER"
+        //                 }
+        //             }
+        //         ],
+        //         "fees": {
+        //             "USD": "-0.00558207"
+        //         },
+        //         "timeInForce": "GTC",
+        //         "isTriggered": "false"
+        //     }
+        //
+        const marketId = this.safeString (order, 'marketCode');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const timestamp = undefined;
+        const orderId = this.safeString (order, 'orderId');
+        const clientOrderId = this.safeString (order, 'clientOrderId');
+        const statusRaw = this.safeString (order, 'status');
+        const status = this.parseOrderStatus (statusRaw);
+        const sideRaw = this.safeString (order, 'side');
+        const side = this.parseOrderSide (sideRaw);
+        const orderTypeRaw = this.safeString (order, 'orderType');
+        const orderType = this.parseOrderType (orderTypeRaw);
+        const filledQuantityRaw = this.safeString (order, 'filledQuantity');
+        const avgPriceRaw = this.safeString (order, 'avgFillPrice');
+        const timeInForceRaw = this.safeString (order, 'timeInForce');
+        const timeInForce = this.parseTimeInForce (timeInForceRaw);
+        let trades = this.safeValue (order, 'matchIds', []);
+        if (trades !== undefined) {
+            trades = this.parseTrades (trades, market);
+        }
+        let cost = undefined;
+        if (avgPriceRaw !== undefined && filledQuantityRaw !== undefined) {
+            cost = Precise.stringMul (avgPriceRaw, filledQuantityRaw);
+        }
+        const feesRaw = this.safeValue (order, 'fees');
+        let fees = undefined;
+        if (feesRaw !== undefined) {
+            const feeKeys = Object.keys (feesRaw);
+            if (feeKeys.length > 0) {
+                const firstKey = feeKeys[0];
+                fees = {
+                    'currency': firstKey,
+                    'fee': feesRaw[firstKey],
+                };
+            }
+        }
+        return this.safeOrder ({
+            'id': orderId,
+            'symbol': symbol,
+            'clientOrderId': clientOrderId,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'timeInForce': timeInForce,
+            'postOnly': timeInForce === 'PO',
+            'status': status,
+            'side': side,
+            'price': this.safeNumber (order, 'limitPrice'),
+            'type': orderType,
+            'stopPrice': this.safeNumber (order, 'stopPrice'),
+            'amount': this.safeNumber (order, 'quantity'),
+            'filled': this.parseNumber (filledQuantityRaw),
+            'remaining': this.safeNumber (order, 'remainQuantity'),
+            'average': this.parseNumber (avgPriceRaw),
+            'cost': this.parseNumber (cost),
+            'fee': fees,
+            'trades': trades,
+            'info': order,
+        }, market);
     }
 
     async fetchPosition (symbol, params = {}) {
