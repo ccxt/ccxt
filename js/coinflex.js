@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadRequest } = require ('./base/errors');
+const { ExchangeError, BadRequest, ArgumentsRequired } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -560,6 +560,49 @@ module.exports = class coinflex extends Exchange {
         return this.parseTrades (trades, market, since, limit, params);
     }
 
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let request = {
+            'marketCode': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request = this.setStartEndTimes (request, since);
+        }
+        const response = await this.privateGetV2TradesMarketCode (this.extend (request, params));
+        //
+        //     {
+        //         "event": "trades",
+        //         "timestamp": "1651402298537",
+        //         "accountId": "38420",
+        //         "data": [
+        //             {
+        //                 "matchId": "8375163007067643787",
+        //                 "matchTimestamp": "1651342025862",
+        //                 "marketCode": "SHIB-USD-SWAP-LIN",
+        //                 "matchQuantity": "313546",
+        //                 "matchPrice": "0.00002161",
+        //                 "total": "6.77572906",
+        //                 "orderMatchType": "TAKER",
+        //                 "fees": "0.00542058",
+        //                 "feeInstrumentId": "USD",
+        //                 "orderId": "1002109741555",
+        //                 "side": "BUY",
+        //                 "clientOrderId": "1651342025382"
+        //             }
+        //         ]
+        //     }
+        //
+        const trades = this.safeValue (response, 'data', {});
+        return this.parseTrades (trades, market, since, limit, params);
+    }
+
     parseTrade (trade, market = undefined) {
         //
         // fetchTrades
@@ -572,26 +615,55 @@ module.exports = class coinflex extends Exchange {
         //         "matchTimestamp": "1651281046230"
         //     }
         //
+        // fetchMyTrades
+        //
+        //     {
+        //         "matchId": "8375163007067643787",
+        //         "matchQuantity": "313546",
+        //         "matchPrice": "0.00002161",
+        //         "side": "BUY",
+        //         "matchTimestamp": "1651342025862",
+        //         "marketCode": "SHIB-USD-SWAP-LIN",
+        //         "total": "6.77572906",
+        //         "orderMatchType": "TAKER",
+        //         "fees": "0.00542058",
+        //         "feeInstrumentId": "USD",
+        //         "orderId": "1002109741555",
+        //         "clientOrderId": "1651342025382"
+        //     }
+        //
         const id = this.safeString (trade, 'matchId');
         const timestamp = this.safeInteger (trade, 'matchTimestamp');
         const priceString = this.safeString (trade, 'matchPrice');
         const amountString = this.safeString (trade, 'matchQuantity');
         const sideRaw = this.safeString (trade, 'side');
-        const takerOrMaker = 'taker';
-        market = this.safeMarket (undefined, market);
+        const takerMakerRaw = this.safeString (trade, 'orderMatchType');
+        const takerOrMaker = this.safeString ({ 'TAKER': 'taker', 'MAKER': 'maker' }, takerMakerRaw, 'taker');
+        const cost = this.safeNumber (trade, 'total');
+        let fee = undefined;
+        const feeAmount = this.safeString (trade, 'fees');
+        if (feeAmount !== undefined) {
+            const feeCurrency = this.safeString (trade, 'feeInstrumentId');
+            fee = {
+                'currency': this.safeCurrencyCode (feeCurrency, undefined),
+                'cost': feeAmount,
+            };
+        }
+        const marketId = this.safeString (trade, 'marketCode');
+        market = this.safeMarket (marketId, market);
         return this.safeTrade ({
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
-            'order': undefined,
+            'order': this.safeString (trade, 'orderId'),
             'type': undefined,
             'takerOrMaker': takerOrMaker,
             'side': this.parseOrderSide (sideRaw),
             'price': priceString,
             'amount': amountString,
-            'cost': undefined,
-            'fee': undefined,
+            'cost': cost,
+            'fee': fee,
             'info': trade,
         }, market);
     }
