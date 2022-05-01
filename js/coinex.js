@@ -2197,7 +2197,7 @@ module.exports = class coinex extends Exchange {
         for (let i = 0; i < position.length; i++) {
             result.push (this.parsePosition (position[i], market));
         }
-        return this.filterByArray (result, 'market', symbols, false);
+        return this.filterByArray (result, 'symbol', symbols, false);
     }
 
     async fetchPosition (symbol, params = {}) {
