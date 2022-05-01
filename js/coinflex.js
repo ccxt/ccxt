@@ -54,7 +54,7 @@ module.exports = class coinflex extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
-                'fetchDeposits': undefined,
+                'fetchDeposits': true,
                 'fetchFundingFee': undefined,
                 'fetchFundingFees': undefined,
                 'fetchFundingHistory': undefined,
@@ -93,8 +93,8 @@ module.exports = class coinflex extends Exchange {
                 'fetchTradingLimits': undefined,
                 'fetchTransactions': undefined,
                 'fetchTransfers': undefined,
-                'fetchWithdrawal': undefined,
-                'fetchWithdrawals': undefined,
+                'fetchWithdrawal': true,
+                'fetchWithdrawals': true,
                 'loadMarkets': true,
                 'privateAPI': true,
                 'publicAPI': true,
@@ -1411,11 +1411,11 @@ module.exports = class coinflex extends Exchange {
         //         "success": true,
         //         "data": [
         //             {
+        //                 "id": "757475245433389059",
         //                 "asset": "USDT",
         //                 "network": "ERC20",
         //                 "address": "0x5D561479d9665E490894822896c9c45Ea63007Eb",
         //                 "quantity": "28.33",
-        //                 "id": "757475245433389059",
         //                 "status": "COMPLETED",
         //                 "txId": "0x6a92c8190b4b56a56fed2f9a8d0d7afd01843c28d0c0a8a5607b974b2fab8b4a",
         //                 "creditedAt": "1651233499800"
@@ -1425,6 +1425,50 @@ module.exports = class coinflex extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit, params);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let currency = undefined;
+        let request = {};
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['asset'] = currency['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        request = this.setStartEndTimes (request, since);
+        const response = await this.privateGetV3Withdrawal (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": [
+        //             {
+        //                 "id": "651573911056351237",
+        //                 "asset": "USDT",
+        //                 "network": "ERC20",
+        //                 "address": "0x5D561479d9665E490899382896c9c45Ea63007AE",
+        //                 "quantity": "36",
+        //                 "fee": "5.2324",
+        //                 "status": "COMPLETED",
+        //                 "txId": "38c09755bff75d33304a3cb6ee839fcb78bbb38b6e3e16586f20852cdec4886d",
+        //                 "requestedAt": "1617940893000",
+        //                 "completedAt": "1617940921123"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTransactions (data, currency, since, limit, params);
+    }
+
+    async fetchWithdrawal (id, code = undefined, params = {}) {
+        const request = {
+            'id': id,
+        };
+        const withdrawals = await this.fetchWithdrawals (code, undefined, undefined, this.extend (request, params));
+        return this.safeValue (withdrawals, 0); // the target transaction will be the only in array
     }
 
     parseTransaction (transaction, currency = undefined) {
@@ -1442,6 +1486,22 @@ module.exports = class coinflex extends Exchange {
         //         "creditedAt": "1651233499800"
         //    }
         //
+        // fetchWithdrawals
+        //
+        //     {
+        //         "id": "651573911056351237",
+        //         "txId": "38c09755bff75d33304a3cb6ee839fcb78bbb38b6e3e16586f20852cdec4886d",
+        //         "asset": "USDT",
+        //         "network": "ERC20",
+        //         "address": "0x5D561479d9665E490899382896c9c45Ea63007AE",
+        //         "quantity": "36",
+        //         "fee": "5.2324",
+        //         "status": "COMPLETED",
+        //         "requestedAt": "1617940893000",
+        //         "completedAt": "1617940921123"
+        //     }
+        //
+        const isDeposit = ('creditedAt' in transaction);
         const id = this.safeString (transaction, 'id');
         const txId = this.safeString (transaction, 'txId');
         const currencyId = this.safeString (transaction, 'asset');
@@ -1451,7 +1511,8 @@ module.exports = class coinflex extends Exchange {
         const addressTo = this.safeString (transaction, 'address');
         const statusRaw = this.safeString (transaction, 'status');
         const status = this.parseTransactionStatus (statusRaw);
-        const timestamp = this.safeInteger (transaction, 'creditedAt');
+        const timestamp = this.safeInteger2 (transaction, 'creditedAt', 'requestedAt');
+        const type = isDeposit ? 'deposit' : 'withdrawal';
         return {
             'id': id,
             'txid': txId,
@@ -1464,13 +1525,13 @@ module.exports = class coinflex extends Exchange {
             'tag': undefined,
             'tagTo': undefined,
             'tagFrom': undefined,
-            'type': undefined,
-            'amount': undefined,
+            'type': type,
+            'amount': this.safeNumber (transaction, 'quantity'),
             'currency': currency['code'],
             'status': status,
-            'updated': undefined,
+            'updated': this.safeInteger (transaction, 'completedAt'),
             'internal': undefined,
-            'fee': undefined,
+            'fee': this.safeNumber (transaction, 'fee'),
             'info': transaction,
         };
     }
