@@ -316,6 +316,7 @@ class mexc(Exchange):
                 'exact': {
                     '400': BadRequest,  # Invalid parameter
                     '401': AuthenticationError,  # Invalid signature, fail to pass the validation
+                    '402': AuthenticationError,  # {"success":false,"code":402,"message":"API key expired!"}
                     '403': PermissionDenied,  # {"msg":"no permission to access the endpoint","code":403}
                     '429': RateLimitExceeded,  # too many requests, rate limit rule is violated
                     '703': PermissionDenied,  # Require trade read permission!

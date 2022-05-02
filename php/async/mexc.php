@@ -307,6 +307,7 @@ class mexc extends Exchange {
                 'exact' => array(
                     '400' => '\\ccxt\\BadRequest', // Invalid parameter
                     '401' => '\\ccxt\\AuthenticationError', // Invalid signature, fail to pass the validation
+                    '402' => '\\ccxt\\AuthenticationError', // array("success":false,"code":402,"message":"API key expired!")
                     '403' => '\\ccxt\\PermissionDenied', // array("msg":"no permission to access the endpoint","code":403)
                     '429' => '\\ccxt\\RateLimitExceeded', // too many requests, rate limit rule is violated
                     '703' => '\\ccxt\\PermissionDenied', // Require trade read permission!
