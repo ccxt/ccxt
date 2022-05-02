@@ -220,6 +220,7 @@ class binance extends Exchange {
                         'margin/crossMarginData' => array( 'cost' => 0.1, 'noCoin' => 0.5 ),
                         'margin/isolatedMarginData' => array( 'cost' => 0.1, 'noCoin' => 1 ),
                         'margin/isolatedMarginTier' => 0.1,
+                        'margin/rateLimit/order' => 2,
                         'loan/income' => 40, // Weight(UID) => 6000 => cost = 0.006667 * 6000 = 40
                         'fiat/orders' => 0.1,
                         'fiat/payments' => 0.1,
@@ -259,6 +260,7 @@ class binance extends Exchange {
                         'sub-account/transfer/subUserHistory' => 0.1,
                         'sub-account/universalTransfer' => 0.1,
                         'managed-subaccount/asset' => 0.1,
+                        'managed-subaccount/accountSnapshot' => 240,
                         // lending endpoints
                         'lending/daily/product/list' => 0.1,
                         'lending/daily/userLeftQuota' => 0.1,
@@ -333,9 +335,19 @@ class binance extends Exchange {
                         'nft/user/getAsset' => 20.001,
                         'pay/transactions' => 20.001, // Weight(UID) => 3000 => cost = 0.006667 * 3000 = 20.001
                         'giftcard/verify' => 0.1,
+                        'algo/futures/openOrders' => 0.1,
+                        'algo/futures/historicalOrders' => 0.1,
+                        'algo/futures/subOrders' => 0.1,
+                        'portfolio/account' => 0.1,
+                        // staking
+                        'staking/productList' => 0.1,
+                        'staking/position' => 0.1,
+                        'staking/stakingRecord' => 0.1,
+                        'staking/personalLeftQuota' => 0.1,
                     ),
                     'post' => array(
-                        'asset/dust' => 0.06667, // Weight(UID) => 10 => cost = 0.006667 * 10 = 0.06667
+                        'asset/dust' => 1,
+                        'asset/dust-btc' => 0.1,
                         'asset/transfer' => 0.1,
                         'asset/get-funding-asset' => 0.1,
                         'account/disableFastWithdrawSwitch' => 0.1,
@@ -407,6 +419,12 @@ class binance extends Exchange {
                         //
                         'giftcard/createCode' => 0.1,
                         'giftcard/redeemCode' => 0.1,
+                        'algo/futures/newOrderVp' => 20.001,
+                        'algo/futures/newOrderTwap' => 20.001,
+                        // staking
+                        'staking/purchase' => 0.1,
+                        'staking/redeem' => 0.1,
+                        'staking/setAutoStaking' => 0.1,
                     ),
                     'put' => array(
                         'userDataStream' => 0.1,
@@ -423,6 +441,7 @@ class binance extends Exchange {
                         // brokerage API TODO NO MENTION OF RATELIMIT IN BROKERAGE DOCS
                         'broker/subAccountApi' => 1,
                         'broker/subAccountApi/ipRestriction/ipList' => 1,
+                        'algo/futures/order' => 0.1,
                     ),
                 ),
                 'sapiV3' => array(
