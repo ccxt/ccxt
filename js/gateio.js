@@ -413,7 +413,6 @@ module.exports = class gateio extends Exchange {
                     'delivery': 'delivery',
                 },
                 'defaultType': 'spot',
-                'defaultMarginType': 'isolated',
                 'swap': {
                     'fetchMarkets': {
                         'settlementCurrencies': [ 'usdt', 'btc' ],
