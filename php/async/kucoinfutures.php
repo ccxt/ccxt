@@ -1107,15 +1107,19 @@ class kucoinfutures extends kucoin {
          * @param {int} $limit The maximum number of $orders to retrieve
          * @param {dict} $params exchange specific parameters
          * @param {bool} $params->stop set to true to retrieve untriggered $stop $orders
+         * @param {int} $params->till End time in ms
          * @param {str} $params->side buy or sell
          * @param {str} $params->type $limit or $market
-         * @param {int} $params->endAt End time in ms
          * @return An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure array of order structures}
          */
         yield $this->load_markets();
         $stop = $this->safe_value($params, 'stop');
         $params = $this->omit($params, 'stop');
-        $status = ($status === 'closed') ? 'done' : $status;
+        if ($status === 'closed') {
+            $status = 'done';
+        } else if ($status === 'open') {
+            $status = 'active';
+        }
         $request = array();
         if (!$stop) {
             $request['status'] = $status;
@@ -1130,11 +1134,30 @@ class kucoinfutures extends kucoin {
         if ($since !== null) {
             $request['startAt'] = $since;
         }
+        $till = $this->safe_integer($params, 'till', 'endAt');
+        if ($till !== null) {
+            $request['endAt'] = $till;
+        }
         $method = $stop ? 'futuresPrivateGetStopOrders' : 'futuresPrivateGetOrders';
         $response = yield $this->$method (array_merge($request, $params));
         $responseData = $this->safe_value($response, 'data', array());
         $orders = $this->safe_value($responseData, 'items', array());
         return $this->parse_orders($orders, $market, $since, $limit);
+    }
+
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch a list of orders
+         * @param {str} $symbol unified market $symbol
+         * @param {int} $since timestamp in ms of the earliest order
+         * @param {int} $limit max number of orders to return
+         * @param {dict} $params exchange specific $params
+         * @param {int} $params->till end time in ms
+         * @param {str} $params->side buy or sell
+         * @param {str} $params->type $limit, or market
+         * @return An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure array of order structures}
+         */
+        return yield $this->fetch_orders_by_status('done', $symbol, $since, $limit, $params);
     }
 
     public function fetch_order($id = null, $symbol = null, $params = array ()) {
