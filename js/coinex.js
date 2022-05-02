@@ -444,7 +444,7 @@ module.exports = class coinex extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         //
-        // Spot fetchTicker
+        // Spot fetchTicker, fetchTickers
         //
         //     {
         //         "vol": "293.19415130",
@@ -458,7 +458,7 @@ module.exports = class coinex extends Exchange {
         //         "sell_amount": "0.02828439"
         //     }
         //
-        // Swap fetchTicker
+        // Swap fetchTicker, fetchTickers
         //
         //     {
         //         "vol": "7714.2175",
@@ -578,7 +578,67 @@ module.exports = class coinex extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.publicGetMarketTickerAll (params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
+        const method = (marketType === 'swap') ? 'perpetualPublicGetMarketTickerAll' : 'publicGetMarketTickerAll';
+        const response = await this[method] (query);
+        //
+        // Spot
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "date": 1651519857284,
+        //             "ticker": {
+        //                 "PSPUSDT": {
+        //                     "vol": "127131.55227034",
+        //                     "low": "0.0669",
+        //                     "open": "0.0688",
+        //                     "high": "0.0747",
+        //                     "last": "0.0685",
+        //                     "buy": "0.0676",
+        //                     "buy_amount": "702.70117866",
+        //                     "sell": "0.0690",
+        //                     "sell_amount": "686.76861562"
+        //                 },
+        //             }
+        //         },
+        //         "message": "Ok"
+        //     }
+        //
+        // Swap
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "date": 1651520268644,
+        //             "ticker": {
+        //                 "KAVAUSDT": {
+        //                     "vol": "834924",
+        //                     "low": "3.9418",
+        //                     "open": "4.1834",
+        //                     "high": "4.4328",
+        //                     "last": "4.0516",
+        //                     "buy": "4.0443",
+        //                     "period": 86400,
+        //                     "funding_time": 262,
+        //                     "position_amount": "16111",
+        //                     "funding_rate_last": "-0.00069514",
+        //                     "funding_rate_next": "-0.00061009",
+        //                     "funding_rate_predict": "-0.00055812",
+        //                     "insurance": "16532425.53026084124483989548",
+        //                     "sign_price": "4.0516",
+        //                     "index_price": "4.0530",
+        //                     "sell_total": "59446",
+        //                     "buy_total": "62423",
+        //                     "buy_amount": "959",
+        //                     "sell": "4.0466",
+        //                     "sell_amount": "141"
+        //                 },
+        //             }
+        //         },
+        //         "message": "Ok"
+        //     }
+        //
         const data = this.safeValue (response, 'data');
         const timestamp = this.safeInteger (data, 'date');
         const tickers = this.safeValue (data, 'ticker');
