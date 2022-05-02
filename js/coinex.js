@@ -1411,6 +1411,8 @@ module.exports = class coinex extends Exchange {
         const swap = market['swap'];
         const stopPrice = this.safeString2 (params, 'stopPrice', 'stop_price');
         const postOnly = this.safeValue (params, 'postOnly', false);
+        const reduceOnly = this.safeValue (params, 'reduceOnly');
+        const positionId = this.safeInteger2 (params, 'position_id', 'positionId'); // Required for closing swap positions
         let timeInForce = this.safeString (params, 'timeInForce'); // Spot: IOC, FOK, PO, GTC, ... NORMAL (default), MAKER_ONLY
         let method = undefined;
         const request = {
@@ -1418,6 +1420,7 @@ module.exports = class coinex extends Exchange {
         };
         if (swap) {
             method = 'perpetualPrivatePostOrderPut' + this.capitalize (type);
+            side = (side === 'buy') ? 2 : 1;
             if (stopPrice !== undefined) {
                 const stopType = this.safeInteger (params, 'stop_type'); // 1: triggered by the latest transaction, 2: mark price, 3: index price
                 if (stopType === undefined) {
@@ -1425,11 +1428,15 @@ module.exports = class coinex extends Exchange {
                 }
                 request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
                 request['stop_type'] = this.priceToPrecision (symbol, stopType);
+                request['amount'] = this.amountToPrecision (symbol, amount);
+                request['side'] = side;
                 if (type === 'limit') {
                     method = 'perpetualPrivatePostOrderPutStopLimit';
+                    request['price'] = this.priceToPrecision (symbol, price);
                 } else if (type === 'market') {
                     method = 'perpetualPrivatePostOrderPutStopMarket';
                 }
+                request['amount'] = this.amountToPrecision (symbol, amount);
             }
             if ((type !== 'market') || (stopPrice !== undefined)) {
                 if ((timeInForce !== undefined) || (postOnly !== undefined)) {
@@ -1453,11 +1460,23 @@ module.exports = class coinex extends Exchange {
                     }
                 }
             }
-            side = (side === 'buy') ? 2 : 1;
-            request['side'] = side;
-            request['amount'] = this.amountToPrecision (symbol, amount);
-            if (type === 'limit') {
+            if (type === 'limit' && stopPrice === undefined) {
+                if (reduceOnly) {
+                    method = 'perpetualPrivatePostOrderCloseLimit';
+                    request['position_id'] = positionId;
+                } else {
+                    request['side'] = side;
+                }
                 request['price'] = this.priceToPrecision (symbol, price);
+                request['amount'] = this.amountToPrecision (symbol, amount);
+            } else if (type === 'market' && stopPrice === undefined) {
+                if (reduceOnly) {
+                    method = 'perpetualPrivatePostOrderCloseMarket';
+                    request['position_id'] = positionId;
+                } else {
+                    request['side'] = side;
+                    request['amount'] = this.amountToPrecision (symbol, amount);
+                }
             }
         } else {
             method = 'privatePostOrder' + this.capitalize (type);
@@ -1510,7 +1529,7 @@ module.exports = class coinex extends Exchange {
                 }
             }
         }
-        params = this.omit (params, [ 'timeInForce', 'postOnly', 'stopPrice', 'stop_price', 'stop_type' ]);
+        params = this.omit (params, [ 'reduceOnly', 'position_id', 'positionId', 'timeInForce', 'postOnly', 'stopPrice', 'stop_price', 'stop_type' ]);
         const response = await this[method] (this.extend (request, params));
         //
         // Spot
