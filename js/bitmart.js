@@ -691,6 +691,7 @@ module.exports = class bitmart extends Exchange {
         //          "best_bid":"0.128200",
         //          "best_bid_size":"21232",
         //          "fluctuation":"-0.0361",
+        //          "s_t": 1610936002,
         //          "url":"https://www.bitmart.com/trade?symbol=DOGE_USDT"
         //      }
         //
@@ -709,7 +710,7 @@ module.exports = class bitmart extends Exchange {
         //          "legal_coin_price":"0.1302699"
         //      }
         //
-        const timestamp = this.safeTimestamp (ticker, 'timestamp', this.milliseconds ());
+        const timestamp = this.safeTimestamp2 (ticker, 'timestamp', 's_t', this.milliseconds ());
         const marketId = this.safeString2 (ticker, 'symbol', 'contract_symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
