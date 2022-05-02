@@ -48,7 +48,7 @@ class binance extends Exchange {
                 'fetchBidsAsks' => true,
                 'fetchBorrowInterest' => true,
                 'fetchBorrowRate' => true,
-                'fetchBorrowRateHistories' => true,
+                'fetchBorrowRateHistories' => null,
                 'fetchBorrowRateHistory' => true,
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,

@@ -63,7 +63,7 @@ class binance(Exchange):
                 'fetchBidsAsks': True,
                 'fetchBorrowInterest': True,
                 'fetchBorrowRate': True,
-                'fetchBorrowRateHistories': True,
+                'fetchBorrowRateHistories': None,
                 'fetchBorrowRateHistory': True,
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
