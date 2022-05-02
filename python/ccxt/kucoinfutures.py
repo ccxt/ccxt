@@ -310,7 +310,7 @@ class kucoinfutures(kucoin):
         })
 
     def fetch_accounts(self, params={}):
-        raise BadRequest(self.id + ' has no method fetchAccounts')
+        raise BadRequest(self.id + ' fetchAccounts() is not supported yet')
 
     def fetch_status(self, params={}):
         response = self.futuresPublicGetStatus(params)
@@ -549,7 +549,7 @@ class kucoinfutures(kucoin):
         ]
 
     def create_deposit_address(self, code, params={}):
-        raise BadRequest(self.id + ' has no method createDepositAddress')
+        raise BadRequest(self.id + ' createDepositAddress() is not supported yet')
 
     def fetch_deposit_address(self, code, params={}):
         self.load_markets()
@@ -585,7 +585,7 @@ class kucoinfutures(kucoin):
         self.load_markets()
         level = self.safe_number(params, 'level')
         if level != 2 and level is not None:
-            raise BadRequest(self.id + ' fetchOrderBook can only return level 2')
+            raise BadRequest(self.id + ' fetchOrderBook() can only return level 2')
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -594,7 +594,7 @@ class kucoinfutures(kucoin):
             if (limit == 20) or (limit == 100):
                 request['limit'] = limit
             else:
-                raise BadRequest(self.id + ' fetchOrderBook limit argument must be 20 or 100')
+                raise BadRequest(self.id + ' fetchOrderBook() limit argument must be 20 or 100')
         else:
             request['limit'] = 20
         response = self.futuresPublicGetLevel2DepthLimit(self.extend(request, params))
@@ -623,7 +623,7 @@ class kucoinfutures(kucoin):
         return orderbook
 
     def fetch_l3_order_book(self, symbol, limit=None, params={}):
-        raise BadRequest(self.id + ' only can only fetch the L2 order book')
+        raise BadRequest(self.id + ' fetchL3OrderBook() is not supported yet')
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -1084,7 +1084,7 @@ class kucoinfutures(kucoin):
         if not stop:
             request['status'] = status
         elif status != 'active':
-            raise BadRequest(self.id + ' fetchOrdersByStatus can only fetch untriggered stop orders')
+            raise BadRequest(self.id + ' fetchOrdersByStatus() can only fetch untriggered stop orders')
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1267,7 +1267,7 @@ class kucoinfutures(kucoin):
 
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
         if (toAccount != 'main' and toAccount != 'funding') or (fromAccount != 'futures' and fromAccount != 'future' and fromAccount != 'contract'):
-            raise BadRequest(self.id + ' only supports transfers from contract(future) account to main(funding) account')
+            raise BadRequest(self.id + ' transfer() only supports transfers from contract(future) account to main(funding) account')
         self.load_markets()
         currency = self.currency(code)
         amountToPrecision = self.currency_to_precision(code, amount)
@@ -1597,10 +1597,10 @@ class kucoinfutures(kucoin):
         return self.parse_transactions(responseData, currency, since, limit, {'type': 'withdrawal'})
 
     def fetch_funding_fee(self, code, params={}):
-        raise BadRequest(self.id + ' has no method fetchFundingFee')
+        raise BadRequest(self.id + ' fetchFundingFee() is not supported yet')
 
     def fetch_ledger(self, code=None, since=None, limit=None, params={}):
-        raise BadRequest(self.id + ' has no method fetchLedger')
+        raise BadRequest(self.id + ' fetchLedger() is not supported yet')
 
     def fetch_market_leverage_tiers(self, symbol, params={}):
         self.load_markets()

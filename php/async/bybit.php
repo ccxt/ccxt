@@ -1490,7 +1490,7 @@ class bybit extends Exchange {
             } else if ($side === 'Sell') {
                 $asks[] = $this->parse_bid_ask($bidask, $priceKey, $amountKey);
             } else {
-                throw new ExchangeError($this->id . ' parseOrderBook encountered an unrecognized $bidask format => ' . $this->json($bidask));
+                throw new ExchangeError($this->id . ' parseOrderBook() encountered an unrecognized $bidask format => ' . $this->json($bidask));
             }
         }
         return array(
@@ -2952,7 +2952,7 @@ class bybit extends Exchange {
         if (gettype($symbols) === 'array' && count(array_filter(array_keys($symbols), 'is_string')) == 0) {
             $length = is_array($symbols) ? count($symbols) : 0;
             if ($length !== 1) {
-                throw new ArgumentsRequired($this->id . ' fetchPositions takes an array with exactly one symbol');
+                throw new ArgumentsRequired($this->id . ' fetchPositions() takes an array with exactly one symbol');
             }
             $request['symbol'] = $this->market_id($symbols[0]);
         }
@@ -3005,7 +3005,7 @@ class bybit extends Exchange {
             $marginType = 'CROSS';
         }
         if (($marginType !== 'ISOLATED') && ($marginType !== 'CROSS')) {
-            throw new BadRequest($this->id . ' $marginType must be either isolated or cross');
+            throw new BadRequest($this->id . ' setMarginMode() $marginType must be either isolated or cross');
         }
         yield $this->load_markets();
         $market = $this->market($symbol);
@@ -3082,7 +3082,7 @@ class bybit extends Exchange {
             }
         }
         if (($buy_leverage < 1) || ($buy_leverage > 100) || ($sell_leverage < 1) || ($sell_leverage > 100)) {
-            throw new BadRequest($this->id . ' $leverage should be between 1 and 100');
+            throw new BadRequest($this->id . ' setLeverage() $leverage should be between 1 and 100');
         }
         $request = array(
             'symbol' => $market['id'],

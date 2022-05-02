@@ -984,7 +984,7 @@ class okx extends Exchange {
             $defaultUnderlying = $this->safe_value($this->options, 'defaultUnderlying', 'BTC-USD');
             $currencyId = $this->safe_string_2($params, 'uly', 'marketId', $defaultUnderlying);
             if ($currencyId === null) {
-                throw new ArgumentsRequired($this->id . ' fetchMarketsByType requires an underlying uly or marketId parameter for options markets');
+                throw new ArgumentsRequired($this->id . ' fetchMarketsByType() requires an underlying uly or marketId parameter for options markets');
             } else {
                 $request['uly'] = $currencyId;
             }
@@ -1293,7 +1293,7 @@ class okx extends Exchange {
             $defaultUnderlying = $this->safe_value($this->options, 'defaultUnderlying', 'BTC-USD');
             $currencyId = $this->safe_string_2($params, 'uly', 'marketId', $defaultUnderlying);
             if ($currencyId === null) {
-                throw new ArgumentsRequired($this->id . ' fetchTickersByType requires an underlying uly or marketId parameter for options markets');
+                throw new ArgumentsRequired($this->id . ' fetchTickersByType() requires an underlying uly or marketId parameter for options markets');
             } else {
                 $request['uly'] = $currencyId;
             }
@@ -1666,7 +1666,7 @@ class okx extends Exchange {
         } else if ($market['swap'] || $market['future'] || $market['option']) {
             $request['uly'] = $market['baseId'] . '-' . $market['quoteId'];
         } else {
-            throw new NotSupported($this->id . ' fetchTradingFee supports spot, swap, future or option markets only');
+            throw new NotSupported($this->id . ' fetchTradingFee() supports spot, swap, future or option markets only');
         }
         $response = yield $this->privateGetAccountTradeFee (array_merge($request, $params));
         //
@@ -4058,7 +4058,7 @@ class okx extends Exchange {
         yield $this->load_markets();
         $market = $this->market($symbol);
         if (!$market['swap']) {
-            throw new ExchangeError($this->id . ' fetchFundingRate is only valid for swap markets');
+            throw new ExchangeError($this->id . ' fetchFundingRate() is only valid for swap markets');
         }
         $request = array(
             'instId' => $market['id'],
@@ -4240,14 +4240,14 @@ class okx extends Exchange {
         // WARNING => THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if (($leverage < 1) || ($leverage > 125)) {
-            throw new BadRequest($this->id . ' setLeverage $leverage should be between 1 and 125');
+            throw new BadRequest($this->id . ' setLeverage() $leverage should be between 1 and 125');
         }
         yield $this->load_markets();
         $market = $this->market($symbol);
         $marginMode = $this->safe_string_lower($params, 'mgnMode');
         $params = $this->omit($params, array( 'mgnMode' ));
         if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
-            throw new BadRequest($this->id . ' setLeverage $params["mgnMode"] must be either cross or isolated');
+            throw new BadRequest($this->id . ' setLeverage() $params["mgnMode"] must be either cross or isolated');
         }
         $request = array(
             'lever' => $leverage,
@@ -4305,13 +4305,13 @@ class okx extends Exchange {
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         $marginType = strtolower($marginType);
         if (($marginType !== 'cross') && ($marginType !== 'isolated')) {
-            throw new BadRequest($this->id . ' setMarginMode $marginType must be either cross or isolated');
+            throw new BadRequest($this->id . ' setMarginMode() $marginType must be either cross or isolated');
         }
         yield $this->load_markets();
         $market = $this->market($symbol);
         $lever = $this->safe_integer($params, 'lever');
         if (($lever === null) || ($lever < 1) || ($lever > 125)) {
-            throw new BadRequest($this->id . ' setMarginMode $params["lever"] should be between 1 and 125');
+            throw new BadRequest($this->id . ' setMarginMode() $params["lever"] should be between 1 and 125');
         }
         $params = $this->omit($params, array( 'lever' ));
         $request = array(

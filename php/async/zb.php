@@ -3065,7 +3065,7 @@ class zb extends Exchange {
             throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
         }
         if (($leverage < 1) || ($leverage > 125)) {
-            throw new BadRequest($this->id . ' $leverage should be between 1 and 125');
+            throw new BadRequest($this->id . ' setLeverage() $leverage should be between 1 and 125');
         }
         $market = $this->market($symbol);
         $accountType = null;

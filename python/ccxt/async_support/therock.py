@@ -171,7 +171,7 @@ class therock(Exchange):
         markets = self.safe_value(response, 'funds')
         result = []
         if markets is None:
-            raise ExchangeError(self.id + ' fetchMarkets got an unexpected response')
+            raise ExchangeError(self.id + ' fetchMarkets() got an unexpected response')
         else:
             for i in range(0, len(markets)):
                 market = markets[i]

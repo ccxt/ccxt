@@ -493,7 +493,7 @@ class wazirx extends Exchange {
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrders requires a `$symbol` argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a `$symbol` argument');
         }
         yield $this->load_markets();
         $market = $this->market($symbol);
@@ -581,7 +581,7 @@ class wazirx extends Exchange {
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelAllOrders requires a `$symbol` argument');
+            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a `$symbol` argument');
         }
         yield $this->load_markets();
         $market = $this->market($symbol);
@@ -593,7 +593,7 @@ class wazirx extends Exchange {
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder requires a `$symbol` argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a `$symbol` argument');
         }
         yield $this->load_markets();
         $market = $this->market($symbol);

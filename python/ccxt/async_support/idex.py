@@ -679,7 +679,7 @@ class idex(Exchange):
         # ]
         extendedRequest = self.extend(request, params)
         if extendedRequest['wallet'] is None:
-            raise BadRequest(self.id + ' wallet is None, set self.walletAddress or "address" in params')
+            raise BadRequest(self.id + ' fetchBalance() wallet is None, set self.walletAddress or "address" in params')
         response = None
         try:
             response = await self.privateGetBalances(extendedRequest)
@@ -729,7 +729,7 @@ class idex(Exchange):
         # ]
         extendedRequest = self.extend(request, params)
         if extendedRequest['wallet'] is None:
-            raise BadRequest(self.id + ' walletAddress is None, set self.walletAddress or "address" in params')
+            raise BadRequest(self.id + ' fetchMyTrades() walletAddress is None, set self.walletAddress or "address" in params')
         response = None
         try:
             response = await self.privateGetFills(extendedRequest)
@@ -965,7 +965,7 @@ class idex(Exchange):
         stopPriceString = None
         if (type == 'stopLossLimit') or (type == 'takeProfitLimit') or ('stopPrice' in params):
             if not ('stopPrice' in params):
-                raise BadRequest(self.id + ' stopPrice is a required parameter for ' + type + 'orders')
+                raise BadRequest(self.id + ' createOrder() stopPrice is a required parameter for ' + type + 'orders')
             stopPriceString = self.price_to_precision(symbol, params['stopPrice'])
         limitTypeEnums = {
             'limit': 1,
@@ -987,7 +987,7 @@ class idex(Exchange):
         amountEnum = 0  # base quantity
         if 'quoteOrderQuantity' in params:
             if type != 'market':
-                raise NotSupported(self.id + ' quoteOrderQuantity is not supported for ' + type + ' orders, only supported for market orders')
+                raise NotSupported(self.id + ' createOrder() quoteOrderQuantity is not supported for ' + type + ' orders, only supported for market orders')
             amountEnum = 1
             amount = self.safe_number(params, 'quoteOrderQuantity')
         sideEnum = 0 if (side == 'buy') else 1

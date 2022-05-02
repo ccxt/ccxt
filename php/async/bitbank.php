@@ -405,7 +405,7 @@ class bitbank extends Exchange {
 
     public function fetch_ohlcv($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
         if ($since === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOHLCV requires a $since argument');
+            throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $since argument');
         }
         yield $this->load_markets();
         $market = $this->market($symbol);

@@ -968,7 +968,7 @@ class coinex extends Exchange {
             $market = $this->market($symbol);
             $marketId = $market['id'];
         } else if ($marketId === null) {
-            throw new ArgumentsRequired($this->id . ' fetching a margin account requires a $market parameter or a $symbol parameter');
+            throw new ArgumentsRequired($this->id . ' fetchMarginBalance() fetching a margin account requires a $market parameter or a $symbol parameter');
         }
         $params = $this->omit($params, array( 'symbol', 'market' ));
         $request = array(

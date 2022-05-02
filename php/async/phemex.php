@@ -2122,9 +2122,9 @@ class phemex extends Exchange {
             $numOrders = is_array($data) ? count($data) : 0;
             if ($numOrders < 1) {
                 if ($clientOrderId !== null) {
-                    throw new OrderNotFound($this->id . ' fetchOrder ' . $symbol . ' $order with $clientOrderId ' . $clientOrderId . ' not found');
+                    throw new OrderNotFound($this->id . ' fetchOrder() ' . $symbol . ' $order with $clientOrderId ' . $clientOrderId . ' not found');
                 } else {
-                    throw new OrderNotFound($this->id . ' fetchOrder ' . $symbol . ' $order with $id ' . $id . ' not found');
+                    throw new OrderNotFound($this->id . ' fetchOrder() ' . $symbol . ' $order with $id ' . $id . ' not found');
                 }
             }
             $order = $this->safe_value($data, 0, array());
@@ -2803,7 +2803,7 @@ class phemex extends Exchange {
             throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
         }
         if (($leverage < 1) || ($leverage > 100)) {
-            throw new BadRequest($this->id . ' $leverage should be between 1 and 100');
+            throw new BadRequest($this->id . ' setLeverage() $leverage should be between 1 and 100');
         }
         yield $this->load_markets();
         $market = $this->market($symbol);

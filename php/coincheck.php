@@ -298,7 +298,7 @@ class coincheck extends Exchange {
 
     public function fetch_ticker($symbol, $params = array ()) {
         if ($symbol !== 'BTC/JPY') {
-            throw new BadSymbol($this->id . ' fetchTicker () supports BTC/JPY only');
+            throw new BadSymbol($this->id . ' fetchTicker() supports BTC/JPY only');
         }
         $this->load_markets();
         $market = $this->market($symbol);

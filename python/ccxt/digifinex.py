@@ -881,7 +881,7 @@ class digifinex(Exchange):
         canceledOrders = self.safe_value(response, 'success', [])
         numCanceledOrders = len(canceledOrders)
         if numCanceledOrders != 1:
-            raise OrderNotFound(self.id + ' cancelOrder ' + id + ' not found')
+            raise OrderNotFound(self.id + ' cancelOrder() ' + id + ' not found')
         return response
 
     def cancel_orders(self, ids, symbol=None, params={}):
@@ -909,7 +909,7 @@ class digifinex(Exchange):
         canceledOrders = self.safe_value(response, 'success', [])
         numCanceledOrders = len(canceledOrders)
         if numCanceledOrders < 1:
-            raise OrderNotFound(self.id + ' cancelOrders error')
+            raise OrderNotFound(self.id + ' cancelOrders() error')
         return response
 
     def parse_order_status(self, status):
@@ -1272,7 +1272,7 @@ class digifinex(Exchange):
         addresses = self.parse_deposit_addresses(data)
         address = self.safe_value(addresses, code)
         if address is None:
-            raise InvalidAddress(self.id + ' fetchDepositAddress did not return an address for ' + code + ' - create the deposit address in the user settings on the exchange website first.')
+            raise InvalidAddress(self.id + ' fetchDepositAddress() did not return an address for ' + code + ' - create the deposit address in the user settings on the exchange website first.')
         return address
 
     def fetch_transactions_by_type(self, type, code=None, since=None, limit=None, params={}):

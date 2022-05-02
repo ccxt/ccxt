@@ -1938,7 +1938,7 @@ class bitmart(Exchange):
         self.load_markets()
         market = self.market(symbol)
         if not (market['swap'] or market['future']):
-            raise NotSupported(self.id + ' fetchOrders does not support ' + market['type'] + ' markets, only contracts are supported')
+            raise NotSupported(self.id + ' fetchOrders() does not support ' + market['type'] + ' markets, only contracts are supported')
         return self.fetch_orders_by_status(0, symbol, since, limit, params)
 
     def fetch_order(self, id, symbol=None, params={}):

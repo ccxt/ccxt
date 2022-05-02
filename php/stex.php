@@ -1078,7 +1078,7 @@ class stex extends Exchange {
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type === 'market') {
-            throw new ExchangeError($this->id . ' createOrder allows limit orders only');
+            throw new ExchangeError($this->id . ' createOrder() allows limit orders only');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1298,7 +1298,7 @@ class stex extends Exchange {
         $numRejectedOrders = is_array($rejectedOrders) ? count($rejectedOrders) : 0;
         if ($numAcceptedOrders < 1) {
             if ($numRejectedOrders < 1) {
-                throw new OrderNotFound($this->id . ' cancelOrder received an empty $response => ' . $this->json($response));
+                throw new OrderNotFound($this->id . ' cancelOrder() received an empty $response => ' . $this->json($response));
             } else {
                 return $this->parse_order($rejectedOrders[0]);
             }
@@ -1306,7 +1306,7 @@ class stex extends Exchange {
             if ($numRejectedOrders < 1) {
                 return $this->parse_order($acceptedOrders[0]);
             } else {
-                throw new OrderNotFound($this->id . ' cancelOrder received an empty $response => ' . $this->json($response));
+                throw new OrderNotFound($this->id . ' cancelOrder() received an empty $response => ' . $this->json($response));
             }
         }
     }

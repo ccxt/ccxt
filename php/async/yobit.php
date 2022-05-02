@@ -429,7 +429,7 @@ class yobit extends Exchange {
             // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
             if (strlen($ids) > 2048) {
                 $numIds = is_array($this->ids) ? count($this->ids) : 0;
-                throw new ExchangeError($this->id . ' has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchOrderBooks');
+                throw new ExchangeError($this->id . ' fetchOrderBooks() has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchOrderBooks');
             }
         } else {
             $ids = $this->market_ids($symbols);
@@ -502,7 +502,7 @@ class yobit extends Exchange {
             $maxLength = $this->safe_integer($this->options, 'fetchTickersMaxLength', 2048);
             // max URL length is 2048 $symbols, including http schema, hostname, tld, etc...
             if (strlen($ids) > $this->options['fetchTickersMaxLength']) {
-                throw new ArgumentsRequired($this->id . ' has ' . (string) $numIds . ' markets exceeding max URL length for this endpoint (' . (string) $maxLength . ' characters), please, specify a list of $symbols of interest in the first argument to fetchTickers');
+                throw new ArgumentsRequired($this->id . ' fetchTickers() has ' . (string) $numIds . ' markets exceeding max URL length for this endpoint (' . (string) $maxLength . ' characters), please, specify a list of $symbols of interest in the first argument to fetchTickers');
             }
         } else {
             $ids = $this->market_ids($symbols);
@@ -688,7 +688,7 @@ class yobit extends Exchange {
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type === 'market') {
-            throw new ExchangeError($this->id . ' allows limit orders only');
+            throw new ExchangeError($this->id . ' createOrder() allows limit orders only');
         }
         yield $this->load_markets();
         $market = $this->market($symbol);

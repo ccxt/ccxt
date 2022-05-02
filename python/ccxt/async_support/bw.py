@@ -693,7 +693,7 @@ class bw(Exchange):
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         if price is None:
-            raise ExchangeError(self.id + ' allows limit orders only')
+            raise ExchangeError(self.id + ' createOrder() allows limit orders only')
         await self.load_markets()
         market = self.market(symbol)
         request = {

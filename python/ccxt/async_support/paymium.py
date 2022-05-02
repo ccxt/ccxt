@@ -330,9 +330,9 @@ class paymium(Exchange):
         await self.load_markets()
         currency = self.currency(code)
         if toAccount.find('@') < 0:
-            raise ExchangeError(self.id + 'transfer() only allows transfers to an email address')
+            raise ExchangeError(self.id + ' transfer() only allows transfers to an email address')
         if code != 'BTC' and code != 'EUR':
-            raise ExchangeError(self.id + 'transfer() only allows BTC or EUR')
+            raise ExchangeError(self.id + ' transfer() only allows BTC or EUR')
         request = {
             'currency': currency['id'],
             'amount': self.currency_to_precision(code, amount),

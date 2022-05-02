@@ -303,7 +303,7 @@ class kucoinfutures extends kucoin {
     }
 
     public function fetch_accounts($params = array ()) {
-        throw new BadRequest($this->id . ' has no method fetchAccounts');
+        throw new BadRequest($this->id . ' fetchAccounts() is not supported yet');
     }
 
     public function fetch_status($params = array ()) {
@@ -552,7 +552,7 @@ class kucoinfutures extends kucoin {
     }
 
     public function create_deposit_address($code, $params = array ()) {
-        throw new BadRequest($this->id . ' has no method createDepositAddress');
+        throw new BadRequest($this->id . ' createDepositAddress() is not supported yet');
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
@@ -591,7 +591,7 @@ class kucoinfutures extends kucoin {
         yield $this->load_markets();
         $level = $this->safe_number($params, 'level');
         if ($level !== 2 && $level !== null) {
-            throw new BadRequest($this->id . ' fetchOrderBook can only return $level 2');
+            throw new BadRequest($this->id . ' fetchOrderBook() can only return $level 2');
         }
         $market = $this->market($symbol);
         $request = array(
@@ -601,7 +601,7 @@ class kucoinfutures extends kucoin {
             if (($limit === 20) || ($limit === 100)) {
                 $request['limit'] = $limit;
             } else {
-                throw new BadRequest($this->id . ' fetchOrderBook $limit argument must be 20 or 100');
+                throw new BadRequest($this->id . ' fetchOrderBook() $limit argument must be 20 or 100');
             }
         } else {
             $request['limit'] = 20;
@@ -633,7 +633,7 @@ class kucoinfutures extends kucoin {
     }
 
     public function fetch_l3_order_book($symbol, $limit = null, $params = array ()) {
-        throw new BadRequest($this->id . ' only can only fetch the L2 order book');
+        throw new BadRequest($this->id . ' fetchL3OrderBook() is not supported yet');
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -1120,7 +1120,7 @@ class kucoinfutures extends kucoin {
         if (!$stop) {
             $request['status'] = $status;
         } else if ($status !== 'active') {
-            throw new BadRequest($this->id . ' fetchOrdersByStatus can only fetch untriggered $stop orders');
+            throw new BadRequest($this->id . ' fetchOrdersByStatus() can only fetch untriggered $stop orders');
         }
         $market = null;
         if ($symbol !== null) {
@@ -1316,7 +1316,7 @@ class kucoinfutures extends kucoin {
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
         if (($toAccount !== 'main' && $toAccount !== 'funding') || ($fromAccount !== 'futures' && $fromAccount !== 'future' && $fromAccount !== 'contract')) {
-            throw new BadRequest($this->id . ' only supports transfers from contract(future) account to main(funding) account');
+            throw new BadRequest($this->id . ' transfer() only supports transfers from contract(future) account to main(funding) account');
         }
         yield $this->load_markets();
         $currency = $this->currency($code);
@@ -1669,11 +1669,11 @@ class kucoinfutures extends kucoin {
     }
 
     public function fetch_funding_fee($code, $params = array ()) {
-        throw new BadRequest($this->id . ' has no method fetchFundingFee');
+        throw new BadRequest($this->id . ' fetchFundingFee() is not supported yet');
     }
 
     public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
-        throw new BadRequest($this->id . ' has no method fetchLedger');
+        throw new BadRequest($this->id . ' fetchLedger() is not supported yet');
     }
 
     public function fetch_market_leverage_tiers($symbol, $params = array ()) {

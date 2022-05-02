@@ -2986,7 +2986,7 @@ class binance extends Exchange {
             $symbols = $this->symbols;
             $numSymbols = is_array($symbols) ? count($symbols) : 0;
             $fetchOpenOrdersRateLimit = intval($numSymbols / 2);
-            throw new ExchangeError($this->id . ' fetchOpenOrders WARNING => fetching open orders without specifying a $symbol is rate-limited to one call per ' . (string) $fetchOpenOrdersRateLimit . ' seconds. Do not call this $method frequently to avoid ban. Set ' . $this->id . '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
+            throw new ExchangeError($this->id . ' fetchOpenOrders() WARNING => fetching open orders without specifying a $symbol is rate-limited to one call per ' . (string) $fetchOpenOrdersRateLimit . ' seconds. Do not call this $method frequently to avoid ban. Set ' . $this->id . '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
         } else {
             $defaultType = $this->safe_string_2($this->options, 'fetchOpenOrders', 'defaultType', 'spot');
             $type = $this->safe_string($params, 'type', $defaultType);
@@ -4936,7 +4936,7 @@ class binance extends Exchange {
     public function fetch_account_positions($symbols = null, $params = array ()) {
         if ($symbols !== null) {
             if (gettype($symbols) === 'array' && count(array_filter(array_keys($symbols), 'is_string')) != 0) {
-                throw new ArgumentsRequired($this->id . ' fetchPositions requires an array argument for symbols');
+                throw new ArgumentsRequired($this->id . ' fetchPositions() requires an array argument for symbols');
             }
         }
         yield $this->load_markets();
@@ -4960,7 +4960,7 @@ class binance extends Exchange {
     public function fetch_positions_risk($symbols = null, $params = array ()) {
         if ($symbols !== null) {
             if (gettype($symbols) === 'array' && count(array_filter(array_keys($symbols), 'is_string')) != 0) {
-                throw new ArgumentsRequired($this->id . ' fetchPositionsRisk requires an array argument for symbols');
+                throw new ArgumentsRequired($this->id . ' fetchPositionsRisk() requires an array argument for symbols');
             }
         }
         yield $this->load_markets();
@@ -5453,7 +5453,7 @@ class binance extends Exchange {
             $limit = 93;
         } else if ($limit > 93) {
             // Binance API says the $limit is 100, but "Illegal characters found in a parameter." is returned when $limit is > 93
-            throw new BadRequest($this->id . ' fetchBorrowRateHistory $limit parameter cannot exceed 92');
+            throw new BadRequest($this->id . ' fetchBorrowRateHistory() $limit parameter cannot exceed 92');
         }
         $currency = $this->currency($code);
         $request = array(

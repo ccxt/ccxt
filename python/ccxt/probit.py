@@ -1095,7 +1095,7 @@ class probit(Exchange):
         data = self.safe_value(response, 'data', [])
         firstAddress = self.safe_value(data, 0)
         if firstAddress is None:
-            raise InvalidAddress(self.id + ' fetchDepositAddress returned an empty response')
+            raise InvalidAddress(self.id + ' fetchDepositAddress() returned an empty response')
         return self.parse_deposit_address(firstAddress, currency)
 
     def fetch_deposit_addresses(self, codes=None, params={}):

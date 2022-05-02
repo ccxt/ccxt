@@ -738,7 +738,7 @@ class kucoin(Exchange):
         type = self.safe_string(accountsByType, requestedType)
         if type is None:
             keys = list(accountsByType.keys())
-            raise ExchangeError(self.id + ' type must be one of ' + ', '.join(keys))
+            raise ExchangeError(self.id + ' isFuturesMethod() type must be one of ' + ', '.join(keys))
         params = self.omit(params, 'type')
         return(type == 'contract') or (type == 'future') or (type == 'futures')  # * (type == 'futures') deprecated, use(type == 'future')
 
@@ -1036,7 +1036,7 @@ class kucoin(Exchange):
                     if (limit == 20) or (limit == 100):
                         request['limit'] = limit
                     else:
-                        raise ExchangeError(self.id + ' fetchOrderBook limit argument must be 20 or 100')
+                        raise ExchangeError(self.id + ' fetchOrderBook() limit argument must be 20 or 100')
                 request['limit'] = limit if limit else 100
                 method = 'publicGetMarketOrderbookLevelLevelLimit'
                 response = await getattr(self, method)(self.extend(request, params))
@@ -1517,7 +1517,7 @@ class kucoin(Exchange):
             if since is not None:
                 request['startAt'] = int(since / 1000)
         else:
-            raise ExchangeError(self.id + ' invalid fetchClosedOrder method')
+            raise ExchangeError(self.id + ' fetchMyTradesMethod() invalid method')
         response = await getattr(self, method)(self.extend(request, params))
         #
         #     {

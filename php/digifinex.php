@@ -901,7 +901,7 @@ class digifinex extends Exchange {
         $canceledOrders = $this->safe_value($response, 'success', array());
         $numCanceledOrders = is_array($canceledOrders) ? count($canceledOrders) : 0;
         if ($numCanceledOrders !== 1) {
-            throw new OrderNotFound($this->id . ' cancelOrder ' . $id . ' not found');
+            throw new OrderNotFound($this->id . ' cancelOrder() ' . $id . ' not found');
         }
         return $response;
     }
@@ -931,7 +931,7 @@ class digifinex extends Exchange {
         $canceledOrders = $this->safe_value($response, 'success', array());
         $numCanceledOrders = is_array($canceledOrders) ? count($canceledOrders) : 0;
         if ($numCanceledOrders < 1) {
-            throw new OrderNotFound($this->id . ' cancelOrders error');
+            throw new OrderNotFound($this->id . ' cancelOrders() error');
         }
         return $response;
     }
@@ -1320,7 +1320,7 @@ class digifinex extends Exchange {
         $addresses = $this->parse_deposit_addresses($data);
         $address = $this->safe_value($addresses, $code);
         if ($address === null) {
-            throw new InvalidAddress($this->id . ' fetchDepositAddress did not return an $address for ' . $code . ' - create the deposit $address in the user settings on the exchange website first.');
+            throw new InvalidAddress($this->id . ' fetchDepositAddress() did not return an $address for ' . $code . ' - create the deposit $address in the user settings on the exchange website first.');
         }
         return $address;
     }

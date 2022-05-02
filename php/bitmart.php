@@ -1706,15 +1706,15 @@ class bitmart extends Exchange {
         $postOnly = $this->safe_value($params, 'postOnly', false);
         if (($timeInForce !== null) || $postOnly || ($type === 'limit_maker') || ($type === 'ioc')) {
             if ($timeInForce === 'FOK') {
-                throw new InvalidOrder($this->id . ' createOrder () only accepts $timeInForce parameter values of IOC or PO');
+                throw new InvalidOrder($this->id . ' createOrder() only accepts $timeInForce parameter values of IOC or PO');
             }
             $maker = (($timeInForce === 'PO') || $postOnly || ($type === 'limit_maker'));
             $ioc = (($timeInForce === 'IOC') || ($type === 'ioc'));
             if ($maker && $ioc) {
-                throw new InvalidOrder($this->id . ' createOrder () does not accept IOC $postOnly orders, the order cannot be both $postOnly and IOC');
+                throw new InvalidOrder($this->id . ' createOrder() does not accept IOC $postOnly orders, the order cannot be both $postOnly and IOC');
             }
             if ($type === 'market') {
-                throw new InvalidOrder($this->id . ' createOrder () does not accept $market $postOnly orders or $market IOC orders, only limit $postOnly order or limit IOC orders are allowed');
+                throw new InvalidOrder($this->id . ' createOrder() does not accept $market $postOnly orders or $market IOC orders, only limit $postOnly order or limit IOC orders are allowed');
             }
             if ($maker) {
                 $request['type'] = 'limit_maker';
@@ -2026,7 +2026,7 @@ class bitmart extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         if (!($market['swap'] || $market['future'])) {
-            throw new NotSupported($this->id . ' fetchOrders does not support ' . $market['type'] . ' markets, only contracts are supported');
+            throw new NotSupported($this->id . ' fetchOrders() does not support ' . $market['type'] . ' markets, only contracts are supported');
         }
         return $this->fetch_orders_by_status(0, $symbol, $since, $limit, $params);
     }

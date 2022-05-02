@@ -736,7 +736,7 @@ class kucoin extends Exchange {
         $type = $this->safe_string($accountsByType, $requestedType);
         if ($type === null) {
             $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
-            throw new ExchangeError($this->id . ' $type must be one of ' . implode(', ', $keys));
+            throw new ExchangeError($this->id . ' isFuturesMethod() $type must be one of ' . implode(', ', $keys));
         }
         $params = $this->omit($params, 'type');
         return ($type === 'contract') || ($type === 'future') || ($type === 'futures'); // * ($type === 'futures') deprecated, use ($type === 'future')
@@ -1052,7 +1052,7 @@ class kucoin extends Exchange {
                     if (($limit === 20) || ($limit === 100)) {
                         $request['limit'] = $limit;
                     } else {
-                        throw new ExchangeError($this->id . ' fetchOrderBook $limit argument must be 20 or 100');
+                        throw new ExchangeError($this->id . ' fetchOrderBook() $limit argument must be 20 or 100');
                     }
                 }
                 $request['limit'] = $limit ? $limit : 100;
@@ -1571,7 +1571,7 @@ class kucoin extends Exchange {
                 $request['startAt'] = intval($since / 1000);
             }
         } else {
-            throw new ExchangeError($this->id . ' invalid fetchClosedOrder method');
+            throw new ExchangeError($this->id . ' fetchMyTradesMethod() invalid method');
         }
         $response = yield $this->$method (array_merge($request, $params));
         //

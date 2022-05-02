@@ -348,10 +348,10 @@ class paymium extends Exchange {
         yield $this->load_markets();
         $currency = $this->currency($code);
         if (mb_strpos($toAccount, '@') === false) {
-            throw new ExchangeError($this->id . 'transfer() only allows transfers to an email address');
+            throw new ExchangeError($this->id . ' transfer() only allows transfers to an email address');
         }
         if ($code !== 'BTC' && $code !== 'EUR') {
-            throw new ExchangeError($this->id . 'transfer() only allows BTC or EUR');
+            throw new ExchangeError($this->id . ' transfer() only allows BTC or EUR');
         }
         $request = array(
             'currency' => $currency['id'],

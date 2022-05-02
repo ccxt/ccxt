@@ -2875,7 +2875,7 @@ class huobi(Exchange):
             'future': 'fetchContractOrders',
         })
         if method is None:
-            raise NotSupported(self.id + ' fetchOrders does not support ' + marketType + ' markets yet')
+            raise NotSupported(self.id + ' fetchOrders() does not support ' + marketType + ' markets yet')
         contract = (marketType == 'swap') or (marketType == 'future')
         if contract and (symbol is None):
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument for ' + marketType + ' orders')
@@ -2891,7 +2891,7 @@ class huobi(Exchange):
             'future': 'fetchClosedContractOrders',
         })
         if method is None:
-            raise NotSupported(self.id + ' fetchClosedOrders does not support ' + marketType + ' markets yet')
+            raise NotSupported(self.id + ' fetchClosedOrders() does not support ' + marketType + ' markets yet')
         return await getattr(self, method)(symbol, since, limit, params)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -3259,7 +3259,7 @@ class huobi(Exchange):
             'future': 'createContractOrder',
         })
         if method is None:
-            raise NotSupported(self.id + ' createOrder does not support ' + marketType + ' markets yet')
+            raise NotSupported(self.id + ' createOrder() does not support ' + marketType + ' markets yet')
         return await getattr(self, method)(symbol, type, side, amount, price, query)
 
     async def create_spot_order(self, symbol, type, side, amount, price=None, params={}):

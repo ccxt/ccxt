@@ -480,7 +480,7 @@ class wazirx(Exchange):
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrders requires a `symbol` argument')
+            raise ArgumentsRequired(self.id + ' fetchOrders() requires a `symbol` argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -562,7 +562,7 @@ class wazirx(Exchange):
 
     async def cancel_all_orders(self, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelAllOrders requires a `symbol` argument')
+            raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a `symbol` argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -572,7 +572,7 @@ class wazirx(Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder requires a `symbol` argument')
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a `symbol` argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {

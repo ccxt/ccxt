@@ -168,7 +168,7 @@ class therock extends Exchange {
         $markets = $this->safe_value($response, 'funds');
         $result = array();
         if ($markets === null) {
-            throw new ExchangeError($this->id . ' fetchMarkets got an unexpected response');
+            throw new ExchangeError($this->id . ' fetchMarkets() got an unexpected response');
         } else {
             for ($i = 0; $i < count($markets); $i++) {
                 $market = $markets[$i];

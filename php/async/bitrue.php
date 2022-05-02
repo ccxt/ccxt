@@ -1241,7 +1241,7 @@ class bitrue extends Exchange {
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
         }
         yield $this->load_markets();
         $market = $this->market($symbol);
@@ -1353,7 +1353,7 @@ class bitrue extends Exchange {
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchDeposits requires a $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchDeposits() requires a $code argument');
         }
         yield $this->load_markets();
         $currency = $this->currency($code);
@@ -1415,7 +1415,7 @@ class bitrue extends Exchange {
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchWithdrawals requires a $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires a $code argument');
         }
         yield $this->load_markets();
         $currency = $this->currency($code);
@@ -1615,7 +1615,7 @@ class bitrue extends Exchange {
             $networkEntry = $this->safe_value($networks, $network, array());
             $chainName = $this->safe_string($networkEntry, 'id'); // handle ERC20>ETH alias
             if ($chainName === null) {
-                throw new ArgumentsRequired($this->id . ' withdraw requires a $network parameter or a $chainName parameter');
+                throw new ArgumentsRequired($this->id . ' withdraw() requires a $network parameter or a $chainName parameter');
             }
             $params = $this->omit($params, 'network');
         }

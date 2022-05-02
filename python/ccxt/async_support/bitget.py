@@ -2063,7 +2063,7 @@ class bitget(Exchange):
         await self.load_markets()
         market = self.market(symbol)
         if market['swap']:
-            raise BadSymbol(self.id + ' fetchMyTrades only supports spot markets')
+            raise BadSymbol(self.id + ' fetchMyTrades() only supports spot markets')
         request = {
             'symbol': market['id'],
         }

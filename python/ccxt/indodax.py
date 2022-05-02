@@ -545,7 +545,7 @@ class indodax(Exchange):
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type != 'limit':
-            raise ExchangeError(self.id + ' allows limit orders only')
+            raise ExchangeError(self.id + ' createOrder() allows limit orders only')
         self.load_markets()
         market = self.market(symbol)
         request = {

@@ -809,7 +809,7 @@ class whitebit extends Exchange {
         // aggregate common assignments regardless stop or not
         if ($type === 'limit' || $type === 'stopLimit') {
             if ($price === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder requires a $price argument for a stopLimit order');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument for a stopLimit order');
             }
             $convertedPrice = $this->price_to_precision($symbol, $price);
             $request['price'] = $convertedPrice;
@@ -833,7 +833,7 @@ class whitebit extends Exchange {
             }
         }
         if ($method === null) {
-            throw new ArgumentsRequired($this->id . ' Invalid $type =>  createOrder() requires one of the following order types => $market, limit, stopLimit or stopMarket');
+            throw new ArgumentsRequired($this->id . ' createOrder() requires one of the following order types => $market, limit, stopLimit or stopMarket');
         }
         $response = yield $this->$method (array_merge($request, $params));
         return $this->parse_order($response);

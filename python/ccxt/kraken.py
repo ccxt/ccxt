@@ -626,7 +626,7 @@ class kraken(Exchange):
         self.load_markets()
         market = self.market(symbol)
         if market['darkpool']:
-            raise ExchangeError(self.id + ' does not provide an order book for darkpool symbol ' + symbol)
+            raise ExchangeError(self.id + ' fetchOrderBook() does not provide an order book for darkpool symbol ' + symbol)
         request = {
             'pair': market['id'],
         }
@@ -741,7 +741,7 @@ class kraken(Exchange):
         self.load_markets()
         darkpool = symbol.find('.d') >= 0
         if darkpool:
-            raise ExchangeError(self.id + ' does not provide a ticker for darkpool symbol ' + symbol)
+            raise ExchangeError(self.id + ' fetchTicker() does not provide a ticker for darkpool symbol ' + symbol)
         market = self.market(symbol)
         request = {
             'pair': market['id'],

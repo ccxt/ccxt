@@ -2566,7 +2566,7 @@ class aax extends Exchange {
             if (gettype($symbols) === 'array' && count(array_filter(array_keys($symbols), 'is_string')) == 0) {
                 $symbolsLength = is_array($symbols) ? count($symbols) : 0;
                 if ($symbolsLength > 1) {
-                    throw new BadRequest($this->id . ' fetchPositions $symbols argument cannot contain more than 1 symbol');
+                    throw new BadRequest($this->id . ' fetchPositions() $symbols argument cannot contain more than 1 symbol');
                 }
                 $symbol = $symbols[0];
             } else {

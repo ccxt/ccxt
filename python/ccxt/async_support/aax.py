@@ -2451,7 +2451,7 @@ class aax(Exchange):
             if isinstance(symbols, list):
                 symbolsLength = len(symbols)
                 if symbolsLength > 1:
-                    raise BadRequest(self.id + ' fetchPositions symbols argument cannot contain more than 1 symbol')
+                    raise BadRequest(self.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol')
                 symbol = symbols[0]
             else:
                 symbol = symbols

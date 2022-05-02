@@ -890,10 +890,10 @@ class bitvavo extends Exchange {
             $stopPrice = $this->safe_number_2($params, 'stopPrice', 'triggerAmount');
             if ($stopPrice === null) {
                 if ($isStopLimit) {
-                    throw new ArgumentsRequired($this->id . ' createOrder requires a $stopPrice parameter for a ' . $type . ' order');
+                    throw new ArgumentsRequired($this->id . ' createOrder() requires a $stopPrice parameter for a ' . $type . ' order');
                 } else if ($isStopMarket) {
                     if ($price === null) {
-                        throw new ArgumentsRequired($this->id . ' createOrder requires a $price argument or a $stopPrice parameter for a ' . $type . ' order');
+                        throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument or a $stopPrice parameter for a ' . $type . ' order');
                     } else {
                         $stopPrice = $price;
                     }

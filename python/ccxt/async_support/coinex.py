@@ -943,7 +943,7 @@ class coinex(Exchange):
             market = self.market(symbol)
             marketId = market['id']
         elif marketId is None:
-            raise ArgumentsRequired(self.id + ' fetching a margin account requires a market parameter or a symbol parameter')
+            raise ArgumentsRequired(self.id + ' fetchMarginBalance() fetching a margin account requires a market parameter or a symbol parameter')
         params = self.omit(params, ['symbol', 'market'])
         request = {
             'market': marketId,

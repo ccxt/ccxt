@@ -3008,7 +3008,7 @@ class huobi extends Exchange {
             'future' => 'fetchContractOrders',
         ));
         if ($method === null) {
-            throw new NotSupported($this->id . ' fetchOrders does not support ' . $marketType . ' markets yet');
+            throw new NotSupported($this->id . ' fetchOrders() does not support ' . $marketType . ' markets yet');
         }
         $contract = ($marketType === 'swap') || ($marketType === 'future');
         if ($contract && ($symbol === null)) {
@@ -3027,7 +3027,7 @@ class huobi extends Exchange {
             'future' => 'fetchClosedContractOrders',
         ));
         if ($method === null) {
-            throw new NotSupported($this->id . ' fetchClosedOrders does not support ' . $marketType . ' markets yet');
+            throw new NotSupported($this->id . ' fetchClosedOrders() does not support ' . $marketType . ' markets yet');
         }
         return $this->$method ($symbol, $since, $limit, $params);
     }
@@ -3416,7 +3416,7 @@ class huobi extends Exchange {
             'future' => 'createContractOrder',
         ));
         if ($method === null) {
-            throw new NotSupported($this->id . ' createOrder does not support ' . $marketType . ' markets yet');
+            throw new NotSupported($this->id . ' createOrder() does not support ' . $marketType . ' markets yet');
         }
         return $this->$method ($symbol, $type, $side, $amount, $price, $query);
     }

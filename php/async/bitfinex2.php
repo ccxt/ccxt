@@ -646,7 +646,7 @@ class bitfinex2 extends bitfinex {
         $accountType = $this->safe_string($accountsByType, $requestedType, $requestedType);
         if ($accountType === null) {
             $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
-            throw new ExchangeError($this->id . ' fetchBalance $type parameter must be one of ' . implode(', ', $keys));
+            throw new ExchangeError($this->id . ' fetchBalance() $type parameter must be one of ' . implode(', ', $keys));
         }
         $isDerivative = $requestedType === 'derivatives';
         $query = $this->omit($params, 'type');
@@ -679,12 +679,12 @@ class bitfinex2 extends bitfinex {
         $fromId = $this->safe_string($accountsByType, $fromAccount);
         if ($fromId === null) {
             $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
-            throw new ExchangeError($this->id . ' transfer $fromAccount must be one of ' . implode(', ', $keys));
+            throw new ArgumentsRequired($this->id . ' transfer() $fromAccount must be one of ' . implode(', ', $keys));
         }
         $toId = $this->safe_string($accountsByType, $toAccount);
         if ($toId === null) {
             $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
-            throw new ExchangeError($this->id . ' transfer $toAccount must be one of ' . implode(', ', $keys));
+            throw new ArgumentsRequired($this->id . ' transfer() $toAccount must be one of ' . implode(', ', $keys));
         }
         $currency = $this->currency($code);
         $fromCurrencyId = $this->convert_derivatives_id($currency, $fromAccount);
@@ -753,7 +753,7 @@ class bitfinex2 extends bitfinex {
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
-        throw new NotSupported($this->id . ' fetchOrder is not implemented yet');
+        throw new NotSupported($this->id . ' fetchOrder() is not supported yet');
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

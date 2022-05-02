@@ -3124,7 +3124,7 @@ class gateio(Exchange):
 
     async def fetch_orders_by_status(self, status, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrdersByStatus requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrdersByStatus() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = self.prepare_request(market)
@@ -3365,10 +3365,10 @@ class gateio(Exchange):
         toId = self.safe_string(accountsByType, toAccount, toAccount)
         if fromId is None:
             keys = list(accountsByType.keys())
-            raise ExchangeError(self.id + ' fromAccount must be one of ' + ', '.join(keys))
+            raise ExchangeError(self.id + ' transfer() fromAccount must be one of ' + ', '.join(keys))
         if toId is None:
             keys = list(accountsByType.keys())
-            raise ExchangeError(self.id + ' toAccount must be one of ' + ', '.join(keys))
+            raise ExchangeError(self.id + ' transfer() toAccount must be one of ' + ', '.join(keys))
         truncated = self.currency_to_precision(code, amount)
         request = {
             'currency': currency['id'],
@@ -3417,7 +3417,7 @@ class gateio(Exchange):
         # WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         # AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if (leverage < 0) or (leverage > 100):
-            raise BadRequest(self.id + ' leverage should be between 1 and 100')
+            raise BadRequest(self.id + ' setLeverage() leverage should be between 1 and 100')
         await self.load_markets()
         market = self.market(symbol)
         method = self.get_supported_mapping(market['type'], {

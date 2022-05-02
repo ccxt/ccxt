@@ -2037,7 +2037,7 @@ class ascendex extends Exchange {
             if ($chainName === null) {
                 $chainNames = is_array($addressesByChainName) ? array_keys($addressesByChainName) : array();
                 $chains = implode(', ', $chainNames);
-                throw new ArgumentsRequired($this->id . ' fetchDepositAddress returned more than one $address, a $chainName parameter is required, one of ' . $chains);
+                throw new ArgumentsRequired($this->id . ' fetchDepositAddress() returned more than one $address, a $chainName parameter is required, one of ' . $chains);
             }
             $address = $this->safe_value($addressesByChainName, $chainName, array());
         } else {

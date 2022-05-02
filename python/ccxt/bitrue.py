@@ -1200,7 +1200,7 @@ class bitrue(Exchange):
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOpenOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1302,7 +1302,7 @@ class bitrue(Exchange):
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         if code is None:
-            raise ArgumentsRequired(self.id + ' fetchDeposits requires a code argument')
+            raise ArgumentsRequired(self.id + ' fetchDeposits() requires a code argument')
         self.load_markets()
         currency = self.currency(code)
         request = {
@@ -1360,7 +1360,7 @@ class bitrue(Exchange):
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         if code is None:
-            raise ArgumentsRequired(self.id + ' fetchWithdrawals requires a code argument')
+            raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a code argument')
         self.load_markets()
         currency = self.currency(code)
         request = {
@@ -1545,7 +1545,7 @@ class bitrue(Exchange):
             networkEntry = self.safe_value(networks, network, {})
             chainName = self.safe_string(networkEntry, 'id')  # handle ERC20>ETH alias
             if chainName is None:
-                raise ArgumentsRequired(self.id + ' withdraw requires a network parameter or a chainName parameter')
+                raise ArgumentsRequired(self.id + ' withdraw() requires a network parameter or a chainName parameter')
             params = self.omit(params, 'network')
         request = {
             'coin': currency['id'].upper(),

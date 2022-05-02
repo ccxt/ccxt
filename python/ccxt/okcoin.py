@@ -1088,7 +1088,7 @@ class okcoin(Exchange):
             #
             return self.parse_markets(response)
         else:
-            raise NotSupported(self.id + ' fetchMarketsByType does not support market type ' + type)
+            raise NotSupported(self.id + ' fetchMarketsByType() does not support market type ' + type)
 
     def fetch_currencies(self, params={}):
         # despite that their docs say these endpoints are public:
@@ -1513,7 +1513,7 @@ class okcoin(Exchange):
                     request['end'] = self.iso8601(now)
         elif type == 'HistoryCandles':
             if market['option']:
-                raise NotSupported(self.id + ' fetchOHLCV does not have ' + type + ' for ' + market['type'] + ' markets')
+                raise NotSupported(self.id + ' fetchOHLCV() does not have ' + type + ' for ' + market['type'] + ' markets')
             if since is not None:
                 if limit is None:
                     limit = 300  # default
@@ -2493,7 +2493,7 @@ class okcoin(Exchange):
         addressesByCode = self.parse_deposit_addresses(response)
         address = self.safe_value(addressesByCode, code)
         if address is None:
-            raise InvalidAddress(self.id + ' fetchDepositAddress cannot return nonexistent addresses, you should create withdrawal addresses with the exchange website first')
+            raise InvalidAddress(self.id + ' fetchDepositAddress() cannot return nonexistent addresses, you should create withdrawal addresses with the exchange website first')
         return address
 
     def transfer(self, code, amount, fromAccount, toAccount, params={}):

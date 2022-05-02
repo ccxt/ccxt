@@ -509,7 +509,7 @@ class upbit extends Exchange {
             // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
             if (strlen($ids) > $this->options['fetchOrderBooksMaxLength']) {
                 $numIds = is_array($this->ids) ? count($this->ids) : 0;
-                throw new ExchangeError($this->id . ' has ' . (string) $numIds . ' $symbols (' . (string) strlen($ids) . ' characters) exceeding max URL length (' . (string) $this->options['fetchOrderBooksMaxLength'] . ' characters), you are required to specify a list of $symbols in the first argument to fetchOrderBooks');
+                throw new ExchangeError($this->id . ' fetchOrderBooks() has ' . (string) $numIds . ' $symbols (' . (string) strlen($ids) . ' characters) exceeding max URL length (' . (string) $this->options['fetchOrderBooksMaxLength'] . ' characters), you are required to specify a list of $symbols in the first argument to fetchOrderBooks');
             }
         } else {
             $ids = $this->market_ids($symbols);
@@ -635,7 +635,7 @@ class upbit extends Exchange {
             // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
             if (strlen($ids) > $this->options['fetchTickersMaxLength']) {
                 $numIds = is_array($this->ids) ? count($this->ids) : 0;
-                throw new ExchangeError($this->id . ' has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchTickers');
+                throw new ExchangeError($this->id . ' fetchTickers() has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchTickers');
             }
         } else {
             $ids = $this->market_ids($symbols);
@@ -954,7 +954,7 @@ class upbit extends Exchange {
         } else if ($side === 'sell') {
             $orderSide = 'ask';
         } else {
-            throw new InvalidOrder($this->id . ' createOrder allows buy or sell $side only!');
+            throw new InvalidOrder($this->id . ' createOrder() allows buy or sell $side only!');
         }
         yield $this->load_markets();
         $market = $this->market($symbol);

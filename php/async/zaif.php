@@ -406,7 +406,7 @@ class zaif extends Exchange {
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         yield $this->load_markets();
         if ($type !== 'limit') {
-            throw new ExchangeError($this->id . ' allows limit orders only');
+            throw new ExchangeError($this->id . ' createOrder() allows limit orders only');
         }
         $request = array(
             'currency_pair' => $this->market_id($symbol),

@@ -786,7 +786,7 @@ class whitebit(Exchange):
         # aggregate common assignments regardless stop or not
         if type == 'limit' or type == 'stopLimit':
             if price is None:
-                raise ArgumentsRequired(self.id + ' createOrder requires a price argument for a stopLimit order')
+                raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for a stopLimit order')
             convertedPrice = self.price_to_precision(symbol, price)
             request['price'] = convertedPrice
         if type == 'market' or type == 'stopMarket':
@@ -803,7 +803,7 @@ class whitebit(Exchange):
                     cost = amount if (cost is None) else cost
                 request['amount'] = self.cost_to_precision(symbol, cost)
         if method is None:
-            raise ArgumentsRequired(self.id + ' Invalid type:  createOrder() requires one of the following order types: market, limit, stopLimit or stopMarket')
+            raise ArgumentsRequired(self.id + ' createOrder() requires one of the following order types: market, limit, stopLimit or stopMarket')
         response = await getattr(self, method)(self.extend(request, params))
         return self.parse_order(response)
 

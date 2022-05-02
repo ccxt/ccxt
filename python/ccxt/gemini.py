@@ -275,7 +275,7 @@ class gemini(Exchange):
         response = self.webGetRestApi(params)
         sections = response.split('<h1 id="symbols-and-minimums">Symbols and minimums</h1>')
         numSections = len(sections)
-        error = self.id + ' the ' + self.name + ' API doc HTML markup has changed, breaking the parser of order limits and precision info for ' + self.name + ' markets.'
+        error = self.id + ' fetchMarketsFromWeb() the ' + self.name + ' API doc HTML markup has changed, breaking the parser of order limits and precision info for ' + self.name + ' markets.'
         if numSections != 2:
             raise NotSupported(error)
         tables = sections[1].split('tbody>')
@@ -985,7 +985,7 @@ class gemini(Exchange):
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         if type == 'market':
-            raise ExchangeError(self.id + ' allows limit orders only')
+            raise ExchangeError(self.id + ' createOrder() allows limit orders only')
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')
         params = self.omit(params, ['clientOrderId', 'client_order_id'])
         if clientOrderId is None:

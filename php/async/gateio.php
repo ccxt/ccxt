@@ -3264,7 +3264,7 @@ class gateio extends Exchange {
 
     public function fetch_orders_by_status($status, $symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrdersByStatus requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrdersByStatus() requires a $symbol argument');
         }
         yield $this->load_markets();
         $market = $this->market($symbol);
@@ -3516,11 +3516,11 @@ class gateio extends Exchange {
         $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
         if ($fromId === null) {
             $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
-            throw new ExchangeError($this->id . ' $fromAccount must be one of ' . implode(', ', $keys));
+            throw new ExchangeError($this->id . ' $transfer() $fromAccount must be one of ' . implode(', ', $keys));
         }
         if ($toId === null) {
             $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
-            throw new ExchangeError($this->id . ' $toAccount must be one of ' . implode(', ', $keys));
+            throw new ExchangeError($this->id . ' $transfer() $toAccount must be one of ' . implode(', ', $keys));
         }
         $truncated = $this->currency_to_precision($code, $amount);
         $request = array(
@@ -3574,7 +3574,7 @@ class gateio extends Exchange {
         // WARNING => THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if (($leverage < 0) || ($leverage > 100)) {
-            throw new BadRequest($this->id . ' $leverage should be between 1 and 100');
+            throw new BadRequest($this->id . ' setLeverage() $leverage should be between 1 and 100');
         }
         yield $this->load_markets();
         $market = $this->market($symbol);

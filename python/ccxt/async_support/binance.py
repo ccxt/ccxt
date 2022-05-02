@@ -2880,7 +2880,7 @@ class binance(Exchange):
             symbols = self.symbols
             numSymbols = len(symbols)
             fetchOpenOrdersRateLimit = int(numSymbols / 2)
-            raise ExchangeError(self.id + ' fetchOpenOrders WARNING: fetching open orders without specifying a symbol is rate-limited to one call per ' + str(fetchOpenOrdersRateLimit) + ' seconds. Do not call self method frequently to avoid ban. Set ' + self.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = False to suppress self warning message.')
+            raise ExchangeError(self.id + ' fetchOpenOrders() WARNING: fetching open orders without specifying a symbol is rate-limited to one call per ' + str(fetchOpenOrdersRateLimit) + ' seconds. Do not call self method frequently to avoid ban. Set ' + self.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = False to suppress self warning message.')
         else:
             defaultType = self.safe_string_2(self.options, 'fetchOpenOrders', 'defaultType', 'spot')
             type = self.safe_string(params, 'type', defaultType)
@@ -4686,7 +4686,7 @@ class binance(Exchange):
     async def fetch_account_positions(self, symbols=None, params={}):
         if symbols is not None:
             if not isinstance(symbols, list):
-                raise ArgumentsRequired(self.id + ' fetchPositions requires an array argument for symbols')
+                raise ArgumentsRequired(self.id + ' fetchPositions() requires an array argument for symbols')
         await self.load_markets()
         await self.load_leverage_brackets()
         method = None
@@ -4706,7 +4706,7 @@ class binance(Exchange):
     async def fetch_positions_risk(self, symbols=None, params={}):
         if symbols is not None:
             if not isinstance(symbols, list):
-                raise ArgumentsRequired(self.id + ' fetchPositionsRisk requires an array argument for symbols')
+                raise ArgumentsRequired(self.id + ' fetchPositionsRisk() requires an array argument for symbols')
         await self.load_markets()
         await self.load_leverage_brackets()
         request = {}
@@ -5130,7 +5130,7 @@ class binance(Exchange):
             limit = 93
         elif limit > 93:
             # Binance API says the limit is 100, but "Illegal characters found in a parameter." is returned when limit is > 93
-            raise BadRequest(self.id + ' fetchBorrowRateHistory limit parameter cannot exceed 92')
+            raise BadRequest(self.id + ' fetchBorrowRateHistory() limit parameter cannot exceed 92')
         currency = self.currency(code)
         request = {
             'asset': currency['id'],

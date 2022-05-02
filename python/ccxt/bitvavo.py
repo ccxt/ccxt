@@ -869,10 +869,10 @@ class bitvavo(Exchange):
             stopPrice = self.safe_number_2(params, 'stopPrice', 'triggerAmount')
             if stopPrice is None:
                 if isStopLimit:
-                    raise ArgumentsRequired(self.id + ' createOrder requires a stopPrice parameter for a ' + type + ' order')
+                    raise ArgumentsRequired(self.id + ' createOrder() requires a stopPrice parameter for a ' + type + ' order')
                 elif isStopMarket:
                     if price is None:
-                        raise ArgumentsRequired(self.id + ' createOrder requires a price argument or a stopPrice parameter for a ' + type + ' order')
+                        raise ArgumentsRequired(self.id + ' createOrder() requires a price argument or a stopPrice parameter for a ' + type + ' order')
                     else:
                         stopPrice = price
             if isStopLimit:

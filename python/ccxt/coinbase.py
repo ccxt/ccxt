@@ -273,7 +273,7 @@ class coinbase(Exchange):
                     accountId = account['id']
                     break
         if accountId is None:
-            raise ExchangeError(self.id + ' createDepositAddress could not find the account with matching currency code, specify an `account_id` extra param')
+            raise ExchangeError(self.id + ' createDepositAddress() could not find the account with matching currency code, specify an `account_id` extra param')
         request = {
             'account_id': accountId,
         }
@@ -1173,7 +1173,7 @@ class coinbase(Exchange):
     def prepare_account_request(self, limit=None, params={}):
         accountId = self.safe_string_2(params, 'account_id', 'accountId')
         if accountId is None:
-            raise ArgumentsRequired(self.id + ' method requires an account_id(or accountId) parameter')
+            raise ArgumentsRequired(self.id + ' prepareAccountRequest() method requires an account_id(or accountId) parameter')
         request = {
             'account_id': accountId,
         }
@@ -1185,10 +1185,10 @@ class coinbase(Exchange):
         accountId = self.safe_string_2(params, 'account_id', 'accountId')
         if accountId is None:
             if code is None:
-                raise ArgumentsRequired(self.id + ' method requires an account_id(or accountId) parameter OR a currency code argument')
+                raise ArgumentsRequired(self.id + ' prepareAccountRequestWithCurrencyCode() method requires an account_id(or accountId) parameter OR a currency code argument')
             accountId = self.find_account_id(code)
             if accountId is None:
-                raise ExchangeError(self.id + ' could not find account id for ' + code)
+                raise ExchangeError(self.id + ' prepareAccountRequestWithCurrencyCode() could not find account id for ' + code)
         request = {
             'account_id': accountId,
         }

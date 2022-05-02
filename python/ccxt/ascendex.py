@@ -1966,7 +1966,7 @@ class ascendex(Exchange):
             if chainName is None:
                 chainNames = list(addressesByChainName.keys())
                 chains = ', '.join(chainNames)
-                raise ArgumentsRequired(self.id + ' fetchDepositAddress returned more than one address, a chainName parameter is required, one of ' + chains)
+                raise ArgumentsRequired(self.id + ' fetchDepositAddress() returned more than one address, a chainName parameter is required, one of ' + chains)
             address = self.safe_value(addressesByChainName, chainName, {})
         else:
             # first address
