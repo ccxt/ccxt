@@ -682,60 +682,70 @@ class bitmart extends Exchange {
         //
         // spot
         //
-        //     {
-        //         "symbol":"ETH_BTC",
-        //         "last_price":"0.036037",
-        //         "quote_volume_24h":"4380.6660000000",
-        //         "base_volume_24h":"159.3582006712",
-        //         "high_24h":"0.036972",
-        //         "low_24h":"0.035524",
-        //         "open_24h":"0.036561",
-        //         "close_24h":"0.036037",
-        //         "best_ask":"0.036077",
-        //         "best_ask_size":"9.9500",
-        //         "best_bid":"0.035983",
-        //         "best_bid_size":"4.2792",
-        //         "fluctuation":"-0.0143",
-        //         "s_t" => "1630981727", // ws only
-        //         "url":"https://www.bitmart.com/trade?$symbol=ETH_BTC"
-        //     }
+        //      {
+        //          "symbol":"DOGE_USDT",
+        //          "last_price":"0.128300",
+        //          "quote_volume_24h":"2296619.060420",
+        //          "base_volume_24h":"17508866.000000000000000000000000000000",
+        //          "high_24h":"0.133900",
+        //          "low_24h":"0.127799",
+        //          "open_24h":"0.133100",
+        //          "close_24h":"0.128300",
+        //          "best_ask":"0.128530",
+        //          "best_ask_size":"15170",
+        //          "best_bid":"0.128200",
+        //          "best_bid_size":"21232",
+        //          "fluctuation":"-0.0361",
+        //          "s_t" => 1610936002, // ws only
+        //          "url":"https://www.bitmart.com/trade?$symbol=DOGE_USDT"
+        //      }
         //
         // contract
         //
-        //     {
-        //         contract_symbol => "DGBUSDT",
-        //         last_price => "0.05759",
-        //         index_price => "0.05757755",
-        //         last_funding_rate => "0.00010000",
-        //         price_change_percent_24h => "0.244",
-        //         volume_24h => "64303817.028126",
-        //         url => "https://futures.bitmart.com/en?$symbol=DGBUSDT"
-        //     }
+        //      {
+        //          "contract_symbol":"DOGEUSDT",
+        //          "last_price":"0.130340",
+        //          "index_price":"0.13048245",
+        //          "last_funding_rate":"0.00002287",
+        //          "price_change_percent_24h":"-2.074",
+        //          "volume_24h":"113705028.59482228",
+        //          "url":"https://futures.bitmart.com/en?$symbol=DOGEUSDT",
+        //          "high_price":"0.134520",
+        //          "low_price":"0.128570",
+        //          "legal_coin_price":"0.1302699"
+        //      }
         //
         $timestamp = $this->safe_timestamp_2($ticker, 'timestamp', 's_t', $this->milliseconds());
-        $marketId = $this->safe_string_2($ticker, 'symbol', 'contract_id');
+        $marketId = $this->safe_string_2($ticker, 'symbol', 'contract_symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
         $last = $this->safe_string_2($ticker, 'close_24h', 'last_price');
-        $percentage = $this->safe_string_2($ticker, 'fluctuation', 'rise_fall_rate');
-        $percentage = Precise::string_mul($percentage, '100');
+        $percentage = $this->safe_string($ticker, 'price_change_percent_24h');
         if ($percentage === null) {
-            $percentage = $this->safe_string($ticker, 'price_change_percent_24h');
+            $percentageRaw = $this->safe_string($ticker, 'fluctuation');
+            if (($percentageRaw !== null) && ($percentageRaw !== '0')) { // a few tickers show strictly '0' in fluctuation field
+                $direction = $percentageRaw[0];
+                $percentage = $direction . Precise::string_mul(str_replace($direction, '', $percentageRaw), '100');
+            } else if ($percentageRaw === '0') {
+                $percentage = '0';
+            }
         }
-        $baseVolume = $this->safe_string_2($ticker, 'base_coin_volume', 'base_volume_24h');
-        $quoteVolume = $this->safe_string_2($ticker, 'quote_coin_volume', 'quote_volume_24h');
+        $baseVolume = $this->safe_string($ticker, 'base_volume_24h');
+        $quoteVolume = $this->safe_string($ticker, 'quote_volume_24h');
         $quoteVolume = $this->safe_string($ticker, 'volume_24h', $quoteVolume);
-        $average = $this->safe_string($ticker, 'avg_price');
+        $average = $this->safe_string_2($ticker, 'avg_price', 'index_price');
         $price = $this->safe_string($ticker, 'depth_price', $ticker);
+        $high = $this->safe_string_2($ticker, 'high_24h', 'high_price');
+        $low = $this->safe_string_2($ticker, 'low_24h', 'low_price');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_string_2($ticker, 'high', 'high_24h'),
-            'low' => $this->safe_string_2($ticker, 'low', 'low_24h'),
-            'bid' => $this->safe_string_2($price, 'best_bid', 'bid_price'),
+            'high' => $high,
+            'low' => $low,
+            'bid' => $this->safe_string($price, 'best_bid'),
             'bidVolume' => $this->safe_string($ticker, 'best_bid_size'),
-            'ask' => $this->safe_string_2($price, 'best_ask', 'ask_price'),
+            'ask' => $this->safe_string($price, 'best_ask'),
             'askVolume' => $this->safe_string($ticker, 'best_ask_size'),
             'vwap' => null,
             'open' => $this->safe_string($ticker, 'open_24h'),
@@ -758,7 +768,7 @@ class bitmart extends Exchange {
         $method = null;
         if ($market['swap'] || $market['future']) {
             $method = 'publicContractGetTickers';
-            $request['contractID'] = $market['id'];
+            $request['contract_symbol'] = $market['id'];
         } else if ($market['spot']) {
             $method = 'publicSpotGetTicker';
             $request['symbol'] = $market['id'];
@@ -795,28 +805,37 @@ class bitmart extends Exchange {
         //
         // contract
         //
-        //     {
-        //         message => "OK",
-        //         code => "1000",
-        //         trace => "84a0dc44-b395-4bae-a1b7-fe1201defd51",
-        //         $data => array(
-        //             $tickers => array(
-        //                 array(
-        //                     contract_symbol => "DGBUSDT",
-        //                     last_price => "0.05759",
-        //                     index_price => "0.05757755",
-        //                     last_funding_rate => "0.00010000",
-        //                     price_change_percent_24h => "0.244",
-        //                     volume_24h => "64303817.028126",
-        //                     url => "https://futures.bitmart.com/en?$symbol=DGBUSDT"
-        //                 ),
-        //             ),
-        //         ),
-        //     }
+        //      {
+        //          "message":"OK",
+        //          "code":1000,
+        //          "trace":"4a0ebceb-d3f7-45a3-8feb-f61e230e24cd",
+        //          "data":{
+        //              "tickers":array(
+        //                  {
+        //                      "contract_symbol":"DOGEUSDT",
+        //                      "last_price":"0.130180",
+        //                      "index_price":"0.13028635",
+        //                      "last_funding_rate":"0.00002025",
+        //                      "price_change_percent_24h":"-2.326",
+        //                      "volume_24h":"116789313.01797258",
+        //                      "url":"https://futures.bitmart.com/en?$symbol=DOGEUSDT",
+        //                      "high_price":"0.134520",
+        //                      "low_price":"0.128570",
+        //                      "legal_coin_price":"0.13017401"
+        //                  }
+        //              )
+        //          }
+        //      }
         //
         $data = $this->safe_value($response, 'data', array());
         $tickers = $this->safe_value($data, 'tickers', array());
-        $tickersById = $this->index_by($tickers, 'symbol');
+        // fails in naming for contract $tickers 'contract_symbol'
+        $tickersById = null;
+        if ($market['spot']) {
+            $tickersById = $this->index_by($tickers, 'symbol');
+        } else if ($market['swap'] || $market['future']) {
+            $tickersById = $this->index_by($tickers, 'contract_symbol');
+        }
         $ticker = $this->safe_value($tickersById, $market['id']);
         return $this->parse_ticker($ticker, $market);
     }
