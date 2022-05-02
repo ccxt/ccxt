@@ -1109,15 +1109,19 @@ module.exports = class kucoinfutures extends kucoin {
          * @param {int} limit The maximum number of orders to retrieve
          * @param {dict} params exchange specific parameters
          * @param {bool} params.stop set to true to retrieve untriggered stop orders
+         * @param {int} params.till End time in ms
          * @param {str} params.side buy or sell
          * @param {str} params.type limit or market
-         * @param {int} params.endAt End time in ms
          * @returns An [array of order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const stop = this.safeValue (params, 'stop');
         params = this.omit (params, 'stop');
-        status = (status === 'closed') ? 'done' : status;
+        if (status === 'closed') {
+            status = 'done';
+        } else if (status === 'open') {
+            status = 'active';
+        }
         const request = {};
         if (!stop) {
             request['status'] = status;
@@ -1131,6 +1135,10 @@ module.exports = class kucoinfutures extends kucoin {
         }
         if (since !== undefined) {
             request['startAt'] = since;
+        }
+        const till = this.safeInteger (params, 'till', 'endAt');
+        if (till !== undefined) {
+            request['endAt'] = till;
         }
         const method = stop ? 'futuresPrivateGetStopOrders' : 'futuresPrivateGetOrders';
         const response = await this[method] (this.extend (request, params));
