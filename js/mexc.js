@@ -585,34 +585,45 @@ module.exports = class mexc extends ccxt.mexc {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    async watchPrivate (messageHash, method, params = {}) {
-        const options = this.safeValue (this.options, method, {});
-        let expires = this.safeString (options, 'api-expires');
-        if (expires === undefined) {
-            const timeout = parseInt (this.timeout / 1000);
-            expires = this.sum (this.seconds (), timeout);
-            expires = expires.toString ();
-            // we need to memoize these values to avoid generating a new url on each method execution
-            // that would trigger a new connection on each received message
-            this.options[method]['api-expires'] = expires;
-        }
+    async authenticateSpot (params = {}) {
         this.checkRequiredCredentials ();
-        const url = this.urls['api']['ws'];
-        const auth = 'CONNECT' + '/stream' + expires;
-        const signature = this.hmac (this.encode (auth), this.encode (this.secret));
-        const authParams = {
-            'api-key': this.apiKey,
-            'api-signature': signature,
-            'api-expires': expires,
-        };
-        const signedUrl = url + '?' + this.urlencode (authParams);
+        const channel = 'sub.personal';
+        const url = this.urls['api']['ws']['spot'];
+        const timestamp = this.milliseconds ().toString ();
+        const payload = this.apiKey + timestamp;
+        const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'md5');
         const request = {
-            'op': 'subscribe',
-            'args': [ messageHash ],
+            'op': channel,
+            'api_key': this.apiKey,
+            'sign': signature,
+            'req_time': timestamp,
         };
-        const message = this.extend (request, params);
-        return await this.watch (signedUrl, messageHash, message, messageHash);
+        const extendedRequest = this.extend (request, params);
+        const message = this.extend (extendedRequest, params);
+        return await this.watch (url, channel, message, channel);
     }
+
+    async authenticateSwap (params = {}) {
+        this.checkRequiredCredentials ();
+        const channel = 'login';
+        const url = this.urls['api']['ws']['swap'];
+        const timestamp = this.milliseconds ().toString ();
+        const payload = this.apiKey + timestamp;
+        const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256');
+        const request = {
+            'method': channel,
+            'param': {
+                'apiKey': this.apiKey,
+                'signature': signature,
+                'reqTime': timestamp,
+            },
+        };
+        const extendedRequest = this.extend (request, params);
+        const message = this.extend (extendedRequest, params);
+        return await this.watch (url, channel, message, channel);
+    }
+        
+    async 
 
     handleErrorMessage (client, message) {
         //
