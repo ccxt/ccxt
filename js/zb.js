@@ -3056,7 +3056,7 @@ module.exports = class zb extends Exchange {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
         if ((leverage < 1) || (leverage > 125)) {
-            throw new BadRequest (this.id + ' leverage should be between 1 and 125');
+            throw new BadRequest (this.id + ' setLeverage() leverage should be between 1 and 125');
         }
         const market = this.market (symbol);
         let accountType = undefined;

@@ -1081,7 +1081,7 @@ module.exports = class okcoin extends Exchange {
             //
             return this.parseMarkets (response);
         } else {
-            throw new NotSupported (this.id + ' fetchMarketsByType does not support market type ' + type);
+            throw new NotSupported (this.id + ' fetchMarketsByType() does not support market type ' + type);
         }
     }
 
@@ -1533,7 +1533,7 @@ module.exports = class okcoin extends Exchange {
             }
         } else if (type === 'HistoryCandles') {
             if (market['option']) {
-                throw new NotSupported (this.id + ' fetchOHLCV does not have ' + type + ' for ' + market['type'] + ' markets');
+                throw new NotSupported (this.id + ' fetchOHLCV() does not have ' + type + ' for ' + market['type'] + ' markets');
             }
             if (since !== undefined) {
                 if (limit === undefined) {
@@ -2581,7 +2581,7 @@ module.exports = class okcoin extends Exchange {
         const addressesByCode = this.parseDepositAddresses (response);
         const address = this.safeValue (addressesByCode, code);
         if (address === undefined) {
-            throw new InvalidAddress (this.id + ' fetchDepositAddress cannot return nonexistent addresses, you should create withdrawal addresses with the exchange website first');
+            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot return nonexistent addresses, you should create withdrawal addresses with the exchange website first');
         }
         return address;
     }

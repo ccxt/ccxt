@@ -544,7 +544,7 @@ module.exports = class hitbtc extends Exchange {
         const fetchBalanceAccounts = this.safeValue (this.options, 'fetchBalanceMethod', {});
         const typeId = this.safeString (fetchBalanceAccounts, type);
         if (typeId === undefined) {
-            throw new ExchangeError (this.id + ' fetchBalance account type must be either main or trading');
+            throw new ExchangeError (this.id + ' fetchBalance() account type must be either main or trading');
         }
         const method = 'privateGet' + this.capitalize (typeId) + 'Balance';
         const query = this.omit (params, 'type');
@@ -1236,7 +1236,7 @@ module.exports = class hitbtc extends Exchange {
         fromNetwork = this.safeString (networks, fromNetwork, fromNetwork); // handle ETH>ERC20 alias
         toNetwork = this.safeString (networks, toNetwork, toNetwork); // handle ETH>ERC20 alias
         if (fromNetwork === toNetwork) {
-            throw new ExchangeError (this.id + ' fromNetwork cannot be the same as toNetwork');
+            throw new ExchangeError (this.id + ' convertCurrencyNetwork() fromNetwork cannot be the same as toNetwork');
         }
         const request = {
             'fromCurrency': currency['id'] + fromNetwork,

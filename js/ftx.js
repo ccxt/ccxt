@@ -1481,7 +1481,7 @@ module.exports = class ftx extends Exchange {
             method = 'privatePostConditionalOrders';
             const stopPrice = this.safeNumber2 (params, 'stopPrice', 'triggerPrice');
             if (stopPrice === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder () requires a stopPrice parameter or a triggerPrice parameter for ' + type + ' orders');
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPrice parameter or a triggerPrice parameter for ' + type + ' orders');
             } else {
                 params = this.omit (params, [ 'stopPrice', 'triggerPrice' ]);
                 request['triggerPrice'] = parseFloat (this.priceToPrecision (symbol, stopPrice));
@@ -1492,12 +1492,12 @@ module.exports = class ftx extends Exchange {
         } else if (type === 'trailingStop') {
             const trailValue = this.safeNumber (params, 'trailValue', price);
             if (trailValue === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder () requires a trailValue parameter or a price argument (negative or positive) for a ' + type + ' order');
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a trailValue parameter or a price argument (negative or positive) for a ' + type + ' order');
             }
             method = 'privatePostConditionalOrders';
             request['trailValue'] = parseFloat (this.priceToPrecision (symbol, trailValue)); // negative for "sell", positive for "buy"
         } else {
-            throw new InvalidOrder (this.id + ' createOrder () does not support order type ' + type + ', only limit, market, stop, trailingStop, or takeProfit orders are supported');
+            throw new InvalidOrder (this.id + ' createOrder() does not support order type ' + type + ', only limit, market, stop, trailingStop, or takeProfit orders are supported');
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -2407,7 +2407,7 @@ module.exports = class ftx extends Exchange {
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if ((leverage < 1) || (leverage > 20)) {
-            throw new BadRequest (this.id + ' leverage should be between 1 and 20');
+            throw new BadRequest (this.id + ' setLeverage() leverage should be between 1 and 20');
         }
         const request = {
             'leverage': leverage,

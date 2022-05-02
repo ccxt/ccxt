@@ -263,7 +263,7 @@ module.exports = class gemini extends Exchange {
         const response = await this.webGetRestApi (params);
         const sections = response.split ('<h1 id="symbols-and-minimums">Symbols and minimums</h1>');
         const numSections = sections.length;
-        const error = this.id + ' the ' + this.name + ' API doc HTML markup has changed, breaking the parser of order limits and precision info for ' + this.name + ' markets.';
+        const error = this.id + ' fetchMarketsFromWeb() the ' + this.name + ' API doc HTML markup has changed, breaking the parser of order limits and precision info for ' + this.name + ' markets.';
         if (numSections !== 2) {
             throw new NotSupported (error);
         }
@@ -1008,7 +1008,7 @@ module.exports = class gemini extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         if (type === 'market') {
-            throw new ExchangeError (this.id + ' allows limit orders only');
+            throw new ExchangeError (this.id + ' createOrder() allows limit orders only');
         }
         let clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
         params = this.omit (params, [ 'clientOrderId', 'client_order_id' ]);
@@ -1031,7 +1031,7 @@ module.exports = class gemini extends Exchange {
         const rawStopPrice = this.safeString2 (params, 'stop_price', 'stopPrice');
         params = this.omit (params, [ 'stop_price', 'stopPrice', 'type' ]);
         if (type === 'stopLimit') {
-            throw new ArgumentsRequired (this.id + ' createOrder () requires a stopPrice parameter or a stop_price parameter for ' + type + ' orders');
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPrice parameter or a stop_price parameter for ' + type + ' orders');
         }
         if (rawStopPrice !== undefined) {
             request['stop_price'] = this.priceToPrecision (symbol, rawStopPrice);

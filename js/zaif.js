@@ -404,7 +404,7 @@ module.exports = class zaif extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         if (type !== 'limit') {
-            throw new ExchangeError (this.id + ' allows limit orders only');
+            throw new ExchangeError (this.id + ' createOrder() allows limit orders only');
         }
         const request = {
             'currency_pair': this.marketId (symbol),

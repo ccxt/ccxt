@@ -346,10 +346,10 @@ module.exports = class paymium extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         if (toAccount.indexOf ('@') < 0) {
-            throw new ExchangeError (this.id + 'transfer() only allows transfers to an email address');
+            throw new ExchangeError (this.id + ' transfer() only allows transfers to an email address');
         }
         if (code !== 'BTC' && code !== 'EUR') {
-            throw new ExchangeError (this.id + 'transfer() only allows BTC or EUR');
+            throw new ExchangeError (this.id + ' transfer() only allows BTC or EUR');
         }
         const request = {
             'currency': currency['id'],

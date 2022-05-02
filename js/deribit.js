@@ -1989,7 +1989,7 @@ module.exports = class deribit extends Exchange {
             if (Array.isArray (symbols)) {
                 const length = symbols.length;
                 if (length !== 1) {
-                    throw new BadRequest (this.id + ' fetchPositions symbols argument cannot contain more than 1 symbol');
+                    throw new BadRequest (this.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol');
                 }
                 const market = this.market (symbols[0]);
                 code = market['base'];

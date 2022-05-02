@@ -1483,7 +1483,7 @@ module.exports = class hitbtc3 extends Exchange {
         };
         if ((type === 'limit') || (type === 'stopLimit')) {
             if (price === undefined) {
-                throw new ExchangeError (this.id + ' limit order requires price');
+                throw new ExchangeError (this.id + ' editOrder() limit order requires price');
             }
             request['price'] = this.priceToPrecision (symbol, price);
         }
@@ -1756,7 +1756,7 @@ module.exports = class hitbtc3 extends Exchange {
         fromNetwork = this.safeString (networks, fromNetwork); // handle ETH>ERC20 alias
         toNetwork = this.safeString (networks, toNetwork); // handle ETH>ERC20 alias
         if (fromNetwork === toNetwork) {
-            throw new BadRequest (this.id + ' fromNetwork cannot be the same as toNetwork');
+            throw new BadRequest (this.id + ' convertCurrencyNetwork() fromNetwork cannot be the same as toNetwork');
         }
         if ((fromNetwork === undefined) || (toNetwork === undefined)) {
             const keys = Object.keys (networks);

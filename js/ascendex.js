@@ -2032,7 +2032,7 @@ module.exports = class ascendex extends Exchange {
             if (chainName === undefined) {
                 const chainNames = Object.keys (addressesByChainName);
                 const chains = chainNames.join (', ');
-                throw new ArgumentsRequired (this.id + ' fetchDepositAddress returned more than one address, a chainName parameter is required, one of ' + chains);
+                throw new ArgumentsRequired (this.id + ' fetchDepositAddress() returned more than one address, a chainName parameter is required, one of ' + chains);
             }
             address = this.safeValue (addressesByChainName, chainName, {});
         } else {

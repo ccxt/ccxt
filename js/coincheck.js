@@ -295,7 +295,7 @@ module.exports = class coincheck extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         if (symbol !== 'BTC/JPY') {
-            throw new BadSymbol (this.id + ' fetchTicker () supports BTC/JPY only');
+            throw new BadSymbol (this.id + ' fetchTicker() supports BTC/JPY only');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);

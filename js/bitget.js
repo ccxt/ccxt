@@ -2116,7 +2116,7 @@ module.exports = class bitget extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (market['swap']) {
-            throw new BadSymbol (this.id + ' fetchMyTrades only supports spot markets');
+            throw new BadSymbol (this.id + ' fetchMyTrades() only supports spot markets');
         }
         const request = {
             'symbol': market['id'],

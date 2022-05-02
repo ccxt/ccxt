@@ -804,7 +804,7 @@ module.exports = class whitebit extends Exchange {
         // aggregate common assignments regardless stop or not
         if (type === 'limit' || type === 'stopLimit') {
             if (price === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for a stopLimit order');
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a stopLimit order');
             }
             const convertedPrice = this.priceToPrecision (symbol, price);
             request['price'] = convertedPrice;
@@ -828,7 +828,7 @@ module.exports = class whitebit extends Exchange {
             }
         }
         if (method === undefined) {
-            throw new ArgumentsRequired (this.id + ' Invalid type:  createOrder() requires one of the following order types: market, limit, stopLimit or stopMarket');
+            throw new ArgumentsRequired (this.id + ' createOrder() requires one of the following order types: market, limit, stopLimit or stopMarket');
         }
         const response = await this[method] (this.extend (request, params));
         return this.parseOrder (response);

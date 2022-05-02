@@ -733,7 +733,7 @@ module.exports = class kucoin extends Exchange {
         const type = this.safeString (accountsByType, requestedType);
         if (type === undefined) {
             const keys = Object.keys (accountsByType);
-            throw new ExchangeError (this.id + ' type must be one of ' + keys.join (', '));
+            throw new ExchangeError (this.id + ' isFuturesMethod() type must be one of ' + keys.join (', '));
         }
         params = this.omit (params, 'type');
         return (type === 'contract') || (type === 'future') || (type === 'futures'); // * (type === 'futures') deprecated, use (type === 'future')
@@ -1049,7 +1049,7 @@ module.exports = class kucoin extends Exchange {
                     if ((limit === 20) || (limit === 100)) {
                         request['limit'] = limit;
                     } else {
-                        throw new ExchangeError (this.id + ' fetchOrderBook limit argument must be 20 or 100');
+                        throw new ExchangeError (this.id + ' fetchOrderBook() limit argument must be 20 or 100');
                     }
                 }
                 request['limit'] = limit ? limit : 100;
@@ -1582,7 +1582,7 @@ module.exports = class kucoin extends Exchange {
                 request['startAt'] = parseInt (since / 1000);
             }
         } else {
-            throw new ExchangeError (this.id + ' invalid fetchClosedOrder method');
+            throw new ExchangeError (this.id + ' fetchMyTradesMethod() invalid method');
         }
         const response = await this[method] (this.extend (request, params));
         //
