@@ -45,8 +45,8 @@ module.exports = class mexc extends ccxt.mexc {
                 },
             },
             'streaming': {
-                '!!ping': this.ping,
-                'keepAlive': 10000,
+                'ping': this.ping,
+                'keepAlive': 9000,
             },
             'exceptions': {
                 'ws': {
@@ -601,20 +601,30 @@ module.exports = class mexc extends ccxt.mexc {
 
     async authenticateSpot (params = {}) {
         this.checkRequiredCredentials ();
+        const messageHash = 'authenticated';
         const channel = 'sub.personal';
         const url = this.urls['api']['ws']['spot'];
-        const timestamp = this.milliseconds ().toString ();
-        const payload = this.apiKey + timestamp;
-        const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'md5');
-        const request = {
-            'op': channel,
-            'api_key': this.apiKey,
-            'sign': signature,
-            'req_time': timestamp,
-        };
-        const extendedRequest = this.extend (request, params);
-        const message = this.extend (extendedRequest, params);
-        return await this.watch (url, channel, message, channel);
+        const client = this.client (url);
+        let future = this.safeValue (client.subscriptions, messageHash);
+        if (future === undefined) {
+            future = client.future (messageHash);
+            client.future (messageHash);
+            const timestamp = this.milliseconds ().toString ();
+            const request = {
+                'op': channel,
+                'api_key': this.apiKey,
+                'req_time': timestamp,
+            };
+            const sortedParams = this.keysort (request);
+            sortedParams['api_secret'] = this.secret;
+            const encodedParams = this.urlencode (sortedParams);
+            const hash = this.hash (encodedParams, 'md5');
+            request['sign'] = hash;
+            const extendedRequest = this.extend (request, params);
+            const message = this.extend (extendedRequest, params);
+            return await this.watch (url, channel, message, channel);
+        }
+        return await future;
     }
 
     async authenticateSwap (params = {}) {
@@ -667,14 +677,17 @@ module.exports = class mexc extends ccxt.mexc {
         //
         //  { channel: 'rs.login', data: 'success', ts: 1651486643082 }
         //
+        // { channel: 'sub.personal', msg: 'OK' }
+        //
         const future = client.futures['authenticated'];
         future.resolve (1);
         return message;
     }
 
     handleMessage (client, message) {
-        //
-        // auth
+        // auth spot
+        // { channel: 'sub.personal', msg: 'OK' }
+        // auth swap
         //  { channel: 'rs.login', data: 'success', ts: 1651486643082 }
         // subscription
         //  { channel: 'rs.sub.depth', data: 'success', ts: 1651239594401 }
@@ -760,6 +773,7 @@ module.exports = class mexc extends ccxt.mexc {
         }
         const channel = this.safeString (message, 'channel');
         const methods = {
+            'sub.personal': this.handleAuthenticate,
             'rs.login': this.handleAuthenticate,
             'push.deal': this.handleTrades,
             'orderbook': this.handleOrderBook,
@@ -775,10 +789,11 @@ module.exports = class mexc extends ccxt.mexc {
 
     ping (client) {
         return { 'method': 'ping' };
+        // return 'ping';
     }
 
-    handlePong (client, message) {
-        client.lastPong = this.milliseconds ();
-        return message;
-    }
+    // handlePong (client, message) {
+    //     client.lastPong = this.milliseconds ();
+    //     return message;
+    // }
 };
