@@ -1895,9 +1895,12 @@ module.exports = class gateio extends Exchange {
         const swap = type === 'swap';
         const future = type === 'future';
         const contract = swap || future;
-        let request = {};
+        const request = {};
         if (contract) {
-            [ request, params ] = this.prepareRequest (undefined, type, false, false, false, params);
+            const defaultSettle = swap ? 'usdt' : 'btc';
+            const settle = this.safeStringLower (params, 'settle', defaultSettle);
+            params = this.omit (params, 'settle');
+            request['settle'] = settle;
         } else {
             [ marginType, params ] = this.getMarginType (false, params);
             const symbol = this.safeString (params, 'symbol');
