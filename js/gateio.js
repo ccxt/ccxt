@@ -1107,8 +1107,8 @@ module.exports = class gateio extends Exchange {
          * @method
          * @name gateio#getMarginType
          * @description Gets the margin type for this api call
-         * @param {dict} params Request params
          * @param {bool} stop True if for a stop order
+         * @param {dict} params Request params
          * @returns The marginType and the updated request params with marginType removed, marginType value is the value that can be read by the "account" property specified in gateios api docs
          */
         const defaultMarginType = this.safeStringLower2 (this.options, 'defaultMarginType', 'marginType', 'spot'); // 'margin' is isolated margin on gateio's api
