@@ -691,7 +691,7 @@ module.exports = class bitmart extends Exchange {
         //          "best_bid":"0.128200",
         //          "best_bid_size":"21232",
         //          "fluctuation":"-0.0361",
-        //          "s_t": 1610936002,
+        //          "s_t": 1610936002, // ws only
         //          "url":"https://www.bitmart.com/trade?symbol=DOGE_USDT"
         //      }
         //
