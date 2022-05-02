@@ -464,14 +464,22 @@ module.exports = class mexc extends ccxt.mexc {
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let messageHash = 'order';
-        const channel = 'push.personal.order';
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
             messageHash += ':' + market['id'];
         }
-        const orders = await this.watchSwapPrivate (messageHash, channel, undefined, params);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
+        let orders = undefined;
+        if (type === 'spot') {
+            const channel = 'sub.personal';
+            orders = await this.watchSpotPrivate (messageHash, channel, undefined, params);
+        } else {
+            // const channel = 'push.personal.order';
+            orders = await this.watchSwapPrivate (messageHash, params);
+        }
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -480,39 +488,72 @@ module.exports = class mexc extends ccxt.mexc {
 
     handleOrder (client, message, subscription = undefined) {
         //
+        // spot order
         //     {
-        //         topic: 'order',
-        //         action: 'insert',
-        //         user_id: 155328,
-        //         symbol: 'ltc-usdt',
+        //         symbol: 'LTC_USDT',
         //         data: {
-        //             symbol: 'ltc-usdt',
-        //             side: 'buy',
-        //             size: 0.05,
-        //             type: 'market',
-        //             price: 0,
-        //             fee_structure: { maker: 0.1, taker: 0.1 },
-        //             fee_coin: 'ltc',
-        //             id: 'ce38fd48-b336-400b-812b-60c636454231',
-        //             created_by: 155328,
-        //             filled: 0.05,
-        //             method: 'market',
-        //             created_at: '2022-04-11T14:09:00.760Z',
-        //             updated_at: '2022-04-11T14:09:00.760Z',
-        //             status: 'filled'
+        //           price: 100.25,
+        //           quantity: 0.0498,
+        //           amount: 4.99245,
+        //           remainAmount: 0.01245,
+        //           remainQuantity: 0,
+        //           remainQ: 0,
+        //           remainA: 0,
+        //           id: '0b1bf3a33916499f8d1a711a7d5a6fc4',
+        //           status: 2,
+        //           tradeType: 1,
+        //           orderType: 3,
+        //           createTime: 1651499416000,
+        //           isTaker: 1,
+        //           symbolDisplay: 'LTC_USDT',
+        //           clientOrderId: ''
         //         },
-        //         time: 1649686140
+        //         channel: 'push.personal.order',
+        //         eventTime: 1651499416639,
+        //         symbol_display: 'LTC_USDT'
         //     }
         //
-        const channel = this.safeString (message, 'topic');
-        const marketId = this.safeString (message, 'symbol');
+        //  swap order
+        // {
+        //     channel: 'push.personal.order',
+        //     data: {
+        //       category: 1,
+        //       createTime: 1651500368131,
+        //       dealAvgPrice: 0,
+        //       dealVol: 0,
+        //       errorCode: 0,
+        //       externalOid: '_m_4a78c91ca8be4c4580d94e637b1f70d1',
+        //       feeCurrency: 'USDT',
+        //       leverage: 1,
+        //       makerFee: 0,
+        //       openType: 2,
+        //       orderId: '276110898672819715',
+        //       orderMargin: 0.5006,
+        //       orderType: 1,
+        //       positionId: 0,
+        //       positionMode: 1,
+        //       price: 50,
+        //       profit: 0,
+        //       remainVol: 1,
+        //       side: 1,
+        //       state: 2,
+        //       symbol: 'LTC_USDT',
+        //       takerFee: 0,
+        //       updateTime: 1651500368142,
+        //       usedMargin: 0,
+        //       version: 1,
+        //       vol: 1
+        //     },
+        //     ts: 1651500368149
+        //   }
+        //
         const data = this.safeValue (message, 'data', {});
-        // usually the first message is an empty array
-        const dataLength = data.length;
-        if (dataLength === 0) {
-            return 0;
+        let marketId = this.safeString (message, 'symbol');
+        if (marketId === undefined) {
+            marketId = this.safeString (data, 'symbol');
         }
-        const parsed = this.parseOrder (data);
+        const market = this.safeMarket (marketId);
+        const parsed = this.parseOrder (data, market);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
@@ -521,13 +562,24 @@ module.exports = class mexc extends ccxt.mexc {
         orders.append (parsed);
         client.resolve (orders);
         // non-symbol specific
+        let channel = 'order';
         client.resolve (orders, channel);
-        const messageHash = channel + ':' + marketId;
-        client.resolve (orders, messageHash);
+        channel += ':' + market['symbol'];
+        client.resolve (orders, channel);
     }
 
     async watchBalance (params = {}) {
-        const messageHash = 'wallet';
+        await this.loadMarkets ();
+        const messageHash = 'balance';
+        const channel = 'push.personal.asset';
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams ('watchOrders', undefined, params);
+        type = 'swap';
+        if (type === 'spot') {
+            // nothing
+        } else {
+            return this.watchSwapPrivate (messageHash, channel, undefined, params);
+        }
         return await this.watchPrivate (messageHash, 'watchBalance', params);
     }
 
@@ -576,18 +628,19 @@ module.exports = class mexc extends ccxt.mexc {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    async watchSwapPrivate (messageHash, channel, requestParams = {}, params = {}) {
-        this.checkRequiredCredentials ();
-        const future = this.authenticateSwap ();
-        await future;
-        const url = this.urls['api']['ws']['swap'];
-        const request = {
-            'channel': channel,
-        };
-        let message = this.extend (request, params);
-        message = this.extend (message, requestParams);
-        return await this.watch (url, messageHash, message, messageHash);
-    }
+    // async watchSwapPrivate (messageHash, channel, requestParams = {}, params = {}) {
+    //     const c
+    //     this.checkRequiredCredentials ();
+    //     const future = this.authenticateSwap ();
+    //     await future;
+    //     const url = this.urls['api']['ws']['swap'];
+    //     const request = {
+    //         'channel': channel,
+    //     };
+    //     let message = this.extend (request, params);
+    //     message = this.extend (message, requestParams);
+    //     return await this.watch (url, messageHash, message, messageHash);
+    // }
 
     async watchSpotPublic (messageHash, channel, requestParams, params = {}) {
         const url = this.urls['api']['ws']['spot'];
@@ -599,59 +652,45 @@ module.exports = class mexc extends ccxt.mexc {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    async authenticateSpot (params = {}) {
+    async watchSpotPrivate (messageHash, channel, requestParams = {}, params = {}) {
         this.checkRequiredCredentials ();
-        const messageHash = 'authenticated';
-        const channel = 'sub.personal';
+        channel = 'sub.personal';
         const url = this.urls['api']['ws']['spot'];
-        const client = this.client (url);
-        let future = this.safeValue (client.subscriptions, messageHash);
-        if (future === undefined) {
-            future = client.future (messageHash);
-            client.future (messageHash);
-            const timestamp = this.milliseconds ().toString ();
-            const request = {
-                'op': channel,
-                'api_key': this.apiKey,
-                'req_time': timestamp,
-            };
-            const sortedParams = this.keysort (request);
-            sortedParams['api_secret'] = this.secret;
-            const encodedParams = this.urlencode (sortedParams);
-            const hash = this.hash (encodedParams, 'md5');
-            request['sign'] = hash;
-            const extendedRequest = this.extend (request, params);
-            const message = this.extend (extendedRequest, params);
-            return await this.watch (url, channel, message, channel);
-        }
-        return await future;
+        const timestamp = this.milliseconds ().toString ();
+        const request = {
+            'op': channel,
+            'api_key': this.apiKey,
+            'req_time': timestamp,
+        };
+        const sortedParams = this.keysort (request);
+        sortedParams['api_secret'] = this.secret;
+        const encodedParams = this.urlencode (sortedParams);
+        const hash = this.hash (encodedParams, 'md5');
+        request['sign'] = hash;
+        const extendedRequest = this.extend (request, params);
+        const message = this.extend (extendedRequest, requestParams);
+        return await this.watch (url, messageHash, message, messageHash);
     }
 
-    async authenticateSwap (params = {}) {
+    async watchSwapPrivate (messageHash, params = {}) {
         this.checkRequiredCredentials ();
-        const messageHash = 'authenticated';
+        // const messageHash = 'authenticated';
+        const channel = 'login';
         const url = this.urls['api']['ws']['swap'];
-        const client = this.client (url);
-        let future = this.safeValue (client.subscriptions, messageHash);
-        if (future === undefined) {
-            future = client.future (messageHash);
-            client.future (messageHash);
-            const timestamp = this.milliseconds ().toString ();
-            const payload = this.apiKey + timestamp;
-            const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256');
-            const request = {
-                'method': 'login',
-                'param': {
-                    'apiKey': this.apiKey,
-                    'signature': signature,
-                    'reqTime': timestamp,
-                },
-            };
-            const extendedRequest = this.extend (request, params);
-            const message = this.extend (extendedRequest, params);
-            return await this.watch (url, messageHash, message, messageHash);
-        }
-        return await future;
+        const timestamp = this.milliseconds ().toString ();
+        const payload = this.apiKey + timestamp;
+        const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256');
+        const request = {
+            'method': channel,
+            'param': {
+                'apiKey': this.apiKey,
+                'signature': signature,
+                'reqTime': timestamp,
+            },
+        };
+        const extendedRequest = this.extend (request, params);
+        const message = this.extend (extendedRequest, params);
+        return await this.watch (url, messageHash, message, channel);
     }
 
     handleErrorMessage (client, message) {
@@ -679,8 +718,8 @@ module.exports = class mexc extends ccxt.mexc {
         //
         // { channel: 'sub.personal', msg: 'OK' }
         //
-        const future = client.futures['authenticated'];
-        future.resolve (1);
+        // const future = client.futures['authenticated'];
+        // future.resolve (1);
         return message;
     }
 
@@ -767,19 +806,43 @@ module.exports = class mexc extends ccxt.mexc {
         //        },
         //        "channel":"push.deal"
         //     }
+        // spot order
+        //     {
+        //         symbol: 'LTC_USDT',
+        //         data: {
+        //           price: 100.25,
+        //           quantity: 0.0498,
+        //           amount: 4.99245,
+        //           remainAmount: 0.01245,
+        //           remainQuantity: 0,
+        //           remainQ: 0,
+        //           remainA: 0,
+        //           id: '0b1bf3a33916499f8d1a711a7d5a6fc4',
+        //           status: 2,
+        //           tradeType: 1,
+        //           orderType: 3,
+        //           createTime: 1651499416000,
+        //           isTaker: 1,
+        //           symbolDisplay: 'LTC_USDT',
+        //           clientOrderId: ''
+        //         },
+        //         channel: 'push.personal.order',
+        //         eventTime: 1651499416639,
+        //         symbol_display: 'LTC_USDT'
+        //     }
         //
         if (!this.handleErrorMessage (client, message)) {
             return;
         }
         const channel = this.safeString (message, 'channel');
         const methods = {
-            'sub.personal': this.handleAuthenticate,
             'rs.login': this.handleAuthenticate,
             'push.deal': this.handleTrades,
             'orderbook': this.handleOrderBook,
             'push.kline': this.handleOHLCV,
             'push.ticker': this.handleTicker,
             'push.depth': this.handleOrderBook,
+            'push.personal.order': this.handleOrder,
         };
         const method = this.safeValue (methods, channel);
         if (method !== undefined) {
@@ -789,11 +852,5 @@ module.exports = class mexc extends ccxt.mexc {
 
     ping (client) {
         return { 'method': 'ping' };
-        // return 'ping';
     }
-
-    // handlePong (client, message) {
-    //     client.lastPong = this.milliseconds ();
-    //     return message;
-    // }
 };
