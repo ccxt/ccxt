@@ -464,13 +464,14 @@ module.exports = class mexc extends ccxt.mexc {
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let messageHash = 'order';
+        const channel = 'push.personal.order';
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
             messageHash += ':' + market['id'];
         }
-        const orders = await this.watchPrivate (messageHash, 'watchOrders', params);
+        const orders = await this.watchSwapPrivate (messageHash, channel, undefined, params);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -575,6 +576,19 @@ module.exports = class mexc extends ccxt.mexc {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
+    async watchSwapPrivate (messageHash, channel, requestParams = {}, params = {}) {
+        this.checkRequiredCredentials ();
+        const future = this.authenticateSwap ();
+        await future;
+        const url = this.urls['api']['ws']['swap'];
+        const request = {
+            'channel': channel,
+        };
+        let message = this.extend (request, params);
+        message = this.extend (message, requestParams);
+        return await this.watch (url, messageHash, message, messageHash);
+    }
+
     async watchSpotPublic (messageHash, channel, requestParams, params = {}) {
         const url = this.urls['api']['ws']['spot'];
         const request = {
@@ -605,25 +619,30 @@ module.exports = class mexc extends ccxt.mexc {
 
     async authenticateSwap (params = {}) {
         this.checkRequiredCredentials ();
-        const channel = 'login';
+        const messageHash = 'authenticated';
         const url = this.urls['api']['ws']['swap'];
-        const timestamp = this.milliseconds ().toString ();
-        const payload = this.apiKey + timestamp;
-        const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256');
-        const request = {
-            'method': channel,
-            'param': {
-                'apiKey': this.apiKey,
-                'signature': signature,
-                'reqTime': timestamp,
-            },
-        };
-        const extendedRequest = this.extend (request, params);
-        const message = this.extend (extendedRequest, params);
-        return await this.watch (url, channel, message, channel);
+        const client = this.client (url);
+        let future = this.safeValue (client.subscriptions, messageHash);
+        if (future === undefined) {
+            future = client.future (messageHash);
+            client.future (messageHash);
+            const timestamp = this.milliseconds ().toString ();
+            const payload = this.apiKey + timestamp;
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256');
+            const request = {
+                'method': 'login',
+                'param': {
+                    'apiKey': this.apiKey,
+                    'signature': signature,
+                    'reqTime': timestamp,
+                },
+            };
+            const extendedRequest = this.extend (request, params);
+            const message = this.extend (extendedRequest, params);
+            return await this.watch (url, messageHash, message, messageHash);
+        }
+        return await future;
     }
-        
-    async 
 
     handleErrorMessage (client, message) {
         //
@@ -644,8 +663,19 @@ module.exports = class mexc extends ccxt.mexc {
         return message;
     }
 
+    handleAuthenticate (client, message) {
+        //
+        //  { channel: 'rs.login', data: 'success', ts: 1651486643082 }
+        //
+        const future = client.futures['authenticated'];
+        future.resolve (1);
+        return message;
+    }
+
     handleMessage (client, message) {
         //
+        // auth
+        //  { channel: 'rs.login', data: 'success', ts: 1651486643082 }
         // subscription
         //  { channel: 'rs.sub.depth', data: 'success', ts: 1651239594401 }
         // swap ohlcv
@@ -730,6 +760,7 @@ module.exports = class mexc extends ccxt.mexc {
         }
         const channel = this.safeString (message, 'channel');
         const methods = {
+            'rs.login': this.handleAuthenticate,
             'push.deal': this.handleTrades,
             'orderbook': this.handleOrderBook,
             'push.kline': this.handleOHLCV,
