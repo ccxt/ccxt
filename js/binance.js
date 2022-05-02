@@ -412,8 +412,8 @@ module.exports = class binance extends Exchange {
                         //
                         'giftcard/createCode': 0.1,
                         'giftcard/redeemCode': 0.1,
-                        'algo/futures/newOrderVp': 300,
-                        'algo/futures/newOrderTwap': 300,
+                        'algo/futures/newOrderVp': 20.001,
+                        'algo/futures/newOrderTwap': 20.001,
                         // staking
                         'staking/purchase': 0.1,
                         'staking/redeem': 0.1,
