@@ -1881,43 +1881,50 @@ module.exports = class gateio extends Exchange {
 
     async fetchBalance (params = {}) {
         /**
-         * @param params exchange specific parameters
-         * @param params.type spot, margin, swap or future, if not provided this.options['defaultType'] is used
-         * @param params.settle 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
-         * @param params.marginType 'cross' or 'isolated' - marginType for type='margin' default='isolated'
+         * @param {dict} params exchange specific parameters
+         * @param {str} params.type spot, margin, swap or future, if not provided this.options['defaultType'] is used
+         * @param {str} params.settle 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
+         * @param {str} params.marginType 'cross' or 'isolated' - marginType for margin trading if not provided this.options['defaultMarginType'] is used
+         * @param {str} params.symbol margin only - unified ccxt symbol
          */
         await this.loadMarkets ();
         let type = undefined;
-        let method = undefined;
+        let marginType = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        if (type === 'margin') {
-            const defaultMarginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
-            const marginType = this.safeString (params, 'marginType', defaultMarginType);
-            params = this.omit (params, 'marginType');
-            if (marginType === 'cross') {
-                method = 'privateMarginGetCrossAccounts';
-            } else {
-                method = 'privateMarginGetAccounts';
-            }
-        } else {
-            method = this.getSupportedMapping (type, {
-                'spot': 'privateSpotGetAccounts',
-                'funding': 'privateMarginGetFundingAccounts',
-                'swap': 'privateFuturesGetSettleAccounts',
-                'future': 'privateDeliveryGetSettleAccounts',
-            });
-        }
+        const spot = type === 'spot';
         const swap = type === 'swap';
         const future = type === 'future';
-        const request = {};
-        let response = [];
-        if (swap || future) {
-            const defaultSettle = swap ? 'usdt' : 'btc';
-            request['settle'] = this.safeStringLower (params, 'settle', defaultSettle);
-            const response_item = await this[method] (this.extend (request, params));
-            response = [ response_item ];
+        const contract = swap || future;
+        let request = {};
+        if (contract) {
+            [ request, params ] = this.prepareRequest (undefined, type, false, false, false, params);
         } else {
-            response = await this[method] (this.extend (request, params));
+            [ marginType, params ] = this.getMarginType (false, params);
+            const symbol = this.safeString (params, 'symbol');
+            if (symbol !== undefined) {
+                const market = this.market (symbol);
+                request['currency_pair'] = market['id'];
+            }
+        }
+        const crossMargin = marginType === 'cross_margin';
+        const margin = marginType === 'margin';
+        let spotMethod = 'privateSpotGetAccounts';
+        if (spot) {
+            spotMethod = this.getSupportedMapping (marginType, {
+                'spot': 'privateSpotGetAccounts',
+                'margin': 'privateMarginGetAccounts',
+                'cross_margin': 'privateMarginGetCrossAccounts',
+            });
+        }
+        const method = this.getSupportedMapping (type, {
+            'spot': spotMethod,
+            'funding': 'privateMarginGetFundingAccounts',
+            'swap': 'privateFuturesGetSettleAccounts',
+            'future': 'privateDeliveryGetSettleAccounts',
+        });
+        let response = await this[method] (this.extend (request, params));
+        if (contract) {
+            response = [ response ];
         }
         // Spot / margin funding
         //
@@ -2026,7 +2033,6 @@ module.exports = class gateio extends Exchange {
         //        user: "6333333",
         //    }
         //
-        const margin = type === 'margin';
         const result = {
             'info': response,
         };
@@ -2047,7 +2053,7 @@ module.exports = class gateio extends Exchange {
         }
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
-            if (margin) {
+            if (margin && !crossMargin) {
                 const marketId = this.safeString (entry, 'currency_pair');
                 const symbol = this.safeSymbol (marketId, undefined, '_');
                 const base = this.safeValue (entry, 'base', {});
@@ -2063,7 +2069,7 @@ module.exports = class gateio extends Exchange {
                 result[code] = this.fetchBalanceHelper (entry);
             }
         }
-        return margin ? result : this.safeBalance (result);
+        return (margin && !crossMargin) ? result : this.safeBalance (result);
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
