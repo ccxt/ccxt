@@ -468,7 +468,7 @@ module.exports = class mexc extends ccxt.mexc {
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
-            messageHash += ':' + market['id'];
+            messageHash += ':' + market['symbol'];
         }
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
@@ -560,7 +560,6 @@ module.exports = class mexc extends ccxt.mexc {
         }
         const orders = this.orders;
         orders.append (parsed);
-        client.resolve (orders);
         // non-symbol specific
         let channel = 'order';
         client.resolve (orders, channel);
@@ -571,50 +570,39 @@ module.exports = class mexc extends ccxt.mexc {
     async watchBalance (params = {}) {
         await this.loadMarkets ();
         const messageHash = 'balance';
-        const channel = 'push.personal.asset';
         let type = undefined;
-        [type, params] = this.handleMarketTypeAndParams ('watchOrders', undefined, params);
-        type = 'swap';
+        [type, params] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         if (type === 'spot') {
-            // nothing
+            throw new NotSupported (this.id + ' watchBalance does not support spot markets');
         } else {
-            return this.watchSwapPrivate (messageHash, channel, undefined, params);
+            return this.watchSwapPrivate (messageHash, params);
         }
-        return await this.watchPrivate (messageHash, 'watchBalance', params);
     }
 
     handleBalance (client, message) {
         //
-        //     {
-        //         topic: 'wallet',
-        //         action: 'partial',
-        //         user_id: 155328,
-        //         data: {
-        //             eth_balance: 0,
-        //             eth_available: 0,
-        //             usdt_balance: 18.94344188,
-        //             usdt_available: 18.94344188,
-        //             ltc_balance: 0.00005,
-        //             ltc_available: 0.00005,
-        //         },
-        //         time: 1649687396
-        //     }
+        // swap balance
+        // {
+        //     channel: 'push.personal.asset',
+        //     data: {
+        //       availableBalance: 49.2076809226,
+        //       bonus: 0,
+        //       currency: 'USDT',
+        //       frozenBalance: 0.5006,
+        //       positionMargin: 0
+        //     },
+        //     ts: 1651501676430
+        // }
         //
-        const messageHash = this.safeString (message, 'topic');
         const data = this.safeValue (message, 'data');
-        const keys = Object.keys (data);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const parts = key.split ('_');
-            const currencyId = this.safeString (parts, 0);
-            const code = this.safeCurrencyCode (currencyId);
-            const account = (code in this.balance) ? this.balance[code] : this.account ();
-            const second = this.safeString (parts, 1);
-            const freeOrTotal = (second === 'available') ? 'free' : 'total';
-            account[freeOrTotal] = this.safeString (data, key);
-            this.balance[code] = account;
-        }
+        const currencyId = this.safeString (data, 'currency');
+        const code = this.safeCurrencyCode (currencyId);
+        const account = this.account ();
+        account['free'] = this.safeString (data, 'availableBalance');
+        account['used'] = this.safeString (data, 'frozenBalance');
+        this.balance[code] = account;
         this.balance = this.safeBalance (this.balance);
+        const messageHash = 'balance';
         client.resolve (this.balance, messageHash);
     }
 
@@ -627,20 +615,6 @@ module.exports = class mexc extends ccxt.mexc {
         const message = this.extend (request, params);
         return await this.watch (url, messageHash, message, messageHash);
     }
-
-    // async watchSwapPrivate (messageHash, channel, requestParams = {}, params = {}) {
-    //     const c
-    //     this.checkRequiredCredentials ();
-    //     const future = this.authenticateSwap ();
-    //     await future;
-    //     const url = this.urls['api']['ws']['swap'];
-    //     const request = {
-    //         'channel': channel,
-    //     };
-    //     let message = this.extend (request, params);
-    //     message = this.extend (message, requestParams);
-    //     return await this.watch (url, messageHash, message, messageHash);
-    // }
 
     async watchSpotPublic (messageHash, channel, requestParams, params = {}) {
         const url = this.urls['api']['ws']['spot'];
@@ -674,7 +648,6 @@ module.exports = class mexc extends ccxt.mexc {
 
     async watchSwapPrivate (messageHash, params = {}) {
         this.checkRequiredCredentials ();
-        // const messageHash = 'authenticated';
         const channel = 'login';
         const url = this.urls['api']['ws']['swap'];
         const timestamp = this.milliseconds ().toString ();
@@ -716,20 +689,24 @@ module.exports = class mexc extends ccxt.mexc {
         //
         //  { channel: 'rs.login', data: 'success', ts: 1651486643082 }
         //
-        // { channel: 'sub.personal', msg: 'OK' }
+        //  { channel: 'sub.personal', msg: 'OK' }
         //
-        // const future = client.futures['authenticated'];
-        // future.resolve (1);
         return message;
     }
 
     handleMessage (client, message) {
         // auth spot
+        //
         // { channel: 'sub.personal', msg: 'OK' }
+        //
         // auth swap
+        //
         //  { channel: 'rs.login', data: 'success', ts: 1651486643082 }
+        //
         // subscription
+        //
         //  { channel: 'rs.sub.depth', data: 'success', ts: 1651239594401 }
+        //
         // swap ohlcv
         //     {
         //         "channel":"push.kline",
