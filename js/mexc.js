@@ -256,23 +256,26 @@ module.exports = class mexc extends ccxt.mexc {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const channel = 'sub.depth';
         const messageHash = 'orderbook' + ':' + symbol;
         const requestParams = {
             'symbol': market['id'],
-            'compress': true,
         };
         if (limit !== undefined) {
             if (limit !== 5 && limit !== 10 && limit !== 20) {
                 throw new BadRequest (this.id + ' watchOrderBook limit parameter cannot be different from 5, 10 or 20');
-            } else {
-                requestParams['limit'] = limit;
             }
+        } else {
+            limit = 20;
         }
         let orderbook = undefined;
         if (market['type'] === 'swap') {
+            const channel = 'sub.depth';
+            requestParams['compress'] = true;
+            requestParams['limit'] = limit;
             orderbook = await this.watchSwapPublic (messageHash, channel, requestParams, params);
         } else {
+            const channel = 'sub.limit.depth';
+            requestParams['depth'] = limit;
             orderbook = await this.watchSpotPublic (messageHash, channel, requestParams, params);
         }
         return orderbook.limit (limit);
@@ -280,6 +283,7 @@ module.exports = class mexc extends ccxt.mexc {
 
     handleOrderBook (client, message) {
         //
+        // swap
         //  {
         //      "channel":"push.depth",
         //      "data":{
@@ -304,20 +308,52 @@ module.exports = class mexc extends ccxt.mexc {
         //      "ts":1651239652372
         //  }
         //
+        // spot
+        // {
+        //     "channel":"push.limit.depth",
+        //     "symbol":"BTC_USDT",
+        //     "data":{
+        //        "asks":[
+        //           [
+        //              "38694.68",
+        //              "2.250996"
+        //           ],
+        //        ],
+        //        "bids":[
+        //           [
+        //              "38694.65",
+        //              "0.783084"
+        //           ],
+        //        ]
+        //     },
+        //     "depth":5,
+        //     "version":"1170951528"
+        //  }
+        //
         const marketId = this.safeString (message, 'symbol');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const data = this.safeValue (message, 'data');
         const timestamp = this.safeInteger (message, 'ts');
         const snapshot = this.parseOrderBook (data, symbol, timestamp);
+        let nonce = this.safeNumber (data, 'end');
+        if (nonce === undefined) {
+            nonce = this.safeNumber (message, 'version');
+        }
+        snapshot['nonce'] = nonce;
         let orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
-            const nonce = this.safeNumber (data, 'end');
-            snapshot['nonce'] = nonce;
             orderbook = this.orderBook (snapshot);
             this.orderbooks[symbol] = orderbook;
         } else {
-            this.handleOrderBookMessage (client, message, orderbook);
+            // spot channels always return entire snapshots
+            // whereas swap channels return incremental updates
+            // after the first message
+            if (market['type'] === 'spot') {
+                orderbook.reset (snapshot);
+            } else {
+                this.handleOrderBookMessage (client, message, orderbook);
+            }
         }
         const messageHash = 'orderbook' + ':' + symbol;
         client.resolve (orderbook, messageHash);
@@ -349,9 +385,6 @@ module.exports = class mexc extends ccxt.mexc {
         //      "ts":1651239652372
         //
         const data = this.safeValue (message, 'data', {});
-        // this is only needed for spot markets
-        // const nonce = this.safeNumber (data, 'end');
-        // if (nonce > orderbook['nonce'])
         const asks = this.safeValue (data, 'asks', []);
         const bids = this.safeValue (data, 'bids', []);
         this.handleDeltas (orderbook['asks'], asks);
@@ -477,7 +510,6 @@ module.exports = class mexc extends ccxt.mexc {
             const channel = 'sub.personal';
             orders = await this.watchSpotPrivate (messageHash, channel, undefined, params);
         } else {
-            // const channel = 'push.personal.order';
             orders = await this.watchSwapPrivate (messageHash, params);
         }
         if (this.newUpdates) {
@@ -626,9 +658,9 @@ module.exports = class mexc extends ccxt.mexc {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    async watchSpotPrivate (messageHash, channel, requestParams = {}, params = {}) {
+    async watchSpotPrivate (messageHash, params = {}) {
         this.checkRequiredCredentials ();
-        channel = 'sub.personal';
+        const channel = 'sub.personal';
         const url = this.urls['api']['ws']['spot'];
         const timestamp = this.milliseconds ().toString ();
         const request = {
@@ -642,8 +674,7 @@ module.exports = class mexc extends ccxt.mexc {
         const hash = this.hash (encodedParams, 'md5');
         request['sign'] = hash;
         const extendedRequest = this.extend (request, params);
-        const message = this.extend (extendedRequest, requestParams);
-        return await this.watch (url, messageHash, message, messageHash);
+        return await this.watch (url, messageHash, extendedRequest, channel);
     }
 
     async watchSwapPrivate (messageHash, params = {}) {
@@ -695,9 +726,10 @@ module.exports = class mexc extends ccxt.mexc {
     }
 
     handleMessage (client, message) {
+        //
         // auth spot
         //
-        // { channel: 'sub.personal', msg: 'OK' }
+        //  { channel: 'sub.personal', msg: 'OK' }
         //
         // auth swap
         //
@@ -819,6 +851,7 @@ module.exports = class mexc extends ccxt.mexc {
             'push.kline': this.handleOHLCV,
             'push.ticker': this.handleTicker,
             'push.depth': this.handleOrderBook,
+            'push.limit.depth': this.handleOrderBook,
             'push.personal.order': this.handleOrder,
         };
         const method = this.safeValue (methods, channel);
