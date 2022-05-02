@@ -1368,7 +1368,7 @@ module.exports = class kucoin extends Exchange {
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name kucoin#fetchOrdersByStatus
+         * @name kucoin#fetchClosedOrders
          * @description fetch a list of orders
          * @param {str} symbol unified market symbol
          * @param {int} since timestamp in ms of the earliest order
