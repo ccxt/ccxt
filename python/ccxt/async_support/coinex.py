@@ -1377,6 +1377,8 @@ class coinex(Exchange):
         swap = market['swap']
         stopPrice = self.safe_string_2(params, 'stopPrice', 'stop_price')
         postOnly = self.safe_value(params, 'postOnly', False)
+        reduceOnly = self.safe_value(params, 'reduceOnly')
+        positionId = self.safe_integer_2(params, 'position_id', 'positionId')  # Required for closing swap positions
         timeInForce = self.safe_string(params, 'timeInForce')  # Spot: IOC, FOK, PO, GTC, ... NORMAL(default), MAKER_ONLY
         method = None
         request = {
@@ -1384,16 +1386,21 @@ class coinex(Exchange):
         }
         if swap:
             method = 'perpetualPrivatePostOrderPut' + self.capitalize(type)
+            side = 2 if (side == 'buy') else 1
             if stopPrice is not None:
                 stopType = self.safe_integer(params, 'stop_type')  # 1: triggered by the latest transaction, 2: mark price, 3: index price
                 if stopType is None:
                     raise ArgumentsRequired(self.id + ' createOrder() swap stop orders require a stop_type parameter')
                 request['stop_price'] = self.price_to_precision(symbol, stopPrice)
                 request['stop_type'] = self.price_to_precision(symbol, stopType)
+                request['amount'] = self.amount_to_precision(symbol, amount)
+                request['side'] = side
                 if type == 'limit':
                     method = 'perpetualPrivatePostOrderPutStopLimit'
+                    request['price'] = self.price_to_precision(symbol, price)
                 elif type == 'market':
                     method = 'perpetualPrivatePostOrderPutStopMarket'
+                request['amount'] = self.amount_to_precision(symbol, amount)
             if (type != 'market') or (stopPrice is not None):
                 if (timeInForce is not None) or (postOnly is not None):
                     isMakerOrder = False
@@ -1410,11 +1417,21 @@ class coinex(Exchange):
                             timeInForce = 1
                         if timeInForce is not None:
                             request['effect_type'] = timeInForce  # exchange takes 'IOC' and 'FOK'
-            side = 2 if (side == 'buy') else 1
-            request['side'] = side
-            request['amount'] = self.amount_to_precision(symbol, amount)
-            if type == 'limit':
+            if type == 'limit' and stopPrice is None:
+                if reduceOnly:
+                    method = 'perpetualPrivatePostOrderCloseLimit'
+                    request['position_id'] = positionId
+                else:
+                    request['side'] = side
                 request['price'] = self.price_to_precision(symbol, price)
+                request['amount'] = self.amount_to_precision(symbol, amount)
+            elif type == 'market' and stopPrice is None:
+                if reduceOnly:
+                    method = 'perpetualPrivatePostOrderCloseMarket'
+                    request['position_id'] = positionId
+                else:
+                    request['side'] = side
+                    request['amount'] = self.amount_to_precision(symbol, amount)
         else:
             method = 'privatePostOrder' + self.capitalize(type)
             request['type'] = side
@@ -1453,7 +1470,7 @@ class coinex(Exchange):
                     else:
                         if timeInForce is not None:
                             request['option'] = timeInForce  # exchange takes 'IOC' and 'FOK'
-        params = self.omit(params, ['timeInForce', 'postOnly', 'stopPrice', 'stop_price', 'stop_type'])
+        params = self.omit(params, ['reduceOnly', 'position_id', 'positionId', 'timeInForce', 'postOnly', 'stopPrice', 'stop_price', 'stop_type'])
         response = await getattr(self, method)(self.extend(request, params))
         #
         # Spot

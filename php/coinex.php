@@ -1416,6 +1416,8 @@ class coinex extends Exchange {
         $swap = $market['swap'];
         $stopPrice = $this->safe_string_2($params, 'stopPrice', 'stop_price');
         $postOnly = $this->safe_value($params, 'postOnly', false);
+        $reduceOnly = $this->safe_value($params, 'reduceOnly');
+        $positionId = $this->safe_integer_2($params, 'position_id', 'positionId'); // Required for closing $swap positions
         $timeInForce = $this->safe_string($params, 'timeInForce'); // Spot => IOC, FOK, PO, GTC, ... NORMAL (default), MAKER_ONLY
         $method = null;
         $request = array(
@@ -1423,6 +1425,7 @@ class coinex extends Exchange {
         );
         if ($swap) {
             $method = 'perpetualPrivatePostOrderPut' . $this->capitalize($type);
+            $side = ($side === 'buy') ? 2 : 1;
             if ($stopPrice !== null) {
                 $stopType = $this->safe_integer($params, 'stop_type'); // 1 => triggered by the latest transaction, 2 => mark $price, 3 => index $price
                 if ($stopType === null) {
@@ -1430,11 +1433,15 @@ class coinex extends Exchange {
                 }
                 $request['stop_price'] = $this->price_to_precision($symbol, $stopPrice);
                 $request['stop_type'] = $this->price_to_precision($symbol, $stopType);
+                $request['amount'] = $this->amount_to_precision($symbol, $amount);
+                $request['side'] = $side;
                 if ($type === 'limit') {
                     $method = 'perpetualPrivatePostOrderPutStopLimit';
+                    $request['price'] = $this->price_to_precision($symbol, $price);
                 } else if ($type === 'market') {
                     $method = 'perpetualPrivatePostOrderPutStopMarket';
                 }
+                $request['amount'] = $this->amount_to_precision($symbol, $amount);
             }
             if (($type !== 'market') || ($stopPrice !== null)) {
                 if (($timeInForce !== null) || ($postOnly !== null)) {
@@ -1458,11 +1465,23 @@ class coinex extends Exchange {
                     }
                 }
             }
-            $side = ($side === 'buy') ? 2 : 1;
-            $request['side'] = $side;
-            $request['amount'] = $this->amount_to_precision($symbol, $amount);
-            if ($type === 'limit') {
+            if ($type === 'limit' && $stopPrice === null) {
+                if ($reduceOnly) {
+                    $method = 'perpetualPrivatePostOrderCloseLimit';
+                    $request['position_id'] = $positionId;
+                } else {
+                    $request['side'] = $side;
+                }
                 $request['price'] = $this->price_to_precision($symbol, $price);
+                $request['amount'] = $this->amount_to_precision($symbol, $amount);
+            } else if ($type === 'market' && $stopPrice === null) {
+                if ($reduceOnly) {
+                    $method = 'perpetualPrivatePostOrderCloseMarket';
+                    $request['position_id'] = $positionId;
+                } else {
+                    $request['side'] = $side;
+                    $request['amount'] = $this->amount_to_precision($symbol, $amount);
+                }
             }
         } else {
             $method = 'privatePostOrder' . $this->capitalize($type);
@@ -1515,7 +1534,7 @@ class coinex extends Exchange {
                 }
             }
         }
-        $params = $this->omit($params, array( 'timeInForce', 'postOnly', 'stopPrice', 'stop_price', 'stop_type' ));
+        $params = $this->omit($params, array( 'reduceOnly', 'position_id', 'positionId', 'timeInForce', 'postOnly', 'stopPrice', 'stop_price', 'stop_type' ));
         $response = $this->$method (array_merge($request, $params));
         //
         // Spot
