@@ -3261,7 +3261,7 @@ module.exports = class gateio extends Exchange {
 
     async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrdersByStatus requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrdersByStatus() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -3515,11 +3515,11 @@ module.exports = class gateio extends Exchange {
         const toId = this.safeString (accountsByType, toAccount, toAccount);
         if (fromId === undefined) {
             const keys = Object.keys (accountsByType);
-            throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', '));
+            throw new ExchangeError (this.id + ' transfer() fromAccount must be one of ' + keys.join (', '));
         }
         if (toId === undefined) {
             const keys = Object.keys (accountsByType);
-            throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', '));
+            throw new ExchangeError (this.id + ' transfer() toAccount must be one of ' + keys.join (', '));
         }
         const truncated = this.currencyToPrecision (code, amount);
         const request = {
@@ -3573,7 +3573,7 @@ module.exports = class gateio extends Exchange {
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if ((leverage < 0) || (leverage > 100)) {
-            throw new BadRequest (this.id + ' leverage should be between 1 and 100');
+            throw new BadRequest (this.id + ' setLeverage() leverage should be between 1 and 100');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);

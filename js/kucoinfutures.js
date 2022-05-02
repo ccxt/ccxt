@@ -300,7 +300,7 @@ module.exports = class kucoinfutures extends kucoin {
     }
 
     async fetchAccounts (params = {}) {
-        throw new BadRequest (this.id + ' has no method fetchAccounts');
+        throw new BadRequest (this.id + ' fetchAccounts() is not supported yet');
     }
 
     async fetchStatus (params = {}) {
@@ -549,7 +549,7 @@ module.exports = class kucoinfutures extends kucoin {
     }
 
     async createDepositAddress (code, params = {}) {
-        throw new BadRequest (this.id + ' has no method createDepositAddress');
+        throw new BadRequest (this.id + ' createDepositAddress() is not supported yet');
     }
 
     async fetchDepositAddress (code, params = {}) {
@@ -588,7 +588,7 @@ module.exports = class kucoinfutures extends kucoin {
         await this.loadMarkets ();
         const level = this.safeNumber (params, 'level');
         if (level !== 2 && level !== undefined) {
-            throw new BadRequest (this.id + ' fetchOrderBook can only return level 2');
+            throw new BadRequest (this.id + ' fetchOrderBook() can only return level 2');
         }
         const market = this.market (symbol);
         const request = {
@@ -598,7 +598,7 @@ module.exports = class kucoinfutures extends kucoin {
             if ((limit === 20) || (limit === 100)) {
                 request['limit'] = limit;
             } else {
-                throw new BadRequest (this.id + ' fetchOrderBook limit argument must be 20 or 100');
+                throw new BadRequest (this.id + ' fetchOrderBook() limit argument must be 20 or 100');
             }
         } else {
             request['limit'] = 20;
@@ -630,7 +630,7 @@ module.exports = class kucoinfutures extends kucoin {
     }
 
     async fetchL3OrderBook (symbol, limit = undefined, params = {}) {
-        throw new BadRequest (this.id + ' only can only fetch the L2 order book');
+        throw new BadRequest (this.id + ' fetchL3OrderBook() is not supported yet');
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -1123,7 +1123,7 @@ module.exports = class kucoinfutures extends kucoin {
         if (!stop) {
             request['status'] = status;
         } else if (status !== 'active') {
-            throw new BadRequest (this.id + ' fetchOrdersByStatus can only fetch untriggered stop orders');
+            throw new BadRequest (this.id + ' fetchOrdersByStatus() can only fetch untriggered stop orders');
         }
         let market = undefined;
         if (symbol !== undefined) {
@@ -1319,7 +1319,7 @@ module.exports = class kucoinfutures extends kucoin {
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
         if ((toAccount !== 'main' && toAccount !== 'funding') || (fromAccount !== 'futures' && fromAccount !== 'future' && fromAccount !== 'contract')) {
-            throw new BadRequest (this.id + ' only supports transfers from contract(future) account to main(funding) account');
+            throw new BadRequest (this.id + ' transfer() only supports transfers from contract(future) account to main(funding) account');
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1672,11 +1672,11 @@ module.exports = class kucoinfutures extends kucoin {
     }
 
     async fetchFundingFee (code, params = {}) {
-        throw new BadRequest (this.id + ' has no method fetchFundingFee');
+        throw new BadRequest (this.id + ' fetchFundingFee() is not supported yet');
     }
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
-        throw new BadRequest (this.id + ' has no method fetchLedger');
+        throw new BadRequest (this.id + ' fetchLedger() is not supported yet');
     }
 
     async fetchMarketLeverageTiers (symbol, params = {}) {

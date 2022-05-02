@@ -484,7 +484,7 @@ module.exports = class xena extends Exchange {
         if (symbol in tickers) {
             return tickers[symbol];
         }
-        throw new BadSymbol (this.id + ' fetchTicker could not find a ticker with symbol ' + symbol);
+        throw new BadSymbol (this.id + ' fetchTicker() could not find a ticker with symbol ' + symbol);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -1031,7 +1031,7 @@ module.exports = class xena extends Exchange {
         };
         const orderType = this.safeString (orderTypes, type);
         if (orderType === undefined) {
-            throw new InvalidOrder (this.id + ' createOrder does not support order type ' + type + ', supported order types are market, limit, stop, stop-limit');
+            throw new InvalidOrder (this.id + ' createOrder() does not support order type ' + type + ', supported order types are market, limit, stop, stop-limit');
         }
         const orderSides = {
             'buy': '1',
@@ -1039,7 +1039,7 @@ module.exports = class xena extends Exchange {
         };
         const orderSide = this.safeString (orderSides, side);
         if (orderSide === undefined) {
-            throw new InvalidOrder (this.id + ' createOrder does not support order side ' + side + ', supported order sides are buy, sell');
+            throw new InvalidOrder (this.id + ' createOrder() does not support order side ' + side + ', supported order sides are buy, sell');
         }
         const market = this.market (symbol);
         const request = {

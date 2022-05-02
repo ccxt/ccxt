@@ -636,7 +636,7 @@ module.exports = class crex24 extends Exchange {
         //
         const numTickers = response.length;
         if (numTickers < 1) {
-            throw new ExchangeError (this.id + ' fetchTicker could not load quotes for symbol ' + symbol);
+            throw new ExchangeError (this.id + ' fetchTicker() could not load quotes for symbol ' + symbol);
         }
         return this.parseTicker (response[0], market);
     }
@@ -1073,7 +1073,7 @@ module.exports = class crex24 extends Exchange {
         //
         const numOrders = response.length;
         if (numOrders < 1) {
-            throw new OrderNotFound (this.id + ' fetchOrder could not fetch order id ' + id);
+            throw new OrderNotFound (this.id + ' fetchOrder() could not fetch order id ' + id);
         }
         return this.parseOrder (response[0]);
     }
@@ -1262,7 +1262,7 @@ module.exports = class crex24 extends Exchange {
 
     async cancelOrders (ids, symbol = undefined, params = {}) {
         if (!Array.isArray (ids)) {
-            throw new ArgumentsRequired (this.id + ' cancelOrders ids argument should be an array');
+            throw new ArgumentsRequired (this.id + ' cancelOrders() ids argument should be an array');
         }
         await this.loadMarkets ();
         const request = {

@@ -1702,15 +1702,15 @@ module.exports = class bitmart extends Exchange {
         const postOnly = this.safeValue (params, 'postOnly', false);
         if ((timeInForce !== undefined) || postOnly || (type === 'limit_maker') || (type === 'ioc')) {
             if (timeInForce === 'FOK') {
-                throw new InvalidOrder (this.id + ' createOrder () only accepts timeInForce parameter values of IOC or PO');
+                throw new InvalidOrder (this.id + ' createOrder() only accepts timeInForce parameter values of IOC or PO');
             }
             const maker = ((timeInForce === 'PO') || postOnly || (type === 'limit_maker'));
             const ioc = ((timeInForce === 'IOC') || (type === 'ioc'));
             if (maker && ioc) {
-                throw new InvalidOrder (this.id + ' createOrder () does not accept IOC postOnly orders, the order cannot be both postOnly and IOC');
+                throw new InvalidOrder (this.id + ' createOrder() does not accept IOC postOnly orders, the order cannot be both postOnly and IOC');
             }
             if (type === 'market') {
-                throw new InvalidOrder (this.id + ' createOrder () does not accept market postOnly orders or market IOC orders, only limit postOnly order or limit IOC orders are allowed');
+                throw new InvalidOrder (this.id + ' createOrder() does not accept market postOnly orders or market IOC orders, only limit postOnly order or limit IOC orders are allowed');
             }
             if (maker) {
                 request['type'] = 'limit_maker';
@@ -2022,7 +2022,7 @@ module.exports = class bitmart extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!(market['swap'] || market['future'])) {
-            throw new NotSupported (this.id + ' fetchOrders does not support ' + market['type'] + ' markets, only contracts are supported');
+            throw new NotSupported (this.id + ' fetchOrders() does not support ' + market['type'] + ' markets, only contracts are supported');
         }
         return await this.fetchOrdersByStatus (0, symbol, since, limit, params);
     }

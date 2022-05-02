@@ -1075,7 +1075,7 @@ module.exports = class stex extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         if (type === 'market') {
-            throw new ExchangeError (this.id + ' createOrder allows limit orders only');
+            throw new ExchangeError (this.id + ' createOrder() allows limit orders only');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1295,7 +1295,7 @@ module.exports = class stex extends Exchange {
         const numRejectedOrders = rejectedOrders.length;
         if (numAcceptedOrders < 1) {
             if (numRejectedOrders < 1) {
-                throw new OrderNotFound (this.id + ' cancelOrder received an empty response: ' + this.json (response));
+                throw new OrderNotFound (this.id + ' cancelOrder() received an empty response: ' + this.json (response));
             } else {
                 return this.parseOrder (rejectedOrders[0]);
             }
@@ -1303,7 +1303,7 @@ module.exports = class stex extends Exchange {
             if (numRejectedOrders < 1) {
                 return this.parseOrder (acceptedOrders[0]);
             } else {
-                throw new OrderNotFound (this.id + ' cancelOrder received an empty response: ' + this.json (response));
+                throw new OrderNotFound (this.id + ' cancelOrder() received an empty response: ' + this.json (response));
             }
         }
     }
