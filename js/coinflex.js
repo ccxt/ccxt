@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadRequest, ArgumentsRequired } = require ('./base/errors');
+const { ExchangeError, BadRequest, InvalidOrder, ArgumentsRequired } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -205,7 +205,7 @@ module.exports = class coinflex extends Exchange {
                     },
                     'post': {
                         'v2.1/delivery/orders': 1,
-                        'v2/orders/place': 1,
+                        'v2/orders/place': 1, // Note: supports batch/bulk orders
                         'v2/orders/modify': 1,
                         'v2/mint': 1,
                         'v2/redeem': 1,
@@ -376,7 +376,7 @@ module.exports = class coinflex extends Exchange {
                     symbol += ':' + settle + '-' + this.yymmdd (settlementTime);
                 }
             } else if (type === 'SPREAD' || type === 'REPO') {
-                continue;
+                // continue;
             }
             result.push ({
                 'id': id,
@@ -403,7 +403,7 @@ module.exports = class coinflex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': undefined,
+                    'amount': this.safeNumber (market, 'minSize'),
                     'price': this.safeNumber (market, 'tickSize'),
                 },
                 'limits': {
@@ -412,7 +412,7 @@ module.exports = class coinflex extends Exchange {
                         'max': undefined,
                     },
                     'amount': {
-                        'min': this.safeNumber (market, 'minSize'),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'price': {
@@ -710,13 +710,12 @@ module.exports = class coinflex extends Exchange {
         return this.safeString (sides, side, side);
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
-            'OrderOpened': 'open',
-            'OrderMatched': 'closed',
-            'OrderClosed': 'canceled',
+    convertOrderSide (side) {
+        const sides = {
+            'buy': 'BUY',
+            'sell': 'SELL',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (sides, side, side);
     }
 
     parseOrderType (type) {
@@ -728,6 +727,14 @@ module.exports = class coinflex extends Exchange {
         return this.safeString (types, type, type);
     }
 
+    convertOrderType (type) {
+        const types = {
+            'market': 'MARKET',
+            'limit': 'LIMIT',
+        };
+        return this.safeString (types, type, type);
+    }
+
     parseTimeInForce (status) {
         const statuses = {
             'FOK': 'FOK',
@@ -735,6 +742,15 @@ module.exports = class coinflex extends Exchange {
             'GTC': 'GTC',
             'MAKER_ONLY': 'PO',
             'MAKER_ONLY_REPRICE': 'PO',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'OrderOpened': 'open',
+            'OrderMatched': 'closed',
+            'OrderClosed': 'canceled',
         };
         return this.safeString (statuses, status, status);
     }
@@ -1613,26 +1629,84 @@ module.exports = class coinflex extends Exchange {
         };
     }
 
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        let clientOrderId = this.safeString (params, 'clientOrderId');
+        const maxCOI = '9223372036854775807';
+        if ((clientOrderId !== undefined) && Precise.stringGt (clientOrderId, maxCOI)) {
+            throw new InvalidOrder (this.id + ' createOrder() param clientOrderId should not exceed ' + maxCOI);
+        }
+        const orderType = this.convertOrderType (type);
+        // creating stop orders using type argument will mess up the unification logic (beacuse of missing market/limit). So, we have to use unified approach for sending stop orders
+        if (orderType === 'STOP') {
+            throw new ArgumentsRequired (this.id + ' createOrder() : to create a stop order, you need to specify the "stopPrice" param');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const order = {
+            'marketCode': market['id'],
+            'side': this.convertOrderSide (side),
+            'orderType': this.convertOrderType (type),
+            'quantity': this.amountToPrecision (symbol, amount),
+        };
+        const stopPrice = this.safeNumber (params, 'stopPrice');
+        const isStopOrder = stopPrice !== undefined;
+        if (isStopOrder) {
+            order['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+            params = this.omit (params, 'stopPrice');
+        }
+        if (price !== undefined && type === 'limit') {
+            // stop orders have separate field for limit price
+            if (isStopOrder) {
+                const limitPrice = this.safeNumber (params, 'limitPrice', price);
+                order['limitPrice'] = this.priceToPrecision (symbol, limitPrice);
+            } else {
+                order['price'] = this.priceToPrecision (symbol, price);
+            }
+        }
+        order['clientOrderId'] = (clientOrderId !== undefined) ? clientOrderId : this.microseconds ().toString ();
+        const request = {
+            'responseType': 'FULL', // FULL, ACK
+            'orders': [ order ],
+        };
+        const response = await this.privatePostV2OrdersPlace (this.extend (request, params));
+        //
+        //     {
+        //         "result":[
+        //             {
+        //                 "result": "100055558128036", // order id
+        //                 "index": 12345, // random index, specific one in a batch
+        //                 "cmd":"orderpending/trade"
+        //             }
+        //         ]
+        //     }
+        //
+        const outerResults = this.safeValue (response, 'result');
+        const firstResult = this.safeValue (outerResults, 0, {});
+        const id = this.safeValue (firstResult, 'result');
+        return {
+            'info': response,
+            'id': id,
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         headers = { 'User-Agent': 'CCXT:)' };
         const [ finalPath, query ] = this.resolvePath (path, params);
         let url = this.urls['api'][api] + '/' + finalPath;
-        let encoded = '';
+        let encodedParams = '';
         if (Object.keys (query).length) {
-            encoded = this.urlencode (query);
+            encodedParams = this.urlencodeNested (query);
             if (method === 'GET') {
-                url += '?' + encoded;
+                url += '?' + encodedParams;
             }
         }
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            const timestamp = this.milliseconds ();
-            const datetime = this.ymdhms (timestamp, 'T');
             const nonce = this.nonce ();
-            let auth = datetime + '\n' + nonce + '\n' + method + '\n' + this.options['baseApiDomain'] + '\n' + '/' + finalPath + '\n' + encoded;
+            const datetime = this.ymdhms (this.milliseconds (), 'T');
+            const auth = datetime + '\n' + nonce + '\n' + method + '\n' + this.options['baseApiDomain'] + '\n' + '/' + finalPath + '\n' + encodedParams;
             if (method === 'POST') {
-                auth += body;
-                body = this.json (query);
+                body = (query);
             }
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
             headers['Content-Type'] = 'application/json';
