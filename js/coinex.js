@@ -2548,7 +2548,7 @@ module.exports = class coinex extends Exchange {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
         marginType = marginType.toLowerCase ();
-        if (marginType !== 'isolated' && marginType !== 'crossed') {
+        if (marginType !== 'isolated' && marginType !== 'cross') {
             throw new BadRequest (this.id + ' setMarginMode() marginType argument should be isolated or cross');
         }
         await this.loadMarkets ();
