@@ -26,6 +26,9 @@ module.exports = class hollaex extends ccxt.hollaex {
                 'api': {
                     'ws': 'wss://api.hollaex.com/stream',
                 },
+                'test': {
+                    'ws': 'wss://api.sandbox.hollaex.com/stream',
+                },
             },
             'options': {
                 'watchBalance': {

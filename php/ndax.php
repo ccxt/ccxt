@@ -62,7 +62,7 @@ class ndax extends \ccxt\async\ndax {
             'o' => $this->json($payload), // JSON-formatted string containing the data being sent with the $message
         );
         $message = array_merge($request, $params);
-        return yield $this->watch($url, $messageHash, $message);
+        return yield $this->watch($url, $messageHash, $message, $messageHash);
     }
 
     public function handle_ticker($client, $message) {
@@ -122,7 +122,7 @@ class ndax extends \ccxt\async\ndax {
             'o' => $this->json($payload), // JSON-formatted string containing the data being sent with the $message
         );
         $message = array_merge($request, $params);
-        $trades = yield $this->watch($url, $messageHash, $message);
+        $trades = yield $this->watch($url, $messageHash, $message, $messageHash);
         if ($this->newUpdates) {
             $limit = $trades->getLimit ($symbol, $limit);
         }
@@ -196,7 +196,7 @@ class ndax extends \ccxt\async\ndax {
             'o' => $this->json($payload), // JSON-formatted string containing the data being sent with the $message
         );
         $message = array_merge($request, $params);
-        $ohlcv = yield $this->watch($url, $messageHash, $message);
+        $ohlcv = yield $this->watch($url, $messageHash, $message, $messageHash);
         if ($this->newUpdates) {
             $limit = $ohlcv->getLimit ($symbol, $limit);
         }
