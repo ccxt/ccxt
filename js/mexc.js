@@ -51,8 +51,10 @@ module.exports = class mexc extends ccxt.mexc {
             'exceptions': {
                 'ws': {
                     'exact': {
-                        'Bearer or HMAC authentication required': BadSymbol, // { error: 'Bearer or HMAC authentication required' }
-                        'Error: wrong input': BadRequest, // { error: 'Error: wrong input' }
+                        'signature validation failed': AuthenticationError, // { channel: 'sub.personal', msg: 'signature validation failed'}
+                    },
+                    'broad': {
+                        'Contract not exists': BadSymbol, // { channel: 'rs.error', data: 'Contract not exists', ts: 1651509181535}
                     },
                 },
             },
@@ -507,8 +509,7 @@ module.exports = class mexc extends ccxt.mexc {
         [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         let orders = undefined;
         if (type === 'spot') {
-            const channel = 'sub.personal';
-            orders = await this.watchSpotPrivate (messageHash, channel, undefined, params);
+            orders = await this.watchSpotPrivate (messageHash, params);
         } else {
             orders = await this.watchSwapPrivate (messageHash, params);
         }
@@ -672,7 +673,7 @@ module.exports = class mexc extends ccxt.mexc {
         sortedParams['api_secret'] = this.secret;
         const encodedParams = this.urlencode (sortedParams);
         const hash = this.hash (encodedParams, 'md5');
-        request['sign'] = hash;
+        request['sign'] = hash + 'here';
         const extendedRequest = this.extend (request, params);
         return await this.watch (url, messageHash, extendedRequest, channel);
     }
@@ -699,14 +700,25 @@ module.exports = class mexc extends ccxt.mexc {
 
     handleErrorMessage (client, message) {
         //
-        //     { error: 'Bearer or HMAC authentication required' }
-        //     { error: 'Error: wrong input' }
+        //   { channel: 'sub.personal', msg: 'signature validation failed' }
         //
-        const error = this.safeInteger (message, 'error');
+        //   {
+        //       channel: 'rs.error',
+        //       data: 'Contract not exists',
+        //       ts: 1651509181535
+        //   }
+        //
+        const channel = this.safeString (message, 'channel');
         try {
-            if (error !== undefined) {
-                const feedback = this.id + ' ' + this.json (message);
-                this.throwExactlyMatchedException (this.exceptions['ws']['exact'], error, feedback);
+            const feedback = this.id + ' ' + this.json (message);
+            if (channel.indexOf ('error') !== -1) {
+                const data = this.safeString (message, 'data');
+                this.throwExactlyMatchedException (this.exceptions['ws']['exact'], data, feedback);
+                this.throwBroadlyMatchedException (this.exceptions['ws']['broad'], message, feedback);
+            }
+            if (channel === 'sub.personal') {
+                const msg = this.safeString (message, 'msg');
+                this.throwExactlyMatchedException (this.exceptions['ws']['exact'], msg, feedback);
             }
         } catch (e) {
             if (e instanceof AuthenticationError) {
