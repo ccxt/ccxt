@@ -621,7 +621,7 @@ module.exports = class mexc extends ccxt.mexc {
         } else {
             side = (rawSide === '1') ? 'buy' : 'sell';
         }
-        let id = this.safeString2 (trade, 'id');
+        let id = this.safeString (trade, 'id');
         if (id === undefined) {
             id = timestamp.toString () + '-' + market['id'] + '-' + amountString;
         }
@@ -855,7 +855,7 @@ module.exports = class mexc extends ccxt.mexc {
         const amount = this.safeString2 (order, 'quantity', 'vol');
         const remaining = this.safeString (order, 'remainQuantity');
         const filled = this.safeString (order, 'dealVol');
-        const cost = this.safeString2 (order, 'amount');
+        const cost = this.safeString (order, 'amount');
         const avgPrice = this.safeString (order, 'dealAvgPrice');
         const marketId = this.safeString2 (order, 'symbol', 'symbolDisplay');
         const symbol = this.safeSymbol (marketId, market, '_');
@@ -1013,7 +1013,7 @@ module.exports = class mexc extends ccxt.mexc {
         const sortedParams = this.keysort (request);
         sortedParams['api_secret'] = this.secret;
         const encodedParams = this.urlencode (sortedParams);
-        const hash = this.hash (encodedParams, 'md5');
+        const hash = this.hash (this.encode (encodedParams), 'md5');
         request['sign'] = hash;
         const extendedRequest = this.extend (request, params);
         return await this.watch (url, messageHash, extendedRequest, channel);
