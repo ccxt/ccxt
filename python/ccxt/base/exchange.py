@@ -707,7 +707,7 @@ class Exchange(object):
         string_code = str(http_status_code)
         if string_code in self.httpExceptions:
             Exception = self.httpExceptions[string_code]
-            raise Exception(self.id + ' '.join([self.id, method, url, string_code, http_status_text, body]))
+            raise Exception(' '.join([self.id, method, url, string_code, http_status_text, body]))
 
     def parse_json(self, http_response):
         try:
