@@ -387,6 +387,7 @@ module.exports = class mexc extends ccxt.mexc {
         //      "ts":1651239652372
         //
         const data = this.safeValue (message, 'data', {});
+        const nonce = this.safeNumber (data, 'end');
         const asks = this.safeValue (data, 'asks', []);
         const bids = this.safeValue (data, 'bids', []);
         this.handleDeltas (orderbook['asks'], asks);
@@ -394,6 +395,7 @@ module.exports = class mexc extends ccxt.mexc {
         const timestamp = this.safeInteger (message, 'ts');
         const marketId = this.safeString (message, 'symbol');
         const symbol = this.safeSymbol (marketId);
+        orderbook['nonce'] = nonce;
         orderbook['symbol'] = symbol;
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
@@ -546,6 +548,28 @@ module.exports = class mexc extends ccxt.mexc {
         //         symbol_display: 'LTC_USDT'
         //     }
         //
+        // spot trigger
+        //
+        //   {
+        //       symbol: 'LTC_USDT',
+        //       data: {
+        //         id: '048dddc31b9a451084b8db8b561a0e33',
+        //         market: 'USDT',
+        //         currency: 'LTC',
+        //         triggerType: 'LE',
+        //         triggerPrice: 80,
+        //         tradeType: 'BUY',
+        //         orderType: 100,
+        //         price: 70,
+        //         quantity: 0.0857,
+        //         state: 'NEW',
+        //         createTime: 1651578450223,
+        //         currencyDisplay: 'LTC'
+        //       },
+        //       channel: 'push.personal.trigger.order',
+        //       symbol_display: 'LTC_USDT'
+        //     }
+        //
         //  swap order
         // {
         //     channel: 'push.personal.order',
@@ -586,18 +610,171 @@ module.exports = class mexc extends ccxt.mexc {
             marketId = this.safeString (data, 'symbol');
         }
         const market = this.safeMarket (marketId);
-        const parsed = this.parseOrder (data, market);
+        const parsed = this.parseWSOrder (data, market);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         const orders = this.orders;
         orders.append (parsed);
-        // non-symbol specific
         let channel = 'order';
+        // non-symbol specific
         client.resolve (orders, channel);
         channel += ':' + market['symbol'];
         client.resolve (orders, channel);
+    }
+
+    parseWSOrder (order, market = undefined) {
+        //
+        // spot order
+        //     {
+        //           price: 100.25,
+        //           quantity: 0.0498,
+        //           amount: 4.99245,
+        //           remainAmount: 0.01245,
+        //           remainQuantity: 0,
+        //           remainQ: 0,
+        //           remainA: 0,
+        //           id: '0b1bf3a33916499f8d1a711a7d5a6fc4',
+        //           status: 2,
+        //           tradeType: 1,
+        //           orderType: 3, // 1 = limit, 3 = market, 100 = 'limit
+        //           createTime: 1651499416000,
+        //           isTaker: 1,
+        //           symbolDisplay: 'LTC_USDT',
+        //           clientOrderId: ''
+        //     }
+        // spot trigger order
+        //    {
+        //        id: '048dddc31b9a451084b8db8b561a0e33',
+        //        market: 'USDT',
+        //        currency: 'LTC',
+        //        triggerType: 'LE',
+        //        triggerPrice: 80,
+        //        tradeType: 'BUY',
+        //        orderType: 100,
+        //        price: 70,
+        //        quantity: 0.0857,
+        //        state: 'NEW',
+        //        createTime: 1651578450223,
+        //        currencyDisplay: 'LTC'
+        //      }
+        //
+        //  swap order
+        //   {
+        //       category: 1,
+        //       createTime: 1651500368131,
+        //       dealAvgPrice: 0,
+        //       dealVol: 0,
+        //       errorCode: 0,
+        //       externalOid: '_m_4a78c91ca8be4c4580d94e637b1f70d1',
+        //       feeCurrency: 'USDT',
+        //       leverage: 1,
+        //       makerFee: 0,
+        //       openType: 2,
+        //       orderId: '276110898672819715',
+        //       orderMargin: 0.5006,
+        //       orderType: 1, // 5 = market, 1 = limit,
+        //       positionId: 0,
+        //       positionMode: 1,
+        //       price: 50,
+        //       profit: 0,
+        //       remainVol: 1,
+        //       side: 1,
+        //       state: 2,
+        //       symbol: 'LTC_USDT',
+        //       takerFee: 0,
+        //       updateTime: 1651500368142,
+        //       usedMargin: 0,
+        //       version: 1,
+        //       vol: 1
+        //     }
+        //
+        const id = this.safeString2 (order, 'orderId', 'id');
+        const state = this.safeString2 (order, 'state', 'status');
+        const timestamp = this.safeInteger (order, 'createTime');
+        const price = this.safeString (order, 'price');
+        const amount = this.safeString2 (order, 'quantity', 'vol');
+        const remaining = this.safeString (order, 'remain_quantity');
+        const filled = this.safeString2 (order, 'deal_quantity', 'dealVol');
+        const cost = this.safeString2 (order, 'deal_amount', 'dealAvgPrice');
+        const marketId = this.safeString2 (order, 'symbol', 'symbolDisplay');
+        const symbol = this.safeSymbol (marketId, market, '_');
+        const sideCheck = this.safeInteger (order, 'side');
+        let side = undefined;
+        if (sideCheck === 1) {
+            side = 'open long';
+        } else if (side === 2) {
+            side = 'close short';
+        } else if (side === 3) {
+            side = 'open short';
+        } else if (side === 4) {
+            side = 'close long';
+        }
+        const tradeType = this.safeStringLower (order, 'tradeType');
+        if (tradeType === 'ask') {
+            side = 'sell';
+        } else if (tradeType === 'bid') {
+            side = 'buy';
+        } else {
+            side = tradeType;
+        }
+        const status = this.parseWsOrderStatus (state, market);
+        let clientOrderId = this.safeString2 (order, 'client_order_id', 'orderId');
+        if (clientOrderId === '') {
+            clientOrderId = undefined;
+        }
+        const rawType = this.safeString (order, 'orderType');
+        const isMarket = (rawType === '3') || (rawType === '5');
+        const type = isMarket ? 'market' : 'limit';
+        return this.safeOrder ({
+            'id': id,
+            'clientOrderId': clientOrderId,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': this.safeInteger (order, 'updateTime'),
+            'status': status,
+            'symbol': symbol,
+            'type': type,
+            'timeInForce': undefined,
+            'side': side,
+            'price': price,
+            'stopPrice': undefined,
+            'average': undefined,
+            'amount': amount,
+            'cost': cost,
+            'filled': filled,
+            'remaining': remaining,
+            'fee': undefined,
+            'trades': undefined,
+            'info': order,
+        }, market);
+    }
+
+    parseWsOrderStatus (status, market = undefined) {
+        let statuses = {};
+        if (market['type'] === 'spot') {
+            statuses = {
+                '1': 'open',
+                '2': 'closed',
+                '3': 'open',
+                '4': 'canceled',
+                '5': 'open',
+                // spot trigger only
+                'NEW': 'open',
+                'FILLED': 'closed',
+                'PARTIALLY_FILLED': 'open',
+                'CANCELED': 'canceled',
+                'PARTIALLY_CANCELED': 'canceled',
+            };
+        } else {
+            statuses = {
+                '2': 'open',
+                '3': 'closed',
+                '4': 'canceled',
+            };
+        }
+        return this.safeString (statuses, status, status);
     }
 
     async watchBalance (params = {}) {
@@ -615,6 +792,7 @@ module.exports = class mexc extends ccxt.mexc {
     handleBalance (client, message) {
         //
         // swap balance
+        //
         // {
         //     channel: 'push.personal.asset',
         //     data: {
@@ -876,6 +1054,9 @@ module.exports = class mexc extends ccxt.mexc {
             'push.depth': this.handleOrderBook,
             'push.limit.depth': this.handleOrderBook,
             'push.personal.order': this.handleOrder,
+            'push.personal.trigger.order': this.handleOrder,
+            'push.personal.plan.order': this.handleOrder,
+            // 'push.personal.order.deal': this.handleMyTrade,
         };
         const method = this.safeValue (methods, channel);
         if (method !== undefined) {
