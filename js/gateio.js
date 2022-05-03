@@ -409,7 +409,7 @@ module.exports = class gateio extends Exchange {
                     'margin': 'margin',
                     'cross_margin': 'cross_margin',
                     'cross': 'cross_margin',
-                    'inverse': 'margin',
+                    'isolated': 'margin',
                     'swap': 'futures',
                     'future': 'delivery',
                     'futures': 'futures',
