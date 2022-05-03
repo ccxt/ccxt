@@ -1799,11 +1799,11 @@ class Exchange {
 
         if ($result === false) {
             if ($curl_errno == 28) { // CURLE_OPERATION_TIMEDOUT
-                throw new RequestTimeout(implode(' ', array($url, $method, $curl_errno, $curl_error)));
+                throw new RequestTimeout($this->id . ' ' . implode(' ', array($url, $method, $curl_errno, $curl_error)));
             }
 
             // all sorts of SSL problems, accessibility
-            throw new ExchangeNotAvailable(implode(' ', array($url, $method, $curl_errno, $curl_error)));
+            throw new ExchangeNotAvailable($this->id . ' ' . implode(' ', array($url, $method, $curl_errno, $curl_error)));
         }
 
         $skip_further_error_handling = $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $result ? $result : null, $json_response, $headers, $body);
@@ -1825,7 +1825,7 @@ class Exchange {
             if (substr($error_class, 0, 6) !== '\\ccxt\\') {
                 $error_class = '\\ccxt\\' . $error_class;
             }
-            throw new $error_class(implode(' ', array($this->id, $url, $method, $http_status_code, $body)));
+            throw new $error_class($this->id . ' ' . implode(' ', array($this->id, $url, $method, $http_status_code, $body)));
         }
     }
 
@@ -2589,7 +2589,7 @@ class Exchange {
             $deposit_addresses = $this->fetch_deposit_addresses(array($code), $params);
             $deposit_address = $this->safe_value($deposit_addresses, $code);
             if ($deposit_address === null) {
-                throw new InvalidAddress($this->id . ' fetchDepositAddress could not find a deposit address for ' . $code . ', make sure you have created a corresponding deposit address in your wallet on the exchange website');
+                throw new InvalidAddress($this->id . ' fetchDepositAddress() could not find a deposit address for ' . $code . ', make sure you have created a corresponding deposit address in your wallet on the exchange website');
             } else {
                 return $deposit_address;
             }
@@ -3743,7 +3743,7 @@ class Exchange {
         if (array_key_exists($key, $mapping)) {
             return $mapping[$key];
         } else {
-            throw new NotSupported ($this->id . ' ' . $key . ' does not have a value in mapping');
+            throw new NotSupported($this->id . ' ' . $key . ' does not have a value in mapping');
         }
     }
 
