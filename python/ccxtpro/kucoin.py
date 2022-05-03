@@ -773,7 +773,7 @@ class kucoin(Exchange, ccxt.kucoin):
         await self.load_markets()
         self.check_required_credentials()
         messageHash = '/account/balance'
-        selectedType = self.safe_string_2(self.options, 'watchBalance', 'defaultType', 'trade')  # trade, main, margin or other
+        selectedType = self.safe_string_2(self.options, 'watchBalance', 'defaultType', 'spot')  # spot, margin, main, funding, future, mining, trade, contract, pool
         params = {
             'type': selectedType,
         }

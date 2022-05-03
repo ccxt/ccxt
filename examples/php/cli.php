@@ -2,7 +2,9 @@
 
 error_reporting(E_ALL | E_STRICT);
 date_default_timezone_set('UTC');
-require_once '../../vendor/autoload.php';
+
+$root = dirname(dirname(dirname(__FILE__)));
+require_once $root . '/vendor/autoload.php';
 
 date_default_timezone_set('UTC');
 
