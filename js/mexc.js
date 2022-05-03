@@ -882,6 +882,7 @@ module.exports = class mexc extends ccxt.mexc {
         let statuses = {};
         if (market['type'] === 'spot') {
             statuses = {
+                // spot limit/market
                 '1': 'open',
                 '2': 'closed',
                 '3': 'open',
