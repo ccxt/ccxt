@@ -993,7 +993,7 @@ module.exports = class Exchange {
                 return depositAddress;
             }
         } else {
-            throw new NotSupported (this.id + ' fetchDepositAddress not supported yet');
+            throw new NotSupported (this.id + ' fetchDepositAddress() not supported yet');
         }
     }
 
@@ -1153,7 +1153,7 @@ module.exports = class Exchange {
     }
 
     async fetchBalance (params = {}) {
-        throw new NotSupported (this.id + ' fetchBalance not supported yet')
+        throw new NotSupported (this.id + ' fetchBalance() not supported yet')
     }
 
     async fetchPartialBalance (part, params = {}) {
@@ -1184,12 +1184,12 @@ module.exports = class Exchange {
     }
 
     async fetchTradingFees (params = {}) {
-        throw new NotSupported (this.id + ' fetchTradingFees not supported yet')
+        throw new NotSupported (this.id + ' fetchTradingFees() not supported yet')
     }
 
     async fetchTradingFee (symbol, params = {}) {
         if (!this.has['fetchTradingFees']) {
-            throw new NotSupported (this.id + ' fetchTradingFee not supported yet')
+            throw new NotSupported (this.id + ' fetchTradingFee() not supported yet')
         }
         return await this.fetchTradingFees (params)
     }
@@ -1620,7 +1620,7 @@ module.exports = class Exchange {
     parseOHLCVs (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         // this code is commented out temporarily to catch for exchange-specific errors
         // if (!this.isArray (ohlcvs)) {
-        //     throw new ExchangeError (this.id + ' parseOHLCVs expected an array in the ohlcvs argument, but got ' + typeof ohlcvs);
+        //     throw new ExchangeError (this.id + ' parseOHLCVs() expected an array in the ohlcvs argument, but got ' + typeof ohlcvs);
         // }
         const parsed = ohlcvs.map ((ohlcv) => this.parseOHLCV (ohlcv, market))
         const sorted = this.sortBy (parsed, 0)

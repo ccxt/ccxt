@@ -4494,7 +4494,7 @@ class binance(Exchange):
         linear = ('notional' in position)
         if marginType == 'cross':
             # calculate collateral
-            precision = self.safe_value(market, 'precision')
+            precision = self.safe_value(market, 'precision', {})
             if linear:
                 # walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
                 onePlusMaintenanceMarginPercentageString = None
@@ -4506,8 +4506,10 @@ class binance(Exchange):
                     onePlusMaintenanceMarginPercentageString = Precise.string_add('-1', maintenanceMarginPercentageString)
                 inner = Precise.string_mul(liquidationPriceString, onePlusMaintenanceMarginPercentageString)
                 leftSide = Precise.string_add(inner, entryPriceSignString)
-                quotePrecision = self.safe_integer(precision, 'quote')
-                collateralString = Precise.string_div(Precise.string_mul(leftSide, contractsAbs), '1', quotePrecision)
+                pricePrecision = self.safe_integer(precision, 'price')
+                quotePrecision = self.safe_integer(precision, 'quote', pricePrecision)
+                if quotePrecision is not None:
+                    collateralString = Precise.string_div(Precise.string_mul(leftSide, contractsAbs), '1', quotePrecision)
             else:
                 # walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
                 onePlusMaintenanceMarginPercentageString = None
@@ -4520,7 +4522,8 @@ class binance(Exchange):
                 leftSide = Precise.string_mul(contractsAbs, contractSizeString)
                 rightSide = Precise.string_sub(Precise.string_div('1', entryPriceSignString), Precise.string_div(onePlusMaintenanceMarginPercentageString, liquidationPriceString))
                 basePrecision = self.safe_integer(precision, 'base')
-                collateralString = Precise.string_div(Precise.string_mul(leftSide, rightSide), '1', basePrecision)
+                if basePrecision is not None:
+                    collateralString = Precise.string_div(Precise.string_mul(leftSide, rightSide), '1', basePrecision)
         else:
             collateralString = self.safe_string(position, 'isolatedMargin')
         collateralString = '0' if (collateralString is None) else collateralString
