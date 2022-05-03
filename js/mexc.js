@@ -145,48 +145,49 @@ module.exports = class mexc extends ccxt.mexc {
 
     handleOHLCV (client, message) {
         // spot
-        // {
-        //     symbol: 'BTC_USDT',
-        //     data: {
+        //   {
         //       symbol: 'BTC_USDT',
-        //       interval: 'Min1',
-        //       t: 1651230720,
-        //       o: 38870.18,
-        //       c: 38867.55,
-        //       h: 38873.19,
-        //       l: 38867.05,
-        //       v: 71031.87886502,
-        //       q: 1.827357,
-        //       e: 38867.05,
-        //       rh: 38873.19,
-        //       rl: 38867.05
-        //     },
-        //     channel: 'push.kline',
-        //     symbol_display: 'BTC_USDT'
-        // }
+        //       data: {
+        //         symbol: 'BTC_USDT',
+        //         interval: 'Min1',
+        //         t: 1651230720,
+        //         o: 38870.18,
+        //         c: 38867.55,
+        //         h: 38873.19,
+        //         l: 38867.05,
+        //         v: 71031.87886502,
+        //         q: 1.827357,
+        //         e: 38867.05,
+        //         rh: 38873.19,
+        //         rl: 38867.05
+        //       },
+        //       channel: 'push.kline',
+        //       symbol_display: 'BTC_USDT'
+        //   }
         //
         // swap
         //
-        //  {
-        //      channel: 'push.kline',
-        //      data: {
-        //        a: 325653.3287,
-        //        c: 38839,
-        //        h: 38909.5,
-        //        interval: 'Min1',
-        //        l: 38833,
-        //        o: 38901.5,
-        //        q: 83808,
-        //        rc: 38839,
-        //        rh: 38909.5,
-        //        rl: 38833,
-        //        ro: 38909.5,
-        //        symbol: 'BTC_USDT',
-        //        t: 1651230660
-        //      },
-        //      symbol: 'BTC_USDT',
-        //      ts: 1651230713067
-        //  }
+        //   {
+        //       channel: 'push.kline',
+        //       data: {
+        //         a: 325653.3287,
+        //         c: 38839,
+        //         h: 38909.5,
+        //         interval: 'Min1',
+        //         l: 38833,
+        //         o: 38901.5,
+        //         q: 83808,
+        //         rc: 38839,
+        //         rh: 38909.5,
+        //         rl: 38833,
+        //         ro: 38909.5,
+        //         symbol: 'BTC_USDT',
+        //         t: 1651230660
+        //       },
+        //       symbol: 'BTC_USDT',
+        //       ts: 1651230713067
+        //   }
+        //
         const marketId = this.safeString (message, 'symbol');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
@@ -242,7 +243,7 @@ module.exports = class mexc extends ccxt.mexc {
         //        ro: 38909.5,
         //        symbol: 'BTC_USDT',
         //        t: 1651230660
-        //      },
+        //    }
         //
         return [
             this.safeIntegerProduct (ohlcv, 't', 1000),
@@ -403,11 +404,13 @@ module.exports = class mexc extends ccxt.mexc {
     }
 
     handleDelta (bookside, delta) {
-        //   [
+        //
+        //  [
         //     39146.5,
         //     11264,
         //     1
-        //    ]
+        //  ]
+        //
         const price = this.safeFloat (delta, 0);
         const amount = this.safeFloat (delta, 1);
         bookside.store (price, amount);
@@ -545,7 +548,6 @@ module.exports = class mexc extends ccxt.mexc {
         //        ts: 1651583897291
         //    }
         //
-        //
         const data = this.safeValue (message, 'data', {});
         const marketId = this.safeString (data, 'symbol');
         const market = this.safeMarket (marketId);
@@ -582,7 +584,7 @@ module.exports = class mexc extends ccxt.mexc {
         //     "p":6866.5,
         //     "t":1587442049632,
         //     "v":2096
-        //   },
+        //   }
         //
         // private swap
         //   {
@@ -799,6 +801,7 @@ module.exports = class mexc extends ccxt.mexc {
         //           symbolDisplay: 'LTC_USDT',
         //           clientOrderId: ''
         //     }
+        //
         // spot trigger order
         //    {
         //        id: '048dddc31b9a451084b8db8b561a0e33',
@@ -813,7 +816,7 @@ module.exports = class mexc extends ccxt.mexc {
         //        state: 'NEW',
         //        createTime: 1651578450223,
         //        currencyDisplay: 'LTC'
-        //      }
+        //    }
         //
         //  swap order
         //   {
@@ -1078,6 +1081,7 @@ module.exports = class mexc extends ccxt.mexc {
     handleMessage (client, message) {
         //
         // spot pong
+        //
         //  "ping"
         //
         // swap pong
