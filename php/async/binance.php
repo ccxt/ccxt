@@ -4725,7 +4725,7 @@ class binance extends Exchange {
         $linear = (is_array($position) && array_key_exists('notional', $position));
         if ($marginType === 'cross') {
             // calculate $collateral
-            $precision = $this->safe_value($market, 'precision');
+            $precision = $this->safe_value($market, 'precision', array());
             if ($linear) {
                 // walletBalance = ($liquidationPrice * (±1 . mmp) ± $entryPrice) * $contracts
                 $onePlusMaintenanceMarginPercentageString = null;
@@ -4738,8 +4738,11 @@ class binance extends Exchange {
                 }
                 $inner = Precise::string_mul($liquidationPriceString, $onePlusMaintenanceMarginPercentageString);
                 $leftSide = Precise::string_add($inner, $entryPriceSignString);
-                $quotePrecision = $this->safe_integer($precision, 'quote');
-                $collateralString = Precise::string_div(Precise::string_mul($leftSide, $contractsAbs), '1', $quotePrecision);
+                $pricePrecision = $this->safe_integer($precision, 'price');
+                $quotePrecision = $this->safe_integer($precision, 'quote', $pricePrecision);
+                if ($quotePrecision !== null) {
+                    $collateralString = Precise::string_div(Precise::string_mul($leftSide, $contractsAbs), '1', $quotePrecision);
+                }
             } else {
                 // walletBalance = ($contracts * $contractSize) * (±1/entryPrice - (±1 - mmp) / $liquidationPrice)
                 $onePlusMaintenanceMarginPercentageString = null;
@@ -4753,7 +4756,9 @@ class binance extends Exchange {
                 $leftSide = Precise::string_mul($contractsAbs, $contractSizeString);
                 $rightSide = Precise::string_sub(Precise::string_div('1', $entryPriceSignString), Precise::string_div($onePlusMaintenanceMarginPercentageString, $liquidationPriceString));
                 $basePrecision = $this->safe_integer($precision, 'base');
-                $collateralString = Precise::string_div(Precise::string_mul($leftSide, $rightSide), '1', $basePrecision);
+                if ($basePrecision !== null) {
+                    $collateralString = Precise::string_div(Precise::string_mul($leftSide, $rightSide), '1', $basePrecision);
+                }
             }
         } else {
             $collateralString = $this->safe_string($position, 'isolatedMargin');
