@@ -490,9 +490,9 @@ module.exports = class mexc extends ccxt.mexc {
         } else {
             trades = [ data ];
         }
-        const parsedTrades = this.parseTrades (trades, market);
-        for (let j = 0; j < parsedTrades.length; j++) {
-            stored.append (parsedTrades[j]);
+        for (let j = 0; j < trades.length; j++) {
+            const parsedTrade = this.parseWsTrade (trades[j], market);
+            stored.append (parsedTrade);
         }
         const messageHash = 'trades' + ':' + symbol;
         client.resolve (stored, messageHash);
@@ -565,9 +565,29 @@ module.exports = class mexc extends ccxt.mexc {
 
     parseWsTrade (trade, market = undefined) {
         //
+        // public spot
+        //    {
+        //       "t":1651227552839,
+        //       "p":"39190.01",
+        //       "q":"0.001357",
+        //       "T":2
+        //    }
+        //
+        // public swap
+        //
+        //   {
+        //     "M":1,
+        //     "O":1,
+        //     "T":1,
+        //     "p":6866.5,
+        //     "t":1587442049632,
+        //     "v":2096
+        //   },
+        //
+        // private swap
         //   {
         //       category: 1,
-        //       fee: 0.00060288,
+        //       fee: 0.00060288,2
         //       feeCurrency: 'USDT',
         //       id: '311655369',
         //       isSelf: false,
@@ -582,16 +602,27 @@ module.exports = class mexc extends ccxt.mexc {
         //       vol: 1
         //   }
         //
-        const timestamp = this.safeInteger (trade, 'timestamp');
+        const timestamp = this.safeInteger2 (trade, 'timestamp', 't');
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market, '_');
         const symbol = market['symbol'];
-        const priceString = this.safeString (trade, 'price');
-        const amountString = this.safeString (trade, 'vol');
-        const costString = this.safeString (trade, 'amount');
-        const rawSide = this.safeString (trade, 'side');
-        const side = this.parseSwapSide (rawSide);
-        const id = this.safeString2 (trade, 'id');
+        const priceString = this.safeString2 (trade, 'price', 'p');
+        let amountString = this.safeString2 (trade, 'vol', 'q');
+        if (amountString === undefined) {
+            amountString = this.safeString (trade, 'v');
+        }
+        let rawSide = this.safeString (trade, 'T');
+        let side = undefined;
+        if (rawSide === undefined) {
+            rawSide = this.safeString (trade, 'side');
+            side = this.parseSwapSide (rawSide);
+        } else {
+            side = (rawSide === '1') ? 'buy' : 'sell';
+        }
+        let id = this.safeString2 (trade, 'id');
+        if (id === undefined) {
+            id = timestamp.toString () + '-' + market['id'] + '-' + amountString;
+        }
         const feeCostString = this.safeString (trade, 'fee');
         let fee = undefined;
         if (feeCostString !== undefined) {
@@ -617,7 +648,7 @@ module.exports = class mexc extends ccxt.mexc {
             'takerOrMaker': takerOrMaker,
             'price': priceString,
             'amount': amountString,
-            'cost': costString,
+            'cost': undefined,
             'fee': fee,
         }, market);
     }
@@ -875,7 +906,7 @@ module.exports = class mexc extends ccxt.mexc {
             '3': 'open short',
             '4': 'close long',
         };
-        return this.safeString (sides, side, side);
+        return this.safeString (sides, side);
     }
 
     parseWsOrderStatus (status, market = undefined) {
