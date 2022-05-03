@@ -61,6 +61,7 @@ class coinex(Exchange):
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
                 'setLeverage': True,
+                'setMarginMode': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -2459,6 +2460,38 @@ class coinex(Exchange):
             'marginRatio': None,
         }
 
+    async def set_margin_mode(self, marginType, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
+        marginType = marginType.lower()
+        if marginType != 'isolated' and marginType != 'cross':
+            raise BadRequest(self.id + ' setMarginMode() marginType argument should be isolated or cross')
+        await self.load_markets()
+        market = self.market(symbol)
+        if market['type'] != 'swap':
+            raise BadSymbol(self.id + ' setMarginMode() supports swap contracts only')
+        defaultMarginType = self.safe_string_2(self.options, 'defaultMarginType', marginType)
+        defaultPositionType = None
+        if defaultMarginType == 'isolated':
+            defaultPositionType = 1
+        elif defaultMarginType == 'cross':
+            defaultPositionType = 2
+        leverage = self.safe_integer(params, 'leverage')
+        maxLeverage = self.safe_integer(market['limits']['leverage'], 'max', 100)
+        positionType = self.safe_integer(params, 'position_type', defaultPositionType)
+        if leverage is None:
+            raise ArgumentsRequired(self.id + ' setMarginMode() requires a leverage parameter')
+        if positionType is None:
+            raise ArgumentsRequired(self.id + ' setMarginMode() requires a position_type parameter that will transfer margin to the specified trading pair')
+        if (leverage < 3) or (leverage > maxLeverage):
+            raise BadRequest(self.id + ' setMarginMode() leverage should be between 3 and ' + str(maxLeverage) + ' for ' + symbol)
+        request = {
+            'market': market['id'],
+            'leverage': str(leverage),
+            'position_type': positionType,  # 1: isolated, 2: cross
+        }
+        return await self.perpetualPrivatePostMarketAdjustLeverage(self.extend(request, params))
+
     async def set_leverage(self, leverage, symbol=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
@@ -2477,7 +2510,7 @@ class coinex(Exchange):
         if market['type'] != 'swap':
             raise BadSymbol(self.id + ' setLeverage() supports swap contracts only')
         if (leverage < 3) or (leverage > maxLeverage):
-            raise BadRequest(self.id + ' setLeverage() leverage should be between 1 and ' + str(maxLeverage) + ' for ' + symbol)
+            raise BadRequest(self.id + ' setLeverage() leverage should be between 3 and ' + str(maxLeverage) + ' for ' + symbol)
         request = {
             'market': market['id'],
             'leverage': str(leverage),

@@ -1061,12 +1061,12 @@ class zonda(Exchange):
         request = {
             'symbol': tradingSymbol,
             'offerType': side,
-            'amount': amount,
+            'amount': float(self.amount_to_precision(symbol, amount)),
             'mode': type,
         }
         if type == 'limit':
             request['rate'] = price
-            price = float(price)
+            price = float(self.price_to_precision(symbol, price))
         amount = float(amount)
         response = self.v1_01PrivatePostTradingOfferSymbol(self.extend(request, params))
         #

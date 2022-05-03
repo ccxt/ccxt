@@ -55,6 +55,7 @@ class coinex extends Exchange {
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
                 'setLeverage' => true,
+                'setMarginMode' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -2560,6 +2561,46 @@ class coinex extends Exchange {
         );
     }
 
+    public function set_margin_mode($marginType, $symbol = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
+        }
+        $marginType = strtolower($marginType);
+        if ($marginType !== 'isolated' && $marginType !== 'cross') {
+            throw new BadRequest($this->id . ' setMarginMode() $marginType argument should be isolated or cross');
+        }
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if ($market['type'] !== 'swap') {
+            throw new BadSymbol($this->id . ' setMarginMode() supports swap contracts only');
+        }
+        $defaultMarginType = $this->safe_string_2($this->options, 'defaultMarginType', $marginType);
+        $defaultPositionType = null;
+        if ($defaultMarginType === 'isolated') {
+            $defaultPositionType = 1;
+        } else if ($defaultMarginType === 'cross') {
+            $defaultPositionType = 2;
+        }
+        $leverage = $this->safe_integer($params, 'leverage');
+        $maxLeverage = $this->safe_integer($market['limits']['leverage'], 'max', 100);
+        $positionType = $this->safe_integer($params, 'position_type', $defaultPositionType);
+        if ($leverage === null) {
+            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $leverage parameter');
+        }
+        if ($positionType === null) {
+            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a position_type parameter that will transfer margin to the specified trading pair');
+        }
+        if (($leverage < 3) || ($leverage > $maxLeverage)) {
+            throw new BadRequest($this->id . ' setMarginMode() $leverage should be between 3 and ' . (string) $maxLeverage . ' for ' . $symbol);
+        }
+        $request = array(
+            'market' => $market['id'],
+            'leverage' => (string) $leverage,
+            'position_type' => $positionType, // 1 => isolated, 2 => cross
+        );
+        return $this->perpetualPrivatePostMarketAdjustLeverage (array_merge($request, $params));
+    }
+
     public function set_leverage($leverage, $symbol = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
@@ -2582,7 +2623,7 @@ class coinex extends Exchange {
             throw new BadSymbol($this->id . ' setLeverage() supports swap contracts only');
         }
         if (($leverage < 3) || ($leverage > $maxLeverage)) {
-            throw new BadRequest($this->id . ' setLeverage() $leverage should be between 1 and ' . (string) $maxLeverage . ' for ' . $symbol);
+            throw new BadRequest($this->id . ' setLeverage() $leverage should be between 3 and ' . (string) $maxLeverage . ' for ' . $symbol);
         }
         $request = array(
             'market' => $market['id'],

@@ -1084,12 +1084,12 @@ class zonda extends Exchange {
         $request = array(
             'symbol' => $tradingSymbol,
             'offerType' => $side,
-            'amount' => $amount,
+            'amount' => floatval($this->amount_to_precision($symbol, $amount)),
             'mode' => $type,
         );
         if ($type === 'limit') {
             $request['rate'] = $price;
-            $price = floatval($price);
+            $price = floatval($this->price_to_precision($symbol, $price));
         }
         $amount = floatval($amount);
         $response = yield $this->v1_01PrivatePostTradingOfferSymbol (array_merge($request, $params));
