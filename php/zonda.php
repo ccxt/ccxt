@@ -1081,17 +1081,17 @@ class zonda extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $tradingSymbol = $market['baseId'] . '-' . $market['quoteId'];
+        $amount = floatval($this->amount_to_precision($symbol, $amount));
         $request = array(
             'symbol' => $tradingSymbol,
             'offerType' => $side,
-            'amount' => floatval($this->amount_to_precision($symbol, $amount)),
+            'amount' => $amount,
             'mode' => $type,
         );
         if ($type === 'limit') {
             $request['rate'] = $price;
             $price = floatval($this->price_to_precision($symbol, $price));
         }
-        $amount = floatval($amount);
         $response = $this->v1_01PrivatePostTradingOfferSymbol (array_merge($request, $params));
         //
         // unfilled (open order)
