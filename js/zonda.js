@@ -1079,17 +1079,17 @@ module.exports = class zonda extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const tradingSymbol = market['baseId'] + '-' + market['quoteId'];
+        amount = parseFloat (this.amountToPrecision (symbol, amount));
         const request = {
             'symbol': tradingSymbol,
             'offerType': side,
-            'amount': parseFloat (this.amountToPrecision (symbol, amount)),
+            'amount': amount,
             'mode': type,
         };
         if (type === 'limit') {
             request['rate'] = price;
             price = parseFloat (this.priceToPrecision (symbol, price));
         }
-        amount = parseFloat (amount);
         const response = await this.v1_01PrivatePostTradingOfferSymbol (this.extend (request, params));
         //
         // unfilled (open order)
