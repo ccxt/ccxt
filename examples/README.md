@@ -152,6 +152,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 [Cryptocurrencies and APIs](https://jonc.dev/cryptocurrency) – A presentation given to kick off the Bloomberg cryptocurrency hackathon and as a Recurse Center talk.
 
+[How to use CCXT to algo trade](https://www.youtube.com/watch?v=3EQsDdjZTlc) – An easy to watch video tutorial on how to use CCXT for algotrading.
+
 [Perform Currency Conversions And Get Bitcoin Prices In Python](http://www.maxpython.com/packages/perform-currency-conversions-and-get-bitcoin-prices-in-python.php) – an article showing how to use CCXT to get exchange rates, Bitcoin prices and perform currency conversions.
 
 [Using Apache Airflow ETL to fetch and analyze BTC data](https://itnext.io/using-apache-airflow-etl-to-fetch-and-analyze-btc-data-1adab96c410c) – how to use CCXT with Apache Airflow ETL for Bitcoin pricing data analysis.
