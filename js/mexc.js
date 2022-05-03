@@ -1113,7 +1113,7 @@ module.exports = class mexc extends ccxt.mexc {
         //         "ts":1587442022003
         //     }
         //
-        //     swap ticker
+        // swap ticker
         //     {
         //         channel: 'push.ticker',
         //         data: {
@@ -1171,6 +1171,7 @@ module.exports = class mexc extends ccxt.mexc {
         //        },
         //        "channel":"push.deal"
         //     }
+        //
         // spot order
         //     {
         //         symbol: 'LTC_USDT',
