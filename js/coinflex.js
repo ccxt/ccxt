@@ -1706,7 +1706,7 @@ module.exports = class coinflex extends Exchange {
             const datetime = this.ymdhms (this.milliseconds (), 'T');
             const auth = datetime + '\n' + nonce + '\n' + method + '\n' + this.options['baseApiDomain'] + '\n' + '/' + finalPath + '\n' + encodedParams;
             if (method === 'POST') {
-                body = (query);
+                body = this.json (query);
             }
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
             headers['Content-Type'] = 'application/json';
