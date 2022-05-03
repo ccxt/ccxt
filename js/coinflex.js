@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadRequest, InvalidOrder, ArgumentsRequired } = require ('./base/errors');
+const { ExchangeError, BadRequest, InvalidOrder, OrderNotFound, ArgumentsRequired, InsufficientFunds } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -31,13 +31,13 @@ module.exports = class coinflex extends Exchange {
                 'cancelOrder': undefined,
                 'cancelOrders': undefined,
                 'createDepositAddress': undefined,
-                'createLimitOrder': undefined,
-                'createMarketOrder': undefined,
-                'createOrder': undefined,
+                'createLimitOrder': true,
+                'createMarketOrder': true,
+                'createOrder': true,
                 'createPostOnlyOrder': undefined,
-                'createStopLimitOrder': undefined,
-                'createStopMarketOrder': undefined,
-                'createStopOrder': undefined,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
                 'editOrder': 'emulated',
                 'fetchAccounts': true,
                 'fetchBalance': true,
@@ -47,7 +47,7 @@ module.exports = class coinflex extends Exchange {
                 'fetchBorrowRateHistory': undefined,
                 'fetchBorrowRates': undefined,
                 'fetchBorrowRatesPerSymbol': undefined,
-                'fetchCanceledOrders': undefined,
+                'fetchCanceledOrders': false,
                 'fetchClosedOrder': undefined,
                 'fetchClosedOrders': false,
                 'fetchCurrencies': true,
@@ -74,7 +74,7 @@ module.exports = class coinflex extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': true,
-                'fetchOrder': undefined,
+                'fetchOrder': true, // or maybe emulated, actually getting it from fetchOrders
                 'fetchOrderBook': true,
                 'fetchOrderBooks': undefined,
                 'fetchOrders': true,
@@ -256,8 +256,12 @@ module.exports = class coinflex extends Exchange {
             'exceptions': {
                 'exact': {
                     '40001': BadRequest,
+                    '710003': InvalidOrder,
+                    '710006': InsufficientFunds,
                 },
                 'broad': {
+                    'sanity bound check as price': InvalidOrder,
+                    'balance check as balance': InsufficientFunds, // "FAILED balance check as balance (0.8037741278120500) < value (5.20000)"
                 },
             },
         });
@@ -749,6 +753,10 @@ module.exports = class coinflex extends Exchange {
 
     parseOrderStatus (status) {
         const statuses = {
+            // createOrder
+            'OPEN': 'open',
+            'FILLED': 'closed',
+            // fetchOrders
             'OrderOpened': 'open',
             'OrderMatched': 'closed',
             'OrderClosed': 'canceled',
@@ -1084,6 +1092,21 @@ module.exports = class coinflex extends Exchange {
         return this.safeBalance (result);
     }
 
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
+        }
+        const request = {
+            'orderId': id,
+        };
+        const results = await this.fetchOrders (symbol, undefined, undefined, this.extend (request, params));
+        const order = this.safeValue (results, 0);
+        if (order === undefined) {
+            throw new OrderNotFound (this.id + ' order ' + id + ' not found');
+        }
+        return order;
+    }
+
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {};
@@ -1228,10 +1251,36 @@ module.exports = class coinflex extends Exchange {
         //         "remainingQuantity": "400575.0",
         //      }
         //
+        // createOrder
+        //
+        //     {
+        //         "success": "true",
+        //         "timestamp": "1651620006856",
+        //         "clientOrderId": "1651620006827000",
+        //         "orderId": "1002124426084",
+        //         "price": "0.65",
+        //         "quantity": "8.0",
+        //         "side": "BUY",
+        //         "status": "FILLED", // OPEN, FILLED
+        //         "marketCode": "XRP-USD",
+        //         "timeInForce": "GTC",
+        //         "matchId": "5636974433720947783", // zero if not filled
+        //         "lastTradedPrice": "0.6028", // field not present if order doesn't have any fills
+        //         "matchQuantity": "8.0", // field not present if order doesn't have any fills
+        //         "orderMatchType": "TAKER", // field not present if order doesn't have any fills
+        //         "remainQuantity": "0.0", // field not present if order doesn't have any fills
+        //         "notice": "OrderMatched",
+        //         "orderType": "LIMIT",
+        //         "fees": "0.003857920", // field not present if order doesn't have any fills
+        //         "feeInstrumentId": "USD", // field not present if order doesn't have any fills
+        //         "isTriggered": "false"
+        //     }
+        //
         const marketId = this.safeString (order, 'marketCode');
         market = this.safeMarket (marketId, market);
+        const isCreateOrder = 'timestamp' in order;
         const symbol = market['symbol'];
-        const timestamp = this.safeInteger (order, 'orderCreated');
+        const timestamp = this.safeInteger2 (order, 'timestamp', 'orderCreated');
         const orderId = this.safeString (order, 'orderId');
         const clientOrderId = this.safeString (order, 'clientOrderId');
         const statusRaw = this.safeString (order, 'status');
@@ -1240,11 +1289,22 @@ module.exports = class coinflex extends Exchange {
         const side = this.parseOrderSide (sideRaw);
         const orderTypeRaw = this.safeString (order, 'orderType');
         const orderType = this.parseOrderType (orderTypeRaw);
-        const filledQuantityRaw = this.safeString (order, 'filledQuantity');
+        let filledQuantityRaw = this.safeString (order, 'filledQuantity');
+        if (isCreateOrder) {
+            filledQuantityRaw = this.safeString (order, 'matchQuantity', '0');
+        }
         const avgPriceRaw = this.safeString (order, 'avgFillPrice');
         const timeInForceRaw = this.safeString (order, 'timeInForce');
         const timeInForce = this.parseTimeInForce (timeInForceRaw);
-        let trades = this.safeValue (order, 'matchIds', []);
+        const price = this.safeString (order, 'price');
+        const limitPrice = this.safeString (order, 'limitPrice');
+        let finalLimitPrice = undefined;
+        if (isCreateOrder) {
+            finalLimitPrice = price;
+        } else {
+            finalLimitPrice = limitPrice;
+        }
+        let trades = this.safeValue (order, 'matchIds');
         if (trades !== undefined) {
             trades = this.parseTrades (trades, market);
         }
@@ -1255,13 +1315,20 @@ module.exports = class coinflex extends Exchange {
         const feesRaw = this.safeValue (order, 'fees');
         let fees = undefined;
         if (feesRaw !== undefined) {
-            const feeKeys = Object.keys (feesRaw);
-            if (feeKeys.length > 0) {
-                const firstKey = feeKeys[0];
+            if (isCreateOrder) {
                 fees = {
-                    'currency': firstKey,
-                    'fee': feesRaw[firstKey],
+                    'currency': this.safeString (order, 'feeInstrumentId'),
+                    'fee': this.safeString (order, 'fees'),
                 };
+            } else {
+                const feeKeys = Object.keys (feesRaw);
+                if (feeKeys.length > 0) {
+                    const firstKey = feeKeys[0];
+                    fees = {
+                        'currency': firstKey,
+                        'fee': feesRaw[firstKey],
+                    };
+                }
             }
         }
         return this.safeOrder ({
@@ -1275,7 +1342,7 @@ module.exports = class coinflex extends Exchange {
             'postOnly': timeInForce === 'PO',
             'status': status,
             'side': side,
-            'price': this.safeNumber (order, 'limitPrice'),
+            'price': finalLimitPrice,
             'type': orderType,
             'stopPrice': this.safeNumber (order, 'stopPrice'),
             'amount': this.safeNumber (order, 'quantity'),
@@ -1672,22 +1739,63 @@ module.exports = class coinflex extends Exchange {
         const response = await this.privatePostV2OrdersPlace (this.extend (request, params));
         //
         //     {
-        //         "result":[
-        //             {
-        //                 "result": "100055558128036", // order id
-        //                 "index": 12345, // random index, specific one in a batch
-        //                 "cmd":"orderpending/trade"
-        //             }
+        //         "event": "placeOrder",
+        //         "timestamp": "1651619029297",
+        //         "accountId": "38420",
+        //         "data": [
+        //           {
+        //             "success": "true",
+        //             "timestamp": "1651620006856",
+        //             "clientOrderId": "1651620006827000",
+        //             "orderId": "1002124426084",
+        //             "price": "0.65",
+        //             "quantity": "8.0",
+        //             "side": "BUY",
+        //             "status": "FILLED", // OPEN, FILLED
+        //             "marketCode": "XRP-USD",
+        //             "timeInForce": "GTC",
+        //             "matchId": "5636974433720947783", // zero if not filled
+        //             "lastTradedPrice": "0.6028", // field not present if order doesn't have any fills
+        //             "matchQuantity": "8.0", // field not present if order doesn't have any fills
+        //             "orderMatchType": "TAKER", // field not present if order doesn't have any fills
+        //             "remainQuantity": "0.0", // field not present if order doesn't have any fills
+        //             "notice": "OrderMatched",
+        //             "orderType": "LIMIT",
+        //             "fees": "0.003857920", // field not present if order doesn't have any fills
+        //             "feeInstrumentId": "USD", // field not present if order doesn't have any fills
+        //             "isTriggered": "false"
+        //           }
         //         ]
         //     }
         //
-        const outerResults = this.safeValue (response, 'result');
-        const firstResult = this.safeValue (outerResults, 0, {});
-        const id = this.safeValue (firstResult, 'result');
-        return {
-            'info': response,
-            'id': id,
-        };
+        // Note, for failed order, the order-object might be like:
+        //
+        //     {
+        //          "success": "false",
+        //          "timestamp": "1651619029297",
+        //          "code": "710003",
+        //          "message": "FAILED sanity bound check as price (4.000) >  upper bound (3.439)",
+        //          "clientOrderId": "1651619024219000",
+        //          "price": "4.000",
+        //          "quantity": "3.0",
+        //          "side": "BUY",
+        //          "marketCode": "BAND-USD",
+        //          "timeInForce": "GTC",
+        //          "orderType": "LIMIT"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const firstResult = this.safeValue (data, 0, {});
+        const success = this.safeValue (firstResult, 'success');
+        if (success === 'false') {
+            const message = this.safeString (firstResult, 'message');
+            const code = this.safeString (firstResult, 'code');
+            const body = this.id + ' ' + this.json (response);
+            this.throwExactlyMatchedException (this.exceptions['exact'], code, body);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, body);
+            throw new ExchangeError (body);
+        }
+        return this.parseOrder (firstResult, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -1695,7 +1803,7 @@ module.exports = class coinflex extends Exchange {
         let url = this.urls['api'][api] + '/' + finalPath;
         let encodedParams = '';
         if (Object.keys (query).length) {
-            encodedParams = this.urlencodeNested (query);
+            encodedParams = this.urlencode (query);
             if (method === 'GET') {
                 url += '?' + encodedParams;
             }
@@ -1704,11 +1812,16 @@ module.exports = class coinflex extends Exchange {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ();
             const datetime = this.ymdhms (this.milliseconds (), 'T');
-            const auth = datetime + '\n' + nonce + '\n' + method + '\n' + this.options['baseApiDomain'] + '\n' + '/' + finalPath + '\n' + encodedParams;
+            let auth = datetime + '\n' + nonce + '\n' + method + '\n' + this.options['baseApiDomain'] + '\n' + '/' + finalPath + '\n';
             if (method === 'POST') {
-                body = this.json (query);
+                const jsonified = this.json (query);
+                auth += jsonified;
+                body = jsonified;
+            } else {
+                auth += encodedParams;
             }
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
+            headers = {};
             headers['Content-Type'] = 'application/json';
             headers['AccessKey'] = this.apiKey;
             headers['Timestamp'] = datetime;
