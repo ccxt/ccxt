@@ -419,7 +419,6 @@ class gateio extends Exchange {
                     'delivery' => 'delivery',
                 ),
                 'defaultType' => 'spot',
-                'defaultMarginType' => 'isolated',
                 'swap' => array(
                     'fetchMarkets' => array(
                         'settlementCurrencies' => array( 'usdt', 'btc' ),
@@ -1106,6 +1105,36 @@ class gateio extends Exchange {
                 );
             }
         }
+    }
+
+    public function get_margin_type($stop, $params) {
+        /**
+         * @ignore
+         * Gets the margin type for this api call
+         * @param {bool} $stop True if for a $stop order
+         * @param {dict} $params Request $params
+         * @return The $marginType and the updated request $params with $marginType removed, $marginType value is the value that can be read by the "account" property specified in gateios api docs
+         */
+        $defaultMarginType = $this->safe_string_lower_2($this->options, 'defaultMarginType', 'marginType', 'spot'); // 'margin' is isolated margin on gateio's api
+        $marginType = $this->safe_string_lower_2($params, 'marginType', 'account', $defaultMarginType);
+        $params = $this->omit($params, array( 'marginType' ));
+        if ($marginType === 'cross') {
+            $marginType = 'cross_margin';
+        } else if ($marginType === 'isolated') {
+            $marginType = 'margin';
+        } else if ($marginType === '') {
+            $marginType = 'spot';
+        }
+        if ($stop) {
+            if ($marginType === 'spot') {
+                $marginType = 'normal';
+                // gateio spot and margin $stop orders use the term normal instead of spot
+            }
+            if ($marginType === 'cross_margin') {
+                throw new BadRequest($this->id . ' createOrder does not support $stop orders for cross margin');
+            }
+        }
+        return array( $marginType, $params );
     }
 
     public function get_settlement_currencies($type, $method) {
@@ -1855,43 +1884,53 @@ class gateio extends Exchange {
 
     public function fetch_balance($params = array ()) {
         /**
-         * @param $params exchange specific parameters
-         * @param $params->type spot, $margin, $swap or $future, if not provided $this->options['defaultType'] is used
-         * @param $params->settle 'btc' or 'usdt' - settle currency for perpetual $swap and $future - default="usdt" for $swap and "btc" for $future
-         * @param $params->marginType 'cross' or 'isolated' - $marginType for $type='margin' default='isolated'
+         * @param {dict} $params exchange specific parameters
+         * @param {str} $params->type $spot, $margin, $swap or $future, if not provided $this->options['defaultType'] is used
+         * @param {str} $params->settle 'btc' or 'usdt' - $settle currency for perpetual $swap and $future - default="usdt" for $swap and "btc" for $future
+         * @param {str} $params->marginType 'cross' or 'isolated' - $marginType for $margin trading if not provided $this->options['defaultMarginType'] is used
+         * @param {str} $params->symbol $margin only - unified ccxt $symbol
          */
         $this->load_markets();
         $type = null;
-        $method = null;
+        $marginType = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
-        if ($type === 'margin') {
-            $defaultMarginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', 'isolated');
-            $marginType = $this->safe_string($params, 'marginType', $defaultMarginType);
-            $params = $this->omit($params, 'marginType');
-            if ($marginType === 'cross') {
-                $method = 'privateMarginGetCrossAccounts';
-            } else {
-                $method = 'privateMarginGetAccounts';
-            }
-        } else {
-            $method = $this->get_supported_mapping($type, array(
-                'spot' => 'privateSpotGetAccounts',
-                'funding' => 'privateMarginGetFundingAccounts',
-                'swap' => 'privateFuturesGetSettleAccounts',
-                'future' => 'privateDeliveryGetSettleAccounts',
-            ));
-        }
+        $spot = $type === 'spot';
         $swap = $type === 'swap';
         $future = $type === 'future';
+        $contract = $swap || $future;
         $request = array();
-        $response = array();
-        if ($swap || $future) {
+        if ($contract) {
             $defaultSettle = $swap ? 'usdt' : 'btc';
-            $request['settle'] = $this->safe_string_lower($params, 'settle', $defaultSettle);
-            $response_item = $this->$method (array_merge($request, $params));
-            $response = array( $response_item );
+            $settle = $this->safe_string_lower($params, 'settle', $defaultSettle);
+            $params = $this->omit($params, 'settle');
+            $request['settle'] = $settle;
         } else {
-            $response = $this->$method (array_merge($request, $params));
+            list($marginType, $params) = $this->get_margin_type(false, $params);
+            $symbol = $this->safe_string($params, 'symbol');
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['currency_pair'] = $market['id'];
+            }
+        }
+        $crossMargin = $marginType === 'cross_margin';
+        $margin = $marginType === 'margin';
+        $spotMethod = 'privateSpotGetAccounts';
+        if ($spot) {
+            $spotMethod = $this->get_supported_mapping($marginType, array(
+                'spot' => 'privateSpotGetAccounts',
+                'margin' => 'privateMarginGetAccounts',
+                'cross_margin' => 'privateMarginGetCrossAccounts',
+            ));
+        }
+        $method = $this->get_supported_mapping($type, array(
+            'spot' => $spotMethod,
+            'funding' => 'privateMarginGetFundingAccounts',
+            'swap' => 'privateFuturesGetSettleAccounts',
+            'future' => 'privateDeliveryGetSettleAccounts',
+        ));
+        $response = $this->$method (array_merge($request, $params));
+        if ($contract) {
+            $response = array( $response );
         }
         // Spot / $margin funding
         //
@@ -1987,7 +2026,7 @@ class gateio extends Exchange {
         //            refr => "0",
         //            point_fee => "0",
         //            point_dnw => "0",
-        //            settle => "0",
+        //            $settle => "0",
         //            settle_fee => "0",
         //            point_refr => "0",
         //            fee => "0",
@@ -2000,7 +2039,6 @@ class gateio extends Exchange {
         //        user => "6333333",
         //    }
         //
-        $margin = $type === 'margin';
         $result = array(
             'info' => $response,
         );
@@ -2021,7 +2059,7 @@ class gateio extends Exchange {
         }
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];
-            if ($margin) {
+            if ($margin && !$crossMargin) {
                 $marketId = $this->safe_string($entry, 'currency_pair');
                 $symbol = $this->safe_symbol($marketId, null, '_');
                 $base = $this->safe_value($entry, 'base', array());
@@ -2037,7 +2075,7 @@ class gateio extends Exchange {
                 $result[$code] = $this->fetch_balance_helper($entry);
             }
         }
-        return $margin ? $result : $this->safe_balance($result);
+        return ($margin && !$crossMargin) ? $result : $this->safe_balance($result);
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
