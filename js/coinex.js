@@ -50,6 +50,7 @@ module.exports = class coinex extends Exchange {
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
                 'setLeverage': true,
+                'setMarginMode': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -2555,6 +2556,46 @@ module.exports = class coinex extends Exchange {
         };
     }
 
+    async setMarginMode (marginType, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
+        }
+        marginType = marginType.toLowerCase ();
+        if (marginType !== 'isolated' && marginType !== 'cross') {
+            throw new BadRequest (this.id + ' setMarginMode() marginType argument should be isolated or cross');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['type'] !== 'swap') {
+            throw new BadSymbol (this.id + ' setMarginMode() supports swap contracts only');
+        }
+        const defaultMarginType = this.safeString2 (this.options, 'defaultMarginType', marginType);
+        let defaultPositionType = undefined;
+        if (defaultMarginType === 'isolated') {
+            defaultPositionType = 1;
+        } else if (defaultMarginType === 'cross') {
+            defaultPositionType = 2;
+        }
+        const leverage = this.safeInteger (params, 'leverage');
+        const maxLeverage = this.safeInteger (market['limits']['leverage'], 'max', 100);
+        const positionType = this.safeInteger (params, 'position_type', defaultPositionType);
+        if (leverage === undefined) {
+            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a leverage parameter');
+        }
+        if (positionType === undefined) {
+            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a position_type parameter that will transfer margin to the specified trading pair');
+        }
+        if ((leverage < 3) || (leverage > maxLeverage)) {
+            throw new BadRequest (this.id + ' setMarginMode() leverage should be between 3 and ' + maxLeverage.toString () + ' for ' + symbol);
+        }
+        const request = {
+            'market': market['id'],
+            'leverage': leverage.toString (),
+            'position_type': positionType, // 1: isolated, 2: cross
+        };
+        return await this.perpetualPrivatePostMarketAdjustLeverage (this.extend (request, params));
+    }
+
     async setLeverage (leverage, symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
@@ -2577,7 +2618,7 @@ module.exports = class coinex extends Exchange {
             throw new BadSymbol (this.id + ' setLeverage() supports swap contracts only');
         }
         if ((leverage < 3) || (leverage > maxLeverage)) {
-            throw new BadRequest (this.id + ' setLeverage() leverage should be between 1 and ' + maxLeverage.toString () + ' for ' + symbol);
+            throw new BadRequest (this.id + ' setLeverage() leverage should be between 3 and ' + maxLeverage.toString () + ' for ' + symbol);
         }
         const request = {
             'market': market['id'],
