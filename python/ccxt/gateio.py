@@ -1119,7 +1119,7 @@ class gateio(Exchange):
                 marginType = 'normal'
                 # gateio spot and margin stop orders use the term normal instead of spot
             if marginType == 'cross_margin':
-                raise BadRequest(self.id + ' createOrder does not support stop orders for cross margin')
+                raise BadRequest(self.id + ' getMarginType() does not support stop orders for cross margin')
         return [marginType, params]
 
     def get_settlement_currencies(self, type, method):
@@ -2559,7 +2559,7 @@ class gateio(Exchange):
         :param dict params:  Extra parameters specific to the exchange API endpoint
         :param float params['stopPrice']: The price at which a trigger order is triggered at
         :param str params['timeInForce']: "GTC", "IOC", or "PO"
-        :param str params['marginType']: 'cross' or 'isolated' - marginType for type='margin', if not provided self.options['defaultMarginType'] is used
+        :param str params['marginType']: 'cross' or 'isolated' - marginType for margin trading if not provided self.options['defaultMarginType'] is used
         :param int params['iceberg']: Amount to display for the iceberg order, Null or 0 for normal orders, Set to -1 to hide the order completely
         :param str params['text']: User defined information
         :param str params['account']: *spot and margin only* "spot", "margin" or "cross_margin"
@@ -2619,16 +2619,15 @@ class gateio(Exchange):
                 if timeInForce is not None:
                     request['tif'] = timeInForce
             else:
-                options = self.safe_value(self.options, 'createOrder', {})
-                defaultAccount = self.safe_string(options, 'account', 'spot')
-                account = self.safe_string(params, 'account', defaultAccount)
+                marginType = None
+                marginType, params = self.get_margin_type(False, params)
                 params = self.omit(params, 'account')
                 # spot order
                 request = {
                     # 'text': clientOrderId,  # 't-abcdef1234567890',
                     'currency_pair': market['id'],  # filled in prepareRequest above
                     'type': type,
-                    'account': account,  # 'spot', 'margin', 'cross_margin'
+                    'account': marginType,  # 'spot', 'margin', 'cross_margin'
                     'side': side,
                     'amount': self.amount_to_precision(symbol, amount),
                     'price': self.price_to_precision(symbol, price),
@@ -2685,9 +2684,8 @@ class gateio(Exchange):
             else:
                 # spot conditional order
                 options = self.safe_value(self.options, 'createOrder', {})
-                defaultAccount = self.safe_string(options, 'account', 'normal')
-                account = self.safe_string(params, 'account', defaultAccount)
-                params = self.omit(params, 'account')
+                marginType = None
+                marginType, params = self.get_margin_type(True, params)
                 defaultExpiration = self.safe_integer(options, 'expiration')
                 expiration = self.safe_integer(params, 'expiration', defaultExpiration)
                 rule = '>=' if (side == 'buy') else '<='
@@ -2703,7 +2701,7 @@ class gateio(Exchange):
                         'side': side,
                         'price': self.price_to_precision(symbol, price),
                         'amount': self.amount_to_precision(symbol, amount),
-                        'account': account,  # normal, margin
+                        'account': marginType,
                         'time_in_force': timeInForce,  # gtc, ioc for taker only
                     },
                     'market': market['id'],

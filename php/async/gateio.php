@@ -1135,7 +1135,7 @@ class gateio extends Exchange {
                 // gateio spot and margin $stop orders use the term normal instead of spot
             }
             if ($marginType === 'cross_margin') {
-                throw new BadRequest($this->id . ' createOrder does not support $stop orders for cross margin');
+                throw new BadRequest($this->id . ' getMarginType() does not support $stop orders for cross margin');
             }
         }
         return array( $marginType, $params );
@@ -2666,7 +2666,7 @@ class gateio extends Exchange {
          * @param {dict} $params  Extra parameters specific to the exchange API endpoint
          * @param {float} $params->stopPrice The $price at which a $trigger order is triggered at
          * @param {str} $params->timeInForce "GTC", "IOC", or "PO"
-         * @param {str} $params->marginType 'cross' or 'isolated' - marginType for $type='margin', if not provided $this->options['defaultMarginType'] is used
+         * @param {str} $params->marginType 'cross' or 'isolated' - $marginType for margin trading if not provided $this->options['defaultMarginType'] is used
          * @param {int} $params->iceberg Amount to display for the iceberg order, Null or 0 for normal orders, Set to -1 to hide the order completely
          * @param {str} $params->text User defined information
          * @param {str} $params->account *spot and margin only* "spot", "margin" or "cross_margin"
@@ -2732,16 +2732,15 @@ class gateio extends Exchange {
                     $request['tif'] = $timeInForce;
                 }
             } else {
-                $options = $this->safe_value($this->options, 'createOrder', array());
-                $defaultAccount = $this->safe_string($options, 'account', 'spot');
-                $account = $this->safe_string($params, 'account', $defaultAccount);
+                $marginType = null;
+                list($marginType, $params) = $this->get_margin_type(false, $params);
                 $params = $this->omit($params, 'account');
                 // spot order
                 $request = array(
                     // 'text' => $clientOrderId, // 't-abcdef1234567890',
                     'currency_pair' => $market['id'], // filled in prepareRequest above
                     'type' => $type,
-                    'account' => $account, // 'spot', 'margin', 'cross_margin'
+                    'account' => $marginType, // 'spot', 'margin', 'cross_margin'
                     'side' => $side,
                     'amount' => $this->amount_to_precision($symbol, $amount),
                     'price' => $this->price_to_precision($symbol, $price),
@@ -2806,9 +2805,8 @@ class gateio extends Exchange {
             } else {
                 // spot conditional order
                 $options = $this->safe_value($this->options, 'createOrder', array());
-                $defaultAccount = $this->safe_string($options, 'account', 'normal');
-                $account = $this->safe_string($params, 'account', $defaultAccount);
-                $params = $this->omit($params, 'account');
+                $marginType = null;
+                list($marginType, $params) = $this->get_margin_type(true, $params);
                 $defaultExpiration = $this->safe_integer($options, 'expiration');
                 $expiration = $this->safe_integer($params, 'expiration', $defaultExpiration);
                 $rule = ($side === 'buy') ? '>=' : '<=';
@@ -2824,7 +2822,7 @@ class gateio extends Exchange {
                         'side' => $side,
                         'price' => $this->price_to_precision($symbol, $price),
                         'amount' => $this->amount_to_precision($symbol, $amount),
-                        'account' => $account, // normal, margin
+                        'account' => $marginType,
                         'time_in_force' => $timeInForce, // gtc, ioc for taker only
                     ),
                     'market' => $market['id'],
